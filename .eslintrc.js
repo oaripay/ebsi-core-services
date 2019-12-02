@@ -11,8 +11,18 @@ module.exports = {
         "SharedArrayBuffer": "readonly"
     },
     "parserOptions": {
-        "ecmaVersion": 2018
+        "ecmaVersion": 2017
     },
     "rules": {
+        "strict": "off",
+        "no-underscore-dangle": "off",
+        "vars-on-top": "off",
+        "no-shadow": "off",
+        // "camelcase": "off",
+        "func-names": "off",
+        // "brace-style": "off",
+        "no-console": "off",
+        "max-len": "off",
+        // "no-console": "off",
     }
 };
