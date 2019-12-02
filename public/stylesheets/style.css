@@ -1,0 +1,21 @@
+body {
+    padding-top: 70px;
+    padding-bottom: 20px;
+    /*padding: 50px;*/
+    /*margin: 0px;*/
+    /*font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;*/
+}
+
+a {
+    color: #00B7FF;
+}
+
+/*.zejumbotron {
+background-image: url(/public/images/favicon.ico);
+background-size: cover;
+height: 100%;
+}*/
+
+.btn {
+	padding: 6px 2px;
+}
