@@ -19,8 +19,6 @@ See the Licence for the specific language governing permissions and limitations 
 
 ## Quick Start:
 
--launch the 3-ebsi-core-services
-https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/3-ebsi-core-services/browse/wallet?at=refs%2Fheads%2Fticket-ebsiint-183-wallet
 
 
 -Run the Notarization DApp
@@ -34,3 +32,16 @@ npm start
 ```
 
 go to http://localhost:3000
+
+
+-or using docker
+```Shell
+docker build . -t notaryimage
+```
+```Shell
+docker run -p 3000:3000 notaryimage
+```
+
+go to http://localhost:3000
+
+
