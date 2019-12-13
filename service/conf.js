@@ -6,8 +6,10 @@ const config = {
   api: 'https://api.ebsi.xyz/',
   private_key: '0x81e4b01ba124f35f521fc83ff6c11bdbf8d31b21a1765f165af09dd965fc832f',
 
-  username: 'notary',
-  password: 'notary',
+  credential : {
+        username: 'notary',
+        password: 'notary'
+    },
 
   title: 'Notary DApp'
 };
