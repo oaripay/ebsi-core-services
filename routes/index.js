@@ -3,8 +3,12 @@ var router = express.Router();
 var ecas = require('../modules/ecas/ecas');
 // var path = require('path');
 var fileProcessing = require('../service/fileProcessing');
+// var csrf = require('csurf');
+// var csrfProtection = csrf();
+// router.use(csrfProtection);
 
 
+// router.get('/', fileProcessing.getAllDocument);
 router.get('/', ecas.bounce, fileProcessing.getAllDocument);
 
 router.post('/document', fileProcessing.getDocument);

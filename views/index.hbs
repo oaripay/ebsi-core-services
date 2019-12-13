@@ -32,6 +32,7 @@
                 {{!-- <a href="https://api.ebsi.xyz/file-storage/{{{hash}}}" class="btn btn-success">Download</a> --}}
                 <form action="document" method="post" enctype="multipart/form-data">
                     <input name="hash" type="hidden" value={{{hash}}}>
+                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
                     <button type="submit" class="btn btn-success">Download</button>
                 </form>
                 <hr><br>
@@ -44,6 +45,7 @@
                         <label for="title">Document title: </label>
                         <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title">
                     </div><br>
+                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
                     <input type="file" name="sampleFile" class="input-group mb-3"><br>
                     <input type="submit" class="btn btn-success">
                 </form>
@@ -58,6 +60,7 @@
                     <label for="title">Document title: </label>
                     <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title">
                 </div><br>
+                {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
                 <input type="file" name="sampleFile" class="input-group mb-3"><br>
                 <input type="submit" class="btn btn-success">
             </form>
@@ -79,6 +82,7 @@
                     Details  
                 </button>
                 <form action="document" method="post" enctype="multipart/form-data">
+                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
                     <input name="hash" type="hidden" value={{{info.hash}}}>
                     <button type="submit" class="btn btn-success">Download</button>
                 </form></p>
@@ -105,6 +109,7 @@
                 <div class="input-group mb-3">
                     <label for="title">Use document hash</label>
                     {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
+                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
                     <input type="text" name="docHash" class="input-group mb-3"><br>
                     <input type="submit" class="btn btn-success">
                 </div><br>
@@ -118,6 +123,7 @@
                 <div class="input-group mb-3">
                     <label for="title">Use document file</label>
                     {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
+                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
                     <input type="file" name="sampleFile" class="input-group mb-3"><br>
                     <input type="submit" class="btn btn-success">
                 </div><br>
@@ -130,6 +136,7 @@
                 <div class="input-group mb-3">
                     <label for="title">Use document hash</label>
                     {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
+                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
                     <input type="text" name="docHash" class="input-group mb-3"><br>
                     <input type="submit" class="btn btn-success">
                 </div><br>
@@ -143,6 +150,7 @@
                 <div class="input-group mb-3">
                     <label for="title">Use document file</label>
                     {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
+                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
                     <input type="file" name="sampleFile" class="input-group mb-3"><br>
                     <input type="submit" class="btn btn-success">
                 </div><br>

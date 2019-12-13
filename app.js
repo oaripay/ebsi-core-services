@@ -6,12 +6,28 @@ var logger = require('morgan');
 var expressHbs = require('express-handlebars');
 var session = require('express-session');
 
+
+require('dotenv').config();
+
 var indexRouter = require('./routes/index');
 var userRouter = require('./routes/user');
 var loginRouter = require('./routes/login');
 var logoutRouter = require('./routes/logout');
+var mongoose = require('mongoose');
+var MongoStore = require('connect-mongo')(session);
+
 
 var app = express();
+
+
+var host = process.env.HOST || 'localhost';
+var mongoConf = 'mongodb://' + host + ':27017/notarydapp';
+
+
+mongoose.connect(mongoConf, { useUnifiedTopology: true, useNewUrlParser: true }, function (err) {
+  if (err) throw err;
+  console.log('connected with mongoDb');
+});
 
 // view engine setup
 app.engine('.hbs', expressHbs({ defaultLayout: 'layout', extname: '.hbs' }));
@@ -26,7 +42,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
   secret: 'thatsareallysecretkey',
   resave: false,
-  saveUninitialized: true
+  saveUninitialized: true,
+  store: new MongoStore({ mongooseConnection: mongoose.connection })
+
 }));
 app.use('/public', express.static('public'));
 app.use(fileUpload());
@@ -55,6 +73,7 @@ app.use((err, req, res) => {
   res.status(err.status || 500);
   res.render('./layouts/error');
 });
+
 
 
 module.exports = app;
