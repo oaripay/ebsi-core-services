@@ -1,0 +1,16 @@
+{
+  "name": "TrustedAppRegister",
+  "version": "1.0.0",
+  "description": "",
+  "main": "truffle-config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^4.2.0",
+    "openzeppelin-test-helpers": "^0.5.1",
+    "truffle-hdwallet-provider": "^1.0.17"
+  }
+}
