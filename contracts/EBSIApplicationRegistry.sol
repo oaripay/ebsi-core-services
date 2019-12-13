@@ -1,4 +1,7 @@
 pragma solidity ^0.5.9;
+pragma experimental ABIEncoderV2;
+
+
 
 import "./roles/roles/Ownable.sol";
 
@@ -72,21 +75,21 @@ contract EBSIApplicationRegistry is Ownable {
     function getAuthorizedApps (string calldata applicationName)
     external
     view
+    returns (string[] memory, bool[] memory)
     {
         bytes32 appName = keccak256(abi.encodePacked(applicationName));
         require (registry[appName].appCode != '', 'Application does not exist');
+        string[] memory authList;
+        bool[] memory statusList;
 
 
 
         for (uint256 i = 0; i < mappingAuthList[appName].length; i++)
         {
-
+            authList[i] = registry[appName].authList[mappingAuthList[appName][i]].authName;
+            statusList[i] = registry[appName].authList[mappingAuthList[appName][i]].status;
         }
-
+        return (authList, statusList);
     }
-
-
-
-
 
 }
