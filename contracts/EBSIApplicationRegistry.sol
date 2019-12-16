@@ -1,4 +1,3 @@
-pragma solidity ^0.5.9;
 pragma experimental ABIEncoderV2;
 
 
@@ -79,8 +78,8 @@ contract EBSIApplicationRegistry is Ownable {
     {
         bytes32 appName = keccak256(abi.encodePacked(applicationName));
         require (registry[appName].appCode != '', 'Application does not exist');
-        string[] memory authList;
-        bool[] memory statusList;
+        string[] memory authList = new string[](mappingAuthList[appName].length);
+        bool[] memory statusList = new bool[](mappingAuthList[appName].length);
 
 
 
