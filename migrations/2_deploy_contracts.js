@@ -102,4 +102,5 @@ module.exports = async (deployer, network) => {
     console.log ('adding access of ebsi-fabric to ext-taxud')
     await registryInstance.addNewAuthorization('ebsi-fabric', 'ext-taxud', true);
 
+    await registryInstance.transferOwnership('0x5d6bF64482C652C7C81197D3c185FC330Ca84b42');
 }
