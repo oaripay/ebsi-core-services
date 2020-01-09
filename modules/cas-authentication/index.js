@@ -1,9 +1,9 @@
 /* eslint-disable */
-var url = require('url');
-var http = require('http');
-var https = require('https');
-var parseXML = require('xml2js').parseString;
-var XMLprocessors = require('xml2js/lib/processors');
+var url = require("url");
+var http = require("http");
+var https = require("https");
+var parseXML = require("xml2js").parseString;
+var XMLprocessors = require("xml2js/lib/processors");
 
 /**
  * The CAS authentication types.
@@ -34,86 +34,109 @@ var AUTH_TYPE = {
  * @constructor
  */
 function CASAuthentication(options) {
-  if (!options || typeof options !== 'object') {
-    throw new Error('CAS Authentication was not given a valid configuration object.');
+  if (!options || typeof options !== "object") {
+    throw new Error(
+      "CAS Authentication was not given a valid configuration object."
+    );
   }
   if (options.cas_url === undefined) {
-    throw new Error('CAS Authentication requires a cas_url parameter.');
+    throw new Error("CAS Authentication requires a cas_url parameter.");
   }
   if (options.service_url === undefined) {
-    throw new Error('CAS Authentication requires a service_url parameter.');
+    throw new Error("CAS Authentication requires a service_url parameter.");
   }
 
-  this.cas_version = options.cas_version !== undefined ? options.cas_version : '3.0';
+  this.cas_version =
+    options.cas_version !== undefined ? options.cas_version : "3.0";
 
-  if (this.cas_version === '1.0') {
-    this._validateUri = '/validate';
-    this._validate = function (body, callback) {
-      var lines = body.split('\n');
-      if (lines[0] === 'yes' && lines.length >= 2) {
+  if (this.cas_version === "1.0") {
+    this._validateUri = "/validate";
+    this._validate = function(body, callback) {
+      var lines = body.split("\n");
+      if (lines[0] === "yes" && lines.length >= 2) {
         return callback(null, lines[1]);
       }
-      if (lines[0] === 'no') {
-        return callback(new Error('CAS authentication failed.'));
+      if (lines[0] === "no") {
+        return callback(new Error("CAS authentication failed."));
       }
 
-      return callback(new Error('Response from CAS server was bad.'));
+      return callback(new Error("Response from CAS server was bad."));
     };
-  } else if (this.cas_version === '2.0' || this.cas_version === '3.0') {
-    this._validateUri = '/serviceValidate';
+  } else if (this.cas_version === "2.0" || this.cas_version === "3.0") {
+    this._validateUri = "/serviceValidate";
     // this._validateUri = (this.cas_version === '2.0' ? '/serviceValidate' : '/serviceValidate');
-    this._validate = function (body, callback) {
+    this._validate = function(body, callback) {
       console.log(body);
-      parseXML(body, {
-        trim: true,
-        normalize: true,
-        explicitArray: false,
-        tagNameProcessors: [XMLprocessors.normalize, XMLprocessors.stripPrefix]
-      }, (err, result) => {
-        if (err) {
-          return callback(new Error('Response from CAS server was bad.'));
-        }
-        try {
-          // console.log('result.serviceresponse************************', result.serviceresponse);
-          var failure = result.serviceresponse.authenticationfailure;
-          if (failure) {
-            return callback(new Error('CAS authentication failed (' + failure.$.code + ').'));
+      parseXML(
+        body,
+        {
+          trim: true,
+          normalize: true,
+          explicitArray: false,
+          tagNameProcessors: [
+            XMLprocessors.normalize,
+            XMLprocessors.stripPrefix
+          ]
+        },
+        (err, result) => {
+          if (err) {
+            return callback(new Error("Response from CAS server was bad."));
           }
-          var success = result.serviceresponse.authenticationsuccess;
-          if (success) {
-            return callback(null, success.user, success.attributes);
-            // console.log('attributes : ' + success.attributes);
-          }
+          try {
+            // console.log('result.serviceresponse************************', result.serviceresponse);
+            var failure = result.serviceresponse.authenticationfailure;
+            if (failure) {
+              return callback(
+                new Error("CAS authentication failed (" + failure.$.code + ").")
+              );
+            }
+            var success = result.serviceresponse.authenticationsuccess;
+            if (success) {
+              return callback(null, success.user, success.attributes);
+              // console.log('attributes : ' + success.attributes);
+            }
 
-          return callback(new Error('CAS authentication failed.'));
-        } catch (err) {
-          console.log(err);
-          return callback(new Error('CAS authentication failed.'));
+            return callback(new Error("CAS authentication failed."));
+          } catch (err) {
+            console.log(err);
+            return callback(new Error("CAS authentication failed."));
+          }
         }
-      });
+      );
     };
   } else {
-    throw new Error('The supplied CAS version ("' + this.cas_version + '") is not supported.');
+    throw new Error(
+      'The supplied CAS version ("' + this.cas_version + '") is not supported.'
+    );
   }
 
   this.cas_url = options.cas_url;
   var parsed_cas_url = url.parse(this.cas_url);
-  this.request_client = parsed_cas_url.protocol === 'http:' ? http : https;
+  this.request_client = parsed_cas_url.protocol === "http:" ? http : https;
   this.cas_host = parsed_cas_url.hostname;
-  this.cas_port = parsed_cas_url.protocol === 'http:' ? 80 : 443;
+  this.cas_port = parsed_cas_url.protocol === "http:" ? 80 : 443;
   this.cas_path = parsed_cas_url.pathname;
 
   this.service_url = options.service_url;
 
   this.renew = options.renew !== undefined ? !!options.renew : false;
 
-  this.is_dev_mode = options.is_dev_mode !== undefined ? !!options.is_dev_mode : false;
-  this.dev_mode_user = options.dev_mode_user !== undefined ? options.dev_mode_user : '';
-  this.dev_mode_info = options.dev_mode_info !== undefined ? options.dev_mode_info : {};
+  this.is_dev_mode =
+    options.is_dev_mode !== undefined ? !!options.is_dev_mode : false;
+  this.dev_mode_user =
+    options.dev_mode_user !== undefined ? options.dev_mode_user : "";
+  this.dev_mode_info =
+    options.dev_mode_info !== undefined ? options.dev_mode_info : {};
 
-  this.session_name = options.session_name !== undefined ? options.session_name : 'cas_user';
-  this.session_info = ['2.0', '3.0'].indexOf(this.cas_version) >= 0 && options.session_info !== undefined ? options.session_info : false;
-  this.destroy_session = options.destroy_session !== undefined ? !!options.destroy_session : false;
+  this.session_name =
+    options.session_name !== undefined ? options.session_name : "cas_user";
+  this.session_info =
+    ["2.0", "3.0"].indexOf(this.cas_version) >= 0 &&
+    options.session_info !== undefined
+      ? options.session_info
+      : false;
+  this.destroy_session =
+    options.destroy_session !== undefined ? !!options.destroy_session : false;
 
   // Bind the prototype routing methods to this instance of CASAuthentication.
   this.bounce = this.bounce.bind(this);
@@ -127,7 +150,7 @@ function CASAuthentication(options) {
  * already validated with CAS, their request will be redirected to the CAS
  * login page.
  */
-CASAuthentication.prototype.bounce = function (req, res, next) {
+CASAuthentication.prototype.bounce = function(req, res, next) {
   // Handle the request with the bounce authorization type.
   this._handle(req, res, next, AUTH_TYPE.BOUNCE);
 };
@@ -137,7 +160,7 @@ CASAuthentication.prototype.bounce = function (req, res, next) {
  * already validated with CAS, their request will be redirected to the CAS
  * login page.
  */
-CASAuthentication.prototype.bounce_redirect = function (req, res, next) {
+CASAuthentication.prototype.bounce_redirect = function(req, res, next) {
   // Handle the request with the bounce authorization type.
   this._handle(req, res, next, AUTH_TYPE.BOUNCE_REDIRECT);
 };
@@ -146,7 +169,7 @@ CASAuthentication.prototype.bounce_redirect = function (req, res, next) {
  * Blocks a request with CAS authentication. If the user's session is not
  * already validated with CAS, they will receive a 401 response.
  */
-CASAuthentication.prototype.block = function (req, res, next) {
+CASAuthentication.prototype.block = function(req, res, next) {
   // Handle the request with the block authorization type.
   this._handle(req, res, next, AUTH_TYPE.BLOCK);
 };
@@ -154,7 +177,7 @@ CASAuthentication.prototype.block = function (req, res, next) {
 /**
  * Handle a request with CAS authentication.
  */
-CASAuthentication.prototype._handle = function (req, res, next, authType) {
+CASAuthentication.prototype._handle = function(req, res, next, authType) {
   // If the session has been validated with CAS, no action is required.
   if (req.session[this.session_name]) {
     // If this is a bounce redirect, redirect the authenticated user.
@@ -189,10 +212,11 @@ CASAuthentication.prototype._handle = function (req, res, next, authType) {
 /**
  * Redirects the client to the CAS login.
  */
-CASAuthentication.prototype._login = function (req, res, next) {
+CASAuthentication.prototype._login = function(req, res, next) {
   // Save the return URL in the session. If an explicit return URL is set as a
   // query parameter, use that. Otherwise, just use the URL from the request.
-  req.session.cas_return_to = req.query.returnTo || url.parse(req.url).path;
+  // req.session.cas_return_to = req.query.returnTo || url.parse(req.url).path;
+  req.session.cas_return_to = `${process.env.PUBLIC_URL || ""}/`;
 
   // Set up the query parameters.
   var query = {
@@ -201,19 +225,22 @@ CASAuthentication.prototype._login = function (req, res, next) {
   };
 
   // Redirect to the CAS login.
-  res.redirect(this.cas_url + url.format({
-    pathname: '/login',
-    query: query
-  }));
+  res.redirect(
+    this.cas_url +
+      url.format({
+        pathname: "/login",
+        query: query
+      })
+  );
 };
 
 /**
  * Logout the currently logged in CAS user.
  */
-CASAuthentication.prototype.logout = function (req, res, next) {
+CASAuthentication.prototype.logout = function(req, res, next) {
   // Destroy the entire session if the option is set.
   if (this.destroy_session) {
-    req.session.destroy(function (err) {
+    req.session.destroy(function(err) {
       if (err) {
         console.log(err);
       }
@@ -228,20 +255,20 @@ CASAuthentication.prototype.logout = function (req, res, next) {
   }
 
   // Redirect the client to the CAS logout.
-  res.redirect(this.cas_url + '/logout');
+  res.redirect(this.cas_url + "/logout");
 };
 
 /**
  * Handles the ticket generated by the CAS login requester and validates it with the CAS login acceptor.
  */
-CASAuthentication.prototype._handleTicket = function (req, res, next) {
+CASAuthentication.prototype._handleTicket = function(req, res, next) {
   var requestOptions = {
     host: this.cas_host,
     port: this.cas_port
   };
 
-  if (['1.0', '2.0', '3.0'].indexOf(this.cas_version) >= 0) {
-    requestOptions.method = 'GET';
+  if (["1.0", "2.0", "3.0"].indexOf(this.cas_version) >= 0) {
+    requestOptions.method = "GET";
     requestOptions.path = url.format({
       pathname: this.cas_path + this._validateUri,
       query: {
@@ -253,35 +280,43 @@ CASAuthentication.prototype._handleTicket = function (req, res, next) {
     // return req.query.ticket;
   }
 
+  var request = this.request_client.request(
+    requestOptions,
+    function(response) {
+      response.setEncoding("utf8");
+      var body = "";
+      response.on("data", function(chunk) {
+        return (body += chunk);
+      });
+      response.on(
+        "end",
+        function() {
+          this._validate(
+            body,
+            function(err, user, attributes) {
+              if (err) {
+                console.log(err);
+                res.sendStatus(401);
+              } else {
+                req.session[this.session_name] = user;
+                if (this.session_info) {
+                  req.session[this.session_info] = attributes || {};
+                }
+                res.redirect(req.session.cas_return_to);
+              }
+            }.bind(this)
+          );
+        }.bind(this)
+      );
+      response.on("error", function(err) {
+        console.log("Response error from CAS: ", err);
+        res.sendStatus(401);
+      });
+    }.bind(this)
+  );
 
-  var request = this.request_client.request(requestOptions, function (response) {
-    response.setEncoding('utf8');
-    var body = '';
-    response.on('data', function (chunk) {
-      return body += chunk;
-    });
-    response.on('end', function () {
-      this._validate(body, function (err, user, attributes) {
-        if (err) {
-          console.log(err);
-          res.sendStatus(401);
-        } else {
-          req.session[this.session_name] = user;
-          if (this.session_info) {
-            req.session[this.session_info] = attributes || {};
-          }
-          res.redirect(req.session.cas_return_to);
-        }
-      }.bind(this));
-    }.bind(this));
-    response.on('error', function (err) {
-      console.log('Response error from CAS: ', err);
-      res.sendStatus(401);
-    });
-  }.bind(this));
-
-  request.on('error', function (err) {
-    console.log('Request error with CAS: ', err);
+  request.on("error", function(err) {
+    console.log("Request error with CAS: ", err);
     res.sendStatus(401);
   });
 
