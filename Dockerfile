@@ -9,7 +9,7 @@ COPY package*.json ./
 ENV NODE_ENV=production
 
 RUN npm config set scripts-prepend-node-path true
-RUN npm ci 
+RUN npm ci
 
 ENV PUBLIC_URL=http://localhost:${PORT}
 

@@ -1,35 +1,34 @@
 <nav class="navbar navbar-default navbar-fixed-top">
-    <div class="container-fluid">
-        <!-- Brand and toggle get grouped for better mobile display -->
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <a class="navbar-brand" href="{{PUBLIC_URL}}/">{{!-- <i class="fas fa-home"></i>  --}}<img alt="Brand"
-                    src="{{PUBLIC_URL}}/public/images/favicon.ico"
-                    style="height: 30px; display: inline-block; margin-top: -5px">
-                {{title}} </a>
-        </div>
-        <!-- Collect the nav links, forms, and other content for toggling -->
-        <div class="collapse navbar-collapse" id="navbar">
-            <ul class="nav navbar-nav navbar-right">
-                <li class="">
-                    {{# if user}}
-                <li><a href="{{PUBLIC_URL}}/user"><i class="fas fa-user"></i> {{user}}</a></li>
-                <li><a href="{{PUBLIC_URL}}/logout">Logout</a></li>
-                {{else}}
-                <a href="{{PUBLIC_URL}}/user">Login</a>
-                {{/if}}
-                </li>
-                <li class="">
-                    <a href="https://webgate.ec.europa.eu/CITnet/confluence/pages/viewpage.action?pageId=24641907">
-                        About EULogin </a>
-                </li>
-            </ul>
-        </div><!-- /.navbar-collapse -->
-    </div><!-- /.container-fluid -->
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+        aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="{{PUBLIC_URL}}/">{{!-- <i class="fas fa-home"></i>  --}}<img alt="Brand"
+          src="{{PUBLIC_URL}}/public/images/favicon.ico" style="height: 30px; display: inline-block; margin-top: -5px">
+        {{title}} </a>
+    </div>
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+        <li class="">
+          {{# if user}}
+        <li><a href="{{PUBLIC_URL}}/user"><i class="fas fa-user"></i> {{user}}</a></li>
+        <li><a href="{{PUBLIC_URL}}/logout">Logout</a></li>
+        {{else}}
+        <a href="{{PUBLIC_URL}}/user">Login</a>
+        {{/if}}
+        </li>
+        <li class="">
+          <a href="https://webgate.ec.europa.eu/CITnet/confluence/pages/viewpage.action?pageId=24641907">
+            About EULogin </a>
+        </li>
+      </ul>
+    </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
 </nav>

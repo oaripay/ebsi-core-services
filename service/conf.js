@@ -1,5 +1,5 @@
 require("dotenv").config();
-var _ = require("lodash");
+const _ = require("lodash");
 
 // todo keys from doc hashed mongo...
 const config = {
@@ -41,7 +41,7 @@ if (
   casUrl = "https://ecas.acceptance.ec.europa.eu/cas";
 }
 
-_.assign(config, { serviceUrl: serviceUrl, casUrl: casUrl });
+_.assign(config, { serviceUrl, casUrl });
 
 console.log("conf ************************************ title: ", config.title);
 console.log(

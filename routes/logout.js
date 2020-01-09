@@ -1,7 +1,8 @@
-var express = require('express');
-var router = express.Router();
-var ecas = require('../modules/ecas/ecas');
+const express = require("express");
 
-router.get('/', ecas.logout);
+const router = express.Router();
+const ecas = require("../modules/ecas/ecas");
+
+router.get("/", ecas.logout);
 
 module.exports = router;

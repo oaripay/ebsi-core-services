@@ -1,192 +1,203 @@
 <div class="jumbotron">
-    <div class="container">
-        <p>Store and notary documents <i class="fas fa-link"></i></p>
-        {{#if message}}
-            {{#if ok}}
-                <div class="alert alert-success" role="alert">{{message}} <span class="glyphicon glyphicon-saved" aria-hidden="true"></span></div>
-                {{!-- <h2 style="color:green">{{message}}</h2> --}}
-            {{else}}
-                <div class="alert alert-warning" role="alert">{{message}} </div>
-                {{!-- <h2 style="color:red">{{message}}</h2> --}}
-            {{/if}}
-            {{#if hash}}
-                <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseDetails" aria-expanded="false" aria-controls="collapseDetails">
-                    Details
-                </button>
-                <div class="collapse" id="collapseDetails">
-                    <div class="well">
-                        <div class="alert alert-info" role="alert">
-                            <div>hash: {{hash}}</div>
-                            <div>transaction Id: {{transactionId}}</div>
-                        </div>
-                    </div>
-                </div>
-                {{#if notary}}
-                    <br>
-                    <h2 style="color:green">File notarized <span class="glyphicon glyphicon-link" aria-hidden="true"></h2>
-                {{/if}}
-                <br>
-                <hr>
-                {{!-- <p>Document</p> --}}
-                <br>
-                {{!-- <a href="https://api.ebsi.xyz/file-storage/{{{hash}}}" class="btn btn-success">Download</a> --}}
-                <form action="document" method="post" enctype="multipart/form-data">
-                    <input name="hash" type="hidden" value={{{hash}}}>
-                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-                    <button type="submit" class="btn btn-success">Download</button>
-                </form>
-                <hr><br>
-            {{else}}
-                <br>
-                {{!-- <p>Store document</p> --}}
-                <br>
-                <form action="fileupload" method="post" enctype="multipart/form-data">
-                    <div class="input-group mb-3">
-                        <label for="title">Document title: </label>
-                        <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title">
-                    </div><br>
-                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-                    <input type="file" name="sampleFile" class="input-group mb-3"><br>
-                    <input type="submit" class="btn btn-success">
-                </form>
-                <br>
-            {{/if}}
-        {{else}}
-            <br>
-            {{!-- <p>Store document</p> --}}
-            <br>
-            <form action="fileupload" method="post" enctype="multipart/form-data">
-                <div class="input-group mb-3">
-                    <label for="title">Document title: </label>
-                    <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title">
-                </div><br>
-                {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-                <input type="file" name="sampleFile" class="input-group mb-3"><br>
-                <input type="submit" class="btn btn-success">
-            </form>
-            <br>
-        {{/if}}
+  <div class="container">
+    <p>Store and notary documents <i class="fas fa-link"></i></p>
+    {{#if message}}
+    {{#if ok}}
+    <div class="alert alert-success" role="alert">{{message}} <span class="glyphicon glyphicon-saved"
+        aria-hidden="true"></span></div>
+    {{!-- <h2 style="color:green">{{message}}</h2> --}}
+    {{else}}
+    <div class="alert alert-warning" role="alert">{{message}} </div>
+    {{!-- <h2 style="color:red">{{message}}</h2> --}}
+    {{/if}}
+    {{#if hash}}
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseDetails"
+      aria-expanded="false" aria-controls="collapseDetails">
+      Details
+    </button>
+    <div class="collapse" id="collapseDetails">
+      <div class="well">
+        <div class="alert alert-info" role="alert">
+          <div>hash: {{hash}}</div>
+          <div>transaction Id: {{transactionId}}</div>
+        </div>
+      </div>
     </div>
-</div>
-<div class="jumbotron">
-    <div class="container">
-        <p>Verify signed document on the ledger, verify document authenticity <i class="fas fa-check-double"></i></p>
-        {{#if verified}}
-            {{#if signed}}
-                <div class="alert alert-success" role="alert"><i class="fas fa-certificate"></i> File signed, notarised in the ledger {{!-- <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> --}} <i class="fas fa-stamp"></i> <i class="fas fa-flag-checkered"></i></div>
-
-                {{!-- <div class="alert alert-success" role="alert">File signed <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></div> --}}
-                {{!-- <h2 style="color:green">{{message}}</h2> --}}
-                {{!-- ---------------------------- --}}
-                <p>
-                <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseInfo" aria-expanded="false" aria-controls="collapseInfo">
-                    Details  
-                </button>
-                <form action="document" method="post" enctype="multipart/form-data">
-                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-                    <input name="hash" type="hidden" value={{{info.hash}}}>
-                    <button type="submit" class="btn btn-success">Download</button>
-                </form></p>
-                <div class="collapse" id="collapseInfo">
-                    <div class="well">
-                        <div class="alert alert-info" role="alert">
-                            <div>hash: {{info.hash}}</div>
-                            <div>timestamp: {{info.timestamp}}</div>
-                            <div>registered by: {{info.registeredBy}}</div>
-                        </div>
-                    </div>
-                                    <br>
-                <div>(*) make sure the signature is the same</div>
-                </div>
-                {{!-- ---------------------------- --}}
-            {{else}}
-                <div class="alert alert-warning" role="alert"><i class="fas fa-ban"></i> No registration could be found for this document  <i class="fas fa-exclamation"></i> <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> <i class="fas fa-exclamation-triangle"></i></div>
-                {{!-- <div class="alert alert-warning" role="alert">File not signed</div> --}}
-                {{!-- <h2 style="color:red">{{message}}</h2> --}}
-            {{/if}}
-            <hr>
-            <br>
-            <br>
-            {{!-- <p>Using document hash</p> --}}
-            <form action="verify" method="post" enctype="multipart/form-data">
-                <div class="input-group mb-3">
-                    <label for="title">Use document hash</label>
-                    {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
-                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-                    <input type="text" name="docHash" class="input-group mb-3"><br>
-                    <input type="submit" class="btn btn-success">
-                </div><br>
-            </form>
-            <br>
-            <p>or</p>
-            {{!-- <p>Using document file</p> --}}
-            {{!-- <p>Store document</p> --}}
-            <br>
-            <form action="verifyfile" method="post" enctype="multipart/form-data">
-                <div class="input-group mb-3">
-                    <label for="title">Use document file</label>
-                    {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
-                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-                    <input type="file" name="sampleFile" class="input-group mb-3"><br>
-                    <input type="submit" class="btn btn-success">
-                </div><br>
-            </form>
-            <br>
-        {{else}}
-            <br>
-            {{!-- <p>Using document hash</p> --}}
-            <form action="verify" method="post" enctype="multipart/form-data">
-                <div class="input-group mb-3">
-                    <label for="title">Use document hash</label>
-                    {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
-                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-                    <input type="text" name="docHash" class="input-group mb-3"><br>
-                    <input type="submit" class="btn btn-success">
-                </div><br>
-            </form>
-            <br>
-            <p>or</p>
-            {{!-- <p>Using document file</p> --}}
-            {{!-- <p>Store document</p> --}}
-            <br>
-            <form action="verifyfile" method="post" enctype="multipart/form-data">
-                <div class="input-group mb-3">
-                    <label for="title">Use document file</label>
-                    {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
-                    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-                    <input type="file" name="sampleFile" class="input-group mb-3"><br>
-                    <input type="submit" class="btn btn-success">
-                </div><br>
-            </form>
-            <br>
-        {{/if}}
-    </div>
-</div>
-<div class="jumbotron">
-    <div class="container">
-        <hr>
-        {{# each allDocument }}
-            <div class="row">
-                <a class="btn btn-primary" role="button" data-toggle="collapse" href="#{{this.id}}" aria-expanded="false" aria-controls="{{this.id}}">
-                    {{ this.opId }} details
-                </a>
-                <a href="https://api.ebsi.xyz/file-storage/{{{hash}}}" class="btn btn-success">Download</a>
-                <a href="" class="btn btn-info">Send</a>
-                <div class="collapse" id="{{this.id}}">
-                    <div class="well">
-                        <br>
-                        <div class="alert alert-info" role="alert">
-                            <div>hash: {{data}}</div>
-                            <div>transaction id: {{id}}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <br>
-            {{/each}}
-    </div>
+    {{#if notary}}
+    <br>
+    <h2 style="color:green">File notarized <span class="glyphicon glyphicon-link" aria-hidden="true"></h2>
+    {{/if}}
+    <br>
     <hr>
-    <footer>
-        <p>&copy; 2019 EBSI NOTARY</p>
-    </footer>
+    {{!-- <p>Document</p> --}}
+    <br>
+    {{!-- <a href="https://api.ebsi.xyz/file-storage/{{{hash}}}" class="btn btn-success">Download</a> --}}
+    <form action="document" method="post" enctype="multipart/form-data">
+      <input name="hash" type="hidden" value={{{hash}}}>
+      {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+      <button type="submit" class="btn btn-success">Download</button>
+    </form>
+    <hr><br>
+    {{else}}
+    <br>
+    {{!-- <p>Store document</p> --}}
+    <br>
+    <form action="fileupload" method="post" enctype="multipart/form-data">
+      <div class="input-group mb-3">
+        <label for="title">Document title: </label>
+        <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required
+          name="title">
+      </div><br>
+      {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+      <input type="file" name="sampleFile" class="input-group mb-3"><br>
+      <input type="submit" class="btn btn-success">
+    </form>
+    <br>
+    {{/if}}
+    {{else}}
+    <br>
+    {{!-- <p>Store document</p> --}}
+    <br>
+    <form action="fileupload" method="post" enctype="multipart/form-data">
+      <div class="input-group mb-3">
+        <label for="title">Document title: </label>
+        <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required
+          name="title">
+      </div><br>
+      {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+      <input type="file" name="sampleFile" class="input-group mb-3"><br>
+      <input type="submit" class="btn btn-success">
+    </form>
+    <br>
+    {{/if}}
+  </div>
+</div>
+<div class="jumbotron">
+  <div class="container">
+    <p>Verify signed document on the ledger, verify document authenticity <i class="fas fa-check-double"></i></p>
+    {{#if verified}}
+    {{#if signed}}
+    <div class="alert alert-success" role="alert"><i class="fas fa-certificate"></i> File signed, notarised in the
+      ledger {{!-- <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> --}} <i class="fas fa-stamp"></i> <i
+        class="fas fa-flag-checkered"></i></div>
+
+    {{!-- <div class="alert alert-success" role="alert">File signed <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></div> --}}
+    {{!-- <h2 style="color:green">{{message}}</h2> --}}
+    {{!-- ---------------------------- --}}
+    <p>
+      <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseInfo"
+        aria-expanded="false" aria-controls="collapseInfo">
+        Details
+      </button>
+      <form action="document" method="post" enctype="multipart/form-data">
+        {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+        <input name="hash" type="hidden" value={{{info.hash}}}>
+        <button type="submit" class="btn btn-success">Download</button>
+      </form>
+    </p>
+    <div class="collapse" id="collapseInfo">
+      <div class="well">
+        <div class="alert alert-info" role="alert">
+          <div>hash: {{info.hash}}</div>
+          <div>timestamp: {{info.timestamp}}</div>
+          <div>registered by: {{info.registeredBy}}</div>
+        </div>
+      </div>
+      <br>
+      <div>(*) make sure the signature is the same</div>
+    </div>
+    {{!-- ---------------------------- --}}
+    {{else}}
+    <div class="alert alert-warning" role="alert"><i class="fas fa-ban"></i> No registration could be found for this
+      document <i class="fas fa-exclamation"></i> <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> <i
+        class="fas fa-exclamation-triangle"></i></div>
+    {{!-- <div class="alert alert-warning" role="alert">File not signed</div> --}}
+    {{!-- <h2 style="color:red">{{message}}</h2> --}}
+    {{/if}}
+    <hr>
+    <br>
+    <br>
+    {{!-- <p>Using document hash</p> --}}
+    <form action="verify" method="post" enctype="multipart/form-data">
+      <div class="input-group mb-3">
+        <label for="title">Use document hash</label>
+        {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
+        {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+        <input type="text" name="docHash" class="input-group mb-3"><br>
+        <input type="submit" class="btn btn-success">
+      </div><br>
+    </form>
+    <br>
+    <p>or</p>
+    {{!-- <p>Using document file</p> --}}
+    {{!-- <p>Store document</p> --}}
+    <br>
+    <form action="verifyfile" method="post" enctype="multipart/form-data">
+      <div class="input-group mb-3">
+        <label for="title">Use document file</label>
+        {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
+        {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+        <input type="file" name="sampleFile" class="input-group mb-3"><br>
+        <input type="submit" class="btn btn-success">
+      </div><br>
+    </form>
+    <br>
+    {{else}}
+    <br>
+    {{!-- <p>Using document hash</p> --}}
+    <form action="verify" method="post" enctype="multipart/form-data">
+      <div class="input-group mb-3">
+        <label for="title">Use document hash</label>
+        {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
+        {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+        <input type="text" name="docHash" class="input-group mb-3"><br>
+        <input type="submit" class="btn btn-success">
+      </div><br>
+    </form>
+    <br>
+    <p>or</p>
+    {{!-- <p>Using document file</p> --}}
+    {{!-- <p>Store document</p> --}}
+    <br>
+    <form action="verifyfile" method="post" enctype="multipart/form-data">
+      <div class="input-group mb-3">
+        <label for="title">Use document file</label>
+        {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
+        {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+        <input type="file" name="sampleFile" class="input-group mb-3"><br>
+        <input type="submit" class="btn btn-success">
+      </div><br>
+    </form>
+    <br>
+    {{/if}}
+  </div>
+</div>
+<div class="jumbotron">
+  <div class="container">
+    <hr>
+    {{# each allDocument }}
+    <div class="row">
+      <a class="btn btn-primary" role="button" data-toggle="collapse" href="#{{this.id}}" aria-expanded="false"
+        aria-controls="{{this.id}}">
+        {{ this.opId }} details
+      </a>
+      <a href="https://api.ebsi.xyz/file-storage/{{{hash}}}" class="btn btn-success">Download</a>
+      <a href="" class="btn btn-info">Send</a>
+      <div class="collapse" id="{{this.id}}">
+        <div class="well">
+          <br>
+          <div class="alert alert-info" role="alert">
+            <div>hash: {{data}}</div>
+            <div>transaction id: {{id}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br>
+    {{/each}}
+  </div>
+  <hr>
+  <footer>
+    <p>&copy; 2019 EBSI NOTARY</p>
+  </footer>
 </div>
