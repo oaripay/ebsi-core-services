@@ -14,6 +14,7 @@ const indexRouter = require("./routes/index");
 const userRouter = require("./routes/user");
 const loginRouter = require("./routes/login");
 const logoutRouter = require("./routes/logout");
+var config = require('./service/conf');
 
 const app = express();
 
@@ -24,23 +25,14 @@ const PATHNAME = PUBLIC_URL ? new URL(PUBLIC_URL).pathname : "";
 app.locals.PUBLIC_URL = PUBLIC_URL;
 app.locals.PATHNAME = PATHNAME;
 
-// TODO: create and use MONGO_HOST and MONGO_PORT env vars
-const mongoConf = "mongodb://mongo:27017/notarydapp";
-
-mongoose.connect(
-  mongoConf,
-  { useUnifiedTopology: true, useNewUrlParser: true },
-  err => {
-    if (err) {
-      console.log(
-        "Unable to connect to mongoDB. Please start mongoDB. Error:",
-        err
-      );
-    } else {
-      console.log("Connected to mongoDB successfully!");
-    }
+mongoose.connect(config.mongoConf, { useUnifiedTopology: true, useNewUrlParser: true }, err => {
+  if (err) {
+    console.log('using mongoConf:', config.mongoConf);
+    console.log("Unable to connect to mongoDB. Please start mongoDB. Error:", err);
+  } else {
+    console.log("Connected to mongoDB successfully!");
   }
-);
+});
 
 // view engine setup
 app.engine(".hbs", expressHbs({ defaultLayout: "layout", extname: ".hbs" }));
@@ -54,7 +46,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
   session({
-    secret: "thatsareallysecretkey",
+    secret: "isthisebsiv1secretkeyfornotarydappsessionisreallyaweaksecret4you",
     resave: false,
     saveUninitialized: true,
     store: new MongoStore({ mongooseConnection: mongoose.connection })
