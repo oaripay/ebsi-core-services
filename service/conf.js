@@ -12,7 +12,7 @@ const config = {
   },
 
   title: 'Notary DApp',
-  mongoConf: 'mongodb://mongo:27017/notarydapp'
+  mongoConf: 'mongodb://mongodb:27017/notarydapp'
 
 };
 
