@@ -15161,12 +15161,12 @@
         }
       },
       "links": {},
-      "address": "0xe5B67A7dc215C3A6E158f2c274B97988fB0847d1",
-      "transactionHash": "0xaa01b71e4e55eb96cdc3080942b13682f06ee49debb9f4cc7140530e19f644ba"
+      "address": "0xF1153D1fb9e069eBA7E4Ae027397CFefE684a6fE",
+      "transactionHash": "0x57d739e72518d89da5a9cd2a592b9f3a429b6cc876502f5f4ae799f473e5d18b"
     }
   },
   "schemaVersion": "3.0.16",
-  "updatedAt": "2020-01-15T08:04:44.044Z",
+  "updatedAt": "2020-01-15T08:29:28.860Z",
   "devdoc": {
     "methods": {
       "isOwner()": {

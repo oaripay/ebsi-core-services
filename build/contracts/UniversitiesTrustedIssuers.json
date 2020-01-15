@@ -26639,12 +26639,12 @@
         }
       },
       "links": {},
-      "address": "0x77a78210A84d9490fF5b4B51803234B871011173",
-      "transactionHash": "0xe91fe4b039b55a824e01ff4cee83bad6eefa9871e15701f600357ff7c88ed89e"
+      "address": "0x11032C4Fe1E8eF9D6f10E99a9B2EfDF1F8916A79",
+      "transactionHash": "0x0d77567e9f3ff03f5dc75fa7679c0d4ba18beead23a6669474463fc4b565056f"
     }
   },
   "schemaVersion": "3.0.16",
-  "updatedAt": "2020-01-15T08:04:44.021Z",
+  "updatedAt": "2020-01-15T08:29:28.844Z",
   "devdoc": {
     "methods": {
       "isOwner()": {

@@ -97,6 +97,11 @@ contract('GovernmentsTrustedIssuers', function ([owner, account]) {
         });
 
         it('should be able to get all document indexes', async function () {
+            const documentIndexes = await this.governmentsTrustedIssuers.getAllDocumentIndexes(this.Government.issuerDID);
+            assert(documentIndexes[0] === web3.utils.keccak256(this.GovDocument.vcCode), 'Document index not valid');
+        });
+
+        it('should be able to get trusted issuer by index', async function () {
             const ts = await this.governmentsTrustedIssuers.getTrustedIssuerByIndex(0);
             assert(ts.moderator === owner, 'Moderator is not valid');
             assert(ts.issuerDID === this.Government.issuerDID, 'IssuerDID is not valid');

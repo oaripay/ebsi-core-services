@@ -2324,7 +2324,7 @@
   },
   "networks": {},
   "schemaVersion": "3.0.16",
-  "updatedAt": "2020-01-15T08:04:39.330Z",
+  "updatedAt": "2020-01-15T08:29:24.398Z",
   "devdoc": {
     "details": "The Ownable contract has an owner address, and provides basic authorization control functions, this simplifies the implementation of \"user permissions\". Cloned from OpenZeppelin's library because of the risk posed by `renounceOwnership` that needed to be removed.",
     "methods": {
