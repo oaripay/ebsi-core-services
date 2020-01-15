@@ -42,8 +42,9 @@ if (useHTTPS && useHTTPS.toUpperCase() === "ON") {
     console.log(`serving the app at https://${host}:${port}`);
   });
 } else {
-  var server = http.createServer(app);
-  console.log(`using HTTP... liste on http://${host}:${port}`);
+  var server = http.createServer(app).listen(port, function() {
+    console.log(`using HTTP... listen on http://${host}:${port}`);
+  });
 }
 
 /**
