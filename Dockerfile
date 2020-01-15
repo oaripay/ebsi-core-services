@@ -10,14 +10,14 @@ ENV NODE_ENV=production
 
 RUN npm config set scripts-prepend-node-path true
 RUN npm ci
-
-ENV PUBLIC_URL=http://localhost:${PORT}
+ENV PORT=3000
+ENV HTTPS=ON
+ENV PUBLIC_URL=https://app.ebsi.xyz/notary
 
 RUN npm prune --production
 
 COPY . ./
 
 RUN touch .env
-ENV PORT=3000
 EXPOSE ${PORT}
 CMD [ "npm", "start"]
