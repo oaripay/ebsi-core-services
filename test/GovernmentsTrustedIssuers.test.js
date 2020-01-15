@@ -53,7 +53,7 @@ contract('GovernmentsTrustedIssuers', function ([owner, account]) {
         });
 
         it('should throw an error if trusted issuer does not exist', async function () {
-            expectRevert(this.governmentsTrustedIssuers.getTrustedIssuer(account), 'Trusted Issuer does not exist');
+            await expectRevert(this.governmentsTrustedIssuers.getTrustedIssuer(owner), 'Trusted Issuer does not exist');
         });
 
         it('should fail to add same address added twice as a trusted issuer', async function () {
@@ -70,7 +70,7 @@ contract('GovernmentsTrustedIssuers', function ([owner, account]) {
         });
 
         it('should check the address as being FALSE on trusted issuer list', async function () {
-            const isTrustedIssuer = await this.governmentsTrustedIssuers.isTrustedIssuer(account);
+            const isTrustedIssuer = await this.governmentsTrustedIssuers.isTrustedIssuer(owner);
             assert(isTrustedIssuer === false, account + ' should NOT be a Trusted Issuer');
         });
 
@@ -97,8 +97,11 @@ contract('GovernmentsTrustedIssuers', function ([owner, account]) {
         });
 
         it('should be able to get all document indexes', async function () {
-            const documentIndexes = await this.governmentsTrustedIssuers.getAllDocumentIndexes(this.Government.issuerDID);
-            assert(documentIndexes[0] === web3.utils.keccak256(this.GovDocument.vcCode), 'Document index not valid');
+            const ts = await this.governmentsTrustedIssuers.getTrustedIssuerByIndex(0);
+            assert(ts.moderator === owner, 'Moderator is not valid');
+            assert(ts.issuerDID === this.Government.issuerDID, 'IssuerDID is not valid');
+            assert(ts.name === this.Government.name, 'Name is not valid');
+            assert(ts.country === this.Government.country, 'Country is not valid');
         });
     });
 });

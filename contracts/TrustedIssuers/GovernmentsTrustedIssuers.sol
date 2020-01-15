@@ -133,6 +133,17 @@ contract GovernmentsTrustedIssuers is Ownable, SignerRole {
         return (ts.moderator, ts.issuerDID, ts.name, ts.country, ts.status);
     }
 
+    function getTrustedIssuerByIndex(uint256 index)
+    external
+    view
+    returns (address moderator, string memory issuerDID, string memory name, string memory country, bool status)
+    {
+        bytes32 DIDHash = trustedIssuerIndex[index];
+        TrustedIssuer memory ts = trustedIssuers[DIDHash];
+
+        return (ts.moderator, ts.issuerDID, ts.name, ts.country, ts.status);
+    }
+
     function getAllDocumentIndexes(string calldata issuerDID)
     view
     external

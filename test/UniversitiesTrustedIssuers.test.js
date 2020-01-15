@@ -165,5 +165,16 @@ contract('UniversitiesTrustedIssuers', function ([owner, account]) {
             assert(documentIndexes[0] === web3.utils.keccak256(this.Diploma.vcCode), 'Document index not valid');
         });
 
+        it('should be able to get trusted issuer by index', async function () {
+            const ts = await this.universitiesTrustedIssuers.getTrustedIssuerByIndex(0);
+            assert(ts.moderator === owner, 'Moderator is not valid');
+            assert(ts.issuerDID === this.SpanishUniversity.issuerDID, 'IssuerDID is not valid');
+            assert(ts.preferredName === this.SpanishUniversity.preferredName, 'Preferred name is not valid');
+            assert(ts.alternativeName === this.SpanishUniversity.alternativeName, 'Alternative name is not valid');
+            assert(ts.homepage === this.SpanishUniversity.homepage, 'Homepage is not valid');
+            assert(ts.escoOrganizationType === this.SpanishUniversity.escoOrganizationType, 'Esco organization type is not valid');
+            assert(ts.siteLocation === this.SpanishUniversity.siteLocation, 'Site location is not valid');
+            assert(ts.status === this.SpanishUniversity.status, 'Status is not valid');
+        });
     });
 });

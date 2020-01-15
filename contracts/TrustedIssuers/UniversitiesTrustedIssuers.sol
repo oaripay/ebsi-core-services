@@ -190,6 +190,17 @@ contract UniversitiesTrustedIssuers is Ownable, SignerRole {
         return trustedIssuers[keccak256(abi.encodePacked(addr))].moderator != address(0);
     }
 
+    function getTrustedIssuerByIndex(uint256 index)
+    external
+    view
+    returns (address moderator, string memory issuerDID, string memory preferredName, string memory alternativeName, string memory homepage, string memory escoOrganizationType, string memory siteLocation, bool status)
+    {
+        bytes32 DIDHash = trustedIssuerIndex[index];
+        TrustedIssuer memory ts = trustedIssuers[DIDHash];
+
+        return (ts.moderator, ts.issuerDID, ts.preferredName, ts.alternativeName, ts.homepage, ts.escoOrganizationType, ts.siteLocation, ts.status);
+    }
+
     function getTrustedIssuer(string calldata addr)
     view
     external
