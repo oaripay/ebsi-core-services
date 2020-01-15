@@ -39,6 +39,7 @@ if (PUBLIC_URL) {
 
 if (process.env.NODE_ENV && process.env.NODE_ENV.toLowerCase() === 'dev') {
   config.mongoConf = 'mongodb://localhost:27017/notarydapp';
+  console.log('browse: ', serviceUrl);
 }
 
 if (

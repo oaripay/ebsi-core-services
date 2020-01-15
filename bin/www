@@ -21,6 +21,8 @@ app.set("port", port);
 
 var host = process.env.HOST || "localhost";
 
+const PUBLIC_URL = process.env.PUBLIC_URL || '';
+
 /**
  * Create HTTP server.
  */
@@ -39,11 +41,11 @@ if (useHTTPS && useHTTPS.toUpperCase() === "ON") {
   };
 
   var server = https.createServer(httpsOptions, app).listen(port, function() {
-    console.log(`serving the app at https://${host}:${port}`);
+    console.log(`using HTTPS... ${PUBLIC_URL}`);
   });
 } else {
   var server = http.createServer(app).listen(port, function() {
-    console.log(`using HTTP... listen on http://${host}:${port}`);
+    console.log(`using HTTP... ${PUBLIC_URL}`);
   });
 }
 
