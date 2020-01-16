@@ -1,6 +1,90 @@
+<header data-ecl-auto-init="SiteHeaderCore" class="ecl-site-header-core">
+  <div class="ecl-site-header-core__container ecl-container">
+    <div class="ecl-site-header-core__top"><a class="ecl-link ecl-link--standalone ecl-site-header-core__logo-link"
+        aria-label="European Commission" href="{{PUBLIC_URL}}"><img alt="European Commission logo"
+          title="European Commission" class="ecl-site-header-core__logo-image"
+          src="{{PUBLIC_URL}}/public/images/logo.svg"></a>
+      <div class="ecl-site-header-core__action">
+        <div class="ecl-site-header-core__search-container"><a
+            class="ecl-link ecl-link--standalone ecl-site-header-core__search-toggle" href="#search"
+            data-ecl-search-toggle="true" aria-controls="search-form-id" aria-expanded="false"><svg focusable="false"
+              aria-hidden="true" class="ecl-icon ecl-icon--s">
+              <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#general--search">
+              </use>
+            </svg>Search</a>
+          <form id="search-form-id" data-ecl-search-form="true" class="ecl-site-header-core__search ecl-search-form"
+            role="search">
+            <div class="ecl-form-group ecl-form-group--text-input"><label class="ecl-search-form__label ecl-form-label"
+                for="search-input-id">Search</label><input type="search" id="search-input-id"
+                class="ecl-search-form__text-input ecl-text-input"></div><button aria-label="Search" type="submit"
+              class="ecl-search-form__button ecl-button ecl-button--search"><span class="ecl-button__container"><span
+                  class="ecl-button__label" data-ecl-label="true">Search</span><svg focusable="false" aria-hidden="true"
+                  data-ecl-icon="true" class="ecl-button__icon ecl-button__icon--after ecl-icon ecl-icon--xs">
+                  <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#general--search">
+                  </use>
+                </svg></span></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="ribbon"><a class="ribbonText" href="https://app.ebsi.xyz/demo">EBSI DEMO</a>
+</div>
+
+<div class="ecl-page-header-core">
+  <div class="ecl-container">
+    <nav data-ecl-auto-init="BreadcrumbCore" class="ecl-page-header-core__breadcrumb ecl-breadcrumb-core"
+      aria-label="You are here:" data-ecl-breadcrumb-core="true">
+      <ol class="ecl-breadcrumb-core__container">
+        <li class="ecl-breadcrumb-core__segment" data-ecl-breadcrumb-core-item="static" aria-hidden="false"><a
+            class="ecl-breadcrumb-core__link ecl-link ecl-link--standalone" href="{{PUBLIC_URL}}">Home</a><svg
+            focusable="false" aria-hidden="true" role="presentation"
+            class="ecl-breadcrumb-core__icon ecl-icon ecl-icon--2xs ecl-icon--rotate-90">
+            <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#ui--corner-arrow">
+            </use>
+          </svg></li>
+        <li class="ecl-breadcrumb-core__segment ecl-breadcrumb-core__segment--ellipsis" aria-hidden="true"
+          data-ecl-breadcrumb-core-ellipsis="true"><button type="button" class="ecl-breadcrumb-core__ellipsis"
+            aria-label="" data-ecl-breadcrumb-core-ellipsis-button="true">…</button><svg focusable="false"
+            aria-hidden="true" role="presentation"
+            class="ecl-breadcrumb-core__icon ecl-icon ecl-icon--2xs ecl-icon--rotate-90">
+            <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#ui--corner-arrow">
+            </use>
+          </svg></li>
+        <li class="ecl-breadcrumb-core__segment" data-ecl-breadcrumb-core-item="expandable" aria-hidden="false"><a
+            class="ecl-breadcrumb-core__link ecl-link ecl-link--standalone" href="{{PUBLIC_URL}}">Research and
+            innovation</a><svg focusable="false" aria-hidden="true" role="presentation"
+            class="ecl-breadcrumb-core__icon ecl-icon ecl-icon--2xs ecl-icon--rotate-90">
+            <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#ui--corner-arrow">
+            </use>
+          </svg></li>
+        <li class="ecl-breadcrumb-core__segment" data-ecl-breadcrumb-core-item="expandable" aria-hidden="false"><a
+            class="ecl-breadcrumb-core__link ecl-link ecl-link--standalone" href="{{PUBLIC_URL}}">Funding</a><svg
+            focusable="false" aria-hidden="true" role="presentation"
+            class="ecl-breadcrumb-core__icon ecl-icon ecl-icon--2xs ecl-icon--rotate-90">
+            <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#ui--corner-arrow">
+            </use>
+          </svg></li>
+        <li class="ecl-breadcrumb-core__segment" data-ecl-breadcrumb-core-item="static" aria-hidden="false"><a
+            class="ecl-breadcrumb-core__link ecl-link ecl-link--standalone" href="{{PUBLIC_URL}}">Funding
+            opportunities</a><svg focusable="false" aria-hidden="true" role="presentation"
+            class="ecl-breadcrumb-core__icon ecl-icon ecl-icon--2xs ecl-icon--rotate-90">
+            <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#ui--corner-arrow">
+            </use>
+          </svg></li>
+        <li class="ecl-breadcrumb-core__segment ecl-breadcrumb-core__current-page" aria-current="page"
+          data-ecl-breadcrumb-core-item="static" aria-hidden="false">Funding programmes and open calls</li>
+      </ol>
+    </nav>
+    <h1 class="ecl-page-header-core__title">EU Funding</h1>
+  </div>
+</div>
+
+<!--
 <nav class="navbar navbar-default navbar-fixed-top">
   <div class="container-fluid">
-    <!-- Brand and toggle get grouped for better mobile display -->
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
         aria-expanded="false" aria-controls="navbar">
@@ -9,11 +93,10 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="{{PUBLIC_URL}}/">{{!-- <i class="fas fa-home"></i>  --}}<img alt="Brand"
+      <a class="navbar-brand" href="{{PUBLIC_URL}}/"><img alt="Brand"
           src="{{PUBLIC_URL}}/public/images/favicon.ico" style="height: 30px; display: inline-block; margin-top: -5px">
         {{title}} </a>
     </div>
-    <!-- Collect the nav links, forms, and other content for toggling -->
     <div class="collapse navbar-collapse" id="navbar">
       <ul class="nav navbar-nav navbar-right">
         <li class="">
@@ -29,6 +112,7 @@
             About EULogin </a>
         </li>
       </ul>
-    </div><!-- /.navbar-collapse -->
-  </div><!-- /.container-fluid -->
+    </div>
+  </div>
 </nav>
+-->
