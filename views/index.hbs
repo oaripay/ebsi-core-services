@@ -39,7 +39,7 @@
     <form action="document" method="post" enctype="multipart/form-data">
       <input name="hash" type="hidden" value={{{hash}}}>
       {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-      <button type="submit" class="btn btn-success">Download</button>
+      <button type="submit" class="ecl-button ecl-button--secondary">Download</button>
     </form>
     <hr><br>
     {{else}}
@@ -47,14 +47,18 @@
     {{!-- <p>Store document</p> --}}
     <br>
     <form action="fileupload" method="post" enctype="multipart/form-data">
-      <div class="input-group mb-3">
-        <label for="title">Document title: </label>
-        <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required
-          name="title">
+      <div class="ecl-form-group ecl-form-group--text-input">
+        <label class="ecl-form-label" for="title-4">Document title</label>
+        <input type="text" id="title-4" class="ecl-text-input ecl-text-input--m" onfocus="this.value=''"
+          value="document" required name="title">
       </div><br>
       {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-      <input type="file" name="sampleFile" class="input-group mb-3"><br>
-      <input type="submit" class="btn btn-success">
+      <div class="ecl-form-group ecl-form-group--file-upload">
+        <label class="ecl-form-label" for="sampleFile-3">File</label>
+        <input type="file" name="sampleFile" id="sampleFile-3" class="ecl-file-upload" />
+      </div>
+      <br>
+      <button type="submit" class="ecl-button ecl-button--primary">Submit</button>
     </form>
     <br>
     {{/if}}
@@ -63,21 +67,25 @@
     {{!-- <p>Store document</p> --}}
     <br>
     <form action="fileupload" method="post" enctype="multipart/form-data">
-      <div class="input-group mb-3">
-        <label for="title">Document title: </label>
-        <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required
-          name="title">
+      <div class="ecl-form-group ecl-form-group--text-input">
+        <label class="ecl-form-label" for="title-2">Document title</label>
+        <input type="text" id="title-2" class="ecl-text-input ecl-text-input--m" onfocus="this.value=''"
+          value="document" required name="title">
       </div><br>
       {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-      <input type="file" name="sampleFile" class="input-group mb-3"><br>
-      <input type="submit" class="btn btn-success">
+      <div class="ecl-form-group ecl-form-group--file-upload">
+        <label class="ecl-form-label" for="sampleFile-4">File</label>
+        <input type="file" name="sampleFile" id="sampleFile-4" class="ecl-file-upload" />
+      </div>
+      <br>
+      <button type="submit" class="ecl-button ecl-button--primary">Submit</button>
     </form>
     <br>
     {{/if}}
   </div>
 </div>
 <div class="jumbotron">
-  <div class="container">
+  <di<br class="container">
     <p>Verify signed document on the ledger, verify document authenticity <i class="fas fa-check-double"></i></p>
     {{#if verified}}
     {{#if signed}}
@@ -96,7 +104,7 @@
       <form action="document" method="post" enctype="multipart/form-data">
         {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
         <input name="hash" type="hidden" value={{{info.hash}}}>
-        <button type="submit" class="btn btn-success">Download</button>
+        <button type="submit" class="ecl-button ecl-button--secondary">Download</button>
       </form>
     </p>
     <div class="collapse" id="collapseInfo">
@@ -123,13 +131,14 @@
     <br>
     {{!-- <p>Using document hash</p> --}}
     <form action="verify" method="post" enctype="multipart/form-data">
-      <div class="input-group mb-3">
-        <label for="title">Use document hash</label>
+      <div class="ecl-form-group ecl-form-group--text-input">
+        <label class="ecl-form-label" for="title-1">Use document hash</label>
         {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
         {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-        <input type="text" name="docHash" class="input-group mb-3"><br>
-        <input type="submit" class="btn btn-success">
-      </div><br>
+        <input type="text" id="title-1" class="ecl-text-input ecl-text-input--m" name="docHash">
+      </div>
+      <br>
+      <button type="submit" class="ecl-button ecl-button--primary">Submit</button>
     </form>
     <br>
     <p>or</p>
@@ -137,26 +146,28 @@
     {{!-- <p>Store document</p> --}}
     <br>
     <form action="verifyfile" method="post" enctype="multipart/form-data">
-      <div class="input-group mb-3">
-        <label for="title">Use document file</label>
+      <div class="ecl-form-group ecl-form-group--file-upload">
+        <label class="ecl-form-label" for="sampleFile-1">Use document file</label>
         {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
         {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-        <input type="file" name="sampleFile" class="input-group mb-3"><br>
-        <input type="submit" class="btn btn-success">
-      </div><br>
+        <input type="file" name="sampleFile" id="sampleFile-1" class="ecl-file-upload" />
+      </div>
+      <br>
+      <button type="submit" class="ecl-button ecl-button--primary">Submit</button>
     </form>
     <br>
     {{else}}
     <br>
     {{!-- <p>Using document hash</p> --}}
     <form action="verify" method="post" enctype="multipart/form-data">
-      <div class="input-group mb-3">
-        <label for="title">Use document hash</label>
+      <div class="ecl-form-group ecl-form-group--text-input">
+        <label class="ecl-form-label" for="title-3">Use document hash</label>
         {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
         {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-        <input type="text" name="docHash" class="input-group mb-3"><br>
-        <input type="submit" class="btn btn-success">
-      </div><br>
+        <input type="text" id="title-3" class="ecl-text-input ecl-text-input--m" name="docHash">
+      </div>
+      <br>
+      <button type="submit" class="ecl-button ecl-button--primary">Submit</button>
     </form>
     <br>
     <p>or</p>
@@ -164,17 +175,18 @@
     {{!-- <p>Store document</p> --}}
     <br>
     <form action="verifyfile" method="post" enctype="multipart/form-data">
-      <div class="input-group mb-3">
-        <label for="title">Use document file</label>
+      <div class="ecl-form-group ecl-form-group--file-upload">
+        <label class="ecl-form-label" for="sampleFile-2">Use document file</label>
         {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
         {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-        <input type="file" name="sampleFile" class="input-group mb-3"><br>
-        <input type="submit" class="btn btn-success">
-      </div><br>
+        <input type="file" name="sampleFile" id="sampleFile-2" class="ecl-file-upload" />
+      </div>
+      <br>
+      <button type="submit" class="ecl-button ecl-button--primary">Submit</button>
     </form>
     <br>
     {{/if}}
-  </div>
+</div>
 </div>
 <div class="jumbotron">
   <div class="container">
