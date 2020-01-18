@@ -1,42 +1,42 @@
+{{#if hasToken}}
 <div class="jumbotron">
-  <div class="container">
-    <p>Store and notary documents <i class="fas fa-link"></i></p>
-    {{#if message}}
-    {{#if ok}}
-    <div class="alert alert-success" role="alert">{{message}} <span class="glyphicon glyphicon-saved"
-        aria-hidden="true"></span></div>
-    {{!-- <h2 style="color:green">{{message}}</h2> --}}
-    {{else}}
-    <div class="alert alert-warning" role="alert">{{message}} </div>
-    {{!-- <h2 style="color:red">{{message}}</h2> --}}
-    {{/if}}
-    {{#if hash}}
-    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseDetails"
-      aria-expanded="false" aria-controls="collapseDetails">
-      Details
-    </button>
-    <div class="collapse" id="collapseDetails">
-      <div class="well">
-        <div class="alert alert-info" role="alert">
-          <div>document hash: {{hash}}</div>
-          <div>transaction Id: {{transactionId}}</div>
-        </div>
-      </div>
-    </div>
-    {{#if notary}}
-    <br>
-    <h2 style="color:green">File notarized <span class="glyphicon glyphicon-link" aria-hidden="true"></h2>
-    {{else}}
-    <br>
-    <h2 style="color:orange">Not notarized <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></h2>
-    {{/if}}
+    <div class="container">
+        <p>Store and notary documents <i class="fas fa-link"></i></p>
+        {{#if message}}
+            {{#if ok}}
+                <div class="alert alert-success" role="alert">{{message}} <span class="glyphicon glyphicon-saved" aria-hidden="true"></span></div>
+                {{!-- <h2 style="color:green">{{message}}</h2> --}}
+            {{else}}
+                <div class="alert alert-warning" role="alert">{{message}} </div>
+                {{!-- <h2 style="color:red">{{message}}</h2> --}}
+            {{/if}}
+            {{#if hash}}
+                <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseDetails" aria-expanded="false" aria-controls="collapseDetails">
+                    Details
+                </button>
+                <div class="collapse" id="collapseDetails">
+                    <div class="well">
+                        <div class="alert alert-info" role="alert">
+                            <div>document hash: {{hash}}</div>
+                            <div>transaction Id: {{transactionId}}</div>
+                        </div>
+                    </div>
+                </div>
+                {{#if notary}}
+                    <br>
+                    <h2 style="color:green">File notarized <span class="glyphicon glyphicon-link" aria-hidden="true"></h2>
+                {{else}}
+                    <br>
+                    <h2 style="color:orange">Not notarized <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></h2>
+                      (*) This mean that this document is waiting your signature through your wallet
+                {{/if}}
 
     <br>
     <hr>
     {{!-- <p>Document</p> --}}
     <br>
     {{!-- <a href="https://api.ebsi.xyz/file-storage/{{{hash}}}" class="btn btn-success">Download</a> --}}
-    <form action="document" method="post" enctype="multipart/form-data">
+    <form action={{document}} method="post" enctype="multipart/form-data">
       <input name="hash" type="hidden" value={{{hash}}}>
       {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
       <button type="submit" class="ecl-button ecl-button--secondary">Download</button>
@@ -46,7 +46,7 @@
     <br>
     {{!-- <p>Store document</p> --}}
     <br>
-    <form action="fileupload" method="post" enctype="multipart/form-data">
+    <form action={{fileupload}} method="post" enctype="multipart/form-data">
       <div class="ecl-form-group ecl-form-group--text-input">
         <label class="ecl-form-label" for="title-4">Document title</label>
         <input type="text" id="title-4" class="ecl-text-input ecl-text-input--m" onfocus="this.value=''"
@@ -66,7 +66,8 @@
     <br>
     {{!-- <p>Store document</p> --}}
     <br>
-    <form action="fileupload" method="post" enctype="multipart/form-data">
+    {{!-- <form action="eu-funding/fileupload" method="post" enctype="multipart/form-data"> --}}
+    <form action={{fileupload}} method="post" enctype="multipart/form-data">
       <div class="ecl-form-group ecl-form-group--text-input">
         <label class="ecl-form-label" for="title-2">Document title</label>
         <input type="text" id="title-2" class="ecl-text-input ecl-text-input--m" onfocus="this.value=''"
@@ -101,7 +102,7 @@
         aria-expanded="false" aria-controls="collapseInfo">
         Details
       </button>
-      <form action="document" method="post" enctype="multipart/form-data">
+      <form action={{document}} method="post" enctype="multipart/form-data">
         {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
         <input name="hash" type="hidden" value={{{info.hash}}}>
         <button type="submit" class="ecl-button ecl-button--secondary">Download</button>
@@ -130,9 +131,9 @@
     <br>
     <br>
     {{!-- <p>Using document hash</p> --}}
-    <form action="verify" method="post" enctype="multipart/form-data">
+    <form action={{verify}} method="post" enctype="multipart/form-data">
       <div class="ecl-form-group ecl-form-group--text-input">
-        <label class="ecl-form-label" for="title-1">Use document hash</label>
+        <label class="ecl-form-label" for="title-1">Use document hash nnn </label>
         {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
         {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
         <input type="text" id="title-1" class="ecl-text-input ecl-text-input--m" name="docHash">
@@ -145,7 +146,7 @@
     {{!-- <p>Using document file</p> --}}
     {{!-- <p>Store document</p> --}}
     <br>
-    <form action="verifyfile" method="post" enctype="multipart/form-data">
+    <form action={{verifyfile}} method="post" enctype="multipart/form-data">
       <div class="ecl-form-group ecl-form-group--file-upload">
         <label class="ecl-form-label" for="sampleFile-1">Use document file</label>
         {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
@@ -159,9 +160,9 @@
     {{else}}
     <br>
     {{!-- <p>Using document hash</p> --}}
-    <form action="verify" method="post" enctype="multipart/form-data">
+    <form action={{verify}} method="post" enctype="multipart/form-data">
       <div class="ecl-form-group ecl-form-group--text-input">
-        <label class="ecl-form-label" for="title-3">Use document hash</label>
+        <label class="ecl-form-label" for="title-3">Use document hash nnn2 </label>
         {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
         {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
         <input type="text" id="title-3" class="ecl-text-input ecl-text-input--m" name="docHash">
@@ -174,9 +175,9 @@
     {{!-- <p>Using document file</p> --}}
     {{!-- <p>Store document</p> --}}
     <br>
-    <form action="verifyfile" method="post" enctype="multipart/form-data">
+    <form action="demo/eu-funding/verifyfile" method="post" enctype="multipart/form-data">
       <div class="ecl-form-group ecl-form-group--file-upload">
-        <label class="ecl-form-label" for="sampleFile-2">Use document file</label>
+        <label class="ecl-form-label" for="sampleFile-2">4444Use document file</label>
         {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
         {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
         <input type="file" name="sampleFile" id="sampleFile-2" class="ecl-file-upload" />
@@ -188,8 +189,8 @@
     {{/if}}
 </div>
 </div>
-<div class="jumbotron">
-  <div class="container">
+{{!-- <div class="jumbotron"> --}}
+{{!--   <div class="container">
     <hr>
     {{# each allDocument }}
     <div class="row">
@@ -208,12 +209,19 @@
           </div>
         </div>
       </div>
+      {{/each}}
     </div>
-    <br>
-    {{/each}}
-  </div>
-  <hr>
-  <footer>
-    <p>&copy; 2019 EBSI NOTARY</p>
-  </footer>
+    <hr> --}}
+    {{!-- <footer>
+        <p>&copy; 2019 EBSI NOTARY</p>
+    </footer> --}}
+{{!-- </div> --}}
+
+{{else}}
+<div>
+<h1>Please follow step requirement before: 
+<a class="ecl-button ecl-button--primary" href="https://app.ebsi.xyz/demo">EBSI DEMO</a></h1>
+<br>
 </div>
+{{/if}}
+<script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/check.js"></script>

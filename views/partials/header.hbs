@@ -1,7 +1,7 @@
 <header data-ecl-auto-init="SiteHeaderCore" class="ecl-site-header-core">
   <div class="ecl-site-header-core__container ecl-container">
     <div class="ecl-site-header-core__top"><a class="ecl-link ecl-link--standalone ecl-site-header-core__logo-link"
-        aria-label="European Commission" href="{{PUBLIC_URL}}"><img alt="European Commission logo"
+        aria-label="European Commission" href="/demo/eu-funding/"><img alt="European Commission logo"
           title="European Commission" class="ecl-site-header-core__logo-image"
           src="{{PUBLIC_URL}}/public/images/logo.svg"></a>
       <div class="ecl-site-header-core__action">
@@ -39,7 +39,7 @@
       aria-label="You are here:" data-ecl-breadcrumb-core="true">
       <ol class="ecl-breadcrumb-core__container">
         <li class="ecl-breadcrumb-core__segment" data-ecl-breadcrumb-core-item="static" aria-hidden="false"><a
-            class="ecl-breadcrumb-core__link ecl-link ecl-link--standalone" href="{{PUBLIC_URL}}">Home</a><svg
+            class="ecl-breadcrumb-core__link ecl-link ecl-link--standalone" href="{{PUBLIC_URL}}/">Home</a><svg
             focusable="false" aria-hidden="true" role="presentation"
             class="ecl-breadcrumb-core__icon ecl-icon ecl-icon--2xs ecl-icon--rotate-90">
             <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#ui--corner-arrow">
@@ -54,21 +54,21 @@
             </use>
           </svg></li>
         <li class="ecl-breadcrumb-core__segment" data-ecl-breadcrumb-core-item="expandable" aria-hidden="false"><a
-            class="ecl-breadcrumb-core__link ecl-link ecl-link--standalone" href="{{PUBLIC_URL}}">Research and
+            class="ecl-breadcrumb-core__link ecl-link ecl-link--standalone" href="{{PUBLIC_URL}}/">Research and
             innovation</a><svg focusable="false" aria-hidden="true" role="presentation"
             class="ecl-breadcrumb-core__icon ecl-icon ecl-icon--2xs ecl-icon--rotate-90">
             <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#ui--corner-arrow">
             </use>
           </svg></li>
         <li class="ecl-breadcrumb-core__segment" data-ecl-breadcrumb-core-item="expandable" aria-hidden="false"><a
-            class="ecl-breadcrumb-core__link ecl-link ecl-link--standalone" href="{{PUBLIC_URL}}">Funding</a><svg
+            class="ecl-breadcrumb-core__link ecl-link ecl-link--standalone" href="{{PUBLIC_URL}}/">Funding</a><svg
             focusable="false" aria-hidden="true" role="presentation"
             class="ecl-breadcrumb-core__icon ecl-icon ecl-icon--2xs ecl-icon--rotate-90">
             <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#ui--corner-arrow">
             </use>
           </svg></li>
         <li class="ecl-breadcrumb-core__segment" data-ecl-breadcrumb-core-item="static" aria-hidden="false"><a
-            class="ecl-breadcrumb-core__link ecl-link ecl-link--standalone" href="{{PUBLIC_URL}}">Funding
+            class="ecl-breadcrumb-core__link ecl-link ecl-link--standalone" href="{{PUBLIC_URL}}/">Funding
             opportunities</a><svg focusable="false" aria-hidden="true" role="presentation"
             class="ecl-breadcrumb-core__icon ecl-icon ecl-icon--2xs ecl-icon--rotate-90">
             <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#ui--corner-arrow">
@@ -78,7 +78,8 @@
           data-ecl-breadcrumb-core-item="static" aria-hidden="false">Funding programmes and open calls</li>
       </ol>
     </nav>
-    <h1 class="ecl-page-header-core__title">EU Funding</h1>
+    {{!-- <h1 class="ecl-page-header-core__title">EU Funding {{title}}</h1> --}}
+    <h1 class="ecl-page-header-core__title">{{title}}</h1>
   </div>
 </div>
 

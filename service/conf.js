@@ -12,6 +12,7 @@ const config = {
   },
 
   title: 'Notary DApp',
+  titleEuFunding: 'EU Funding',
   mongoConf: 'mongodb://mongodb:27017/notarydapp'
 
 };
