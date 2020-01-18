@@ -1,7 +1,7 @@
 const express = require('express');
 const config = require('../service/conf');
 const router = express.Router();
-const ecas = require('../modules/ecas/ecas');
+// const ecas = require('../modules/ecas/ecas');
 // var path = require('path');
 const fileProcessing = require('../service/fileProcessing');
 // var csrf = require('csurf');
@@ -16,7 +16,7 @@ router.get('/', (req, res) => {
   console.log('settings', req.app.get('settings'));
   console.log('notary / ');
   if (req.app.settings.jwt) {
-    console.log('jwt rty a')
+    console.log('jwt rty a');
   }
   res.render('index', {
     title: config.titleEuFunding,
@@ -30,32 +30,17 @@ router.get('/', (req, res) => {
 
   });
 });
-// router.get('/', ecas.bounce, fileProcessing.getAllDocument);
 
-// router.post('/check', (req,res)=>{
-// //   console.log('check >',req.oldURL);
-//   console.log('check 1 ----------  notary',req.body);
-//   if(req.body && req.body.value){
-//     console.log('yyyyyyyyyyyyyyy',res)
-// //     req.test=true;
-//     }else{
-// //       req.test=false;
-//   	console.log('index notary else deux sssssssssssssssssssss')
-//   	res.status(301).redirect('https://app.ebsi.xyz/demo');
-// //   	res.redirect('/demo');
-//   }
-// //   res.end();
-// });
 
 router.post('/check', (req, res) => {
   //   console.log('check',res);
-  console.log('check 1', req.body); //,' ; ',req.session);
+  console.log('check 1', req.body); // ,' ; ',req.session);
   if (req.body && req.body.value) {
-    console.log('1/ avant: ', req.app.settings)
+    console.log('1/ avant: ', req.app.settings);
     //     hasToken=true;
     req.app.settings.jwt = req.body.value.Jwt;
     req.app.settings.did = req.body.value.Did;
-    console.log('2/ apres : ', req.app.settings)
+    console.log('2/ apres : ', req.app.settings);
     res.render('index', {
       title: config.titleEuFunding,
       user: 'me',
@@ -66,11 +51,8 @@ router.post('/check', (req, res) => {
       document: '/notary/document',
       verify: '/notary/verify'
     });
-    //   }else{
-    //   	hasToken=true;
-    //   	console.log('deux sssssssssssssssssssss')
   }
-  //   res.end();
+
   res.render('index', {
     title: config.titleEuFunding,
     user: 'me',
@@ -92,35 +74,23 @@ router.post('/verifyfile', fileProcessing.verifyFile);
 // router.post('/fileupload', isLoggedIn, fileProcessing.upload);
 router.post('/fileupload', fileProcessing.upload);
 
-// router.get('/demo/eu-funding', (req, res) => {
-// 	console.log('nety tato');
-// 	res.render('index', {
-//         title: config.titleEuFunding,
-//         user: username,
-//         allDocument: [],
-// pathname:'/notary',
-// fileupload:'/notary/fileupload'
-//       });
-// });
-// router.post('/fileupload', ecas.bounce, fileProcessing.upload);
-
 router.get('/user/fileupload', (req, res) => {
   res.redirect('/');
 });
 router.get('/fileupload', (req, res) => {
-  console.log('nandalo tato++++++++++++++++++++++')
+  console.log('nandalo tato++++++++++++++++++++++');
   res.redirect('/');
 });
 
 
-function isLoggedIn(req, res, next) {
-  console.log('*********** login **********', req.test)
-  // if(req.isAuthenticated()){
-  //     return next();
-  // }
-  // req.session.oldURL = req.url;
-  res.redirect('https://app.ebsi.xyz/demo');
-  //     res.redirect('/demo');https://app.ebsi.xyz/demo
-}
+// function isLoggedIn(req, res, next) {
+//   console.log('*********** login **********', req.test);
+//   // if(req.isAuthenticated()){
+//   //     return next();
+//   // }
+//   // req.session.oldURL = req.url;
+//   res.redirect('https://app.ebsi.xyz/demo');
+//   //     res.redirect('/demo');https://app.ebsi.xyz/demo
+// }
 
 module.exports = router;

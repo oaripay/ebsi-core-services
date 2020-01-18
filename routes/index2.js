@@ -1,7 +1,7 @@
 const express = require('express');
 
 const router = express.Router();
-const ecas = require('../modules/ecas/ecas');
+// const ecas = require('../modules/ecas/ecas');
 // var path = require('path');
 const fileProcessing = require('../service/fileProcessing');
 // var csrf = require('csurf');
@@ -13,14 +13,14 @@ const config = require('../service/conf');
 
 router.post('/check', (req, res) => {
   //   console.log('check',res);
-  console.log('check 2', req.body); //,' ; ',req.session);
+  console.log('check 2', req.body); // ,' ; ',req.session);
   //   req.body.value={Jwt:'jwtjwt',Did:'diddid'};
   if (req.body && req.body.value) {
-    console.log('1/ avant: ', req.app.settings)
+    console.log('1/ avant: ', req.app.settings);
     //     hasToken=true;
     req.app.settings.jwt = req.body.value.Jwt;
     req.app.settings.did = req.body.value.Did;
-    console.log('2/ apres : ', req.app.settings)
+    console.log('2/ apres : ', req.app.settings);
     res.render('index', {
       title: config.titleEuFunding,
       user: 'me',
@@ -68,7 +68,7 @@ router.get('/', (req, res) => {
   console.log('andranao', req.app.get('settings'));
   console.log('nety euuuuuuuuuu fuuuuuuuuuuu tato am / ');
   if (req.app.settings.jwt) {
-    console.log('jwt rty a')
+    console.log('jwt rty a');
   }
   res.render('index', {
     title: config.titleEuFunding,
@@ -92,13 +92,13 @@ router.get('/', (req, res) => {
 // });
 
 
-function isLoggedIn(req, res, next) {
-  console.log('*********** login **********', req)
-  // if(req.isAuthenticated()){
-  //     return next();
-  // }
-  // req.session.oldURL = req.url;
-  res.redirect('/demo');
-}
+// function isLoggedIn(req, res, next) {
+//   console.log('*********** login **********', req);
+//   // if(req.isAuthenticated()){
+//   //     return next();
+//   // }
+//   // req.session.oldURL = req.url;
+//   res.redirect('/demo');
+// }
 
 module.exports = router;

@@ -26,7 +26,7 @@ var notaryConf = {
   verify: '/notary/verify'
 };
 
-//to do add switch from pathname to res
+// to do add switch from pathname to res
 
 /* eslint-disable consistent-return, no-use-before-define, camelcase, prefer-const */
 
@@ -50,7 +50,6 @@ async function besuLogin() {
     response.data
   );
   return response.data.token;
-
 }
 
 async function storageLogin() {
@@ -76,7 +75,6 @@ async function storageLogin() {
   //     console.log(error.response.statusCode)
   //     console.log(error.response.data)
   // }
-
 }
 
 function upload(req, res) {
@@ -99,7 +97,7 @@ function upload(req, res) {
 
   fileToStore = uploadPath + sampleFile.name;
 
-  sampleFile.mv(fileToStore, function(err) {
+  sampleFile.mv(fileToStore, function (err) {
     if (err) {
       console.log('file upload error ', err);
       return res.status(500).send(err);
@@ -108,9 +106,9 @@ function upload(req, res) {
     Promise.all([
       storeDocWithoutPubKey(req),
       getAllDocumentFromWalletByUser(req)
-    ]).then(function(response) {
+    ]).then(function (response) {
       if (fileToStore) {
-        fs.unlink(fileToStore, function(err) {
+        fs.unlink(fileToStore, function (err) {
           if (err) throw err;
           // if no error, file has been deleted successfully
         });
@@ -129,7 +127,7 @@ function upload(req, res) {
           notary: response[0].notary,
           allDocument: response[1].data,
           transactionId: response[0].transactionId,
-          hasToken: true,
+          hasToken: true
         };
         if (response[0].pathname === notaryConf.pathname) {
           _.merge(goodresult, notaryConf);
@@ -262,8 +260,10 @@ async function storeDocWithoutPubKey(req) {
       // console.log('not stored: ', e);
       console.log('not stored: ', e.response.status);
       console.log('not stored: ', e.response.data);
-      //check one day for notary
-      const errorResult = _.assign({}, { ok: false, message: e.response.data, user: 'username', euFundingConf });
+      // check one day for notary
+      const errorResult = _.assign({}, {
+        ok: false, message: e.response.data, user: 'username', euFundingConf
+      });
       // let errorResult = _.assign({}, { ok: false, message: e.response.data, user: username ,csrfToken:csrfToken});
       // if (req.baseUrl === '/notary') {
       //   _.merge(result, notaryConf);
@@ -280,13 +280,13 @@ async function storeDocWithoutPubKey(req) {
         message: 'missing document',
         user: 'username'
       }, notaryConf);
-    } else {
-      return _.merge({
-        ok: false,
-        message: 'missing document',
-        user: 'username'
-      }, euFundingConf);
     }
+    return _.merge({
+      ok: false,
+      message: 'missing document',
+      user: 'username'
+    }, euFundingConf);
+
     // return {
     //   ok: false,
     //   message: 'missing document',
@@ -295,11 +295,11 @@ async function storeDocWithoutPubKey(req) {
   }
 }
 
-function getAllDocument(req, res) { //NOT USED NOW
+function getAllDocument(req, res) { // NOT USED NOW
   const username = req.session[ecas.session_name];
   // console.log('1/ getAllDocument username', username);
 
-  getAllDocumentFromWalletByUser(req).then(function(response) {
+  getAllDocumentFromWalletByUser(req).then(function (response) {
     if (response && response.data) {
       console.log('documents: ', response.data.length);
       res.render('index', {
@@ -360,11 +360,11 @@ async function getDocumentByHash(txHash, outPath, res) {
     const filename = _.split(contentDisposition, 'filename=');
     const fileToSend = outPath + filename[1];
 
-    await fs.writeFile(fileToSend, response.data, function(err) {
+    await fs.writeFile(fileToSend, response.data, function (err) {
       if (err) throw err;
-      res.download(fileToSend, function(err) {
+      res.download(fileToSend, function (err) {
         if (err) throw err;
-        fs.unlink(fileToSend, function(err) {
+        fs.unlink(fileToSend, function (err) {
           if (err) throw err;
           // if no error, file has been deleted successfully
         });
@@ -420,14 +420,14 @@ async function signIt(hash, token) {
     return {};
   }
 }
-
+/*
 async function signTx() {
   var token = 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwOi8vNTIuMjguMTkwLjIwNjo4MDg1L2Vic2l0cnVzdGVkYXBwL3B1YmxpYy1rZXlzLyIsImtpZCI6ImVic2ktd2FsbGV0In0.eyJzdWIiOiJnb256anVsIiwiaWF0IjoxNTc5MjQ2MDEwLCJleHAiOjE1NzkzMzI0MTAsImF1ZCI6ImVic2ktd2FsbGV0IiwiZGlkIjoiZGlkOmVic2k6MHgxRjgwODYwYzhhRkI2ZUQxMGZhZjlmOGNBNkYxNjgxMjFkQjU3RjcyIiwidXNlck5hbWUiOiJKdWxpYW5HT05aQUxFWiBBR1VERUxPIiwidXNlcklkIjoiZ29uemp1bCJ9._3cHamGrLuFt47EVat0ooeEmvlJvCkPlezIHHUSJY3k4qKVSlIwkYRK8bTL7JT43ZTPOpsaWQ4Oql2TN0hzW-A';
-  //0x6378261513f5dEf20e32b6Cf3f9bbfef190EcF8B
-  //0x4d3171BaF3eC3CE370Ec65E7D354741a970ba038
-  tx = {
-    "did": "did:ebsi:0x1F80860c8aFB6eD10faf9f8cA6F168121dB57F72",
-    "hash": "0x0d27d731058ac0bce37604e83709443f14f65589a555f72814a728f28396e7e5"
+  // 0x6378261513f5dEf20e32b6Cf3f9bbfef190EcF8B
+  // 0x4d3171BaF3eC3CE370Ec65E7D354741a970ba038
+  var tx = {
+    did: 'did:ebsi:0x1F80860c8aFB6eD10faf9f8cA6F168121dB57F72',
+    hash: '0x0d27d731058ac0bce37604e83709443f14f65589a555f72814a728f28396e7e5'
   };
 
   const opts = { headers: { Authorization: `Bearer ${token}` } };
@@ -438,22 +438,21 @@ async function signTx() {
   } catch (e) {
     console.log('error: ', e);
   }
-
 }
 
 async function getNotif() {
   var token = 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwOi8vNTIuMjguMTkwLjIwNjo4MDg1L2Vic2l0cnVzdGVkYXBwL3B1YmxpYy1rZXlzLyIsImtpZCI6ImVic2ktd2FsbGV0In0.eyJzdWIiOiJnb256anVsIiwiaWF0IjoxNTc5MjQ2MDEwLCJleHAiOjE1NzkzMzI0MTAsImF1ZCI6ImVic2ktd2FsbGV0IiwiZGlkIjoiZGlkOmVic2k6MHgxRjgwODYwYzhhRkI2ZUQxMGZhZjlmOGNBNkYxNjgxMjFkQjU3RjcyIiwidXNlck5hbWUiOiJKdWxpYW5HT05aQUxFWiBBR1VERUxPIiwidXNlcklkIjoiZ29uemp1bCJ9._3cHamGrLuFt47EVat0ooeEmvlJvCkPlezIHHUSJY3k4qKVSlIwkYRK8bTL7JT43ZTPOpsaWQ4Oql2TN0hzW-A';
-  //0x6378261513f5dEf20e32b6Cf3f9bbfef190EcF8B
-  //0x4d3171BaF3eC3CE370Ec65E7D354741a970ba038
-  tx = {
-    "did": "did:ebsi:0x1F80860c8aFB6eD10faf9f8cA6F168121dB57F72",
-    "hash": "0x0d27d731058ac0bce37604e83709443f14f65589a555f72814a728f28396e7e5"
-  };
+  // 0x6378261513f5dEf20e32b6Cf3f9bbfef190EcF8B
+  // 0x4d3171BaF3eC3CE370Ec65E7D354741a970ba038
+  //   let tx = {
+  //     did: 'did:ebsi:0x1F80860c8aFB6eD10faf9f8cA6F168121dB57F72',
+  //     hash: '0x0d27d731058ac0bce37604e83709443f14f65589a555f72814a728f28396e7e5'
+  //   };
 
   //-----------------------
   let config = {
     headers: {
-      'Authorization': 'Bearer ' + token
+      Authorization: 'Bearer ' + token
     }
   };
   // return new Promise(function (resolve, reject) {
@@ -463,17 +462,14 @@ async function getNotif() {
   // console.log(' tx: ', tx);
 
 
-
-
   try {
     var signResponse = await axios.get('http://localhost:3003/notifications/', config);
     console.log(signResponse);
   } catch (e) {
     console.log('error: ', e);
   }
-
 }
-
+*/
 
 function verify(req, res) {
   // console.log('verify req.body ', req.body);
@@ -485,7 +481,7 @@ function verify(req, res) {
   }
   console.log('-- result: ', conffrompathname);
   // const username = req.session[ecas.session_name];
-  getNotarizedDocument(req.body.docHash, conffrompathname).then(function(response) {
+  getNotarizedDocument(req.body.docHash, conffrompathname).then(function (response) {
     let result = {
       title: config.title,
       user: response.user,
@@ -494,7 +490,7 @@ function verify(req, res) {
       info: response.document,
       hasToken: true
     };
-    if (response.baseUrl = notaryConf.baseUrl) {
+    if (response.baseUrl === notaryConf.baseUrl) {
       _.merge(result, notaryConf);
     } else {
       _.merge(result, euFundingConf);
@@ -515,7 +511,7 @@ function verifyFile(req, res) {
   let sampleFile;
   let uploadPath;
   const reqPath = path.join(__dirname, '../');
-  const username = req.session[ecas.session_name];
+  //   const username = req.session[ecas.session_name];
   let conffrompathname = {};
   if (req.baseUrl === '/notary') {
     _.merge(conffrompathname, notaryConf);
@@ -534,7 +530,7 @@ function verifyFile(req, res) {
   uploadPath = `${reqPath}/in/`;
   fileToStore = uploadPath + sampleFile.name;
 
-  sampleFile.mv(fileToStore, function(err) {
+  sampleFile.mv(fileToStore, function (err) {
     if (err) {
       console.log('file upload error ', err);
       return res.status(500).send(err);
@@ -544,11 +540,11 @@ function verifyFile(req, res) {
     const hash = new Web3().utils.sha3(data);
 
     console.log('*********************hash**********************\n', hash);
-    getNotarizedDocument(hash, conffrompathname).then(function(response) {
+    getNotarizedDocument(hash, conffrompathname).then(function (response) {
       console.log('++++++++++ response', response);
       // console.log('file to removed: ', fileToStore);
       if (fileToStore) {
-        fs.unlink(fileToStore, function(err) {
+        fs.unlink(fileToStore, function (err) {
           if (err) throw err;
           // if no error, file has been deleted successfully
         });
@@ -561,7 +557,7 @@ function verifyFile(req, res) {
         info: response.document,
         hasToken: true
       };
-      if (response.baseUrl = notaryConf.baseUrl) {
+      if (response.baseUrl === notaryConf.baseUrl) {
         _.merge(result, notaryConf);
       } else {
         _.merge(result, euFundingConf);
