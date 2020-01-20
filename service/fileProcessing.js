@@ -82,8 +82,18 @@ function upload(req, res) {
   let uploadPath;
   const reqPath = path.join(__dirname, '../');
   // let csrfToken = req.csrfToken();
-  console.log('hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh\n', req.baseUrl, ' | ', req.originalUrl);
-  console.log('=========================andranao=====================\n', req.app.get('settings'));
+  console.log('----------------------------------------------------\n', req.baseUrl, ' | ', req.originalUrl);
+  console.log('=========================upload=====================\n', req.app.get('settings'));
+
+if(req.app.get('settings').jwt ==='' && req.app.get('settings').did ===''){
+  res.redirect('https://app.ebsi.xyz/demo');
+//   res.redirect('/demo');https://app.ebsi.xyz/demo
+  console.log('**************************** JWT and DID no*******************************************');
+  return;
+}
+console.log('**************************** JWT and DID yes*******************************************');
+
+
   if (!req.files || Object.keys(req.files).length === 0) {
     console.log('No files were uploaded.');
 
@@ -179,6 +189,10 @@ function upload(req, res) {
 }
 
 async function storeDocWithoutPubKey(req) {
+
+console.log('=========================storeDocWithoutPubKey=====================\n', req.app.get('settings'));
+var jwtokens = req.app.get('settings');
+
   const filename = fileToStore;
   const database = 'cassandra'; // 'mongo', 'cassandra',  'gluster-fs'
 
@@ -221,22 +235,30 @@ async function storeDocWithoutPubKey(req) {
                             sender: username,
                             recipient: 'Notary DApp'
                         }; */
+
+// var jwtokens = req.app.get('settings');
+console.log( 'jwtokens 00000000000000000------------0000000000000000 var jwtokens = req.app.get',jwtokens)
+
+
       // removed from here this sign part
       if (storeResponse.status === 200) {
         // console.log('-- hashMsgToSign: ', hashMsgToSign);
         console.log('-- documentHash: ', hash);
+        console.log('-- jwtokens: ', jwtokens);
         // var signResponse = await axios.post('http://localhost:3002/signTX', username);
 
         // var signResponse = {data: {result: 'tsz mbola misy signIt'}};
-        const signResponse = await signIt(hash, token);
+//         const signResponse = await signIt(hash, token);
+        const signResponse = await signTX(hash, jwtokens);
 
-        console.log('-- signResponse: ', signResponse.data);
+        console.log('-- signResponse: ', signResponse.message);
+        if(signResponse.message==="Message inserted"){
         // console.log('-- signResponse: ', signResponse.statusText, ' , ', signResponse.status);
-        if (signResponse.data) {
+//         if (signResponse.data) {
           _.merge(result, {
             ok: true,
             notary: true,
-            transactionId: signResponse.data.result
+            transactionId: signResponse.id
           });
         } else {
           _.merge(result, {
@@ -295,29 +317,78 @@ async function storeDocWithoutPubKey(req) {
   }
 }
 
-function getAllDocument(req, res) { // NOT USED NOW
-  const username = req.session[ecas.session_name];
+function getAllDocument(req, res) { 
+//   const username = req.session[ecas.session_name];
   // console.log('1/ getAllDocument username', username);
+  console.log('- getAllDocument - jwt', req.app.settings.settings.jwt);
 
   getAllDocumentFromWalletByUser(req).then(function (response) {
+    //to do merge conffrompathname...
+
     if (response && response.data) {
       console.log('documents: ', response.data.length);
       res.render('index', {
         title: config.title,
         user: 'username',
         allDocument: response.data,
-        hasToken: true
+        hasToken: true,
+    pathname: '/demo/eu-funding',
+    fileupload: '/demo/eu-funding/fileupload',
+    document: '/demo/eu-funding/document',
+    verify: '/demo/eu-funding/verify'
       });
     } else {
       res.render('index', {
         title: config.title,
-        user: username,
+        user: 'username',
         allDocument: [],
-        hasToken: true
+        hasToken: true,
+    pathname: '/demo/eu-funding',
+    fileupload: '/demo/eu-funding/fileupload',
+    document: '/demo/eu-funding/document',
+    verify: '/demo/eu-funding/verify'
       });
     }
   });
 }
+
+function noToken(req, res) { 
+
+// console.log('***********no jwt token**********',req);
+console.log('***********no jwt token**********',req.app.settings.settings.jwt);
+
+  res.render('index', {
+    title: config.titleEuFunding,
+    user: 'me',
+    allDocument: [],
+    hasToken: true,
+    pathname: '/demo/eu-funding',
+    fileupload: '/demo/eu-funding/fileupload',
+    document: '/demo/eu-funding/document',
+    verify: '/demo/eu-funding/verify'
+  });
+
+}
+//-----
+function checkToken(req) { 
+
+  //   console.log('check',res);
+  console.log('check checkToken', req.body); // ,' ; ',req.session);
+
+  //   req.body.value={Jwt:'jwtjwt',Did:'diddid'};
+  if (req.body && req.body.Jwt) {
+    console.log('1/ avant: ', req.app.settings.settings);
+    //     hasToken=true;
+
+    req.app.settings.settings.jwt = req.body.Jwt;
+    req.app.settings.settings.did = req.body.Did;
+
+    console.log('2/ apres : ', req.app.settings.settings);
+
+  }
+
+}
+//-----
 
 async function getAllDocumentFromWalletByUser(req) {
   console.log('nothing today from getAllDocumentFromWalletByUser ---', req.baseUrl);
@@ -420,26 +491,50 @@ async function signIt(hash, token) {
     return {};
   }
 }
-/*
-async function signTx() {
-  var token = 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwOi8vNTIuMjguMTkwLjIwNjo4MDg1L2Vic2l0cnVzdGVkYXBwL3B1YmxpYy1rZXlzLyIsImtpZCI6ImVic2ktd2FsbGV0In0.eyJzdWIiOiJnb256anVsIiwiaWF0IjoxNTc5MjQ2MDEwLCJleHAiOjE1NzkzMzI0MTAsImF1ZCI6ImVic2ktd2FsbGV0IiwiZGlkIjoiZGlkOmVic2k6MHgxRjgwODYwYzhhRkI2ZUQxMGZhZjlmOGNBNkYxNjgxMjFkQjU3RjcyIiwidXNlck5hbWUiOiJKdWxpYW5HT05aQUxFWiBBR1VERUxPIiwidXNlcklkIjoiZ29uemp1bCJ9._3cHamGrLuFt47EVat0ooeEmvlJvCkPlezIHHUSJY3k4qKVSlIwkYRK8bTL7JT43ZTPOpsaWQ4Oql2TN0hzW-A';
+
+
+async function signTx(documentHash, jwtokens) {
+console.log('=======================singTx ', documentHash);
+console.log('=======================singTx ', jwtokens);
+console.log('=======================singTx ', jwtokens.jwt);
+console.log('=======================singTx ', jwtokens.did);
+
+  var token =  jwtokens.jwt;
+//   var token =  req.app.get('settings').jwt;
+
+// var token ='eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwOi8vNTIuMjguMTkwLjIwNjo4MDg1L2Vic2l0cnVzdGVkYXBwL3B1YmxpYy1rZXlzLyIsImtpZCI6ImVic2ktd2FsbGV0In0.eyJzdWIiOiJnb256anVsIiwiaWF0IjoxNTc5MjQ2MDEwLCJleHAiOjE1NzkzMzI0MTAsImF1ZCI6ImVic2ktd2FsbGV0IiwiZGlkIjoiZGlkOmVic2k6MHgxRjgwODYwYzhhRkI2ZUQxMGZhZjlmOGNBNkYxNjgxMjFkQjU3RjcyIiwidXNlck5hbWUiOiJKdWxpYW5HT05aQUxFWiBBR1VERUxPIiwidXNlcklkIjoiZ29uemp1bCJ9._3cHamGrLuFt47EVat0ooeEmvlJvCkPlezIHHUSJY3k4qKVSlIwkYRK8bTL7JT43ZTPOpsaWQ4Oql2TN0hzW-A';
   // 0x6378261513f5dEf20e32b6Cf3f9bbfef190EcF8B
   // 0x4d3171BaF3eC3CE370Ec65E7D354741a970ba038
+//   var tx = {
+//     did: 'did:ebsi:0x1F80860c8aFB6eD10faf9f8cA6F168121dB57F72',
+//     hash: '0x0d27d731058ac0bce37604e83709443f14f65589a555f72814a728f28396e7e5'
+//   };
+
   var tx = {
-    did: 'did:ebsi:0x1F80860c8aFB6eD10faf9f8cA6F168121dB57F72',
-    hash: '0x0d27d731058ac0bce37604e83709443f14f65589a555f72814a728f28396e7e5'
+    did: jwtokens.did,
+    hash: documentHash,
+    redirectUrl: 'https://app.ebsi.xyz/demo/eu-funding'
   };
+
+// req.app.get('settings')
 
   const opts = { headers: { Authorization: `Bearer ${token}` } };
   console.log(' tx: ', tx);
   try {
-    var signResponse = await axios.post('http://localhost:3004/wallet/signTX', tx, opts);
-    console.log(signResponse);
+    var signResponse = await axios.post('https://app.ebsi.xyz/wallet/signTx', tx, opts);//
+//     var signResponse = await axios.post('https://localhost:3004/wallet/signTX', tx, opts);//https://app.ebsi.xyz/wallet/signTx
+    
+    console.log('****signTx***>>>>>>>> signResponse', signResponse);
+
+    return signResponse;
+
+
   } catch (e) {
     console.log('error: ', e);
   }
 }
 
+/*
 async function getNotif() {
   var token = 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwOi8vNTIuMjguMTkwLjIwNjo4MDg1L2Vic2l0cnVzdGVkYXBwL3B1YmxpYy1rZXlzLyIsImtpZCI6ImVic2ktd2FsbGV0In0.eyJzdWIiOiJnb256anVsIiwiaWF0IjoxNTc5MjQ2MDEwLCJleHAiOjE1NzkzMzI0MTAsImF1ZCI6ImVic2ktd2FsbGV0IiwiZGlkIjoiZGlkOmVic2k6MHgxRjgwODYwYzhhRkI2ZUQxMGZhZjlmOGNBNkYxNjgxMjFkQjU3RjcyIiwidXNlck5hbWUiOiJKdWxpYW5HT05aQUxFWiBBR1VERUxPIiwidXNlcklkIjoiZ29uemp1bCJ9._3cHamGrLuFt47EVat0ooeEmvlJvCkPlezIHHUSJY3k4qKVSlIwkYRK8bTL7JT43ZTPOpsaWQ4Oql2TN0hzW-A';
   // 0x6378261513f5dEf20e32b6Cf3f9bbfef190EcF8B
@@ -628,5 +723,8 @@ module.exports = {
   getAllDocument,
   getDocument,
   verify,
-  verifyFile
+  verifyFile,
+  noToken,
+  checkToken
 };
+ 

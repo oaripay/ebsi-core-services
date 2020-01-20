@@ -15,38 +15,18 @@ router.post('/check', (req, res) => {
   //   console.log('check',res);
   console.log('check 2', req.body); // ,' ; ',req.session);
   //   req.body.value={Jwt:'jwtjwt',Did:'diddid'};
-  if (req.body && req.body.value) {
-    console.log('1/ avant: ', req.app.settings);
+  
+  if (req && req.body) {
+    console.log('1/ avant: ', req.app.settings.settings);
     //     hasToken=true;
-    req.app.settings.jwt = req.body.value.Jwt;
-    req.app.settings.did = req.body.value.Did;
-    console.log('2/ apres : ', req.app.settings);
-    res.render('index', {
-      title: config.titleEuFunding,
-      user: 'me',
-      allDocument: [],
-      hasToken: true,
-      pathname: '/demo/eu-funding',
-      fileupload: '/demo/eu-funding/fileupload',
-      document: '/demo/eu-funding/document',
-      verify: '/demo/eu-funding/verify'
 
-    });
-    //   }else{
-    //     hasToken=true;
-    //     console.log('deux sssssssssssssssssssss')
+    req.app.settings.settings.jwt = req.body.Jwt;
+    req.app.settings.settings.did = req.body.Did;
+    console.log('2/ apres : ', req.app.settings.settings);
+
   }
-  //   res.end();
-  res.render('index', {
-    title: config.titleEuFunding,
-    user: 'me',
-    allDocument: [],
-    hasToken: false,
-    pathname: '/demo/eu-funding',
-    fileupload: '/demo/eu-funding/fileupload',
-    document: '/demo/eu-funding/document',
-    verify: '/demo/eu-funding/verify'
-  });
+
+
 });
 
 
@@ -62,15 +42,28 @@ router.post('/verifyfile', fileProcessing.verifyFile);
 // router.post('/fileupload', isLoggedIn, fileProcessing.upload);
 router.post('/fileupload', fileProcessing.upload);
 
+
+/*
 router.get('/', (req, res) => {
   // other file
 
   console.log('andranao', req.app.get('settings'));
   console.log('nety euuuuuuuuuu fuuuuuuuuuuu tato am / ');
-  if (req.app.settings.jwt) {
-    console.log('jwt rty a');
-  }
-  res.render('index', {
+  if (req.app.settings.settings.jwt) {
+    console.log('with JWT -1- *********************',req.app.settings.settings.jwt);
+      res.render('index', {
+    title: config.titleEuFunding,
+    user: 'me',
+    allDocument: [],
+    hasToken: true,
+    pathname: '/demo/eu-funding',
+    fileupload: '/demo/eu-funding/fileupload',
+    document: '/demo/eu-funding/document',
+    verify: '/demo/eu-funding/verify'
+  });
+  }else{
+    console.log('NOOOONNNNNN jwt -2- *********************',req.app.settings.settings.jwt);
+      res.render('index', {
     title: config.titleEuFunding,
     user: 'me',
     allDocument: [],
@@ -80,25 +73,29 @@ router.get('/', (req, res) => {
     document: '/demo/eu-funding/document',
     verify: '/demo/eu-funding/verify'
   });
+  }
+
 });
-// router.post('/fileupload', ecas.bounce, fileProcessing.upload);
+*/
 
-// router.get('/user/fileupload', (req, res) => {
-//   res.redirect('/');
-// });
-// router.get('/fileupload', (req, res) => {
-//   console.log('nandalo tato++++++++++++++++++++++')
-//   res.redirect('/');
-// });
+router.get('/nojwt', fileProcessing.noToken);
+
+router.get('/', fileProcessing.getAllDocument);
+// router.get('/', isLoggedIn, fileProcessing.getAllDocument);
+
+// router.post('/check', fileProcessing.checkToken);
+
+router.post('/demo/eu-funding/check', fileProcessing.checkToken);
 
 
-// function isLoggedIn(req, res, next) {
+function isLoggedIn(req, res, next) {
 //   console.log('*********** login **********', req);
-//   // if(req.isAuthenticated()){
-//   //     return next();
-//   // }
-//   // req.session.oldURL = req.url;
-//   res.redirect('/demo');
-// }
+  console.log('***********check login**********',req.app.settings.settings.jwt);
+  if(req.app.settings.settings.jwt){
+      return next();
+  }
+  // req.session.oldURL = req.url;
+  res.redirect('/demo/eu-funding/nojwt');
+}
 
 module.exports = router;

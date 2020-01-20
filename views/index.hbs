@@ -24,11 +24,12 @@
                 </div>
                 {{#if notary}}
                     <br>
-                    <h2 style="color:green">File notarized <span class="glyphicon glyphicon-link" aria-hidden="true"></h2>
+                    <h2 style="color:green">File sent for notarization now go to your wallet to sign it<span class="glyphicon glyphicon-link" aria-hidden="true"></h2>
+                    (*) This mean that this document is waiting your signature through your wallet
                 {{else}}
                     <br>
                     <h2 style="color:orange">Not notarized <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></h2>
-                      (*) This mean that this document is waiting your signature through your wallet
+                    (*) This mean that something went wrong
                 {{/if}}
 
     <br>
@@ -223,5 +224,6 @@
 <a class="ecl-button ecl-button--primary" href="https://app.ebsi.xyz/demo">EBSI DEMO</a></h1>
 <br>
 </div>
+<script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/check.js"></script>
 {{/if}}
 <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/check.js"></script>
