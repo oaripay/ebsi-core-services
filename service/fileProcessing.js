@@ -249,10 +249,14 @@ console.log( 'jwtokens 00000000000000000------------0000000000000000 var jwtoken
 
         // var signResponse = {data: {result: 'tsz mbola misy signIt'}};
 //         const signResponse = await signIt(hash, token);
-        const signResponse = await signTX(hash, jwtokens);
 
-        console.log('-- signResponse: ', signResponse.message);
-        if(signResponse.message==="Message inserted"){
+console.log('-- signTX: -----------------------------------------------------------------------');
+        var signResponse = await signTx(hash, jwtokens);
+console.log('-- signTX: -----------------------------------------------------------------------');
+
+//         console.log('-- signResponse: ', signResponse);
+        console.log('-- signResponse: ', signResponse.data);
+        if(signResponse.data.message==="Message inserted"){
         // console.log('-- signResponse: ', signResponse.statusText, ' , ', signResponse.status);
 //         if (signResponse.data) {
           _.merge(result, {
@@ -513,25 +517,26 @@ console.log('=======================singTx ', jwtokens.did);
   var tx = {
     did: jwtokens.did,
     hash: documentHash,
-    redirectUrl: 'https://app.ebsi.xyz/demo/eu-funding'
+    redirectURL: 'https://app.ebsi.xyz/demo/eu-funding'
   };
 
 // req.app.get('settings')
 
   const opts = { headers: { Authorization: `Bearer ${token}` } };
   console.log(' tx: ', tx);
-  try {
-    var signResponse = await axios.post('https://app.ebsi.xyz/wallet/signTx', tx, opts);//
-//     var signResponse = await axios.post('https://localhost:3004/wallet/signTX', tx, opts);//https://app.ebsi.xyz/wallet/signTx
+//   try {
+
+    var signResponse = await axios.post('https://api.ebsi.xyz/wallet/signTx', tx, opts);//<-delivery
+
     
-    console.log('****signTx***>>>>>>>> signResponse', signResponse);
+//     console.log('****signTx***>>>>>>>> signResponse', signResponse.status);
 
     return signResponse;
 
 
-  } catch (e) {
-    console.log('error: ', e);
-  }
+//   } catch (e) {
+//     console.log('error: ', e);
+//   }
 }
 
 /*
