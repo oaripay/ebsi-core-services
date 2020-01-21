@@ -87,6 +87,7 @@ router.get('/', fileProcessing.getAllDocument);
 
 router.post('/demo/eu-funding/check', fileProcessing.checkToken);
 
+router.get('/receive-hash', fileProcessing.receivehash);
 
 function isLoggedIn(req, res, next) {
 //   console.log('*********** login **********', req);

@@ -394,6 +394,60 @@ function checkToken(req) {
 }
 //-----
 
+function receivehash(req, res) { 
+
+  let conffrompathname = {};
+  if (req.baseUrl === '/notary') {
+    _.merge(conffrompathname, notaryConf);
+  } else {
+    _.merge(conffrompathname, euFundingConf);
+  }
+  
+
+// console.log('***********receivehash**********',req);
+console.log(req.baseUrl,'***********receivehash**********',req.query);
+
+
+  getNotarizedDocument(req.query.hash, conffrompathname).then(function (response) {
+    let result = {
+      title: config.title,
+      user: 'response.user',
+      verified: response.verified,
+      signed: response.ok,
+      info: response.document,
+      hasToken: true
+    };
+    if (response.baseUrl === notaryConf.baseUrl) {
+      _.merge(result, notaryConf);
+    } else {
+      _.merge(result, euFundingConf);
+    }
+    res.render('index', result);
+    // res.render('index', {
+    //   title: config.title,
+    //   user: response.user,
+    //   verified: response.verified,
+    //   signed: response.ok,
+    //   info: response.document,
+    //   hasToken: true
+    // });
+  });
+
+
+//   res.render('index', {
+//     title: config.titleEuFunding,
+//     user: 'me',
+//     allDocument: [],
+//     hasToken: true,
+//     pathname: '/demo/eu-funding',
+//     fileupload: '/demo/eu-funding/fileupload',
+//     document: '/demo/eu-funding/document',
+//     verify: '/demo/eu-funding/verify'
+//   });
+
+}
+//-----
+
 async function getAllDocumentFromWalletByUser(req) {
   console.log('nothing today from getAllDocumentFromWalletByUser ---', req.baseUrl);
   try {
@@ -584,7 +638,7 @@ function verify(req, res) {
   getNotarizedDocument(req.body.docHash, conffrompathname).then(function (response) {
     let result = {
       title: config.title,
-      user: response.user,
+      user: 'response.user',
       verified: response.verified,
       signed: response.ok,
       info: response.document,
@@ -730,6 +784,7 @@ module.exports = {
   verify,
   verifyFile,
   noToken,
-  checkToken
+  checkToken,
+  receivehash
 };
  
