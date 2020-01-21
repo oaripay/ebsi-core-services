@@ -409,12 +409,22 @@ console.log(req.baseUrl,'***********receivehash**********',req.query);
 
 
   getNotarizedDocument(req.query.hash, conffrompathname).then(function (response) {
+
+    console.log(req.baseUrl,'***********receivehash getNotarizedDocument response**********',response);
+
+
+    let detais = {
+      hash: response.hash,
+      timestamp: response.timestamp,
+      registeredBy: response.registeredBy
+    }
+
     let result = {
-      title: config.title,
+      title: config.titleEuFunding,
       user: 'response.user',
       verified: response.verified,
       signed: response.ok,
-      info: response.document,
+      info: detais,
       hasToken: true
     };
     if (response.baseUrl === notaryConf.baseUrl) {
@@ -423,27 +433,8 @@ console.log(req.baseUrl,'***********receivehash**********',req.query);
       _.merge(result, euFundingConf);
     }
     res.render('index', result);
-    // res.render('index', {
-    //   title: config.title,
-    //   user: response.user,
-    //   verified: response.verified,
-    //   signed: response.ok,
-    //   info: response.document,
-    //   hasToken: true
-    // });
+
   });
-
-
-//   res.render('index', {
-//     title: config.titleEuFunding,
-//     user: 'me',
-//     allDocument: [],
-//     hasToken: true,
-//     pathname: '/demo/eu-funding',
-//     fileupload: '/demo/eu-funding/fileupload',
-//     document: '/demo/eu-funding/document',
-//     verify: '/demo/eu-funding/verify'
-//   });
 
 }
 //-----
