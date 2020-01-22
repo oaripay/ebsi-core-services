@@ -84,8 +84,10 @@ function upload(req, res) {
   // let csrfToken = req.csrfToken();
   console.log('----------------------------------------------------\n', req.baseUrl, ' | ', req.originalUrl);
   console.log('=========================upload=====================\n', req.app.get('settings'));
-
-if(req.app.get('settings').jwt ==='' && req.app.get('settings').did ===''){
+if (
+    _.isEmpty(req.app.get("settings").jwt) ||
+    _.isEmpty(req.app.get("settings").did)
+  ){
   res.redirect('https://app.ebsi.xyz/demo');
 //   res.redirect('/demo');https://app.ebsi.xyz/demo
   console.log('**************************** JWT and DID no*******************************************');
