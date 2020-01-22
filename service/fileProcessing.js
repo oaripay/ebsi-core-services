@@ -562,7 +562,7 @@ console.log('=======================singTx ', jwtokens.did);
   var tx = {
     did: jwtokens.did,
     hash: documentHash,
-    redirectURL: 'https://app.ebsi.xyz/demo/eu-funding'
+    redirectURL: 'https://app.ebsi.xyz/demo/eu-funding/receive-hash'
   };
 
 // req.app.get('settings')
