@@ -123,9 +123,9 @@
     {{!-- ---------------------------- --}}
     {{else}}
     <div class="alert alert-warning" role="alert"><i class="fas fa-ban"></i> No registration could be found for this
-      document <i class="fas fa-exclamation"></i> <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> <i
+      document (*)<i class="fas fa-exclamation"></i> <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> <i
         class="fas fa-exclamation-triangle"></i></div>
-        (*) Please check in your wallet if this document is waiting for your signature
+        (*) Please check in your wallet if this document is waiting for your signature OR refresh your page in 2s
     {{!-- <div class="alert alert-warning" role="alert">File not signed</div> --}}
     {{!-- <h2 style="color:red">{{message}}</h2> --}}
     {{/if}}
@@ -177,7 +177,7 @@
     {{!-- <p>Using document file</p> --}}
     {{!-- <p>Store document</p> --}}
     <br>
-    <form action="demo/eu-funding/verifyfile" method="post" enctype="multipart/form-data">
+    <form action={{verifyfile}} method="post" enctype="multipart/form-data">
       <div class="ecl-form-group ecl-form-group--file-upload">
         <label class="ecl-form-label" for="sampleFile-2">Use document file</label>
         {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
