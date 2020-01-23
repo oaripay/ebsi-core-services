@@ -125,6 +125,11 @@ contract UniversitiesTrustedIssuers is Ownable, SignerRole {
 
         require(trustedIssuers[DIDHash].status != false, 'Trusted Issuer does not exist');
 
+
+
+        // check the moderator for the current entity
+        require(trustedIssuers[DIDHash].moderator == _msgSender(), 'You are currently not moderating this Trusted Issuer');
+
         ts.hasAccreditations[ts.hasAccreditationsIndex] = Accreditation(targetFramework, targetResource);
         ts.hasAccreditationsIndex++;
 
