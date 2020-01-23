@@ -45,8 +45,13 @@ truffle migrate --network ebsi --reset
 ```
 
 ## Testing
+
+### Requirements:
+ - node 12 (use nvm)
+ - ganache-cli
 Run
 ```sh
+ganache-cli --gasLimit=8000000 --allowUnlimitedContractSize
 truffle test
 ```
 
