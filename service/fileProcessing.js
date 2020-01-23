@@ -409,6 +409,25 @@ function checkToken(req) {
 }
 //-----
 
+function delay(t, v) {
+   return new Promise(function(resolve) { 
+       setTimeout(resolve.bind(null, v), t)
+   });
+}
+
+Promise.prototype.delay = function(t) {
+    return this.then(function(v) {
+        return delay(t, v);
+    });
+}
+
+
+// Promise.resolve("hello").delay(500).then(function(v) {
+//     console.log(v);
+// });
+
+//-----
+
 function receivehash(req, res) {
   let conffrompathname = {};
   if (req.baseUrl === '/notary') {
@@ -422,7 +441,7 @@ function receivehash(req, res) {
   console.log(req.baseUrl, '***********receivehash**********', req.query);
 
 
-  getNotarizedDocument(req.query.hash, conffrompathname).then(function (response) {
+  getNotarizedDocument(req.query.hash, conffrompathname).delay(2000).then(function (response) {
     console.log(req.baseUrl, '***********receivehash getNotarizedDocument response**********', response);
 
 
