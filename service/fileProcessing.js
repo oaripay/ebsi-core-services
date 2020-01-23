@@ -10,7 +10,7 @@ const moment = require('moment');
 const ecas = require('../modules/ecas/ecas');
 const config = require('./conf');
 
-let fileToStore;
+let fileToStore, fileLabel;
 
 var euFundingConf = {
   pathname: '/demo/eu-funding',
@@ -85,7 +85,7 @@ function upload(req, res) {
   const reqPath = path.join(__dirname, '../');
   // let csrfToken = req.csrfToken();
   console.log('----------------------------------------------------\n', req.baseUrl, ' | ', req.originalUrl);
-  console.log('=========================upload=====================\n', req.app.get('settings'));
+//   console.log('=========================upload=====================\n', req.app.get('settings'));
   if (
     _.isEmpty(req.app.get('settings').jwt)
     || _.isEmpty(req.app.get('settings').did)
@@ -98,6 +98,8 @@ function upload(req, res) {
   }
   console.log('**************************** JWT and DID yes*******************************************');
 
+//   console.log('=========================upload=====================\n', req.body);
+  fileLabel=req.body.title;
 
   if (!req.files || Object.keys(req.files).length === 0) {
     console.log('No files were uploaded.');
@@ -255,7 +257,7 @@ async function storeDocWithoutPubKey(req) {
         //         const signResponse = await signIt(hash, token);
 
         console.log('-- signTX: -----------------------------------------------------------------------');
-        var signResponse = await signTx(hash, jwtokens);
+        var signResponse = await signTx(hash, jwtokens,fileLabel);
         console.log('-- signTX: -----------------------------------------------------------------------');
 
         //         console.log('-- signResponse: ', signResponse);
@@ -306,7 +308,7 @@ if(e.response.data && e.response.data.message){
       const errorResult = _.assign({}, {
         ok: false, message: message, user: 'username', euFundingConf
       });
-      
+
       // let errorResult = _.assign({}, { ok: false, message: e.response.data, user: username ,csrfToken:csrfToken});
       // if (req.baseUrl === '/notary') {
       //   _.merge(result, notaryConf);
@@ -436,19 +438,20 @@ function receivehash(req, res) {
     _.merge(conffrompathname, euFundingConf);
   }
 
-
+let ledgerHash= req.query.ledgerHash;
   // console.log('***********receivehash**********',req);
   console.log(req.baseUrl, '***********receivehash**********', req.query);
 
 
   getNotarizedDocument(req.query.hash, conffrompathname).delay(2000).then(function (response) {
     console.log(req.baseUrl, '***********receivehash getNotarizedDocument response**********', response);
-
+console.log(req.baseUrl, '***********receivehash getNotarizedDocument ledgerHash**********', ledgerHash);
 
     let detais = {
       hash: response.hash,
       timestamp: response.timestamp,
-      registeredBy: response.registeredBy
+      registeredBy: response.registeredBy,
+      ledgerHash: ledgerHash
     };
 
     let result = {
@@ -572,11 +575,12 @@ async function signIt(hash, token) {
 }
 
 
-async function signTx(documentHash, jwtokens) { // only eu-funding sign today to do in notary
+async function signTx(documentHash, jwtokens, fileLabel) { // only eu-funding sign today to do in notary
   console.log('=======================singTx ', documentHash);
   console.log('=======================singTx ', jwtokens);
   console.log('=======================singTx ', jwtokens.jwt);
   console.log('=======================singTx ', jwtokens.did);
+  console.log('=======================singTx ', fileLabel);
 
   var token = jwtokens.jwt;
   //   var token =  req.app.get('settings').jwt;
@@ -592,7 +596,8 @@ async function signTx(documentHash, jwtokens) { // only eu-funding sign today to
   var tx = {
     did: jwtokens.did,
     hash: documentHash,
-    redirectURL: 'https://app.ebsi.xyz/demo/eu-funding/receive-hash'
+    redirectURL: 'https://app.ebsi.xyz/demo/eu-funding/receive-hash',
+    documentName: fileLabel
   };
 
   // req.app.get('settings')
@@ -662,7 +667,8 @@ function verify(req, res) {
         let detais = {
       hash: response.hash,
       timestamp: response.timestamp,
-      registeredBy: response.registeredBy
+      registeredBy: response.registeredBy,
+      ledgerHash: 'not yet'
     };
 
     let result = {
@@ -770,7 +776,8 @@ function verifyFile(req, res) {
         let detais = {
       hash: response.hash,
       timestamp: response.timestamp,
-      registeredBy: response.registeredBy
+      registeredBy: response.registeredBy,
+      ledgerHash: 'not yet'
     };
 
     let result = {
