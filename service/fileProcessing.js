@@ -289,13 +289,24 @@ async function storeDocWithoutPubKey(req) {
     } catch (e) {
       //       console.log('not stored: ', e);
 
-      console.log('not stored: ', e.response.status);// averina/
-      console.log('not stored: ', e.response.data);// averina
+      console.log('not stored: ', e.response.status);
+      console.log('not stored: ', e.response.data);
+let message;
+if(e.response.data && e.response.data.message){
+   message=e.response.data.message
+}else{
+   message=e.response.data
+}
+
 
       // check one day for notary
+//       const errorResult = _.assign({}, {
+//         ok: false, message: e.response.data, user: 'username', euFundingConf
+//       });
       const errorResult = _.assign({}, {
-        ok: false, message: e.response.data, user: 'username', euFundingConf
+        ok: false, message: message, user: 'username', euFundingConf
       });
+      
       // let errorResult = _.assign({}, { ok: false, message: e.response.data, user: username ,csrfToken:csrfToken});
       // if (req.baseUrl === '/notary') {
       //   _.merge(result, notaryConf);
