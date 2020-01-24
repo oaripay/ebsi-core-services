@@ -21,8 +21,8 @@
 </div>
 {{/if}}
 {{#if hash}}
-<button class="ecl-button ecl-button--secondary ecl-u-mt-m" type="button" data-toggle="collapse"
-  data-target="#collapseDetails" aria-expanded="false" aria-controls="collapseDetails">
+<button class="ecl-button ecl-button--secondary ecl-u-mt-m" type="button" data-toggle="collapse" data-target="#collapseDetails"
+  aria-expanded="false" aria-controls="collapseDetails">
   Details explorer
 </button>
 <div class="collapse" id="collapseDetails">
@@ -87,14 +87,16 @@
     class="fas fa-check-double"></i></h2>
 {{#if verified}}
 {{#if signed}}
-<div class="alert alert-success" role="alert"><i class="fas fa-certificate"></i> File signed, notarised in the
-  ledger {{!-- <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> --}} <i class="fas fa-stamp"></i> <i
-    class="fas fa-flag-checkered"></i></div>
+<div role="alert" class="ecl-message ecl-message--success" data-ecl-message="true"><svg focusable="false"
+    aria-hidden="true" class="ecl-message__icon ecl-icon ecl-icon--l">
+    <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#notifications--success"></use>
+  </svg>
+  <div class="ecl-message__content">
+    <div class="ecl-message__title">File signed, notarised in the ledger</div>
+  </div>
+</div>
 
-{{!-- <div class="alert alert-success" role="alert">File signed <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></div> --}}
-{{!-- <h2 style="color:green">{{message}}</h2> --}}
-{{!-- ---------------------------- --}}
-<button class="ecl-button ecl-button--secondary" type="button" data-toggle="collapse" data-target="#collapseInfo"
+<button class="ecl-button ecl-button--secondary ecl-u-mt-m" type="button" data-toggle="collapse" data-target="#collapseInfo"
   aria-expanded="false" aria-controls="collapseInfo">
   Details explorer
 </button>
@@ -104,18 +106,21 @@
   <button type="submit" class="ecl-button ecl-button--secondary">Download</button>
 </form>
 <div class="collapse" id="collapseInfo">
-  <div class="well">
-    <div class="alert alert-info" role="alert">
-      <div>document hash: {{info.hash}}</div>
-      <div>timestamp: {{info.timestamp}}</div>
-      <div>registered by: {{info.registeredBy}}</div>
+  <div class="ecl-u-bg-grey-5 ecl-u-pa-m">
+    <dl class="ecl-description-list">
+      <dt class="ecl-description-list__term">Document hash</dt>
+      <dd class="ecl-description-list__definition">{{info.hash}}</dd>
+      <dt class="ecl-description-list__term">Timestamp</dt>
+      <dd class="ecl-description-list__definition">{{info.timestamp}}</dd>
+      <dt class="ecl-description-list__term">Registered by</dt>
+      <dd class="ecl-description-list__definition">{{info.registeredBy}}</dd>
       {{#if info.ledgerHash}}
-      <div>ledger Hash: <a class="ecl-button ecl-button--primary"
-          href="https://www.ebsi.xyz/tx/{{{info.ledgerHash}}}">{{info.ledgerHash}}</a></div>
+      <dt class="ecl-description-list__term">Ledger Hash</dt>
+      <dd class="ecl-description-list__definition"><a class="ecl-link ecl-link--standalone" href="https://www.ebsi.xyz/tx/{{{info.ledgerHash}}}">{{info.ledgerHash}}</a></dd>
       {{/if}}
-    </div>
+    </dl>
   </div>
-  <div>(*) make sure the signature is the same</div>
+  <p>(*) make sure the signature is the same</p>
 </div>
 {{!-- ---------------------------- --}}
 {{else}}
@@ -134,8 +139,10 @@
 {{!-- <div class="alert alert-warning" role="alert">File not signed</div> --}}
 {{!-- <h2 style="color:red">{{message}}</h2> --}}
 {{/if}}
-<hr />
-{{!-- <p>Using document hash</p> --}}
+<br><br>
+<p class="ecl-u-type-paragraph ecl-u-mt-m">Check another document</p>
+{{!-- <hr /><p>Using document hash</p> --}}
+
 <form action={{verify}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
   <div class="ecl-form-group ecl-form-group--text-input">
     <label class="ecl-form-label" for="title-1">Use document hash</label>
@@ -181,33 +188,8 @@
   <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
 </form>
 {{/if}}
-{{!-- <div class="jumbotron"> --}}
-{{!--   <div class="container">
-    <hr>
-    {{# each allDocument }}
-    <div class="row">
-      <a class="btn btn-primary" role="button" data-toggle="collapse" href="#{{this.id}}" aria-expanded="false"
-        aria-controls="{{this.id}}">
-        {{ this.opId }} details
-      </a>
-      <a href="https://api.ebsi.xyz/file-storage/{{{hash}}}" class="btn btn-success">Download</a>
-      <a href="" class="btn btn-info">Send</a>
-      <div class="collapse" id="{{this.id}}">
-        <div class="well">
-          <br>
-          <div class="alert alert-info" role="alert">
-            <div>document hash: {{data}}</div>
-            <div>transaction id: {{id}}</div>
-          </div>
-        </div>
-      </div>
-      {{/each}}
-    </div>
-    <hr> --}}
-{{!-- <footer>
-        <p>&copy; 2019 EBSI NOTARY</p>
-    </footer> --}}
-{{!-- </div> --}}
+
+
 
 {{else}}
 <h2 class="ecl-u-type-heading-2">Please follow step requirement before:

@@ -64,7 +64,7 @@ app.use(fileUpload());
 
 app.use('/demo/eu-funding', indexRouter2);
 app.use('/eu-funding', indexRouter2);
-app.use('/notary', indexRouter);
+app.use('/notary', indexRouter2);
 
 app.set('settings', { jwt: '', did: '' });
 
