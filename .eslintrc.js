@@ -22,6 +22,7 @@ module.exports = {
     "func-names": "off",
     // "brace-style": "off",
     "no-console": "off",
-    "max-len": "off"
+    "max-len": "off",
+    "linebreak-style": 0
   }
 };

@@ -683,7 +683,7 @@ function verify(req, res) {
       registeredBy: response.registeredBy
     };
 
-//       ,ledgerHash: 'not yet'
+    //       ,ledgerHash: 'not yet'
     let result = {
       title: config.titleEuFunding,
       user: 'response.user',
@@ -795,7 +795,7 @@ function verifyFile(req, res) {
         timestamp: response.timestamp,
         registeredBy: response.registeredBy
       };
-//         ,ledgerHash: 'not yet'
+      //         ,ledgerHash: 'not yet'
       let result = {
         title: config.titleEuFunding,
         user: 'response.user',
