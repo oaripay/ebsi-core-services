@@ -447,6 +447,11 @@ let ledgerHash= req.query.ledgerHash;
     console.log(req.baseUrl, '***********receivehash getNotarizedDocument response**********', response);
 console.log(req.baseUrl, '***********receivehash getNotarizedDocument ledgerHash**********', ledgerHash);
 
+      if (response.timestamp !== '0') {
+        const date = moment.unix(response.timestamp);
+        response.timestamp = date.format();
+      }
+
     let detais = {
       hash: response.hash,
       timestamp: response.timestamp,
@@ -660,11 +665,18 @@ function verify(req, res) {
   } else {
     _.merge(conffrompathname, euFundingConf);
   }
-  console.log('-- result: ', conffrompathname);
+  console.log('-- conffrompathname verify: ', conffrompathname);
   // const username = req.session[ecas.session_name];
   getNotarizedDocument(req.body.docHash, conffrompathname).then(function (response) {
+    console.log('+++++verify from doc hash+++++ response', response);
     //-------
-        let detais = {
+
+      if (response.timestamp !== '0') {
+        const date = moment.unix(response.timestamp);
+        response.timestamp = date.format();
+      }
+
+    let detais = {
       hash: response.hash,
       timestamp: response.timestamp,
       registeredBy: response.registeredBy,
@@ -773,6 +785,11 @@ function verifyFile(req, res) {
       }
 
           //-------
+
+                if (response.timestamp !== '0') {
+        const date = moment.unix(response.timestamp);
+        response.timestamp = date.format();
+      }
         let detais = {
       hash: response.hash,
       timestamp: response.timestamp,
