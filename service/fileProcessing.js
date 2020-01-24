@@ -7,10 +7,11 @@ const Web3 = require('web3');
 const fs = require('fs');
 const FormData = require('form-data');
 const moment = require('moment');
-const ecas = require('../modules/ecas/ecas');
+// const ecas = require('../modules/ecas/ecas');
 const config = require('./conf');
 
-let fileToStore, fileLabel;
+let fileToStore; let
+  fileLabel;
 
 var euFundingConf = {
   pathname: '/demo/eu-funding',
@@ -25,12 +26,12 @@ var notaryConf = {
   fileupload: '/notary/fileupload',
   document: '/notary/document',
   verify: '/notary/verify',
-  verifyfile: '/notary/verifyfile',
+  verifyfile: '/notary/verifyfile'
 };
 
 // to do add switch from pathname to res
 
-/* eslint-disable consistent-return, no-use-before-define, camelcase, prefer-const */
+/* eslint-disable consistent-return, no-use-before-define, camelcase, prefer-const, no-extend-native */
 
 async function besuLogin() {
   console.log('--------------------- login besu login ---------------------');
@@ -85,7 +86,7 @@ function upload(req, res) {
   const reqPath = path.join(__dirname, '../');
   // let csrfToken = req.csrfToken();
   console.log('----------------------------------------------------\n', req.baseUrl, ' | ', req.originalUrl);
-//   console.log('=========================upload=====================\n', req.app.get('settings'));
+  //   console.log('=========================upload=====================\n', req.app.get('settings'));
   if (
     _.isEmpty(req.app.get('settings').jwt)
     || _.isEmpty(req.app.get('settings').did)
@@ -98,8 +99,8 @@ function upload(req, res) {
   }
   console.log('**************************** JWT and DID yes*******************************************');
 
-//   console.log('=========================upload=====================\n', req.body);
-  fileLabel=req.body.title;
+  //   console.log('=========================upload=====================\n', req.body);
+  fileLabel = req.body.title;
 
   if (!req.files || Object.keys(req.files).length === 0) {
     console.log('No files were uploaded.');
@@ -257,7 +258,7 @@ async function storeDocWithoutPubKey(req) {
         //         const signResponse = await signIt(hash, token);
 
         console.log('-- signTX: -----------------------------------------------------------------------');
-        var signResponse = await signTx(hash, jwtokens,fileLabel);
+        var signResponse = await signTx(hash, jwtokens, fileLabel);
         console.log('-- signTX: -----------------------------------------------------------------------');
 
         //         console.log('-- signResponse: ', signResponse);
@@ -293,18 +294,18 @@ async function storeDocWithoutPubKey(req) {
 
       console.log('not stored: ', e.response.status);
       console.log('not stored: ', e.response.data);
-let message;
-if(e.response.data && e.response.data.message){
-   message=e.response.data.message
-}else{
-   message=e.response.data
-}
+      let message;
+      if (e.response.data && e.response.data.message) {
+        message = e.response.data.message;
+      } else {
+        message = e.response.data;
+      }
 
 
       // check one day for notary
-//       const errorResult = _.assign({}, {
-//         ok: false, message: e.response.data, user: 'username', euFundingConf
-//       });
+      //       const errorResult = _.assign({}, {
+      //         ok: false, message: e.response.data, user: 'username', euFundingConf
+      //       });
       const errorResult = _.assign({}, {
         ok: false, message: message, user: 'username', euFundingConf
       });
@@ -359,7 +360,7 @@ function getAllDocument(req, res) {
         fileupload: '/demo/eu-funding/fileupload',
         document: '/demo/eu-funding/document',
         verify: '/demo/eu-funding/verify',
-verifyfile: '/demo/eu-funding/verifyfile'
+        verifyfile: '/demo/eu-funding/verifyfile'
       });
     } else {
       res.render('index', {
@@ -371,7 +372,7 @@ verifyfile: '/demo/eu-funding/verifyfile'
         fileupload: '/demo/eu-funding/fileupload',
         document: '/demo/eu-funding/document',
         verify: '/demo/eu-funding/verify',
-verifyfile: '/demo/eu-funding/verifyfile'
+        verifyfile: '/demo/eu-funding/verifyfile'
       });
     }
   });
@@ -390,7 +391,7 @@ function noToken(req, res) {
     fileupload: '/demo/eu-funding/fileupload',
     document: '/demo/eu-funding/document',
     verify: '/demo/eu-funding/verify',
-verifyfile: '/demo/eu-funding/verifyfile'
+    verifyfile: '/demo/eu-funding/verifyfile'
   });
 }
 //-----
@@ -412,16 +413,16 @@ function checkToken(req) {
 //-----
 
 function delay(t, v) {
-   return new Promise(function(resolve) { 
-       setTimeout(resolve.bind(null, v), t)
-   });
+  return new Promise(function (resolve) {
+    setTimeout(resolve.bind(null, v), t);
+  });
 }
 
-Promise.prototype.delay = function(t) {
-    return this.then(function(v) {
-        return delay(t, v);
-    });
-}
+Promise.prototype.delay = function (t) {
+  return this.then(function (v) {
+    return delay(t, v);
+  });
+};
 
 
 // Promise.resolve("hello").delay(500).then(function(v) {
@@ -438,19 +439,19 @@ function receivehash(req, res) {
     _.merge(conffrompathname, euFundingConf);
   }
 
-let ledgerHash= req.query.ledgerHash;
+  let ledgerHash = req.query.ledgerHash;
   // console.log('***********receivehash**********',req);
   console.log(req.baseUrl, '***********receivehash**********', req.query);
 
 
   getNotarizedDocument(req.query.hash, conffrompathname).delay(2000).then(function (response) {
     console.log(req.baseUrl, '***********receivehash getNotarizedDocument response**********', response);
-console.log(req.baseUrl, '***********receivehash getNotarizedDocument ledgerHash**********', ledgerHash);
+    console.log(req.baseUrl, '***********receivehash getNotarizedDocument ledgerHash**********', ledgerHash);
 
-      if (response.timestamp !== '0') {
-        const date = moment.unix(response.timestamp);
-        response.timestamp = date.format();
-      }
+    if (response.timestamp !== '0') {
+      const date = moment.unix(response.timestamp);
+      response.timestamp = date.format();
+    }
 
     let detais = {
       hash: response.hash,
@@ -671,18 +672,18 @@ function verify(req, res) {
     console.log('+++++verify from doc hash+++++ response', response);
     //-------
 
-      if (response.timestamp !== '0') {
-        const date = moment.unix(response.timestamp);
-        response.timestamp = date.format();
-      }
+    if (response.timestamp !== '0') {
+      const date = moment.unix(response.timestamp);
+      response.timestamp = date.format();
+    }
 
     let detais = {
       hash: response.hash,
       timestamp: response.timestamp,
-      registeredBy: response.registeredBy,
-      ledgerHash: 'not yet'
+      registeredBy: response.registeredBy
     };
 
+//       ,ledgerHash: 'not yet'
     let result = {
       title: config.titleEuFunding,
       user: 'response.user',
@@ -698,20 +699,20 @@ function verify(req, res) {
     }
     res.render('index', result);
     //-------
-//     let result = {
-//       title: config.title,
-//       user: 'response.user',
-//       verified: response.verified,
-//       signed: response.ok,
-//       info: response.document,
-//       hasToken: true
-//     };
-//     if (response.baseUrl === notaryConf.baseUrl) {
-//       _.merge(result, notaryConf);
-//     } else {
-//       _.merge(result, euFundingConf);
-//     }
-//     res.render('index', result);
+    //     let result = {
+    //       title: config.title,
+    //       user: 'response.user',
+    //       verified: response.verified,
+    //       signed: response.ok,
+    //       info: response.document,
+    //       hasToken: true
+    //     };
+    //     if (response.baseUrl === notaryConf.baseUrl) {
+    //       _.merge(result, notaryConf);
+    //     } else {
+    //       _.merge(result, euFundingConf);
+    //     }
+    //     res.render('index', result);
     // res.render('index', {
     //   title: config.title,
     //   user: response.user,
@@ -724,7 +725,7 @@ function verify(req, res) {
 }
 
 function verifyFile(req, res) {
-  console.log('niditra verifyFile ++++++++++++++++++++++++++++++++++++++')
+  console.log('niditra verifyFile ++++++++++++++++++++++++++++++++++++++');
   let sampleFile;
   let uploadPath;
   const reqPath = path.join(__dirname, '../');
@@ -738,19 +739,18 @@ function verifyFile(req, res) {
   console.log('-- result: ', conffrompathname);
 
 
-//   console.log('=========================verifyFile=====================\n', req.app.get('settings'));
-//   if (
-//     _.isEmpty(req.app.get('settings').jwt)
-//     || _.isEmpty(req.app.get('settings').did)
-//   ) {
-//     // if(req.app.get('settings').jwt ==='' && req.app.get('settings').did ===''){
-//     res.redirect('https://app.ebsi.xyz/demo');
-//     //   res.redirect('/demo');https://app.ebsi.xyz/demo
-//     console.log('**************************** JWT and DID no*******************************************');
-//     return;
-//   }
-//   console.log('**************************** JWT and DID yes*******************************************');
-
+  //   console.log('=========================verifyFile=====================\n', req.app.get('settings'));
+  //   if (
+  //     _.isEmpty(req.app.get('settings').jwt)
+  //     || _.isEmpty(req.app.get('settings').did)
+  //   ) {
+  //     // if(req.app.get('settings').jwt ==='' && req.app.get('settings').did ===''){
+  //     res.redirect('https://app.ebsi.xyz/demo');
+  //     //   res.redirect('/demo');https://app.ebsi.xyz/demo
+  //     console.log('**************************** JWT and DID no*******************************************');
+  //     return;
+  //   }
+  //   console.log('**************************** JWT and DID yes*******************************************');
 
 
   if (!req.files || Object.keys(req.files).length === 0) {
@@ -784,48 +784,47 @@ function verifyFile(req, res) {
         });
       }
 
-          //-------
+      //-------
 
-                if (response.timestamp !== '0') {
+      if (response.timestamp !== '0') {
         const date = moment.unix(response.timestamp);
         response.timestamp = date.format();
       }
-        let detais = {
-      hash: response.hash,
-      timestamp: response.timestamp,
-      registeredBy: response.registeredBy,
-      ledgerHash: 'not yet'
-    };
-
-    let result = {
-      title: config.titleEuFunding,
-      user: 'response.user',
-      verified: response.verified,
-      signed: response.ok,
-      info: detais,
-      hasToken: true
-    };
-    if (response.baseUrl === notaryConf.baseUrl) {
-      _.merge(result, notaryConf);
-    } else {
-      _.merge(result, euFundingConf);
-    }
-    res.render('index', result);
+      let detais = {
+        hash: response.hash,
+        timestamp: response.timestamp,
+        registeredBy: response.registeredBy
+      };
+//         ,ledgerHash: 'not yet'
+      let result = {
+        title: config.titleEuFunding,
+        user: 'response.user',
+        verified: response.verified,
+        signed: response.ok,
+        info: detais,
+        hasToken: true
+      };
+      if (response.baseUrl === notaryConf.baseUrl) {
+        _.merge(result, notaryConf);
+      } else {
+        _.merge(result, euFundingConf);
+      }
+      res.render('index', result);
     //-------
-//       let result = {
-//         title: config.title,
-//         user: response.user,
-//         verified: response.verified,
-//         signed: response.ok,
-//         info: response.document,
-//         hasToken: true
-//       };
-//       if (response.baseUrl === notaryConf.baseUrl) {
-//         _.merge(result, notaryConf);
-//       } else {
-//         _.merge(result, euFundingConf);
-//       }
-//       res.render('index', result);
+      //       let result = {
+      //         title: config.title,
+      //         user: response.user,
+      //         verified: response.verified,
+      //         signed: response.ok,
+      //         info: response.document,
+      //         hasToken: true
+      //       };
+      //       if (response.baseUrl === notaryConf.baseUrl) {
+      //         _.merge(result, notaryConf);
+      //       } else {
+      //         _.merge(result, euFundingConf);
+      //       }
+      //       res.render('index', result);
       // res.render('index', {
       //   title: config.title,
       //   user: response.user,
@@ -884,7 +883,7 @@ async function getNotarizedDocument(txHash, conffrompathname) {
     );
   }
 }
-/* eslint-enable consistent-return, no-use-before-define, camelcase, prefer-const */
+/* eslint-enable consistent-return, no-use-before-define, camelcase, prefer-const, no-extend-native */
 
 module.exports = {
   upload,

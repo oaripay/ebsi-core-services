@@ -109,8 +109,10 @@
       <div>document hash: {{info.hash}}</div>
       <div>timestamp: {{info.timestamp}}</div>
       <div>registered by: {{info.registeredBy}}</div>
+      {{#if info.ledgerHash}}
       <div>ledger Hash: <a class="ecl-button ecl-button--primary"
           href="https://www.ebsi.xyz/tx/{{{info.ledgerHash}}}">{{info.ledgerHash}}</a></div>
+      {{/if}}
     </div>
   </div>
   <div>(*) make sure the signature is the same</div>
