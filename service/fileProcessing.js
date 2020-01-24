@@ -660,9 +660,10 @@ function verify(req, res) {
   } else {
     _.merge(conffrompathname, euFundingConf);
   }
-  console.log('-- result: ', conffrompathname);
+  console.log('-- conffrompathname verify: ', conffrompathname);
   // const username = req.session[ecas.session_name];
   getNotarizedDocument(req.body.docHash, conffrompathname).then(function (response) {
+    console.log('+++++verify from doc hash+++++ response', response);
     //-------
         let detais = {
       hash: response.hash,
