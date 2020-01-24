@@ -1,201 +1,179 @@
 {{#if hasToken}}
-<div class="jumbotron">
-    <div class="container">
-        <p>Store and notary documents <i class="fas fa-link"></i></p>
-        {{#if message}}
-            {{#if ok}}
-                <div class="alert alert-success" role="alert">{{message}} <span class="glyphicon glyphicon-saved" aria-hidden="true"></span></div>
-                {{!-- <h2 style="color:green">{{message}}</h2> --}}
-            {{else}}
-                <div class="alert alert-warning" role="alert">{{message}} </div>
-                {{!-- <h2 style="color:red">{{message}}</h2> --}}
-            {{/if}}
-            {{#if hash}}
-                <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseDetails" aria-expanded="false" aria-controls="collapseDetails">
-                    Details explorer
-                </button>
-                <div class="collapse" id="collapseDetails">
-                    <div class="well">
-                        <div class="alert alert-info" role="alert">
-                            <div>document hash: {{hash}}</div>
-                            <div>transaction Id: {{transactionId}}</div>
-                        </div>
-                    </div>
-                </div>
-                {{#if notary}}
-                    <br>
-                    <h2 style="color:green">
-                    <span class="glyphicon glyphicon-link" aria-hidden="true"></span> Document ready to be notarised:
-                    <br><br>
-                    Check your <a class="ecl-link ecl-link--cta" href="https://app.ebsi.xyz/wallet/notifications"> wallet's notifications</a> and sign the transaction in order to finalise the notarisation
-                    </h2><br>
-                    (*) This mean that this document is waiting your signature through your wallet
-                {{else}}
-                    <br>
-                    <h2 style="color:orange">Not notarized <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span></h2>
-                    (*) This mean that something went wrong
-                {{/if}}
-
-    <br>
-    <hr>
-    {{!-- <p>Document</p> --}}
-    <br>
-    {{!-- <a href="https://api.ebsi.xyz/file-storage/{{{hash}}}" class="btn btn-success">Download</a> --}}
-    <form action={{document}} method="post" enctype="multipart/form-data">
-      <input name="hash" type="hidden" value={{{hash}}}>
-      {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-      <button type="submit" class="ecl-button ecl-button--secondary">Download</button>
-    </form>
-    <hr><br>
-    {{else}}
-    <br>
-    {{!-- <p>Store document</p> --}}
-    <br>
-    <form action={{fileupload}} method="post" enctype="multipart/form-data">
-      <div class="ecl-form-group ecl-form-group--text-input">
-        <label class="ecl-form-label" for="title-4">Document title</label>
-        <input type="text" id="title-4" class="ecl-text-input ecl-text-input--m" onfocus="this.value=''"
-          value="document" required name="title">
-      </div><br>
-      {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-      <div class="ecl-form-group ecl-form-group--file-upload">
-        <label class="ecl-form-label" for="sampleFile-3">File</label>
-        <input type="file" name="sampleFile" id="sampleFile-3" class="ecl-file-upload" />
-      </div>
-      <br>
-      <button type="submit" class="ecl-button ecl-button--primary">Submit</button>
-    </form>
-    <br>
-    {{/if}}
-    {{else}}
-    <br>
-    {{!-- <p>Store document</p> --}}
-    <br>
-    {{!-- <form action="eu-funding/fileupload" method="post" enctype="multipart/form-data"> --}}
-    <form action={{fileupload}} method="post" enctype="multipart/form-data">
-      <div class="ecl-form-group ecl-form-group--text-input">
-        <label class="ecl-form-label" for="title-2">Document title</label>
-        <input type="text" id="title-2" class="ecl-text-input ecl-text-input--m" onfocus="this.value=''"
-          value="document" required name="title">
-      </div><br>
-      {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-      <div class="ecl-form-group ecl-form-group--file-upload">
-        <label class="ecl-form-label" for="sampleFile-4">File</label>
-        <input type="file" name="sampleFile" id="sampleFile-4" class="ecl-file-upload" />
-      </div>
-      <br>
-      <button type="submit" class="ecl-button ecl-button--primary">Submit</button>
-    </form>
-    <br>
-    {{/if}}
+<h2 class="ecl-u-type-heading-2 ecl-u-mt-xl">Store and notarise documents <i class="fas fa-link"></i></h2>
+{{#if message}}
+{{#if ok}}
+<div role="alert" class="ecl-message ecl-message--success" data-ecl-message="true"><svg focusable="false"
+    aria-hidden="true" class="ecl-message__icon ecl-icon ecl-icon--l">
+    <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#notifications--success"></use>
+  </svg>
+  <div class="ecl-message__content">
+    <div class="ecl-message__title">{{message}}</div>
   </div>
 </div>
-<div class="jumbotron">
-  <di<br class="container">
-    <p>Verify signed document on the ledger, verify document authenticity <i class="fas fa-check-double"></i></p>
-    {{#if verified}}
-    {{#if signed}}
-    <div class="alert alert-success" role="alert"><i class="fas fa-certificate"></i> File signed, notarised in the
-      ledger {{!-- <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> --}} <i class="fas fa-stamp"></i> <i
-        class="fas fa-flag-checkered"></i></div>
-
-    {{!-- <div class="alert alert-success" role="alert">File signed <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></div> --}}
-    {{!-- <h2 style="color:green">{{message}}</h2> --}}
-    {{!-- ---------------------------- --}}
-    <p>
-      <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseInfo"
-        aria-expanded="false" aria-controls="collapseInfo">
-        Details explorer
-      </button>
-      <form action={{document}} method="post" enctype="multipart/form-data">
-        {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-        <input name="hash" type="hidden" value={{{info.hash}}}>
-        <button type="submit" class="ecl-button ecl-button--secondary">Download</button>
-      </form>
-    </p>
-    <div class="collapse" id="collapseInfo">
-      <div class="well">
-        <div class="alert alert-info" role="alert">
-          <div>document hash: {{info.hash}}</div>
-          <div>timestamp: {{info.timestamp}}</div>
-          <div>registered by: {{info.registeredBy}}</div>
-          <div>ledger Hash: <a class="ecl-button ecl-button--primary" href="https://www.ebsi.xyz/tx/{{{info.ledgerHash}}}">{{info.ledgerHash}}</a></div>
-        </div>
-      </div>
-      <br>
-      <div>(*) make sure the signature is the same</div>
+{{else}}
+<div role="alert" class="ecl-message ecl-message--warning" data-ecl-message="true"><svg focusable="false"
+    aria-hidden="true" class="ecl-message__icon ecl-icon ecl-icon--l">
+    <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#notifications--warning"></use>
+  </svg>
+  <div class="ecl-message__content">
+    <div class="ecl-message__title">{{message}}</div>
+  </div>
+</div>
+{{/if}}
+{{#if hash}}
+<button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#collapseDetails"
+  aria-expanded="false" aria-controls="collapseDetails">
+  Details explorer
+</button>
+<div class="collapse" id="collapseDetails">
+  <div class="well">
+    <div class="alert alert-info" role="alert">
+      <div>document hash: {{hash}}</div>
+      <div>transaction Id: {{transactionId}}</div>
     </div>
-    {{!-- ---------------------------- --}}
-    {{else}}
-    <div class="alert alert-warning" role="alert"><i class="fas fa-ban"></i> No registration could be found for this
-      document (*)<i class="fas fa-exclamation"></i> <span class="glyphicon glyphicon-remove" aria-hidden="true"></span> <i
-        class="fas fa-exclamation-triangle"></i></div>
-        (*) Please check in your wallet if this document is waiting for your signature OR refresh your page in 2s
-    {{!-- <div class="alert alert-warning" role="alert">File not signed</div> --}}
-    {{!-- <h2 style="color:red">{{message}}</h2> --}}
-    {{/if}}
-    <hr>
-    <br>
-    <br>
-    {{!-- <p>Using document hash</p> --}}
-    <form action={{verify}} method="post" enctype="multipart/form-data">
-      <div class="ecl-form-group ecl-form-group--text-input">
-        <label class="ecl-form-label" for="title-1">Use document hash</label>
-        {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
-        {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-        <input type="text" id="title-1" class="ecl-text-input ecl-text-input--m" name="docHash">
-      </div>
-      <br>
-      <button type="submit" class="ecl-button ecl-button--primary">Submit</button>
-    </form>
-    <br>
-    <p>or</p>
-    {{!-- <p>Using document file</p> --}}
-    {{!-- <p>Store document</p> --}}
-    <br>
-    <form action={{verifyfile}} method="post" enctype="multipart/form-data">
-      <div class="ecl-form-group ecl-form-group--file-upload">
-        <label class="ecl-form-label" for="sampleFile-1">Use document file</label>
-        {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
-        {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-        <input type="file" name="sampleFile" id="sampleFile-1" class="ecl-file-upload" />
-      </div>
-      <br>
-      <button type="submit" class="ecl-button ecl-button--primary">Submit</button>
-    </form>
-    <br>
-    {{else}}
-    <br>
-    {{!-- <p>Using document hash</p> --}}
-    <form action={{verify}} method="post" enctype="multipart/form-data">
-      <div class="ecl-form-group ecl-form-group--text-input">
-        <label class="ecl-form-label" for="title-3">Use document hash</label>
-        {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
-        {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-        <input type="text" id="title-3" class="ecl-text-input ecl-text-input--m" name="docHash">
-      </div>
-      <br>
-      <button type="submit" class="ecl-button ecl-button--primary">Submit</button>
-    </form>
-    <br>
-    <p>or</p>
-    {{!-- <p>Using document file</p> --}}
-    {{!-- <p>Store document</p> --}}
-    <br>
-    <form action={{verifyfile}} method="post" enctype="multipart/form-data">
-      <div class="ecl-form-group ecl-form-group--file-upload">
-        <label class="ecl-form-label" for="sampleFile-2">Use document file</label>
-        {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
-        {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-        <input type="file" name="sampleFile" id="sampleFile-2" class="ecl-file-upload" />
-      </div>
-      <br>
-      <button type="submit" class="ecl-button ecl-button--primary">Submit</button>
-    </form>
-    <br>
-    {{/if}}
+  </div>
 </div>
+{{#if notary}}
+<h2 class="ecl-u-type-heading-2">
+  <span class="glyphicon glyphicon-link" aria-hidden="true"></span> Document ready to be notarised:
+  Check your <a class="ecl-link ecl-link--cta" href="https://app.ebsi.xyz/wallet/notifications"> wallet's
+    notifications</a> and sign the transaction in order to finalise the notarisation
+</h2>
+(*) This means that this document is waiting for your signature through your wallet
+{{else}}
+<h2 class="ecl-u-type-heading-2">Not notarized <span class="glyphicon glyphicon-exclamation-sign"
+    aria-hidden="true"></span>
+</h2>
+(*) This means that something went wrong
+{{/if}}
+<hr />
+{{!-- <p>Document</p> --}}
+{{!-- <a href="https://api.ebsi.xyz/file-storage/{{{hash}}}" class="btn btn-success">Download</a> --}}
+<form action={{document}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+  <input name="hash" type="hidden" value={{{hash}}}>
+  {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+  <button type="submit" class="ecl-button ecl-button--secondary">Download</button>
+</form>
+<hr />
+{{else}}
+{{!-- <p>Store document</p> --}}
+<form action={{fileupload}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+  <div class="ecl-form-group ecl-form-group--text-input">
+    <label class="ecl-form-label" for="title-4">Document title</label>
+    <input type="text" id="title-4" class="ecl-text-input ecl-text-input--m" required name="title">
+  </div>
+  {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+  <div class="ecl-form-group ecl-form-group--file-upload ecl-u-mt-m">
+    <label class="ecl-form-label" for="sampleFile-3">File</label>
+    <input type="file" name="sampleFile" id="sampleFile-3" class="ecl-file-upload" />
+  </div>
+  <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
+</form>
+{{/if}}
+{{else}}
+{{!-- <p>Store document</p> --}}
+{{!-- <form action="eu-funding/fileupload" method="post" enctype="multipart/form-data"> --}}
+<form action={{fileupload}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+  <div class="ecl-form-group ecl-form-group--text-input">
+    <label class="ecl-form-label" for="title-2">Document title</label>
+    <input type="text" id="title-2" class="ecl-text-input ecl-text-input--m" required name="title">
+  </div>
+  {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+  <div class="ecl-form-group ecl-form-group--file-upload ecl-u-mt-m">
+    <label class="ecl-form-label" for="sampleFile-4">File</label>
+    <input type="file" name="sampleFile" id="sampleFile-4" class="ecl-file-upload" />
+  </div>
+  <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
+</form>
+{{/if}}
+<h2 class="ecl-u-type-heading-2 ecl-u-mt-xl">Verify signed document on the ledger, verify document authenticity <i
+    class="fas fa-check-double"></i></h2>
+{{#if verified}}
+{{#if signed}}
+<div class="alert alert-success" role="alert"><i class="fas fa-certificate"></i> File signed, notarised in the
+  ledger {{!-- <span class="glyphicon glyphicon-ok" aria-hidden="true"></span> --}} <i class="fas fa-stamp"></i> <i
+    class="fas fa-flag-checkered"></i></div>
+
+{{!-- <div class="alert alert-success" role="alert">File signed <span class="glyphicon glyphicon-ok" aria-hidden="true"></span></div> --}}
+{{!-- <h2 style="color:green">{{message}}</h2> --}}
+{{!-- ---------------------------- --}}
+<button class="ecl-button ecl-button--secondary" type="button" data-toggle="collapse" data-target="#collapseInfo"
+  aria-expanded="false" aria-controls="collapseInfo">
+  Details explorer
+</button>
+<form action={{document}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+  {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+  <input name="hash" type="hidden" value={{{info.hash}}}>
+  <button type="submit" class="ecl-button ecl-button--secondary">Download</button>
+</form>
+<div class="collapse" id="collapseInfo">
+  <div class="well">
+    <div class="alert alert-info" role="alert">
+      <div>document hash: {{info.hash}}</div>
+      <div>timestamp: {{info.timestamp}}</div>
+      <div>registered by: {{info.registeredBy}}</div>
+      <div>ledger Hash: <a class="ecl-button ecl-button--primary"
+          href="https://www.ebsi.xyz/tx/{{{info.ledgerHash}}}">{{info.ledgerHash}}</a></div>
+    </div>
+  </div>
+  <div>(*) make sure the signature is the same</div>
 </div>
+{{!-- ---------------------------- --}}
+{{else}}
+<div class="alert alert-warning" role="alert"><i class="fas fa-ban"></i> No registration could be found for this
+  document (*)<i class="fas fa-exclamation"></i> <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+  <i class="fas fa-exclamation-triangle"></i></div>
+(*) Please check in your wallet if this document is waiting for your signature OR refresh your page in 2s
+{{!-- <div class="alert alert-warning" role="alert">File not signed</div> --}}
+{{!-- <h2 style="color:red">{{message}}</h2> --}}
+{{/if}}
+<hr />
+{{!-- <p>Using document hash</p> --}}
+<form action={{verify}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+  <div class="ecl-form-group ecl-form-group--text-input">
+    <label class="ecl-form-label" for="title-1">Use document hash</label>
+    {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
+    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+    <input type="text" id="title-1" class="ecl-text-input ecl-text-input--m" name="docHash">
+  </div>
+  <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
+</form>
+<p class="ecl-u-type-paragraph ecl-u-mt-m">or</p>
+{{!-- <p>Using document file</p> --}}
+{{!-- <p>Store document</p> --}}
+<form action={{verifyfile}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+  <div class="ecl-form-group ecl-form-group--file-upload">
+    <label class="ecl-form-label" for="sampleFile-1">Use document file</label>
+    {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
+    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+    <input type="file" name="sampleFile" id="sampleFile-1" class="ecl-file-upload" />
+  </div>
+  <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
+</form>
+{{else}}
+{{!-- <p>Using document hash</p> --}}
+<form action={{verify}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+  <div class="ecl-form-group ecl-form-group--text-input">
+    <label class="ecl-form-label" for="title-3">Use document hash</label>
+    {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
+    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+    <input type="text" id="title-3" class="ecl-text-input ecl-text-input--m" name="docHash">
+  </div>
+  <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
+</form>
+<p class="ecl-u-type-paragraph ecl-u-mt-m">or</p>
+{{!-- <p>Using document file</p> --}}
+{{!-- <p>Store document</p> --}}
+<form action={{verifyfile}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+  <div class="ecl-form-group ecl-form-group--file-upload">
+    <label class="ecl-form-label" for="sampleFile-2">Use document file</label>
+    {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
+    {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+    <input type="file" name="sampleFile" id="sampleFile-2" class="ecl-file-upload" />
+  </div>
+  <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
+</form>
+{{/if}}
 {{!-- <div class="jumbotron"> --}}
 {{!--   <div class="container">
     <hr>
@@ -219,18 +197,15 @@
       {{/each}}
     </div>
     <hr> --}}
-    {{!-- <footer>
+{{!-- <footer>
         <p>&copy; 2019 EBSI NOTARY</p>
     </footer> --}}
 {{!-- </div> --}}
 
 {{else}}
-<div>
-<h1>Please follow step requirement before: 
-<a class="ecl-button ecl-button--primary" href="https://app.ebsi.xyz/demo">EBSI DEMO</a>
-</h1>
-<br>
-</div>
+<h2 class="ecl-u-type-heading-2">Please follow step requirement before:
+  <a class="ecl-button ecl-button--primary" href="https://app.ebsi.xyz/demo">EBSI DEMO</a>
+</h2>
 
 {{/if}}
 <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/check.js"></script>

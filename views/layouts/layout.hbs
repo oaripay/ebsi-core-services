@@ -15,16 +15,15 @@
     integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
   <link rel="stylesheet"
     href="https://cdn1.fpfis.tech.ec.europa.eu/ecl/v2.21.0/ec-preset-website/styles/ecl-ec-preset-website.css"
-     media="screen" />
+    media="screen" />
   <link rel="stylesheet" href="{{PUBLIC_URL}}/public/stylesheets/style.css" />
 </head>
 
 <body>
   {{>header}}
-  <div class="ecl-container">
-    <p class="disclaimer">Disclaimer: this is a demo website to show the technical capabilities of the EBSI project.</p>
-  </div>
-  <main class="container">
+  <main class="ecl-container ecl-u-mb-xl">
+    <p class="ecl-u-type-heading-5">Disclaimer: this is a demo website to show the technical capabilities of the EBSI
+      project.</p>
     {{{body}}}
   </main>
   {{>footer}}
