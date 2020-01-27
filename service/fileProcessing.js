@@ -424,13 +424,6 @@ Promise.prototype.delay = function (t) {
   });
 };
 
-
-// Promise.resolve("hello").delay(500).then(function(v) {
-//     console.log(v);
-// });
-
-//-----
-
 function receivehash(req, res) {
   let conffrompathname = {};
   if (req.baseUrl === '/notary') {
@@ -444,7 +437,7 @@ function receivehash(req, res) {
   console.log(req.baseUrl, '***********receivehash**********', req.query);
 
 
-  getNotarizedDocument(req.query.hash, conffrompathname).delay(2000).then(function (response) {
+  getNotarizedDocument(req.query.hash, conffrompathname).delay(6000).then(function (response) {
     console.log(req.baseUrl, '***********receivehash getNotarizedDocument response**********', response);
     console.log(req.baseUrl, '***********receivehash getNotarizedDocument ledgerHash**********', ledgerHash);
 
@@ -502,12 +495,12 @@ function getDocument(req, res) {
 async function getDocumentByHash(txHash, outPath, res) {
   const token = await storageLogin();
   // var token = await login();
-  // console.log('token ', token);
+  console.log('************************ storagetoken ', token);
 
   let opts = {};
 
   if (token) {
-    opts = { headers: { Authorization: `Bearer ${token}` } };
+    opts = { headers: { Authorization: `Bearer ${token}` }, responseType: 'stream' };
   }
   try {
     const response = await axios.get(
@@ -515,12 +508,16 @@ async function getDocumentByHash(txHash, outPath, res) {
       opts
     );
 
+    //     console.log(' >>>>-> ',response);
+
     const contentDisposition = response.headers['content-disposition'];
     const filename = _.split(contentDisposition, 'filename=');
     const fileToSend = outPath + filename[1];
 
-    await fs.writeFile(fileToSend, response.data, function (err) {
-      if (err) throw err;
+    // response.data.pipe(fs.createWriteStream(fileToSend))//mande
+    response.data.pipe(fs.createWriteStream(fileToSend)).on('finish', function () {
+      //       console.log('+++++++++ done ++++++++');
+
       res.download(fileToSend, function (err) {
         if (err) throw err;
         fs.unlink(fileToSend, function (err) {
@@ -534,6 +531,7 @@ async function getDocumentByHash(txHash, outPath, res) {
   }
 }
 
+/*
 async function signIt(hash, token) {
   try {
     // get contract address and abi
@@ -579,7 +577,7 @@ async function signIt(hash, token) {
     return {};
   }
 }
-
+*/
 
 async function signTx(documentHash, jwtokens, fileLabel) { // only eu-funding sign today to do in notary
   console.log('=======================singTx ', documentHash);
