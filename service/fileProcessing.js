@@ -213,7 +213,7 @@ async function storeDocWithoutPubKey(req) {
       form.append('database', database);
 
       const token = await storageLogin();
-      console.log(' >> token: ', token);
+      console.log(' >> storagetoken: ', token);
       // var token = await login();
       const storeOpts = { headers: { post: form.getHeaders() } };
 
@@ -410,7 +410,6 @@ function checkToken(req) {
     console.log('2/ apres : ', req.app.settings.settings);
   }
 }
-//-----
 
 function delay(t, v) {
   return new Promise(function (resolve) {
@@ -424,8 +423,8 @@ Promise.prototype.delay = function (t) {
   });
 };
 
-function receivehash(req, res) {
-  let conffrompathname = {};
+function loading(req, res) {
+  let conffrompathname = { loading: true};
   if (req.baseUrl === '/notary') {
     _.merge(conffrompathname, notaryConf);
   } else {
@@ -433,13 +432,29 @@ function receivehash(req, res) {
   }
 
   let ledgerHash = req.query.ledgerHash;
+  console.log(req.baseUrl, '***********loading**********', req.query);
+
+    res.render('index', conffrompathname);
+}
+
+
+function receivehash(req, res) {
+  let conffrompathname = { loading: false};
+  if (req.baseUrl === '/notary') {
+    _.merge(conffrompathname, notaryConf);
+  } else {
+    _.merge(conffrompathname, euFundingConf);
+  }
+
+  let ledgerHash = req.body.ledgerHash;
   // console.log('***********receivehash**********',req);
-  console.log(req.baseUrl, '***********receivehash**********', req.query);
+  console.log(req.baseUrl, '*1**********receivehash**********', req.body);
 
 
-  getNotarizedDocument(req.query.hash, conffrompathname).delay(6000).then(function (response) {
-    console.log(req.baseUrl, '***********receivehash getNotarizedDocument response**********', response);
-    console.log(req.baseUrl, '***********receivehash getNotarizedDocument ledgerHash**********', ledgerHash);
+//   getNotarizedDocument(req.body.hash, conffrompathname).then(function (response) {
+    getNotarizedDocument(req.body.hash, conffrompathname).delay(3000).then(function (response) {
+    console.log(req.baseUrl, '*2**********receivehash getNotarizedDocument response**********', response);
+    console.log(req.baseUrl, '*3**********receivehash getNotarizedDocument ledgerHash**********', ledgerHash);
 
     if (response.timestamp !== '0') {
       const date = moment.unix(response.timestamp);
@@ -454,6 +469,7 @@ function receivehash(req, res) {
     };
 
     let result = {
+      loading: response.loading,
       title: config.titleEuFunding,
       user: 'response.user',
       verified: response.verified,
@@ -461,11 +477,15 @@ function receivehash(req, res) {
       info: detais,
       hasToken: true
     };
-    if (response.baseUrl === notaryConf.baseUrl) {
-      _.merge(result, notaryConf);
-    } else {
+    console.log('\n------------');
+    console.log(response.baseUrl,' vs. ',notaryConf.baseUrl);
+    console.log('\n------------');
+//     if (response.baseUrl === notaryConf.baseUrl) {
+//       _.merge(result, notaryConf);
+//     } else {
       _.merge(result, euFundingConf);
-    }
+//     }
+    console.log(req.baseUrl, '*4**********receivehash getNotarizedDocument result**********', result);
     res.render('index', result);
   });
 }
@@ -771,7 +791,7 @@ function verifyFile(req, res) {
     const data = fs.readFileSync(fileToStore);
     const hash = new Web3().utils.sha3(data);
 
-    console.log('*********************hash**********************\n', hash);
+    console.log('*********************dochash**********************\n', hash);
     getNotarizedDocument(hash, conffrompathname).then(function (response) {
       console.log('++++++++++ response', response);
       // console.log('file to removed: ', fileToStore);
@@ -891,5 +911,6 @@ module.exports = {
   verifyFile,
   noToken,
   checkToken,
-  receivehash
+  receivehash,
+  loading
 };

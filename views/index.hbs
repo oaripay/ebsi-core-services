@@ -1,3 +1,7 @@
+{{#if loading}}
+<div class="loader"></div>
+<script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/loading.js"></script>
+{{else}}
 {{#if hasToken}}
 <h2 class="ecl-u-type-heading-2 ecl-u-mt-xl">Store and notarise documents <i class="fas fa-link"></i></h2>
 {{#if message}}
@@ -195,6 +199,6 @@
 <h2 class="ecl-u-type-heading-2">Please follow step requirement before:
   <a class="ecl-button ecl-button--primary" href="https://app.ebsi.xyz/demo">EBSI DEMO</a>
 </h2>
-
+{{/if}}
 {{/if}}
 <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/check.js"></script>
