@@ -5,9 +5,9 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const expressHbs = require('express-handlebars');
 const session = require('express-session');
-//todo add passport-jwt
+// todo add passport-jwt
 require('dotenv').config();
-
+require('log-timestamp');
 const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo')(session);
 const indexRouter = require('./routes/index');
