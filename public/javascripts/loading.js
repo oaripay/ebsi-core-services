@@ -8,10 +8,11 @@ var oob = Object.fromEntries(new URLSearchParams(location.search));
 var xhr = new XMLHttpRequest();
 xhr.open("POST", "/demo/eu-funding/receive-hash-done", true);
 xhr.setRequestHeader('Content-Type', 'application/json');
-xhr.onreadystatechange = function(){
+xhr.onreadystatechange = function() {
   if (xhr.readyState === 4 && xhr.status === 200) {
-    console.log(xhr.response);
-    $("html").html(xhr.response);
+    var doc = new DOMParser().parseFromString(xhr.response, "text/html");
+    var main = [].slice.call(doc.body.getElementsByTagName("main"))[0];
+    $("main").html(main);
   }
 };
 xhr.send(JSON.stringify(oob));
