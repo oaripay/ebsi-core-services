@@ -452,7 +452,7 @@ function receivehash(req, res) {
 
 
 //   getNotarizedDocument(req.body.hash, conffrompathname).then(function (response) {
-    getNotarizedDocument(req.body.hash, conffrompathname).delay(3000).then(function (response) {
+    getNotarizedDocument(req.body.hash, conffrompathname).delay(6000).then(function (response) {
     console.log(req.baseUrl, '*2**********receivehash getNotarizedDocument response**********', response);
     console.log(req.baseUrl, '*3**********receivehash getNotarizedDocument ledgerHash**********', ledgerHash);
 
