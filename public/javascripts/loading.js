@@ -6,13 +6,13 @@ console.log('******** obj *********', Object.fromEntries(new URLSearchParams(loc
 var oob = Object.fromEntries(new URLSearchParams(location.search));
 
 var xhr = new XMLHttpRequest();
-xhr.open("POST", "/demo/eu-funding/receive-hash-done", true);
+xhr.open('POST', '/demo/eu-funding/receive-hash-done', true);
 xhr.setRequestHeader('Content-Type', 'application/json');
-xhr.onreadystatechange = function() {
+xhr.onreadystatechange = function () {
   if (xhr.readyState === 4 && xhr.status === 200) {
-    var doc = new DOMParser().parseFromString(xhr.response, "text/html");
-    var main = [].slice.call(doc.body.getElementsByTagName("main"))[0];
-    $("main").html(main);
+    var doc = new DOMParser().parseFromString(xhr.response, 'text/html');
+    var main = [].slice.call(doc.body.getElementsByTagName('main'))[0];
+    $('main').html(main);
   }
 };
 xhr.send(JSON.stringify(oob));

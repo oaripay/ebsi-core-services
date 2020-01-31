@@ -34,7 +34,7 @@ var notaryConf = {
 /* eslint-disable consistent-return, no-use-before-define, camelcase, prefer-const, no-extend-native */
 
 async function besuLogin() {
-  console.log('--------------------- login besu login ---------------------');
+  console.log('--------------------- login besu jwt ---------------------');
 
   const privKey = config.private_key;
   const payload = { iss: 'ebsi-notary', aud: 'ebsi-besu' };
@@ -44,56 +44,44 @@ async function besuLogin() {
   });
   console.log(token);
 
-  // try {
   const opts = { headers: { Authorization: `Bearer ${token}` } };
   const response = await axios.get(`${config.api}blockchain/besu/login/`, opts);
   // console.log(response.data);
-  console.log(
-    '--------------------- notary besu login ---------------------',
-    response.data
-  );
+  console.log('--------------------- besuJwt ---------------------\n', response.data);
   return response.data.token;
 }
 
 async function storageLogin() {
-  console.log('--------------------- login storage login ---------------------');
+  console.log('--------------------- login storage jwt ---------------------');
 
   const privKey = config.private_key;
-  const payload = { iss: 'ebsi-notary', aud: 'ebsi-storage' }; // or ebsi-besu
+  const payload = { iss: 'ebsi-notary', aud: 'ebsi-storage' };
   const key = jose.JWK.asKey(privKey);
   const token = jose.JWT.sign(payload, key, {
     expiresIn: '15 minutes'
   });
   console.log(token);
 
-
-  // try {
   const opts = { headers: { Authorization: `Bearer ${token}` } };
   // const response = await axios.get(`${config.api}file-storage/login/`, opts);
   let response = await axios.get(config.api + 'file-storage/login/', opts);
   // console.log(response.data);
-  console.log('--------------------- notary store login ---------------------', response.data);
+  console.log('--------------------- storageJwt ---------------------\n', response.data.token);
   return response.data.token;
-  // } catch (error) {
-  //     console.log(error.response.statusCode)
-  //     console.log(error.response.data)
-  // }
 }
 
 function upload(req, res) {
   let sampleFile;
   let uploadPath;
   const reqPath = path.join(__dirname, '../');
-  // let csrfToken = req.csrfToken();
-  console.log('----------------------------------------------------\n', req.baseUrl, ' | ', req.originalUrl);
+  console.log('=========================upload=====================\n', req.baseUrl, ' | ', req.originalUrl);
   //   console.log('=========================upload=====================\n', req.app.get('settings'));
   if (
     _.isEmpty(req.app.get('settings').jwt)
     || _.isEmpty(req.app.get('settings').did)
   ) {
-    // if(req.app.get('settings').jwt ==='' && req.app.get('settings').did ===''){
-    res.redirect('https://app.ebsi.xyz/demo');
-    //   res.redirect('/demo');https://app.ebsi.xyz/demo
+    //     res.redirect('https://app.ebsi.xyz/demo');eto
+    res.redirect('/demo');// https://app.ebsi.xyz/demo
     console.log('**************************** JWT and DID no*******************************************');
     return;
   }
@@ -153,21 +141,6 @@ function upload(req, res) {
           _.merge(goodresult, euFundingConf);
         }
         res.render('index', goodresult);
-        // res.render('index', {
-        //   title: config.title,
-        //   message: response[0].message,
-        //   hash: response[0].hash,
-        //   ok: response[0].ok,
-        //   user: response[0].user,
-        //   notary: response[0].notary,
-        //   allDocument: response[1].data,
-        //   transactionId: response[0].transactionId,
-        //   hasToken: true,
-        //   pathname: '/demo/eu-funding',
-        //   fileupload: '/demo/eu-funding/fileupload',
-        //   document: '/demo/eu-funding/document',
-        //   verify: '/demo/eu-funding/verify'
-        // });
       } else {
         let badresult = {
           title: config.title,
@@ -183,14 +156,6 @@ function upload(req, res) {
           _.merge(badresult, euFundingConf);
         }
         res.render('index', badresult);
-        // res.render('index', {
-        //   title: config.title,
-        //   message: response[0].message,
-        //   ok: response[0].ok,
-        //   user: response[0].user,
-        //   allDocument: response[1].data,
-        //   hasToken: true
-        // });
       }
     });
   });
@@ -214,7 +179,7 @@ async function storeDocWithoutPubKey(req) {
 
       const token = await storageLogin();
       console.log(' >> storagetoken: ', token);
-      // var token = await login();
+
       const storeOpts = { headers: { post: form.getHeaders() } };
 
       if (token) storeOpts.headers.Authorization = `Bearer ${token}`;
@@ -451,8 +416,8 @@ function receivehash(req, res) {
   console.log(req.baseUrl, '*1**********receivehash**********', req.body);
 
 
-//   getNotarizedDocument(req.body.hash, conffrompathname).then(function (response) {
-    getNotarizedDocument(req.body.hash, conffrompathname).delay(6000).then(function (response) {
+  //   getNotarizedDocument(req.body.hash, conffrompathname).then(function (response) {
+  getNotarizedDocument(req.body.hash, conffrompathname).delay(6000).then(function (response) {
     console.log(req.baseUrl, '*2**********receivehash getNotarizedDocument response**********', response);
     console.log(req.baseUrl, '*3**********receivehash getNotarizedDocument ledgerHash**********', ledgerHash);
 
@@ -478,13 +443,13 @@ function receivehash(req, res) {
       hasToken: true
     };
     console.log('\n------------');
-    console.log(response.baseUrl,' vs. ',notaryConf.baseUrl);
+    console.log(response.baseUrl, ' vs. ', notaryConf.baseUrl);
     console.log('\n------------');
-//     if (response.baseUrl === notaryConf.baseUrl) {
-//       _.merge(result, notaryConf);
-//     } else {
-      _.merge(result, euFundingConf);
-//     }
+    //     if (response.baseUrl === notaryConf.baseUrl) {
+    //       _.merge(result, notaryConf);
+    //     } else {
+    _.merge(result, euFundingConf);
+    //     }
     console.log(req.baseUrl, '*4**********receivehash getNotarizedDocument result**********', result);
     res.render('index', result);
   });

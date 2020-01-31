@@ -1,5 +1,5 @@
 const express = require('express');
-
+const atob = require('atob');
 const router = express.Router();
 // const ecas = require('../modules/ecas/ecas');
 // var path = require('path');
@@ -8,27 +8,48 @@ const fileProcessing = require('../service/fileProcessing');
 // var csrfProtection = csrf();
 // router.use(csrfProtection);
 const config = require('../service/conf');
-
+const moment = require('moment');
 // var hasToken=false;
 
 router.post('/check', (req, res) => {
-  //   console.log('check',res);
-  console.log('check 2', req.body); // ,' ; ',req.session);
-  //   req.body.value={Jwt:'jwtjwt',Did:'diddid'};
-  
+  console.log('check index2', req.body);
+
   if (req && req.body) {
     console.log('1/ avant: ', req.app.settings.settings);
     //     hasToken=true;
 
     req.app.settings.settings.jwt = req.body.Jwt;
     req.app.settings.settings.did = req.body.Did;
+
+
+    const payload = parseJwt(req.body.Jwt);
+    //     console.log('*=*=* payload *=*=*',payload);
+
+    //     var expired = payload.exp * 1000 < Date.now();
+
+    if (isTokenExpired(payload)) {
+      console.log('JWT expired on: \t', moment.unix(payload.exp).format(), '\t, will be redirect!!!');
+      req.app.settings.settings.jwt = '';
+      req.app.settings.settings.did = '';
+    }
+
     console.log('2/ apres : ', req.app.settings.settings);
-
   }
-
-
 });
 
+function isTokenExpired(payload) {
+  return payload.exp * 1000 < Date.now();
+}
+
+//--
+function parseJwt(token) {
+  var base64Url = token.split('.')[1];
+  var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  var jsonPayload = atob(base64);
+  // console.log(' #> ',jsonPayload)
+  return JSON.parse(jsonPayload);
+}
+//--
 
 // router.get('/', fileProcessing.getAllDocument);
 // router.get('/', ecas.bounce, fileProcessing.getAllDocument);
