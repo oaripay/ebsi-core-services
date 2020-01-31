@@ -11,8 +11,12 @@ const config = require('../service/conf');
 const moment = require('moment');
 // var hasToken=false;
 
-router.post('/check', (req, res) => {
-  console.log('check index2', req.body);
+
+
+router.post('/check', checkLogin);
+
+function checkLogin(req) {
+  console.log('checkLogin index2', req.body);
 
   if (req && req.body) {
     console.log('1/ avant: ', req.app.settings.settings);
@@ -35,7 +39,8 @@ router.post('/check', (req, res) => {
 
     console.log('2/ apres : ', req.app.settings.settings);
   }
-});
+}
+
 
 function isTokenExpired(payload) {
   return payload.exp * 1000 < Date.now();
@@ -106,8 +111,7 @@ router.get('/', fileProcessing.getAllDocument);
 
 // router.post('/check', fileProcessing.checkToken);
 
-router.post('/demo/eu-funding/check', fileProcessing.checkToken);
-
+router.post('/demo/eu-funding/check', checkLogin);
 
 router.post('/receive-hash-done', fileProcessing.receivehash);
 

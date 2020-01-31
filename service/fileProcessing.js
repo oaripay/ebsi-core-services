@@ -70,22 +70,28 @@ async function storageLogin() {
   return response.data.token;
 }
 
+
 function upload(req, res) {
   let sampleFile;
   let uploadPath;
   const reqPath = path.join(__dirname, '../');
   console.log('=========================upload=====================\n', req.baseUrl, ' | ', req.originalUrl);
+
+
   //   console.log('=========================upload=====================\n', req.app.get('settings'));
+
+
   if (
     _.isEmpty(req.app.get('settings').jwt)
     || _.isEmpty(req.app.get('settings').did)
   ) {
-    //     res.redirect('https://app.ebsi.xyz/demo');eto
-    res.redirect('/demo');// https://app.ebsi.xyz/demo
-    console.log('**************************** JWT and DID no*******************************************');
+    res.redirect('https://app.ebsi.xyz/demo');
+    //     res.redirect('/demo');// https://app.ebsi.xyz/demo
+    console.log('**************************** nor JWT nor DID: redirect *******************************************');
     return;
   }
-  console.log('**************************** JWT and DID yes*******************************************');
+  console.log('**************************** JWT and DID ok*******************************************');
+
 
   //   console.log('=========================upload=====================\n', req.body);
   fileLabel = req.body.title;
@@ -359,22 +365,9 @@ function noToken(req, res) {
     verifyfile: '/demo/eu-funding/verifyfile'
   });
 }
-//-----
-function checkToken(req) {
-  //   console.log('check',res);
-  console.log('check checkToken', req.body); // ,' ; ',req.session);
 
-  //   req.body.value={Jwt:'jwtjwt',Did:'diddid'};
-  if (req.body && req.body.Jwt) {
-    console.log('1/ avant: ', req.app.settings.settings);
-    //     hasToken=true;
 
-    req.app.settings.settings.jwt = req.body.Jwt;
-    req.app.settings.settings.did = req.body.Did;
 
-    console.log('2/ apres : ', req.app.settings.settings);
-  }
-}
 
 function delay(t, v) {
   return new Promise(function (resolve) {
@@ -396,7 +389,6 @@ function loading(req, res) {
     _.merge(conffrompathname, euFundingConf);
   }
 
-  let ledgerHash = req.query.ledgerHash;
   console.log(req.baseUrl, '***********loading**********', req.query);
 
     res.render('index', conffrompathname);
@@ -642,6 +634,24 @@ async function getNotif() {
 */
 
 function verify(req, res) {
+  //-----
+  console.log('=========================verify from dochash=====================\n', req.app.get('settings'));
+  console.log('docHash: ', req.body.docHash);
+
+
+  if (
+    _.isEmpty(req.app.get('settings').jwt)
+    || _.isEmpty(req.app.get('settings').did)
+  ) {
+    res.redirect('https://app.ebsi.xyz/demo');
+    //     res.redirect('/demo');// https://app.ebsi.xyz/demo
+    console.log('**************************** nor JWT nor DID: redirect *******************************************');
+    return;
+  }
+  console.log('**************************** JWT and DID ok*******************************************');
+  //------
+
+
   // console.log('verify req.body ', req.body);
   let conffrompathname = {};
   if (req.baseUrl === '/notary') {
@@ -650,7 +660,7 @@ function verify(req, res) {
     _.merge(conffrompathname, euFundingConf);
   }
   console.log('-- conffrompathname verify: ', conffrompathname);
-  // const username = req.session[ecas.session_name];
+
   getNotarizedDocument(req.body.docHash, conffrompathname).then(function (response) {
     console.log('+++++verify from doc hash+++++ response', response);
     //-------
@@ -666,7 +676,6 @@ function verify(req, res) {
       registeredBy: response.registeredBy
     };
 
-    //       ,ledgerHash: 'not yet'
     let result = {
       title: config.titleEuFunding,
       user: 'response.user',
@@ -681,38 +690,32 @@ function verify(req, res) {
       _.merge(result, euFundingConf);
     }
     res.render('index', result);
-    //-------
-    //     let result = {
-    //       title: config.title,
-    //       user: 'response.user',
-    //       verified: response.verified,
-    //       signed: response.ok,
-    //       info: response.document,
-    //       hasToken: true
-    //     };
-    //     if (response.baseUrl === notaryConf.baseUrl) {
-    //       _.merge(result, notaryConf);
-    //     } else {
-    //       _.merge(result, euFundingConf);
-    //     }
-    //     res.render('index', result);
-    // res.render('index', {
-    //   title: config.title,
-    //   user: response.user,
-    //   verified: response.verified,
-    //   signed: response.ok,
-    //   info: response.document,
-    //   hasToken: true
-    // });
   });
 }
 
 function verifyFile(req, res) {
-  console.log('niditra verifyFile ++++++++++++++++++++++++++++++++++++++');
+
+  //-----
+  console.log('=========================verifyFile=====================\n', req.app.get('settings'));
+
+
+  if (
+    _.isEmpty(req.app.get('settings').jwt)
+    || _.isEmpty(req.app.get('settings').did)
+  ) {
+    res.redirect('https://app.ebsi.xyz/demo');
+    //     res.redirect('/demo');// https://app.ebsi.xyz/demo
+    console.log('**************************** nor JWT nor DID: redirect *******************************************');
+    return;
+  }
+  console.log('**************************** JWT and DID ok*******************************************');
+  //------
+
+
   let sampleFile;
   let uploadPath;
   const reqPath = path.join(__dirname, '../');
-  //   const username = req.session[ecas.session_name];
+  //   const username = req.app.get('settings').did;
   let conffrompathname = {};
   if (req.baseUrl === '/notary') {
     _.merge(conffrompathname, notaryConf);
@@ -720,20 +723,6 @@ function verifyFile(req, res) {
     _.merge(conffrompathname, euFundingConf);
   }
   console.log('-- result: ', conffrompathname);
-
-
-  //   console.log('=========================verifyFile=====================\n', req.app.get('settings'));
-  //   if (
-  //     _.isEmpty(req.app.get('settings').jwt)
-  //     || _.isEmpty(req.app.get('settings').did)
-  //   ) {
-  //     // if(req.app.get('settings').jwt ==='' && req.app.get('settings').did ===''){
-  //     res.redirect('https://app.ebsi.xyz/demo');
-  //     //   res.redirect('/demo');https://app.ebsi.xyz/demo
-  //     console.log('**************************** JWT and DID no*******************************************');
-  //     return;
-  //   }
-  //   console.log('**************************** JWT and DID yes*******************************************');
 
 
   if (!req.files || Object.keys(req.files).length === 0) {
@@ -875,7 +864,6 @@ module.exports = {
   verify,
   verifyFile,
   noToken,
-  checkToken,
   receivehash,
   loading
 };
