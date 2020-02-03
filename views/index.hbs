@@ -66,7 +66,7 @@
   </div>
   {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
   <div class="ecl-form-group ecl-form-group--file-upload ecl-u-mt-m">
-    <label class="ecl-form-label" for="sampleFile-3">File</label>
+    <label class="ecl-form-label" for="sampleFile-3">File eto</label>
     <input type="file" name="sampleFile" id="sampleFile-3" class="ecl-file-upload" />
   </div>
   <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
@@ -75,6 +75,18 @@
 {{else}}
 {{!-- <p>Store document</p> --}}
 {{!-- <form action="eu-funding/fileupload" method="post" enctype="multipart/form-data"> --}}
+
+<div id="myBox" style="display: none;">
+<div role="alert" class="ecl-message ecl-message--warning" data-ecl-message="true"><svg focusable="false"
+    aria-hidden="true" class="ecl-message__icon ecl-icon ecl-icon--l">
+    <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#notifications--warning"></use>
+  </svg>
+  <div class="ecl-message__content">
+    <div class="ecl-message__title">File size exceeds 6 MB</div>
+  </div>
+</div>
+</div>
+
 <form action={{fileupload}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
   <div class="ecl-form-group ecl-form-group--text-input">
     <label class="ecl-form-label" for="title-2">Document title</label>
@@ -82,10 +94,12 @@
   </div>
   {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
   <div class="ecl-form-group ecl-form-group--file-upload ecl-u-mt-m">
-    <label class="ecl-form-label" for="sampleFile-4">File</label>
-    <input type="file" name="sampleFile" id="sampleFile-4" class="ecl-file-upload" />
+    <label class="ecl-form-label" for="sampleFile-4">File eto vita</label>
+    <input onchange="ValidateSize(this)" type="file" required name="sampleFile" id="sampleFile-4" class="ecl-file-upload" />
   </div>
   <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
+  <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/index.js"></script>
+
 </form>
 {{/if}}
 <h2 class="ecl-u-type-heading-2 ecl-u-mt-xl">Verify signed document on the ledger, verify document authenticity <i
@@ -162,7 +176,7 @@
 {{!-- <p>Store document</p> --}}
 <form action={{verifyfile}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
   <div class="ecl-form-group ecl-form-group--file-upload">
-    <label class="ecl-form-label" for="sampleFile-1">Use document file</label>
+    <label class="ecl-form-label" for="sampleFile-1">Use document file eto 1 tsy mila</label>
     {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
     {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
     <input type="file" name="sampleFile" id="sampleFile-1" class="ecl-file-upload" />
@@ -185,7 +199,7 @@
 {{!-- <p>Store document</p> --}}
 <form action={{verifyfile}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
   <div class="ecl-form-group ecl-form-group--file-upload">
-    <label class="ecl-form-label" for="sampleFile-2">Use document file</label>
+    <label class="ecl-form-label" for="sampleFile-2">Use document file eto 2 tsy nila</label>
     {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
     {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
     <input type="file" name="sampleFile" id="sampleFile-2" class="ecl-file-upload" />
