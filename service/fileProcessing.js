@@ -99,7 +99,7 @@ function upload(req, res) {
   if (!req.files || Object.keys(req.files).length === 0) {
     console.log('No files were uploaded.');
 
-    res.redirect('/');
+    res.redirect('/demo/eu-funding');
     return;
   }
 
@@ -728,7 +728,7 @@ function verifyFile(req, res) {
   if (!req.files || Object.keys(req.files).length === 0) {
     console.log('No files were uploaded.');
 
-    res.redirect('/');
+    res.redirect('/demo/eu-funding');
     return;
   }
 
