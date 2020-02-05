@@ -2,10 +2,18 @@ var url = window.location.href;
 var originalUrl = decodeURI(url);
 console.log('********loading*********', window.location);
 console.log('******** obj *********', Object.fromEntries(new URLSearchParams(location.search)));
+console.log('******** ? *********\n', location.search);
 
 var oob = Object.fromEntries(new URLSearchParams(location.search));
+console.log(_.VERSION);
 
-var xhr = new XMLHttpRequest();
+_.merge(oob,{done:true});
+console.log('******** oob *********', oob);
+
+setTimeout(function(){ sendDone(oob); }, 3000);
+
+function sendDone(oob){
+  var xhr = new XMLHttpRequest();
 xhr.open('POST', '/demo/eu-funding/receive-hash-done', true);
 xhr.setRequestHeader('Content-Type', 'application/json');
 xhr.onreadystatechange = function () {
@@ -16,3 +24,5 @@ xhr.onreadystatechange = function () {
   }
 };
 xhr.send(JSON.stringify(oob));
+}
+

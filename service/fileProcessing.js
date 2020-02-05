@@ -75,12 +75,11 @@ function upload(req, res) {
   let sampleFile;
   let uploadPath;
   const reqPath = path.join(__dirname, '../');
+
   console.log('=========================upload=====================\n', req.baseUrl, ' | ', req.originalUrl);
 
 
-  //   console.log('=========================upload=====================\n', req.app.get('settings'));
-
-
+//to change to req.body
   if (
     _.isEmpty(req.app.get('settings').jwt)
     || _.isEmpty(req.app.get('settings').did)
@@ -367,8 +366,6 @@ function noToken(req, res) {
 }
 
 
-
-
 function delay(t, v) {
   return new Promise(function (resolve) {
     setTimeout(resolve.bind(null, v), t);
@@ -382,7 +379,7 @@ Promise.prototype.delay = function (t) {
 };
 
 function loading(req, res) {
-  let conffrompathname = { loading: true};
+  let conffrompathname = { loading: true };
   if (req.baseUrl === '/notary') {
     _.merge(conffrompathname, notaryConf);
   } else {
@@ -391,12 +388,13 @@ function loading(req, res) {
 
   console.log(req.baseUrl, '***********loading**********', req.query);
 
-    res.render('index', conffrompathname);
+  res.render('index', conffrompathname);
 }
 
 
 function receivehash(req, res) {
-  let conffrompathname = { loading: false};
+  console.log('----------00000000000000000000000000000000000000000000000000000000 receivehash 000000000000000000000000000000000000000000000000000000------------');
+  let conffrompathname = { loading: false };
   if (req.baseUrl === '/notary') {
     _.merge(conffrompathname, notaryConf);
   } else {
@@ -404,12 +402,18 @@ function receivehash(req, res) {
   }
 
   let ledgerHash = req.body.ledgerHash;
-  // console.log('***********receivehash**********',req);
+//   console.log('***********receivehash**********',req);
+  console.log(req.baseUrl, '*1**********receivehash**********', req.query);//body rehefa avy am download query am done
   console.log(req.baseUrl, '*1**********receivehash**********', req.body);
 
+let documentHash = req.query.hash;
+if(req.body.done){
+  documentHash = req.body.hash;
+  _.merge(conffrompathname, {done: true});
+}
 
   //   getNotarizedDocument(req.body.hash, conffrompathname).then(function (response) {
-  getNotarizedDocument(req.body.hash, conffrompathname).delay(6000).then(function (response) {
+  getNotarizedDocument(documentHash, conffrompathname).then(function (response) { // 10000
     console.log(req.baseUrl, '*2**********receivehash getNotarizedDocument response**********', response);
     console.log(req.baseUrl, '*3**********receivehash getNotarizedDocument ledgerHash**********', ledgerHash);
 
@@ -431,22 +435,22 @@ function receivehash(req, res) {
       user: 'response.user',
       verified: response.verified,
       signed: response.ok,
+      waiting: true,//
       info: detais,
-      hasToken: true
+      hasToken: true,
+      done: false
     };
-    console.log('\n------------');
-    console.log(response.baseUrl, ' vs. ', notaryConf.baseUrl);
-    console.log('\n------------');
-    //     if (response.baseUrl === notaryConf.baseUrl) {
-    //       _.merge(result, notaryConf);
-    //     } else {
+
+if(response.done) result.done=true;
+console.log('>>>>>>>>>-DONE',result.done);
+
     _.merge(result, euFundingConf);
-    //     }
+
     console.log(req.baseUrl, '*4**********receivehash getNotarizedDocument result**********', result);
+
     res.render('index', result);
   });
 }
-//-----
 
 async function getAllDocumentFromWalletByUser(req) {
   console.log('nothing today from getAllDocumentFromWalletByUser ---', req.baseUrl);
@@ -462,6 +466,7 @@ async function getAllDocumentFromWalletByUser(req) {
 }
 
 function getDocument(req, res) {
+
   const reqPath = path.join(__dirname, '../');
   const outPath = `${reqPath}/out/`;
   if (req.body.hash) {
@@ -471,8 +476,7 @@ function getDocument(req, res) {
 
 async function getDocumentByHash(txHash, outPath, res) {
   const token = await storageLogin();
-  // var token = await login();
-  console.log('************************ storagetoken ', token);
+//   console.log('************************ storagetoken ', token);
 
   let opts = {};
 
@@ -484,14 +488,12 @@ async function getDocumentByHash(txHash, outPath, res) {
       `${config.api}file-storage/${txHash}`,
       opts
     );
-
     //     console.log(' >>>>-> ',response);
 
     const contentDisposition = response.headers['content-disposition'];
     const filename = _.split(contentDisposition, 'filename=');
     const fileToSend = outPath + filename[1];
 
-    // response.data.pipe(fs.createWriteStream(fileToSend))//mande
     response.data.pipe(fs.createWriteStream(fileToSend)).on('finish', function () {
       //       console.log('+++++++++ done ++++++++');
 
@@ -558,21 +560,12 @@ async function signIt(hash, token) {
 
 async function signTx(documentHash, jwtokens, fileLabel) { // only eu-funding sign today to do in notary
   console.log('=======================singTx ', documentHash);
-  console.log('=======================singTx ', jwtokens);
+//   console.log('=======================singTx ', jwtokens);
   console.log('=======================singTx ', jwtokens.jwt);
   console.log('=======================singTx ', jwtokens.did);
   console.log('=======================singTx ', fileLabel);
 
   var token = jwtokens.jwt;
-  //   var token =  req.app.get('settings').jwt;
-
-  // var token ='eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwOi8vNTIuMjguMTkwLjIwNjo4MDg1L2Vic2l0cnVzdGVkYXBwL3B1YmxpYy1rZXlzLyIsImtpZCI6ImVic2ktd2FsbGV0In0.eyJzdWIiOiJnb256anVsIiwiaWF0IjoxNTc5MjQ2MDEwLCJleHAiOjE1NzkzMzI0MTAsImF1ZCI6ImVic2ktd2FsbGV0IiwiZGlkIjoiZGlkOmVic2k6MHgxRjgwODYwYzhhRkI2ZUQxMGZhZjlmOGNBNkYxNjgxMjFkQjU3RjcyIiwidXNlck5hbWUiOiJKdWxpYW5HT05aQUxFWiBBR1VERUxPIiwidXNlcklkIjoiZ29uemp1bCJ9._3cHamGrLuFt47EVat0ooeEmvlJvCkPlezIHHUSJY3k4qKVSlIwkYRK8bTL7JT43ZTPOpsaWQ4Oql2TN0hzW-A';
-  // 0x6378261513f5dEf20e32b6Cf3f9bbfef190EcF8B
-  // 0x4d3171BaF3eC3CE370Ec65E7D354741a970ba038
-  //   var tx = {
-  //     did: 'did:ebsi:0x1F80860c8aFB6eD10faf9f8cA6F168121dB57F72',
-  //     hash: '0x0d27d731058ac0bce37604e83709443f14f65589a555f72814a728f28396e7e5'
-  //   };
 
   var tx = {
     did: jwtokens.did,
@@ -581,11 +574,8 @@ async function signTx(documentHash, jwtokens, fileLabel) { // only eu-funding si
     documentName: fileLabel
   };
 
-  // req.app.get('settings')
-
   const opts = { headers: { Authorization: `Bearer ${token}` } };
   console.log(' tx: ', tx);
-  //   try {
 
   var signResponse = await axios.post('https://api.ebsi.xyz/wallet/signTx', tx, opts);// <-delivery
 
@@ -594,11 +584,6 @@ async function signTx(documentHash, jwtokens, fileLabel) { // only eu-funding si
   //     console.log('****signTx***>>>>>>>> signResponse', signResponse.status);
 
   return signResponse;
-
-
-//   } catch (e) {
-//     console.log('error: ', e);
-//   }
 }
 
 /*
@@ -767,7 +752,6 @@ function verifyFile(req, res) {
         timestamp: response.timestamp,
         registeredBy: response.registeredBy
       };
-      //         ,ledgerHash: 'not yet'
       let result = {
         title: config.titleEuFunding,
         user: 'response.user',
@@ -782,36 +766,13 @@ function verifyFile(req, res) {
         _.merge(result, euFundingConf);
       }
       res.render('index', result);
-    //-------
-      //       let result = {
-      //         title: config.title,
-      //         user: response.user,
-      //         verified: response.verified,
-      //         signed: response.ok,
-      //         info: response.document,
-      //         hasToken: true
-      //       };
-      //       if (response.baseUrl === notaryConf.baseUrl) {
-      //         _.merge(result, notaryConf);
-      //       } else {
-      //         _.merge(result, euFundingConf);
-      //       }
-      //       res.render('index', result);
-      // res.render('index', {
-      //   title: config.title,
-      //   user: response.user,
-      //   verified: response.verified,
-      //   signed: response.ok,
-      //   info: response.document,
-      //   hasToken: true
-      // });
     });
   });
 }
 
 async function getNotarizedDocument(txHash, conffrompathname) {
   const token = await besuLogin();
-  // var token = await login();
+
   console.log(' >>>>> from besu login in getNotarizedDocument token', token);
 
   let opts = {};
