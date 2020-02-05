@@ -9,6 +9,7 @@ const fileProcessing = require('../service/fileProcessing');
 // router.use(csrfProtection);
 const config = require('../service/conf');
 const moment = require('moment');
+const _ = require('lodash');
 // var hasToken=false;
 
 
@@ -25,6 +26,10 @@ function checkLogin(req) {
     req.app.settings.settings.jwt = req.body.Jwt;
     req.app.settings.settings.did = req.body.Did;
 
+const payload = {exp:0};
+if(req.body && req.body.Jwt){
+      _.assign(payload,parseJwt(req.body.Jwt));
+}
 
     const payload = parseJwt(req.body.Jwt);
     //     console.log('*=*=* payload *=*=*',payload);
