@@ -116,81 +116,57 @@
     {{#if verified}}
       {{#if signed}}
         {{!-- ---------------------------- --}}
-        {{#if done}}
-                <div role="alert" class="ecl-message ecl-message--success" data-ecl-message="true">
-          <svg focusable="false" aria-hidden="true" class="ecl-message__icon ecl-icon ecl-icon--l">
+        {{#if waiting}}
+          <div role="alert" class="ecl-message ecl-message--success" data-ecl-message="true">
+            <div class="ecl-message__content">
+              <div class="ecl-message__title">Please wait a few seconds, notarisation process is running...</div>
+            </div>
+          </div>
+          <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/loading.js"></script>
+        {{else}}
+          <div role="alert" class="ecl-message ecl-message--success" data-ecl-message="true">
+            {{!-- <svg focusable="false" aria-hidden="true" class="ecl-message__icon ecl-icon ecl-icon--l">
             <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#notifications--success"></use>
-          </svg>
-          <div class="ecl-message__content">
-            <div class="ecl-message__title">File signed, notarised in the ledger</div>
+            </svg>
+            --}}
+            <i class="fas fa-check-circle fa_custom fa-2x"></i>
+            <div class="ecl-message__content">
+              <div class="ecl-message__title">&nbsp; File signed, notarised in the ledger
+              </div>
+              <style type="text/css">
+              .fa_custom {
+                color: #467a39
+              }
+
+              </style>
+            </div>
           </div>
-        </div>
-        <button class="ecl-button ecl-button--secondary ecl-u-mt-m" type="button" data-toggle="collapse" data-target="#collapseInfo" aria-expanded="false" aria-controls="collapseInfo">
-          Details explorer
-        </button>
-        <form action={{document}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
-          {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-          <input name="hash" type="hidden" value={{{info.hash}}}>
-          <button type="submit" class="ecl-button ecl-button--secondary">Download</button>
-        </form>
-        <div class="collapse" id="collapseInfo">
-          <div class="ecl-u-bg-grey-5 ecl-u-pa-m">
-            <dl class="ecl-description-list">
-              <dt class="ecl-description-list__term">Document hash</dt>
-              <dd class="ecl-description-list__definition">{{info.hash}}</dd>
-              <dt class="ecl-description-list__term">Timestamp</dt>
-              <dd class="ecl-description-list__definition">{{info.timestamp}}</dd>
-              <dt class="ecl-description-list__term">Registered by</dt>
-              <dd class="ecl-description-list__definition">{{info.registeredBy}}</dd>
-              {{#if info.ledgerHash}}
-                <dt class="ecl-description-list__term">Ledger Hash</dt>
-                <dd class="ecl-description-list__definition"><a class="ecl-link ecl-link--standalone" href="https://www.ebsi.xyz/tx/{{{info.ledgerHash}}}">{{info.ledgerHash}}</a></dd>
-              {{/if}}
-            </dl>
+          <button class="ecl-button ecl-button--secondary ecl-u-mt-m" type="button" data-toggle="collapse" data-target="#collapseInfo" aria-expanded="false" aria-controls="collapseInfo">
+            Details explorer
+          </button>
+          <form action={{document}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+            {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
+            <input name="hash" type="hidden" value={{{info.hash}}}>
+            <button type="submit" class="ecl-button ecl-button--secondary">Download</button>
+          </form>
+          <div class="collapse" id="collapseInfo">
+            <div class="ecl-u-bg-grey-5 ecl-u-pa-m">
+              <dl class="ecl-description-list">
+                <dt class="ecl-description-list__term">Document hash</dt>
+                <dd class="ecl-description-list__definition">{{info.hash}}</dd>
+                <dt class="ecl-description-list__term">Timestamp</dt>
+                <dd class="ecl-description-list__definition">{{info.timestamp}}</dd>
+                <dt class="ecl-description-list__term">Registered by</dt>
+                <dd class="ecl-description-list__definition">{{info.registeredBy}}</dd>
+                {{#if info.ledgerHash}}
+                  <dt class="ecl-description-list__term">Ledger Hash</dt>
+                  <dd class="ecl-description-list__definition"><a class="ecl-link ecl-link--standalone" href="https://www.ebsi.xyz/tx/{{{info.ledgerHash}}}">{{info.ledgerHash}}</a></dd>
+                {{/if}}
+              </dl>
+            </div>
+            <p>(*) make sure the signature is the same</p>
           </div>
-          <p>(*) make sure the signature is the same</p>
-        </div>
         {{/if}}
-              {{#if waiting}}
-                “Please wait a few seconds, notarisation process is running”
-
-
-                <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/loading.js"></script>
-                    {{else}}
-        <div role="alert" class="ecl-message ecl-message--success" data-ecl-message="true">
-          <svg focusable="false" aria-hidden="true" class="ecl-message__icon ecl-icon ecl-icon--l">
-            <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#notifications--success"></use>
-          </svg>
-          <div class="ecl-message__content">
-            <div class="ecl-message__title">File signed, notarised in the ledger</div>
-          </div>
-        </div>
-        <button class="ecl-button ecl-button--secondary ecl-u-mt-m" type="button" data-toggle="collapse" data-target="#collapseInfo" aria-expanded="false" aria-controls="collapseInfo">
-          Details explorer
-        </button>
-        <form action={{document}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
-          {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-          <input name="hash" type="hidden" value={{{info.hash}}}>
-          <button type="submit" class="ecl-button ecl-button--secondary">Download</button>
-        </form>
-        <div class="collapse" id="collapseInfo">
-          <div class="ecl-u-bg-grey-5 ecl-u-pa-m">
-            <dl class="ecl-description-list">
-              <dt class="ecl-description-list__term">Document hash</dt>
-              <dd class="ecl-description-list__definition">{{info.hash}}</dd>
-              <dt class="ecl-description-list__term">Timestamp</dt>
-              <dd class="ecl-description-list__definition">{{info.timestamp}}</dd>
-              <dt class="ecl-description-list__term">Registered by</dt>
-              <dd class="ecl-description-list__definition">{{info.registeredBy}}</dd>
-              {{#if info.ledgerHash}}
-                <dt class="ecl-description-list__term">Ledger Hash</dt>
-                <dd class="ecl-description-list__definition"><a class="ecl-link ecl-link--standalone" href="https://www.ebsi.xyz/tx/{{{info.ledgerHash}}}">{{info.ledgerHash}}</a></dd>
-              {{/if}}
-            </dl>
-          </div>
-          <p>(*) make sure the signature is the same</p>
-        </div>
-              {{/if}}
         {{!-- ---------------------------- --}}
       {{else}}
         <div role="alert" class="ecl-message ecl-message--warning" data-ecl-message="true"><svg focusable="false" aria-hidden="true" class="ecl-message__icon ecl-icon ecl-icon--l">

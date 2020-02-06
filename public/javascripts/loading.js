@@ -1,16 +1,16 @@
 var url = window.location.href;
 var originalUrl = decodeURI(url);
-console.log('********loading*********', window.location);
-console.log('******** obj *********', Object.fromEntries(new URLSearchParams(location.search)));
-console.log('******** ? *********\n', location.search);
+// console.log('********loading*********', window.location);
+// console.log('******** obj *********', Object.fromEntries(new URLSearchParams(location.search)));
+// console.log('******** ? *********\n', location.search);
 
 var oob = Object.fromEntries(new URLSearchParams(location.search));
-console.log(_.VERSION);
+//console.log(_.VERSION);
 
 _.merge(oob,{done:true});
-console.log('******** oob *********', oob);
+//console.log('******** oob *********', oob);
 
-setTimeout(function(){ sendDone(oob); }, 3000);
+setTimeout(function(){ sendDone(oob); }, 10000);
 
 function sendDone(oob){
   var xhr = new XMLHttpRequest();

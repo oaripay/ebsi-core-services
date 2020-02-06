@@ -441,7 +441,10 @@ if(req.body.done){
       done: false
     };
 
-if(response.done) result.done=true;
+if(response.done){
+  result.done=true;
+  result.waiting=false;
+} 
 console.log('>>>>>>>>>-DONE',result.done);
 
     _.merge(result, euFundingConf);
