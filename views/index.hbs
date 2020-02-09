@@ -1,9 +1,5 @@
-{{#if loading}}
-  <br><br>
-  “Please wait a few seconds, notarisation process is running”
-  <div class="loader"></div>
-  <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/loading.js"></script>
-{{else}}
+
+
   {{#if hasToken}}
     <h2 class="ecl-u-type-heading-2 ecl-u-mt-xl">Store and notarise documents <i class="fas fa-link"></i></h2>
     {{#if message}}
@@ -70,7 +66,7 @@
             </div>
           </div>
         </div>
-        <form action={{fileupload}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+        <form action={{fileupload}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m"  id="myFormId3">
           <div class="ecl-form-group ecl-form-group--text-input">
             <label class="ecl-form-label" for="title-4">Document title</label>
             <input type="text" id="title-4" class="ecl-text-input ecl-text-input--m" required name="title">
@@ -80,8 +76,8 @@
             <label class="ecl-form-label" for="sampleFile-3">File</label>
             <input onchange="ValidateSize(this)" type="file" required name="sampleFile" id="sampleFile-3" class="ecl-file-upload" />
           </div>
-          <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
-          <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/index.js"></script>
+          <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m"  onclick="addjwt('myFormId3');">Submit</button>
+{{!-- teto           <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/index.js"></script>  --}}
         </form>
       {{/if}}
     {{else}}
@@ -97,7 +93,7 @@
           </div>
         </div>
       </div>
-      <form action={{fileupload}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+      <form action={{fileupload}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m" id="myFormId">
         <div class="ecl-form-group ecl-form-group--text-input">
           <label class="ecl-form-label" for="title-2">Document title</label>
           <input type="text" id="title-2" class="ecl-text-input ecl-text-input--m" required name="title">
@@ -107,8 +103,8 @@
           <label class="ecl-form-label" for="sampleFile-4">File</label>
           <input onchange="ValidateSize(this)" type="file" required name="sampleFile" id="sampleFile-4" class="ecl-file-upload" />
         </div>
-        <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
-        <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/index.js"></script>
+        <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m" onclick="addjwt('myFormId');">Submit</button>
+{{!-- teto           <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/index.js"></script>  --}}
       </form>
     {{/if}}
     <h2 class="ecl-u-type-heading-2 ecl-u-mt-xl">Verify signed document on the ledger, verify document authenticity
@@ -119,7 +115,7 @@
         {{#if waiting}}
           <div role="alert" class="ecl-message ecl-message--success" data-ecl-message="true">
             <div class="ecl-message__content">
-              <div class="ecl-message__title">Please wait a few seconds, notarisation process is running...</div>
+              <div class="ecl-message__title"><i class="fas fa-spinner"></i> Please wait a few seconds, notarisation process is running...</div>
             </div>
           </div>
           <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/loading.js"></script>
@@ -169,6 +165,14 @@
         {{/if}}
         {{!-- ---------------------------- --}}
       {{else}}
+      {{#if waiting}}
+          <div role="alert" class="ecl-message ecl-message--success" data-ecl-message="true">
+            <div class="ecl-message__content">
+              <div class="ecl-message__title"><i class="fas fa-spinner"></i> Please wait a few seconds, notarisation process is running...</div>
+            </div>
+          </div>
+          <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/loading.js"></script>
+        {{else}}
         <div role="alert" class="ecl-message ecl-message--warning" data-ecl-message="true"><svg focusable="false" aria-hidden="true" class="ecl-message__icon ecl-icon ecl-icon--l">
             <use xlink:href="{{PUBLIC_URL}}/public/images/icons.svg#notifications--warning"></use>
           </svg>
@@ -181,53 +185,54 @@
         </div>
         {{!-- <div class="alert alert-warning" role="alert">File not signed</div> --}}
         {{!-- <h2 style="color:red">{{message}}</h2> --}}
+        {{/if}}
       {{/if}}
       <br><br>
       <p class="ecl-u-type-paragraph ecl-u-mt-m">Check another document</p>
       {{!-- <hr /><p>Using document hash</p> --}}
-      <form action={{verify}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+      <form action={{verify}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m" id="myFormIdVerifyFromDocHash">
         <div class="ecl-form-group ecl-form-group--text-input">
           <label class="ecl-form-label" for="title-1">Use document hash</label>
           {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
           {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-          <input type="text" id="title-1" class="ecl-text-input ecl-text-input--m" name="docHash">
+          <input type="text" id="title-1" class="ecl-text-input ecl-text-input--m" required name="docHash">
         </div>
-        <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
+        <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m" onclick="addjwt('myFormIdVerifyFromDocHash');">Submit</button>
       </form>
       <p class="ecl-u-type-paragraph ecl-u-mt-m">or</p>
       {{!-- <p>Using document file</p> --}}
       {{!-- <p>Store document</p> --}}
-      <form action={{verifyfile}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+      <form action={{verifyfile}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m"  id="myFormId1">
         <div class="ecl-form-group ecl-form-group--file-upload">
           <label class="ecl-form-label" for="sampleFile-1">Use document file</label>
           {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
           {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
           <input type="file" name="sampleFile" id="sampleFile-1" class="ecl-file-upload" />
         </div>
-        <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
+        <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m" onclick="addjwt('myFormId1');">Submit</button>
       </form>
     {{else}}
       {{!-- <p>Using document hash</p> --}}
-      <form action={{verify}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+      <form action={{verify}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m" id="myFormIdVerifyFromDocHash1">
         <div class="ecl-form-group ecl-form-group--text-input">
           <label class="ecl-form-label" for="title-3">Use document hash</label>
           {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
           {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
-          <input type="text" id="title-3" class="ecl-text-input ecl-text-input--m" name="docHash">
+          <input type="text" id="title-3" class="ecl-text-input ecl-text-input--m" required name="docHash">
         </div>
-        <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
+        <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m" onclick="addjwt('myFormIdVerifyFromDocHash1');">Submit</button>
       </form>
       <p class="ecl-u-type-paragraph ecl-u-mt-m">or</p>
       {{!-- <p>Using document file</p> --}}
       {{!-- <p>Store document</p> --}}
-      <form action={{verifyfile}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m">
+      <form action={{verifyfile}} method="post" enctype="multipart/form-data" class="ecl-u-mt-m ecl-u-bg-grey-5 ecl-u-pa-m" id="myFormId2">
         <div class="ecl-form-group ecl-form-group--file-upload">
           <label class="ecl-form-label" for="sampleFile-2">Use document file</label>
           {{!-- <input type="text" id="title" class="form-control" onfocus="this.value=''" value="document" required name="title"> --}}
           {{!-- <input type="hidden" name="_csrf" value="{{ csrfToken }}"> --}}
           <input type="file" name="sampleFile" id="sampleFile-2" class="ecl-file-upload" />
         </div>
-        <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m">Submit</button>
+        <button type="submit" class="ecl-button ecl-button--primary ecl-u-mt-m" onclick="addjwt('myFormId2');">Submit</button>
       </form>
     {{/if}}
   {{else}}
@@ -235,5 +240,6 @@
       <a class="ecl-button ecl-button--primary" href="https://app.ebsi.xyz/demo">EBSI DEMO</a>
     </h2>
   {{/if}}
-{{/if}}
-<script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/check.js"></script>
+
+{{!-- <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/check.js"></script> --}}
+<script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/index.js"></script> 
