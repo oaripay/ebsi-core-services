@@ -638,12 +638,12 @@ async function signTx(documentHash, jwtokens, fileLabel) { // only eu-funding si
 
   var token = jwtokens.jwt;
 
-//     redirectURL: 'https://app.ebsi.xyz/demo/eu-funding/receive-hash',
-
+  //     redirectURL: 'https://app.ebsi.xyz/demo/eu-funding/receive-hash',
+// redirectURL: 'http://localhost:8081/demo/eu-funding/receive-hash',
   var tx = {
     did: jwtokens.did,
     hash: documentHash,
-    redirectURL: 'http://localhost:8081/demo/eu-funding/receive-hash',
+    redirectURL: 'https://app.ebsi.xyz/demo/eu-funding/receive-hash',
     documentName: fileLabel
   };
 

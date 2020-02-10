@@ -58,5 +58,6 @@ console.log("conf ************************************ title: ", config.title);
 console.log("conf ************************************ https: ", process.env.HTTPS);
 console.log("conf ************************************ NODE_ENV: ", process.env.NODE_ENV);
 // console.log('conf ************************************ config: ', config);
+console.log('conf ************************************ VERSION: ', process.env.npm_package_version);
 
 module.exports = config;
