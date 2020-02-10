@@ -8,14 +8,13 @@ const session = require('express-session');
 // todo add passport-jwt
 require('dotenv').config();
 require('log-timestamp');
-const mongoose = require('mongoose');
-const MongoStore = require('connect-mongo')(session);
-const indexRouter = require('./routes/index');
+
+// const indexRouter = require('./routes/index');
 const indexRouter2 = require('./routes/index2');
 // const userRouter = require('./routes/user');
 // const loginRouter = require('./routes/login');
 // const logoutRouter = require('./routes/logout');
-const config = require('./service/conf');
+// const config = require('./service/conf');
 
 const app = express();
 
@@ -26,20 +25,6 @@ const PATHNAME = PUBLIC_URL ? new URL(PUBLIC_URL).pathname : '';
 app.locals.PUBLIC_URL = PUBLIC_URL;
 app.locals.PATHNAME = PATHNAME;
 
-mongoose.connect(
-  config.mongoConf, { useUnifiedTopology: true, useNewUrlParser: true },
-  err => {
-    if (err) {
-      console.log('using mongoConf:', config.mongoConf);
-      console.log(
-        'Unable to connect to mongoDB. Please start mongoDB. Error:',
-        err
-      );
-    } else {
-      console.log('Connected to mongoDB successfully!');
-    }
-  }
-);
 
 // view engine setup
 app.engine('.hbs', expressHbs({ defaultLayout: 'layout', extname: '.hbs' }));
@@ -55,8 +40,7 @@ app.use(
   session({
     secret: 'isthisebsiv1secretkeyfornotarydappsessionisreallyaweaksecret4you',
     resave: false,
-    saveUninitialized: true,
-    store: new MongoStore({ mongooseConnection: mongoose.connection })
+    saveUninitialized: true
   })
 );
 app.use(`${PATHNAME}/public`, express.static('public'));
@@ -66,29 +50,10 @@ app.use('/demo/eu-funding', indexRouter2);
 app.use('/eu-funding', indexRouter2);
 app.use('/notary', indexRouter2);
 
-app.set('settings', { jwt: '', did: '' });
 
-
-//--------------------------
-
-// app.use(`${PATHNAME}/`, indexRouter);
-
-// app.use(`${PATHNAME}/user`, userRouter);
-// app.use(`${PATHNAME}/login`, loginRouter);
-// app.use(`${PATHNAME}/logout`, logoutRouter);
-
-// app.use((req, res, next) => {
-//     console.log('**********eeerrrrr***** ',req)
-//   const err = new Error('Not Found');
-//   err.status = 404;
-//   next(err);
-// });
-
-// error handler
 app.use((err, req, res) => {
   /* eslint-disable no-alert, no-console */
-  // console.log('******error*******\n', req);
-  // console.log('*******>>>> ',req)
+
   console.log('******error*******\n', err.message);
   /* eslint-enable no-alert, no-console */
   // set locals, only providing error in development

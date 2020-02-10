@@ -9,8 +9,10 @@ const FormData = require('form-data');
 const moment = require('moment');
 // const ecas = require('../modules/ecas/ecas');
 const config = require('./conf');
+const atob = require('atob');
 
-let fileToStore; let
+let fileToStore;
+let
   fileLabel;
 
 var euFundingConf = {
@@ -71,28 +73,57 @@ async function storageLogin() {
 }
 
 
+// ------
+
+function isTokenExpired(payload) {
+  return payload.exp * 1000 < Date.now();
+}
+
+//--
+function parseJwt(token) {
+  //   console.log(!!token);
+  var base64Url = token.split('.')[1];
+
+  var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  var jsonPayload = atob(base64);
+  console.log(' #> ', jsonPayload)
+  return JSON.parse(jsonPayload);
+}
+//--
+
+// ------
+function redirectIfNotAllowed(req) {
+  let notAllowed = false;
+
+  const payload = { exp: 0 };
+  if (req.body && req.body.jwt && req.body.jwt !== 'null') {
+    _.assign(payload, parseJwt(req.body.jwt));
+  }
+
+  console.log('*=*=* payload *=*=*', payload);
+
+  if (isTokenExpired(payload)) {
+    console.log('JWT expired on: \t', moment.unix(payload.exp).format(), '\t, will be redirect!!!');
+    notAllowed = true;
+  }
+  return notAllowed;
+}
+
 function upload(req, res) {
   let sampleFile;
   let uploadPath;
   const reqPath = path.join(__dirname, '../');
 
   console.log('=========================upload=====================\n', req.baseUrl, ' | ', req.originalUrl);
+  console.log('=========================upload=====================\n', req.body);
 
-
-//to change to req.body
-  if (
-    _.isEmpty(req.app.get('settings').jwt)
-    || _.isEmpty(req.app.get('settings').did)
-  ) {
+  if (redirectIfNotAllowed(req)) {
     res.redirect('https://app.ebsi.xyz/demo');
-    //     res.redirect('/demo');// https://app.ebsi.xyz/demo
-    console.log('**************************** nor JWT nor DID: redirect *******************************************');
+    //   res.redirect('/demo');
     return;
   }
-  console.log('**************************** JWT and DID ok*******************************************');
 
 
-  //   console.log('=========================upload=====================\n', req.body);
   fileLabel = req.body.title;
 
   if (!req.files || Object.keys(req.files).length === 0) {
@@ -108,7 +139,7 @@ function upload(req, res) {
 
   fileToStore = uploadPath + sampleFile.name;
 
-  sampleFile.mv(fileToStore, function (err) {
+  sampleFile.mv(fileToStore, function(err) {
     if (err) {
       console.log('file upload error ', err);
       return res.status(500).send(err);
@@ -117,9 +148,9 @@ function upload(req, res) {
     Promise.all([
       storeDocWithoutPubKey(req),
       getAllDocumentFromWalletByUser(req)
-    ]).then(function (response) {
+    ]).then(function(response) {
       if (fileToStore) {
-        fs.unlink(fileToStore, function (err) {
+        fs.unlink(fileToStore, function(err) {
           if (err) throw err;
           // if no error, file has been deleted successfully
         });
@@ -167,8 +198,15 @@ function upload(req, res) {
 }
 
 async function storeDocWithoutPubKey(req) {
-  console.log('=========================storeDocWithoutPubKey=====================\n', req.app.get('settings'));
-  var jwtokens = req.app.get('settings');
+  console.log('=========================storeDocWithoutPubKey=====================\n', req.body);
+  /*
+    if (redirectIfNotAllowed(req)) {
+    res.redirect('https://app.ebsi.xyz/demo');
+    //   res.redirect('/demo');
+    return;
+  }
+  */
+  var jwtokens = {jwt: req.body.jwt, did: req.body.did};
 
   const filename = fileToStore;
   const database = 'cassandra'; // 'mongo', 'cassandra',  'gluster-fs'
@@ -204,7 +242,7 @@ async function storeDocWithoutPubKey(req) {
 
       console.log('storeResponse.status: ', storeResponse.status);
 
-      const result = _.assign({}, storeResponse.data, { user: 'username' });
+      const result = _.assign({}, storeResponse.data, { user: jwtokens.did });
       // let result = _.assign({}, storeResponse.data, { user: username , csrfToken: csrfToken});
 
       /*      let hashMsgToSign = {
@@ -213,8 +251,8 @@ async function storeDocWithoutPubKey(req) {
                             recipient: 'Notary DApp'
                         }; */
 
-      // var jwtokens = req.app.get('settings');
-      console.log('jwtokens 00000000000000000------------0000000000000000 var jwtokens = req.app.get', jwtokens);
+
+      console.log('jwtokens 00000000000000000------------0000000000000000 jwtokens', jwtokens);
 
 
       // removed from here this sign part
@@ -234,7 +272,7 @@ async function storeDocWithoutPubKey(req) {
         //         console.log('-- signResponse: ', signResponse);
         console.log('-- signResponse: ', signResponse.data);
         if (signResponse.data.message === 'Message inserted') {
-        // console.log('-- signResponse: ', signResponse.statusText, ' , ', signResponse.status);
+          // console.log('-- signResponse: ', signResponse.statusText, ' , ', signResponse.status);
           //         if (signResponse.data) {
           _.merge(result, {
             ok: true,
@@ -277,7 +315,10 @@ async function storeDocWithoutPubKey(req) {
       //         ok: false, message: e.response.data, user: 'username', euFundingConf
       //       });
       const errorResult = _.assign({}, {
-        ok: false, message: message, user: 'username', euFundingConf
+        ok: false,
+        message: message,
+        user: 'username',
+        euFundingConf
       });
 
       // let errorResult = _.assign({}, { ok: false, message: e.response.data, user: username ,csrfToken:csrfToken});
@@ -311,19 +352,46 @@ async function storeDocWithoutPubKey(req) {
   }
 }
 
-function getAllDocument(req, res) {
-//   const username = req.session[ecas.session_name];
-  // console.log('1/ getAllDocument username', username);
-  console.log('- getAllDocument - jwt', req.app.settings.settings.jwt);
+function goEuf(req, res) {
+  console.log('========debut========');
+  console.log('=========================goEuf=====================\n', req.baseUrl, ' | ', req.originalUrl);
+  console.log('- goEuf - body', req.body);
 
-  getAllDocumentFromWalletByUser(req).then(function (response) {
+
+      res.render('index', {
+        title: config.titleEuFunding,
+        user: 'username',
+        allDocument: [],
+        hasToken: true,
+        pathname: '/demo/eu-funding',
+        fileupload: '/demo/eu-funding/fileupload',
+        document: '/demo/eu-funding/document',
+        verify: '/demo/eu-funding/verify',
+        verifyfile: '/demo/eu-funding/verifyfile'
+      });
+
+}
+
+function getAllDocument(req, res) {
+  console.log('========getAllDocument========');
+  //   const username = req.session[ecas.session_name];
+  // console.log('1/ getAllDocument username', username);
+
+var username = 'user';
+  console.log('- getAllDocument - body', req.body);
+    if (req.body && req.body.did && req.body.did !== 'null') { 
+    username = req.body.did;
+    }
+
+  getAllDocumentFromWalletByUser(req).then(function(response) {
     // to do merge conffrompathname...
+console.log('username',username);
 
     if (response && response.data) {
       console.log('documents: ', response.data.length);
       res.render('index', {
         title: config.titleEuFunding,
-        user: 'username',
+        user: username,
         allDocument: response.data,
         hasToken: true,
         pathname: '/demo/eu-funding',
@@ -335,7 +403,7 @@ function getAllDocument(req, res) {
     } else {
       res.render('index', {
         title: config.titleEuFunding,
-        user: 'username',
+        user: username,
         allDocument: [],
         hasToken: true,
         pathname: '/demo/eu-funding',
@@ -349,8 +417,6 @@ function getAllDocument(req, res) {
 }
 
 function noToken(req, res) {
-  // console.log('***********no jwt token**********',req);
-  console.log('***********no jwt token**********', req.app.settings.settings.jwt);
 
   res.render('index', {
     title: config.titleEuFunding,
@@ -367,13 +433,13 @@ function noToken(req, res) {
 
 
 function delay(t, v) {
-  return new Promise(function (resolve) {
+  return new Promise(function(resolve) {
     setTimeout(resolve.bind(null, v), t);
   });
 }
 
-Promise.prototype.delay = function (t) {
-  return this.then(function (v) {
+Promise.prototype.delay = function(t) {
+  return this.then(function(v) {
     return delay(t, v);
   });
 };
@@ -402,18 +468,20 @@ function receivehash(req, res) {
   }
 
   let ledgerHash = req.body.ledgerHash;
-//   console.log('***********receivehash**********',req);
-  console.log(req.baseUrl, '*1**********receivehash**********', req.query);//body rehefa avy am download query am done
-  console.log(req.baseUrl, '*1**********receivehash**********', req.body);
+  //   console.log('***********receivehash**********',req);
+  console.log(req.baseUrl, '*1 get **********receivehash********** query', req.query); // body rehefa avy am download query am done
+  console.log(req.baseUrl, '*1 post **********receivehash********** body', req.body);
 
-let documentHash = req.query.hash;
-if(req.body.done){
-  documentHash = req.body.hash;
-  _.merge(conffrompathname, {done: true});
-}
+  let documentHash = req.query.hash;
+  if (req.body.done) {
+    documentHash = req.body.hash;
+    _.merge(conffrompathname, { done: true });
+  }
 
   //   getNotarizedDocument(req.body.hash, conffrompathname).then(function (response) {
-  getNotarizedDocument(documentHash, conffrompathname).then(function (response) { // 10000
+  //   getNotarizedDocument(req.body.hash, conffrompathname).delay(1000).then(function (response) { // 10000
+  //   getNotarizedDocument(req.query.hash, conffrompathname).then(function (response) { // 10000
+  getNotarizedDocument(documentHash, conffrompathname).then(function(response) { // 10000
     console.log(req.baseUrl, '*2**********receivehash getNotarizedDocument response**********', response);
     console.log(req.baseUrl, '*3**********receivehash getNotarizedDocument ledgerHash**********', ledgerHash);
 
@@ -435,17 +503,18 @@ if(req.body.done){
       user: 'response.user',
       verified: response.verified,
       signed: response.ok,
-      waiting: true,//
+      waiting: true, //
       info: detais,
       hasToken: true,
       done: false
     };
 
-if(response.done){
-  result.done=true;
-  result.waiting=false;
-} 
-console.log('>>>>>>>>>-DONE',result.done);
+    if (response.done) {
+        console.log('++ TRUE ++ response.done ++++++++++');
+      result.done = true;
+      result.waiting = false;
+    }
+    console.log('>>>>>>>>>-DONE', result.done);
 
     _.merge(result, euFundingConf);
 
@@ -469,7 +538,6 @@ async function getAllDocumentFromWalletByUser(req) {
 }
 
 function getDocument(req, res) {
-
   const reqPath = path.join(__dirname, '../');
   const outPath = `${reqPath}/out/`;
   if (req.body.hash) {
@@ -479,7 +547,7 @@ function getDocument(req, res) {
 
 async function getDocumentByHash(txHash, outPath, res) {
   const token = await storageLogin();
-//   console.log('************************ storagetoken ', token);
+  //   console.log('************************ storagetoken ', token);
 
   let opts = {};
 
@@ -497,12 +565,12 @@ async function getDocumentByHash(txHash, outPath, res) {
     const filename = _.split(contentDisposition, 'filename=');
     const fileToSend = outPath + filename[1];
 
-    response.data.pipe(fs.createWriteStream(fileToSend)).on('finish', function () {
+    response.data.pipe(fs.createWriteStream(fileToSend)).on('finish', function() {
       //       console.log('+++++++++ done ++++++++');
 
-      res.download(fileToSend, function (err) {
+      res.download(fileToSend, function(err) {
         if (err) throw err;
-        fs.unlink(fileToSend, function (err) {
+        fs.unlink(fileToSend, function(err) {
           if (err) throw err;
           // if no error, file has been deleted successfully
         });
@@ -563,24 +631,26 @@ async function signIt(hash, token) {
 
 async function signTx(documentHash, jwtokens, fileLabel) { // only eu-funding sign today to do in notary
   console.log('=======================singTx ', documentHash);
-//   console.log('=======================singTx ', jwtokens);
+  //   console.log('=======================singTx ', jwtokens);
   console.log('=======================singTx ', jwtokens.jwt);
   console.log('=======================singTx ', jwtokens.did);
   console.log('=======================singTx ', fileLabel);
 
   var token = jwtokens.jwt;
 
+//     redirectURL: 'https://app.ebsi.xyz/demo/eu-funding/receive-hash',
+
   var tx = {
     did: jwtokens.did,
     hash: documentHash,
-    redirectURL: 'https://app.ebsi.xyz/demo/eu-funding/receive-hash',
+    redirectURL: 'http://localhost:8081/demo/eu-funding/receive-hash',
     documentName: fileLabel
   };
 
   const opts = { headers: { Authorization: `Bearer ${token}` } };
   console.log(' tx: ', tx);
 
-  var signResponse = await axios.post('https://api.ebsi.xyz/wallet/signTx', tx, opts);// <-delivery
+  var signResponse = await axios.post('https://api.ebsi.xyz/wallet/signTx', tx, opts); // <-delivery
 
   //     var signResponse = await axios.post('https://localhost:3004/wallet/signTx', tx, opts);//https://app.ebsi.xyz/wallet/signTx
 
@@ -621,23 +691,35 @@ async function getNotif() {
 }
 */
 
+// ----------------------------------------------------------------------
+// function redirectIfNotAllowed(req, res) {
+//   const bool = true;
+//   if (bool) {
+//     res.redirect('https://app.ebsi.xyz/demo');
+//     return;
+//   }
+//   console.log('++++++++++++++++++++++++++++++++ NAVELA NANDEHA ++++++++++++++++++++++++++++++++++');
+// //   next();
+// }
+// -----------------------------------------------------------------------
+
+
 function verify(req, res) {
+  console.log('======================================================================verify from dochash===========================================================================');
   //-----
-  console.log('=========================verify from dochash=====================\n', req.app.get('settings'));
+  console.log('=========================verify from dochash=====================\n'); // , req.app.get('settings'));
   console.log('docHash: ', req.body.docHash);
 
 
-  if (
-    _.isEmpty(req.app.get('settings').jwt)
-    || _.isEmpty(req.app.get('settings').did)
-  ) {
+  console.log('=========================verifyFile from dochash=====================\n', req.body);
+
+
+  
+    if (redirectIfNotAllowed(req)) {
     res.redirect('https://app.ebsi.xyz/demo');
-    //     res.redirect('/demo');// https://app.ebsi.xyz/demo
-    console.log('**************************** nor JWT nor DID: redirect *******************************************');
+    //   res.redirect('/demo');
     return;
   }
-  console.log('**************************** JWT and DID ok*******************************************');
-  //------
 
 
   // console.log('verify req.body ', req.body);
@@ -649,7 +731,13 @@ function verify(req, res) {
   }
   console.log('-- conffrompathname verify: ', conffrompathname);
 
-  getNotarizedDocument(req.body.docHash, conffrompathname).then(function (response) {
+  const hash = new Web3().utils.isHex(req.body.docHash);
+
+    console.log('*********************dochash valid**********************\n');
+    console.log('[',req.body.docHash,'] *********************dochash valid**********************\n', hash);
+    console.log('*********************dochash valid**********************\n');
+
+  getNotarizedDocument(req.body.docHash, conffrompathname).then(function(response) {
     console.log('+++++verify from doc hash+++++ response', response);
     //-------
 
@@ -682,22 +770,19 @@ function verify(req, res) {
 }
 
 function verifyFile(req, res) {
+  //   redirectIfNotAllowed(req,res);//
 
   //-----
-  console.log('=========================verifyFile=====================\n', req.app.get('settings'));
+  console.log('=========================verifyFile=====================\n', req.body);
 
 
-  if (
-    _.isEmpty(req.app.get('settings').jwt)
-    || _.isEmpty(req.app.get('settings').did)
-  ) {
+  
+    if (redirectIfNotAllowed(req)) {
     res.redirect('https://app.ebsi.xyz/demo');
-    //     res.redirect('/demo');// https://app.ebsi.xyz/demo
-    console.log('**************************** nor JWT nor DID: redirect *******************************************');
+    //   res.redirect('/demo');
     return;
   }
-  console.log('**************************** JWT and DID ok*******************************************');
-  //------
+  
 
 
   let sampleFile;
@@ -724,7 +809,7 @@ function verifyFile(req, res) {
   uploadPath = `${reqPath}/in/`;
   fileToStore = uploadPath + sampleFile.name;
 
-  sampleFile.mv(fileToStore, function (err) {
+  sampleFile.mv(fileToStore, function(err) {
     if (err) {
       console.log('file upload error ', err);
       return res.status(500).send(err);
@@ -734,11 +819,11 @@ function verifyFile(req, res) {
     const hash = new Web3().utils.sha3(data);
 
     console.log('*********************dochash**********************\n', hash);
-    getNotarizedDocument(hash, conffrompathname).then(function (response) {
+    getNotarizedDocument(hash, conffrompathname).then(function(response) {
       console.log('++++++++++ response', response);
       // console.log('file to removed: ', fileToStore);
       if (fileToStore) {
-        fs.unlink(fileToStore, function (err) {
+        fs.unlink(fileToStore, function(err) {
           if (err) throw err;
           // if no error, file has been deleted successfully
         });
@@ -829,5 +914,6 @@ module.exports = {
   verifyFile,
   noToken,
   receivehash,
-  loading
+  loading,
+  goEuf
 };
