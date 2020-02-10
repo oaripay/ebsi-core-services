@@ -10,7 +10,7 @@ require('dotenv').config();
 require('log-timestamp');
 const mongoose = require('mongoose');
 const MongoStore = require('connect-mongo')(session);
-const indexRouter = require('./routes/index');
+// const indexRouter = require('./routes/index');
 const indexRouter2 = require('./routes/index2');
 // const userRouter = require('./routes/user');
 // const loginRouter = require('./routes/login');
@@ -66,29 +66,10 @@ app.use('/demo/eu-funding', indexRouter2);
 app.use('/eu-funding', indexRouter2);
 app.use('/notary', indexRouter2);
 
-app.set('settings', { jwt: '', did: '' });
 
-
-//--------------------------
-
-// app.use(`${PATHNAME}/`, indexRouter);
-
-// app.use(`${PATHNAME}/user`, userRouter);
-// app.use(`${PATHNAME}/login`, loginRouter);
-// app.use(`${PATHNAME}/logout`, logoutRouter);
-
-// app.use((req, res, next) => {
-//     console.log('**********eeerrrrr***** ',req)
-//   const err = new Error('Not Found');
-//   err.status = 404;
-//   next(err);
-// });
-
-// error handler
 app.use((err, req, res) => {
   /* eslint-disable no-alert, no-console */
-  // console.log('******error*******\n', req);
-  // console.log('*******>>>> ',req)
+
   console.log('******error*******\n', err.message);
   /* eslint-enable no-alert, no-console */
   // set locals, only providing error in development
