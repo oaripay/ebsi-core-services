@@ -86,7 +86,7 @@ function parseJwt(token) {
 
   var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
   var jsonPayload = atob(base64);
-  console.log(' #> ', jsonPayload)
+  console.log(' #> ', jsonPayload);
   return JSON.parse(jsonPayload);
 }
 //--
@@ -139,7 +139,7 @@ function upload(req, res) {
 
   fileToStore = uploadPath + sampleFile.name;
 
-  sampleFile.mv(fileToStore, function(err) {
+  sampleFile.mv(fileToStore, function (err) {
     if (err) {
       console.log('file upload error ', err);
       return res.status(500).send(err);
@@ -148,9 +148,9 @@ function upload(req, res) {
     Promise.all([
       storeDocWithoutPubKey(req),
       getAllDocumentFromWalletByUser(req)
-    ]).then(function(response) {
+    ]).then(function (response) {
       if (fileToStore) {
-        fs.unlink(fileToStore, function(err) {
+        fs.unlink(fileToStore, function (err) {
           if (err) throw err;
           // if no error, file has been deleted successfully
         });
@@ -206,7 +206,7 @@ async function storeDocWithoutPubKey(req) {
     return;
   }
   */
-  var jwtokens = {jwt: req.body.jwt, did: req.body.did};
+  var jwtokens = { jwt: req.body.jwt, did: req.body.did };
 
   const filename = fileToStore;
   const database = 'cassandra'; // 'mongo', 'cassandra',  'gluster-fs'
@@ -358,18 +358,17 @@ function goEuf(req, res) {
   console.log('- goEuf - body', req.body);
 
 
-      res.render('index', {
-        title: config.titleEuFunding,
-        user: 'username',
-        allDocument: [],
-        hasToken: true,
-        pathname: '/demo/eu-funding',
-        fileupload: '/demo/eu-funding/fileupload',
-        document: '/demo/eu-funding/document',
-        verify: '/demo/eu-funding/verify',
-        verifyfile: '/demo/eu-funding/verifyfile'
-      });
-
+  res.render('index', {
+    title: config.titleEuFunding,
+    user: 'username',
+    allDocument: [],
+    hasToken: true,
+    pathname: '/demo/eu-funding',
+    fileupload: '/demo/eu-funding/fileupload',
+    document: '/demo/eu-funding/document',
+    verify: '/demo/eu-funding/verify',
+    verifyfile: '/demo/eu-funding/verifyfile'
+  });
 }
 
 function getAllDocument(req, res) {
@@ -377,15 +376,15 @@ function getAllDocument(req, res) {
   //   const username = req.session[ecas.session_name];
   // console.log('1/ getAllDocument username', username);
 
-var username = 'user';
+  var username = 'user';
   console.log('- getAllDocument - body', req.body);
-    if (req.body && req.body.did && req.body.did !== 'null') { 
+  if (req.body && req.body.did && req.body.did !== 'null') {
     username = req.body.did;
-    }
+  }
 
-  getAllDocumentFromWalletByUser(req).then(function(response) {
+  getAllDocumentFromWalletByUser(req).then(function (response) {
     // to do merge conffrompathname...
-console.log('username',username);
+    console.log('username', username);
 
     if (response && response.data) {
       console.log('documents: ', response.data.length);
@@ -417,7 +416,6 @@ console.log('username',username);
 }
 
 function noToken(req, res) {
-
   res.render('index', {
     title: config.titleEuFunding,
     user: 'me',
@@ -433,13 +431,13 @@ function noToken(req, res) {
 
 
 function delay(t, v) {
-  return new Promise(function(resolve) {
+  return new Promise(function (resolve) {
     setTimeout(resolve.bind(null, v), t);
   });
 }
 
-Promise.prototype.delay = function(t) {
-  return this.then(function(v) {
+Promise.prototype.delay = function (t) {
+  return this.then(function (v) {
     return delay(t, v);
   });
 };
@@ -481,7 +479,7 @@ function receivehash(req, res) {
   //   getNotarizedDocument(req.body.hash, conffrompathname).then(function (response) {
   //   getNotarizedDocument(req.body.hash, conffrompathname).delay(1000).then(function (response) { // 10000
   //   getNotarizedDocument(req.query.hash, conffrompathname).then(function (response) { // 10000
-  getNotarizedDocument(documentHash, conffrompathname).then(function(response) { // 10000
+  getNotarizedDocument(documentHash, conffrompathname).then(function (response) { // 10000
     console.log(req.baseUrl, '*2**********receivehash getNotarizedDocument response**********', response);
     console.log(req.baseUrl, '*3**********receivehash getNotarizedDocument ledgerHash**********', ledgerHash);
 
@@ -510,7 +508,7 @@ function receivehash(req, res) {
     };
 
     if (response.done) {
-        console.log('++ TRUE ++ response.done ++++++++++');
+      console.log('++ TRUE ++ response.done ++++++++++');
       result.done = true;
       result.waiting = false;
     }
@@ -565,12 +563,12 @@ async function getDocumentByHash(txHash, outPath, res) {
     const filename = _.split(contentDisposition, 'filename=');
     const fileToSend = outPath + filename[1];
 
-    response.data.pipe(fs.createWriteStream(fileToSend)).on('finish', function() {
+    response.data.pipe(fs.createWriteStream(fileToSend)).on('finish', function () {
       //       console.log('+++++++++ done ++++++++');
 
-      res.download(fileToSend, function(err) {
+      res.download(fileToSend, function (err) {
         if (err) throw err;
-        fs.unlink(fileToSend, function(err) {
+        fs.unlink(fileToSend, function (err) {
           if (err) throw err;
           // if no error, file has been deleted successfully
         });
@@ -639,7 +637,7 @@ async function signTx(documentHash, jwtokens, fileLabel) { // only eu-funding si
   var token = jwtokens.jwt;
 
   //     redirectURL: 'https://app.ebsi.xyz/demo/eu-funding/receive-hash',
-// redirectURL: 'http://localhost:8081/demo/eu-funding/receive-hash',
+  // redirectURL: 'http://localhost:8081/demo/eu-funding/receive-hash',
   var tx = {
     did: jwtokens.did,
     hash: documentHash,
@@ -714,8 +712,7 @@ function verify(req, res) {
   console.log('=========================verifyFile from dochash=====================\n', req.body);
 
 
-  
-    if (redirectIfNotAllowed(req)) {
+  if (redirectIfNotAllowed(req)) {
     res.redirect('https://app.ebsi.xyz/demo');
     //   res.redirect('/demo');
     return;
@@ -733,11 +730,11 @@ function verify(req, res) {
 
   const hash = new Web3().utils.isHex(req.body.docHash);
 
-    console.log('*********************dochash valid**********************\n');
-    console.log('[',req.body.docHash,'] *********************dochash valid**********************\n', hash);
-    console.log('*********************dochash valid**********************\n');
+  console.log('*********************dochash valid**********************\n');
+  console.log('[', req.body.docHash, '] *********************dochash valid**********************\n', hash);
+  console.log('*********************dochash valid**********************\n');
 
-  getNotarizedDocument(req.body.docHash, conffrompathname).then(function(response) {
+  getNotarizedDocument(req.body.docHash, conffrompathname).then(function (response) {
     console.log('+++++verify from doc hash+++++ response', response);
     //-------
 
@@ -776,13 +773,11 @@ function verifyFile(req, res) {
   console.log('=========================verifyFile=====================\n', req.body);
 
 
-  
-    if (redirectIfNotAllowed(req)) {
+  if (redirectIfNotAllowed(req)) {
     res.redirect('https://app.ebsi.xyz/demo');
     //   res.redirect('/demo');
     return;
   }
-  
 
 
   let sampleFile;
@@ -809,7 +804,7 @@ function verifyFile(req, res) {
   uploadPath = `${reqPath}/in/`;
   fileToStore = uploadPath + sampleFile.name;
 
-  sampleFile.mv(fileToStore, function(err) {
+  sampleFile.mv(fileToStore, function (err) {
     if (err) {
       console.log('file upload error ', err);
       return res.status(500).send(err);
@@ -819,11 +814,11 @@ function verifyFile(req, res) {
     const hash = new Web3().utils.sha3(data);
 
     console.log('*********************dochash**********************\n', hash);
-    getNotarizedDocument(hash, conffrompathname).then(function(response) {
+    getNotarizedDocument(hash, conffrompathname).then(function (response) {
       console.log('++++++++++ response', response);
       // console.log('file to removed: ', fileToStore);
       if (fileToStore) {
-        fs.unlink(fileToStore, function(err) {
+        fs.unlink(fileToStore, function (err) {
           if (err) throw err;
           // if no error, file has been deleted successfully
         });

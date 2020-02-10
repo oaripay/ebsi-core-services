@@ -1,4 +1,4 @@
-console.log('*****************');
+/* eslint-disable no-use-before-define, no-alert */
 let jwtold = null;
 let didold = null;
 let send = false;
@@ -35,7 +35,7 @@ if (storageAvailable('localStorage')) {
   console.log('// Too bad, no localStorage for us');
   alert('your privacy protocol doesn\'t allow some functionality!!!');
 }
-
+/* eslint-enable no-use-before-define, no-alert */
 
 function check() {
   var pathname = window.location.pathname;
@@ -63,6 +63,7 @@ function check() {
       xhr.open('POST', pathcheck, true);
       // xhr.open("POST", "/demo/eu-funding/check", true);
       xhr.setRequestHeader('Content-Type', 'application/json');
+
       xhr.send(JSON.stringify({
         Jwt: localStorage.getItem('Jwt'),
         Did: localStorage.getItem('Did')
@@ -71,4 +72,12 @@ function check() {
   }
 }
 
-// check();
+/*
+function setLogin() {
+  let jwt = 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwczovL2FwaS5lYnNpLnh5ei9lYnNpdHJ1c3RlZGFwcC9wdWJsaWMta2V5cy8iLCJraWQiOiJlYnNpLXdhbGxldCJ9.eyJzdWIiOiJuMDAyeTVnOCIsImlhdCI6MTU4MDk4MDQyNiwiZXhwIjoxNTgxMDY2ODI2LCJhdWQiOiJlYnNpLXdhbGxldCIsImRpZCI6ImRpZDplYnNpOjB4MDI0MmNFYzE1NEE0NDg3Nzk4NDU3QTg4RTU0RDNmMjlCYjQwQjA2NSIsInVzZXJOYW1lIjoiUmFuaXJpaGFyaXNvbiZSb2h5IiwidXNlcklkIjoibjAwMnk1ZzgifQ.oWLk7x3Tb2v9xSUTmPoPwQOFAwFrvgxiCTjj2xnUGLCaOA_JpITgyOo4p3dbMjSrFpMnWGGUz1BlVbIwHXUrlA';
+  let did = 'did:ebsi:0x0242cEc154A4487798457A88E54D3f29Bb40B065';
+  localStorage.setItem('Jwt', jwt);
+  localStorage.setItem('Did', did);
+}
+setLogin();
+*/

@@ -1,17 +1,11 @@
-var url = window.location.href;
-var originalUrl = decodeURI(url);
-// console.log('********loading*********', window.location);
-// console.log('******** obj *********', Object.fromEntries(new URLSearchParams(location.search)));
-// console.log('******** ? *********\n', location.search);
-
-// var oob = Object.fromEntries(new URLSearchParams(location.search));
+/* eslint-disable no-undef, no-restricted-globals, no-use-before-define */
 
 var oob = _.chain(location.search)
-    .replace('?', '') // a=b454&c=dhjjh&f=g6hksdfjlksd
-    .split('&') // ["a=b454","c=dhjjh","f=g6hksdfjlksd"]
-    .map(_.partial(_.split, _, '=', 2)) // [["a","b454"],["c","dhjjh"],["f","g6hksdfjlksd"]]
-    .fromPairs() // {"a":"b454","c":"dhjjh","f":"g6hksdfjlksd"}
-    .value()
+  .replace('?', '')
+  .split('&')
+  .map(_.partial(_.split, _, '=', 2))
+  .fromPairs()
+  .value();
 
 _.merge(oob, { done: true });
 console.log('******** oob *********', oob);
@@ -32,3 +26,4 @@ function sendDone(oob) {
   };
   xhr.send(JSON.stringify(oob));
 }
+/* eslint-enable no-undef, no-restricted-globals, no-use-before-define */
