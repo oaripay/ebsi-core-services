@@ -417,8 +417,6 @@ console.log('username',username);
 }
 
 function noToken(req, res) {
-  // console.log('***********no jwt token**********',req);
-  console.log('***********no jwt token**********', req.app.settings.settings.jwt);
 
   res.render('index', {
     title: config.titleEuFunding,
