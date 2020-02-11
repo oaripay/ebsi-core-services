@@ -51,7 +51,7 @@ module.exports = {
       network_id: "*",       // Any network (default: none)
     },
     ebsi: {
-      provider: () => new PrivateKeyProvider(privateKey, "https://ebsi.xyz/jsonrpc"),
+      provider: () => new PrivateKeyProvider(privateKey, "https://www.ebsi.xyz/jsonrpc"),
       network_id: "*",
       gas:"0x1ffffffffffffe",
       gasPrice: 0
