@@ -57,6 +57,14 @@ module.exports = {
       gasPrice: 0
     },
 
+    intebsi: {
+      provider: () => new PrivateKeyProvider(privateKey, "http://15.188.183.79:48745"),
+      network_id: "*",
+      gas:"0x1ffffffffffffe",
+      gasPrice: 0
+    },
+
+
     // Another network with more advanced options...
     // advanced: {
       // port: 8777,             // Custom port
