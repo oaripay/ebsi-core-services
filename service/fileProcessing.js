@@ -314,12 +314,7 @@ async function storeDocWithoutPubKey(req) {
       //       const errorResult = _.assign({}, {
       //         ok: false, message: e.response.data, user: 'username', euFundingConf
       //       });
-      const errorResult = _.assign({}, {
-        ok: false,
-        message: message,
-        user: 'username',
-        euFundingConf
-      });
+      const errorResult = _.assign({}, { ok: false, message: message, user: 'username' }, euFundingConf);
 
       // let errorResult = _.assign({}, { ok: false, message: e.response.data, user: username ,csrfToken:csrfToken});
       // if (req.baseUrl === '/notary') {
@@ -332,17 +327,9 @@ async function storeDocWithoutPubKey(req) {
   } else {
     // csrfToken: csrfToken,
     if (req.baseUrl === '/notary') {
-      return _.merge({
-        ok: false,
-        message: 'missing document',
-        user: 'username'
-      }, notaryConf);
+      return _.merge({ ok: false, message: 'missing document', user: 'username' }, notaryConf);
     }
-    return _.merge({
-      ok: false,
-      message: 'missing document',
-      user: 'username'
-    }, euFundingConf);
+    return _.merge({ ok: false, message: 'missing document', user: 'username' }, euFundingConf);
 
     // return {
     //   ok: false,
@@ -728,11 +715,23 @@ function verify(req, res) {
   }
   console.log('-- conffrompathname verify: ', conffrompathname);
 
-  const hash = new Web3().utils.isHex(req.body.docHash);
+  let hashValid = new Web3().utils.isHexStrict(req.body.docHash);
 
-  console.log('*********************dochash valid**********************\n');
-  console.log('[', req.body.docHash, '] *********************dochash valid**********************\n', hash);
-  console.log('*********************dochash valid**********************\n');
+  console.log('********************* dochash valid **********************\n');
+  console.log('[', req.body.docHash, '] ********************* dochash valid? **********************\n', hashValid);
+  console.log('*********************dochash valid**********************\n', !!hashValid);
+
+  if (!hashValid) { // const hash = new Web3().utils.sha3(data)
+    const errorResult = _.assign({}, {
+      ok: false, message: 'wrong documentHash', user: 'username', hasToken: true
+    }, conffrompathname);
+
+    console.log('!!! wrond documentHash [', req.body.docHash, ']');
+    console.log(' > ', errorResult);
+    res.render('index', errorResult);
+    return;
+  }
+
 
   getNotarizedDocument(req.body.docHash, conffrompathname).then(function (response) {
     console.log('+++++verify from doc hash+++++ response', response);
