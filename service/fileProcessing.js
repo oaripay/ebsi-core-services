@@ -127,9 +127,19 @@ function upload(req, res) {
   fileLabel = req.body.title;
 
   if (!req.files || Object.keys(req.files).length === 0) {
+    /*
     console.log('No files were uploaded.');
 
     res.redirect('/demo/eu-funding');
+    return;
+    */
+    const errorResult = _.assign({}, {
+      ok: false, message: 'bad file', user: 'username', hasToken: true
+    }, euFundingConf);
+
+    //     console.log('!!! bad file. ');
+    console.log(' > ', errorResult);
+    res.render('index', errorResult);
     return;
   }
 
@@ -723,10 +733,10 @@ function verify(req, res) {
 
   if (!hashValid) { // const hash = new Web3().utils.sha3(data)
     const errorResult = _.assign({}, {
-      ok: false, message: 'wrong documentHash', user: 'username', hasToken: true
+      ok: false, message: 'wrong document Hash', user: 'username', hasToken: true
     }, conffrompathname);
 
-    console.log('!!! wrond documentHash [', req.body.docHash, ']');
+    console.log('!!! wrong documentHash [', req.body.docHash, ']');
     console.log(' > ', errorResult);
     res.render('index', errorResult);
     return;
@@ -793,9 +803,19 @@ function verifyFile(req, res) {
 
 
   if (!req.files || Object.keys(req.files).length === 0) {
+    /*
     console.log('No files were uploaded.');
 
     res.redirect('/demo/eu-funding');
+    return;
+    */
+    const errorResult = _.assign({}, {
+      ok: false, message: 'bad file', user: 'username', hasToken: true
+    }, conffrompathname);
+
+    //     console.log('!!! bad file. ');
+    console.log(' > verifyFile > ', errorResult);
+    res.render('index', errorResult);
     return;
   }
 
