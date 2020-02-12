@@ -151,12 +151,13 @@ function check() {
 /* eslint-enable no-unused-vars, no-undef, no-use-before-define, no-param-reassign, no-plusplus, no-loop-func, no-alert */
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------
-/*
+
 function setLogin() {
-  let jwt = 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwczovL2FwaS5lYnNpLnh5ei9lYnNpdHJ1c3RlZGFwcC9wdWJsaWMta2V5cy8iLCJraWQiOiJlYnNpLXdhbGxldCJ9.eyJzdWIiOiJnb256anVsIiwiaWF0IjoxNTgxMDA2OTYxLCJleHAiOjE1ODEwOTMzNjEsImF1ZCI6ImVic2ktd2FsbGV0IiwiZGlkIjoiZGlkOmVic2k6MHg1OGE0M0UwYmY5NTFBODM1YUIzQTJlOTdjRkZkREU2Q0NjN0U3NkJGIiwidXNlck5hbWUiOiJHT05aQUxFWiBBR1VERUxPJkp1bGlhbiIsInVzZXJJZCI6ImdvbnpqdWwifQ.kkvl7D6bDlbLAUopQ4SvrVJOS1KOGFxaBCaSUn0Uj8oohHPRa5pR809FvLsWGlaEd-hMD5wh28k5BYwuI8Ts3A';
-  let did = 'did:ebsi:0x58a43E0bf951A835aB3A2e97cFFdDE6CCc7E76BF';
+  let jwt = 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwczovL2FwaS5lYnNpLnh5ei9lYnNpdHJ1c3RlZGFwcC9wdWJsaWMta2V5cy8iLCJraWQiOiJlYnNpLXdhbGxldCJ9.eyJzdWIiOiJuMDAyeTVnOCIsImlhdCI6MTU4MTUxMjI0MSwiZXhwIjoxNTgxNTk4NjQxLCJhdWQiOiJlYnNpLXdhbGxldCIsImRpZCI6ImRpZDplYnNpOjB4RWRjRTYzN2ZmNThhODkzNDYyNTkzM0MxQzNGNTI0MTZiOGU4ODdGNiIsInVzZXJOYW1lIjoiUmFuaXJpaGFyaXNvbiZSb2h5IiwidXNlcklkIjoibjAwMnk1ZzgifQ.Uk7MdrPJald1_P42zn5fvmDK-tXNx1lGLX6oYy3hQd-I1_Ou5LfGsUYtHkTkIPii5_zH6ED4S0MDJgoKONeKYQ';
+  let did = 'did:ebsi:0xEdcE637ff58a8934625933C1C3F52416b8e887F6';
   localStorage.setItem('Jwt', jwt);
   localStorage.setItem('Did', did);
+  console.log('** setLogin** : jwt set to ',jwt);
 }
 setLogin();
-*/
+
