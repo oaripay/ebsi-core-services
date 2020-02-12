@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars, no-undef, no-use-before-define, no-param-reassign, no-plusplus, no-loop-func, no-alert */
 function ValidateSize(file) {
   var FileSize = file.files[0].size / 1024 / 1024; // in MB
   //   var testa = Math.round((file.files[0].size / 1024 / 1024));
@@ -59,12 +60,7 @@ function addDataToForm(form, data) {
 }
 
 
-
-
 // ------------------------------------------------------------------------------------------------
-
-
-
 
 
 // console.log('*****************');
@@ -124,37 +120,43 @@ function check() {
   }
 
   if (send) {
-
-
-//     var pathcheck = pathname + '/check';
+    //     var pathcheck = pathname + '/check';
 
     var xhr = new XMLHttpRequest();
     // demo/demo/eu-funding/verifyfile
 
     if (pathname === '/demo/eu-funding' || pathname === '/notary') {
-      console.log('*** ',pathname,' ***');
-//       console.log(pathname);
-//       xhr.open('POST', pathcheck, true);
-      xhr.open("POST", "/demo/eu-funding", true);
+      console.log('*** ', pathname, ' ***');
+      //       console.log(pathname);
+      //       xhr.open('POST', pathcheck, true);
+      xhr.open('POST', '/demo/eu-funding', true);
       xhr.setRequestHeader('Content-Type', 'application/json');
 
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4 && xhr.status === 200) {
-    // console.log(xhr.response);
-      var doc = new DOMParser().parseFromString(xhr.response, 'text/html');
-      var main = [].slice.call(doc.body.getElementsByTagName('main'))[0];
-      $('main').html(main);
-    }
-  };
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          // console.log(xhr.response);
+          var doc = new DOMParser().parseFromString(xhr.response, 'text/html');
+          var main = [].slice.call(doc.body.getElementsByTagName('main'))[0];
+          $('main').html(main);
+        }
+      };
 
       xhr.send(JSON.stringify({
         jwt: localStorage.getItem('Jwt'),
         did: localStorage.getItem('Did')
       }));
-
-
     }
   }
 }
+/* eslint-enable no-unused-vars, no-undef, no-use-before-define, no-param-reassign, no-plusplus, no-loop-func, no-alert */
 
-
+//--------------------------------------------------------------------------------------------------------------------------------------------------
+/*
+function setLogin() {
+  let jwt = 'eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwczovL2FwaS5lYnNpLnh5ei9lYnNpdHJ1c3RlZGFwcC9wdWJsaWMta2V5cy8iLCJraWQiOiJlYnNpLXdhbGxldCJ9.eyJzdWIiOiJnb256anVsIiwiaWF0IjoxNTgxMDA2OTYxLCJleHAiOjE1ODEwOTMzNjEsImF1ZCI6ImVic2ktd2FsbGV0IiwiZGlkIjoiZGlkOmVic2k6MHg1OGE0M0UwYmY5NTFBODM1YUIzQTJlOTdjRkZkREU2Q0NjN0U3NkJGIiwidXNlck5hbWUiOiJHT05aQUxFWiBBR1VERUxPJkp1bGlhbiIsInVzZXJJZCI6ImdvbnpqdWwifQ.kkvl7D6bDlbLAUopQ4SvrVJOS1KOGFxaBCaSUn0Uj8oohHPRa5pR809FvLsWGlaEd-hMD5wh28k5BYwuI8Ts3A';
+  let did = 'did:ebsi:0x58a43E0bf951A835aB3A2e97cFFdDE6CCc7E76BF';
+  localStorage.setItem('Jwt', jwt);
+  localStorage.setItem('Did', did);
+}
+setLogin();
+*/
