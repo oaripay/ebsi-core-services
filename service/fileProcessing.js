@@ -118,7 +118,7 @@ function upload(req, res) {
   console.log('=========================upload=====================\n', req.body);
 
   if (redirectIfNotAllowed(req)) {
-    res.redirect('https://app.ebsi.xyz/demo');
+    res.redirect('https://app.intebsi.xyz/demo');
     //   res.redirect('/demo');
     return;
   }
@@ -379,7 +379,7 @@ function getAllDocument(req, res) {
 
 var username = 'user';
   console.log('- getAllDocument - body', req.body);
-    if (req.body && req.body.did && req.body.did !== 'null') { 
+    if (req.body && req.body.did && req.body.did !== 'null') {
     username = req.body.did;
     }
 
@@ -643,14 +643,14 @@ async function signTx(documentHash, jwtokens, fileLabel) { // only eu-funding si
   var tx = {
     did: jwtokens.did,
     hash: documentHash,
-    redirectURL: 'https://app.ebsi.xyz/demo/eu-funding/receive-hash',
+    redirectURL: 'https://app.intebsi.xyz/demo/eu-funding/receive-hash',
     documentName: fileLabel
   };
 
   const opts = { headers: { Authorization: `Bearer ${token}` } };
   console.log(' tx: ', tx);
 
-  var signResponse = await axios.post('https://api.ebsi.xyz/wallet/signTx', tx, opts); // <-delivery
+  var signResponse = await axios.post('https://api.intebsi.xyz/wallet/signTx', tx, opts); // <-delivery
 
   //     var signResponse = await axios.post('https://localhost:3004/wallet/signTx', tx, opts);//https://app.ebsi.xyz/wallet/signTx
 
@@ -714,9 +714,9 @@ function verify(req, res) {
   console.log('=========================verifyFile from dochash=====================\n', req.body);
 
 
-  
+
     if (redirectIfNotAllowed(req)) {
-    res.redirect('https://app.ebsi.xyz/demo');
+    res.redirect('https://app.intebsi.xyz/demo');
     //   res.redirect('/demo');
     return;
   }
@@ -776,13 +776,13 @@ function verifyFile(req, res) {
   console.log('=========================verifyFile=====================\n', req.body);
 
 
-  
+
     if (redirectIfNotAllowed(req)) {
-    res.redirect('https://app.ebsi.xyz/demo');
+    res.redirect('https://app.intebsi.xyz/demo');
     //   res.redirect('/demo');
     return;
   }
-  
+
 
 
   let sampleFile;

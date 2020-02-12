@@ -40,7 +40,7 @@
         </div>
         {{#if notary}}
           <h3 class="ecl-u-type-heading-3">Document ready to be notarised</h3>
-          <p class="ecl-u-type-paragraph">Check your <a class="ecl-link" href="https://app.ebsi.xyz/wallet/notifications">
+          <p class="ecl-u-type-paragraph">Check your <a class="ecl-link" href="https://app.intebsi.xyz/wallet/notifications">
               wallet's
               notifications</a> and sign the transaction in order to finalise the notarisation</p>
           <p>(*) This means that this document is waiting for your signature through your wallet</p>
@@ -156,7 +156,7 @@
                 <dd class="ecl-description-list__definition">{{info.registeredBy}}</dd>
                 {{#if info.ledgerHash}}
                   <dt class="ecl-description-list__term">Ledger Hash</dt>
-                  <dd class="ecl-description-list__definition"><a class="ecl-link ecl-link--standalone" href="https://www.ebsi.xyz/tx/{{{info.ledgerHash}}}">{{info.ledgerHash}}</a></dd>
+                  <dd class="ecl-description-list__definition"><a class="ecl-link ecl-link--standalone" href="https://app.intebsi.xyz/besu-explorer/tx/{{{info.ledgerHash}}}">{{info.ledgerHash}}</a></dd>
                 {{/if}}
               </dl>
             </div>
@@ -178,7 +178,7 @@
           </svg>
           <div class="ecl-message__content">
             <div class="ecl-message__title">No registration could be found for this document</div>
-            <p class="ecl-message__description">Please check in your <a class="ecl-link" href="https://app.ebsi.xyz/wallet/notifications"> wallet's
+            <p class="ecl-message__description">Please check in your <a class="ecl-link" href="https://app.intebsi.xyz/wallet/notifications"> wallet's
                 notifications</a> if this document is not waiting for your signature<br /><br />- OR -<br /><br />Store the
               document</p>
           </div>
@@ -237,9 +237,9 @@
     {{/if}}
   {{else}}
     <h2 class="ecl-u-type-heading-2">Please follow step requirement before:
-      <a class="ecl-button ecl-button--primary" href="https://app.ebsi.xyz/demo">EBSI DEMO</a>
+      <a class="ecl-button ecl-button--primary" href="https://app.intebsi.xyz/demo">EBSI DEMO</a>
     </h2>
   {{/if}}
 
 {{!-- <script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/check.js"></script> --}}
-<script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/index.js"></script> 
+<script type="text/javascript" src="{{PUBLIC_URL}}/public/javascripts/index.js"></script>

@@ -3,7 +3,7 @@ const _ = require("lodash");
 
 // todo keys from doc hashed mongo...
 const config = {
-  api: 'https://api.ebsi.xyz/',
+  api: 'https://api.intebsi.xyz/',
   private_key: "-----BEGIN PRIVATE KEY-----\nMIGEAgEAMBAGByqGSM49AgEGBSuBBAAKBG0wawIBAQQgs6s3dObknLuMwW8uf3OD\nP7iSostg/+Gu1sOHmQO9rtqhRANCAASzeFJSgwEVgUInB9jIEi9ppB4qPXJYe5YT\n2aR6rwK4mZ/5scpJeS/m+HeV108pd6M1BlzgehCvQPTwUMkFA+hw\n-----END PRIVATE KEY-----",
 
   credential: {

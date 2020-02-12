@@ -12,7 +12,7 @@ RUN npm config set scripts-prepend-node-path true
 RUN npm ci
 ENV PORT=3000
 ENV HTTPS=ON
-ENV PUBLIC_URL=https://app.ebsi.xyz/notary
+ENV PUBLIC_URL=https://app.intebsi.xyz/notary
 
 RUN npm prune --production
 
