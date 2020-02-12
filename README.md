@@ -1,4 +1,4 @@
-2_deploy_contracts.js
+```2_deploy_contracts.js
 =====================
 Deploying EBSI App Registry on the network
 
@@ -70,3 +70,4 @@ Summary
 > Total deployments:   2
 > Final cost:          0 ETH
 
+```
