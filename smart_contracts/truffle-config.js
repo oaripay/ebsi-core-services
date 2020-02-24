@@ -12,5 +12,10 @@ module.exports = {
       gas:"0x1ffffffffffffe",
       gasPrice: 0
     },
+    functionalTestNet: {
+      host: "127.0.0.1",
+      port: 18545,     
+      network_id: "*",  
+    }
   }
 };
