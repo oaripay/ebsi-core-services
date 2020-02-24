@@ -1,4 +1,4 @@
-/*                                                                                                                                                                                                                  
+/* 
  * REF 1: https://github.com/trufflesuite/truffle/issues/314
  * REF 2: https://github.com/trufflesuite/truffle-contract/issues/117
  * REF 3: https://github.com/trufflesuite/truffle/blob/next/packages/truffle-contract/test/events.js#L118-L143 
@@ -12,6 +12,7 @@
 // https://ethereum-magicians.org/t/removing-or-increasing-the-contract-size-limit/3045
 
 const BN_ZERO = new web3.utils.BN(0)
+
 
 var assertCount = 0; // Test Stats purposes only
 const assert_equal   = function(a,b,c) { assertCount++ ; assert.equal  (a,b, c); }
@@ -43,6 +44,8 @@ JSON.stringifySec = function (circ) {
     return result                                                                                           
 }
 
+
+let web3Provider;
 contract('RealEstateControllerFullJourney', accounts => {
   const ACCT0 = accounts[0]; const FROM_ACCT0 = { from : ACCT0 }
   const ACCT1 = accounts[1]; const FROM_ACCT1 = { from : ACCT1 }   
@@ -65,8 +68,12 @@ contract('RealEstateControllerFullJourney', accounts => {
         assert_equal(result.receipt.logs.length,1, "")
         const log0   = result.receipt.logs[0]
         assert_equal(log0.event    , "REC", "") 
-     // assert_equal(log0.args["0"].toString(), hash01.toString(),JSON.stringifySec(log0.args["0"]))
-        assert_equal(log0.args["0"], hash01, JSON.stringifySec(log0.args["0"]))
+        assert_equal(typeof hash01 , Object.keys(hash01), "") 
+        // NOTE: The smart-contract is emiting a uint that translates to a
+        //     web3.util.BN. To match the original hash01 (string type) some 
+        //     string manipulation is needed. The problem dissapear if using
+        //     bytes32 (vs int256) in the original smart-contract.
+        assert_equal(JSON.stringifySec(log0.args["0"]).replace(/"/g,''), hash01.toString().replace('0x','') )
         assert_equal(log0.args["1"], ACCT0 ,"")
       }
     )
