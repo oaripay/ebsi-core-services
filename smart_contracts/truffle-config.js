@@ -1,4 +1,5 @@
 const PrivateKeyProvider = require("truffle-hdwallet-provider");
+require("dotenv").config();
 if (!process.env.PRIVATE_KEY) throw new Error("PRIVATE_KEY is not defined");
 const privateKey = process.env.PRIVATE_KEY;
 
