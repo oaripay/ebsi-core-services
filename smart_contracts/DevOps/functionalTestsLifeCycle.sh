@@ -24,6 +24,15 @@ function funCheckTruffleOrThrow { # TODO:(0)
 
 GANACHE_PORT=18545  # Must match truffle-config.js 'functionalTestNet' settings
 
+function funTestNodeModulesOrInstall {
+  if [ ! -d node_modules ] ; then
+      TMP_FILE=$(mktemp --dry-run)
+      echo "npm install STDOUT/STDERR reditected to '$TMP_FILE'"
+      npm install 1>$TMP_FILE 2>&1
+      npm audit # TODO:(0) Abort on critical audit-errors?
+  fi
+}
+
 function funStartGanacheFunctionalTest {
   # TODO:(?) Forze serializations of allow parallel executions. By default parallel is
   #     allowed but not sure if ganache-cli allow concurrent client
@@ -42,27 +51,17 @@ function funStartGanacheFunctionalTest {
   fi
 }
 
-function funAuditPackageSecurity {
-  true
-# npm audit # TODO:(0) Abort on critical errors.
-}
-
 function funStopGanacheFunctionalTest {
   kill $(cat ${RUN_FILE})
   rm -f ${RUN_FILE}
 }
 
 function funLaunchTestsFunctionalTest {
-  if [ ! -d node_modules ] ; then
-      npm install
-  fi
-
   truffle test --network functionalTestNet
 }
 
 funCheckTruffleOrThrow
+funTestNodeModulesOrInstall
 funStartGanacheFunctionalTest
-funAuditPackageSecurity
-# TODO: Tests node modules or install if needed.
 funLaunchTestsFunctionalTest
 funStopGanacheFunctionalTest
