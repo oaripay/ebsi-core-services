@@ -57,6 +57,7 @@ function funStopGanacheFunctionalTest {
 }
 
 function funLaunchTestsFunctionalTest {
+  export PRIVATE_KEY="DUMMY_NOT_USED"
   truffle test --network functionalTestNet
 }
 
