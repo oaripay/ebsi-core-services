@@ -25,12 +25,10 @@ function funCheckTruffleOrThrow { # TODO:(0)
 GANACHE_PORT=18545  # Must match truffle-config.js 'functionalTestNet' settings
 
 function funTestNodeModulesOrInstall {
-  if [ ! -d node_modules ] ; then
-      TMP_FILE=$(mktemp --dry-run)
-      echo "npm install STDOUT/STDERR reditected to '$TMP_FILE'"
-      npm install 1>$TMP_FILE 2>&1
-      npm audit # TODO:(0) Abort on critical audit-errors?
-  fi
+  TMP_FILE=$(mktemp --dry-run)
+  echo "npm install STDOUT/STDERR reditected to '$TMP_FILE'"
+  npm install 1>$TMP_FILE 2>&1
+  npm audit # TODO:(0) Abort on critical audit-errors?
 }
 
 function funStartGanacheFunctionalTest {
