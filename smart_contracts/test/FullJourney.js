@@ -68,13 +68,11 @@ contract('RealEstateControllerFullJourney', accounts => {
         assert_equal(result.receipt.logs.length,1, "")
         const log0   = result.receipt.logs[0]
         assert_equal(log0.event    , "REC", "") 
-        assert_equal(typeof hash01 , Object.keys(hash01), "") 
-        // NOTE: The smart-contract is emiting a uint that translates to a
-        //     web3.util.BN. To match the original hash01 (string type) some 
-        //     string manipulation is needed. The problem dissapear if using
-        //     bytes32 (vs int256) in the original smart-contract.
-        assert_equal(JSON.stringifySec(log0.args["0"]).replace(/"/g,''), hash01.toString().replace('0x','') )
+        assert_equal(log0.args["0"], hash01 )
         assert_equal(log0.args["1"], ACCT0 ,"")
+
+        // TODO:(?)
+        //    Use etherjs library if possible to allow it to be compliant with current backend code.
       }
     )
    })
