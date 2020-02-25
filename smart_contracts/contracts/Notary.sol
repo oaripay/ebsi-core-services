@@ -1,41 +1,19 @@
-
+pragma solidity ^0.5.8;
 
 contract Notary {
+  mapping(bytes32 => address) public record;
+  uint public totalRecords;
 
-    mapping(uint => uint) public timestamp;
-    mapping(uint => uint) public blockNumber;
-    mapping(uint => address) public registeredBy;
-    
-    uint public totalRecords;
+  // Event to record
+  event REC(bytes32 indexed docHash, address indexed signer, uint indexed timestamp);
 
-    event REC(uint h, address a);
-    event DUP(uint h, address a);
+  // add a single record
+  function addRecord(bytes32 docHash) public {
+    require(record[docHash] == address(0), "This hash already exists");
 
-    constructor() public {}
-    
-    // add a single record
-    function addRecord(uint z) public {
-        if (z == 0 || timestamp[z] != 0) {
-          emit DUP(z, msg.sender);
-        } else {
-          _addRec(z);
-        }
-    }
+    record[docHash] = msg.sender;
+    emit REC(docHash, msg.sender, now);
 
-    // add multiple records
-    function addMultipleRecords(uint[] memory zz) public returns (uint) {
-        uint totalRecordsIni = totalRecords;
-        for (uint i; i < zz.length; i++) {
-            addRecord(zz[i]);
-        }
-        return totalRecords - totalRecordsIni;
-    }
-
-    function _addRec(uint z) private {
-        timestamp[z] = now;
-        blockNumber[z] = block.number;
-        registeredBy[z] = msg.sender;
-        totalRecords += 1;
-        emit REC(z, msg.sender);
-    }
+    totalRecords ++;
+  }
 }
