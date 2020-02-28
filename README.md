@@ -105,23 +105,7 @@ Starting migrations...
 
 2_deploy_contracts.js
 =====================
-Deploying Ethereum Did Registry on the network
 
-   Deploying 'EthereumDIDRegistry'
-   -------------------------------
-   > transaction hash:    0xb6913fbaa27e10295b0138051c255d718b654e49b85449582f43aa0e296d60ae
-   > Blocks: 0            Seconds: 0
-   > contract address:    0x47b33c2D3e928FDf2c0A82FcD7042Ae0cFd5862A
-   > block number:        49689
-   > block timestamp:     1581423408
-   > account:             0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73
-   > balance:             0
-   > gas used:            2356520
-   > gas price:           0 gwei
-   > value sent:          0 ETH
-   > total cost:          0 ETH
-
-Registry Deployed at 0x47b33c2D3e928FDf2c0A82FcD7042Ae0cFd5862A
 Deploying Universities Trusted Issuers smart contract on network:  intebsi
 
    Deploying 'UniversitiesTrustedIssuers'
