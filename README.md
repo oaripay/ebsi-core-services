@@ -1,46 +1,32 @@
-![EBSI Logo](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
+# Notary - smart contract
+Smart contract to timestamp a hash in the blockchain.
 
-# Notarization Dapp with EULogin
+## How to deploy
 
->
+Define `PRIVATE_KEY` in environmental variables
 
-## Table of Contents
-
-1. [Getting started](#Getting)
-2. [Licensing](#Licensing)
-
-## Getting started
-
-### Installing
-
-In order to run the project you will need to execute the following commands.
-
-```shell
-npm install
-npm start
+```
+truffle compile
+truffle migrate --network ebsi
 ```
 
-It installs the dependencies and starts the server.
-You can then go to http://localhost:3000
+## Current deploy
 
-#### Docker
+### Development environment
 
-Alternatively, you can use docker:
+Version 1
+  address: 0x9a3DBCa554e9f6b9257aAa24010DA8377C57c17e
+  abi: [{"constant":true,"inputs":[],"name":"totalRecords","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"timestamp","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"registeredBy","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"uint256"}],"name":"blockNumber","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"h","type":"uint256"},{"indexed":false,"name":"a","type":"address"}],"name":"REC","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"h","type":"uint256"},{"indexed":false,"name":"a","type":"address"}],"name":"DUP","type":"event"},{"constant":false,"inputs":[{"name":"z","type":"uint256"}],"name":"addRecord","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"zz","type":"uint256[]"}],"name":"addMultipleRecords","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"function"}]
+  
+Version 2
+  address: 0x3c5316F3223626f8D8Ea50Eed697F739c2778D3b
+  abi: [{"anonymous":false,"inputs":[{"indexed":true,"internalType":"bytes32","name":"docHash","type":"bytes32"},{"indexed":true,"internalType":"address","name":"signer","type":"address"},{"indexed":true,"internalType":"uint256","name":"lastBlock","type":"uint256"}],"name":"REC","type":"event"},{"constant":true,"inputs":[],"name":"lastBlockREC","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"name":"record","outputs":[{"internalType":"address","name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"totalRecords","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"internalType":"bytes32","name":"docHash","type":"bytes32"}],"name":"addRecord","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}]
+  
+### Integration environment
 
-```shell
-docker build . -t notaryimage
-docker run -p 3000:3000 notaryimage
-```
+Version 1
+  address: 0xECB550dE5c73e6690AB4521C03EC9D476617167E
 
-go to http://localhost:3000
-
-## Licensing
-
-Copyright (c) 2019 European Commission  
-Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
-You may not use this work except in compliance with the Licence.
-You may obtain a copy of the Licence at:
-
-- https://joinup.ec.europa.eu/page/eupl-text-11-12
-
-Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.
+Version 2
+  address: 0x5A7991305FcEf2a05684DC2F3AE2ED722D69A675 
+ 
