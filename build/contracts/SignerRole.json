@@ -74,15 +74,15 @@
       "type": "function"
     }
   ],
-  "metadata": "{\"compiler\":{\"version\":\"0.5.9+commit.e560f70d\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"name\":\"account\",\"type\":\"address\"}],\"name\":\"isSigner\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"renounceSigner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"account\",\"type\":\"address\"}],\"name\":\"addSigner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"account\",\"type\":\"address\"}],\"name\":\"SignerAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"account\",\"type\":\"address\"}],\"name\":\"SignerRemoved\",\"type\":\"event\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/macbook/workplace/5-besu-trusted-issuers/contracts/roles/roles/SignerRole.sol\":\"SignerRole\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/macbook/workplace/5-besu-trusted-issuers/contracts/roles/Context.sol\":{\"keccak256\":\"0xa5ce23dc71caa76caf782712dc8fef8dd2390c277f71e286474e9894d6ece97f\",\"urls\":[\"bzzr://7767de4d44ab68d524d66c6a3ed11fd79694dc29efa9fc9b4b3b5e446d6b2332\",\"dweb:/ipfs/Qmcp5Nhsq3PRRgXQYeqY41FMY1G2YbYC4JCWxFrst24MsC\"]},\"/Users/macbook/workplace/5-besu-trusted-issuers/contracts/roles/Roles.sol\":{\"keccak256\":\"0x6aa54a11c704f503bbcc304823411ba2886f0ae9391ad8a4535a28f5307b60e9\",\"urls\":[\"bzzr://8c43dacf2fd32f96f7322f2de4b47730714a8dcd3b81205c4ef25df96f4f9995\",\"dweb:/ipfs/QmWVBSiefCEz5jrCPK8uTxc8A7wXFpMiigrc9dogEfM291\"]},\"/Users/macbook/workplace/5-besu-trusted-issuers/contracts/roles/roles/SignerRole.sol\":{\"keccak256\":\"0xb49955923a9f172a059fa64ef51fe517cc23f5c7ce17a06327b1afcedda81d9d\",\"urls\":[\"bzzr://45c29919962848506bef26ef13662f740910eb3c5890685afbf8312e16307f1f\",\"dweb:/ipfs/QmbBrzFKKQjoyVLHubBK5r36tT94wkv6LCpkgmDoJpEMHf\"]}},\"version\":1}",
+  "metadata": "{\"compiler\":{\"version\":\"0.5.9+commit.e560f70d\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"constant\":true,\"inputs\":[{\"name\":\"account\",\"type\":\"address\"}],\"name\":\"isSigner\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[],\"name\":\"renounceSigner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"account\",\"type\":\"address\"}],\"name\":\"addSigner\",\"outputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"constructor\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"account\",\"type\":\"address\"}],\"name\":\"SignerAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"name\":\"account\",\"type\":\"address\"}],\"name\":\"SignerRemoved\",\"type\":\"event\"}],\"devdoc\":{\"methods\":{}},\"userdoc\":{\"methods\":{}}},\"settings\":{\"compilationTarget\":{\"/Users/macbook/workplace/ce/5-besu-trusted-issuers/contracts/roles/roles/SignerRole.sol\":\"SignerRole\"},\"evmVersion\":\"petersburg\",\"libraries\":{},\"optimizer\":{\"enabled\":false,\"runs\":200},\"remappings\":[]},\"sources\":{\"/Users/macbook/workplace/ce/5-besu-trusted-issuers/contracts/roles/Context.sol\":{\"keccak256\":\"0xa5ce23dc71caa76caf782712dc8fef8dd2390c277f71e286474e9894d6ece97f\",\"urls\":[\"bzzr://7767de4d44ab68d524d66c6a3ed11fd79694dc29efa9fc9b4b3b5e446d6b2332\",\"dweb:/ipfs/Qmcp5Nhsq3PRRgXQYeqY41FMY1G2YbYC4JCWxFrst24MsC\"]},\"/Users/macbook/workplace/ce/5-besu-trusted-issuers/contracts/roles/Roles.sol\":{\"keccak256\":\"0x6aa54a11c704f503bbcc304823411ba2886f0ae9391ad8a4535a28f5307b60e9\",\"urls\":[\"bzzr://8c43dacf2fd32f96f7322f2de4b47730714a8dcd3b81205c4ef25df96f4f9995\",\"dweb:/ipfs/QmWVBSiefCEz5jrCPK8uTxc8A7wXFpMiigrc9dogEfM291\"]},\"/Users/macbook/workplace/ce/5-besu-trusted-issuers/contracts/roles/roles/SignerRole.sol\":{\"keccak256\":\"0xb49955923a9f172a059fa64ef51fe517cc23f5c7ce17a06327b1afcedda81d9d\",\"urls\":[\"bzzr://45c29919962848506bef26ef13662f740910eb3c5890685afbf8312e16307f1f\",\"dweb:/ipfs/QmbBrzFKKQjoyVLHubBK5r36tT94wkv6LCpkgmDoJpEMHf\"]}},\"version\":1}",
   "bytecode": "0x",
   "deployedBytecode": "0x",
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity ^0.5.0;\n\nimport \"../Context.sol\";\nimport \"../Roles.sol\";\n\ncontract SignerRole is Context {\n    using Roles for Roles.Role;\n\n    event SignerAdded(address indexed account);\n    event SignerRemoved(address indexed account);\n\n    Roles.Role private _signers;\n\n    constructor () internal {\n        _addSigner(_msgSender());\n    }\n\n    modifier onlySigner() {\n        require(isSigner(_msgSender()), \"SignerRole: caller does not have the Signer role\");\n        _;\n    }\n\n    function isSigner(address account) public view returns (bool) {\n        return _signers.has(account);\n    }\n\n    function addSigner(address account) public onlySigner {\n        _addSigner(account);\n    }\n\n    function renounceSigner() public {\n        _removeSigner(_msgSender());\n    }\n\n    function _addSigner(address account) internal {\n        _signers.add(account);\n        emit SignerAdded(account);\n    }\n\n    function _removeSigner(address account) internal {\n        _signers.remove(account);\n        emit SignerRemoved(account);\n    }\n}",
-  "sourcePath": "/Users/macbook/workplace/5-besu-trusted-issuers/contracts/roles/roles/SignerRole.sol",
+  "sourcePath": "/Users/macbook/workplace/ce/5-besu-trusted-issuers/contracts/roles/roles/SignerRole.sol",
   "ast": {
-    "absolutePath": "/Users/macbook/workplace/5-besu-trusted-issuers/contracts/roles/roles/SignerRole.sol",
+    "absolutePath": "/Users/macbook/workplace/ce/5-besu-trusted-issuers/contracts/roles/roles/SignerRole.sol",
     "exportedSymbols": {
       "SignerRole": [
         2616
@@ -103,7 +103,7 @@
         "src": "0:23:7"
       },
       {
-        "absolutePath": "/Users/macbook/workplace/5-besu-trusted-issuers/contracts/roles/Context.sol",
+        "absolutePath": "/Users/macbook/workplace/ce/5-besu-trusted-issuers/contracts/roles/Context.sol",
         "file": "../Context.sol",
         "id": 2512,
         "nodeType": "ImportDirective",
@@ -114,7 +114,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/macbook/workplace/5-besu-trusted-issuers/contracts/roles/Roles.sol",
+        "absolutePath": "/Users/macbook/workplace/ce/5-besu-trusted-issuers/contracts/roles/Roles.sol",
         "file": "../Roles.sol",
         "id": 2513,
         "nodeType": "ImportDirective",
@@ -1340,7 +1340,7 @@
     "src": "0:1033:7"
   },
   "legacyAST": {
-    "absolutePath": "/Users/macbook/workplace/5-besu-trusted-issuers/contracts/roles/roles/SignerRole.sol",
+    "absolutePath": "/Users/macbook/workplace/ce/5-besu-trusted-issuers/contracts/roles/roles/SignerRole.sol",
     "exportedSymbols": {
       "SignerRole": [
         2616
@@ -1361,7 +1361,7 @@
         "src": "0:23:7"
       },
       {
-        "absolutePath": "/Users/macbook/workplace/5-besu-trusted-issuers/contracts/roles/Context.sol",
+        "absolutePath": "/Users/macbook/workplace/ce/5-besu-trusted-issuers/contracts/roles/Context.sol",
         "file": "../Context.sol",
         "id": 2512,
         "nodeType": "ImportDirective",
@@ -1372,7 +1372,7 @@
         "unitAlias": ""
       },
       {
-        "absolutePath": "/Users/macbook/workplace/5-besu-trusted-issuers/contracts/roles/Roles.sol",
+        "absolutePath": "/Users/macbook/workplace/ce/5-besu-trusted-issuers/contracts/roles/Roles.sol",
         "file": "../Roles.sol",
         "id": 2513,
         "nodeType": "ImportDirective",
@@ -2603,7 +2603,7 @@
   },
   "networks": {},
   "schemaVersion": "3.0.11",
-  "updatedAt": "2020-02-11T12:16:41.689Z",
+  "updatedAt": "2020-03-18T11:22:09.301Z",
   "devdoc": {
     "methods": {}
   },

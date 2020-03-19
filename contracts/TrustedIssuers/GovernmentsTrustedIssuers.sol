@@ -45,7 +45,7 @@ contract GovernmentsTrustedIssuers is Ownable, SignerRole {
     onlySigner
     {
         require(bytes(issuerDID).length != 0, 'Invalid Issuer DID address');
-        require(trustedIssuers[keccak256(abi.encodePacked(issuerDID))].status != true, 'Trusted Issuer already exists');
+        require(trustedIssuers[keccak256(abi.encodePacked(issuerDID))].status != true, '`Trusted` Issuer already exists');
 
         TrustedIssuer memory trustedIssuer;
         trustedIssuer.status = true;

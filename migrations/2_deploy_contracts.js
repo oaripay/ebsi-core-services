@@ -4,6 +4,10 @@ const EthereumDIDRegistry = artifacts.require('EthereumDIDRegistry');
 
 module.exports = async (deployer, network) => {
 
+    console.log('Deploying ethr did registry smart contract on network: ', network);
+    await deployer.deploy(EthereumDIDRegistry);
+
+
     console.log('Deploying Universities Trusted Issuers smart contract on network: ', network);
     await deployer.deploy(UniversitiesTrustedIssuers, EthereumDIDRegistry.address);
     console.log('Contract deployed at address ' + UniversitiesTrustedIssuers.address);
