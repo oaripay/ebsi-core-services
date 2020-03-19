@@ -27045,8 +27045,8 @@
         }
       },
       "links": {},
-      "address": "0xed78Cb21Ce10A086a7973fB44e96d34F31D45cF1",
-      "transactionHash": "0x1bdbf910f5fe4ace432e8704218ede668aa805be52c9beab42e619a726590255"
+      "address": "0x9B8397f1B0FEcD3a1a40CdD5E8221Fa461898517",
+      "transactionHash": "0x44eff06c7c11eec3a293c884d44eecf9bf527b0caa4842e3d16f562d4e0e63ef"
     },
     "1584531474257": {
       "events": {
@@ -27145,7 +27145,7 @@
     }
   },
   "schemaVersion": "3.0.11",
-  "updatedAt": "2020-03-18T11:38:04.228Z",
+  "updatedAt": "2020-03-19T13:39:30.234Z",
   "devdoc": {
     "methods": {
       "isOwner()": {
