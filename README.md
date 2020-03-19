@@ -4,11 +4,11 @@ Deploying EBSI App Registry on the network
 
    Deploying 'EBSIApplicationRegistry'
    -----------------------------------
-   > transaction hash:    0x6d2b2fa2908391e1d0fd512d15f730f6c300c5edaf9aef191e8e201fd7d5f6d6
+   > transaction hash:    0x117a881f9784b189c310d227b325dc1f7f9e960765472ff35896eeb248c7400e
    > Blocks: 0            Seconds: 0
-   > contract address:    0x9a3DBCa554e9f6b9257aAa24010DA8377C57c17e
-   > block number:        47411
-   > block timestamp:     1581418852
+   > contract address:    0xd6A7c915066E17ba18024c799258C8A286fFBc00
+   > block number:        3295
+   > block timestamp:     1584625340
    > account:             0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73
    > balance:             0
    > gas used:            1447953
@@ -16,7 +16,8 @@ Deploying EBSI App Registry on the network
    > value sent:          0 ETH
    > total cost:          0 ETH
 
-Registry Deployed at 0x9a3DBCa554e9f6b9257aAa24010DA8377C57c17e
+
+Registry Deployed at 0xd6A7c915066E17ba18024c799258C8A286fFBc00
 adding app  ebsi-besu
 adding app  ebsi-fabric
 adding app  ebsi-wallet
