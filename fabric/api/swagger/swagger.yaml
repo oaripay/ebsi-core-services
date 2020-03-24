@@ -96,7 +96,7 @@ paths:
                   value:
                     title: Internal Server Error
                     status: 500
-                    detail: Error while contacting the Trusted Apps list. Please contact admin@... if the error persists.
+                    detail: The server encountered an internal error and was unable to complete your request.
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channels
@@ -145,7 +145,7 @@ paths:
                   value:
                     title: Internal Server Error
                     status: 500
-                    detail: description of the problem
+                    detail: The server encountered an internal error and was unable to complete your request.
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel
@@ -264,7 +264,7 @@ paths:
                   value:
                     title: Internal Server Error
                     status: 500
-                    detail: description of the problem
+                    detail: The server encountered an internal error and was unable to complete your request.
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-blocks
@@ -337,7 +337,7 @@ paths:
                   value:
                     title: Internal Server Error
                     status: 500
-                    detail: description of the problem
+                    detail: The server encountered an internal error and was unable to complete your request.
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-block-number
@@ -466,7 +466,7 @@ paths:
                   value:
                     title: Internal Server Error
                     status: 500
-                    detail: description of the problem
+                    detail: The server encountered an internal error and was unable to complete your request.
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-txs
@@ -543,7 +543,7 @@ paths:
                   value:
                     title: Internal Server Error
                     status: 500
-                    detail: description of the problem
+                    detail: The server encountered an internal error and was unable to complete your request.
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-tx-id
