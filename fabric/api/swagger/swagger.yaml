@@ -99,8 +99,8 @@ paths:
         - in: query
           name: "page[after]"
           schema:
-            type: integer
-          description: Id from which the results should begin
+            type: string
+          description: cursor from which the results should begin
         - schema:
             type: integer
           in: query
@@ -168,8 +168,8 @@ paths:
         - in: query
           name: "page[after]"
           schema:
-            type: integer
-          description: Id from which the results should begin
+            type: string
+          description: cursor from which the results should begin
         - schema:
             type: integer
           in: query
@@ -380,8 +380,8 @@ paths:
         - in: query
           name: "page[after]"
           schema:
-            type: integer
-          description: Id from which the results should begin
+            type: string
+          description: cursor from which the results should begin
         - schema:
             type: integer
           in: query
