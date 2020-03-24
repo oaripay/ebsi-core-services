@@ -36,23 +36,7 @@ paths:
                     items:
                       $ref: "#/components/schemas/channel"
                   links:
-                    type: object
-                    properties:
-                      first:
-                        type: string
-                        description: " URI of the first page"
-                      next:
-                        type: string
-                        description: " URI of the next page"
-                      prev:
-                        type: string
-                        description: " URI of the previous page"
-                      last:
-                        type: string
-                        description: " URI of the last page"
-                      self:
-                        type: string
-                        description: " URI of the current page"
+                    $ref: "#/components/schemas/links"
                   total:
                     type: integer
                     description: " total number of pages in a collection"
@@ -164,17 +148,6 @@ paths:
         description: hyperledger channel
   "/ledger/v1/blockchains/fabric/channels/{channel}/blocks":
     get:
-      parameters:
-        - in: query
-          name: "page[after]"
-          schema:
-            type: string
-          description: cursor from which the results should begin
-        - schema:
-            type: integer
-          in: query
-          name: "page[size]"
-          description: number of elements per page
       tags:
         - Fabric
       summary: Get block list
@@ -193,23 +166,7 @@ paths:
                     items:
                       $ref: "#/components/schemas/block"
                   links:
-                    type: object
-                    properties:
-                      first:
-                        type: string
-                        description: " URI of the first page"
-                      next:
-                        type: string
-                        description: " URI of the next page"
-                      prev:
-                        type: string
-                        description: " URI of the previous page"
-                      last:
-                        type: string
-                        description: " URI of the last page"
-                      self:
-                        type: string
-                        description: " URI of the current page"
+                    $ref: "#/components/schemas/links"
                   total:
                     type: integer
                     description: " total number of pages in a collection"
@@ -285,6 +242,17 @@ paths:
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-blocks
+      parameters:
+        - in: query
+          name: "page[after]"
+          schema:
+            type: string
+          description: cursor from which the results should begin
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: number of elements per page
     parameters:
       - schema:
           type: string
@@ -376,17 +344,6 @@ paths:
         description: block height
   "/ledger/v1/blockchains/fabric/channels/{channel}/transactions":
     get:
-      parameters:
-        - in: query
-          name: "page[after]"
-          schema:
-            type: string
-          description: cursor from which the results should begin
-        - schema:
-            type: integer
-          in: query
-          name: "page[size]"
-          description: number of elements per page
       tags:
         - Fabric
       summary: Get transaction list
@@ -406,23 +363,7 @@ paths:
                     type: integer
                     description: " total number of pages in a collection"
                   links:
-                    type: object
-                    properties:
-                      first:
-                        type: string
-                        description: " URI of the first page"
-                      next:
-                        type: string
-                        description: " URI of the next page"
-                      prev:
-                        type: string
-                        description: " URI of the previous page"
-                      last:
-                        type: string
-                        description: " URI of the last page"
-                      self:
-                        type: string
-                        description: " URI of the current page"
+                    $ref: "#/components/schemas/links"
                   items:
                     type: array
                     description: list of transactions
@@ -497,6 +438,17 @@ paths:
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-txs
+      parameters:
+        - in: query
+          name: "page[after]"
+          schema:
+            type: string
+          description: cursor from which the results should begin
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: number of elements per page
     parameters:
       - schema:
           type: string
@@ -603,6 +555,13 @@ components:
       title: error
       type: object
       description: generic error response body based on Problem Details schema
+      x-examples:
+        error example:
+          type: "https://example.com/probs/out-of-credit"
+          title: You do not have enough credit.
+          detail: "Your current balance is 30, but that costs 50."
+          instance: /account/12345/msgs/abc
+          status: 400
       properties:
         title:
           type: string
@@ -621,13 +580,6 @@ components:
         detail:
           type: string
           description: A human-readable explanation specific to this occurrence of the problem.
-      x-examples:
-        error example:
-          type: "https://example.com/probs/out-of-credit"
-          title: You do not have enough credit.
-          status: 400
-          detail: "Your current balance is 30, but that costs 50."
-          instance: /account/12345/msgs/abc
     block:
       title: block
       type: object
@@ -696,3 +648,30 @@ components:
           type: ENDORSER_TRANSACTION
           createdAt: "2020-03-23T13:30:20.103Z"
           channelName: ebsichannel
+    links:
+      title: links
+      type: object
+      properties:
+        self:
+          type: string
+          description: " URI of the current page"
+        last:
+          type: string
+          description: " URI of the last page"
+        prev:
+          type: string
+          description: " URI of the previous page"
+        next:
+          type: string
+          description: " URI of the next page"
+        first:
+          type: string
+          description: " URI of the first page"
+      description: links model used for pagination
+      x-examples:
+        links example:
+          self: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=3&page[size]=2"
+          first: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2"
+          prev: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2"
+          next: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2"
+          last: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=13&page[size]=2"
