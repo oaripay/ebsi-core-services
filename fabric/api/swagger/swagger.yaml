@@ -1,9 +1,4 @@
 openapi: 3.0.3
-# servers:
-# - url: "http://api.ebsi.xyz"
-#   description: EBSI Testing Environment
-# - url: "http://api.ebsi.tech.ec.europa.eu"
-#   description: EBSI Staging Environment
 info:
   title: Hyperledger Fabric REST API
   description: Collection of APIs to interact with Hyperledger Fabric Blockchain Network. For write operations use the Fabric SDK (node/java/go). For more information see LINK-TBD.
@@ -100,6 +95,17 @@ paths:
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channels
+      parameters:
+        - in: query
+          name: "page[after]"
+          schema:
+            type: integer
+          description: Id from which the results should begin
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: number of elements per page
     parameters: []
   "/ledger/v1/blockchains/fabric/channels/{channel}":
     get:
@@ -158,6 +164,17 @@ paths:
         description: hyperledger channel
   "/ledger/v1/blockchains/fabric/channels/{channel}/blocks":
     get:
+      parameters:
+        - in: query
+          name: "page[after]"
+          schema:
+            type: integer
+          description: Id from which the results should begin
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: number of elements per page
       tags:
         - Fabric
       summary: Get block list
@@ -275,7 +292,6 @@ paths:
         in: path
         required: true
         description: hyperledger channel
-
   "/ledger/v1/blockchains/fabric/channels/{channel}/blocks/{blockNumber}":
     get:
       responses:
@@ -360,6 +376,17 @@ paths:
         description: block height
   "/ledger/v1/blockchains/fabric/channels/{channel}/transactions":
     get:
+      parameters:
+        - in: query
+          name: "page[after]"
+          schema:
+            type: integer
+          description: Id from which the results should begin
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: number of elements per page
       tags:
         - Fabric
       summary: Get transaction list
@@ -477,7 +504,6 @@ paths:
         in: path
         required: true
         description: hyperledger channel
-
   ? "/ledger/v1/blockchains/fabric/channels/{channel}/transactions/{transactionId}"
   : get:
       tags:
@@ -599,6 +625,7 @@ components:
         error example:
           type: "https://example.com/probs/out-of-credit"
           title: You do not have enough credit.
+          status: 400
           detail: "Your current balance is 30, but that costs 50."
           instance: /account/12345/msgs/abc
     block:
