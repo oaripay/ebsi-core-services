@@ -1,0 +1,802 @@
+openapi: 3.0.3
+info:
+  title: Storage API
+  version: 1.0.0
+  license:
+    name: EUPL-1.2
+    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
+  contact:
+    name: EBSI Support
+    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
+  termsOfService: "https://api.ebsi.xyz/api-catalog/terms"
+  description: API to store files
+paths:
+  "/storage/v1/stores/{store}/files/{hash}":
+    delete:
+      tags:
+        - Storage
+      summary: Delete file
+      description: Delete file based on its hash
+      parameters:
+        - name: store
+          in: path
+          schema:
+            type: string
+          example: distributed
+          required: true
+        - name: hash
+          in: path
+          schema:
+            type: string
+          example: "0xbe5b5152fcd01b6bf53f149bfd1493a49ec5e8ae94cc4c29a81563eea0e347f4"
+          required: true
+      responses:
+        "204":
+          description: File deleted
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad request:
+                  $ref: "#/components/examples/BadRequest"
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The format of the {store,hash} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  $ref: "#/components/examples/Unauthorized"
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: access not granted
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  $ref: "#/components/examples/Forbidden"
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: "You don't have the right"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Store not found:
+                  $ref: "#/components/examples/NotFound"
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{store} not found"
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal Error:
+                  $ref: "#/components/examples/InternalError"
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: delete-storage-v1-store-file
+    get:
+      tags:
+        - Storage
+      summary: Get file
+      description: Get file
+      parameters:
+        - name: store
+          in: path
+          schema:
+            type: string
+          example: distributed
+          required: true
+        - name: hash
+          in: path
+          schema:
+            type: string
+          example: "0xbe5b5152fcd01b6bf53f149bfd1493a49ec5e8ae94cc4c29a81563eea0e347f4"
+          required: true
+      responses:
+        "200":
+          description: Successful response returns a binary file
+          content:
+            multipart/form-data:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad request:
+                  $ref: "#/components/examples/BadRequest"
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The format of the {store,hash} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  $ref: "#/components/examples/Unauthorized"
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: not authorized
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  $ref: "#/components/examples/Forbidden"
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: access forbidden
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not found:
+                  $ref: "#/components/examples/NotFound"
+                  value:
+                    title: Not found
+                    status: 404
+                    detail: "{store,hash} parameter not found"
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal Error:
+                  $ref: "#/components/examples/InternalError"
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: get-storage-v1-store-file
+  "/storage/v1/stores/{store}/files":
+    get:
+      tags:
+        - Storage
+      summary: List of files
+      description: Get the list of files by store
+      parameters:
+        - name: store
+          in: path
+          schema:
+            type: string
+          example: distributed
+          required: true
+        - in: query
+          name: "page[after]"
+          schema:
+            type: string
+          description: cursor from which the results should begin
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: number of elements per page
+      responses:
+        "200":
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/file"
+                  links:
+                    $ref: "#/components/schemas/links"
+                  pageSize:
+                    type: integer
+                    description: number of items to be return per page
+                  total:
+                    type: integer
+                    description: " total number of pages in a collection"
+              examples:
+                successful list files response:
+                  $ref: "#/components/examples/ListFiles"
+                  value:
+                    items:
+                      - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
+                      - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
+                    total: 2
+                successful list files with pagination response:
+                  $ref: "#/components/examples/ListFilesPagination"
+                  value:
+                    items:
+                      - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
+                      - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
+                    total: 13
+                    pageSize: 2
+                    links:
+                      self: "/ledger/v1/blockchains/fabric/channels?page[after]=3&page[size]=2"
+                      first: "/ledger/v1/blockchains/fabric/channels?page[after]=0&page[size]=2"
+                      prev: "/ledger/v1/blockchains/fabric/channels?page[after]=2&page[size]=2"
+                      next: "/ledger/v1/blockchains/fabric/channels?page[after]=4&page[size]=2"
+                      last: "/ledger/v1/blockchains/fabric/channels?page[after]=13&page[size]=2"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad request:
+                  $ref: "#/components/examples/BadRequest"
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The format of {store} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  $ref: "#/components/examples/Unauthorized"
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: Permission denied
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  $ref: "#/components/examples/Forbidden"
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: "You don't have the right to access that ressource"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not found:
+                  $ref: "#/components/examples/NotFound"
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{store} not found"
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal Error:
+                  $ref: "#/components/examples/InternalError"
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: get-storage-v1-store-files
+    post:
+      tags:
+        - Storage
+      summary: Store files
+      description: Store files in a specific store
+      parameters:
+        - name: store
+          in: path
+          schema:
+            type: string
+          example: distributed
+          required: true
+      requestBody:
+        description: File to store
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  description: file to upload
+                  format: binary
+        required: true
+      responses:
+        "201":
+          description: File stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/fileStoreResponse"
+              examples:
+                Successful response:
+                  value:
+                    hash: "0xbe5b5152fcd01b6bf53f149bfd1493a49ec5e8ae94cc4c29a81563eea0e347f4"
+                    function: keccak256
+        "400":
+          description: Unformatted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad request:
+                  $ref: "#/components/examples/BadRequest"
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The format of {store} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  $ref: "#/components/examples/Unauthorized"
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: "[explain what went wrong]"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  $ref: "#/components/examples/Forbidden"
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: "[explain what went wrong]"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not found:
+                  $ref: "#/components/examples/NotFound"
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{store} not found"
+        "413":
+          description: Too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Too large:
+                  $ref: "#/components/examples/TooLarge"
+                  value:
+                    title: Request Entity Too Large
+                    status: 413
+                    detail: "The file size exceeds the limit of {sizeLimit} MB"
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal Error:
+                  $ref: "#/components/examples/InternalError"
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: post-storage-v1-store-files
+  "/storage/v1/stores/{store}":
+    get:
+      tags:
+        - Storage
+      summary: Check if exists
+      description: Check if a store exists
+      parameters:
+        - name: store
+          in: path
+          schema:
+            type: string
+          example: distributed
+          required: true
+      responses:
+        "204":
+          description: Store exists
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad request:
+                  $ref: "#/components/examples/BadRequest"
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The format of {store} parameter is not valid"
+        "404":
+          description: Store does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not found:
+                  $ref: "#/components/examples/NotFound"
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{store} parameter not found"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal error:
+                  $ref: "#/components/examples/InternalError"
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: get-storage-v1-store
+  /storage/v1/stores:
+    get:
+      tags:
+        - Storage
+      summary: List of available stores
+      description: Returns a list of available stores
+      responses:
+        "200":
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    description: list of channel names
+                    items:
+                      type: string
+                  total:
+                    type: integer
+                    description: " total number of pages in a collection"
+                  pageSize:
+                    type: integer
+                    description: number of items to be return per page
+                  links:
+                    $ref: "#/components/schemas/links"
+              examples:
+                get stores response:
+                  value:
+                    items:
+                      - storeA
+                      - storeB
+                    total: 13
+                    pageSize: 2
+                    links:
+                      self: "/ledger/v1/blockchains/fabric/channels?page[after]=3&page[size]=2"
+                      first: "/ledger/v1/blockchains/fabric/channels?page[after]=0&page[size]=2"
+                      prev: "/ledger/v1/blockchains/fabric/channels?page[after]=2&page[size]=2"
+                      next: "/ledger/v1/blockchains/fabric/channels?page[after]=4&page[size]=2"
+                      last: "/ledger/v1/blockchains/fabric/channels?page[after]=13&page[size]=2"
+      security:
+        - bearerAuth: []
+      operationId: get-storage-v1-stores
+      parameters:
+        - in: query
+          name: "page[after]"
+          schema:
+            type: string
+          description: cursor from which the results should begin
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: number of elements per page
+  /storage/v1/sessions:
+    post:
+      tags:
+        - Authentication
+      summary: Login to storage services
+      description: Login to storage services
+      requestBody:
+        description: Authentication. Self signed token with ebsi-storage as audience
+        content:
+          application/json:
+            schema:
+              required:
+                - grantType
+                - assertion
+              type: object
+              properties:
+                grantType:
+                  type: string
+                  example: "urn:ietf:params:oauth:grant-type:jwt-bearer"
+                assertion:
+                  type: string
+                  description: Self signed JWT
+                  example: eyJraWQiOiJHNW01TmxiaTdGWlhPTVlHN2ctZ0tCLVVGdkVBSVUyUFkzSFQ3SFZtYkJzIiwiYWxnIjoiRVMyNTZLIn0.eyJpc3MiOiJlYnNpLXdhbGxldCIsImF1ZCI6ImVic2ktc3RvcmFnZSIsImlhdCI6MTU4NDY5MTIzOCwiZXhwIjoxNTg0NjkyMTM4fQ.boseFUS5fLXdH62ZggWvBkYL65d4xN52lmKNxUFwjLcQvbgF3RyYz-PU8hBY20LuoXbfbivOcEMmVExcwnUSzw
+            examples:
+              POST session example:
+                value:
+                  grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer"
+                  assertion: eyJraWQiOiJHNW01TmxiaTdGWlhPTVlHN2ctZ0tCLVVGdkVBSVUyUFkzSFQ3SFZtYkJzIiwiYWxnIjoiRVMyNTZLIn0.eyJkaWQiOiJkaWQ6ZWJzaToweDE4NGNhNzBCMjI3MzNmNzc4ODI0MDc0YzQ1YjUyNDk1MjFmZDk5MzYiLCJhdWQiOiJlYnNpLXdhbGxldCIsImlhdCI6MTU4NTA2MzMyMywiZXhwIjoxNTg1MDY0MjIzfQ.UxU-7msNhUHY4SHahLi_BuZv10kvaGHfjAV3EXi0uFDBGRUkI88Dpy-Y06UkIjcPwSEFjWXND5XvOwK3PdrU8A
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/session"
+              examples:
+                session successfull response:
+                  value:
+                    access_token: 2YotnFZFEjr1zCsicMWpAA
+                    token_type: example
+                    expires_in: 3600
+                    refresh_token: tGzv3JOkF0XG5Qx2TlKWIA
+                    example_parameter: example_value
+        "400":
+          description: "Bad request, invalid token"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad request:
+                  $ref: "#/components/examples/BadRequest"
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: Issuer not found in the Trusted Apps Registry
+                Invalid token:
+                  $ref: "#/components/examples/InvalidToken"
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The token has expired or Token is invalid
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal error:
+                  $ref: "#/components/examples/InternalError"
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      operationId: post-storage-v1-sessions
+components:
+  schemas:
+    file:
+      type: string
+      description: file model
+    error:
+      type: object
+      title: error
+      description: generic error response body based on problem details schema
+      x-examples:
+        error example:
+          type: "https://example.com/probs/out-of-credit"
+          title: You do not have enough credit.
+          detail: "Your current balance is 30, but that costs 50."
+          instance: /account/12345/msgs/abc
+          status: 400
+      properties:
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        type:
+          type: string
+      required:
+        - title
+        - status
+        - detail
+    session:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          example: 900
+        issuedAt:
+          type: string
+          example: "1467841035013"
+      description: Access Token Response
+      x-examples:
+        access token response:
+          access_token: 2YotnFZFEjr1zCsicMWpAA
+          token_type: example
+          expires_in: 3600
+          refresh_token: tGzv3JOkF0XG5Qx2TlKWIA
+          example_parameter: example_value
+    links:
+      title: links
+      type: object
+      properties:
+        self:
+          type: string
+          description: " URI of the current page"
+        last:
+          type: string
+          description: " URI of the last page"
+        prev:
+          type: string
+          description: " URI of the previous page"
+        next:
+          type: string
+          description: " URI of the next page"
+        first:
+          type: string
+          description: " URI of the first page"
+      description: links model used for pagination
+      x-examples:
+        links example:
+          self: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=3&page[size]=2"
+          first: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2"
+          prev: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2"
+          next: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2"
+          last: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=13&page[size]=2"
+    fileStoreResponse:
+      title: fileStoreResponse
+      type: object
+      x-examples:
+        file store response:
+          hash: "0xbe5b5152fcd01b6bf53f149bfd1493a49ec5e8ae94cc4c29a81563eea0e347f4"
+          function: keccak256
+      description: object returned upon successful file storage
+      properties:
+        hash:
+          type: string
+          description: hash of the file stored
+        function:
+          type: string
+          description: "algorithm used to generate the file's hash"
+      required:
+        - hash
+        - function
+  examples:
+    BadRequest:
+      value:
+        title: Bad request
+        status: 400
+        detail: Bad request
+    InvalidToken:
+      value:
+        title: Invalid token
+        status: 400
+        detail: Invalid token
+    Unauthorized:
+      value:
+        title: Unauthorized
+        status: 401
+        detail: Unauthorized
+    Forbidden:
+      value:
+        title: Forbidden
+        status: 403
+        detail: Forbidden
+    NotFound:
+      value:
+        title: Not found
+        status: 404
+        detail: Not found
+    TooLarge:
+      value:
+        title: Payload too large
+        status: 413
+        detail: Payload too large
+    InternalError:
+      value:
+        title: Internal error
+        status: 500
+        detail: Internal error
+    ListFiles:
+      value:
+        items:
+          - hash1
+          - hash2
+        total: 2
+    ListFilesPagination:
+      value:
+        items:
+          - hash1
+          - hash2
+        total: 2
+        pageSize: 3
+        links:
+          first: "/storage/v1/stores/distributed?page[after]=fff&page[size]=2"
+          prev: "/storage/v1/stores/distributed?page[after]=ppp&page[size]=2"
+          next: "/storage/v1/stores/distributed?page[after]=nnn&page[size]=2"
+          last: "/storage/v1/stores/distributed?page[after]=lll&page[size]=2"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+  - name: Authentication
+    description: Authentication in Storage API
+  - name: Storage
+    description: Storage API
