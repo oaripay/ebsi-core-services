@@ -9,7 +9,7 @@ info:
   contact:
     name: EBSI Support
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
-  termsOfService: "https://app.ebsi.xyz/wallet/termsAndConditions"
+  termsOfService: "https://api.ebsi.xyz/api-catalog/terms"
 tags:
   - name: Fabric
     description: Hyperledger Fabric REST APIs (or similar)
