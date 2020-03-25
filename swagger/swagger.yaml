@@ -574,10 +574,9 @@ paths:
                 session successfull response:
                   value:
                     accessToken: 2YotnFZFEjr1zCsicMWpAA
-                    tokenType: example
+                    tokenType: Bearer
                     expiresIn: 3600
-                    refreshToken: tGzv3JOkF0XG5Qx2TlKWIA
-                    exampleParameter: example_value
+                    issuedAt: 1467841035013
         "400":
           description: "Bad request, invalid token"
           content:
