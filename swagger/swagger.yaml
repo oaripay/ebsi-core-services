@@ -9,7 +9,7 @@ info:
     name: EBSI Support
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
   termsOfService: "https://api.ebsi.xyz/api-catalog/terms"
-  description: Storage API provides the capabilities to read and write files to off-chain distributed storage, to off-chain private (local) storage and to off-chain external storage trusted providers. The V1 of the API implements only the off-chain distributed storage capabilities.
+  description: "Storage API provides the capabilities to read and write files to off-chain distributed storage, to off-chain private (local) storage and to off-chain external storage trusted providers. The V1 of the API implements only the off-chain distributed storage capabilities."
 paths:
   "/storage/v1/stores/{store}/files/{hash}":
     delete:
@@ -243,11 +243,11 @@ paths:
                     total: 13
                     pageSize: 2
                     links:
-                      self: "/ledger/v1/blockchains/fabric/channels?page[after]=3&page[size]=2"
-                      first: "/ledger/v1/blockchains/fabric/channels?page[after]=0&page[size]=2"
-                      prev: "/ledger/v1/blockchains/fabric/channels?page[after]=2&page[size]=2"
-                      next: "/ledger/v1/blockchains/fabric/channels?page[after]=4&page[size]=2"
-                      last: "/ledger/v1/blockchains/fabric/channels?page[after]=13&page[size]=2"
+                      self: "/storage/v1/stores/distributed/files?page[after]=3&page[size]=2"
+                      first: "/storage/v1/stores/distributed/files?page[after]=0&page[size]=2"
+                      prev: "/storage/v1/stores/distributed/files?page[after]=2&page[size]=2"
+                      next: "/storage/v1/stores/distributed/files?page[after]=4&page[size]=2"
+                      last: "/storage/v1/stores/distributed/files?page[after]=13&page[size]=2"
         "400":
           description: Bad request
           content:
@@ -384,7 +384,7 @@ paths:
                   value:
                     title: Forbidden
                     status: 403
-                    detail: Forbidden '[explain what went wrong]'
+                    detail: "Forbidden '[explain what went wrong]'"
         "404":
           description: Not found
           content:
@@ -507,7 +507,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                get stores response:
+                successful list of stores response:
                   value:
                     items:
                       - storeA
@@ -515,11 +515,16 @@ paths:
                     total: 13
                     pageSize: 2
                     links:
-                      self: "/ledger/v1/blockchains/fabric/channels?page[after]=3&page[size]=2"
-                      first: "/ledger/v1/blockchains/fabric/channels?page[after]=0&page[size]=2"
-                      prev: "/ledger/v1/blockchains/fabric/channels?page[after]=2&page[size]=2"
-                      next: "/ledger/v1/blockchains/fabric/channels?page[after]=4&page[size]=2"
-                      last: "/ledger/v1/blockchains/fabric/channels?page[after]=13&page[size]=2"
+                      self: "/storage/v1/stores?page[after]=3&page[size]=2"
+                      first: "/storage/v1/stores?page[after]=0&page[size]=2"
+                      prev: "/storage/v1/stores?page[after]=2&page[size]=2"
+                      next: "/storage/v1/stores?page[after]=4&page[size]=2"
+                      last: "/storage/v1/stores?page[after]=13&page[size]=2"
+                get stores response:
+                  value:
+                    items:
+                      - distributed
+                    total: 1
       security:
         - bearerAuth: []
       operationId: get-storage-v1-stores
@@ -688,11 +693,11 @@ components:
       description: links model used for pagination
       x-examples:
         links example:
-          self: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=3&page[size]=2"
-          first: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2"
-          prev: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2"
-          next: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2"
-          last: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=13&page[size]=2"
+          self: "/storage/v1/stores?page[after]=3&page[size]=2"
+          first: "/storage/v1/stores?page[after]=0&page[size]=2"
+          prev: "/storage/v1/stores?page[after]=2&page[size]=2"
+          next: "/storage/v1/stores?page[after]=4&page[size]=2"
+          last: "/storage/v1/stores?page[after]=13&page[size]=2"
     fileStoreResponse:
       title: fileStoreResponse
       type: object
