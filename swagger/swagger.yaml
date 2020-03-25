@@ -9,7 +9,7 @@ info:
     name: EBSI Support
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
   termsOfService: "https://api.ebsi.xyz/api-catalog/terms"
-  description: API to store files
+  description: Storage API provides the capabilities to read and write files to off-chain distributed storage, to off-chain private (local) storage and to off-chain external storage trusted providers. The V1 of the API implements only the off-chain distributed storage capabilities.
 paths:
   "/storage/v1/stores/{store}/files/{hash}":
     delete:
@@ -573,11 +573,11 @@ paths:
               examples:
                 session successfull response:
                   value:
-                    access_token: 2YotnFZFEjr1zCsicMWpAA
-                    token_type: example
-                    expires_in: 3600
-                    refresh_token: tGzv3JOkF0XG5Qx2TlKWIA
-                    example_parameter: example_value
+                    accessToken: 2YotnFZFEjr1zCsicMWpAA
+                    tokenType: example
+                    expiresIn: 3600
+                    refreshToken: tGzv3JOkF0XG5Qx2TlKWIA
+                    exampleParameter: example_value
         "400":
           description: "Bad request, invalid token"
           content:
