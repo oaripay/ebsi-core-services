@@ -40,12 +40,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                Bad request:
-                  $ref: "#/components/examples/BadRequest"
+                bad request:
                   value:
-                    title: Bad request
+                    title: Bad Request
                     status: 400
-                    detail: "The format of the {store,hash} parameter is not valid"
+                    detail: Issuer not found in the Trusted Apps Registry
         "401":
           description: Unauthorized
           content:
@@ -54,11 +53,10 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Unauthorized:
-                  $ref: "#/components/examples/Unauthorized"
                   value:
                     title: Unauthorized
                     status: 401
-                    detail: access not granted
+                    detail: Unauthorized
         "403":
           description: Forbidden
           content:
@@ -67,7 +65,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Forbidden:
-                  $ref: "#/components/examples/Forbidden"
                   value:
                     title: Forbidden
                     status: 403
@@ -80,7 +77,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Store not found:
-                  $ref: "#/components/examples/NotFound"
                   value:
                     title: Not Found
                     status: 404
@@ -92,8 +88,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                Internal Error:
-                  $ref: "#/components/examples/InternalError"
+                Internal error:
                   value:
                     title: Internal Server Error
                     status: 500
@@ -135,7 +130,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Bad request:
-                  $ref: "#/components/examples/BadRequest"
                   value:
                     title: Bad request
                     status: 400
@@ -148,7 +142,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Unauthorized:
-                  $ref: "#/components/examples/Unauthorized"
                   value:
                     title: Unauthorized
                     status: 401
@@ -161,7 +154,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Forbidden:
-                  $ref: "#/components/examples/Forbidden"
                   value:
                     title: Forbidden
                     status: 403
@@ -174,7 +166,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Not found:
-                  $ref: "#/components/examples/NotFound"
                   value:
                     title: Not found
                     status: 404
@@ -186,8 +177,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                Internal Error:
-                  $ref: "#/components/examples/InternalError"
+                Internal error:
                   value:
                     title: Internal Server Error
                     status: 500
@@ -240,14 +230,12 @@ paths:
                     description: " total number of pages in a collection"
               examples:
                 successful list files response:
-                  $ref: "#/components/examples/ListFiles"
                   value:
                     items:
                       - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
                       - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
                     total: 2
                 successful list files with pagination response:
-                  $ref: "#/components/examples/ListFilesPagination"
                   value:
                     items:
                       - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
@@ -268,9 +256,8 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Bad request:
-                  $ref: "#/components/examples/BadRequest"
                   value:
-                    title: Bad request
+                    title: Bad Request
                     status: 400
                     detail: "The format of {store} parameter is not valid"
         "401":
@@ -281,7 +268,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Unauthorized:
-                  $ref: "#/components/examples/Unauthorized"
                   value:
                     title: Unauthorized
                     status: 401
@@ -294,11 +280,10 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Forbidden:
-                  $ref: "#/components/examples/Forbidden"
                   value:
-                    title: Forbidden
+                    title: Bad Request
                     status: 403
-                    detail: "You don't have the right to access that ressource"
+                    detail: "Forbidden You don't have the right to access that ressource"
         "404":
           description: Not found
           content:
@@ -307,7 +292,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Not found:
-                  $ref: "#/components/examples/NotFound"
                   value:
                     title: Not Found
                     status: 404
@@ -319,8 +303,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                Internal Error:
-                  $ref: "#/components/examples/InternalError"
+                Internal error:
                   value:
                     title: Internal Server Error
                     status: 500
@@ -374,7 +357,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Bad request:
-                  $ref: "#/components/examples/BadRequest"
                   value:
                     title: Bad request
                     status: 400
@@ -387,11 +369,10 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Unauthorized:
-                  $ref: "#/components/examples/Unauthorized"
                   value:
                     title: Unauthorized
                     status: 401
-                    detail: "[explain what went wrong]"
+                    detail: Access restricted
         "403":
           description: Forbidden
           content:
@@ -400,11 +381,10 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Forbidden:
-                  $ref: "#/components/examples/Forbidden"
                   value:
                     title: Forbidden
                     status: 403
-                    detail: "[explain what went wrong]"
+                    detail: Forbidden '[explain what went wrong]'
         "404":
           description: Not found
           content:
@@ -413,7 +393,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Not found:
-                  $ref: "#/components/examples/NotFound"
                   value:
                     title: Not Found
                     status: 404
@@ -426,7 +405,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Too large:
-                  $ref: "#/components/examples/TooLarge"
                   value:
                     title: Request Entity Too Large
                     status: 413
@@ -438,8 +416,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                Internal Error:
-                  $ref: "#/components/examples/InternalError"
+                Internal error:
                   value:
                     title: Internal Server Error
                     status: 500
@@ -471,7 +448,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Bad request:
-                  $ref: "#/components/examples/BadRequest"
                   value:
                     title: Bad request
                     status: 400
@@ -484,7 +460,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Not found:
-                  $ref: "#/components/examples/NotFound"
                   value:
                     title: Not Found
                     status: 404
@@ -497,7 +472,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Internal error:
-                  $ref: "#/components/examples/InternalError"
                   value:
                     title: Internal Server Error
                     status: 500
@@ -612,20 +586,18 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Bad request:
-                  $ref: "#/components/examples/BadRequest"
                   value:
-                    title: Bad Request
+                    title: Bad request
                     status: 400
                     detail: Issuer not found in the Trusted Apps Registry
                 expired token:
-                  $ref: "#/components/examples/InvalidToken"
                   value:
-                    title: Bad Request
+                    title: Bad request
                     status: 400
                     detail: The token has expired
                 Invalid token:
                   value:
-                    title: Bad Request
+                    title: Bad request
                     status: 400
                     detail: The token is invalid
         "500":
@@ -636,7 +608,6 @@ paths:
                 $ref: "#/components/schemas/error"
               examples:
                 Internal error:
-                  $ref: "#/components/examples/InternalError"
                   value:
                     title: Internal Server Error
                     status: 500
