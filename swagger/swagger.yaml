@@ -617,12 +617,17 @@ paths:
                     title: Bad Request
                     status: 400
                     detail: Issuer not found in the Trusted Apps Registry
-                Invalid token:
+                expired token:
                   $ref: "#/components/examples/InvalidToken"
                   value:
                     title: Bad Request
                     status: 400
-                    detail: The token has expired or Token is invalid
+                    detail: The token has expired
+                Invalid token:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The token is invalid
         "500":
           description: Internal error
           content:
