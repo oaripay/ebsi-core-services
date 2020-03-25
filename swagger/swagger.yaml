@@ -42,9 +42,9 @@ paths:
               examples:
                 bad request:
                   value:
-                    title: Bad Request
+                    title: Bad request
                     status: 400
-                    detail: Issuer not found in the Trusted Apps Registry
+                    detail: "The format of the {store,hash} parameter is not valid"
         "401":
           description: Unauthorized
           content:
@@ -78,9 +78,9 @@ paths:
               examples:
                 Store not found:
                   value:
-                    title: Not Found
+                    title: Not found
                     status: 404
-                    detail: "{store} not found"
+                    detail: "{store,hash} parameter not found"
         "500":
           description: Internal Error
           content:
@@ -257,7 +257,7 @@ paths:
               examples:
                 Bad request:
                   value:
-                    title: Bad Request
+                    title: Bad request
                     status: 400
                     detail: "The format of {store} parameter is not valid"
         "401":
@@ -281,7 +281,7 @@ paths:
               examples:
                 Forbidden:
                   value:
-                    title: Bad Request
+                    title: Forbidden
                     status: 403
                     detail: "Forbidden You don't have the right to access that ressource"
         "404":
