@@ -384,7 +384,7 @@ paths:
                   value:
                     title: Forbidden
                     status: 403
-                    detail: "Forbidden '[explain what went wrong]'"
+                    detail: "Forbidden"
         "404":
           description: Not found
           content:
