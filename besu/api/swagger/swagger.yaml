@@ -1,0 +1,209 @@
+openapi: 3.0.3
+info:
+  title: Ledger API
+  description: API to interact with all blockchains supported by EBSI
+  version: 1.0.0
+  termsOfService: www.ebsi.xyz/termsOfService
+  contact:
+    name: "EBSI Support"
+    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
+  license:
+    name: "EUPL-1.2"
+    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
+tags:
+  - name: Authentication
+    description: Authentication in ledger API
+  - name: Besu
+    description: Interaction with besu blockchain
+  - name: Fabric
+paths:
+  /ledger/v1/sessions:
+    post:
+      tags:
+      - Authentication
+      summary: Login to besu services
+      description: Login to besu services
+      requestBody:
+        description: Method and parameters
+        content:
+          application/json:
+            schema:
+              required:
+                - grantType
+                - assertion
+              type: object
+              properties:
+                grantType:
+                  type: string
+                  example: 'urn:ietf:params:oauth:grant-type:jwt-bearer'
+                assertion:
+                  type: string
+                  description: Self signed JWT
+                  example: 'eyJraWQiOiJHNW01TmxiaTdGWlhPTVlHN2ctZ0tCLVVGdkVBSVUyUFkzSFQ3SFZtYkJzIiwiYWxnIjoiRVMyNTZLIn0.eyJpc3MiOiJlYnNpLXdhbGxldCIsImF1ZCI6ImVic2ktc3RvcmFnZSIsImlhdCI6MTU4NDY5MTIzOCwiZXhwIjoxNTg0NjkyMTM4fQ.boseFUS5fLXdH62ZggWvBkYL65d4xN52lmKNxUFwjLcQvbgF3RyYz-PU8hBY20LuoXbfbivOcEMmVExcwnUSzw'
+        required: true
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionsResponse'
+        '400':
+          description: Bad request, invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalError'
+  /ledger/v1/blockchains/besu:
+    post:
+      tags:
+        - Besu
+      summary: Interaction with Besu Blockchain
+      description: 'Proxy to the Json RPC node of besu. The list of all possible methods can be found here: https://github.com/ethereum/wiki/wiki/JSON-RPC. Methods to read the blockchain does not require an auth token.'
+      requestBody:
+        description: Method and parameters
+        content:
+          application/json:
+            schema:
+              required:
+                - id
+                - method
+                - params
+              type: object
+              properties:
+                json:
+                  type: string
+                  example: '2.0'
+                method:
+                  type: string
+                  example: eth_getBlockByNumber
+                params:
+                  type: array
+                  example:
+                    - '123456'
+                    - true
+                  items:
+                    type: string
+                id:
+                  type: integer
+                  example: 1
+        required: true
+      responses:
+        '200':
+          description: Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  json:
+                    type: string
+                    example: '2.0'
+                  id:
+                    type: integer
+                    example: 1
+                  result:
+                    type: object
+                    example: {}
+        '400':
+          description: Bad request, invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequest'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unauthorized'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Forbidden'
+        '500':
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InternalError'
+      security:
+        - bearerAuth: []
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    SessionsResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        tokenType:
+          type: string
+          example: Bearer
+        expiresIn:
+          type: integer
+          example: 900
+        issuedAt:
+          type: string
+          example: '1467841035013'
+    BadRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Bad request
+        status:
+          type: string
+          example: 400
+        detail:
+          type: string
+          example: The token is expired
+    Unauthorized:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Unauthorized
+        status:
+          type: string
+          example: 401
+        detail:
+          type: string
+          example: The token is expired
+    Forbidden:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Forbidden
+        status:
+          type: string
+          example: 403
+        detail:
+          type: string
+          example: This method requires besu permissions
+    InternalError:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Internal Server Error
+        status:
+          type: string
+          example: 500
+        detail:
+          type: string
+          example: details of the error
