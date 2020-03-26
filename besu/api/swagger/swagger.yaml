@@ -142,44 +142,44 @@ paths:
                     jsonrpc: '2.0'
                     id: 1
                     result:
-                      - number: "0x1e240"
-                      - hash: "0x266bd6a41047c0929ebedd56cae148caab0d20a23aa1895bb95524a300ef9187"
-                      -  parentHash: "0x705094eb8ca67929254bedaff973d254311d72a38dc2b95a8711682f034fd3b4"
-                      - nonce: "0x0000000000000000"
-                      - sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
-                      - logsBloom: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-                      - transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
-                      - stateRoot: "0x4b7559720ae8af08782bcadc07c94243ceaf5fe1d7ee0914d76ad37969791dc4"
-                      - receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
-                      - miner: "0x7df7b640d9c4c24f563a7d5702499521255fc165"
-                      - difficulty: "0x1"
-                      - totalDifficulty: "0x1e241"
-                      - extraData: "0xf90148a00000000000000000000000000000000000000000000000000000000000000000f854947df7b640d9c4c24f563a7d5702499521255fc165949d2375d1b45b54603a365e23e0197c0a7a8150c894da316adfafdfe6c627e9429176954f25e4a2fb8e94f618d305b3cc3e7181937da874ad07d6f2d67c10808400000000f8c9b841e5e6da6c913c81673972889aeaf5b1dc1b4ae3070ed9dcc3a9e8d7de36a7f778694ff632bdc8fd8964e6b95e592eb17132f8eeb42ebd8044e3646bc7d7154fde01b841e7d6e72d7423f1eb9ba5448fd7c4c2f2770a668bdf187aa3a330e708bf369cf1645ea3d2f03924125509c3aaaef01c1efd8c26122abcd7c96ba080f391d1db6801b841c30e22e5549ed4b06ab8a9f19cd1b41d250e06e5229b945475f2616b9c6eb3a9325a9ea57926da4081a33279a78fab219f803ed638300378e819bb6ffc60479100"
-                      - size: "0x350"
-                      - gasLimit: "0x1fffffffffffff"
-                      - gasUsed: "0x0"
-                      - timestamp: "0x5e7b16f4"
-                      - uncles: []
-                      - transactions: []
+                      number: "0x1e240"
+                      hash: "0x266bd6a41047c0929ebedd56cae148caab0d20a23aa1895bb95524a300ef9187"
+                      parentHash: "0x705094eb8ca67929254bedaff973d254311d72a38dc2b95a8711682f034fd3b4"
+                      nonce: "0x0000000000000000"
+                      sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
+                      logsBloom: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                      transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+                      stateRoot: "0x4b7559720ae8af08782bcadc07c94243ceaf5fe1d7ee0914d76ad37969791dc4"
+                      receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+                      miner: "0x7df7b640d9c4c24f563a7d5702499521255fc165"
+                      difficulty: "0x1"
+                      totalDifficulty: "0x1e241"
+                      extraData: "0xf90148a00000000000000000000000000000000000000000000000000000000000000000f854947df7b640d9c4c24f563a7d5702499521255fc165949d2375d1b45b54603a365e23e0197c0a7a8150c894da316adfafdfe6c627e9429176954f25e4a2fb8e94f618d305b3cc3e7181937da874ad07d6f2d67c10808400000000f8c9b841e5e6da6c913c81673972889aeaf5b1dc1b4ae3070ed9dcc3a9e8d7de36a7f778694ff632bdc8fd8964e6b95e592eb17132f8eeb42ebd8044e3646bc7d7154fde01b841e7d6e72d7423f1eb9ba5448fd7c4c2f2770a668bdf187aa3a330e708bf369cf1645ea3d2f03924125509c3aaaef01c1efd8c26122abcd7c96ba080f391d1db6801b841c30e22e5549ed4b06ab8a9f19cd1b41d250e06e5229b945475f2616b9c6eb3a9325a9ea57926da4081a33279a78fab219f803ed638300378e819bb6ffc60479100"
+                      size: "0x350"
+                      gasLimit: "0x1fffffffffffff"
+                      gasUsed: "0x0"
+                      timestamp: "0x5e7b16f4"
+                      uncles: []
+                      transactions: []
                 Get transaction response:
                   value:
                     jsonrpc: '2.0'
                     id: 1
                     result:
-                      - blockHash: "0x1d59ff54b1eb26b013ce3cb5fc9dab3705b415a67127a003c3e61eb445bb8df2"
-                      - blockNumber: "0x5daf3b"
-                      - from: "0xa7d9ddbe1f17865597fbd27ec712455208b6b76d"
-                      - gas: "0xc350"
-                      - gasPrice: "0x0"
-                      - hash: "0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b"
-                      - input: "0x68656c6c6f21"
-                      - nonce: "0x15"
-                      - to: "0xf02c1c8e6114b1dbe8937a39260b5b0a374432bb"
-                      - transactionIndex: "0x41"
-                      - value: "0xf3dbb76162000"
-                      - v: "0x25"
-                      - r: "0x1b5e176d927f8e9ab405058b2d2457392da3e20f328b16ddabcebc33eaac5fea"
-                      - s: "0x4ba69724e8f69de52f0125ad8b3c5c2cef33019bac3249e2c0a2192766d1721c"
+                      blockHash: "0x1d59ff54b1eb26b013ce3cb5fc9dab3705b415a67127a003c3e61eb445bb8df2"
+                      blockNumber: "0x5daf3b"
+                      from: "0xa7d9ddbe1f17865597fbd27ec712455208b6b76d"
+                      gas: "0xc350"
+                      gasPrice: "0x0"
+                      hash: "0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b"
+                      input: "0x68656c6c6f21"
+                      nonce: "0x15"
+                      to: "0xf02c1c8e6114b1dbe8937a39260b5b0a374432bb"
+                      transactionIndex: "0x41"
+                      value: "0xf3dbb76162000"
+                      v: "0x25"
+                      r: "0x1b5e176d927f8e9ab405058b2d2457392da3e20f328b16ddabcebc33eaac5fea"
+                      s: "0x4ba69724e8f69de52f0125ad8b3c5c2cef33019bac3249e2c0a2192766d1721c"
                 Send transaction response:
                   value:
                     jsonrpc: '2.0'
