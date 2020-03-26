@@ -767,3 +767,8 @@ tags:
     description: Authentication in Storage API
   - name: Storage
     description: Storage API
+servers:
+  - url: "http://localhost"
+    description: Local Computer Environment
+  - url: "https://api.ebsi.xyz"
+    description: EBSI Testing Environment
