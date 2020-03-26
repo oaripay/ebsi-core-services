@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Ledger API
-  description: API to interact with all blockchains supported by EBSI
+  title: Hyperledger Besu API
+  description: This API is part of the Ledger API. This API is a proxy on top of the native Besu API. It's is not a RESTful API and it's only relaying the requests to the native Besu's API
   version: 1.0.0
   termsOfService: www.ebsi.xyz/termsOfService
   contact:
@@ -12,17 +12,16 @@ info:
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
 tags:
   - name: Authentication
-    description: Authentication in ledger API
+    description: Authentication in Ledger API
   - name: Besu
-    description: Interaction with besu blockchain
-  - name: Fabric
+    description: Interaction with Besu blockchain
 paths:
   /ledger/v1/sessions:
     post:
       tags:
       - Authentication
-      summary: Login to besu services
-      description: Login to besu services
+      summary: Login to Besu services
+      description: Login to Besu services
       requestBody:
         description: Method and parameters
         content:
@@ -49,50 +48,86 @@ paths:
               schema:
                 $ref: '#/components/schemas/SessionsResponse'
         '400':
-          description: Bad request, invalid token
+          description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BadRequest'
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Bad request:
+                  $ref: '#/components/examples/BadRequest'
+                Invalid token:
+                  $ref: '#/components/examples/InvalidToken'
+                Issuer not found:
+                  $ref: '#/components/examples/IssuerNotFound'
         '500':
           description: Internal error
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InternalError'
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Internal error:
+                  $ref: '#/components/examples/InternalError'
   /ledger/v1/blockchains/besu:
     post:
       tags:
         - Besu
       summary: Interaction with Besu Blockchain
-      description: 'Proxy to the Json RPC node of besu. The list of all possible methods can be found here: https://github.com/ethereum/wiki/wiki/JSON-RPC. Methods to read the blockchain does not require an auth token.'
+      description: 'Proxy to the Json RPC node of Besu Blockchain. Methods to read the blockchain does not require an auth token.'
       requestBody:
-        description: Method and parameters
+        description: |
+          The body follows the [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification). It requires the following fields:
+          
+          - **jsonrpc**: Must be exactly '2.0'
+          - **method**: Besu RPC native method that needs to be invoked. The list of all possible methods can be found at [eth JSON RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC).
+          - **params**: Array of parameters
+          - **id**: Identifier stablished by the client
         content:
           application/json:
             schema:
               required:
+                - jsonrpc
                 - id
                 - method
                 - params
               type: object
               properties:
-                json:
+                jsonrpc:
+                  description: Must be exactly '2.0'
                   type: string
-                  example: '2.0'
                 method:
+                  description: Besu RPC native method that needs to be invoked
                   type: string
-                  example: eth_getBlockByNumber
                 params:
+                  description: Array of parameters
                   type: array
-                  example:
-                    - '123456'
-                    - true
                   items:
                     type: string
                 id:
+                  description: Identifier stablished by the client
                   type: integer
                   example: 1
+            examples:
+              Get block:
+                value:
+                  jsonrpc: '2.0'
+                  method: eth_getBlockByNumber
+                  params:
+                    - '123456'
+                    - true
+              Get transaction:
+                value:
+                  jsonrpc: '2.0'
+                  method: eth_getTransactionByHash
+                  params:
+                    - '0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b'
+              Send transaction:
+                value:
+                  jsonrpc: '2.0'
+                  method: eth_sendRawTransaction
+                  params:
+                    - '---signed raw transation---'
         required: true
       responses:
         '200':
@@ -100,41 +135,91 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  json:
-                    type: string
-                    example: '2.0'
-                  id:
-                    type: integer
-                    example: 1
-                  result:
-                    type: object
-                    example: {}
+                $ref: '#/components/schemas/BesuResponse'
+              examples:
+                Get block response:
+                  value:
+                    jsonrpc: '2.0'
+                    id: 1
+                    result:
+                      - number: "0x1e240"
+                      - hash: "0x266bd6a41047c0929ebedd56cae148caab0d20a23aa1895bb95524a300ef9187"
+                      -  parentHash: "0x705094eb8ca67929254bedaff973d254311d72a38dc2b95a8711682f034fd3b4"
+                      - nonce: "0x0000000000000000"
+                      - sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
+                      - logsBloom: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                      - transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+                      - stateRoot: "0x4b7559720ae8af08782bcadc07c94243ceaf5fe1d7ee0914d76ad37969791dc4"
+                      - receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+                      - miner: "0x7df7b640d9c4c24f563a7d5702499521255fc165"
+                      - difficulty: "0x1"
+                      - totalDifficulty: "0x1e241"
+                      - extraData: "0xf90148a00000000000000000000000000000000000000000000000000000000000000000f854947df7b640d9c4c24f563a7d5702499521255fc165949d2375d1b45b54603a365e23e0197c0a7a8150c894da316adfafdfe6c627e9429176954f25e4a2fb8e94f618d305b3cc3e7181937da874ad07d6f2d67c10808400000000f8c9b841e5e6da6c913c81673972889aeaf5b1dc1b4ae3070ed9dcc3a9e8d7de36a7f778694ff632bdc8fd8964e6b95e592eb17132f8eeb42ebd8044e3646bc7d7154fde01b841e7d6e72d7423f1eb9ba5448fd7c4c2f2770a668bdf187aa3a330e708bf369cf1645ea3d2f03924125509c3aaaef01c1efd8c26122abcd7c96ba080f391d1db6801b841c30e22e5549ed4b06ab8a9f19cd1b41d250e06e5229b945475f2616b9c6eb3a9325a9ea57926da4081a33279a78fab219f803ed638300378e819bb6ffc60479100"
+                      - size: "0x350"
+                      - gasLimit: "0x1fffffffffffff"
+                      - gasUsed: "0x0"
+                      - timestamp: "0x5e7b16f4"
+                      - uncles: []
+                      - transactions: []
+                Get transaction response:
+                  value:
+                    jsonrpc: '2.0'
+                    id: 1
+                    result:
+                      - blockHash: "0x1d59ff54b1eb26b013ce3cb5fc9dab3705b415a67127a003c3e61eb445bb8df2"
+                      - blockNumber: "0x5daf3b"
+                      - from: "0xa7d9ddbe1f17865597fbd27ec712455208b6b76d"
+                      - gas: "0xc350"
+                      - gasPrice: "0x0"
+                      - hash: "0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b"
+                      - input: "0x68656c6c6f21"
+                      - nonce: "0x15"
+                      - to: "0xf02c1c8e6114b1dbe8937a39260b5b0a374432bb"
+                      - transactionIndex: "0x41"
+                      - value: "0xf3dbb76162000"
+                      - v: "0x25"
+                      - r: "0x1b5e176d927f8e9ab405058b2d2457392da3e20f328b16ddabcebc33eaac5fea"
+                      - s: "0x4ba69724e8f69de52f0125ad8b3c5c2cef33019bac3249e2c0a2192766d1721c"
+                Send transaction response:
+                  value:
+                    jsonrpc: '2.0'
+                    id: 1
+                    result: '0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331'
         '400':
-          description: Bad request, invalid token
+          description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BadRequest'
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Bad request:
+                  $ref: '#/components/examples/BadRequest'
+                Invalid token:
+                  $ref: '#/components/examples/InvalidToken'
+                Method disabled:
+                  $ref: '#/components/examples/MethodDisabled'
+                Invalid method:
+                  $ref: '#/components/examples/MethodNoExists'
         '401':
           description: Unauthorized
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Unauthorized'
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Unauthorized:
+                  $ref: '#/components/examples/NoAnonymous'
         '403':
           description: Forbidden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Forbidden'
-        '500':
-          description: Internal error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/InternalError'
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                Forbidden:
+                  $ref: '#/components/examples/BesuPermissions'
+                Deployment forbidden:
+                  $ref: '#/components/examples/NoDeploySC'
       security:
         - bearerAuth: []
 components:
@@ -159,51 +244,85 @@ components:
         issuedAt:
           type: string
           example: '1467841035013'
+    BesuResponse:
+      type: object
+      properties:
+        jsonrpc:
+          description: Must be exactly '2.0'
+          type: string
+        id:
+          description: Same identifier stablished by the client in the call
+          type: integer
+        result:
+          description: Result of the call
+          type: object
+    ErrorResponse:
+      type: object
+      properties:
+        title:
+          type: string
+        status:
+          type: string
+        detail:
+          type: string
+  examples:
     BadRequest:
-      type: object
-      properties:
-        title:
-          type: string
-          example: Bad request
-        status:
-          type: string
-          example: 400
-        detail:
-          type: string
-          example: The token is expired
+      value:
+        title: Bad request
+        status: 400
+        detail: Bad request
+    InvalidToken:
+      value:
+        title: Bad request
+        status: 400
+        detail: Invalid token
+    IssuerNotFound:
+      value:
+        title: Bad request
+        status: 400
+        detail: Issuer not found in the list of trusted apps
+    MethodDisabled:
+      value:
+        title: Bad request
+        status: 400
+        detail: The method 'eth_compileSolidity' is currently disabled
+    MethodNoExists:
+      value:
+        title: Bad request
+        status: 400
+        detail: The method 'xxxxxx' does not exist
     Unauthorized:
-      type: object
-      properties:
-        title:
-          type: string
-          example: Unauthorized
-        status:
-          type: string
-          example: 401
-        detail:
-          type: string
-          example: The token is expired
+      value:
+        title: Unauthorized
+        status: 401
+        detail: Unauthorized
+    NoAnonymous:
+      value:
+        title: Unauthorized
+        status: 401
+        detail: The method 'eth_sendRawTransaction' is not available for anonymous access
     Forbidden:
-      type: object
-      properties:
-        title:
-          type: string
-          example: Forbidden
-        status:
-          type: string
-          example: 403
-        detail:
-          type: string
-          example: This method requires besu permissions
+      value:
+        title: Forbidden
+        status: 403
+        detail: Forbidden
+    BesuPermissions:
+      value:
+        title: Forbidden
+        status: 403
+        detail: The method 'eth_sendRawTransaction' needs besu permissions
+    NoDeploySC:
+      value:
+        title: Forbidden
+        status: 403
+        detail: Deployment of new smart contracts is not allowed
+    NotFound:
+      value:
+        title: Not found
+        status: 404
+        detail: Not found
     InternalError:
-      type: object
-      properties:
-        title:
-          type: string
-          example: Internal Server Error
-        status:
-          type: string
-          example: 500
-        detail:
-          type: string
-          example: details of the error
+      value:
+        title: Internal error
+        status: 500
+        detail: Internal error
