@@ -456,8 +456,8 @@ paths:
         in: path
         required: true
         description: hyperledger channel
-  ? "/ledger/v1/blockchains/fabric/channels/{channel}/transactions/{transactionId}"
-  : get:
+  "/ledger/v1/blockchains/fabric/channels/{channel}/transactions/{transactionId}": 
+    get:
       tags:
         - Fabric
       summary: Get transaction details
@@ -675,3 +675,4 @@ components:
           prev: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2"
           next: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2"
           last: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=13&page[size]=2"
+
