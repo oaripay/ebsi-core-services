@@ -507,19 +507,6 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                successful list of stores response:
-                  value:
-                    items:
-                      - storeA
-                      - storeB
-                    total: 13
-                    pageSize: 2
-                    links:
-                      self: "/storage/v1/stores?page[after]=3&page[size]=2"
-                      first: "/storage/v1/stores?page[after]=0&page[size]=2"
-                      prev: "/storage/v1/stores?page[after]=2&page[size]=2"
-                      next: "/storage/v1/stores?page[after]=4&page[size]=2"
-                      last: "/storage/v1/stores?page[after]=13&page[size]=2"
                 get stores response:
                   value:
                     items:
