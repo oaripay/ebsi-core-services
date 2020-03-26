@@ -14,7 +14,7 @@ paths:
   "/timestamp/v1/hashes/{hash}":
     get:
       tags:
-        - Storage
+        - Timestamp
       summary: Get a record by its hash
       description: Retrieve the smart contract records from the hash of the notarized document. If the hash exists in the smart contract it will return the timestamp (epoch time) and the address that performed the notarization.
       parameters:
@@ -81,7 +81,7 @@ paths:
   /timestamp/v1/hashes:
     get:
       tags:
-        - Storage
+        - Timestamp
       summary: Get list of records
       description: Returns a list of hashes
       responses:
@@ -284,10 +284,10 @@ components:
         total: 2
         pageSize: 3
         links:
-          first: "/storage/v1/stores/distributed?page[after]=fff&page[size]=2"
-          prev: "/storage/v1/stores/distributed?page[after]=ppp&page[size]=2"
-          next: "/storage/v1/stores/distributed?page[after]=nnn&page[size]=2"
-          last: "/storage/v1/stores/distributed?page[after]=lll&page[size]=2"
+          first: "/timestamp/v1/hashes?page[after]=fff&page[size]=2"
+          prev: "/timestamp/v1/hashes?page[after]=ppp&page[size]=2"
+          next: "/timestamp/v1/hashes?page[after]=nnn&page[size]=2"
+          last: "/timestamp/v1/hashes?page[after]=lll&page[size]=2"
   securitySchemes:
     bearerAuth:
       type: http
@@ -295,6 +295,6 @@ components:
       bearerFormat: JWT
 tags:
   - name: Authentication
-    description: Authentication in Storage API
-  - name: Storage
-    description: Storage API
+    description: Authentication in Timestamp API
+  - name: Timestamp
+    description: Timestamp API
