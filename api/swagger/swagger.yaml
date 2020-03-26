@@ -9,7 +9,7 @@ info:
     name: EBSI Support
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
   termsOfService: "https://api.ebsi.xyz/api-catalog/terms"
-  description: Timestamp API is a core service of the EBSI platform that provides the capability of checking the authenticity of a digital document by verifying the presence and the timestamp of the document's hash in a specific smart contract.
+  description: "Timestamp API is a core service of the EBSI platform that provides the capability of checking the authenticity of a digital document by verifying the presence and the timestamp of the document's hash in a specific smart contract."
 paths:
   "/timestamp/v1/hashes/{hash}":
     get:
@@ -183,7 +183,7 @@ components:
         - detail
     hash:
       type: object
-      description: notarized document hash  model
+      description: notarized document hash model
       x-examples:
         hash response example:
           hash: 0x23...d7f
@@ -196,17 +196,22 @@ components:
         hash:
           type: string
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+          description: " keccak-256 hash of the file"
         txHash:
           type: string
           example: Bearer
+          description: valid Ethereum transaction hash
         blockNumber:
           type: integer
           example: 900
+          description: block number containing the transaction
         registeredBy:
           type: string
           example: "1467841035013"
+          description: valid Ethereum Address
         timestamp:
           type: string
+          description: Timestamp converted to ISO 8601 format
     links:
       title: links
       type: object
