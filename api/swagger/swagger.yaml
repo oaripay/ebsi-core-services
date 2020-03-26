@@ -303,3 +303,8 @@ tags:
     description: Authentication in Timestamp API
   - name: Timestamp
     description: Timestamp API
+servers:
+  - url: "http://localhost"
+    description: Local Computer Environment
+  - url: "https://api.ebsi.xyz"
+    description: EBSI Testing Environment
