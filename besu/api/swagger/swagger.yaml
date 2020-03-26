@@ -3,13 +3,18 @@ info:
   title: Hyperledger Besu API
   description: This API is part of the Ledger API. This API is a proxy on top of the native Besu API. It's is not a RESTful API and it's only relaying the requests to the native Besu's API
   version: 1.0.0
-  termsOfService: www.ebsi.xyz/termsOfService
+  termsOfService: "/docs/terms"
   contact:
     name: "EBSI Support"
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
   license:
     name: "EUPL-1.2"
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
+servers:
+  - url: "http://localhost"
+    description: Local Computer Environment
+  - url: "https://api.ebsi.xyz"
+    description: EBSI Testing Environment
 tags:
   - name: Authentication
     description: Authentication in Ledger API
