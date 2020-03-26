@@ -1,0 +1,598 @@
+openapi: 3.0.3
+info:
+  title: Trusted Apps Registry API
+  version: 1.0.0
+  description: The interface for the APP Registry BESU contract. The API holds a registry of apps to which we can attach authorized apps (i.e. whitelisted apps).
+  termsOfService: "https://api.ebsi.xyz/api-catalog/terms"
+  contact:
+    name: EBSI Support
+    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
+  license:
+    name: EUPL-1.2
+    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
+paths:
+  /trusted-apps-registry/v1/apps:
+    get:
+      tags:
+        - TrustedApps
+      summary: List of trusted apps
+      description: Returns a list of trusted apps
+      responses:
+        "200":
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    description: list of trusted apps
+                    items:
+                      $ref: "#/components/schemas/app"
+                  total:
+                    type: integer
+                    description: " total number of pages in a collection"
+                  pageSize:
+                    type: integer
+                    description: number of items to be return per page
+                  links:
+                    $ref: "#/components/schemas/links"
+              examples:
+                successful list of apps response:
+                  value:
+                    items:
+                      - appName: string
+                        pubKey: string
+                      - appName: string
+                        pubKey: string
+                    total: 2
+                    pageSize: 10
+                    links:
+                      self: "/trusted-apps-registry/v1/apps?page[after]=3&page[size]=2"
+                      first: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=2"
+                      prev: "/trusted-apps-registry/v1/apps?page[after]=2&page[size]=2"
+                      next: "/trusted-apps-registry/v1/apps?page[after]=4&page[size]=2"
+                      last: "/trusted-apps-registry/v1/apps?page[after]=13&page[size]=2"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: JWT is missing
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: The client is not allowed to access resource
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: get-trusted-apps-registry-v1-apps
+      parameters:
+        - in: query
+          name: "page[after]"
+          schema:
+            type: string
+          description: cursor from which the results should begin
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: number of elements per page
+  "/trusted-apps-registry/v1/apps/{appName}":
+    get:
+      tags:
+        - TrustedApps
+      summary: Get trusted application
+      description: returns a specific app by its appName. Including the pubKey.
+      parameters:
+        - name: appName
+          in: path
+          schema:
+            type: string
+          example: wallet
+          required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/app"
+              examples:
+                successful app response:
+                  value:
+                    appName: string
+                    pubKey: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad request:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: The format of appName parameter is not valid
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: JWT is missing
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: The client is not allowed to access resource
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not found:
+                  value:
+                    title: Not found
+                    status: 404
+                    detail: "{appName} not found"
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: get-trusted-apps-registry-v1-store
+    parameters:
+      - schema:
+          type: string
+        name: appName
+        in: path
+        required: true
+  "/trusted-apps-registry/v1/apps/{appName}/authorized-apps":
+    get:
+      tags:
+        - TrustedApps
+      summary: Get a list of authorized apps for an application
+      description: 'returns a list of authorized apps for the app "appName", i.e. apps that can communication with app "appName"'
+      parameters:
+        - name: appName
+          in: path
+          schema:
+            type: string
+          example: wallet
+          required: true
+        - in: query
+          name: "page[after]"
+          schema:
+            type: string
+          description: cursor from which the results should begin
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: number of elements per page
+      responses:
+        "200":
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/authorized-app"
+                  links:
+                    $ref: "#/components/schemas/links"
+                  pageSize:
+                    type: integer
+                    description: number of items to be return per page
+                  total:
+                    type: integer
+                    description: " total number of pages in a collection"
+              examples:
+                successful list of authorized apps response:
+                  value:
+                    items:
+                      - authorizedAppName: string
+                      - authorizedAppName: string
+                    total: 2
+                    next: "/trusted-apps-registry​/v1/apps/{appName}/authorized-apps?..."
+                    pageSize: 10
+                successful list of authorized apps with pagination response:
+                  value:
+                    items:
+                      - authorizedAppName: string
+                      - authorizedAppName: string
+                    total: 13
+                    pageSize: 2
+                    links:
+                      self: "/trusted-apps-registry/v1/apps/{appName}/authorized-apps?page[after]=3&page[size]=2"
+                      first: "/trusted-apps-registry/v1/apps/{appName}/authorized-apps?page[after]=0&page[size]=2"
+                      prev: "/trusted-apps-registry/v1/apps/{appName}/authorized-apps?page[after]=2&page[size]=2"
+                      next: "/trusted-apps-registry/v1/apps/{appName}/authorized-apps?page[after]=4&page[size]=2"
+                      last: "/trusted-apps-registry/v1/apps/{appName}/authorized-apps?page[after]=13&page[size]=2"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad request:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: The format of appName parameter is not valid
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: JWT is missing
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: The client is not allowed to access resource
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{appName} not found"
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: get-trusted-apps-registry-v1-app-auhtorized-apps
+    parameters:
+      - schema:
+          type: string
+        name: appName
+        in: path
+        required: true
+  ? "/trusted-apps-registry/v1/apps/{appName}/authorized-apps/{authorizedAppName}"
+  : get:
+      tags:
+        - TrustedApps
+      summary: Check authorized app for an application
+      description: 'Check if an app identified by "authorizedAppName" has the authorization to communication with "appName".'
+      parameters:
+        - name: appName
+          in: path
+          schema:
+            type: string
+          example: wallet
+          required: true
+        - name: authorizedAppName
+          in: path
+          schema:
+            type: string
+          example: string
+          required: true
+      responses:
+        "200":
+          description: Successful response returns an authorized application Name
+          content:
+            multipart/form-data:
+              schema:
+                $ref: "#/components/schemas/authorized-app"
+              examples:
+                successfull response:
+                  value:
+                    authorizedAppName: string
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad request:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: The format of appName parameter is not valid
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: JWT is missing
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: The client is not allowed to access resource
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                appName Not found:
+                  value:
+                    title: Not found
+                    status: 404
+                    detail: "{appName} not found"
+                authorizedAppName not found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{authorizedAppName} not found"
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: get-trusted-apps-registry-v1-app-auhtorized-app
+    parameters:
+      - schema:
+          type: string
+        name: appName
+        in: path
+        required: true
+      - schema:
+          type: string
+        name: authorizedAppName
+        in: path
+        required: true
+components:
+  schemas:
+    authorized-app:
+      title: authorized-app
+      type: object
+      x-examples:
+        authorized-app example:
+          authorizedAppName: string
+      description: ""
+      properties:
+        authorizedAppName:
+          type: string
+          description: name of an application that is authorized to communicate with appName
+      required:
+        - authorizedAppName
+    links:
+      title: links
+      type: object
+      properties:
+        self:
+          type: string
+          description: " URI of the current page"
+        last:
+          type: string
+          description: " URI of the last page"
+        prev:
+          type: string
+          description: " URI of the previous page"
+        next:
+          type: string
+          description: " URI of the next page"
+        first:
+          type: string
+          description: " URI of the first page"
+      description: links model used for pagination
+      x-examples:
+        links example:
+          self: "/trusted-apps-registry/v1/apps?page[after]=3&page[size]=2"
+          first: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=2"
+          prev: "/trusted-apps-registry/v1/apps?page[after]=2&page[size]=2"
+          next: "/trusted-apps-registry/v1/apps?page[after]=4&page[size]=2"
+          last: "/trusted-apps-registry/v1/apps?page[after]=13&page[size]=2"
+    error:
+      type: object
+      title: error
+      description: generic error response body based on problem details schema
+      x-examples:
+        error example:
+          type: "https://example.com/probs/out-of-credit"
+          title: You do not have enough credit.
+          detail: "Your current balance is 30, but that costs 50."
+          instance: /account/12345/msgs/abc
+          status: 400
+      properties:
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        type:
+          type: string
+      required:
+        - title
+        - status
+        - detail
+    app:
+      type: object
+      description: app model
+      title: ""
+      x-examples:
+        app model example:
+          appName: string
+          pubKey: string
+      properties:
+        appName:
+          type: string
+          description: application name
+        pubKey:
+          type: string
+          description: Secp256k1 Public key
+      required:
+        - appName
+        - pubKey
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  examples:
+    BadRequest:
+      value:
+        title: Bad request
+        status: 400
+        detail: Bad request
+    InvalidToken:
+      value:
+        title: Invalid token
+        status: 400
+        detail: Invalid token
+    Unauthorized:
+      value:
+        title: Unauthorized
+        status: 401
+        detail: Unauthorized
+    Forbidden:
+      value:
+        title: Forbidden
+        status: 403
+        detail: Forbidden
+    NotFound:
+      value:
+        title: Not found
+        status: 404
+        detail: Not found
+    TooLarge:
+      value:
+        title: Payload too large
+        status: 413
+        detail: Payload too large
+    InternalError:
+      value:
+        title: Internal error
+        status: 500
+        detail: Internal error
+    ListFiles:
+      value:
+        items:
+          - hash1
+          - hash2
+        total: 2
+    ListFilesPagination:
+      value:
+        items:
+          - hash1
+          - hash2
+        total: 2
+        pageSize: 3
+        links:
+          first: "/trusted-apps-registry/v1/apps/distributed?page[after]=fff&page[size]=2"
+          prev: "/trusted-apps-registry/v1/apps/distributed?page[after]=ppp&page[size]=2"
+          next: "/trusted-apps-registry/v1/apps/distributed?page[after]=nnn&page[size]=2"
+          last: "/trusted-apps-registry/v1/apps/distributed?page[after]=lll&page[size]=2"
+tags:
+  - name: Authentication
+    description: Authentication in Trusted Apps Registry API
+  - name: TrustedApps
+    description: Trusted Apps Registry
+servers:
+  - url: "http://localhost"
+    description: Local Computer Environment
+  - url: "https://api.ebsi.xyz"
+    description: EBSI Testing Environment
