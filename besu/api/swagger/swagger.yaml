@@ -121,18 +121,21 @@ paths:
                   params:
                     - '123456'
                     - true
+                  id: 1
               Get transaction:
                 value:
                   jsonrpc: '2.0'
                   method: eth_getTransactionByHash
                   params:
                     - '0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b'
+                  id: 1
               Send transaction:
                 value:
                   jsonrpc: '2.0'
                   method: eth_sendRawTransaction
                   params:
                     - '---signed raw transation---'
+                  id: 1
         required: true
       responses:
         '200':
@@ -256,7 +259,7 @@ components:
           description: Must be exactly '2.0'
           type: string
         id:
-          description: Same identifier stablished by the client in the call
+          description: Same identifier established by the client in the call
           type: integer
         result:
           description: Result of the call
@@ -330,4 +333,4 @@ components:
       value:
         title: Internal error
         status: 500
-        detail: Internal error
+        detail: The server encountered an internal error and was unable to complete your request
