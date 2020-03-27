@@ -9,7 +9,10 @@ info:
     name: EBSI Support
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
   termsOfService: "https://api.ebsi.xyz/docs/terms"
-  description: "Storage API provides the capabilities to read and write files to off-chain distributed storage, to off-chain private (local) storage and to off-chain external storage trusted providers. The V1 of the API implements only the off-chain distributed storage capabilities."
+  description: |
+    "Storage API provides the capabilities to read and write files to off-chain distributed storage, to off-chain private (local) storage and to off-chain external storage trusted providers. 
+    The V1 of the API implements only the off-chain distributed storage capabilities.
+    Key-Value Storage API provides the capabilities to save data in JSON format in the off-chain distributed database."
 paths:
   /storage/v1/stores:
     get:
