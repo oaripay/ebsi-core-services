@@ -42,12 +42,12 @@ paths:
                 Get Hashes:
                   value:
                     items:
-                      - hash: 0x23...d7f
+                      - hash: 23...d7f
                         txHash: 0x12...ba
                         timestamp: "2019-10-23T14:25:20+00:00"
                         registeredBy: 0xfa...94
                         blockNumber: 739688
-                      - hash: 0x13...d7f
+                      - hash: 13...d7f
                         txHash: 0x32...ba
                         timestamp: "2019-10-23T14:26:20+00:00"
                         registeredBy: 0xfa...94
@@ -109,7 +109,7 @@ paths:
               examples:
                 Get Hash:
                   value:
-                    hash: 0x23...7f
+                    hash: 23...7f
                     txHash: 0x12...ba
                     timestamp: "2019-10-23T14:25:20+00:00"
                     registeredBy: 0xfa...94
@@ -186,7 +186,7 @@ components:
       description: notarized document hash model
       x-examples:
         Hash example:
-          hash: 0x23...d7f
+          hash: 23...d7f
           txHash: 0x12...ba
           timestamp: "2019-10-23T14:25:20+00:00"
           registeredBy: 0xfa...94
