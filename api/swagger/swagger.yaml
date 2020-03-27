@@ -90,8 +90,6 @@ paths:
                     title: Internal Server Error
                     status: 500
                     detail: The server encountered an internal error and was unable to complete your request.
-      security:
-        - bearerAuth: []
       operationId: get-trusted-apps-registry-v1-apps
       parameters:
         - in: query
@@ -189,8 +187,6 @@ paths:
                     title: Internal Server Error
                     status: 500
                     detail: The server encountered an internal error and was unable to complete your request.
-      security:
-        - bearerAuth: []
       operationId: get-trusted-apps-registry-v1-store
     parameters:
       - schema:
@@ -315,8 +311,6 @@ paths:
                     title: Internal Server Error
                     status: 500
                     detail: The server encountered an internal error and was unable to complete your request.
-      security:
-        - bearerAuth: []
       operationId: get-trusted-apps-registry-v1-app-auhtorized-apps
     parameters:
       - schema:
@@ -419,8 +413,6 @@ paths:
                     title: Internal Server Error
                     status: 500
                     detail: The server encountered an internal error and was unable to complete your request.
-      security:
-        - bearerAuth: []
       operationId: get-trusted-apps-registry-v1-app-auhtorized-app
     parameters:
       - schema:
@@ -519,11 +511,6 @@ components:
       required:
         - appName
         - pubKey
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
   examples:
     BadRequest:
       value:
@@ -579,8 +566,6 @@ components:
           next: "/trusted-apps-registry/v1/apps/distributed?page[after]=nnn&page[size]=2"
           last: "/trusted-apps-registry/v1/apps/distributed?page[after]=lll&page[size]=2"
 tags:
-  - name: Authentication
-    description: Authentication in Trusted Apps Registry API
   - name: TrustedApps
     description: Trusted Apps Registry
 servers:
