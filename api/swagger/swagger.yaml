@@ -72,8 +72,6 @@ paths:
                     title: Internal Server Error
                     status: 500
                     detail: The server encountered an internal error and was unable to complete your request.
-      security:
-        - bearerAuth: []
       operationId: get-timestamp-v1-hashes
       parameters:
         - in: query
@@ -150,8 +148,6 @@ paths:
                     title: Internal Server Error
                     status: 500
                     detail: The server encountered an internal error and was unable to complete your request.
-      security:
-        - bearerAuth: []
       operationId: get-timestamp-v1-hash
 components:
   schemas:
@@ -293,14 +289,7 @@ components:
           prev: "/timestamp/v1/hashes?page[after]=ppp&page[size]=2"
           next: "/timestamp/v1/hashes?page[after]=nnn&page[size]=2"
           last: "/timestamp/v1/hashes?page[after]=lll&page[size]=2"
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
 tags:
-  - name: Authentication
-    description: Authentication in Timestamp API
   - name: Timestamp
     description: Timestamp API
 servers:
