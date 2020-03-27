@@ -3,7 +3,7 @@ info:
   title: Trusted Apps Registry API
   version: 1.0.0
   description: The interface for the APP Registry BESU contract. The API holds a registry of apps to which we can attach authorized apps (i.e. whitelisted apps).
-  termsOfService: "https://api.ebsi.xyz/api-catalog/terms"
+  termsOfService: "https://api.ebsi.xyz/docs/terms"
   contact:
     name: EBSI Support
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
@@ -332,8 +332,8 @@ paths:
         name: appName
         in: path
         required: true
-  ? "/trusted-apps-registry/v1/apps/{appName}/authorized-apps/{authorizedAppName}"
-  : get:
+  /trusted-apps-registry/v1/apps/{appName}/authorized-apps/{authorizedAppName}:
+    get:
       tags:
         - TrustedApps
       summary: Check authorized app for an application
