@@ -242,14 +242,6 @@ paths:
                     type: integer
                     description: " total number of pages in a collection"
               examples:
-                successful list of authorized apps response:
-                  value:
-                    items:
-                      - authorizedAppName: string
-                      - authorizedAppName: string
-                    total: 2
-                    next: "/trusted-apps-registry​/v1/apps/{appName}/authorized-apps?..."
-                    pageSize: 10
                 successful list of authorized apps with pagination response:
                   value:
                     items:
