@@ -50,30 +50,6 @@ paths:
                     title: Bad request
                     status: 400
                     detail: "The format of {did} parameter is not valid"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-              examples:
-                Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: JWT is missing
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-              examples:
-                Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: The client is not allowed to access resource
         "404":
           description: Not found
           content:
@@ -142,30 +118,6 @@ paths:
                       prev: "/trusted-issuers-registry/v1/issuers?page[after]=2&page[size]=2"
                       next: "/trusted-issuers-registry/v1/issuers?page[after]=4&page[size]=2"
                       last: "/trusted-issuers-registry/v1/issuers?page[after]=13&page[size]=2"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-              examples:
-                Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: JWT is missing
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-              examples:
-                Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: The client is not allowed to access resource
         "500":
           description: Internal Error
           content:
@@ -287,16 +239,6 @@ components:
         title: Invalid token
         status: 400
         detail: Invalid token
-    Unauthorized:
-      value:
-        title: Unauthorized
-        status: 401
-        detail: Unauthorized
-    Forbidden:
-      value:
-        title: Forbidden
-        status: 403
-        detail: Forbidden
     NotFound:
       value:
         title: Not found
