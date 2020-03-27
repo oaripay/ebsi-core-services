@@ -96,12 +96,12 @@ paths:
           name: "page[after]"
           schema:
             type: string
-          description: cursor from which the results should begin
+          description: Cursor that points to the end of the page of data that has been returned.
         - schema:
             type: integer
           in: query
           name: "page[size]"
-          description: number of elements per page
+          description: Defines the maximum number of objects that may be returned.
   "/trusted-apps-registry/v1/apps/{appName}":
     get:
       tags:
@@ -211,12 +211,12 @@ paths:
           name: "page[after]"
           schema:
             type: string
-          description: cursor from which the results should begin
+          description: Cursor that points to the end of the page of data that has been returned.
         - schema:
             type: integer
           in: query
           name: "page[size]"
-          description: number of elements per page
+          description: Defines the maximum number of objects that may be returned.
       responses:
         "200":
           description: Successful
