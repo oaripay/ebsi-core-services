@@ -54,30 +54,6 @@ paths:
                       prev: "/trusted-apps-registry/v1/apps?page[after]=2&page[size]=2"
                       next: "/trusted-apps-registry/v1/apps?page[after]=4&page[size]=2"
                       last: "/trusted-apps-registry/v1/apps?page[after]=13&page[size]=2"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-              examples:
-                Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: JWT is missing
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-              examples:
-                Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: The client is not allowed to access resource
         "500":
           description: Internal Error
           content:
@@ -139,30 +115,6 @@ paths:
                     title: Bad request
                     status: 400
                     detail: The format of appName parameter is not valid
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-              examples:
-                Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: JWT is missing
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-              examples:
-                Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: The client is not allowed to access resource
         "404":
           description: Not found
           content:
@@ -263,30 +215,6 @@ paths:
                     title: Bad request
                     status: 400
                     detail: The format of appName parameter is not valid
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-              examples:
-                Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: JWT is missing
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-              examples:
-                Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: The client is not allowed to access resource
         "404":
           description: Not found
           content:
@@ -360,30 +288,6 @@ paths:
                     title: Bad request
                     status: 400
                     detail: The format of appName parameter is not valid
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-              examples:
-                Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: JWT is missing
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-              examples:
-                Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: The client is not allowed to access resource
         "404":
           description: Not found
           content:
@@ -517,31 +421,11 @@ components:
         title: Bad request
         status: 400
         detail: Bad request
-    InvalidToken:
-      value:
-        title: Invalid token
-        status: 400
-        detail: Invalid token
-    Unauthorized:
-      value:
-        title: Unauthorized
-        status: 401
-        detail: Unauthorized
-    Forbidden:
-      value:
-        title: Forbidden
-        status: 403
-        detail: Forbidden
     NotFound:
       value:
         title: Not found
         status: 404
         detail: Not found
-    TooLarge:
-      value:
-        title: Payload too large
-        status: 413
-        detail: Payload too large
     InternalError:
       value:
         title: Internal error
