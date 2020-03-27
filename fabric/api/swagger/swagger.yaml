@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Hyperledger Fabric REST API
-  description: Collection of APIs to interact with Hyperledger Fabric Blockchain Network. For write operations use the Fabric SDK (node/java/go). For more information see LINK-TBD.
+  description: Collection of APIs to interact with Hyperledger Fabric Network. For write operations use the official Fabric SDK (node/java/go) as described in the Wiki.
   license:
     name: EUPL-1.2
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
@@ -12,7 +12,7 @@ info:
   termsOfService: "https://api.ebsi.xyz/api-catalog/terms"
 tags:
   - name: Fabric
-    description: Hyperledger Fabric REST APIs (or similar)
+    description: Hyperledger Fabric REST APIs
     externalDocs:
       url: "http://docs.my-api.com/store-orders.htm"
 paths:
@@ -20,11 +20,11 @@ paths:
     get:
       tags:
         - Fabric
-      summary: Get channel list
-      description: returns the list of channels defined on Fabric ledger.
+      summary: Get a list of all the available channels
+      description: Returns a list of all the available EBSI Fabric channels.
       responses:
         "200":
-          description: get channels successfull
+          description: Success
           content:
             application/json:
               schema:
@@ -32,19 +32,19 @@ paths:
                 properties:
                   items:
                     type: array
-                    description: list of channel names
+                    description: List of channel names.
                     items:
                       $ref: "#/components/schemas/channel"
                   links:
                     $ref: "#/components/schemas/links"
                   total:
                     type: integer
-                    description: " total number of pages in a collection"
+                    description: "Total number of pages in a collection."
                   pageSize:
                     type: integer
-                    description: number of items to be return per page
+                    description: "Number of items to be return per page."
               examples:
-                get channels:
+                Get available channels:
                   value:
                     items:
                       - channelA
@@ -71,11 +71,11 @@ paths:
                   detail:
                     type: string
               examples:
-                Error contacting trusted apps list:
+                Internal Server Error:
                   value:
                     title: Internal Server Error
                     status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                    detail: Server encountered an internal error and was unable to complete your request.
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channels
@@ -84,46 +84,45 @@ paths:
           name: "page[after]"
           schema:
             type: string
-          description: cursor from which the results should begin
+          description: Cursor that points to the end of the page of data that has been returned.
         - schema:
             type: integer
           in: query
           name: "page[size]"
-          description: number of elements per page
+          description: Defines the maximum number of objects that may be returned.
     parameters: []
   "/ledger/v1/blockchains/fabric/channels/{channel}":
     get:
       tags:
         - Fabric
-      summary: Get channel
-      description: Check if channel exists
+      summary: Check if channel exists
       responses:
         "204":
-          description: successful operation channel does exist
+          description: Succes. Channel exists.
         "400":
-          description: "Bad request the format of {channel} parameter is not valid"
+          description: "Bad request. The format of the {channel} parameter is not valid."
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                bad request:
+                Invalid channel:
                   value:
                     title: Bad request
                     status: 400
                     detail: "The format of {channel} parameter is not valid"
         "404":
-          description: Channel not found
+          description: Channel {channel} not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                channel not found:
+                Channel Not Found:
                   value:
                     title: Not Found
                     status: 404
-                    detail: "{channel} parameter not found"
+                    detail: "{channel} not found"
         "500":
           description: Internal Server Error
           content:
@@ -131,7 +130,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                channel internal server error:
+                Internal Server Error:
                   value:
                     title: Internal Server Error
                     status: 500
@@ -145,16 +144,16 @@ paths:
         name: channel
         in: path
         required: true
-        description: hyperledger channel
+        description: Fabric channel name.
   "/ledger/v1/blockchains/fabric/channels/{channel}/blocks":
     get:
       tags:
         - Fabric
-      summary: Get block list
-      description: Returns the last blocks for the specified channel
+      summary: Get blocks
+      description: Returns a list of blocks of the channel {channel}. By default API returns the last 10 (or less) blocks.
       responses:
         "200":
-          description: successful operation
+          description: Success.
           content:
             application/json:
               schema:
@@ -162,19 +161,19 @@ paths:
                 properties:
                   items:
                     type: array
-                    description: list of block
+                    description: List of blocks.
                     items:
                       $ref: "#/components/schemas/block"
                   links:
                     $ref: "#/components/schemas/links"
                   total:
                     type: integer
-                    description: " total number of pages in a collection"
+                    description: " Total number of pages in a collection."
                   pageSize:
                     type: integer
-                    description: number of items to be return per page
+                    description: Number of items to be return per page.
               examples:
-                successful blocks return:
+                Get Blocks:
                   value:
                     items:
                       - blockNum: 1
@@ -210,7 +209,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                bad request:
+                Bad Request:
                   value:
                     title: Bad request
                     status: 400
@@ -222,7 +221,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                channel not found:
+                Channel Not Found:
                   value:
                     title: Not Found
                     status: 404
@@ -234,7 +233,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                channel internal server error:
+                Internal Server Error:
                   value:
                     title: Internal Server Error
                     status: 500
@@ -247,30 +246,30 @@ paths:
           name: "page[after]"
           schema:
             type: string
-          description: cursor from which the results should begin
+          description: Cursor that points to the end of the page of data that has been returned.
         - schema:
             type: integer
           in: query
           name: "page[size]"
-          description: number of elements per page
+          description: Defines the maximum number of objects that may be returned.
     parameters:
       - schema:
           type: string
         name: channel
         in: path
         required: true
-        description: hyperledger channel
+        description: Fabric channel name.
   "/ledger/v1/blockchains/fabric/channels/{channel}/blocks/{blockNumber}":
     get:
       responses:
         "200":
-          description: successful operation
+          description: Success.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/block"
               examples:
-                "successful block response ":
+                "Get Block 15":
                   value:
                     blockNum: 15
                     txCount: 1
@@ -288,7 +287,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                bad request:
+                Invalid {channel} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -300,12 +299,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                channel not found:
+                Channel Not Found:
                   value:
                     title: Not Found
                     status: 404
                     detail: "{channel} parameter not found"
-                blockNumber not found:
+                Block Not Found:
                   value:
                     title: Not Found
                     status: 404
@@ -317,7 +316,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                channel internal server error:
+                Internal Server Error:
                   value:
                     title: Internal Server Error
                     status: 500
@@ -325,32 +324,32 @@ paths:
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-block-number
-      summary: Get block details
+      summary: Get block by number
       tags:
         - Fabric
-      description: Returns block details for the specified channel and block number
+      description: Returns block for the specified channel and block number
     parameters:
       - schema:
           type: string
         name: channel
         in: path
         required: true
-        description: hyperledger channel
+        description: Fabric channel name.
       - schema:
           type: integer
         name: blockNumber
         in: path
         required: true
-        description: block height
+        description: Block number.
   "/ledger/v1/blockchains/fabric/channels/{channel}/transactions":
     get:
       tags:
         - Fabric
-      summary: Get transaction list
-      description: Returns last transactions of the specified channel
+      summary: Get transactions
+      description: Returns the last 10 (or less) transactions of the channel
       responses:
         "200":
-          description: successful operation
+          description: Success.
           content:
             application/json:
               schema:
@@ -358,10 +357,10 @@ paths:
                 properties:
                   pageSize:
                     type: integer
-                    description: number of items to be return per page
+                    description: "Number of items to be return per page."
                   total:
                     type: integer
-                    description: " total number of pages in a collection"
+                    description: "Total number of pages in a collection."
                   links:
                     $ref: "#/components/schemas/links"
                   items:
@@ -430,7 +429,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                channel internal server error:
+                Internal Server Error:
                   value:
                     title: Internal Server Error
                     status: 500
@@ -443,19 +442,19 @@ paths:
           name: "page[after]"
           schema:
             type: string
-          description: cursor from which the results should begin
+          description: Cursor that points to the end of the page of data that has been returned.
         - schema:
             type: integer
           in: query
           name: "page[size]"
-          description: number of elements per page
+          description: "Number of items to be return per page."
     parameters:
       - schema:
           type: string
         name: channel
         in: path
         required: true
-        description: hyperledger channel
+        description: Fabric channel name
   /ledger/v1/blockchains/fabric/channels/{channel}/transactions/{transactionId}:
     get:
       tags:
@@ -531,7 +530,7 @@ paths:
         name: channel
         in: path
         required: true
-        description: hyperledger channel
+        description: Fabric channel name
       - schema:
           type: string
         name: transactionId
