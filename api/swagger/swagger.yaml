@@ -18,6 +18,7 @@ paths:
     get:
       tags:
         - File Storage
+        - Key-Value Storage
       summary: List of available stores
       description: Returns a list of available stores
       responses:
@@ -65,6 +66,7 @@ paths:
     get:
       tags:
         - File Storage
+        - Key-Value Storage
       summary: Check if exists
       description: Check if a store exists
       parameters:
