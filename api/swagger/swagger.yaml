@@ -1,0 +1,299 @@
+openapi: 3.0.3
+info:
+  title: Timestamp API
+  version: 1.0.0
+  license:
+    name: EUPL-1.2
+    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
+  contact:
+    name: EBSI Support
+    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
+  termsOfService: "https://api.ebsi.xyz/docs/terms"
+  description: "Timestamp API is a core service of the EBSI platform that provides the capability of checking the authenticity of a digital document by verifying the presence and the timestamp of the document's hash in a specific smart contract."
+paths:
+  /timestamp/v1/hashes:
+    get:
+      tags:
+        - Timestamp
+      summary: Get a list of records
+      description: Returns a list of hashes.
+      responses:
+        "200":
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    description: list of channel names
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/hash"
+                  total:
+                    type: integer
+                    description: "total number of pages in a collection"
+                  pageSize:
+                    type: integer
+                    description: number of items to be return per page
+                  links:
+                    $ref: "#/components/schemas/links"
+              examples:
+                Get Hashes:
+                  value:
+                    items:
+                      - hash: 23...d7f
+                        txHash: 0x12...ba
+                        timestamp: "2019-10-23T14:25:20+00:00"
+                        registeredBy: 0xfa...94
+                        blockNumber: 739688
+                      - hash: 13...d7f
+                        txHash: 0x32...ba
+                        timestamp: "2019-10-23T14:26:20+00:00"
+                        registeredBy: 0xfa...94
+                        blockNumber: 739689
+                    total: 13
+                    pageSize: 2
+                    links:
+                      self: "/timestamp/v1/hashes?page[after]=3&page[size]=2"
+                      first: "/timestamp/v1/hashes?page[after]=0&page[size]=2"
+                      prev: "/timestamp/v1/hashes?page[after]=2&page[size]=2"
+                      next: "/timestamp/v1/hashes?page[after]=4&page[size]=2"
+                      last: "/timestamp/v1/hashes?page[after]=13&page[size]=2"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal Server Error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      operationId: get-timestamp-v1-hashes
+      parameters:
+        - in: query
+          name: "page[after]"
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: Defines the maximum number of objects that may be returned.
+  "/timestamp/v1/hashes/{hash}":
+    get:
+      tags:
+        - Timestamp
+      summary: Get a record by its hash
+      description: Retrieve the smart contract records from the hash of the notarized document. If the hash exists in the smart contract it will return the timestamp (epoch time) and the address that performed the notarization.
+      parameters:
+        - name: hash
+          in: path
+          schema:
+            type: string
+          example: "0xbe5b5152fcd01b6bf53f149bfd1493a49ec5e8ae94cc4c29a81563eea0e347f4"
+          required: true
+      responses:
+        "200":
+          description: hash exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/hash"
+              examples:
+                Get Hash:
+                  value:
+                    hash: 23...7f
+                    txHash: 0x12...ba
+                    timestamp: "2019-10-23T14:25:20+00:00"
+                    registeredBy: 0xfa...94
+                    blockNumber: 739688
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad Request:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The format of {hash} parameter is not valid"
+        "404":
+          description: Store does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not Found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{hash} parameter not found"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal erver Error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      operationId: get-timestamp-v1-hash
+components:
+  schemas:
+    error:
+      type: object
+      title: error
+      description: generic error response body based on problem details schema
+      x-examples:
+        Error example:
+          type: "https://example.com/probs/out-of-credit"
+          title: You do not have enough credit.
+          detail: "Your current balance is 30, but that costs 50."
+          instance: /account/12345/msgs/abc
+          status: 400
+      properties:
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+        type:
+          type: string
+      required:
+        - title
+        - status
+        - detail
+    hash:
+      type: object
+      description: notarized document hash model
+      x-examples:
+        Hash example:
+          hash: 23...d7f
+          txHash: 0x12...ba
+          timestamp: "2019-10-23T14:25:20+00:00"
+          registeredBy: 0xfa...94
+          blockNumber: 739688
+      title: hash
+      properties:
+        hash:
+          type: string
+          example: 892c9637814ccd39256cbaa03250c92507ae183dda03d091fc24a3221ecae303
+          description: "keccak-256 hash of the file"
+        txHash:
+          type: string
+          example: Bearer
+          description: valid Ethereum transaction hash
+        blockNumber:
+          type: integer
+          example: 900
+          description: block number containing the transaction
+        registeredBy:
+          type: string
+          example: "1467841035013"
+          description: valid Ethereum Address
+        timestamp:
+          type: string
+          description: Timestamp converted to ISO 8601 format
+    links:
+      title: links
+      type: object
+      properties:
+        self:
+          type: string
+          description: " URI of the current page"
+        last:
+          type: string
+          description: " URI of the last page"
+        prev:
+          type: string
+          description: " URI of the previous page"
+        next:
+          type: string
+          description: " URI of the next page"
+        first:
+          type: string
+          description: " URI of the first page"
+      description: links model used for pagination
+      x-examples:
+        links example:
+          self: "/timestamp/v1/hashes?page[after]=3&page[size]=2"
+          first: "/timestamp/v1/hashes?page[after]=0&page[size]=2"
+          prev: "/timestamp/v1/hashes?page[after]=2&page[size]=2"
+          next: "/timestamp/v1/hashes?page[after]=4&page[size]=2"
+          last: "/timestamp/v1/hashes?page[after]=13&page[size]=2"
+  examples:
+    BadRequest:
+      value:
+        title: Bad request
+        status: 400
+        detail: Bad request
+    InvalidToken:
+      value:
+        title: Invalid token
+        status: 400
+        detail: Invalid token
+    Unauthorized:
+      value:
+        title: Unauthorized
+        status: 401
+        detail: Unauthorized
+    Forbidden:
+      value:
+        title: Forbidden
+        status: 403
+        detail: Forbidden
+    NotFound:
+      value:
+        title: Not found
+        status: 404
+        detail: Not found
+    TooLarge:
+      value:
+        title: Payload too large
+        status: 413
+        detail: Payload too large
+    InternalError:
+      value:
+        title: Internal error
+        status: 500
+        detail: Internal error
+    ListFiles:
+      value:
+        items:
+          - hash1
+          - hash2
+        total: 2
+    ListFilesPagination:
+      value:
+        items:
+          - hash1
+          - hash2
+        total: 2
+        pageSize: 3
+        links:
+          first: "/timestamp/v1/hashes?page[after]=fff&page[size]=2"
+          prev: "/timestamp/v1/hashes?page[after]=ppp&page[size]=2"
+          next: "/timestamp/v1/hashes?page[after]=nnn&page[size]=2"
+          last: "/timestamp/v1/hashes?page[after]=lll&page[size]=2"
+tags:
+  - name: Timestamp
+    description: Timestamp API
+servers:
+  - url: "http://localhost"
+    description: Local Computer Environment
+  - url: "https://api.ebsi.xyz"
+    description: EBSI Testing Environment
