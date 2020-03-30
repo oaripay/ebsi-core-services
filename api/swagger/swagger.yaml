@@ -1,0 +1,667 @@
+openapi: 3.0.3
+info:
+  title: Identity Hub API
+  description: Set of calls from the EBSI IDentity Hub.
+  license:
+    name: EUPL-1.2
+    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
+  version: 1.0.0
+  contact:
+    name: EBSI Support
+    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
+  termsOfService: "https://api.ebsi.xyz/docs/terms"
+tags:
+  - name: Authentication
+    description: Authentication in Identity Hub API
+  - name: Identity Hub
+    description: Identity Hub API
+paths:
+  /identity-hub/v1/sessions:
+    post:
+      tags:
+        - Authentication
+      summary: Login to Identity Hub.
+      description: Login to Identity Hub.
+      requestBody:
+        description: Method and parameters
+        content:
+          application/json:
+            schema:
+              required:
+                - grantType
+                - assertion
+              type: object
+              properties:
+                grantType:
+                  type: string
+                  example: "urn:ietf:params:oauth:grant-type:jwt-bearer"
+                assertion:
+                  type: string
+                  description: Self signed JWT
+                  example: eyJraWQiOiJHNW01TmxiaTdGWlhPTVlHN2ctZ0tCLVVGdkVBSVUyUFkzSFQ3SFZtYkJzIiwiYWxnIjoiRVMyNTZLIn0.eyJpc3MiOiJlYnNpLXdhbGxldCIsImF1ZCI6ImVic2ktc3RvcmFnZSIsImlhdCI6MTU4NDY5MTIzOCwiZXhwIjoxNTg0NjkyMTM4fQ.boseFUS5fLXdH62ZggWvBkYL65d4xN52lmKNxUFwjLcQvbgF3RyYz-PU8hBY20LuoXbfbivOcEMmVExcwnUSzw
+            examples:
+              login example:
+                value:
+                  grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer"
+                  assertion: "[self-signed JWT]"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionsResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                Bad request:
+                  $ref: "#/components/examples/BadRequest"
+                Issuer not found:
+                  $ref: "#/components/examples/IssuerNotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      operationId: post-identity-hub-v1-sessions
+  "/identity-hub/v1/attributes":
+    get:
+      tags:
+        - Identity Hub
+      summary: Get IDentity Attributes for a given User DID.
+      description: "Retrieves the IDentity Attributes, from a given User DID, that matches the attributes types if specified."
+      responses:
+        "200":
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/attribute"
+                  links:
+                    $ref: "#/components/schemas/links"
+                  pageSize:
+                    type: integer
+                    description: number of items to be return per page
+                  total:
+                    type: integer
+                    description: " total number of pages in a collection"
+              examples:
+                successful list of attributes response:
+                  value:
+                    items:
+                      - id: cred-7ee0d94aab0e4f36eae85127056de084
+                        type:
+                          - VerifiableCredential
+                          - EssifVerifiableID
+                        name: Verifiable ID
+                        did: "did:ebsi:..."
+                        hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
+                        data:
+                          base64: "<bytes for base64>"
+                      - id: cred-7ee0d94aab0e4f36eae85127056de084
+                        type:
+                          - VerifiableCredential
+                          - EssifVerifiableID
+                        name: Verifiable ID
+                        did: "did:ebsi:..."
+                        hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
+                        data:
+                          base64: "<bytes for base64>"
+                    total: 13
+                    pageSize: 2
+                    links:
+                      self: "/identity-hub/v1/attributes?page[after]=3&page[size]=2"
+                      first: "/identity-hub/v1/attributes?page[after]=0&page[size]=2"
+                      prev: "/identity-hub/v1/attributes?page[after]=2&page[size]=2"
+                      next: "/identity-hub/v1/attributes?page[after]=4&page[size]=2"
+                      last: "/identity-hub/v1/attributes?page[after]=13&page[size]=2"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad Request:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The format of {did, type} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: The token is expired
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: "Forbidden You don't have the right to access that ressource"
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal Server Error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: get-identity-hub-v1-attributes-did-type
+      parameters:
+        - in: query
+          name: "page[after]"
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: Defines the maximum number of objects that may be returned.
+        - name: did
+          in: query
+          schema:
+            type: string
+            example: "did:ebsi:..."
+          required: true
+          description: Decentralized Identifier
+        - name: type
+          in: query
+          schema:
+            type: string
+            example: "%5B%22EssifVerifiableID%22%2C%22EuropassDiploma%22%5D"
+          description: Attributes types. They must be url-encoded
+          required: false
+  "/identity-hub/v1/attributes/{hash}":
+    put:
+      tags:
+        - Identity Hub
+      summary: Put new IDentity Attribute
+      description: 'Adds a new IDentity Attribute to the repository for the given DID. the "given DID" is extracted from the Bearer Token.'
+      requestBody:
+        description: New IDentity Attribute to the repository for the DID  extracted from the Bearer Token
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/attributeRequest"
+            examples:
+              New attribute:
+                value:
+                  id: cred-7ee0d94aab0e4f36eae85127056de084
+                  type:
+                    - VerifiableCredential
+                    - EssifVerifiableID
+                  name: Verifiable ID
+                  data:
+                    base64: "<bytes for base64>"
+        required: true
+      responses:
+        "200":
+          description: Attribute already exist with the same payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/attribute"
+              examples:
+                Successful response:
+                  value:
+                    id: cred-7ee0d94aab0e4f36eae85127056de084
+                    type:
+                      - VerifiableCredential
+                      - EssifVerifiableID
+                    name: Verifiable ID
+                    did: "did:ebsi:..."
+                    hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
+                    data:
+                      base64: "<bytes for base64>"
+        "201":
+          description: Create a new attribute
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/attribute"
+              examples:
+                Creation successful:
+                  value:
+                    id: cred-7ee0d94aab0e4f36eae85127056de084
+                    type:
+                      - VerifiableCredential
+                      - EssifVerifiableID
+                    name: Verifiable ID
+                    did: "did:ebsi:..."
+                    hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
+                    data:
+                      base64: "<bytes for base64>"
+        "400":
+          description: Unformatted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad Request:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The {hash} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: Access restricted
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: Forbidden
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal Server Error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: put-identity-hub-v1-attributes-hash
+    parameters:
+      - name: hash
+        in: path
+        schema:
+          type: string
+          example: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
+        required: true
+        description: hash from the data to be stored
+    get:
+      tags:
+        - Identity Hub
+      summary: Get IDentity Attribute by its hash
+      operationId: get-identity-hub-v1-attributes-hash
+      responses:
+        "200":
+          description: success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/attribute"
+              examples:
+                Successful response:
+                  value:
+                    id: cred-7ee0d94aab0e4f36eae85127056de084
+                    type:
+                      - VerifiableCredential
+                      - EssifVerifiableID
+                    name: Verifiable ID
+                    did: "did:ebsi:..."
+                    hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
+                    data:
+                      base64: "<bytes for base64>"
+        "400":
+          description: Unformatted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad Request:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The {hash} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: Access restricted
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: Forbidden
+        "404":
+          description: Hash does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "Hash parameter not found"
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal Server Error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      description: Retrieves an IDentity Attributes that corresponds to the hash
+      security:
+        - bearerAuth: []
+components:
+  schemas:
+    links:
+      title: links
+      type: object
+      properties:
+        self:
+          type: string
+          description: " URI of the current page"
+        last:
+          type: string
+          description: " URI of the last page"
+        prev:
+          type: string
+          description: " URI of the previous page"
+        next:
+          type: string
+          description: " URI of the next page"
+        first:
+          type: string
+          description: " URI of the first page"
+      description: links model used for pagination
+      x-examples:
+        links example:
+          self: "/identity-hub/v1/attributes?page[after]=3&page[size]=2"
+          first: "/identity-hub/v1/attributes?page[after]=0&page[size]=2"
+          prev: "/identity-hub/v1/attributes?page[after]=2&page[size]=2"
+          next: "/identity-hub/v1/attributes?page[after]=4&page[size]=2"
+          last: "/identity-hub/v1/attributes?page[after]=13&page[size]=2"
+
+    ErrorResponse:
+      type: object
+      properties:
+        title:
+          type: string
+        status:
+          type: string
+        detail:
+          type: string
+    SessionsResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+          description: The access token itself
+        tokenType:
+          type: string
+          example: Bearer
+          description: Type of token.
+        expiresIn:
+          type: integer
+          example: 900
+          description: Number of seconds until the token expires
+        issuedAt:
+          type: string
+          example: "1467841035013"
+          description: Date of the token issuance in Unix format.
+      description: Response of the sessions endpoint
+      x-examples:
+        Success:
+          accessToken: 2YotnFZFEjr1zCsicMWpAA
+          tokenType: Bearer
+          expiresIn: 3600
+          issuedAt: "1467841035013"
+    attribute:
+      type: object
+      description: IDentity Attribute
+      x-examples:
+        Attribute example:
+          id: cred-7ee0d94aab0e4f36eae85127056de084
+          type:
+            - VerifiableCredential
+            - EssifVerifiableID
+          name: Verifiable ID
+          did: "did:ebsi:..."
+          hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
+          data:
+            base64: "<bytes for base64>"
+      title: attribute
+      properties:
+        id:
+          type: string
+          description: Attribute Metadata identifier generated by ID Hub to later identify it.
+          example: cred-7ee0d94aab0e4f36eae85127056de084
+        type:
+          type: array
+          description: Attribute type that corresponds to the Credential type that is included as data.
+          example: '["VerifiableCredential", "EssifVerifiableID"]'
+          uniqueItems: true
+          items:
+            type: string
+        did:
+          type: string
+          description: User Decentralized Identifier
+          example: "did:ebsi:..."
+        hash:
+          type: string
+          description: Hash from the data to be stored
+          example: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
+        data:
+          type: object
+          format: date-time
+          description: Data object encoded in base64
+          required:
+            - base64
+          properties:
+            base64:
+              type: string
+              format: byte
+              description: base64 encoding of the data to be stored.
+        name:
+          type: string
+          description: User defined name to better display the attribute type on Frontend UI.
+          example: Verifiable ID
+      required:
+        - id
+        - type
+        - hash
+        - data
+        - name
+    error:
+      title: error
+      type: object
+      description: generic error response body based on problem details schema
+      x-examples:
+        Error example:
+          type: "https://example.com/probs/out-of-credit"
+          title: You do not have enough credit.
+          detail: "Your current balance is 30, but that costs 50."
+          instance: /account/12345/msgs/abc
+          status: 400
+      properties:
+        title:
+          type: string
+        status:
+          type: integer
+        type:
+          type: string
+        instance:
+          type: string
+        detail:
+          type: string
+      required:
+        - title
+        - status
+        - detail
+    attributeRequest:
+      type: object
+      description: IDentity Attribute request for creation
+      x-examples:
+        Attribute request example:
+          id: cred-7ee0d94aab0e4f36eae85127056de084
+          type: "['VerifiableCredential', 'EssifVerifiableID']"
+          name: Verifiable ID
+          data:
+            base64: "<bytes for base64>"
+      title: attribute request
+      properties:
+        id:
+          type: string
+          description: Attribute Metadata identifier generated by ID Hub to later identify it.
+          example: cred-7ee0d94aab0e4f36eae85127056de084
+        type:
+          type: array
+          description: Attribute type that corresponds to the Credential type that is included as data.
+          example: '["VerifiableCredential", "EssifVerifiableID"]'
+          uniqueItems: true
+          items:
+            type: string
+        data:
+          type: object
+          format: date-time
+          description: Data object encoded in base64
+          required:
+            - base64
+          properties:
+            base64:
+              type: string
+              format: byte
+              description: base64 encoding of the data to be stored.
+        name:
+          type: string
+          description: User defined name to better display the attribute type on Frontend UI.
+          example: Verifiable ID
+      required:
+        - id
+        - type
+        - data
+        - name
+  examples:
+    BadRequest:
+      value:
+        title: Bad request
+        status: 400
+        detail: The token is expired
+    Unauthorized:
+      value:
+        title: Unauthorized
+        status: 401
+        detail: Unauthorized
+    Forbidden:
+      value:
+        title: Forbidden
+        status: 403
+        detail: Forbidden
+    InternalError:
+      value:
+        title: Internal Server Error
+        status: 500
+        detail: The server encountered an internal error and was unable to complete your request.
+    ListFilesPagination:
+      value:
+        items:
+          - hash1
+          - hash2
+        total: 2
+        pageSize: 3
+        links:
+          first: "/identity-hub/v1/attributes?page[after]=fff&page[size]=2"
+          prev: "/identity-hub/v1/attributes?page[after]=ppp&page[size]=2"
+          next: "/identity-hub/v1/attributes?page[after]=nnn&page[size]=2"
+          last: "/identity-hub/v1/attributes?page[after]=lll&page[size]=2"
+    ListFiles:
+      value:
+        items:
+          - hash1
+          - hash2
+        total: 2
+    TooLarge:
+      value:
+        title: Payload too large
+        status: 413
+        detail: Payload too large
+    NotFound:
+      value:
+        title: Not found
+        status: 404
+        detail: Not found
+    IssuerNotFound:
+      value:
+        title: Bad Request
+        status: 400
+        detail: Issuer not found in the list of trusted apps
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+servers:
+  - url: "http://localhost"
+    description: Local Computer Environment
+  - url: "https://api.ebsi.xyz"
+    description: EBSI Testing Environment
