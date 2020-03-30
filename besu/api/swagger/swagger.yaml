@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Hyperledger Besu API
-  description: Proxy to the Json RPC node of Besu Blockchain. Methods to read the blockchain does not require an auth token
+  description: This API is part of the Ledger API. This API is a proxy on top of the native Besu API. It's not a RESTful API and it's only relaying the requests to the native Besu's API
   version: 1.0.0
   termsOfService: "/docs/terms"
   contact:
@@ -79,7 +79,7 @@ paths:
       tags:
         - Besu
       summary: Interaction with Besu Blockchain
-      description: 'Proxy to the Json RPC node of Besu Blockchain. Methods to read the blockchain does not require an auth token.'
+      description: 'Proxy to the Json RPC node of Besu Blockchain. Methods to read the blockchain do not require an auth token.'
       requestBody:
         description: |
           The body follows the [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification). It requires the following fields:
