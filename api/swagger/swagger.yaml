@@ -8,13 +8,357 @@ info:
   contact:
     name: EBSI Support
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
-  termsOfService: "https://api.ebsi.xyz/api-catalog/terms"
-  description: "Storage API provides the capabilities to read and write files to off-chain distributed storage, to off-chain private (local) storage and to off-chain external storage trusted providers. The V1 of the API implements only the off-chain distributed storage capabilities."
+  termsOfService: "https://api.ebsi.xyz/docs/terms"
+  description: |
+    "Storage API provides the capabilities to read and write files to off-chain distributed storage, to off-chain private (local) storage and to off-chain external storage trusted providers. 
+    The V1 of the API implements only the off-chain distributed storage capabilities.
+    Key-Value Storage API provides the capabilities to save data in JSON format in the off-chain distributed database."
 paths:
+  /storage/v1/stores:
+    get:
+      tags:
+        - Stores
+      summary: List of available stores
+      description: Returns a list of available stores
+      responses:
+        "200":
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    description: list of channel names
+                    items:
+                      type: string
+                  total:
+                    type: integer
+                    description: " total number of pages in a collection"
+                  pageSize:
+                    type: integer
+                    description: number of items to be return per page
+                  links:
+                    $ref: "#/components/schemas/links"
+              examples:
+                Get stores response:
+                  value:
+                    items:
+                      - distributed
+                    total: 1
+      security:
+        - bearerAuth: []
+      operationId: get-storage-v1-stores
+      parameters:
+        - in: query
+          name: "page[after]"
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: Defines the maximum number of objects that may be returned.
+  "/storage/v1/stores/{store}":
+    get:
+      tags:
+        - Stores
+      summary: Check if exists
+      description: Check if a store exists
+      parameters:
+        - name: store
+          in: path
+          schema:
+            type: string
+          example: distributed
+          required: true
+      responses:
+        "204":
+          description: Store exists
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad Request:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The format of {store} parameter is not valid"
+        "404":
+          description: Store does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{store} parameter not found"
+        "500":
+          description: Internal error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal Server Error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: get-storage-v1-store
+  "/storage/v1/stores/{store}/files":
+    get:
+      tags:
+        - File Storage
+      summary: List of files for a store
+      description: Get the list of files by store
+      parameters:
+        - name: store
+          in: path
+          schema:
+            type: string
+          example: distributed
+          required: true
+        - in: query
+          name: "page[after]"
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        "200":
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/file"
+                  links:
+                    $ref: "#/components/schemas/links"
+                  pageSize:
+                    type: integer
+                    description: number of items to be return per page
+                  total:
+                    type: integer
+                    description: " total number of pages in a collection"
+              examples:
+                successful list files response:
+                  value:
+                    items:
+                      - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
+                      - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
+                    total: 2
+                successful list files with pagination response:
+                  value:
+                    items:
+                      - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
+                      - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
+                    total: 13
+                    pageSize: 2
+                    links:
+                      self: "/storage/v1/stores/distributed/files?page[after]=3&page[size]=2"
+                      first: "/storage/v1/stores/distributed/files?page[after]=0&page[size]=2"
+                      prev: "/storage/v1/stores/distributed/files?page[after]=2&page[size]=2"
+                      next: "/storage/v1/stores/distributed/files?page[after]=4&page[size]=2"
+                      last: "/storage/v1/stores/distributed/files?page[after]=13&page[size]=2"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad Request:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The format of {store} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: Permission denied
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: "Forbidden You don't have the right to access that ressource"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{store} not found"
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal Server Error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: get-storage-v1-store-files
+    post:
+      tags:
+        - File Storage
+      summary: Store files
+      description: Store files in a specific store
+      parameters:
+        - name: store
+          in: path
+          schema:
+            type: string
+          example: distributed
+          required: true
+      requestBody:
+        description: File to store
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  description: file to upload
+                  format: binary
+        required: true
+      responses:
+        "201":
+          description: File stored
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/fileStoreResponse"
+              examples:
+                Successful response:
+                  value:
+                    hash: "0xbe5b5152fcd01b6bf53f149bfd1493a49ec5e8ae94cc4c29a81563eea0e347f4"
+                    function: keccak256
+        "400":
+          description: Unformatted error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Bad Request:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The format of {store} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: Access restricted
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: "Forbidden"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{store} not found"
+        "413":
+          description: Too large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Too large:
+                  value:
+                    title: Request Entity Too Large
+                    status: 413
+                    detail: "The file size exceeds the limit of {sizeLimit} MB"
+        "500":
+          description: Internal Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal Server Error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: post-storage-v1-store-files
   "/storage/v1/stores/{store}/files/{hash}":
     delete:
       tags:
-        - Storage
+        - File Storage
       summary: Delete file
       description: Delete file based on its hash
       parameters:
@@ -40,7 +384,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                bad request:
+                bad Request:
                   value:
                     title: Bad request
                     status: 400
@@ -68,7 +412,7 @@ paths:
                   value:
                     title: Forbidden
                     status: 403
-                    detail: "You don't have the right"
+                    detail: "The client is not allowed to access resource"
         "404":
           description: Not found
           content:
@@ -98,7 +442,7 @@ paths:
       operationId: delete-storage-v1-store-file
     get:
       tags:
-        - Storage
+        - File Storage
       summary: Get file
       description: Get file
       parameters:
@@ -177,7 +521,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                Internal error:
+                Internal Server Error:
                   value:
                     title: Internal Server Error
                     status: 500
@@ -185,12 +529,12 @@ paths:
       security:
         - bearerAuth: []
       operationId: get-storage-v1-store-file
-  "/storage/v1/stores/{store}/files":
+  "/storage/v1/stores/{store}/key-values":
     get:
       tags:
-        - Storage
-      summary: List of files
-      description: Get the list of files by store
+        - Key-Value Storage
+      summary: List of key-values for a store
+      description: Get the list of key-values by store
       parameters:
         - name: store
           in: path
@@ -202,12 +546,12 @@ paths:
           name: "page[after]"
           schema:
             type: string
-          description: cursor from which the results should begin
+          description: Cursor that points to the end of the page of data that has been returned.
         - schema:
             type: integer
           in: query
           name: "page[size]"
-          description: number of elements per page
+          description: Defines the maximum number of objects that may be returned.
       responses:
         "200":
           description: Successful
@@ -219,7 +563,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: "#/components/schemas/file"
+                      $ref: "#/components/schemas/key"
                   links:
                     $ref: "#/components/schemas/links"
                   pageSize:
@@ -229,25 +573,19 @@ paths:
                     type: integer
                     description: " total number of pages in a collection"
               examples:
-                successful list files response:
+                Get key-values:
                   value:
                     items:
-                      - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
-                      - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
-                    total: 2
-                successful list files with pagination response:
-                  value:
-                    items:
-                      - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
-                      - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
+                      - key1
+                      - key2
                     total: 13
                     pageSize: 2
                     links:
-                      self: "/storage/v1/stores/distributed/files?page[after]=3&page[size]=2"
-                      first: "/storage/v1/stores/distributed/files?page[after]=0&page[size]=2"
-                      prev: "/storage/v1/stores/distributed/files?page[after]=2&page[size]=2"
-                      next: "/storage/v1/stores/distributed/files?page[after]=4&page[size]=2"
-                      last: "/storage/v1/stores/distributed/files?page[after]=13&page[size]=2"
+                      self: "/storage/v1/stores/distributed/key-values?page[after]=3&page[size]=2"
+                      first: "/storage/v1/stores/distributed/key-values?page[after]=0&page[size]=2"
+                      prev: "/storage/v1/stores/distributed/key-values?page[after]=2&page[size]=2"
+                      next: "/storage/v1/stores/distributed/key-values?page[after]=4&page[size]=2"
+                      last: "/storage/v1/stores/distributed/key-values?page[after]=13&page[size]=2"
         "400":
           description: Bad request
           content:
@@ -255,7 +593,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                Bad request:
+                Bad Request:
                   value:
                     title: Bad request
                     status: 400
@@ -296,26 +634,15 @@ paths:
                     title: Not Found
                     status: 404
                     detail: "{store} not found"
-        "500":
-          description: Internal Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/error"
-              examples:
-                Internal error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
       security:
         - bearerAuth: []
-      operationId: get-storage-v1-store-files
-    post:
+      operationId: get-storage-v1-store-key-values
+  "/storage/v1/stores/{store}/key-values/{key}":
+    put:
       tags:
-        - Storage
-      summary: Store files
-      description: Store files in a specific store
+        - Key-Value Storage
+      summary: Add or update a value
+      description: Create a new entry or to update an existing one
       parameters:
         - name: store
           in: path
@@ -323,44 +650,70 @@ paths:
             type: string
           example: distributed
           required: true
+        - name: key
+          in: path
+          schema:
+            type: string
+          example: "key1"
+          required: true
       requestBody:
-        description: File to store
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required:
-                - file
-              properties:
-                file:
-                  type: string
-                  description: file to upload
-                  format: binary
         required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - type: string
+                - type: object
+            examples:
+              Simple value:
+                value: value
+              Json value:
+                value:
+                  prop: value
+        description: "Value. Can be any valid JSON. Size limit: 1MB"
       responses:
-        "201":
-          description: File stored
+        "200":
+          description: Object created
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/fileStoreResponse"
+                type: object
+                properties:
+                  "{key}":
+                    type: string
+                    example: '"{stored value}"'
+                    description: Key Value example
               examples:
-                Successful response:
+                success:
                   value:
-                    hash: "0xbe5b5152fcd01b6bf53f149bfd1493a49ec5e8ae94cc4c29a81563eea0e347f4"
-                    function: keccak256
+                    "{key}": "{stored value}"
+        "201":
+          description: Object updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "{key}":
+                    type: string
+                    example: '"{stored value}"'
+                    description: Key Value example
+              examples:
+                success:
+                  value:
+                    "{key}": "{stored value}"
         "400":
-          description: Unformatted error
+          description: Bad request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                Bad request:
+                bad Request:
                   value:
                     title: Bad request
                     status: 400
-                    detail: "The format of {store} parameter is not valid"
+                    detail: "The format of the {store,key} parameter is not valid"
         "401":
           description: Unauthorized
           content:
@@ -372,7 +725,7 @@ paths:
                   value:
                     title: Unauthorized
                     status: 401
-                    detail: Access restricted
+                    detail: JWT is missing
         "403":
           description: Forbidden
           content:
@@ -384,7 +737,7 @@ paths:
                   value:
                     title: Forbidden
                     status: 403
-                    detail: "Forbidden"
+                    detail: "The client is not allowed to access resource"
         "404":
           description: Not found
           content:
@@ -394,23 +747,35 @@ paths:
               examples:
                 Not found:
                   value:
-                    title: Not Found
+                    title: Not found
                     status: 404
-                    detail: "{store} not found"
+                    detail: "{store,key} is not found"
         "413":
-          description: Too large
+          description: Entity Too Large
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                Too large:
+                Request Entity Too Large:
                   value:
                     title: Request Entity Too Large
                     status: 413
-                    detail: "The file size exceeds the limit of {sizeLimit} MB"
+                    detail: "The value size exceeds the limit of {sizeLimit} MB"
+        "414":
+          description: URI Too Long
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Key Too Large:
+                  value:
+                    title: Key Too Large
+                    status: 414
+                    detail: "The key size exceeds the limit of 256 bytes"
         "500":
-          description: Internal Error
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -423,13 +788,12 @@ paths:
                     detail: The server encountered an internal error and was unable to complete your request.
       security:
         - bearerAuth: []
-      operationId: post-storage-v1-store-files
-  "/storage/v1/stores/{store}":
+      operationId: put-storage-v1-store-key-value
     get:
       tags:
-        - Storage
-      summary: Check if exists
-      description: Check if a store exists
+        - Key-Value Storage
+      summary: Get object by its key
+      description: Get object identified by its key
       parameters:
         - name: store
           in: path
@@ -437,9 +801,27 @@ paths:
             type: string
           example: distributed
           required: true
+        - name: key
+          in: path
+          schema:
+            type: string
+          example: "key1"
+          required: true
       responses:
-        "204":
-          description: Store exists
+        "200":
+          description: Get object
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: string
+                  - type: object
+              examples:
+                Simple value:
+                  value: value
+                Json value:
+                  value:
+                    prop: value
         "400":
           description: Bad request
           content:
@@ -447,13 +829,37 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                Bad request:
+                bad Request:
                   value:
                     title: Bad request
                     status: 400
-                    detail: "The format of {store} parameter is not valid"
+                    detail: "The format of the {store,key} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: JWT is missing
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: "The client is not allowed to access resource"
         "404":
-          description: Store does not exist
+          description: Not found
           content:
             application/json:
               schema:
@@ -461,11 +867,11 @@ paths:
               examples:
                 Not found:
                   value:
-                    title: Not Found
+                    title: Not found
                     status: 404
-                    detail: "{store} parameter not found"
+                    detail: "{store,key} is not found"
         "500":
-          description: Internal error
+          description: Internal Server Error
           content:
             application/json:
               schema:
@@ -478,54 +884,237 @@ paths:
                     detail: The server encountered an internal error and was unable to complete your request.
       security:
         - bearerAuth: []
-      operationId: get-storage-v1-store
-  /storage/v1/stores:
-    get:
+      operationId: get-storage-v1-store-key-value
+    delete:
       tags:
-        - Storage
-      summary: List of available stores
-      description: Returns a list of available stores
+        - Key-Value Storage
+      summary: Delete object by its key
+      description: Delete object identified by its key
+      parameters:
+        - name: store
+          in: path
+          schema:
+            type: string
+          example: distributed
+          required: true
+        - name: key
+          in: path
+          schema:
+            type: string
+          example: "key1"
+          required: true
+      responses:
+        "204":
+          description: Object deleted
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                bad Request:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The format of the {store,key} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: JWT is missing
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: "The client is not allowed to access resource"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not found:
+                  value:
+                    title: Not found
+                    status: 404
+                    detail: "{store,key} is not found"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
+      security:
+        - bearerAuth: []
+      operationId: delete-storage-v1-store-key-value
+    patch:
+      tags:
+        - Key-Value Storage
+      summary: Apply a patch to add an item to an array in an existing value
+      description: Patch an existing value
+      parameters:
+        - name: store
+          in: path
+          schema:
+            type: string
+          example: distributed
+          required: true
+        - name: key
+          in: path
+          schema:
+            type: string
+          example: key1
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: "#/components/schemas/patch"
+            examples:
+              Add value to a list:
+                value:
+                  - op: add
+                    path: /list/-
+                    value:
+                      id: cred-new-credential
+                      type: Verifiable ID
+                      hash: "0x4f76b6a20aa300c6975ae3121c4cc859465378460da2500e4ba5d2d41b428728"
+                      name: Verifiable ID
+                      issuer: "did:ebsi:0x79475f0ffB15eD8c27D7Fe9A0Ceb1585Cc3fB1B3"
+        description: " JSON Patch standard"
       responses:
         "200":
-          description: Successful
+          description: Object patched
           content:
             application/json:
               schema:
                 type: object
-                properties:
-                  items:
-                    type: array
-                    description: list of channel names
-                    items:
-                      type: string
-                  total:
-                    type: integer
-                    description: " total number of pages in a collection"
-                  pageSize:
-                    type: integer
-                    description: number of items to be return per page
-                  links:
-                    $ref: "#/components/schemas/links"
+                description: Patched object
               examples:
-                get stores response:
+                Patch successfull:
                   value:
-                    items:
-                      - distributed
-                    total: 1
+                    list:
+                      - id: cred-c1212ff0-440e-11ea-bf45-2d68c2715ada
+                        type: Verifiable ID
+                        hash: "0x4f76b6a20aa300c6975ae3121c4cc859465378460da2500e4ba5d2d41b428728"
+                        name: Verifiable ID
+                        issuer: "did:ebsi:0x79475f0ffB15eD8c27D7Fe9A0Ceb1585Cc3fB1B3"
+                      - id: cred-new-credential
+                        type: Verifiable ID
+                        hash: "0x4f76b6a20aa300c6975ae3121c4cc859465378460da2500e4ba5d2d41b428728"
+                        name: Verifiable ID
+                        issuer: "did:ebsi:0x79475f0ffB15eD8c27D7Fe9A0Ceb1585Cc3fB1B3"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                bad Request:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The format of the {store,key} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Unauthorized:
+                  value:
+                    title: Unauthorized
+                    status: 401
+                    detail: JWT is missing
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Forbidden:
+                  value:
+                    title: Forbidden
+                    status: 403
+                    detail: The client is not allowed to access resource
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not found:
+                  value:
+                    title: Not found
+                    status: 404
+                    detail: "{store,key} is not found"
+        "413":
+          description: Entity Too Large
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Request Entity Too Large:
+                  value:
+                    title: Request Entity Too Large
+                    status: 413
+                    detail: "The value size exceeds the limit of {sizeLimit} MB"
+        "414":
+          description: URI Too Long
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Key Too Large:
+                  value:
+                    title: Key Too Large
+                    status: 414
+                    detail: The key size exceeds the limit of 256 bytes
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Internal error:
+                  value:
+                    title: Internal Server Error
+                    status: 500
+                    detail: The server encountered an internal error and was unable to complete your request.
       security:
         - bearerAuth: []
-      operationId: get-storage-v1-stores
-      parameters:
-        - in: query
-          name: "page[after]"
-          schema:
-            type: string
-          description: cursor from which the results should begin
-        - schema:
-            type: integer
-          in: query
-          name: "page[size]"
-          description: number of elements per page
+      operationId: patch-storage-v1-store-key-value
+
   /storage/v1/sessions:
     post:
       tags:
@@ -563,7 +1152,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/session"
               examples:
-                session successfull response:
+                Session successfull response:
                   value:
                     accessToken: 2YotnFZFEjr1zCsicMWpAA
                     tokenType: Bearer
@@ -576,12 +1165,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                Bad request:
+                Bad Request:
                   value:
                     title: Bad request
                     status: 400
                     detail: Issuer not found in the Trusted Apps Registry
-                expired token:
+                Expired token:
                   value:
                     title: Bad request
                     status: 400
@@ -598,7 +1187,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/error"
               examples:
-                Internal error:
+                Internal Server Error:
                   value:
                     title: Internal Server Error
                     status: 500
@@ -606,6 +1195,65 @@ paths:
       operationId: post-storage-v1-sessions
 components:
   schemas:
+    patch:
+      type: array
+      description: format for expressing a sequence of operations to apply to a target JSON document
+      items:
+        type: object
+        properties:
+          op:
+            type: string
+            enum:
+              - add
+              - remove
+              - replace
+              - move
+              - copy
+              - test
+            description: Operation to perform
+          path:
+            type: string
+            description: string containing a JSON-Pointer value that references a location within the target document where the operation is performed.
+          value:
+            oneOf:
+              - type: string
+              - type: object
+            description: "value to be added, replaced or tested"
+          from:
+            type: string
+            description: "should be used with move, copy and remove operations"
+        required:
+          - op
+          - path
+      x-examples:
+        Replace:
+          op: replace
+          path: /a/b/c
+          value: 42
+        Add:
+          op: add
+          path: /a/b/c
+          value:
+            - foo
+            - bar
+        Move:
+          op: move
+          from: /a/b/c
+          path: /a/b/d
+        Copy:
+          op: copy
+          from: /a/b/c
+          path: /a/b/e
+        Remove:
+          op: remove
+          path: /a/b/c
+        Test:
+          op: test
+          path: /a/b/c
+          value: foo
+    key:
+      type: string
+      description: key from a key-value pair
     file:
       type: string
       description: file model
@@ -718,12 +1366,12 @@ components:
       value:
         title: Unauthorized
         status: 401
-        detail: Unauthorized
+        detail: Permission denied
     Forbidden:
       value:
         title: Forbidden
         status: 403
-        detail: Forbidden
+        detail: Forbidden You don't have the right to access that ressource
     NotFound:
       value:
         title: Not found
@@ -765,8 +1413,12 @@ components:
 tags:
   - name: Authentication
     description: Authentication in Storage API
-  - name: Storage
-    description: Storage API
+  - name: Stores
+    description: Stores
+  - name: File Storage
+    description: File Storage API
+  - name: Key-Value Storage
+    description: Key-Value Storage API
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
