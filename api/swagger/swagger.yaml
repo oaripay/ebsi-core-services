@@ -89,7 +89,7 @@ paths:
       tags:
         - Timestamp
       summary: Get a record by its hash
-      description: Retrieve the smart contract records from the hash of the notarized document. If the hash exists in the smart contract it will return the timestamp (epoch time) and the address that performed the notarization.
+      description: Retrieve notarization record from the smart contract by the hash of the notarized document. If the hash exists in the smart contract, it will return the timestamp (epoch time) and the address that performed the notarization.
       parameters:
         - name: hash
           in: path
