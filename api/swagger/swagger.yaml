@@ -17,8 +17,7 @@ paths:
   /storage/v1/stores:
     get:
       tags:
-        - File Storage
-        - Key-Value Storage
+        - Stores
       summary: List of available stores
       description: Returns a list of available stores
       responses:
@@ -65,8 +64,7 @@ paths:
   "/storage/v1/stores/{store}":
     get:
       tags:
-        - File Storage
-        - Key-Value Storage
+        - Stores
       summary: Check if exists
       description: Check if a store exists
       parameters:
@@ -676,8 +674,34 @@ paths:
       responses:
         "200":
           description: Object created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "{key}":
+                    type: string
+                    example: '"{stored value}"'
+                    description: Key Value example
+              examples:
+                success:
+                  value:
+                    "{key}": "{stored value}"
         "201":
           description: Object updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  "{key}":
+                    type: string
+                    example: '"{stored value}"'
+                    description: Key Value example
+              examples:
+                success:
+                  value:
+                    "{key}": "{stored value}"
         "400":
           description: Bad request
           content:
@@ -1389,6 +1413,8 @@ components:
 tags:
   - name: Authentication
     description: Authentication in Storage API
+  - name: Stores
+    description: Stores
   - name: File Storage
     description: File Storage API
   - name: Key-Value Storage
