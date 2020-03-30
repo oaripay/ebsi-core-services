@@ -18,8 +18,6 @@ tags:
 paths:
   /identity-hub/v1/sessions:
     post:
-      security:
-        - bearerAuth: []
       tags:
         - Authentication
       summary: Login to Identity Hub.
@@ -386,6 +384,18 @@ paths:
                     title: Forbidden
                     status: 403
                     detail: Forbidden
+        "404":
+          description: Hash does not exist
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/error"
+              examples:
+                Not found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "Hash parameter not found"
         "500":
           description: Internal Error
           content:
