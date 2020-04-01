@@ -595,13 +595,13 @@ paths:
       tags:
         - Besu
       summary: Hyperledger Besu RPC APIs
-      description: "Proxy to the Json RPC node of Besu Blockchain. Methods to read the blockchain do not require an auth token."
+      description: "Exposed Besu JSON-RPC APIs. Write methods require authentication."
       requestBody:
         description: |
           The body follows the [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification). It requires the following fields:
 
           - **jsonrpc**: Must be exactly '2.0'
-          - **method**: Besu RPC native method that needs to be invoked. The list of all possible methods can be found at [eth JSON RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC).
+          - **method**: Besu RPC native method that needs to be invoked. The list of all possible methods can be found at [eth JSON RPC](https://besu.hyperledger.org/en/stable/Reference/API-Methods/).
           - **params**: Array of parameters
           - **id**: Identifier stablished by the client
         content:
@@ -754,6 +754,7 @@ components:
       bearerFormat: JWT
   schemas:
     SessionsRequest:
+      title: Sessions Request
       description: Request for OAuth 2.0 JWT bearer assertion grant.
       required:
         - grantType
@@ -769,6 +770,7 @@ components:
           description: Self-signed JWT
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
     SessionsResponse:
+      title: Sessions Response
       description: Authentication JWT
       type: object
       properties:
@@ -789,6 +791,7 @@ components:
           type: string
           example: "1467841035013"
     BesuResponse:
+      title: Besu Response
       type: object
       properties:
         jsonrpc:
@@ -801,11 +804,11 @@ components:
           description: Result of the call
           type: object
     channel:
-      title: channel
+      title: Hyperledger Fabric Channel
       type: string
+      description: Hyperledger Fabric channel data mode
       x-examples:
         Channel: ebsichannel
-      description: hyperledger fabric channel model
     Problem:
       description: A Problem Details object (RFC 7807)
       type: object
@@ -849,9 +852,9 @@ components:
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
     block:
-      title: block
+      title: Hyperledger Fabric Block
       type: object
-      description: hyperledger fabric block model
+      description: Hyperledger Fabric block data model
       x-examples:
         Block:
           blockNum: 15
@@ -888,12 +891,12 @@ components:
           type: string
           description: time of creation
         channelName:
-          type: string
+          type: string data
           description: channel name
     transaction:
-      title: transaction
+      title: Hyperledger Fabric Transaction
       type: object
-      description: hyperledger fabric transaction model
+      description: Hyperledger Fabric transaction data model
       x-examples:
         transaction example:
           txHash: 10f75d8ead6759a293c2aaa78c453c13fcc3c764cc325f2fd58255c5eba1a686
@@ -934,7 +937,7 @@ components:
           type: string
           description: channel name
     links:
-      title: links
+      title: Links
       type: object
       properties:
         self:
@@ -978,14 +981,14 @@ components:
         detail: The method 'eth_sendRawTransaction' is not available for anonymous access
     MethodDisabled:
       value:
-        title: Bad request
+        title: Bad Request
         status: 400
         detail: The method 'eth_compileSolidity' is currently disabled
     MethodNoExists:
       value:
-        title: Bad request
+        title: Bad Request
         status: 400
-        detail: The method 'xxxxxx' does not exist
+        detail: The method {method} does not exist
     BadRequest:
       value:
         title: Bad Request
