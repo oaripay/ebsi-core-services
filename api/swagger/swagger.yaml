@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Hyperledger Fabric REST API
+  title: Ledger API
   description: |
     Ledger API is a Core Service of the EBSI platform providing access to the EBSI Ledger Protocols and Smart Contracts services of the lower layer Chain & Storage. In v1 we provide capabilities to interact with Hyperledger Besu and Fabric ledgers.
 
@@ -16,14 +16,14 @@ info:
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
   termsOfService: "/docs/terms"
 tags:
-  - name: Fabric
-    description: Hyperledger Fabric REST APIs
-    externalDocs:
-      url: "http://docs.my-api.com/store-orders.htm"
   - name: Authentication
     description: Authenticate to Ledger API
   - name: Besu
     description: Interaction with Besu blockchain
+  - name: Fabric
+    description: Hyperledger Fabric REST APIs
+    externalDocs:
+      url: "http://docs.my-api.com/store-orders.htm"
 paths:
   /ledger/v1/sessions:
     post:
@@ -95,7 +95,7 @@ paths:
                     type: integer
                     description: "Number of items to be return per page."
               examples:
-                Get available channels:
+                Get Available Channels:
                   value:
                     items:
                       - channelA
@@ -158,7 +158,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Invalid channel:
+                Invalid {channel} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -261,7 +261,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad Request:
+                Invalid {channel} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -421,7 +421,7 @@ paths:
                     items:
                       $ref: "#/components/schemas/transaction"
               examples:
-                successful returns list of transaction:
+                Transaction List:
                   value:
                     items:
                       - txHash: 10f75d8ead6759a293c2aaa78c453c13fcc3c764cc325f2fd58255c5eba1a686
@@ -457,7 +457,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                bad request:
+                Invalid {channel} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -469,7 +469,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                channel not found:
+                Channel Not Found:
                   value:
                     title: Not Found
                     status: 404
@@ -521,7 +521,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/transaction"
               examples:
-                transaction:
+                Transaction:
                   value:
                     txHash: ca926ad2367b0f194ab6acccfa331a35c45575eb4874d518e4b355d2a808acc7
                     validationCode: VALID
@@ -539,7 +539,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                bad request:
+                Invalid {transactionId} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -551,12 +551,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                channel not found:
+                Channel Not Found:
                   value:
                     title: Not Found
                     status: 404
                     detail: "{channel} parameter not found"
-                transaction not found:
+                Transaction Not Found:
                   value:
                     title: Not Found
                     status: 404
@@ -568,7 +568,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                channel internal server error:
+                Channel Internal Server Error:
                   value:
                     title: Internal Server Error
                     status: 500
@@ -594,7 +594,7 @@ paths:
       operationId: post-ledger-v1-blockchains-besu
       tags:
         - Besu
-      summary: Interaction with Besu Blockchain
+      summary: Hyperledger Besu RPC APIs
       description: "Proxy to the Json RPC node of Besu Blockchain. Methods to read the blockchain do not require an auth token."
       requestBody:
         description: |
@@ -630,7 +630,7 @@ paths:
                   type: integer
                   example: 1
             examples:
-              Get block:
+              Get Block:
                 value:
                   jsonrpc: "2.0"
                   method: eth_getBlockByNumber
@@ -638,14 +638,14 @@ paths:
                     - "123456"
                     - true
                   id: 1
-              Get transaction:
+              Get Transaction:
                 value:
                   jsonrpc: "2.0"
                   method: eth_getTransactionByHash
                   params:
                     - "0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b"
                   id: 1
-              Send transaction:
+              Send Transaction:
                 value:
                   jsonrpc: "2.0"
                   method: eth_sendRawTransaction
@@ -661,7 +661,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/BesuResponse"
               examples:
-                Get block response:
+                Get Block:
                   value:
                     jsonrpc: "2.0"
                     id: 1
@@ -685,7 +685,7 @@ paths:
                       timestamp: "0x5e7b16f4"
                       uncles: []
                       transactions: []
-                Get transaction response:
+                Get Transaction:
                   value:
                     jsonrpc: "2.0"
                     id: 1
@@ -704,7 +704,7 @@ paths:
                       v: "0x25"
                       r: "0x1b5e176d927f8e9ab405058b2d2457392da3e20f328b16ddabcebc33eaac5fea"
                       s: "0x4ba69724e8f69de52f0125ad8b3c5c2cef33019bac3249e2c0a2192766d1721c"
-                Send transaction response:
+                Send Transaction:
                   value:
                     jsonrpc: "2.0"
                     id: 1
@@ -716,13 +716,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad request:
+                Bad Request:
                   $ref: "#/components/examples/BadRequest"
-                Invalid token:
+                Invalid Token:
                   $ref: "#/components/examples/InvalidToken"
-                Method disabled:
+                Method Disabled:
                   $ref: "#/components/examples/MethodDisabled"
-                Invalid method:
+                Invalid Method:
                   $ref: "#/components/examples/MethodNoExists"
         "401":
           description: Unauthorized
@@ -742,7 +742,7 @@ paths:
               examples:
                 Forbidden:
                   $ref: "#/components/examples/BesuPermissions"
-                Deployment forbidden:
+                Deployment Forbidden:
                   $ref: "#/components/examples/NoDeploySC"
       security:
         - bearerAuth: []
@@ -804,7 +804,7 @@ components:
       title: channel
       type: string
       x-examples:
-        channel example: ebsichannel
+        Channel: ebsichannel
       description: hyperledger fabric channel model
     Problem:
       description: A Problem Details object (RFC 7807)
@@ -853,7 +853,7 @@ components:
       type: object
       description: hyperledger fabric block model
       x-examples:
-        Block example:
+        Block:
           blockNum: 15
           txCount: 1
           dataHash: 990ebf9a62d7d995aa126fa675139059ed96ac0b57dae8e2277c0cb744563dfc
@@ -954,7 +954,7 @@ components:
           description: " URI of the first page"
       description: links model used for pagination
       x-examples:
-        links example:
+        Links:
           self: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=3&page[size]=2"
           first: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2"
           prev: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2"
