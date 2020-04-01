@@ -8,7 +8,7 @@ info:
   contact:
     name: EBSI Support
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
-  termsOfService: "https://api.ebsi.xyz/docs/terms"
+  termsOfService: "/docs/terms"
   description: |
     Storage API is a Core Service of the EBSI platform providing access to the Off-chain Storage services of the lower layer Chain & Storage. This API provides read and write storage capabilities of files and Key-Value.
 
@@ -80,7 +80,7 @@ paths:
         "204":
           description: Store exists
         "400":
-          description: Bad request
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -88,7 +88,7 @@ paths:
               examples:
                 Bad Request:
                   value:
-                    title: Bad request
+                    title: Bad Request
                     status: 400
                     detail: "The format of {store} parameter is not valid"
         "404":
@@ -190,7 +190,7 @@ paths:
               examples:
                 Bad Request:
                   value:
-                    title: Bad request
+                    title: Bad Request
                     status: 400
                     detail: "The format of {store} parameter is not valid"
         "401":
@@ -511,9 +511,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Not found:
+                Not Found:
                   value:
-                    title: Not found
+                    title: Not Found
                     status: 404
                     detail: "{store,hash} parameter not found"
         "500":
@@ -1198,6 +1198,7 @@ paths:
 components:
   schemas:
     patch:
+      title: Patch
       type: array
       description: format for expressing a sequence of operations to apply to a target JSON document
       items:
@@ -1254,11 +1255,13 @@ components:
           path: /a/b/c
           value: foo
     key:
+      title: Key
       type: string
       description: key from a key-value pair
     file:
+      title: File
       type: string
-      description: file model
+      description: File data model
     Problem:
       description: A Problem Details object (RFC 7807)
       type: object
@@ -1302,6 +1305,7 @@ components:
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
     session:
+      title: Session
       type: object
       properties:
         accessToken:
@@ -1323,9 +1327,8 @@ components:
           tokenType: Bearer
           expiresIn: 3600
           issuedAt: "1467841035013"
-      title: ""
     links:
-      title: links
+      title: Links
       type: object
       properties:
         self:
@@ -1352,7 +1355,7 @@ components:
           next: "/storage/v1/stores?page[after]=4&page[size]=2"
           last: "/storage/v1/stores?page[after]=13&page[size]=2"
     fileStoreResponse:
-      title: fileStoreResponse
+      title: File Store Response
       type: object
       x-examples:
         file store response:
@@ -1372,12 +1375,12 @@ components:
   examples:
     BadRequest:
       value:
-        title: Bad request
+        title: Bad Request
         status: 400
         detail: Bad request
     InvalidToken:
       value:
-        title: Invalid token
+        title: Invalid Token
         status: 400
         detail: Invalid token
     Unauthorized:
@@ -1392,17 +1395,17 @@ components:
         detail: Forbidden You don't have the right to access that ressource
     NotFound:
       value:
-        title: Not found
+        title: Not Found
         status: 404
         detail: Not found
     TooLarge:
       value:
-        title: Payload too large
+        title: Payload Too Large
         status: 413
         detail: Payload too large
     InternalError:
       value:
-        title: Internal error
+        title: Internal Error
         status: 500
         detail: Internal error
     ListFiles:
