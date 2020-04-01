@@ -1,7 +1,12 @@
 openapi: 3.0.3
 info:
   title: Hyperledger Fabric REST API
-  description: Collection of APIs to interact with Hyperledger Fabric Network. For write operations use the official Fabric SDK (node/java/go) as described in the Wiki.
+  description: |
+    Ledger API is a Core Service of the EBSI platform providing access to the EBSI Ledger Protocols and Smart Contracts services of the lower layer Chain & Storage. In v1 we provide capabilities to interact with Hyperledger Besu and Fabric ledgers.
+
+    For Besu, we are exposing a selected set of BESU RPC native APIs. Write operations require authentication.
+
+    For Fabric, we start in v1 by providing an initial set of read REST API to interact with the ledger.
   license:
     name: EUPL-1.2
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
@@ -15,7 +20,53 @@ tags:
     description: Hyperledger Fabric REST APIs
     externalDocs:
       url: "http://docs.my-api.com/store-orders.htm"
+  - name: Authentication
+    description: Authenticate to Ledger API
+  - name: Besu
+    description: Interaction with Besu blockchain
 paths:
+  /ledger/v1/sessions:
+    post:
+      operationId: post-ledger-v1-sessions
+      tags:
+        - Authentication
+      summary: Login to Ledger
+      description: Login to Ledger API
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionsRequest"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionsResponse"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Request:
+                  $ref: "#/components/examples/BadRequest"
+                Invalid Token:
+                  $ref: "#/components/examples/InvalidToken"
+                Issuer Not Found:
+                  $ref: "#/components/examples/IssuerNotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /ledger/v1/blockchains/fabric/channels:
     get:
       tags:
@@ -60,7 +111,7 @@ paths:
         "500":
           description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 type: object
                 properties:
@@ -95,6 +146,7 @@ paths:
     get:
       tags:
         - Fabric
+      description: Check if channel exists
       summary: Check if channel exists
       responses:
         "204":
@@ -102,9 +154,9 @@ paths:
         "400":
           description: "Bad request. The format of the {channel} parameter is not valid."
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Invalid channel:
                   value:
@@ -114,9 +166,9 @@ paths:
         "404":
           description: Channel {channel} not found
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Channel Not Found:
                   value:
@@ -126,9 +178,9 @@ paths:
         "500":
           description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -205,9 +257,9 @@ paths:
         "400":
           description: "Bad request the format of {channel} parameter is not valid"
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
                   value:
@@ -217,9 +269,9 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Channel Not Found:
                   value:
@@ -229,9 +281,9 @@ paths:
         "500":
           description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -283,9 +335,9 @@ paths:
         "400":
           description: "Bad request the format of {channel} or {blockNumber}  parameter is not valid"
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Invalid {channel} Parameter:
                   value:
@@ -295,9 +347,9 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Channel Not Found:
                   value:
@@ -312,9 +364,9 @@ paths:
         "500":
           description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -401,9 +453,9 @@ paths:
         "400":
           description: "Bad request the format of {channel} parameter is not valid"
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 bad request:
                   value:
@@ -413,9 +465,9 @@ paths:
         "404":
           description: Channel not found
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 channel not found:
                   value:
@@ -425,9 +477,9 @@ paths:
         "500":
           description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -483,9 +535,9 @@ paths:
         "400":
           description: "Bad request the format of {channel} or {transactionId} parameter is not valid"
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 bad request:
                   value:
@@ -495,9 +547,9 @@ paths:
         "404":
           description: Not Found
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 channel not found:
                   value:
@@ -512,9 +564,9 @@ paths:
         "500":
           description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 channel internal server error:
                   value:
@@ -537,6 +589,163 @@ paths:
         in: path
         required: true
         description: transaction identifier
+  /ledger/v1/blockchains/besu:
+    post:
+      operationId: post-ledger-v1-blockchains-besu
+      tags:
+        - Besu
+      summary: Interaction with Besu Blockchain
+      description: "Proxy to the Json RPC node of Besu Blockchain. Methods to read the blockchain do not require an auth token."
+      requestBody:
+        description: |
+          The body follows the [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification). It requires the following fields:
+
+          - **jsonrpc**: Must be exactly '2.0'
+          - **method**: Besu RPC native method that needs to be invoked. The list of all possible methods can be found at [eth JSON RPC](https://github.com/ethereum/wiki/wiki/JSON-RPC).
+          - **params**: Array of parameters
+          - **id**: Identifier stablished by the client
+        content:
+          application/json:
+            schema:
+              required:
+                - jsonrpc
+                - id
+                - method
+                - params
+              type: object
+              properties:
+                jsonrpc:
+                  description: Must be exactly '2.0'
+                  type: string
+                method:
+                  description: Besu RPC native method that needs to be invoked
+                  type: string
+                params:
+                  description: Array of parameters
+                  type: array
+                  items:
+                    type: string
+                id:
+                  description: Identifier stablished by the client
+                  type: integer
+                  example: 1
+            examples:
+              Get block:
+                value:
+                  jsonrpc: "2.0"
+                  method: eth_getBlockByNumber
+                  params:
+                    - "123456"
+                    - true
+                  id: 1
+              Get transaction:
+                value:
+                  jsonrpc: "2.0"
+                  method: eth_getTransactionByHash
+                  params:
+                    - "0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b"
+                  id: 1
+              Send transaction:
+                value:
+                  jsonrpc: "2.0"
+                  method: eth_sendRawTransaction
+                  params:
+                    - "---signed raw transation---"
+                  id: 1
+        required: true
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BesuResponse"
+              examples:
+                Get block response:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      number: "0x1e240"
+                      hash: "0x266bd6a41047c0929ebedd56cae148caab0d20a23aa1895bb95524a300ef9187"
+                      parentHash: "0x705094eb8ca67929254bedaff973d254311d72a38dc2b95a8711682f034fd3b4"
+                      nonce: "0x0000000000000000"
+                      sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
+                      logsBloom: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                      transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+                      stateRoot: "0x4b7559720ae8af08782bcadc07c94243ceaf5fe1d7ee0914d76ad37969791dc4"
+                      receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+                      miner: "0x7df7b640d9c4c24f563a7d5702499521255fc165"
+                      difficulty: "0x1"
+                      totalDifficulty: "0x1e241"
+                      extraData: "0xf90148a00000000000000000000000000000000000000000000000000000000000000000f854947df7b640d9c4c24f563a7d5702499521255fc165949d2375d1b45b54603a365e23e0197c0a7a8150c894da316adfafdfe6c627e9429176954f25e4a2fb8e94f618d305b3cc3e7181937da874ad07d6f2d67c10808400000000f8c9b841e5e6da6c913c81673972889aeaf5b1dc1b4ae3070ed9dcc3a9e8d7de36a7f778694ff632bdc8fd8964e6b95e592eb17132f8eeb42ebd8044e3646bc7d7154fde01b841e7d6e72d7423f1eb9ba5448fd7c4c2f2770a668bdf187aa3a330e708bf369cf1645ea3d2f03924125509c3aaaef01c1efd8c26122abcd7c96ba080f391d1db6801b841c30e22e5549ed4b06ab8a9f19cd1b41d250e06e5229b945475f2616b9c6eb3a9325a9ea57926da4081a33279a78fab219f803ed638300378e819bb6ffc60479100"
+                      size: "0x350"
+                      gasLimit: "0x1fffffffffffff"
+                      gasUsed: "0x0"
+                      timestamp: "0x5e7b16f4"
+                      uncles: []
+                      transactions: []
+                Get transaction response:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      blockHash: "0x1d59ff54b1eb26b013ce3cb5fc9dab3705b415a67127a003c3e61eb445bb8df2"
+                      blockNumber: "0x5daf3b"
+                      from: "0xa7d9ddbe1f17865597fbd27ec712455208b6b76d"
+                      gas: "0xc350"
+                      gasPrice: "0x0"
+                      hash: "0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b"
+                      input: "0x68656c6c6f21"
+                      nonce: "0x15"
+                      to: "0xf02c1c8e6114b1dbe8937a39260b5b0a374432bb"
+                      transactionIndex: "0x41"
+                      value: "0xf3dbb76162000"
+                      v: "0x25"
+                      r: "0x1b5e176d927f8e9ab405058b2d2457392da3e20f328b16ddabcebc33eaac5fea"
+                      s: "0x4ba69724e8f69de52f0125ad8b3c5c2cef33019bac3249e2c0a2192766d1721c"
+                Send transaction response:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
+        "400":
+          description: Bad request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad request:
+                  $ref: "#/components/examples/BadRequest"
+                Invalid token:
+                  $ref: "#/components/examples/InvalidToken"
+                Method disabled:
+                  $ref: "#/components/examples/MethodDisabled"
+                Invalid method:
+                  $ref: "#/components/examples/MethodNoExists"
+        "401":
+          description: Unauthorized
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Unauthorized:
+                  $ref: "#/components/examples/NoAnonymous"
+        "403":
+          description: Forbidden
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Forbidden:
+                  $ref: "#/components/examples/BesuPermissions"
+                Deployment forbidden:
+                  $ref: "#/components/examples/NoDeploySC"
+      security:
+        - bearerAuth: []
 components:
   securitySchemes:
     bearerAuth:
@@ -544,41 +753,101 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    SessionsRequest:
+      description: Request for OAuth 2.0 JWT bearer assertion grant.
+      required:
+        - grantType
+        - assertion
+      type: object
+      properties:
+        grantType:
+          description: OAuth 2.0 grant type. Must be set to "urn:ietf:params:oauth:grant-type:jwt-bearer"
+          type: string
+          example: "urn:ietf:params:oauth:grant-type:jwt-bearer"
+        assertion:
+          type: string
+          description: Self-signed JWT
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+    SessionsResponse:
+      description: Authentication JWT
+      type: object
+      properties:
+        accessToken:
+          description: Authentication JWT to access the API.
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        tokenType:
+          description: Type of the authentication token. Supported type "bearer".
+          type: string
+          example: Bearer
+        expiresIn:
+          description: JWT expiration in seconds.
+          type: integer
+          example: 900
+        issuedAt:
+          description: "Time of JWT issuance. Format: unix timestamp"
+          type: string
+          example: "1467841035013"
+    BesuResponse:
+      type: object
+      properties:
+        jsonrpc:
+          description: Must be exactly '2.0'
+          type: string
+        id:
+          description: Same identifier established by the client in the call
+          type: integer
+        result:
+          description: Result of the call
+          type: object
     channel:
       title: channel
       type: string
       x-examples:
         channel example: ebsichannel
       description: hyperledger fabric channel model
-    error:
-      title: error
+    Problem:
+      description: A Problem Details object (RFC 7807)
       type: object
-      description: generic error response body based on Problem Details schema
       x-examples:
-        error example:
+        Not Enough Credit:
           type: "https://example.com/probs/out-of-credit"
           title: You do not have enough credit.
           detail: "Your current balance is 30, but that costs 50."
           instance: /account/12345/msgs/abc
-          status: 400
       properties:
-        title:
-          type: string
-          example: Internal Server Error
-          description: Human-readable summary of the problem type.
-        status:
-          type: number
-          example: 500
-          description: The HTTP status code generated by the origin server for this occurrence of the problem.
         type:
           type: string
-          description: A URI reference that identifies the problem type.
-        instance:
+          format: uri
+          description: |
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type.
+          default: "about:blank"
+        title:
           type: string
-          description: A URI reference that identifies the specific occurrence of the problem.
+          description: |
+            A short summary of the problem type.
+          example: Internal Server Error
+        status:
+          type: integer
+          format: int32
+          description: |
+            The HTTP status code generated by the origin server for this occurrence of the problem.
+          minimum: 400
+          maximum: 600
+          exclusiveMaximum: true
+          example: 500
         detail:
           type: string
-          description: A human-readable explanation specific to this occurrence of the problem.
+          description: |
+            A human readable explanation specific to this occurrence of the problem.
+          example: Connection timeout
+        instance:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereferenced.
     block:
       title: block
       type: object
@@ -691,6 +960,57 @@ components:
           prev: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2"
           next: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2"
           last: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=13&page[size]=2"
+  examples:
+    BesuPermissions:
+      value:
+        title: Forbidden
+        status: 403
+        detail: The method 'eth_sendRawTransaction' needs besu permissions
+    NoDeploySC:
+      value:
+        title: Forbidden
+        status: 403
+        detail: Deployment of new smart contracts is not allowed
+    NoAnonymous:
+      value:
+        title: Unauthorized
+        status: 401
+        detail: The method 'eth_sendRawTransaction' is not available for anonymous access
+    MethodDisabled:
+      value:
+        title: Bad request
+        status: 400
+        detail: The method 'eth_compileSolidity' is currently disabled
+    MethodNoExists:
+      value:
+        title: Bad request
+        status: 400
+        detail: The method 'xxxxxx' does not exist
+    BadRequest:
+      value:
+        title: Bad Request
+        status: 400
+        detail: Bad request.
+    InvalidToken:
+      value:
+        title: Invalid Token
+        status: 400
+        detail: Token has expired. Max age of a token is 15 min.
+    IssuerNotFound:
+      value:
+        title: Issuer Not Found
+        status: 400
+        detail: Issuer not found in the trusted apps registry.
+    NotFound:
+      value:
+        title: Not Found
+        status: 404
+        detail: Not found.
+    InternalError:
+      value:
+        title: Internal Server Error
+        status: 500
+        detail: The server encountered an internal error and was unable to complete your request.
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
