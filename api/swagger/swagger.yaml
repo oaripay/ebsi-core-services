@@ -1,7 +1,8 @@
 openapi: 3.0.3
 info:
   title: Identity Hub API
-  description: Set of calls from the EBSI IDentity Hub.
+  description: |
+    Identity Hub API is a Core Service of the EBSI platform providing the capability of securely storing W3C Verifiable Credentials/Attestations.
   license:
     name: EUPL-1.2
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
@@ -134,7 +135,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
                   value:
@@ -146,7 +147,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -158,7 +159,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -170,7 +171,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -270,7 +271,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
                   value:
@@ -282,7 +283,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -294,7 +295,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -306,7 +307,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -353,7 +354,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
                   value:
@@ -365,7 +366,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -377,7 +378,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -389,7 +390,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Not found:
                   value:
@@ -401,7 +402,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -440,7 +441,6 @@ components:
           prev: "/identity-hub/v1/attributes?page[after]=2&page[size]=2"
           next: "/identity-hub/v1/attributes?page[after]=4&page[size]=2"
           last: "/identity-hub/v1/attributes?page[after]=13&page[size]=2"
-
     ErrorResponse:
       type: object
       properties:
@@ -532,32 +532,48 @@ components:
         - hash
         - data
         - name
-    error:
-      title: error
+    Problem:
+      description: A Problem Details object (RFC 7807)
       type: object
-      description: generic error response body based on problem details schema
       x-examples:
-        Error example:
+        Not Enough Credit:
           type: "https://example.com/probs/out-of-credit"
           title: You do not have enough credit.
           detail: "Your current balance is 30, but that costs 50."
           instance: /account/12345/msgs/abc
-          status: 400
       properties:
-        title:
-          type: string
-        status:
-          type: integer
         type:
           type: string
-        instance:
+          format: uri
+          description: |
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type.
+          default: "about:blank"
+        title:
           type: string
+          description: |
+            A short summary of the problem type.
+          example: Internal Server Error
+        status:
+          type: integer
+          format: int32
+          description: |
+            The HTTP status code generated by the origin server for this occurrence of the problem.
+          minimum: 400
+          maximum: 600
+          exclusiveMaximum: true
+          example: 500
         detail:
           type: string
-      required:
-        - title
-        - status
-        - detail
+          description: |
+            A human readable explanation specific to this occurrence of the problem.
+          example: Connection timeout
+        instance:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereferenced.
     attributeRequest:
       type: object
       description: IDentity Attribute request for creation
