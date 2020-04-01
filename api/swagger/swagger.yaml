@@ -2,7 +2,8 @@ openapi: 3.0.3
 info:
   title: Trusted Apps Registry API
   version: 1.0.0
-  description: The interface for the APP Registry BESU contract. The API holds a registry of apps to which we can attach authorized apps (i.e. whitelisted apps).
+  description: |
+    Trusted Apps Registry API is a Core Service of the EBSI platform providing the capability of verifying if an application is trusted and authorized to interact with other applications in the EBSI network.
   termsOfService: "https://api.ebsi.xyz/docs/terms"
   contact:
     name: EBSI Support
@@ -59,7 +60,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal error:
                   value:
@@ -108,7 +109,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad request:
                   value:
@@ -120,7 +121,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Not found:
                   value:
@@ -132,7 +133,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal error:
                   value:
@@ -208,7 +209,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad request:
                   value:
@@ -220,7 +221,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Not found:
                   value:
@@ -232,7 +233,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal error:
                   value:
@@ -281,7 +282,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad request:
                   value:
@@ -293,7 +294,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 appName Not found:
                   value:
@@ -310,7 +311,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal error:
                   value:
@@ -371,32 +372,48 @@ components:
           prev: "/trusted-apps-registry/v1/apps?page[after]=2&page[size]=2"
           next: "/trusted-apps-registry/v1/apps?page[after]=4&page[size]=2"
           last: "/trusted-apps-registry/v1/apps?page[after]=13&page[size]=2"
-    error:
+    Problem:
+      description: A Problem Details object (RFC 7807)
       type: object
-      title: error
-      description: generic error response body based on problem details schema
       x-examples:
-        error example:
+        Not Enough Credit:
           type: "https://example.com/probs/out-of-credit"
           title: You do not have enough credit.
           detail: "Your current balance is 30, but that costs 50."
           instance: /account/12345/msgs/abc
-          status: 400
       properties:
-        title:
-          type: string
-        status:
-          type: integer
-        detail:
-          type: string
-        instance:
-          type: string
         type:
           type: string
-      required:
-        - title
-        - status
-        - detail
+          format: uri
+          description: |
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type.
+          default: "about:blank"
+        title:
+          type: string
+          description: |
+            A short summary of the problem type.
+          example: Internal Server Error
+        status:
+          type: integer
+          format: int32
+          description: |
+            The HTTP status code generated by the origin server for this occurrence of the problem.
+          minimum: 400
+          maximum: 600
+          exclusiveMaximum: true
+          example: 500
+        detail:
+          type: string
+          description: |
+            A human readable explanation specific to this occurrence of the problem.
+          example: Connection timeout
+        instance:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereferenced.
     app:
       type: object
       description: app model
