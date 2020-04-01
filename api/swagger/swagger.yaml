@@ -49,7 +49,7 @@ paths:
               examples:
                 Bad Request:
                   $ref: "#/components/examples/BadRequest"
-                Issuer not found:
+                Issuer Not Found:
                   $ref: "#/components/examples/IssuerNotFound"
         "500":
           description: Internal Server Error
@@ -69,7 +69,7 @@ paths:
       description: "Retrieves the IDentity Attributes, from a given User DID, that matches the attributes types if specified."
       responses:
         "200":
-          description: Successful
+          description: Success
           content:
             application/json:
               schema:
@@ -88,7 +88,7 @@ paths:
                     type: integer
                     description: " total number of pages in a collection"
               examples:
-                successful list of attributes response:
+                Get Attributes:
                   value:
                     items:
                       - id: cred-7ee0d94aab0e4f36eae85127056de084
@@ -140,7 +140,7 @@ paths:
                   value:
                     title: Unauthorized
                     status: 401
-                    detail: The token is expired
+                    detail: Unauthorized
         "403":
           description: Forbidden
           content:
@@ -152,9 +152,9 @@ paths:
                   value:
                     title: Forbidden
                     status: 403
-                    detail: "Forbidden You don't have the right to access that ressource"
+                    detail: "You don't have the right to access that ressource"
         "500":
-          description: Internal Error
+          description: Internal Server Error
           content:
             application/problem+json:
               schema:
@@ -324,7 +324,7 @@ paths:
       operationId: get-identity-hub-v1-attributes-hash
       responses:
         "200":
-          description: success
+          description: Success
           content:
             application/json:
               schema:
@@ -472,7 +472,7 @@ components:
           name: Verifiable ID
           data:
             base64: "<bytes for base64>"
-      title: AttributeRequest
+      title: Attribute Request
       properties:
         id:
           type: string
