@@ -891,7 +891,7 @@ components:
           type: string
           description: time of creation
         channelName:
-          type: string data
+          type: string
           description: channel name
     transaction:
       title: Hyperledger Fabric Transaction
