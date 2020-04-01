@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Identity Hub API
-  description: Set of calls from the EBSI IDentity Hub.
+  description: Identity Hub API is a Core Service of the EBSI platform providing the capability of securely storing W3C Verifiable Credentials/Attestations.
   license:
     name: EUPL-1.2
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
@@ -9,10 +9,15 @@ info:
   contact:
     name: EBSI Support
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
-  termsOfService: "https://api.ebsi.xyz/docs/terms"
+  termsOfService: "/docs/terms"
+servers:
+  - url: "http://localhost"
+    description: Local Computer Environment
+  - url: "https://api.ebsi.xyz"
+    description: EBSI Testing Environment
 tags:
   - name: Authentication
-    description: Authentication in Identity Hub API
+    description: Authentication to Identity Hub API
   - name: Identity Hub
     description: Identity Hub API
 paths:
@@ -23,27 +28,10 @@ paths:
       summary: Login to Identity Hub.
       description: Login to Identity Hub.
       requestBody:
-        description: Method and parameters
         content:
           application/json:
             schema:
-              required:
-                - grantType
-                - assertion
-              type: object
-              properties:
-                grantType:
-                  type: string
-                  example: "urn:ietf:params:oauth:grant-type:jwt-bearer"
-                assertion:
-                  type: string
-                  description: Self signed JWT
-                  example: eyJraWQiOiJHNW01TmxiaTdGWlhPTVlHN2ctZ0tCLVVGdkVBSVUyUFkzSFQ3SFZtYkJzIiwiYWxnIjoiRVMyNTZLIn0.eyJpc3MiOiJlYnNpLXdhbGxldCIsImF1ZCI6ImVic2ktc3RvcmFnZSIsImlhdCI6MTU4NDY5MTIzOCwiZXhwIjoxNTg0NjkyMTM4fQ.boseFUS5fLXdH62ZggWvBkYL65d4xN52lmKNxUFwjLcQvbgF3RyYz-PU8hBY20LuoXbfbivOcEMmVExcwnUSzw
-            examples:
-              login example:
-                value:
-                  grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer"
-                  assertion: "[self-signed JWT]"
+              $ref: '#/components/schemas/SessionsRequest'
         required: true
       responses:
         "200":
@@ -53,22 +41,22 @@ paths:
               schema:
                 $ref: "#/components/schemas/SessionsResponse"
         "400":
-          description: Bad request
+          description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/Problem"
               examples:
-                Bad request:
+                Bad Request:
                   $ref: "#/components/examples/BadRequest"
                 Issuer not found:
                   $ref: "#/components/examples/IssuerNotFound"
         "500":
           description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/ErrorResponse"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
@@ -90,9 +78,9 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: "#/components/schemas/attribute"
+                      $ref: "#/components/schemas/Attribute"
                   links:
-                    $ref: "#/components/schemas/links"
+                    $ref: "#/components/schemas/Links"
                   pageSize:
                     type: integer
                     description: number of items to be return per page
@@ -130,23 +118,23 @@ paths:
                       next: "/identity-hub/v1/attributes?page[after]=4&page[size]=2"
                       last: "/identity-hub/v1/attributes?page[after]=13&page[size]=2"
         "400":
-          description: Bad request
+          description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
                   value:
-                    title: Bad request
+                    title: Bad Request
                     status: 400
                     detail: "The format of {did, type} parameter is not valid"
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -156,9 +144,9 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -168,9 +156,9 @@ paths:
         "500":
           description: Internal Error
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -181,16 +169,6 @@ paths:
         - bearerAuth: []
       operationId: get-identity-hub-v1-attributes-did-type
       parameters:
-        - in: query
-          name: "page[after]"
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: "page[size]"
-          description: Defines the maximum number of objects that may be returned.
         - name: did
           in: query
           schema:
@@ -205,6 +183,21 @@ paths:
             example: "%5B%22EssifVerifiableID%22%2C%22EuropassDiploma%22%5D"
           description: Attributes types. They must be url-encoded
           required: false
+        - in: query
+          name: "page[before]"
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: "page[after]"
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: Defines the maximum number of objects that may be returned.
   "/identity-hub/v1/attributes/{hash}":
     put:
       tags:
@@ -216,7 +209,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/attributeRequest"
+              $ref: "#/components/schemas/AttributeRequest"
             examples:
               New attribute:
                 value:
@@ -234,7 +227,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/attribute"
+                $ref: "#/components/schemas/Attribute"
               examples:
                 Successful response:
                   value:
@@ -252,7 +245,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/attribute"
+                $ref: "#/components/schemas/Attribute"
               examples:
                 Creation successful:
                   value:
@@ -268,21 +261,21 @@ paths:
         "400":
           description: Unformatted error
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
                   value:
-                    title: Bad request
+                    title: Bad Request
                     status: 400
                     detail: "The {hash} parameter is not valid"
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -292,9 +285,9 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -304,9 +297,9 @@ paths:
         "500":
           description: Internal Error
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -335,7 +328,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/attribute"
+                $ref: "#/components/schemas/Attribute"
               examples:
                 Successful response:
                   value:
@@ -351,21 +344,21 @@ paths:
         "400":
           description: Unformatted error
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
                   value:
-                    title: Bad request
+                    title: Bad Request
                     status: 400
                     detail: "The {hash} parameter is not valid"
         "401":
           description: Unauthorized
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -375,9 +368,9 @@ paths:
         "403":
           description: Forbidden
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -387,9 +380,9 @@ paths:
         "404":
           description: Hash does not exist
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Not found:
                   value:
@@ -399,9 +392,9 @@ paths:
         "500":
           description: Internal Error
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -413,70 +406,7 @@ paths:
         - bearerAuth: []
 components:
   schemas:
-    links:
-      title: links
-      type: object
-      properties:
-        self:
-          type: string
-          description: " URI of the current page"
-        last:
-          type: string
-          description: " URI of the last page"
-        prev:
-          type: string
-          description: " URI of the previous page"
-        next:
-          type: string
-          description: " URI of the next page"
-        first:
-          type: string
-          description: " URI of the first page"
-      description: links model used for pagination
-      x-examples:
-        links example:
-          self: "/identity-hub/v1/attributes?page[after]=3&page[size]=2"
-          first: "/identity-hub/v1/attributes?page[after]=0&page[size]=2"
-          prev: "/identity-hub/v1/attributes?page[after]=2&page[size]=2"
-          next: "/identity-hub/v1/attributes?page[after]=4&page[size]=2"
-          last: "/identity-hub/v1/attributes?page[after]=13&page[size]=2"
-
-    ErrorResponse:
-      type: object
-      properties:
-        title:
-          type: string
-        status:
-          type: string
-        detail:
-          type: string
-    SessionsResponse:
-      type: object
-      properties:
-        accessToken:
-          type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-          description: The access token itself
-        tokenType:
-          type: string
-          example: Bearer
-          description: Type of token.
-        expiresIn:
-          type: integer
-          example: 900
-          description: Number of seconds until the token expires
-        issuedAt:
-          type: string
-          example: "1467841035013"
-          description: Date of the token issuance in Unix format.
-      description: Response of the sessions endpoint
-      x-examples:
-        Success:
-          accessToken: 2YotnFZFEjr1zCsicMWpAA
-          tokenType: Bearer
-          expiresIn: 3600
-          issuedAt: "1467841035013"
-    attribute:
+    Attribute:
       type: object
       description: IDentity Attribute
       x-examples:
@@ -490,7 +420,7 @@ components:
           hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
           data:
             base64: "<bytes for base64>"
-      title: attribute
+      title: Attribute
       properties:
         id:
           type: string
@@ -532,33 +462,7 @@ components:
         - hash
         - data
         - name
-    error:
-      title: error
-      type: object
-      description: generic error response body based on problem details schema
-      x-examples:
-        Error example:
-          type: "https://example.com/probs/out-of-credit"
-          title: You do not have enough credit.
-          detail: "Your current balance is 30, but that costs 50."
-          instance: /account/12345/msgs/abc
-          status: 400
-      properties:
-        title:
-          type: string
-        status:
-          type: integer
-        type:
-          type: string
-        instance:
-          type: string
-        detail:
-          type: string
-      required:
-        - title
-        - status
-        - detail
-    attributeRequest:
+    AttributeRequest:
       type: object
       description: IDentity Attribute request for creation
       x-examples:
@@ -568,7 +472,7 @@ components:
           name: Verifiable ID
           data:
             base64: "<bytes for base64>"
-      title: attribute request
+      title: AttributeRequest
       properties:
         id:
           type: string
@@ -601,10 +505,107 @@ components:
         - type
         - data
         - name
+    SessionsRequest:
+      description: Request for OAuth 2.0 JWT bearer assertion grant.
+      required:
+        - grantType
+        - assertion
+      type: object
+      properties:
+        grantType:
+          description: OAuth 2.0 grant type. Must be set to "urn:ietf:params:oauth:grant-type:jwt-bearer"
+          type: string
+          example: 'urn:ietf:params:oauth:grant-type:jwt-bearer'
+        assertion:
+          type: string
+          description: Self-signed JWT
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+    SessionsResponse:
+      type: object
+      properties:
+        accessToken:
+          description: Token to access the api
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        tokenType:
+          description: Token type
+          type: string
+          example: Bearer
+        expiresIn:
+          description: JWT token expiration time in seconds
+          type: integer
+          example: 900
+        issuedAt:
+          description: 'Time at which the JWT was issued. Format: unix timestamp'
+          type: string
+          example: '1467841035013'
+    Problem:
+      description: A Problem Details object (RFC 7807)
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type.
+          default: 'about:blank'
+        title:
+          type: string
+          description: |
+            A short summary of the problem type.
+          example: Internal Server Error
+        status:
+          type: integer
+          format: int32
+          description: |
+            The HTTP status code generated by the origin server for this occurrence of the problem.
+          minimum: 400
+          maximum: 600
+          exclusiveMaximum: true
+          example: 500
+        detail:
+          type: string
+          description: |
+            A human readable explanation specific to this occurrence of the problem.
+          example: Connection timeout
+        instance:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereferenced.
+    Links:
+      title: Links
+      type: object
+      properties:
+        self:
+          type: string
+          description: " URI of the current page"
+        last:
+          type: string
+          description: " URI of the last page"
+        prev:
+          type: string
+          description: " URI of the previous page"
+        next:
+          type: string
+          description: " URI of the next page"
+        first:
+          type: string
+          description: " URI of the first page"
+      description: links model used for pagination
+      x-examples:
+        links example:
+          self: "/identity-hub/v1/attributes?page[after]=3&page[size]=2"
+          first: "/identity-hub/v1/attributes?page[after]=0&page[size]=2"
+          prev: "/identity-hub/v1/attributes?page[after]=2&page[size]=2"
+          next: "/identity-hub/v1/attributes?page[after]=4&page[size]=2"
+          last: "/identity-hub/v1/attributes?page[after]=13&page[size]=2"
   examples:
     BadRequest:
       value:
-        title: Bad request
+        title: Bad Request
         status: 400
         detail: The token is expired
     Unauthorized:
@@ -622,34 +623,6 @@ components:
         title: Internal Server Error
         status: 500
         detail: The server encountered an internal error and was unable to complete your request.
-    ListFilesPagination:
-      value:
-        items:
-          - hash1
-          - hash2
-        total: 2
-        pageSize: 3
-        links:
-          first: "/identity-hub/v1/attributes?page[after]=fff&page[size]=2"
-          prev: "/identity-hub/v1/attributes?page[after]=ppp&page[size]=2"
-          next: "/identity-hub/v1/attributes?page[after]=nnn&page[size]=2"
-          last: "/identity-hub/v1/attributes?page[after]=lll&page[size]=2"
-    ListFiles:
-      value:
-        items:
-          - hash1
-          - hash2
-        total: 2
-    TooLarge:
-      value:
-        title: Payload too large
-        status: 413
-        detail: Payload too large
-    NotFound:
-      value:
-        title: Not found
-        status: 404
-        detail: Not found
     IssuerNotFound:
       value:
         title: Bad Request
@@ -660,8 +633,3 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-servers:
-  - url: "http://localhost"
-    description: Local Computer Environment
-  - url: "https://api.ebsi.xyz"
-    description: EBSI Testing Environment
