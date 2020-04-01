@@ -10,9 +10,11 @@ info:
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
   termsOfService: "https://api.ebsi.xyz/docs/terms"
   description: |
-    "Storage API provides the capabilities to read and write files to off-chain distributed storage, to off-chain private (local) storage and to off-chain external storage trusted providers. 
-    The V1 of the API implements only the off-chain distributed storage capabilities.
-    Key-Value Storage API provides the capabilities to save data in JSON format in the off-chain distributed database."
+    Storage API is a Core Service of the EBSI platform providing access to the Off-chain Storage services of the lower layer Chain & Storage. This API provides read and write storage capabilities of files and Key-Value.
+
+    File Storage API provides read and write files capabilities to off-chain distributed storage in v1 and in future to off-chain private (local) storage and off-chain external storage trusted providers.
+
+    Key-Value Storage API provides capabilities to save Key-Value (with data value in JSON format) in the off-chain distributed storage for v1. 
 paths:
   /storage/v1/stores:
     get:
@@ -82,7 +84,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
                   value:
@@ -94,7 +96,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Not found:
                   value:
@@ -106,7 +108,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -184,7 +186,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
                   value:
@@ -196,7 +198,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -208,7 +210,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -220,7 +222,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Not found:
                   value:
@@ -232,7 +234,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -285,7 +287,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
                   value:
@@ -297,7 +299,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -309,7 +311,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -321,7 +323,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Not found:
                   value:
@@ -333,7 +335,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Too large:
                   value:
@@ -345,7 +347,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -382,7 +384,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 bad Request:
                   value:
@@ -394,7 +396,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -406,7 +408,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -418,7 +420,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Store not found:
                   value:
@@ -430,7 +432,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal error:
                   value:
@@ -471,7 +473,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad request:
                   value:
@@ -483,7 +485,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -495,7 +497,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -507,7 +509,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Not found:
                   value:
@@ -519,7 +521,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -591,7 +593,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
                   value:
@@ -603,7 +605,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -615,7 +617,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -627,7 +629,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Not found:
                   value:
@@ -707,7 +709,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 bad Request:
                   value:
@@ -719,7 +721,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -731,7 +733,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -743,7 +745,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Not found:
                   value:
@@ -755,7 +757,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Request Entity Too Large:
                   value:
@@ -767,7 +769,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Key Too Large:
                   value:
@@ -779,7 +781,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal error:
                   value:
@@ -827,7 +829,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 bad Request:
                   value:
@@ -839,7 +841,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -851,7 +853,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -863,7 +865,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Not found:
                   value:
@@ -875,7 +877,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal error:
                   value:
@@ -911,7 +913,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 bad Request:
                   value:
@@ -923,7 +925,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -935,7 +937,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -947,7 +949,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Not found:
                   value:
@@ -959,7 +961,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal error:
                   value:
@@ -1032,7 +1034,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 bad Request:
                   value:
@@ -1044,7 +1046,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   value:
@@ -1056,7 +1058,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
                   value:
@@ -1068,7 +1070,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Not found:
                   value:
@@ -1080,7 +1082,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Request Entity Too Large:
                   value:
@@ -1092,7 +1094,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Key Too Large:
                   value:
@@ -1104,7 +1106,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal error:
                   value:
@@ -1163,7 +1165,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
                   value:
@@ -1185,7 +1187,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/error"
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   value:
@@ -1257,32 +1259,48 @@ components:
     file:
       type: string
       description: file model
-    error:
+    Problem:
+      description: A Problem Details object (RFC 7807)
       type: object
-      title: error
-      description: generic error response body based on problem details schema
       x-examples:
-        error example:
+        Not Enough Credit:
           type: "https://example.com/probs/out-of-credit"
           title: You do not have enough credit.
           detail: "Your current balance is 30, but that costs 50."
           instance: /account/12345/msgs/abc
-          status: 400
       properties:
-        title:
-          type: string
-        status:
-          type: integer
-        detail:
-          type: string
-        instance:
-          type: string
         type:
           type: string
-      required:
-        - title
-        - status
-        - detail
+          format: uri
+          description: |
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type.
+          default: "about:blank"
+        title:
+          type: string
+          description: |
+            A short summary of the problem type.
+          example: Internal Server Error
+        status:
+          type: integer
+          format: int32
+          description: |
+            The HTTP status code generated by the origin server for this occurrence of the problem.
+          minimum: 400
+          maximum: 600
+          exclusiveMaximum: true
+          example: 500
+        detail:
+          type: string
+          description: |
+            A human readable explanation specific to this occurrence of the problem.
+          example: Connection timeout
+        instance:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereferenced.
     session:
       type: object
       properties:
