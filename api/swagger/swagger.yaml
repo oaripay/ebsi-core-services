@@ -19,7 +19,7 @@ tags:
   - name: Authentication
     description: Authenticate to Ledger API
   - name: Besu
-    description: Interaction with Besu blockchain
+    description: Interact with Besu blockchain
   - name: Fabric
     description: Hyperledger Fabric REST APIs
     externalDocs:
