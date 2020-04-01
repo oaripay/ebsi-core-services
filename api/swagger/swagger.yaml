@@ -8,7 +8,7 @@ info:
   contact:
     name: EBSI Support
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
-  termsOfService: "https://api.ebsi.xyz/docs/terms"
+  termsOfService: "/docs/terms"
   description: |
     Timestamp API is a Core Service of the EBSI platform providing the capability of checking the authenticity of a digital document by verifying the presence and the timestamp of the document's hash in a specific smart contract.
 paths:
@@ -17,10 +17,10 @@ paths:
       tags:
         - Timestamp
       summary: Get a list of records
-      description: Returns a list of hashes.
+      description: Returns a list of records.
       responses:
         "200":
-          description: Successful
+          description: Success
           content:
             application/json:
               schema:
@@ -40,7 +40,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                Get Hashes:
+                Get Records:
                   value:
                     items:
                       - hash: 23...d7f
@@ -100,13 +100,13 @@ paths:
           required: true
       responses:
         "200":
-          description: hash exists
+          description: Record exists
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/hash"
               examples:
-                Get Hash:
+                Get a Record:
                   value:
                     hash: 23...7f
                     txHash: 0x12...ba
@@ -114,7 +114,7 @@ paths:
                     registeredBy: 0xfa...94
                     blockNumber: 739688
         "400":
-          description: Bad request
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -122,11 +122,11 @@ paths:
               examples:
                 Bad Request:
                   value:
-                    title: Bad request
+                    title: Bad Request
                     status: 400
                     detail: "The format of {hash} parameter is not valid"
         "404":
-          description: Store does not exist
+          description: Store Does Not Exist
           content:
             application/json:
               schema:
@@ -144,7 +144,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Internal erver Error:
+                Internal Server Error:
                   value:
                     title: Internal Server Error
                     status: 500
@@ -196,7 +196,7 @@ components:
             It may or may not yield further information if dereferenced.
     hash:
       type: object
-      description: notarized document hash model
+      description: Notarized Document Record
       x-examples:
         Hash example:
           hash: 23...d7f
@@ -204,29 +204,29 @@ components:
           timestamp: "2019-10-23T14:25:20+00:00"
           registeredBy: 0xfa...94
           blockNumber: 739688
-      title: hash
+      title: Record
       properties:
         hash:
           type: string
           example: 892c9637814ccd39256cbaa03250c92507ae183dda03d091fc24a3221ecae303
-          description: "keccak-256 hash of the file"
+          description: keccak-256 hash of the file
         txHash:
           type: string
           example: Bearer
-          description: valid Ethereum transaction hash
+          description: Valid Ethereum transaction hash
         blockNumber:
           type: integer
           example: 900
-          description: block number containing the transaction
+          description: Number of the block containing the transaction
         registeredBy:
           type: string
           example: "1467841035013"
-          description: valid Ethereum Address
+          description: Valid Ethereum Address
         timestamp:
           type: string
           description: Timestamp converted to ISO 8601 format
     links:
-      title: links
+      title: Links
       type: object
       properties:
         self:
@@ -244,7 +244,7 @@ components:
         first:
           type: string
           description: " URI of the first page"
-      description: links model used for pagination
+      description: Links model used for pagination
       x-examples:
         links example:
           self: "/timestamp/v1/hashes?page[after]=3&page[size]=2"
@@ -255,12 +255,12 @@ components:
   examples:
     BadRequest:
       value:
-        title: Bad request
+        title: Bad Request
         status: 400
         detail: Bad request
     InvalidToken:
       value:
-        title: Invalid token
+        title: Invalid Token
         status: 400
         detail: Invalid token
     Unauthorized:
@@ -275,17 +275,17 @@ components:
         detail: Forbidden
     NotFound:
       value:
-        title: Not found
+        title: Not Found
         status: 404
         detail: Not found
     TooLarge:
       value:
-        title: Payload too large
+        title: Payload Too Large
         status: 413
         detail: Payload too large
     InternalError:
       value:
-        title: Internal error
+        title: Internal Server Error
         status: 500
         detail: Internal error
     ListFiles:
