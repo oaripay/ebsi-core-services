@@ -31,7 +31,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SessionsRequest'
+              $ref: "#/components/schemas/SessionsRequest"
         required: true
       responses:
         "200":
@@ -429,7 +429,9 @@ components:
         type:
           type: array
           description: Attribute type that corresponds to the Credential type that is included as data.
-          example: '["VerifiableCredential", "EssifVerifiableID"]'
+          example:
+            - "VerifiableCredential"
+            - "EssifVerifiableID"
           uniqueItems: true
           items:
             type: string
@@ -481,7 +483,9 @@ components:
         type:
           type: array
           description: Attribute type that corresponds to the Credential type that is included as data.
-          example: '["VerifiableCredential", "EssifVerifiableID"]'
+          example:
+            - "VerifiableCredential"
+            - "EssifVerifiableID"
           uniqueItems: true
           items:
             type: string
@@ -515,7 +519,7 @@ components:
         grantType:
           description: OAuth 2.0 grant type. Must be set to "urn:ietf:params:oauth:grant-type:jwt-bearer"
           type: string
-          example: 'urn:ietf:params:oauth:grant-type:jwt-bearer'
+          example: "urn:ietf:params:oauth:grant-type:jwt-bearer"
         assertion:
           type: string
           description: Self-signed JWT
@@ -536,9 +540,9 @@ components:
           type: integer
           example: 900
         issuedAt:
-          description: 'Time at which the JWT was issued. Format: unix timestamp'
+          description: "Time at which the JWT was issued. Format: unix timestamp"
           type: string
-          example: '1467841035013'
+          example: "1467841035013"
     Problem:
       description: A Problem Details object (RFC 7807)
       type: object
@@ -549,7 +553,7 @@ components:
           description: |
             An absolute URI that identifies the problem type. When dereferenced,
             it SHOULD provide human-readable documentation for the problem type.
-          default: 'about:blank'
+          default: "about:blank"
         title:
           type: string
           description: |
