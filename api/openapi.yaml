@@ -18,9 +18,9 @@ info:
 tags:
   - name: Authentication
     description: Authenticate to the Ledger API
-  - name: Besu
+  - name: Hyperledger Besu
     description: Interact with Besu RPC APIs
-  - name: Fabric
+  - name: Hyperledger Fabric
     description: Interact with Fabric REST APIs
 paths:
   /ledger/v1/sessions:
