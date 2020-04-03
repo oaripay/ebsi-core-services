@@ -17,13 +17,11 @@ info:
   termsOfService: "/docs/terms"
 tags:
   - name: Authentication
-    description: Authenticate to Ledger API
-  - name: Besu
-    description: Interact with Besu blockchain
-  - name: Fabric
-    description: Hyperledger Fabric REST APIs
-    externalDocs:
-      url: "http://docs.my-api.com/store-orders.htm"
+    description: Authenticate to the Ledger API
+  - name: Hyperledger Besu
+    description: Interact with Besu RPC APIs
+  - name: Hyperledger Fabric
+    description: Interact with Fabric REST APIs
 paths:
   /ledger/v1/sessions:
     post:
@@ -70,7 +68,7 @@ paths:
   /ledger/v1/blockchains/fabric/channels:
     get:
       tags:
-        - Fabric
+        - Hyperledger Fabric
       summary: Get a list of all the available channels
       description: Returns a list of all the available EBSI Fabric channels.
       responses:
@@ -123,10 +121,7 @@ paths:
                     type: string
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: Server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channels
@@ -145,7 +140,7 @@ paths:
   "/ledger/v1/blockchains/fabric/channels/{channel}":
     get:
       tags:
-        - Fabric
+        - Hyperledger Fabric
       description: Check if channel exists
       summary: Check if channel exists
       responses:
@@ -183,10 +178,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel
@@ -200,7 +192,7 @@ paths:
   "/ledger/v1/blockchains/fabric/channels/{channel}/blocks":
     get:
       tags:
-        - Fabric
+        - Hyperledger Fabric
       summary: Get blocks
       description: Returns a list of blocks of the channel {channel}. By default API returns the last 10 (or less) blocks.
       responses:
@@ -249,7 +241,6 @@ paths:
                     total: 13
                     pageSize: 2
                     links:
-                      self: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=3&page[size]=2"
                       first: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2"
                       prev: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2"
                       next: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2"
@@ -286,14 +277,16 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-blocks
       parameters:
+        - in: query
+          name: "page[before]"
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: "page[after]"
           schema:
@@ -369,16 +362,13 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-block-number
       summary: Get block by number
       tags:
-        - Fabric
+        - Hyperledger Fabric
       description: Returns block for the specified channel and block number
     parameters:
       - schema:
@@ -396,7 +386,7 @@ paths:
   "/ledger/v1/blockchains/fabric/channels/{channel}/transactions":
     get:
       tags:
-        - Fabric
+        - Hyperledger Fabric
       summary: Get transactions
       description: Returns the last 10 (or less) transactions of the channel
       responses:
@@ -445,7 +435,6 @@ paths:
                     total: 13
                     pageSize: 2
                     links:
-                      self: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=3&page[size]=2"
                       first: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2"
                       prev: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2"
                       next: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2"
@@ -482,14 +471,16 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-txs
       parameters:
+        - in: query
+          name: "page[before]"
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: "page[after]"
           schema:
@@ -499,7 +490,7 @@ paths:
             type: integer
           in: query
           name: "page[size]"
-          description: "Number of items to be return per page."
+          description: Defines the maximum number of objects that may be returned.
     parameters:
       - schema:
           type: string
@@ -510,7 +501,7 @@ paths:
   /ledger/v1/blockchains/fabric/channels/{channel}/transactions/{transactionId}:
     get:
       tags:
-        - Fabric
+        - Hyperledger Fabric
       summary: Get transaction details
       description: Return transaction details
       responses:
@@ -568,11 +559,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Channel Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-tx-id
@@ -593,7 +581,7 @@ paths:
     post:
       operationId: post-ledger-v1-blockchains-besu
       tags:
-        - Besu
+        - Hyperledger Besu
       summary: Hyperledger Besu RPC APIs
       description: "Exposed Besu JSON-RPC APIs. Write methods require authentication."
       requestBody:
@@ -940,9 +928,6 @@ components:
       title: Links
       type: object
       properties:
-        self:
-          type: string
-          description: " URI of the current page"
         last:
           type: string
           description: " URI of the last page"
@@ -958,7 +943,6 @@ components:
       description: links model used for pagination
       x-examples:
         Links:
-          self: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=3&page[size]=2"
           first: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2"
           prev: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2"
           next: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2"
