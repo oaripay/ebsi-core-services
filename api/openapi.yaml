@@ -113,7 +113,6 @@ paths:
                     total: 2
                     pageSize: 10
                     links:
-                      self: "/trusted-issuers-registry/v1/issuers?page[after]=3&page[size]=2"
                       first: "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=2"
                       prev: "/trusted-issuers-registry/v1/issuers?page[after]=2&page[size]=2"
                       next: "/trusted-issuers-registry/v1/issuers?page[after]=4&page[size]=2"
