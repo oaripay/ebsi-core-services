@@ -1,21 +1,21 @@
 openapi: 3.0.3
 info:
   title: Trusted Apps Registry API
-  version: 1.0.0
   description: |
     Trusted Apps Registry API is a Core Service of the EBSI platform providing the capability of verifying if an application is trusted and authorized to interact with other applications in the EBSI network.
-  termsOfService: "https://api.ebsi.xyz/docs/terms"
+  version: 1.0.0
+  termsOfService: "/docs/terms"
   contact:
-    name: EBSI Support
+    name: "EBSI Support"
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
   license:
-    name: EUPL-1.2
+    name: "EUPL-1.2"
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
 paths:
   /trusted-apps-registry/v1/apps:
     get:
       tags:
-        - TrustedApps
+        - Trusted Apps Registry
       summary: List of trusted apps
       description: Returns a list of trusted apps
       responses:
@@ -40,7 +40,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                successful list of apps response:
+                Success:
                   value:
                     items:
                       - appName: string
@@ -50,25 +50,26 @@ paths:
                     total: 2
                     pageSize: 10
                     links:
-                      self: "/trusted-apps-registry/v1/apps?page[after]=3&page[size]=2"
                       first: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=2"
                       prev: "/trusted-apps-registry/v1/apps?page[after]=2&page[size]=2"
                       next: "/trusted-apps-registry/v1/apps?page[after]=4&page[size]=2"
                       last: "/trusted-apps-registry/v1/apps?page[after]=13&page[size]=2"
         "500":
-          description: Internal Error
+          description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Internal error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
       operationId: get-trusted-apps-registry-v1-apps
       parameters:
+        - in: query
+          name: "page[before]"
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: "page[after]"
           schema:
@@ -82,7 +83,7 @@ paths:
   "/trusted-apps-registry/v1/apps/{appName}":
     get:
       tags:
-        - TrustedApps
+        - Trusted Apps Registry
       summary: Get trusted application
       description: returns a specific app by its appName. Including the pubKey.
       parameters:
@@ -100,26 +101,26 @@ paths:
               schema:
                 $ref: "#/components/schemas/app"
               examples:
-                successful app response:
+                Success:
                   value:
                     appName: string
                     pubKey: string
         "400":
-          description: Bad request
+          description: Bad Request
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad request:
+                Invalid {appName} Parameter:
                   value:
                     title: Bad request
                     status: 400
-                    detail: The format of appName parameter is not valid
+                    detail: The format of {appName} parameter is not valid
         "404":
-          description: Not found
+          description: Not Found
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -129,17 +130,14 @@ paths:
                     status: 404
                     detail: "{appName} not found"
         "500":
-          description: Internal Error
+          description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Internal error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
       operationId: get-trusted-apps-registry-v1-store
     parameters:
       - schema:
@@ -150,7 +148,7 @@ paths:
   "/trusted-apps-registry/v1/apps/{appName}/authorized-apps":
     get:
       tags:
-        - TrustedApps
+        - Trusted Apps Registry
       summary: Get a list of authorized apps for an application
       description: 'returns a list of authorized apps for the app "appName", i.e. apps that can communication with app "appName"'
       parameters:
@@ -160,6 +158,11 @@ paths:
             type: string
           example: wallet
           required: true
+        - in: query
+          name: "page[before]"
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: "page[after]"
           schema:
@@ -191,7 +194,7 @@ paths:
                     type: integer
                     description: " total number of pages in a collection"
               examples:
-                successful list of authorized apps with pagination response:
+                Success:
                   value:
                     items:
                       - authorizedAppName: string
@@ -199,7 +202,6 @@ paths:
                     total: 13
                     pageSize: 2
                     links:
-                      self: "/trusted-apps-registry/v1/apps/{appName}/authorized-apps?page[after]=3&page[size]=2"
                       first: "/trusted-apps-registry/v1/apps/{appName}/authorized-apps?page[after]=0&page[size]=2"
                       prev: "/trusted-apps-registry/v1/apps/{appName}/authorized-apps?page[after]=2&page[size]=2"
                       next: "/trusted-apps-registry/v1/apps/{appName}/authorized-apps?page[after]=4&page[size]=2"
@@ -207,39 +209,36 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad request:
+                Invalid {appName} parameter:
                   value:
-                    title: Bad request
+                    title: Bad Request
                     status: 400
-                    detail: The format of appName parameter is not valid
+                    detail: The format of {appName} parameter is not valid
         "404":
-          description: Not found
+          description: Not Found
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Not found:
+                Not Found:
                   value:
                     title: Not Found
                     status: 404
                     detail: "{appName} not found"
         "500":
-          description: Internal Error
+          description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Internal error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
       operationId: get-trusted-apps-registry-v1-app-auhtorized-apps
     parameters:
       - schema:
@@ -250,7 +249,7 @@ paths:
   /trusted-apps-registry/v1/apps/{appName}/authorized-apps/{authorizedAppName}:
     get:
       tags:
-        - TrustedApps
+        - Trusted Apps Registry
       summary: Check authorized app for an application
       description: 'Check if an app identified by "authorizedAppName" has the authorization to communication with "appName".'
       parameters:
@@ -274,50 +273,47 @@ paths:
               schema:
                 $ref: "#/components/schemas/authorized-app"
               examples:
-                successfull response:
+                Success:
                   value:
                     authorizedAppName: string
         "400":
-          description: Bad request
+          description: Bad Request
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad request:
+                Invalid {appName} Parameter:
                   value:
                     title: Bad request
                     status: 400
-                    detail: The format of appName parameter is not valid
+                    detail: The format of {appName} parameter is not valid
         "404":
-          description: Not found
+          description: Not Found
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                appName Not found:
+                AppName Not found:
                   value:
-                    title: Not found
+                    title: Not Found
                     status: 404
                     detail: "{appName} not found"
-                authorizedAppName not found:
+                AuthorizedAppName not found:
                   value:
                     title: Not Found
                     status: 404
                     detail: "{authorizedAppName} not found"
         "500":
-          description: Internal Error
+          description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Internal error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
       operationId: get-trusted-apps-registry-v1-app-auhtorized-app
     parameters:
       - schema:
@@ -338,7 +334,7 @@ components:
       x-examples:
         authorized-app example:
           authorizedAppName: string
-      description: ""
+      description: "Authorized application name"
       properties:
         authorizedAppName:
           type: string
@@ -349,9 +345,6 @@ components:
       title: links
       type: object
       properties:
-        self:
-          type: string
-          description: " URI of the current page"
         last:
           type: string
           description: " URI of the last page"
@@ -367,7 +360,6 @@ components:
       description: links model used for pagination
       x-examples:
         links example:
-          self: "/trusted-apps-registry/v1/apps?page[after]=3&page[size]=2"
           first: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=2"
           prev: "/trusted-apps-registry/v1/apps?page[after]=2&page[size]=2"
           next: "/trusted-apps-registry/v1/apps?page[after]=4&page[size]=2"
@@ -416,10 +408,10 @@ components:
             It may or may not yield further information if dereferenced.
     app:
       type: object
-      description: app model
-      title: ""
+      description: App model
+      title: "App model"
       x-examples:
-        app model example:
+        App Model:
           appName: string
           pubKey: string
       properties:
@@ -435,19 +427,19 @@ components:
   examples:
     BadRequest:
       value:
-        title: Bad request
+        title: Bad Request
         status: 400
-        detail: Bad request
+        detail: Bad request.
     NotFound:
       value:
         title: Not found
         status: 404
-        detail: Not found
+        detail: Page not found.
     InternalError:
       value:
-        title: Internal error
+        title: Internal Server Error
         status: 500
-        detail: Internal error
+        detail: The server encountered an internal error and was unable to complete your request.
     ListFiles:
       value:
         items:
@@ -467,8 +459,8 @@ components:
           next: "/trusted-apps-registry/v1/apps/distributed?page[after]=nnn&page[size]=2"
           last: "/trusted-apps-registry/v1/apps/distributed?page[after]=lll&page[size]=2"
 tags:
-  - name: TrustedApps
-    description: Trusted Apps Registry
+  - name: Trusted Apps Registry
+    description: List and verify trusted apps
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
