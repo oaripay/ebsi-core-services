@@ -1,16 +1,16 @@
 openapi: 3.0.3
 info:
   title: Timestamp API
-  version: 1.0.0
-  license:
-    name: EUPL-1.2
-    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
-  contact:
-    name: EBSI Support
-    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
-  termsOfService: "/docs/terms"
   description: |
     Timestamp API is a Core Service of the EBSI platform providing the capability of checking the authenticity of a digital document by verifying the presence and the timestamp of the document's hash in a specific smart contract.
+  version: 1.0.0
+  termsOfService: "/docs/terms"
+  contact:
+    name: "EBSI Support"
+    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
+  license:
+    name: "EUPL-1.2"
+    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
 paths:
   /timestamp/v1/hashes:
     get:
@@ -56,7 +56,6 @@ paths:
                     total: 13
                     pageSize: 2
                     links:
-                      self: "/timestamp/v1/hashes?page[after]=3&page[size]=2"
                       first: "/timestamp/v1/hashes?page[after]=0&page[size]=2"
                       prev: "/timestamp/v1/hashes?page[after]=2&page[size]=2"
                       next: "/timestamp/v1/hashes?page[after]=4&page[size]=2"
@@ -64,17 +63,19 @@ paths:
         "500":
           description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       operationId: get-timestamp-v1-hashes
       parameters:
+        - in: query
+          name: "page[before]"
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: "page[after]"
           schema:
@@ -116,11 +117,13 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
+                  $ref: "#/components/examples/BadRequest"
+                Hash Not Valid:
                   value:
                     title: Bad Request
                     status: 400
@@ -128,7 +131,7 @@ paths:
         "404":
           description: Store Does Not Exist
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -140,15 +143,12 @@ paths:
         "500":
           description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       operationId: get-timestamp-v1-hash
 components:
   schemas:
@@ -212,7 +212,7 @@ components:
           description: keccak-256 hash of the file
         txHash:
           type: string
-          example: Bearer
+          example: "0x561de67a9789b20bedf627e97bf6444206f83ad6e5c29c692d8cc52c352c0676"
           description: Valid Ethereum transaction hash
         blockNumber:
           type: integer
@@ -220,18 +220,16 @@ components:
           description: Number of the block containing the transaction
         registeredBy:
           type: string
-          example: "1467841035013"
+          example: "0x6B175474E89094C44Da98b954EedeAC495271d0F"
           description: Valid Ethereum Address
         timestamp:
           type: string
+          example: "2019-10-23T14:25:20+00:00"
           description: Timestamp converted to ISO 8601 format
     links:
       title: Links
       type: object
       properties:
-        self:
-          type: string
-          description: " URI of the current page"
         last:
           type: string
           description: " URI of the last page"
@@ -246,8 +244,7 @@ components:
           description: " URI of the first page"
       description: Links model used for pagination
       x-examples:
-        links example:
-          self: "/timestamp/v1/hashes?page[after]=3&page[size]=2"
+        Links:
           first: "/timestamp/v1/hashes?page[after]=0&page[size]=2"
           prev: "/timestamp/v1/hashes?page[after]=2&page[size]=2"
           next: "/timestamp/v1/hashes?page[after]=4&page[size]=2"
@@ -308,7 +305,7 @@ components:
           last: "/timestamp/v1/hashes?page[after]=lll&page[size]=2"
 tags:
   - name: Timestamp
-    description: Timestamp API
+    description: Validate timestamped records
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
