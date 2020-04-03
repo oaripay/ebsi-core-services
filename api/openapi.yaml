@@ -212,7 +212,7 @@ components:
           description: keccak-256 hash of the file
         txHash:
           type: string
-          example: Bearer
+          example: "0x561de67a9789b20bedf627e97bf6444206f83ad6e5c29c692d8cc52c352c0676"
           description: Valid Ethereum transaction hash
         blockNumber:
           type: integer
@@ -220,10 +220,11 @@ components:
           description: Number of the block containing the transaction
         registeredBy:
           type: string
-          example: "1467841035013"
+          example: "0x6B175474E89094C44Da98b954EedeAC495271d0F"
           description: Valid Ethereum Address
         timestamp:
           type: string
+          example: "2019-10-23T14:25:20+00:00"
           description: Timestamp converted to ISO 8601 format
     links:
       title: Links
