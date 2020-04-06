@@ -257,25 +257,25 @@ paths:
           in: path
           schema:
             type: string
-          example: wallet
+          example: storage
           required: true
         - name: authorizedAppName
           in: path
           schema:
             type: string
-          example: string
+          example: wallet
           required: true
       responses:
         "200":
           description: Successful response returns an authorized application Name
           content:
-            multipart/form-data:
+            application/json:
               schema:
                 $ref: "#/components/schemas/authorized-app"
               examples:
                 Success:
                   value:
-                    authorizedAppName: string
+                    authorizedAppName: wallet
         "400":
           description: Bad Request
           content:
