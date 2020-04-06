@@ -20,7 +20,7 @@ paths:
       description: Returns a list of trusted apps
       responses:
         "200":
-          description: Successful
+          description: Success
           content:
             application/json:
               schema:
@@ -30,7 +30,7 @@ paths:
                     type: array
                     description: list of trusted apps
                     items:
-                      $ref: "#/components/schemas/app"
+                      $ref: "#/components/schemas/App"
                   total:
                     type: integer
                     description: " total number of pages in a collection"
@@ -38,15 +38,15 @@ paths:
                     type: integer
                     description: number of items to be return per page
                   links:
-                    $ref: "#/components/schemas/links"
+                    $ref: "#/components/schemas/Links"
               examples:
                 Success:
                   value:
                     items:
-                      - appName: string
-                        pubKey: string
-                      - appName: string
-                        pubKey: string
+                      - appName: wallet
+                        pubKey: fb34cf74b6d2acde0f95f0d4e06aa043591acfabdb8b93844bfbe37143861fe81b57fa7068b91e2c9bbc285ca523a3f349c6d5dc34cb7157b68bc76795f94b9e
+                      - appName: wallet
+                        pubKey: fb34cf74b6d2acde0f95f0d4e06aa043591acfabdb8b93844bfbe37143861fe81b57fa7068b91e2c9bbc285ca523a3f349c6d5dc34cb7157b68bc76795f94b9e
                     total: 2
                     pageSize: 10
                     links:
@@ -85,7 +85,7 @@ paths:
       tags:
         - Trusted Apps Registry
       summary: Get trusted application
-      description: returns a specific app by its appName. Including the pubKey.
+      description: Returns trusted app information, including its public key.
       parameters:
         - name: appName
           in: path
@@ -99,12 +99,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/app"
+                $ref: "#/components/schemas/App"
               examples:
                 Success:
                   value:
-                    appName: string
-                    pubKey: string
+                    appName: wallet
+                    pubKey: fb34cf74b6d2acde0f95f0d4e06aa043591acfabdb8b93844bfbe37143861fe81b57fa7068b91e2c9bbc285ca523a3f349c6d5dc34cb7157b68bc76795f94b9e
         "400":
           description: Bad Request
           content:
@@ -114,7 +114,7 @@ paths:
               examples:
                 Invalid {appName} Parameter:
                   value:
-                    title: Bad request
+                    title: Bad Request
                     status: 400
                     detail: The format of {appName} parameter is not valid
         "404":
@@ -124,9 +124,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Not found:
+                Not Found:
                   value:
-                    title: Not found
+                    title: Not Found
                     status: 404
                     detail: "{appName} not found"
         "500":
@@ -149,8 +149,8 @@ paths:
     get:
       tags:
         - Trusted Apps Registry
-      summary: Get a list of authorized apps for an application
-      description: 'returns a list of authorized apps for the app "appName", i.e. apps that can communication with app "appName"'
+      summary: List of trusted apps authorized to consume services
+      description: Returns a list of trusted apps that are authorized to consume service of the {appName} app.
       parameters:
         - name: appName
           in: path
@@ -175,7 +175,7 @@ paths:
           description: Defines the maximum number of objects that may be returned.
       responses:
         "200":
-          description: Successful
+          description: Success
           content:
             application/json:
               schema:
@@ -184,9 +184,9 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: "#/components/schemas/authorized-app"
+                      $ref: "#/components/schemas/AuthorizedApp"
                   links:
-                    $ref: "#/components/schemas/links"
+                    $ref: "#/components/schemas/Links"
                   pageSize:
                     type: integer
                     description: number of items to be return per page
@@ -250,8 +250,8 @@ paths:
     get:
       tags:
         - Trusted Apps Registry
-      summary: Check authorized app for an application
-      description: 'Check if an app identified by "authorizedAppName" has the authorization to communication with "appName".'
+      summary: Verify if app is authorized to consume service
+      description: Verify if {authorizedAppName} app is authorized to consume {appName} app services.
       parameters:
         - name: appName
           in: path
@@ -263,19 +263,19 @@ paths:
           in: path
           schema:
             type: string
-          example: wallet
+          example: wallet-client
           required: true
       responses:
         "200":
-          description: Successful response returns an authorized application Name
+          description: Successful response returns an authorized application name
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/authorized-app"
+                $ref: "#/components/schemas/AuthorizedApp"
               examples:
                 Success:
                   value:
-                    authorizedAppName: wallet
+                    authorizedAppName: wallet-client
         "400":
           description: Bad Request
           content:
@@ -285,7 +285,7 @@ paths:
               examples:
                 Invalid {appName} Parameter:
                   value:
-                    title: Bad request
+                    title: Bad Request
                     status: 400
                     detail: The format of {appName} parameter is not valid
         "404":
@@ -295,12 +295,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                AppName Not found:
+                AppName Not Found:
                   value:
                     title: Not Found
                     status: 404
                     detail: "{appName} not found"
-                AuthorizedAppName not found:
+                AuthorizedAppName Not Found:
                   value:
                     title: Not Found
                     status: 404
@@ -328,8 +328,8 @@ paths:
         required: true
 components:
   schemas:
-    authorized-app:
-      title: authorized-app
+    AuthorizedApp:
+      title: Authorized App
       type: object
       x-examples:
         authorized-app example:
@@ -341,8 +341,8 @@ components:
           description: name of an application that is authorized to communicate with appName
       required:
         - authorizedAppName
-    links:
-      title: links
+    Links:
+      title: Links
       type: object
       properties:
         last:
@@ -406,20 +406,22 @@ components:
           description: |
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
-    app:
+    App:
       type: object
       description: App model
-      title: "App model"
+      title: "App Model"
       x-examples:
         App Model:
-          appName: string
-          pubKey: string
+          appName: wallet
+          pubKey: fb34cf74b6d2acde0f95f0d4e06aa043591acfabdb8b93844bfbe37143861fe81b57fa7068b91e2c9bbc285ca523a3f349c6d5dc34cb7157b68bc76795f94b9e
       properties:
         appName:
           type: string
+          example: wallet
           description: application name
         pubKey:
           type: string
+          example: fb34cf74b6d2acde0f95f0d4e06aa043591acfabdb8b93844bfbe37143861fe81b57fa7068b91e2c9bbc285ca523a3f349c6d5dc34cb7157b68bc76795f94b9e
           description: Secp256k1 Public key
       required:
         - appName
@@ -432,7 +434,7 @@ components:
         detail: Bad request.
     NotFound:
       value:
-        title: Not found
+        title: Not Found
         status: 404
         detail: Page not found.
     InternalError:
