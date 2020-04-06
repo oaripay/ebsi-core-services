@@ -557,9 +557,6 @@ components:
       title: Links
       type: object
       properties:
-        self:
-          type: string
-          description: " URI of the current page"
         last:
           type: string
           description: " URI of the last page"
