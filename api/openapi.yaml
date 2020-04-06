@@ -2,14 +2,14 @@ openapi: 3.0.3
 info:
   title: Identity Hub API
   description: Identity Hub API is a Core Service of the EBSI platform providing the capability of securely storing W3C Verifiable Credentials/Attestations.
-  license:
-    name: EUPL-1.2
-    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
   version: 1.0.0
-  contact:
-    name: EBSI Support
-    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
   termsOfService: "/docs/terms"
+  contact:
+    name: "EBSI Support"
+    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
+  license:
+    name: "EUPL-1.2"
+    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
@@ -19,7 +19,7 @@ tags:
   - name: Authentication
     description: Authentication to Identity Hub API
   - name: Identity Hub
-    description: Identity Hub API
+    description: Store and retrieve personal credentials
 paths:
   /identity-hub/v1/sessions:
     post:
@@ -49,6 +49,8 @@ paths:
               examples:
                 Bad Request:
                   $ref: "#/components/examples/BadRequest"
+                Token Expired:
+                  $ref: "#/components/examples/ExpiredToken"
                 Issuer Not Found:
                   $ref: "#/components/examples/IssuerNotFound"
         "500":
@@ -112,7 +114,6 @@ paths:
                     total: 13
                     pageSize: 2
                     links:
-                      self: "/identity-hub/v1/attributes?page[after]=3&page[size]=2"
                       first: "/identity-hub/v1/attributes?page[after]=0&page[size]=2"
                       prev: "/identity-hub/v1/attributes?page[after]=2&page[size]=2"
                       next: "/identity-hub/v1/attributes?page[after]=4&page[size]=2"
@@ -124,7 +125,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad Request:
+                Invalid {did, type} Parameter:
                   value:
                     title: Bad Request
                     status: 400
@@ -137,10 +138,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: Unauthorized
+                  $ref: "#/components/examples/Unauthorized"
         "403":
           description: Forbidden
           content:
@@ -149,10 +147,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: "You don't have the right to access that ressource"
+                  $ref: "#/components/examples/Forbidden"
         "500":
           description: Internal Server Error
           content:
@@ -161,10 +156,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: get-identity-hub-v1-attributes-did-type
@@ -211,7 +203,7 @@ paths:
             schema:
               $ref: "#/components/schemas/AttributeRequest"
             examples:
-              New attribute:
+              New Attribute:
                 value:
                   id: cred-7ee0d94aab0e4f36eae85127056de084
                   type:
@@ -229,7 +221,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
               examples:
-                Successful response:
+                Success:
                   value:
                     id: cred-7ee0d94aab0e4f36eae85127056de084
                     type:
@@ -247,7 +239,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
               examples:
-                Creation successful:
+                Created:
                   value:
                     id: cred-7ee0d94aab0e4f36eae85127056de084
                     type:
@@ -265,7 +257,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad Request:
+                Invalid {hash} Parameter:
                   value:
                     title: Bad Request
                     status: 400
@@ -278,10 +270,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: Access restricted
+                  $ref: "#/components/examples/Unauthorized"
         "403":
           description: Forbidden
           content:
@@ -290,10 +279,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: Forbidden
+                  $ref: "#/components/examples/Forbidden"
         "500":
           description: Internal Error
           content:
@@ -302,10 +288,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: put-identity-hub-v1-attributes-hash
@@ -330,7 +313,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
               examples:
-                Successful response:
+                Success:
                   value:
                     id: cred-7ee0d94aab0e4f36eae85127056de084
                     type:
@@ -348,7 +331,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad Request:
+                Invalid {hash} parameter:
                   value:
                     title: Bad Request
                     status: 400
@@ -361,10 +344,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: Access restricted
+                  $ref: "#/components/examples/Unauthorized"
         "403":
           description: Forbidden
           content:
@@ -373,10 +353,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: Forbidden
+                  $ref: "#/components/examples/Forbidden"
         "404":
           description: Hash does not exist
           content:
@@ -397,10 +374,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       description: Retrieves an IDentity Attributes that corresponds to the hash
       security:
         - bearerAuth: []
@@ -601,7 +575,6 @@ components:
       description: links model used for pagination
       x-examples:
         links example:
-          self: "/identity-hub/v1/attributes?page[after]=3&page[size]=2"
           first: "/identity-hub/v1/attributes?page[after]=0&page[size]=2"
           prev: "/identity-hub/v1/attributes?page[after]=2&page[size]=2"
           next: "/identity-hub/v1/attributes?page[after]=4&page[size]=2"
@@ -611,27 +584,32 @@ components:
       value:
         title: Bad Request
         status: 400
-        detail: The token is expired
-    Unauthorized:
+        detail: Bad request.
+    ExpiredToken:
       value:
-        title: Unauthorized
-        status: 401
-        detail: Unauthorized
+        title: Token Expired
+        status: 400
+        detail: The token has expired.
     Forbidden:
       value:
         title: Forbidden
         status: 403
-        detail: Forbidden
+        detail: Forbidden.
+    Unauthorized:
+      value:
+        title: Unauthorized
+        status: 401
+        detail: You are not authorized to access the resources.
+    IssuerNotFound:
+      value:
+        title: Issuer Not Found
+        status: 400
+        detail: Issuer not found in the list of trusted apps.
     InternalError:
       value:
         title: Internal Server Error
         status: 500
         detail: The server encountered an internal error and was unable to complete your request.
-    IssuerNotFound:
-      value:
-        title: Bad Request
-        status: 400
-        detail: Issuer not found in the list of trusted apps
   securitySchemes:
     bearerAuth:
       type: http
