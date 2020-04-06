@@ -140,8 +140,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    $ref: "#/components/examples/InternalError"
+                  $ref: "#/components/examples/InternalError"
       operationId: get-trusted-issuer
 components:
   schemas:
