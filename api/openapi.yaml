@@ -194,7 +194,7 @@ paths:
     put:
       tags:
         - Identity Hub
-      summary: Put new IDentity Attribute
+      summary: Store attributes.
       description: "Stores an attribute to the ID Hub."
       requestBody:
         description: Verifiable Identity attribute.
@@ -303,7 +303,7 @@ paths:
     get:
       tags:
         - Identity Hub
-      summary: Get IDentity Attribute by its hash
+      summary: Get Identity Attribute by its hash
       operationId: get-identity-hub-v1-attributes-hash
       responses:
         "200":
@@ -382,7 +382,7 @@ components:
   schemas:
     Attribute:
       type: object
-      description: IDentity Attribute
+      description: Identity Attribute
       x-examples:
         Attribute example:
           id: cred-7ee0d94aab0e4f36eae85127056de084
@@ -440,7 +440,7 @@ components:
         - name
     AttributeRequest:
       type: object
-      description: IDentity Attribute request for creation
+      description: Identity Attribute request for creation
       x-examples:
         Attribute request example:
           id: cred-7ee0d94aab0e4f36eae85127056de084
