@@ -16,65 +16,6 @@ tags:
   - name: Trusted Issuers Registry
     description: List and verify trusted issuers
 paths:
-  "/trusted-issuers-registry/v1/issuers/{did}":
-    get:
-      tags:
-        - Trusted Issuers Registry
-      summary: Get issuer by its Decentralized Identifier
-      description: returns a trusted issuer by its decentralized identifier
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          example: "did:example:123456789abcdefghi"
-          required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/issuerName"
-              examples:
-                Success:
-                  value:
-                    name: string
-        "400":
-          description: Bad Request
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Invalid {did} Parameter:
-                  value:
-                    title: Bad Request
-                    status: 400
-                    detail: "The format of {did} parameter is not valid"
-        "404":
-          description: Not found
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Did Not Found:
-                  value:
-                    title: Not found
-                    status: 404
-                    detail: "{did} not found"
-        "500":
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  value:
-                    $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-issuer
   /trusted-issuers-registry/v1/issuers:
     get:
       tags:
@@ -83,7 +24,7 @@ paths:
       description: Returns a list of trusted issuers
       responses:
         "200":
-          description: Successful
+          description: Success
           content:
             application/json:
               schema:
@@ -106,10 +47,10 @@ paths:
                 Success:
                   value:
                     items:
-                      - name: string
-                        did: string
-                      - name: string
-                        did: string
+                      - name: TrustedIssuer
+                        did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                      - name: TrustedIssuer
+                        did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
                     total: 2
                     pageSize: 10
                     links:
@@ -143,6 +84,65 @@ paths:
           in: query
           name: "page[size]"
           description: Defines the maximum number of objects that may be returned.
+  "/trusted-issuers-registry/v1/issuers/{did}":
+    get:
+      tags:
+        - Trusted Issuers Registry
+      summary: Get issuer by its Decentralized Identifier
+      description: Returns a trusted issuer by its decentralized identifier
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: "did:example:123456789abcdefghi"
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/issuerName"
+              examples:
+                Success:
+                  value:
+                    name: TrustedIssuer
+        "400":
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: "The format of {did} parameter is not valid"
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  value:
+                    title: Not found
+                    status: 404
+                    detail: "{did} not found"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  value:
+                    $ref: "#/components/examples/InternalError"
+      operationId: get-trusted-issuer
 components:
   schemas:
     Problem:
@@ -188,7 +188,7 @@ components:
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
     links:
-      title: links
+      title: Links
       type: object
       properties:
         last:
@@ -213,27 +213,27 @@ components:
     issuer:
       type: object
       description: app model
-      title: ""
+      title: "Issuer"
       x-examples:
-        app model example:
-          appName: string
-          pubKey: string
+        App Model:
+          did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+          name: TrustedIssuer
       properties:
-        appName:
+        name:
           type: string
-          description: application name
-        pubKey:
+          description: Name of the issuer
+        did:
           type: string
-          description: Secp256k1 Public key
+          description: A URI or an object containing an id property corresponding to the issuer.
       required:
         - appName
         - pubKey
     issuerName:
-      title: Issuer name
+      title: Issuer Name
       type: object
       x-examples:
         Issuer name example:
-          name: string
+          name: TrustedIssuer
       description: Name of the issuer
       properties:
         name:
