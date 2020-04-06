@@ -1,90 +1,30 @@
 openapi: 3.0.3
 info:
-  title: Trusted Issuers API
+  title: Trusted Issuers Registry API
   description: |
-    Trusted Issuers Registry API is a Core Service of the EBSI platform verifying if a legal entity is authorized to issue a W3C Verifiable Credential. The first implementation of this service in v1 checks for the presence of issuers DID in a Trusted Issuers Smart Contract and verifies if they are allowed to issue specific Verifiable Credentials.
-  license:
-    name: EUPL-1.2
-    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
+    Trusted Issuers Registry API is a Core Service of the EBSI platform verifying if a legal entity is authorized to issue a W3C Verifiable Credential. 
+    The first implementation of this service in v1 checks for the presence of issuers DID in a Trusted Issuers Smart Contract and verifies if they are allowed to issue specific Verifiable Credentials.
   version: 1.0.0
+  termsOfService: "/docs/terms"
   contact:
-    name: EBSI Support
+    name: "EBSI Support"
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
-  termsOfService: "https://api.ebsi.xyz/docs/terms"
+  license:
+    name: "EUPL-1.2"
+    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
 tags:
-  - name: Trusted Issuers
-    description: Trusted Issuers Registry
+  - name: Trusted Issuers Registry
+    description: List and verify trusted issuers
 paths:
-  "/trusted-issuers-registry/v1/issuers/{did}":
-    get:
-      tags:
-        - Trusted Issuers
-      summary: Get issuer by its Decentralized Identifier
-      description: returns a trusted issuer by its decentralized identifier
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          example: "did:example:123456789abcdefghi"
-          required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/issuerName"
-              examples:
-                successful issuer response:
-                  value:
-                    name: string
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Bad request:
-                  value:
-                    title: Bad request
-                    status: 400
-                    detail: "The format of {did} parameter is not valid"
-        "404":
-          description: Not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Not found:
-                  value:
-                    title: Not found
-                    status: 404
-                    detail: "{did} not found"
-        "500":
-          description: Internal Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
-      operationId: get-trusted-issuer
   /trusted-issuers-registry/v1/issuers:
     get:
       tags:
-        - Trusted Issuers
+        - Trusted Issuers Registry
       summary: List of trusted issuers
       description: Returns a list of trusted issuers
       responses:
         "200":
-          description: Successful
+          description: Success
           content:
             application/json:
               schema:
@@ -104,35 +44,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                successful list of issuers response:
+                Success:
                   value:
                     items:
-                      - name: string
-                        did: string
-                      - name: string
-                        did: string
+                      - name: TrustedIssuer
+                        did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                      - name: TrustedIssuer
+                        did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
                     total: 2
                     pageSize: 10
                     links:
-                      self: "/trusted-issuers-registry/v1/issuers?page[after]=3&page[size]=2"
                       first: "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=2"
                       prev: "/trusted-issuers-registry/v1/issuers?page[after]=2&page[size]=2"
                       next: "/trusted-issuers-registry/v1/issuers?page[after]=4&page[size]=2"
                       last: "/trusted-issuers-registry/v1/issuers?page[after]=13&page[size]=2"
         "500":
-          description: Internal Error
+          description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Internal error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
       operationId: get-trusted-issuers-registry-v1-issuers
       parameters:
+        - in: query
+          name: "page[before]"
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: "page[after]"
           schema:
@@ -143,6 +84,64 @@ paths:
           in: query
           name: "page[size]"
           description: Defines the maximum number of objects that may be returned.
+  "/trusted-issuers-registry/v1/issuers/{did}":
+    get:
+      tags:
+        - Trusted Issuers Registry
+      summary: Get issuer by its Decentralized Identifier
+      description: Returns a trusted issuer by its decentralized identifier
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: "did:example:123456789abcdefghi"
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/issuerName"
+              examples:
+                Success:
+                  value:
+                    name: TrustedIssuer
+        "400":
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: "The format of {did} parameter is not valid"
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  value:
+                    title: Not found
+                    status: 404
+                    detail: "{did} not found"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      operationId: get-trusted-issuer
 components:
   schemas:
     Problem:
@@ -188,12 +187,9 @@ components:
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
     links:
-      title: links
+      title: Links
       type: object
       properties:
-        self:
-          type: string
-          description: " URI of the current page"
         last:
           type: string
           description: " URI of the last page"
@@ -208,8 +204,7 @@ components:
           description: " URI of the first page"
       description: links model used for pagination
       x-examples:
-        links example:
-          self: "/trusted-issuers-registry/v1/issuers?page[after]=3&page[size]=2"
+        Links:
           first: "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=2"
           prev: "/trusted-issuers-registry/v1/issuers?page[after]=2&page[size]=2"
           next: "/trusted-issuers-registry/v1/issuers?page[after]=4&page[size]=2"
@@ -217,27 +212,27 @@ components:
     issuer:
       type: object
       description: app model
-      title: ""
+      title: "Issuer"
       x-examples:
-        app model example:
-          appName: string
-          pubKey: string
+        App Model:
+          did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+          name: TrustedIssuer
       properties:
-        appName:
+        name:
           type: string
-          description: application name
-        pubKey:
+          description: Name of the issuer
+        did:
           type: string
-          description: Secp256k1 Public key
+          description: A URI or an object containing an id property corresponding to the issuer.
       required:
-        - appName
-        - pubKey
+        - name
+        - did
     issuerName:
-      title: Issuer name
+      title: Issuer Name
       type: object
       x-examples:
         Issuer name example:
-          name: string
+          name: TrustedIssuer
       description: Name of the issuer
       properties:
         name:
