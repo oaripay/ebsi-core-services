@@ -72,7 +72,7 @@ paths:
     get:
       tags:
         - Stores
-      summary: Check if exists
+      summary: Check if store exists
       description: Check if a store exists
       parameters:
         - name: store
@@ -103,7 +103,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Not found:
+                Not Found:
                   value:
                     title: Not Found
                     status: 404
@@ -124,8 +124,8 @@ paths:
     get:
       tags:
         - File Storage
-      summary: List of files for a store
-      description: Get the list of files by store
+      summary: Get a List of files in the store
+      description: Get a list of files stored in the {store} store
       parameters:
         - name: store
           in: path
@@ -169,13 +169,13 @@ paths:
                     type: integer
                     description: " total number of pages in a collection"
               examples:
-                Successful list files response:
+                List of files:
                   value:
                     items:
                       - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
                       - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
                     total: 2
-                Successful list files with pagination response:
+                List of files (pagination):
                   value:
                     items:
                       - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
@@ -237,7 +237,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  $ref: "#/components/examples/Forbidden"
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: get-storage-v1-store-files
@@ -245,7 +245,7 @@ paths:
       tags:
         - File Storage
       summary: Store files
-      description: Store files in a specific store
+      description: Store files to the {store}
       parameters:
         - name: store
           in: path
@@ -264,7 +264,7 @@ paths:
               properties:
                 file:
                   type: string
-                  description: file to upload
+                  description: File to upload
                   format: binary
         required: true
       responses:
@@ -310,13 +310,13 @@ paths:
                 Forbidden:
                   $ref: "#/components/examples/Forbidden"
         "404":
-          description: Not found
+          description: Not Found
           content:
             "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Not found:
+                Not Found:
                   value:
                     title: Not Found
                     status: 404
@@ -328,7 +328,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Too large:
+                Too Large:
                   $ref: "#/components/examples/TooLarge"
         "500":
           description: Internal Error
@@ -347,7 +347,7 @@ paths:
       tags:
         - File Storage
       summary: Delete file
-      description: Delete file based on its hash
+      description: Delete file by hash
       parameters:
         - name: store
           in: path
@@ -422,7 +422,7 @@ paths:
       tags:
         - File Storage
       summary: Get file
-      description: Get file
+      description: Get file by hash
       parameters:
         - name: store
           in: path
@@ -637,7 +637,7 @@ paths:
               Json Value:
                 value:
                   prop: value
-        description: "Value. Can be any valid JSON. Size limit: 1MB"
+        description: "Any valid JSON. Size limit: 1MB"
       responses:
         "200":
           description: Object created
@@ -718,7 +718,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Request Entity Too Large:
+                Value Too Large:
                   $ref: "#/components/examples/TooLarge"
         "414":
           description: URI Too Long
@@ -747,8 +747,8 @@ paths:
     get:
       tags:
         - Key-Value Storage
-      summary: Get object by its key
-      description: Get object identified by its key
+      summary: Get object by key
+      description: Get object by key
       parameters:
         - name: store
           in: path
@@ -772,9 +772,9 @@ paths:
                   - type: string
                   - type: object
               examples:
-                Simple value:
+                Simple Value:
                   value: value
-                Json value:
+                JSON Value:
                   value:
                     prop: value
         "400":
@@ -784,7 +784,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Invalid {store,key} parameter:
+                Invalid {store,key} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -834,8 +834,8 @@ paths:
     delete:
       tags:
         - Key-Value Storage
-      summary: Delete object by its key
-      description: Delete object identified by its key
+      summary: Delete object by key
+      description: Delete object by key
       parameters:
         - name: store
           in: path
@@ -901,7 +901,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Internal error:
+                Internal Server Error:
                   $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
@@ -909,7 +909,7 @@ paths:
     patch:
       tags:
         - Key-Value Storage
-      summary: Apply a patch to add an item to an array in an existing value
+      summary: Apply a patch or add an item to an array of an existing value
       description: Patch an existing value
       parameters:
         - name: store
@@ -931,7 +931,7 @@ paths:
             schema:
               $ref: "#/components/schemas/patch"
             examples:
-              Add value to a list:
+              Add Value to a List:
                 value:
                   - op: add
                     path: /list/-
@@ -971,7 +971,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Invalid {store,key} parameter:
+                Invalid {store,key} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -1013,7 +1013,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Request Entity Too Large:
+                Value Too Large:
                   $ref: "#/components/examples/TooLarge"
         "414":
           description: URI Too Long
@@ -1034,7 +1034,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Internal Error:
+                Internal Server Error:
                   $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
@@ -1208,7 +1208,7 @@ components:
           description: " URI of the first page"
       description: links model used for pagination
       x-examples:
-        links example:
+        Links:
           first: "/storage/v1/stores?page[after]=0&page[size]=2"
           prev: "/storage/v1/stores?page[after]=2&page[size]=2"
           next: "/storage/v1/stores?page[after]=4&page[size]=2"
@@ -1339,7 +1339,7 @@ components:
       bearerFormat: JWT
 tags:
   - name: Authentication
-    description: Authentication to the Storage API
+    description: Authenticate to the Storage API
   - name: Stores
     description: Information about available stores
   - name: File Storage
