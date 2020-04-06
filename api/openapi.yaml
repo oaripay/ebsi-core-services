@@ -226,8 +226,8 @@ components:
           type: string
           description: A URI or an object containing an id property corresponding to the issuer.
       required:
-        - appName
-        - pubKey
+        - name
+        - did
     issuerName:
       title: Issuer Name
       type: object
