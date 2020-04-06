@@ -17,7 +17,7 @@ servers:
     description: EBSI Testing Environment
 tags:
   - name: Authentication
-    description: Authentication to Identity Hub API
+    description: Authenticate to the Identity Hub
   - name: Identity Hub
     description: Store and retrieve personal credentials
 paths:
@@ -67,8 +67,8 @@ paths:
     get:
       tags:
         - Identity Hub
-      summary: Get IDentity Attributes for a given User DID.
-      description: "Retrieves the IDentity Attributes, from a given User DID, that matches the attributes types if specified."
+      summary: Get attributes.
+      description: "Retrieves attributes from the ID Hub."
       responses:
         "200":
           description: Success
@@ -98,7 +98,7 @@ paths:
                           - VerifiableCredential
                           - EssifVerifiableID
                         name: Verifiable ID
-                        did: "did:ebsi:..."
+                        did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                         data:
                           base64: "<bytes for base64>"
@@ -107,7 +107,7 @@ paths:
                           - VerifiableCredential
                           - EssifVerifiableID
                         name: Verifiable ID
-                        did: "did:ebsi:..."
+                        did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                         data:
                           base64: "<bytes for base64>"
@@ -165,7 +165,7 @@ paths:
           in: query
           schema:
             type: string
-            example: "did:ebsi:..."
+            example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
           required: true
           description: Decentralized Identifier
         - name: type
@@ -195,9 +195,9 @@ paths:
       tags:
         - Identity Hub
       summary: Put new IDentity Attribute
-      description: 'Adds a new IDentity Attribute to the repository for the given DID. the "given DID" is extracted from the Bearer Token.'
+      description: "Stores an attribute to the ID Hub."
       requestBody:
-        description: New IDentity Attribute to the repository for the DID  extracted from the Bearer Token
+        description: Verifiable Identity attribute.
         content:
           application/json:
             schema:
@@ -215,7 +215,7 @@ paths:
         required: true
       responses:
         "200":
-          description: Attribute already exist with the same payload
+          description: Attribute already exists.
           content:
             application/json:
               schema:
@@ -228,7 +228,7 @@ paths:
                       - VerifiableCredential
                       - EssifVerifiableID
                     name: Verifiable ID
-                    did: "did:ebsi:..."
+                    did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     data:
                       base64: "<bytes for base64>"
@@ -246,7 +246,7 @@ paths:
                       - VerifiableCredential
                       - EssifVerifiableID
                     name: Verifiable ID
-                    did: "did:ebsi:..."
+                    did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     data:
                       base64: "<bytes for base64>"
@@ -299,7 +299,7 @@ paths:
           type: string
           example: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
         required: true
-        description: hash from the data to be stored
+        description: Hash of the attribute.
     get:
       tags:
         - Identity Hub
@@ -320,7 +320,7 @@ paths:
                       - VerifiableCredential
                       - EssifVerifiableID
                     name: Verifiable ID
-                    did: "did:ebsi:..."
+                    did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     data:
                       base64: "<bytes for base64>"
@@ -375,7 +375,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      description: Retrieves an IDentity Attributes that corresponds to the hash
+      description: Retrieves an attribute by hash.
       security:
         - bearerAuth: []
 components:
@@ -390,7 +390,7 @@ components:
             - VerifiableCredential
             - EssifVerifiableID
           name: Verifiable ID
-          did: "did:ebsi:..."
+          did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
           hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
           data:
             base64: "<bytes for base64>"
@@ -412,10 +412,10 @@ components:
         did:
           type: string
           description: User Decentralized Identifier
-          example: "did:ebsi:..."
+          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
         hash:
           type: string
-          description: Hash from the data to be stored
+          description: Hash of the attribute.
           example: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
         data:
           type: object
