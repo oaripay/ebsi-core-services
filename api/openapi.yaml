@@ -1,20 +1,20 @@
 openapi: 3.0.3
 info:
   title: Storage API
-  version: 1.0.0
-  license:
-    name: EUPL-1.2
-    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
-  contact:
-    name: EBSI Support
-    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
-  termsOfService: "/docs/terms"
   description: |
     Storage API is a Core Service of the EBSI platform providing access to the Off-chain Storage services of the lower layer Chain & Storage. This API provides read and write storage capabilities of files and Key-Value.
 
     File Storage API provides read and write files capabilities to off-chain distributed storage in v1 and in future to off-chain private (local) storage and off-chain external storage trusted providers.
 
-    Key-Value Storage API provides capabilities to save Key-Value (with data value in JSON format) in the off-chain distributed storage for v1. 
+    Key-Value Storage API provides capabilities to save Key-Value (with data value in JSON format) in the off-chain distributed storage for v1.
+  version: 1.0.0
+  termsOfService: "/docs/terms"
+  contact:
+    name: "EBSI Support"
+    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
+  license:
+    name: "EUPL-1.2"
+    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
 paths:
   /storage/v1/stores:
     get:
@@ -44,7 +44,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                Get stores response:
+                Stores:
                   value:
                     items:
                       - distributed
@@ -53,6 +53,11 @@ paths:
         - bearerAuth: []
       operationId: get-storage-v1-stores
       parameters:
+        - in: query
+          name: "page[before]"
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: "page[after]"
           schema:
@@ -67,7 +72,7 @@ paths:
     get:
       tags:
         - Stores
-      summary: Check if exists
+      summary: Check if store exists
       description: Check if a store exists
       parameters:
         - name: store
@@ -82,11 +87,11 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad Request:
+                Invalid {store} Parameter:
                   value:
                     title: Bad Request
                     status: 400
@@ -94,27 +99,24 @@ paths:
         "404":
           description: Store does not exist
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Not found:
+                Not Found:
                   value:
                     title: Not Found
                     status: 404
                     detail: "{store} parameter not found"
         "500":
-          description: Internal error
+          description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: get-storage-v1-store
@@ -122,8 +124,8 @@ paths:
     get:
       tags:
         - File Storage
-      summary: List of files for a store
-      description: Get the list of files by store
+      summary: Get a List of files in the store
+      description: Get a list of files stored in the {store} store
       parameters:
         - name: store
           in: path
@@ -131,6 +133,11 @@ paths:
             type: string
           example: distributed
           required: true
+        - in: query
+          name: "page[before]"
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: "page[after]"
           schema:
@@ -162,13 +169,13 @@ paths:
                     type: integer
                     description: " total number of pages in a collection"
               examples:
-                successful list files response:
+                List of files:
                   value:
                     items:
                       - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
                       - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
                     total: 2
-                successful list files with pagination response:
+                List of files (pagination):
                   value:
                     items:
                       - 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
@@ -176,19 +183,18 @@ paths:
                     total: 13
                     pageSize: 2
                     links:
-                      self: "/storage/v1/stores/distributed/files?page[after]=3&page[size]=2"
                       first: "/storage/v1/stores/distributed/files?page[after]=0&page[size]=2"
                       prev: "/storage/v1/stores/distributed/files?page[after]=2&page[size]=2"
                       next: "/storage/v1/stores/distributed/files?page[after]=4&page[size]=2"
                       last: "/storage/v1/stores/distributed/files?page[after]=13&page[size]=2"
         "400":
-          description: Bad request
+          description: Bad Request
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad Request:
+                Invalid {store} Parameter:
                   value:
                     title: Bad Request
                     status: 400
@@ -196,51 +202,42 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: Permission denied
+                  $ref: "#/components/examples/Unauthorized"
         "403":
           description: Forbidden
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: "Forbidden You don't have the right to access that ressource"
+                  $ref: "#/components/examples/Forbidden"
         "404":
-          description: Not found
+          description: Not Found
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Not found:
+                Not Found:
                   value:
                     title: Not Found
                     status: 404
                     detail: "{store} not found"
         "500":
-          description: Internal Error
+          description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: get-storage-v1-store-files
@@ -248,7 +245,7 @@ paths:
       tags:
         - File Storage
       summary: Store files
-      description: Store files in a specific store
+      description: Store files to the {store}
       parameters:
         - name: store
           in: path
@@ -267,7 +264,7 @@ paths:
               properties:
                 file:
                   type: string
-                  description: file to upload
+                  description: File to upload
                   format: binary
         required: true
       responses:
@@ -278,18 +275,18 @@ paths:
               schema:
                 $ref: "#/components/schemas/fileStoreResponse"
               examples:
-                Successful response:
+                Success:
                   value:
                     hash: "0xbe5b5152fcd01b6bf53f149bfd1493a49ec5e8ae94cc4c29a81563eea0e347f4"
                     function: keccak256
         "400":
           description: Unformatted error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad Request:
+                Invalid {store} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -297,35 +294,29 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: Access restricted
+                  $ref: "#/components/examples/Unauthorized"
         "403":
           description: Forbidden
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: "Forbidden"
+                  $ref: "#/components/examples/Forbidden"
         "404":
-          description: Not found
+          description: Not Found
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Not found:
+                Not Found:
                   value:
                     title: Not Found
                     status: 404
@@ -333,27 +324,21 @@ paths:
         "413":
           description: Too large
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Too large:
-                  value:
-                    title: Request Entity Too Large
-                    status: 413
-                    detail: "The file size exceeds the limit of {sizeLimit} MB"
+                Too Large:
+                  $ref: "#/components/examples/TooLarge"
         "500":
           description: Internal Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: post-storage-v1-store-files
@@ -362,7 +347,7 @@ paths:
       tags:
         - File Storage
       summary: Delete file
-      description: Delete file based on its hash
+      description: Delete file by hash
       parameters:
         - name: store
           in: path
@@ -382,11 +367,11 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                bad Request:
+                Invalid {store,hash} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -394,51 +379,42 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: Unauthorized
+                  $ref: "#/components/examples/Unauthorized"
         "403":
           description: Forbidden
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: "The client is not allowed to access resource"
+                  $ref: "#/components/examples/Forbidden"
         "404":
           description: Not found
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Store not found:
+                Not Found:
                   value:
                     title: Not found
                     status: 404
                     detail: "{store,hash} parameter not found"
         "500":
-          description: Internal Error
+          description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Internal error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: delete-storage-v1-store-file
@@ -446,7 +422,7 @@ paths:
       tags:
         - File Storage
       summary: Get file
-      description: Get file
+      description: Get file by hash
       parameters:
         - name: store
           in: path
@@ -471,11 +447,11 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad request:
+                Invalid {store,hash} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -483,31 +459,25 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: not authorized
+                  $ref: "#/components/examples/Unauthorized"
         "403":
           description: Forbidden
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: access forbidden
+                  $ref: "#/components/examples/Forbidden"
         "404":
           description: Not found
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -519,15 +489,12 @@ paths:
         "500":
           description: Internal Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: get-storage-v1-store-file
@@ -544,6 +511,11 @@ paths:
             type: string
           example: distributed
           required: true
+        - in: query
+          name: "page[before]"
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: "page[after]"
           schema:
@@ -575,7 +547,7 @@ paths:
                     type: integer
                     description: " total number of pages in a collection"
               examples:
-                Get key-values:
+                Success:
                   value:
                     items:
                       - key1
@@ -583,7 +555,6 @@ paths:
                     total: 13
                     pageSize: 2
                     links:
-                      self: "/storage/v1/stores/distributed/key-values?page[after]=3&page[size]=2"
                       first: "/storage/v1/stores/distributed/key-values?page[after]=0&page[size]=2"
                       prev: "/storage/v1/stores/distributed/key-values?page[after]=2&page[size]=2"
                       next: "/storage/v1/stores/distributed/key-values?page[after]=4&page[size]=2"
@@ -591,11 +562,11 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad Request:
+                Invalid {store} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -603,35 +574,29 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: Permission denied
+                  $ref: "#/components/examples/Unauthorized"
         "403":
           description: Forbidden
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: "Forbidden You don't have the right to access that ressource"
+                  $ref: "#/components/examples/Forbidden"
         "404":
           description: Not found
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Not found:
+                Not Found:
                   value:
                     title: Not Found
                     status: 404
@@ -667,12 +632,12 @@ paths:
                 - type: string
                 - type: object
             examples:
-              Simple value:
+              Simple Value:
                 value: value
-              Json value:
+              Json Value:
                 value:
                   prop: value
-        description: "Value. Can be any valid JSON. Size limit: 1MB"
+        description: "Any valid JSON. Size limit: 1MB"
       responses:
         "200":
           description: Object created
@@ -686,7 +651,7 @@ paths:
                     example: '"{stored value}"'
                     description: Key Value example
               examples:
-                success:
+                Success:
                   value:
                     "{key}": "{stored value}"
         "201":
@@ -701,53 +666,47 @@ paths:
                     example: '"{stored value}"'
                     description: Key Value example
               examples:
-                success:
+                Success:
                   value:
                     "{key}": "{stored value}"
         "400":
           description: Bad request
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                bad Request:
+                Bad Request:
                   value:
-                    title: Bad request
+                    title: Bad Request
                     status: 400
                     detail: "The format of the {store,key} parameter is not valid"
         "401":
           description: Unauthorized
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: JWT is missing
+                  $ref: "#/components/examples/Unauthorized"
         "403":
           description: Forbidden
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: "The client is not allowed to access resource"
+                  $ref: "#/components/examples/Forbidden"
         "404":
           description: Not found
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Not found:
+                Not Found:
                   value:
                     title: Not found
                     status: 404
@@ -755,19 +714,16 @@ paths:
         "413":
           description: Entity Too Large
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Request Entity Too Large:
-                  value:
-                    title: Request Entity Too Large
-                    status: 413
-                    detail: "The value size exceeds the limit of {sizeLimit} MB"
+                Value Too Large:
+                  $ref: "#/components/examples/TooLarge"
         "414":
           description: URI Too Long
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -779,23 +735,20 @@ paths:
         "500":
           description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Internal error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: put-storage-v1-store-key-value
     get:
       tags:
         - Key-Value Storage
-      summary: Get object by its key
-      description: Get object identified by its key
+      summary: Get object by key
+      description: Get object by key
       parameters:
         - name: store
           in: path
@@ -819,19 +772,19 @@ paths:
                   - type: string
                   - type: object
               examples:
-                Simple value:
+                Simple Value:
                   value: value
-                Json value:
+                JSON Value:
                   value:
                     prop: value
         "400":
           description: Bad request
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                bad Request:
+                Invalid {store,key} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -839,59 +792,50 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: JWT is missing
+                  $ref: "#/components/examples/Unauthorized"
         "403":
           description: Forbidden
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: "The client is not allowed to access resource"
+                  $ref: "#/components/examples/Forbidden"
         "404":
           description: Not found
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Not found:
+                Not Found:
                   value:
-                    title: Not found
+                    title: Not Found
                     status: 404
                     detail: "{store,key} is not found"
         "500":
           description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Internal error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: get-storage-v1-store-key-value
     delete:
       tags:
         - Key-Value Storage
-      summary: Delete object by its key
-      description: Delete object identified by its key
+      summary: Delete object by key
+      description: Delete object by key
       parameters:
         - name: store
           in: path
@@ -911,11 +855,11 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                bad Request:
+                Invalid {store,key} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -923,35 +867,29 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: JWT is missing
+                  $ref: "#/components/examples/Unauthorized"
         "403":
           description: Forbidden
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: "The client is not allowed to access resource"
+                  $ref: "#/components/examples/Forbidden"
         "404":
           description: Not found
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Not found:
+                Not Found:
                   value:
                     title: Not found
                     status: 404
@@ -959,22 +897,19 @@ paths:
         "500":
           description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Internal error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: delete-storage-v1-store-key-value
     patch:
       tags:
         - Key-Value Storage
-      summary: Apply a patch to add an item to an array in an existing value
+      summary: Apply a patch or add an item to an array of an existing value
       description: Patch an existing value
       parameters:
         - name: store
@@ -996,7 +931,7 @@ paths:
             schema:
               $ref: "#/components/schemas/patch"
             examples:
-              Add value to a list:
+              Add Value to a List:
                 value:
                   - op: add
                     path: /list/-
@@ -1016,7 +951,7 @@ paths:
                 type: object
                 description: Patched object
               examples:
-                Patch successfull:
+                Success:
                   value:
                     list:
                       - id: cred-c1212ff0-440e-11ea-bf45-2d68c2715ada
@@ -1032,11 +967,11 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                bad Request:
+                Invalid {store,key} Parameter:
                   value:
                     title: Bad request
                     status: 400
@@ -1044,35 +979,29 @@ paths:
         "401":
           description: Unauthorized
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
-                  value:
-                    title: Unauthorized
-                    status: 401
-                    detail: JWT is missing
+                  $ref: "#/components/examples/Unauthorized"
         "403":
           description: Forbidden
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Forbidden:
-                  value:
-                    title: Forbidden
-                    status: 403
-                    detail: The client is not allowed to access resource
+                  $ref: "#/components/examples/Forbidden"
         "404":
           description: Not found
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Not found:
+                Not Found:
                   value:
                     title: Not found
                     status: 404
@@ -1080,19 +1009,16 @@ paths:
         "413":
           description: Entity Too Large
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Request Entity Too Large:
-                  value:
-                    title: Request Entity Too Large
-                    status: 413
-                    detail: "The value size exceeds the limit of {sizeLimit} MB"
+                Value Too Large:
+                  $ref: "#/components/examples/TooLarge"
         "414":
           description: URI Too Long
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -1104,19 +1030,15 @@ paths:
         "500":
           description: Internal Server Error
           content:
-            application/json:
+            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Internal error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
       operationId: patch-storage-v1-store-key-value
-
   /storage/v1/sessions:
     post:
       tags:
@@ -1124,27 +1046,10 @@ paths:
       summary: Login to storage services
       description: Login to storage services
       requestBody:
-        description: Authentication. Self signed token with ebsi-storage as audience
         content:
           application/json:
             schema:
-              required:
-                - grantType
-                - assertion
-              type: object
-              properties:
-                grantType:
-                  type: string
-                  example: "urn:ietf:params:oauth:grant-type:jwt-bearer"
-                assertion:
-                  type: string
-                  description: Self signed JWT
-                  example: eyJraWQiOiJHNW01TmxiaTdGWlhPTVlHN2ctZ0tCLVVGdkVBSVUyUFkzSFQ3SFZtYkJzIiwiYWxnIjoiRVMyNTZLIn0.eyJpc3MiOiJlYnNpLXdhbGxldCIsImF1ZCI6ImVic2ktc3RvcmFnZSIsImlhdCI6MTU4NDY5MTIzOCwiZXhwIjoxNTg0NjkyMTM4fQ.boseFUS5fLXdH62ZggWvBkYL65d4xN52lmKNxUFwjLcQvbgF3RyYz-PU8hBY20LuoXbfbivOcEMmVExcwnUSzw
-            examples:
-              POST session example:
-                value:
-                  grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer"
-                  assertion: eyJraWQiOiJHNW01TmxiaTdGWlhPTVlHN2ctZ0tCLVVGdkVBSVUyUFkzSFQ3SFZtYkJzIiwiYWxnIjoiRVMyNTZLIn0.eyJkaWQiOiJkaWQ6ZWJzaToweDE4NGNhNzBCMjI3MzNmNzc4ODI0MDc0YzQ1YjUyNDk1MjFmZDk5MzYiLCJhdWQiOiJlYnNpLXdhbGxldCIsImlhdCI6MTU4NTA2MzMyMywiZXhwIjoxNTg1MDY0MjIzfQ.UxU-7msNhUHY4SHahLi_BuZv10kvaGHfjAV3EXi0uFDBGRUkI88Dpy-Y06UkIjcPwSEFjWXND5XvOwK3PdrU8A
+              $ref: "#/components/schemas/SessionsRequest"
         required: true
       responses:
         "200":
@@ -1152,48 +1057,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/session"
-              examples:
-                Session successfull response:
-                  value:
-                    accessToken: 2YotnFZFEjr1zCsicMWpAA
-                    tokenType: Bearer
-                    expiresIn: 3600
-                    issuedAt: 1467841035013
+                $ref: "#/components/schemas/SessionsResponse"
         "400":
-          description: "Bad request, invalid token"
+          description: Bad Request
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Bad Request:
-                  value:
-                    title: Bad request
-                    status: 400
-                    detail: Issuer not found in the Trusted Apps Registry
-                Expired token:
-                  value:
-                    title: Bad request
-                    status: 400
-                    detail: The token has expired
-                Invalid token:
-                  value:
-                    title: Bad request
-                    status: 400
-                    detail: The token is invalid
+                  $ref: "#/components/examples/BadRequest"
+                Expired Token:
+                  $ref: "#/components/examples/ExpiredToken"
+                Issuer Not Found:
+                  $ref: "#/components/examples/IssuerNotFound"
         "500":
-          description: Internal error
+          description: Internal Server Error
           content:
-            application/json:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
-                  value:
-                    title: Internal Server Error
-                    status: 500
-                    detail: The server encountered an internal error and was unable to complete your request.
+                  $ref: "#/components/examples/InternalError"
       operationId: post-storage-v1-sessions
 components:
   schemas:
@@ -1304,36 +1190,10 @@ components:
           description: |
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
-    session:
-      title: Session
-      type: object
-      properties:
-        accessToken:
-          type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-        tokenType:
-          type: string
-          example: Bearer
-        expiresIn:
-          type: integer
-          example: 900
-        issuedAt:
-          type: string
-          example: "1467841035013"
-      description: Access Token Response
-      x-examples:
-        access token response:
-          accessToken: 2YotnFZFEjr1zCsicMWpAA
-          tokenType: Bearer
-          expiresIn: 3600
-          issuedAt: "1467841035013"
     links:
       title: Links
       type: object
       properties:
-        self:
-          type: string
-          description: " URI of the current page"
         last:
           type: string
           description: " URI of the last page"
@@ -1348,8 +1208,7 @@ components:
           description: " URI of the first page"
       description: links model used for pagination
       x-examples:
-        links example:
-          self: "/storage/v1/stores?page[after]=3&page[size]=2"
+        Links:
           first: "/storage/v1/stores?page[after]=0&page[size]=2"
           prev: "/storage/v1/stores?page[after]=2&page[size]=2"
           next: "/storage/v1/stores?page[after]=4&page[size]=2"
@@ -1372,42 +1231,89 @@ components:
       required:
         - hash
         - function
+    SessionsRequest:
+      title: Sessions Request
+      description: Request for OAuth 2.0 JWT bearer assertion grant.
+      type: object
+      required:
+        - grantType
+        - assertion
+      properties:
+        grantType:
+          description: OAuth 2.0 grant type. Must be set to "urn:ietf:params:oauth:grant-type:jwt-bearer"
+          type: string
+          example: "urn:ietf:params:oauth:grant-type:jwt-bearer"
+        assertion:
+          type: string
+          description: Self-signed JWT
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+    SessionsResponse:
+      title: Sessions Response
+      description: Authentication JWT
+      type: object
+      properties:
+        accessToken:
+          description: Authentication JWT to access the API.
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        tokenType:
+          description: Type of the authentication token. Supported type "bearer".
+          type: string
+          example: Bearer
+        expiresIn:
+          description: JWT expiration in seconds.
+          type: integer
+          example: 900
+        issuedAt:
+          description: "Time of JWT issuance. Format: unix timestamp"
+          type: string
+          example: "1467841035013"
   examples:
     BadRequest:
       value:
         title: Bad Request
         status: 400
-        detail: Bad request
+        detail: Bad request.
+    ExpiredToken:
+      value:
+        title: Token Expired
+        status: 400
+        detail: The token has expired.
     InvalidToken:
       value:
-        title: Invalid Token
+        title: Invalid token
         status: 400
-        detail: Invalid token
+        detail: Invalid token.
+    IssuerNotFound:
+      value:
+        title: Issuer Not Found
+        status: 400
+        detail: Issuer not found in the list of trusted apps.
     Unauthorized:
       value:
         title: Unauthorized
         status: 401
-        detail: Permission denied
+        detail: You are not authorized to access the resources.
     Forbidden:
       value:
         title: Forbidden
         status: 403
-        detail: Forbidden You don't have the right to access that ressource
+        detail: Forbidden.
     NotFound:
       value:
-        title: Not Found
+        title: Not found
         status: 404
-        detail: Not found
+        detail: Page not found.
     TooLarge:
       value:
         title: Payload Too Large
         status: 413
-        detail: Payload too large
+        detail: Payload exceedes the size limit {size_limit}.
     InternalError:
       value:
-        title: Internal Error
+        title: Internal Server Error
         status: 500
-        detail: Internal error
+        detail: The server encountered an internal error and was unable to complete your request.
     ListFiles:
       value:
         items:
@@ -1433,13 +1339,13 @@ components:
       bearerFormat: JWT
 tags:
   - name: Authentication
-    description: Authentication in Storage API
+    description: Authenticate to the Storage API
   - name: Stores
-    description: Stores
+    description: Information about available stores
   - name: File Storage
-    description: File Storage API
+    description: Interact with File Storage
   - name: Key-Value Storage
-    description: Key-Value Storage API
+    description: Interact with Key-Value Storage
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
