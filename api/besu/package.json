@@ -1,0 +1,47 @@
+{
+  "name": "restful",
+  "version": "1.0.0",
+  "description": "REST API for an EBSI node",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar",
+    "lint": "./node_modules/.bin/eslint ./ --fix && ./node_modules/.bin/prettier --write \"**/*.{md,mdx,html,json,yml,js,jsx,ts,tsx,css,scss}\""
+  },
+  "private": true,
+  "keywords": [
+    "EBSI",
+    "REST",
+    "API"
+  ],
+  "author": "Julian Gonzalez",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.1.0",
+    "ethereumjs-tx": "^2.1.2",
+    "ethers": "^4.0.40",
+    "express": "^4.17.1",
+    "jose": "^1.17.1",
+    "path": "^0.12.7",
+    "pug": "^2.0.4"
+  },
+  "devDependencies": {
+    "jest": "^25.1.0",
+    "jest-sonar": "^0.2.5"
+  },
+  "jest": {
+    "coverageDirectory": "./coverage/",
+    "collectCoverage": true,
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "json",
+      "text",
+      "clover",
+      "cobertura"
+    ]
+  }
+}
