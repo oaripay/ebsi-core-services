@@ -5,11 +5,11 @@ RUN mkdir -p /api
 WORKDIR /api
 
 # Bundle app source
-COPY . /api
+COPY ./api/besu /api
 
 # Install app dependencies
 RUN npm install
 
 EXPOSE 8080
-CMD sh start.sh
+CMD npm run start
 
