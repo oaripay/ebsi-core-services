@@ -8,13 +8,12 @@ const router = express.Router();
 
 router.use(bodyParser.json({ limit: "10mb", extended: true, type: "*/*" }));
 router.post("/", auth.handleToken, async (req, res, next) => {
-  let result;
   try {
-    result = await controller.besuRPC(req.body, req.authenticated);
+    const result = await controller.besuRPC(req.body, req.authenticated);
+    res.send(result);
   } catch (error) {
     next(error);
   }
-  res.send(result);
 });
 
 module.exports = router;

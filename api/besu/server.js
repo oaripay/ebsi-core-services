@@ -18,8 +18,8 @@ app.use((req, res, next) => {
 app.post("/ledger/v1/sessions", auth.callNewSession);
 app.use("/ledger/v1/blockchains/besu", besuAPI);
 
-app.use("/*", (req) => {
-  throw new errors.BadRequestError(`Invalid service '${req.url}'`);
+app.use("/*", (req, res, next) => {
+  next(new errors.BadRequestError(`Invalid service '${req.url}'`));
 });
 
 app.use(errors.handler);

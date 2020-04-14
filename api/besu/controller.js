@@ -106,9 +106,9 @@ async function besuRPC(query, authenticated) {
       "Deployment of new smart contracts is not allowed"
     );
 
-  let response;
   try {
-    response = await axios.post(config.besuRPCNode, query);
+    const response = await axios.post(config.besuRPCNode, query);
+    return response.data;
   } catch (error) {
     const { status, data } = error.response;
     let message;
@@ -121,8 +121,6 @@ async function besuRPC(query, authenticated) {
       );
     else throw new BadRequestError(`Besu RPC Error: ${message}`);
   }
-
-  return response.data;
 }
 
 module.exports = {

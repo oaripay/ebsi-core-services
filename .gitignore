@@ -1,3 +1,4 @@
 sonar-report.xml
 api/besu/node_modules
 api/besu/.env
+api/besu/coverage

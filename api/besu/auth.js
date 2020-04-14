@@ -163,7 +163,6 @@ function handleToken(req, res, next) {
  */
 function callNewSession(req, res, next) {
   const { body } = req;
-  let result;
   try {
     if (body.grantType !== GRANT_TYPE)
       throw new BadRequestError(`grantType must be '${GRANT_TYPE}'`);
@@ -171,12 +170,11 @@ function callNewSession(req, res, next) {
     if (!body.assertion)
       throw new BadRequestError("No assertion present in the body");
 
-    result = newSession(body.assertion);
+    const result = newSession(body.assertion);
+    res.send(result);
   } catch (error) {
     next(error);
   }
-
-  res.send(result);
 }
 
 module.exports = {

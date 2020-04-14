@@ -75,7 +75,7 @@ class InternalError extends HTTPError {
   }
 }
 
-function handler(_error, req, res) {
+function handler(_error, req, res, next) {
   let error;
   if (_error.name === "HTTPError") error = _error;
   else error = new InternalError(_error.message);
@@ -85,11 +85,12 @@ function handler(_error, req, res) {
     logger.error(error);
   }
 
-  logger.info(`Response ${error.status}: ${error.detail}`);
-  res
-    .setHeader("Content-Type", "application/problem+json")
-    .status(error.status)
-    .send(error.jsonString());
+  logger.info(`Error ${error.status}: ${error.detail}`);
+  res.setHeader("Content-Type", "application/problem+json");
+  res.status(error.status);
+  res.send(error.jsonString());
+
+  next();
 }
 
 module.exports = {
