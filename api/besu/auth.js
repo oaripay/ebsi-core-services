@@ -161,15 +161,21 @@ function handleToken(req, res, next) {
 /*
  * Call new session
  */
-function callNewSession(req, res) {
+function callNewSession(req, res, next) {
   const { body } = req;
-  if (body.grantType !== GRANT_TYPE)
-    throw new BadRequestError(`grantType must be '${GRANT_TYPE}'`);
+  let result;
+  try {
+    if (body.grantType !== GRANT_TYPE)
+      throw new BadRequestError(`grantType must be '${GRANT_TYPE}'`);
 
-  if (!body.assertion)
-    throw new BadRequestError("No assertion present in the body");
+    if (!body.assertion)
+      throw new BadRequestError("No assertion present in the body");
 
-  const result = newSession(body.assertion);
+    result = newSession(body.assertion);
+  } catch (error) {
+    next(error);
+  }
+
   res.send(result);
 }
 
