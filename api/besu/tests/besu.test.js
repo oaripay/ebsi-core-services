@@ -105,18 +105,18 @@ describe("hyperledger Besu Test", () => {
 
   it("incorrect method is rejected", async () => {
     expect.hasAssertions();
-    const t = async () => {
+    const check = async () => {
       await callAPI("incorrect_method", [], ANONYMOUS);
     };
-    expect(t).toThrow(BadRequestError);
+    await expect(check()).rejects.toThrow(BadRequestError);
   });
 
   it("sendRawTransaction without authentication not allowed", async () => {
     expect.hasAssertions();
-    const t = async () => {
+    const check = async () => {
       await callAPI("eth_sendRawTransaction", ["0x000"], ANONYMOUS);
     };
-    expect(t).toThrow(UnauthorizedError);
+    await expect(check()).rejects.toThrow(UnauthorizedError);
   });
 
   it("session with Ledger API", async () => {
@@ -129,13 +129,13 @@ describe("hyperledger Besu Test", () => {
     const opts = { expiresIn: "15 minutes" };
     const selfToken = jose.JWT.sign(payload, privKey, opts);
 
-    const result = auth.newSession(selfToken);
+    const result = await auth.newSession(selfToken);
     expect(result).toStrictEqual(
       expect.objectContaining({
         accessToken: expect.any(String),
         tokenType: "Bearer",
         expiresIn: 900, // 15 minutes
-        issuedAt: expect.any(String),
+        issuedAt: expect.any(Number),
       })
     );
   });
@@ -168,9 +168,9 @@ describe("hyperledger Besu Test", () => {
   it("reject the deployment of a new smart contract", async () => {
     expect.hasAssertions();
     const sgnTx = await getDeployTransaction();
-    const t = async () => {
+    const check = async () => {
       await callAPI("eth_sendRawTransaction", [sgnTx]);
     };
-    expect(t).toThrow(ForbiddenError);
+    await expect(check()).rejects.toThrow(ForbiddenError);
   });
 });

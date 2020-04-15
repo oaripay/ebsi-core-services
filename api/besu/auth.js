@@ -105,7 +105,7 @@ async function newSession(token) {
   // validate token in the trusted app registry
   if (!process.env.EBSI_TEST_MODE) {
     const appName = payload.iss;
-    trustedAppsRegistryValidation(appName, token);
+    await trustedAppsRegistryValidation(appName, token);
   }
   const sessionToken = generateToken();
   return sessionToken;
@@ -165,7 +165,7 @@ function handleToken(req, res, next) {
 /*
  * Call new session
  */
-function callNewSession(req, res, next) {
+async function callNewSession(req, res, next) {
   const { body } = req;
   try {
     if (body.grantType !== GRANT_TYPE)
@@ -174,7 +174,7 @@ function callNewSession(req, res, next) {
     if (!body.assertion)
       throw new BadRequestError("No assertion present in the body");
 
-    const result = newSession(body.assertion);
+    const result = await newSession(body.assertion);
     res.send(result);
   } catch (error) {
     next(error);
