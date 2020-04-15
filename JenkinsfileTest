@@ -1,8 +1,8 @@
 pipeline {
     agent any
     environment {
-        TEST_APP_NAME="ebsi-wallet"
         EBSI_ENV="integration"
+        BESU_ADDRESS_NOTARY="0x3c5316F3223626f8D8Ea50Eed697F739c2778D3b"
     }
     stages {
         stage('Clone repo') {
@@ -12,17 +12,19 @@ pipeline {
         }
         stage('Unit test') {
             steps {
-                sh 'npm install'
-                withCredentials([string(credentialsId: 'TEST_APP_PRIVATE_KEY', variable: 'TEST_APP_PRIVATE_KEY')]) {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh 'npm run test'
+                dir('api/besu') {
+                    sh 'npm install'
+                    withCredentials([string(credentialsId: 'TEST_APP_PRIVATE_KEY', variable: 'API_LEDGER_PRIVATE_KEY')]) {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh 'npm run test'
+                        }
                     }
                 }
             }
         }
         stage('SonarQube Analysis') {
             steps{
-                sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=4-ebsi-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=4-ebsi-api -Dsonar.sources=. -Dsonar.projectBaseDir=/var/lib/jenkins/workspace/4-ebsi-api"
+                sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=ledger-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=ledger-api -Dsonar.sources=. -Dsonar.projectBaseDir=/var/lib/jenkins/workspace/ledger-api-test_${env.BRANCH_NAME}"
             }
         }
     }
