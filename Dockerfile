@@ -1,15 +1,13 @@
-FROM node:12
+FROM node:12.16.1-alpine
 
-# Create app directory
 RUN mkdir -p /api
 WORKDIR /api
-
-# Bundle app source
 COPY ./api/besu /api
 
-# Install app dependencies
+RUN chown node:node /api/node_modules
+USER node
+
 RUN npm install
 
 EXPOSE 8080
 CMD npm run start
-
