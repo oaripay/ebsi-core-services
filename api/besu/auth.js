@@ -144,13 +144,17 @@ function handleToken(req, res, next) {
   try {
     payload = jose.JWT.verify(token, config.jwt.privKey);
   } catch (error) {
-    throw new InvalidTokenError(error.message);
+    next(new InvalidTokenError(error.message));
+    return;
   }
 
   if (payload.aud !== config.API_NAME) {
-    throw new InvalidTokenError(
-      `Token with incorrect audience. Please create a new session with '${config.API_NAME}'`
+    next(
+      new InvalidTokenError(
+        `Token with incorrect audience. Please create a new session with '${config.API_NAME}'`
+      )
     );
+    return;
   }
 
   debug("token")("Valid token");
