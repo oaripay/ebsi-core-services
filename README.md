@@ -82,7 +82,7 @@ This command starts a node server exposing the EBSI Swagger API at <http://local
 This projects contains the Identity Hub API EBSI Service:
 
 Identity Hub API is a Core Service of the EBSI platform providing the capability of securely storing W3C Verifiable Credentials/Attestations.
-You can read the documentation at <https://api.ebsi.xyz/verifiable-credential/v1/api-docs>.
+You can read the documentation at <https://api.ebsi.xyz/identity-hub/v1/api-docs>.
 
 ## Licensing
 
