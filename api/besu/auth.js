@@ -69,7 +69,7 @@ async function trustedAppsRegistryValidation(appName, token) {
   url = `${config.trustedAppsRegistry}/apps/${config.API_NAME}/authorized-apps/${appName}`;
   try {
     logger.info(`Accesing ${url}`);
-    response = await axios.get(url);
+    await axios.get(url);
   } catch (error) {
     if (error.response.status >= 500)
       error.response.data = `Trusted Apps Registry: ${error.response.data}`;
