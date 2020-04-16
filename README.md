@@ -1,1 +1,96 @@
-Read me 
+![EBSI Logo](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
+
+# Identity Hub API
+
+> Identity Hub API is a Core Service of the EBSI platform providing the capability of securely storing W3C Verifiable Credentials/Attestations.
+
+## Table of Contents
+
+1. [Getting started](#Getting)
+2. [Building](#Building)
+3. [Swagger Documentation](#Swagger-Documentation)
+4. [Licensing](#Licensing)
+
+## Getting started
+
+### Prerequisites
+
+Required libraries:
+
+- typescript
+
+### Installing
+
+Move to the base directory (example: `test-ebsi`)
+
+```sh
+cd test-ebsi
+```
+
+Clone the repository and move to the project directory
+
+```sh
+git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/identity-hub-api.git
+cd identity-hub-api
+```
+
+#### Docker Build and Up
+
+Build and Run ebsi-identity-hub-api Docker Image
+
+```sh
+docker-compose up --build
+```
+
+To stop the container, just press `Ctrl^C` and to remove the container:
+
+```sh
+docker-compose down
+```
+
+## Building
+
+Clone the repository and move to the project directory and move to the base directory.
+
+```sh
+git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/identity-hub-api.git
+cd identity-hub-api
+```
+
+Install the required libraries and packages dependencies
+
+```sh
+npm i
+```
+
+Build project
+
+```sh
+npm run build
+```
+
+Start the swagger service API
+
+```sh
+npm run start
+```
+
+This command starts a node server exposing the EBSI Swagger API at <http://localhost:9000/api-docs/> where you can play with the EBSI API.
+
+## Swagger Documentation
+
+This projects contains the Identity Hub API EBSI Service:
+
+Identity Hub API is a Core Service of the EBSI platform providing the capability of securely storing W3C Verifiable Credentials/Attestations.
+You can read the documentation at <https://api.ebsi.xyz/verifiable-credential/v1/api-docs>.
+
+## Licensing
+
+Copyright (c) 2019 European Commission  
+Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
+You may not use this work except in compliance with the Licence.
+You may obtain a copy of the Licence at:
+
+- <https://joinup.ec.europa.eu/page/eupl-text-11-12>
+
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.
