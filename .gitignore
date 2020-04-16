@@ -1,0 +1,4 @@
+sonar-report.xml
+node_modules
+.env
+coverage
