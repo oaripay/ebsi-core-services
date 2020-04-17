@@ -4,7 +4,7 @@ RUN mkdir -p /api
 WORKDIR /api
 COPY . /api
 
-RUN chown node:node /api/node_modules
+RUN chown node:node /api
 USER node
 
 RUN npm install
