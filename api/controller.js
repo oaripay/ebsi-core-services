@@ -7,7 +7,7 @@ const { BadRequestError, NotFoundError, InternalError } = require("../errors");
 const URL = "/timestamp/v1/hashes";
 const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
-const provider = new ethers.providers.JsonRpcProvider(config.besu_rpc_node);
+const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
 const contract = new ethers.Contract(
   config.notary.address,
   config.notary.abi,
@@ -16,13 +16,13 @@ const contract = new ethers.Contract(
 
 async function buildRecord(log) {
   const block = await provider.getBlock(log.blockNumber);
-  const timestamp = new Date(block.timestamp).toISOString();
+  const timestamp = new Date(block.timestamp * 1000).toISOString();
   return {
     hash: log.topics[1].replace("0x", ""),
     txHash: log.transactionHash,
     blockNumber: log.blockNumber,
     timestamp,
-    registeredBy: log.address,
+    registeredBy: log.topics[2].replace("000000000000000000000000", ""),
   };
 }
 
