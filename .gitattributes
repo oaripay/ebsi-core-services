@@ -1,0 +1,6 @@
+# Auto detect text files and perform LF normalization
+* text=auto
+ 
+# If we host Solidity files
+*.sol linguist-language=Solidity
+
