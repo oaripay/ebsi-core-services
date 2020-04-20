@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
         EBSI_ENV='integration'
+        BESU_ADDRESS_NOTARY='0x3c5316F3223626f8D8Ea50Eed697F739c2778D3b'
     }
     stages {
         stage('Clone repo') {
