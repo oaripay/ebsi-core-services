@@ -15,7 +15,7 @@ async function bootstrap() {
   require('dotenv').config();
   const app = await NestFactory.create(AppModule);
   const document = SwaggerModule.createDocument(app, options);
-  SwaggerModule.setup('trusted-issuers/api-docs', app, document);
+  // SwaggerModule.setup('trusted-issuers/api-docs', app, document);
   app.useGlobalPipes(new ValidationPipe());
   await app.listen(config.APP_PORT || 9000);
 }
