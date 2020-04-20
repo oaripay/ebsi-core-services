@@ -1,0 +1,28 @@
+pipeline {
+    agent any
+    environment {
+        EBSI_ENV="integration"
+    }
+    stages {
+        stage('Clone repo') {
+            steps {
+               checkout scm;
+            }
+        }
+        stage('Unit test') {
+            steps {
+                dir('api/besu') {
+                    sh 'npm install'
+                    withCredentials([string(credentialsId: 'TEST_APP_PRIVATE_KEY', variable: 'API_STORAGE_PRIVATE_KEY')]) {
+                        sh 'npm run test'
+                    }
+                }
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps{
+                sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=storage-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=storage-api -Dsonar.sources=. -Dsonar.projectBaseDir=/var/lib/jenkins/workspace/storage-api-test_${env.BRANCH_NAME}"
+            }
+        }
+    }
+}
