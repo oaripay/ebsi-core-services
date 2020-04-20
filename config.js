@@ -2,6 +2,7 @@ const utils = require("./utils");
 require("dotenv").config();
 
 const API_NAME = "ebsi-storage";
+const DEFAULT_PAGE_SIZE = 10;
 
 const port = process.env.PORT || 8080;
 
@@ -33,16 +34,35 @@ const { url } = finalConfig;
 
 const sharedConfig = {
   trustedAppsRegistry: `${url}/trusted-apps-registry/v1`,
-  mongodb: {
-    connectionString: "mongodb://mongodb:27017/ebsi"
+  mongo: {
+    connectionString: "mongodb://mongodb:27017/ebsi",
+    opts: {
+      appname: "EBSI",
+      poolSize: 10,
+      autoIndex: false,
+      bufferMaxEntries: 0,
+      reconnectTries: Number.MAX_VALUE,
+      reconnectInterval: 500,
+      autoReconnect: true,
+      loggerLevel: "error",
+      keepAlive: 120,
+      validateOptions: true,
+      useNewUrlParser: true,
+    }
   },
   cassandra: {
-    contactPoints: ["cassandradb"],
-    localDataCenter: "datacenter1",
-    keyspace: finalConfig.keyspace
+    connection: {
+      contactPoints: ["cassandradb"],
+      localDataCenter: "datacenter1",
+      keyspace: finalConfig.keyspace,
+    },
+    opts: {
+      reconnectTries: Number.MAX_VALUE,
+      reconnectInterval: 5000,
+    },
   },
-  glusterfs: {
-    path: "/EBSI"
+  gluster: {
+    path: __dirname + "GlusterFiles"
   },
   jwt: {
     privKey: utils.getJWKfromHex(process.env.API_STORAGE_PRIVATE_KEY),
@@ -54,4 +74,5 @@ module.exports = {
   ...finalConfig,
   port,
   API_NAME,
+  DEFAULT_PAGE_SIZE,
 };

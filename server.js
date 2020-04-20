@@ -1,11 +1,51 @@
 const express = require("express");
+const mongoose = require("mongoose");
+const cassandraDriver = require("cassandra-driver");
 
 const config = require("./config");
+const utils = require("./utils");
 const logger = require("./logger");
 const auth = require("./auth");
 const errors = require("./errors");
 const fileStorageAPI = require("./api/file-storage/router");
 const keyValueStorageAPI = require("./api/key-value-storage/router");
+
+/*
+ * Initializations
+ */
+
+const mongoConnection = config.mongo.connectionString;
+const mongoOpts = config.mongo.opts;
+mongoose.connect(mongoConnection, mongoOpts, (error) => {
+  if (error) throw error;
+  logger.info("Connected with Mongo");
+});
+
+const cassandraConnection = config.cassandra.connection;
+const cassandraOpts = config.cassandra.opts;
+const cassandra = new cassandraDriver.Client(cassandraConnection);
+(async () => {
+  for (let i = 0; i < cassandraOpts.reconnectTries; i+=1) {
+    try {
+      await cassandra.connect();
+      logger.info("Connected with Cassandra");
+      return;
+    } catch (error) {
+      logger.error(error);
+    }
+    await utils.sleep(cassandraOpts.reconnectInterval);
+  }
+  logger.error("Imposible to connect with Cassandra");
+})();
+
+if (!fs.existsSync(config.gluster.path)) {
+  fs.mkdirSync(config.gluster.path, { recursive: true });
+}
+logger.info(`==> Gluster files in ${config.gluster.path}`);
+
+/*
+ * Router
+ */
 
 const app = express();
 

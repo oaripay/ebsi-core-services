@@ -83,7 +83,14 @@ async function trustedAppsRegistryValidation(appName, token) {
  * This function validates a self signed token issued by the user,
  * checks the trusted apps registry and generates a session token.
  */
-async function newSession(token) {
+async function newSession(body) {
+  if (body.grantType !== GRANT_TYPE)
+    throw new BadRequestError(`grantType must be '${GRANT_TYPE}'`);
+
+  if (!body.assertion)
+    throw new BadRequestError("No assertion present in the body");
+
+  const token = body.assertion;
   if (!token) {
     throw new InvalidTokenError("No token present in the headers");
   }
@@ -168,13 +175,7 @@ function handleToken(req, res, next) {
 async function callNewSession(req, res, next) {
   const { body } = req;
   try {
-    if (body.grantType !== GRANT_TYPE)
-      throw new BadRequestError(`grantType must be '${GRANT_TYPE}'`);
-
-    if (!body.assertion)
-      throw new BadRequestError("No assertion present in the body");
-
-    const result = await newSession(body.assertion);
+    const result = await newSession(body);
     res.send(result);
   } catch (error) {
     next(error);
