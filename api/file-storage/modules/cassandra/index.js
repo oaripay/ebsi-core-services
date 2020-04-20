@@ -1,129 +1,122 @@
 const fs = require("fs");
-var path = require("path");
-var ethers = require("ethers");
+const ethers = require("ethers");
+const cassandraDriver = require("cassandra-driver");
 
-const TABLE_FILE_STORAGE = "documents_data";
+const config = require("../../../../config");
+const logger = require("../../../../logger");
+const { BadRequestError, NotFoundError } = require("../../../../errors");
 
-function EBSIcassandra(options) {
-  this.client = options.client;
+const TABLE_FILE_STORAGE = "files";
+
+const cassandraConnection = config.cassandra.connection;
+const cassandra = new cassandraDriver.Client(cassandraConnection);
+
+function buildLink(store, before, after, pageSize) {
+  const query = {};
+  if (before) query["page[before]"] = before;
+
+  if (after) query["page[after]"] = after;
+
+  if (pageSize && pageSize !== config.DEFAULT_PAGE_SIZE)
+    query["page[size]"] = pageSize;
+
+  return `/storage/v1/stores/${store}/files?${querystring.stringify(query)}`;
 }
 
-EBSIcassandra.prototype.store = async function(req, res, next) {
-  if (!req.tempfile || !req.public_key || !req.filename) {
-    throw new Error("The request need tempfile, public_key and filename");
+async function getRecord(hash) {
+  const query = `select * from ${TABLE_FILE_STORAGE} where hash = ? allow filtering`;
+  const result = await cassandra.execute(query, [hash]);
+  return result.first();
+}
+
+async function storeFile(filename, file) {
+  if (!filename || !file)
+    throw new Error("No filename or file defined");
+
+  const data = fs.readFileSync(file);
+  const hash = ethers.utils.keccak256(data);
+  const record = await getRecord(hash);
+  if (record)
+    throw new BadRequestError(`This file is already stored with name '${record.filename}'`);
+
+  const query = `insert into ${TABLE_FILE_STORAGE} (id, filename, hash, data) VALUES (now(), ?, ?, ?)`;
+  const params = [filename, hash, data];
+
+  const result = await cassandra.execute(query, params);
+
+  if (!result.info || !result.info.isSchemaInAgreement) {
+    logger.error(result);
+    throw new Error("Bad response from cassandra when storing the file");
   }
+  return {hash, function: "keccak256"};
+}
 
-  var data = fs.readFileSync(req.tempfile);
-  var hash = ethers.utils.keccak256(data);
-  // var public_key = req.user.public_key.toLowerCase()
-  var public_key = "0x0000000000000000000000000000000000000000";
+async function readFile(hash) {
+  const record = await getRecord(hash);
+  if(!record)
+    throw new NotFoundError("File not found");
 
-  var query = `select * from ${TABLE_FILE_STORAGE} where hash = ? and publickey = ? allow filtering`;
-  var params = [hash, public_key];
+  return record;
+}
 
-  var result;
-  try {
-    result = await req.cassandra.execute(query, params);
-  } catch (error) {
-    res.status(500).send("Internal error");
-    console.log(error);
-    return;
+async function deleteFile(hash) {
+  const record = await getRecord(hash);
+  if (!record)
+    throw new NotFoundError("File not found");
+
+  const query = `delete from ${TABLE_FILE_STORAGE} where hash = ? if exists`;
+  const result = await cassandra.execute(query, [hash]);
+
+  if (!result.info || !result.info.isSchemaInAgreement) {
+    logger.error(result);
+    throw new Error("Bad response from cassandra when deleting the file");
   }
-
-  if (result.first()) {
-    res.status(400).send("This file is already stored");
-    next();
-    return;
-  }
-
-  query = `insert into ${TABLE_FILE_STORAGE} (id, publickey, filename, hash, data) VALUES (now(), ?, ?, ?, ?)`;
-  params = [public_key, req.filename, hash, data];
-
-  try {
-    result = await req.cassandra.execute(query, params);
-  } catch (error) {
-    res.status(500).send("Internal error");
-    console.log(error);
-    return;
-  }
-
-  if (result.info && result.info.isSchemaInAgreement) {
-    res.send({ message: "File stored", hash: hash });
-  } else {
-    res.status(500).send("Store error");
-    console.log("Store error");
-    console.log(result);
-  }
-  next();
+  return;
 };
 
-EBSIcassandra.prototype.read = async function(req, res, next) {
-  // var public_key = req.user.public_key.toLowerCase()
-  var public_key = "0x0000000000000000000000000000000000000000";
-
-  var query = `select * from ${TABLE_FILE_STORAGE} where hash = ? and publickey = ? allow filtering`;
-  var params = [req.params.hash, public_key];
-
-  try {
-    var result = await this.client.execute(query, params);
-  } catch (error) {
-    res.status(500).send("Internal error");
-    console.log(error);
-    return;
+async function getListFiles(q) {
+  let pageSize = config.DEFAULT_PAGE_SIZE;
+  if (q && q["page[size]"]) {
+    if (Number(q["page[size]"]) < 0)
+      throw new BadRequestError("page[size] must be a positive integer");
+    pageSize = q["page[size]"];
+  }
+  let pageAfter = null;
+  if (q && q["page[after]"]) {
+    if (Number(q["page[after]"]) < 0)
+      throw new BadRequestError("page[after] must be a positive integer");
+    pageAfter = q["page[after]"];
+  }
+  let pageBefore = null;
+  if (q && q["page[before]"]) {
+    if (Number(q["page[before]"]) < 0)
+      throw new BadRequestError("page[before] must be a positive integer");
+    pageBefore = q["page[before]"];
   }
 
-  var record = result.first();
-  if (record) {
-    res.writeHead(200, {
-      "Content-Type": "application/" + path.extname(record.filename),
-      "Content-disposition": "attachment;filename=" + record.filename,
-      "Content-Length": record.data.length
-    });
-    res.end(Buffer.from(record.data, "binary"));
-    next(true);
-  } else {
-    next(false);
+  const items = [];
+
+  let query = `select rownum r, hash from ${TABLE_FILE_STORAGE}`;
+  if(pageAfter)
+    query += ` where r > ${pageAfter} and r <= ${pageAfter + pageSize}`;
+  else if(pageBefore)
+    query += ` where r < ${pageBefore} and r >= ${pageBefore - pageSize}`;
+  else
+    query += ` where r < ${pageSize}`;
+
+  const result = await cassandra.execute(query, [hash]);
+  console.log(result);
+
+  if (!result.info || !result.info.isSchemaInAgreement) {
+    logger.error(result);
+    throw new Error("Bad response from cassandra when deleting the file");
   }
+  throw new Error("Not implemented");
+}
+
+module.exports = {
+  storeFile,
+  readFile,
+  deleteFile,
+  getListFiles,
 };
-
-EBSIcassandra.prototype._delete = async function(req, res) {
-  var public_key = "0x0000000000000000000000000000000000000000";
-  var query = `select * from ${TABLE_FILE_STORAGE} where hash = ? and publickey = ? allow filtering`;
-  var params = [req.params.hash, public_key];
-
-  var result;
-  try {
-    result = await this.client.execute(query, params);
-  } catch (error) {
-    res.status(500).send("Internal error");
-    console.log(error);
-    return;
-  }
-
-  var record = result.first();
-  if (!record) {
-    res.status(404).send("File not found");
-    return;
-  }
-
-  query = `delete from ${TABLE_FILE_STORAGE} where id = ? and hash = ? if exists`;
-  params = [record.id, req.params.hash];
-
-  try {
-    result = await this.client.execute(query, params);
-  } catch (error) {
-    res.status(500).send("Internal error");
-    console.log(error);
-    return;
-  }
-
-  if (result.info && result.info.isSchemaInAgreement) {
-    res.send({ message: "File deleted" });
-  } else {
-    res.status(500).send("Delete error");
-    console.log("Delete error");
-    console.log(result);
-  }
-};
-
-module.exports = EBSIcassandra;
