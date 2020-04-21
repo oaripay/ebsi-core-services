@@ -1,0 +1,25 @@
+pipeline {
+    agent any
+    environment {
+        NODE_ENV='integration'
+    }
+    stages {
+        stage('Clone repo') {
+            steps {
+               checkout scm;
+            }
+        }
+        stage('Test') {
+            steps{
+                sh "npm install"
+                sh "npm run test"
+                sh "npm run test:cov"
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-issuers-registry-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-issuers-registry-api -Dsonar.sources=. -Dsonar.projectBaseDir=/var/lib/jenkins/workspace/trusted-issuers-registry-api-test_${env.BRANCH_NAME}"
+            }
+        }
+    }
+}
