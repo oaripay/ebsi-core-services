@@ -20,7 +20,7 @@ const prodConfig = {
 
 const intConfig = {
   WEB3_PROVIDER: 'https://www.intebsi.xyz/jsonrpc',
-  CONTRACT_ADDR: '0xd6A7c915066E17ba18024c799258C8A286fFBc00',
+  CONTRACT_ADDR: '0x0aF1B3F6e2B7512ae8E6ad5Ae415D18E1919A0FE',
 };
 
 const localConfig = {
@@ -28,7 +28,7 @@ const localConfig = {
   CONTRACT_ADDR: '0xBCb85Ca4Cfb22dB204707778Ef513C8cEf9Dc894',
 };
 
-switch (process.env.NODE_ENV) {
+switch (process.env.EBSI_ENV) {
   case 'production':
     config = {...config, ...prodConfig, ...process.env};
     break;
@@ -36,7 +36,8 @@ switch (process.env.NODE_ENV) {
     config = {...config, ...devConfig, ...process.env};
     break;
   case 'integration':
-    // same as default
+    config = {...config, ...intConfig, ...process.env};
+    break;
   default:
     config = {...config, ...localConfig, ...process.env};
     break;
