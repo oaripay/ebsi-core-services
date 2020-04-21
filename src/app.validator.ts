@@ -15,6 +15,17 @@ export class PublicKeyParam {
   @IsDefined()
   @IsNotEmpty()
   public appName: string;
+}
+
+// tslint:disable-next-line:max-classes-per-file
+export class PublicKeyParamWithAuthorizedAppName {
+  @ApiProperty({
+    description: `Existing values: ebsi-storage, ebsi-wallet, ...`,
+  })
+  @IsString()
+  @IsDefined()
+  @IsNotEmpty()
+  public appName: string;
   @ApiProperty({
     description: `Existing values: ebsi-storage, ebsi-wallet, ...`,
   })

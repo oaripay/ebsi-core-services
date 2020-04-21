@@ -17,7 +17,13 @@ import * as status from 'http-status';
 
 import { EthersService } from './shared/services/ethers.service';
 import { AppService } from './shared/services/app.service';
-import { AuthAppBody, AuthorizationBody, ChallengeParams, PublicKeyParam } from './app.validator';
+import {
+  AuthAppBody,
+  AuthorizationBody,
+  ChallengeParams,
+  PublicKeyParam,
+  PublicKeyParamWithAuthorizedAppName
+} from './app.validator';
 import { StrategyType } from './shared/auth/strategy/constants';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UnknownModuleException } from '@nestjs/core/errors/exceptions/unknown-module.exception';
@@ -153,7 +159,7 @@ export class AppController {
   @ApiResponse({ status: 200, description: HTTP_200})
   @ApiResponse({ status: 404, description: HTTP_404})
   @Get('/v1/apps/:appName/authorized-apps/:authorizedAppName')
-  async checkAppAuthorized(@Param() param: PublicKeyParam) {
+  async checkAppAuthorized(@Param() param: PublicKeyParamWithAuthorizedAppName) {
     try {
       const authorizedApps = await this.ethersService.getAuthorizedApps(param.appName);
       let [apps,] = authorizedApps;
