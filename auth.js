@@ -9,6 +9,7 @@ const {
   InvalidTokenError,
   IssuerNotFoundError,
   InvalidAppError,
+  UnauthorizedError,
 } = require("./errors");
 
 const GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer";
@@ -141,9 +142,8 @@ function handleToken(req, res, next) {
 
   if (!token) {
     // No token in the headers. Continue the call as unauthenticated user
-    debug("token")("Token not present in the headers");
-    req.authenticated = false;
-    next();
+    debug("token")("No token present in the headers");
+    next(new UnauthorizedError("No token present in the headers"));
     return;
   }
 

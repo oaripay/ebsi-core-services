@@ -48,7 +48,7 @@ const sharedConfig = {
       keepAlive: 120,
       validateOptions: true,
       useNewUrlParser: true,
-    }
+    },
   },
   cassandra: {
     connection: {
@@ -62,7 +62,7 @@ const sharedConfig = {
     },
   },
   gluster: {
-    path: __dirname + "GlusterFiles"
+    path: `${__dirname}/files`,
   },
   jwt: {
     privKey: utils.getJWKfromHex(process.env.API_STORAGE_PRIVATE_KEY),
