@@ -1,16 +1,16 @@
 const fs = require("fs");
-var path = require("path");
-var ethers = require("ethers");
+const path = require("path");
+const ethers = require("ethers");
 
-function getPath(dir, public_key, hash, ext) {
-  return dir + "/" + public_key + "/" + hash + ext;
+function getPath(dir, publicKey, hash, ext) {
+  return `${dir}/${publicKey}/${hash}${ext}`;
 }
 
-function getPaths(dir, public_key, hash) {
+function getPaths(dir, publicKey, hash) {
   return {
-    path_file: getPath(dir, public_key, hash, ".dat"),
-    path_metadata: getPath(dir, public_key, hash, ".metadata"),
-    path_folder: dir + "/" + public_key
+    path_file: getPath(dir, publicKey, hash, ".dat"),
+    path_metadata: getPath(dir, publicKey, hash, ".metadata"),
+    path_folder: `${dir}/${publicKey}`,
   };
 }
 
@@ -18,17 +18,17 @@ function EBSIglusterfs(options) {
   this.directory_path = options.path;
 }
 
-EBSIglusterfs.prototype.storeFile = function(req, res, next) {
-  if (!req.tempfile || !req.public_key || !req.filename) {
-    throw new Error("The request need tempfile, public_key and filename");
+EBSIglusterfs.prototype.storeFile = (req, res, next) => {
+  if (!req.tempfile || !req.publicKey || !req.filename) {
+    throw new Error("The request need tempfile, publicKey and filename");
   }
 
-  var data = fs.readFileSync(req.tempfile);
-  var hash = ethers.utils.keccak256(data);
-  // var public_key = req.public_key.toLowerCase()
-  var public_key = "0x0000000000000000000000000000000000000000";
+  const data = fs.readFileSync(req.tempfile);
+  const hash = ethers.utils.keccak256(data);
+  // var publicKey = req.publicKey.toLowerCase()
+  const publicKey = "0x0000000000000000000000000000000000000000";
 
-  var paths = getPaths(this.directory_path, public_key, hash);
+  const paths = getPaths(this.directory_path, publicKey, hash);
 
   if (fs.existsSync(paths.path_file)) {
     res.status(400).send("This file is already stored");
@@ -39,45 +39,43 @@ EBSIglusterfs.prototype.storeFile = function(req, res, next) {
       fs.mkdirSync(paths.path_folder);
     }
 
-    var metadata = {
-      filename: req.filename
+    const metadata = {
+      filename: req.filename,
     };
-    var content_metadata = JSON.stringify(metadata);
+    const contentMetadata = JSON.stringify(metadata);
 
-    fs.writeFile(paths.path_metadata, content_metadata, err => {
+    fs.writeFile(paths.path_metadata, contentMetadata, (err) => {
       if (err) {
-        console.log(err);
         res.status(500).send("Internal error");
         next();
         return;
       }
-      fs.writeFile(paths.path_file, data, err => {
-        if (err) {
-          console.log(err);
+      fs.writeFile(paths.path_file, data, (error) => {
+        if (error) {
           res.status(500).send("Internal error");
           next();
           return;
         }
-        res.send({ message: "File stored", hash: hash });
+        res.send({ message: "File stored", hash });
         next();
       });
     });
   }
 };
 
-EBSIglusterfs.prototype.readFile = function(req, res, next) {
-  // var public_key = req.user.public_key.toLowerCase()
-  var public_key = "0x0000000000000000000000000000000000000000";
-  var paths = getPaths(this.directory_path, public_key, req.params.hash);
+EBSIglusterfs.prototype.readFile = (req, res, next) => {
+  // var publicKey = req.user.publicKey.toLowerCase()
+  const publicKey = "0x0000000000000000000000000000000000000000";
+  const paths = getPaths(this.directory_path, publicKey, req.params.hash);
 
   if (fs.existsSync(paths.path_file)) {
-    var data = fs.readFileSync(paths.path_file);
-    var metadata = JSON.parse(fs.readFileSync(paths.path_metadata));
+    const data = fs.readFileSync(paths.path_file);
+    const metadata = JSON.parse(fs.readFileSync(paths.path_metadata));
 
     res.writeHead(200, {
-      "Content-Type": "application/" + path.extname(metadata.filename),
-      "Content-disposition": "attachment;filename=" + metadata.filename,
-      "Content-Length": data.length
+      "Content-Type": `application/${path.extname(metadata.filename)}`,
+      "Content-disposition": `attachment;filename=${metadata.filename}`,
+      "Content-Length": data.length,
     });
     res.end(Buffer.from(data, "binary"));
     next(true);
@@ -86,10 +84,10 @@ EBSIglusterfs.prototype.readFile = function(req, res, next) {
   }
 };
 
-EBSIglusterfs.prototype.deleteFile = function(req, res) {
+EBSIglusterfs.prototype.deleteFile = (req, res) => {
   try {
-    var public_key = "0x0000000000000000000000000000000000000000";
-    var paths = getPaths(this.directory_path, public_key, req.params.hash);
+    const publicKey = "0x0000000000000000000000000000000000000000";
+    const paths = getPaths(this.directory_path, publicKey, req.params.hash);
     if (!fs.existsSync(paths.path_file)) {
       res.status(404).send("File not found");
       return;
@@ -98,7 +96,6 @@ EBSIglusterfs.prototype.deleteFile = function(req, res) {
     fs.unlinkSync(paths.path_metadata);
     res.send({ message: "File deleted" });
   } catch (error) {
-    console.log(error);
     res.status(500).send("Internal error");
   }
 };

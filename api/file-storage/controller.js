@@ -1,37 +1,33 @@
-const config = require("../../config");
-
-var EBSIcassandra = require("./modules/cassandra");
+const EBSIcassandra = require("./modules/cassandra");
 // var EBSIgluster = require("./modules/gluster");
 
-async function storeFile(input) {
-  const {store, filename, file} = input;
+function storeFile(input) {
+  const { store, filename, file } = input;
   switch (store) {
     case "distributed":
       /* gluster disabled in V1
       const ebsiGluster = new EBSIgluster({ path: config.glusterfs.path  });
       ebsiGluster.storeFile(filename, file);
       */
-      await EBSIcassandra.storeFile(filename, file);
-      break;
+      return EBSIcassandra.storeFile(filename, file);
     default:
       throw new Error(`No handle for store '${store}'`);
   }
 }
 
-async function readFile(input) {
-  const {store, hash} = input;
+function readFile(input) {
+  const { store, hash } = input;
   switch (store) {
     case "distributed":
       // Gluster disabled in V1
-      const record = await EBSIcassandra.readFile(hash);
-      return record;
+      return EBSIcassandra.readFile(hash);
     default:
       throw new Error(`No handle for store '${store}'`);
   }
 }
 
 async function deleteFile(input) {
-  const {store, hash} = input;
+  const { store, hash } = input;
   switch (store) {
     case "distributed":
       // Gluster disabled in V1
@@ -42,12 +38,12 @@ async function deleteFile(input) {
   }
 }
 
-async function getListFiles(input) {
-  const {store, query} = input;
+function getListFiles(input) {
+  const { store, query } = input;
   switch (store) {
     case "distributed":
       // Gluster disabled in V1
-      return await EBSIcassandra.getListFiles(query);
+      return EBSIcassandra.getListFiles(query, store);
     default:
       throw new Error(`No handle for store '${store}'`);
   }
@@ -57,4 +53,5 @@ module.exports = {
   storeFile,
   readFile,
   deleteFile,
-}
+  getListFiles,
+};
