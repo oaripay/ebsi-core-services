@@ -17,7 +17,7 @@ Deploying EBSI App Registry on the network
    > total cost:          0 ETH
 
 
-Registry Deployed at 0xd6A7c915066E17ba18024c799258C8A286fFBc00
+Registry Deployed at 0x0aF1B3F6e2B7512ae8E6ad5Ae415D18E1919A0FE
 adding app  ebsi-besu
 adding app  ebsi-fabric
 adding app  ebsi-wallet

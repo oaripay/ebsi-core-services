@@ -23,6 +23,7 @@ contract EBSIApplicationRegistry is Ownable {
 
     mapping (bytes32 => ApplicationRegistry) registry;
     mapping (bytes32 => bytes32[]) mappingAuthList;
+    bytes32[] public registryKeys;
 
 
 
@@ -37,6 +38,7 @@ contract EBSIApplicationRegistry is Ownable {
         appRegistry.applicationName = name;
         appRegistry.appCode = keccak256(abi.encodePacked(name));
         registry[keccak256(abi.encodePacked(name))] = appRegistry;
+        registryKeys.push(keccak256(abi.encodePacked(name)));
         return true;
     }
 
@@ -90,5 +92,44 @@ contract EBSIApplicationRegistry is Ownable {
         }
         return (authList, statusList);
     }
+
+    function getApplicationKeys ()
+    external
+    view
+    returns (bytes32[] memory)
+    {
+        return registryKeys;
+    }
+
+
+    function getApplicationByKey (bytes32 appKey)
+    external
+    view
+    returns (string memory, string memory)
+    {
+        require (registry[appKey].appCode != '', 'Application does not exist');
+        return (registry[appKey].applicationName, registry[appKey].applicationPublicKey);
+    }
+
+    function getAuthorizedAppsByKey (bytes32 appKey)
+    external
+    view
+    returns (string[] memory, bool[] memory)
+    {
+        require (registry[appKey].appCode != '', 'Application does not exist');
+        string[] memory authList = new string[](mappingAuthList[appKey].length);
+        bool[] memory statusList = new bool[](mappingAuthList[appKey].length);
+
+
+
+        for (uint256 i = 0; i < mappingAuthList[appKey].length; i++)
+        {
+            authList[i] = registry[appKey].authList[mappingAuthList[appKey][i]].authName;
+            statusList[i] = registry[appKey].authList[mappingAuthList[appKey][i]].status;
+        }
+        return (authList, statusList);
+    }
+
+
 
 }
