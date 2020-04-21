@@ -1,0 +1,178 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Application Registry API",
+    "description": "The interface for the APP Registry BESU contract.",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "AuthAppBody": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "pubKey": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "pubKey"
+        ]
+      },
+      "AuthorizationBody": {
+        "type": "object",
+        "properties": {
+          "appName": {
+            "type": "string"
+          },
+          "authName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "appName",
+          "authName",
+          "status"
+        ]
+      }
+    }
+  },
+  "paths": {
+    "/ebsitrustedapp/public-keys/{appName}": {
+      "get": {
+        "operationId": "get",
+        "summary": "",
+        "description": "Get public key of a specific App. Query is done by app-name (i.e. ebsi-wallet)",
+        "parameters": [
+          {
+            "name": "appName",
+            "required": true,
+            "in": "path",
+            "description": "Existing values: ebsi-besu, ebsi-fabric, ebsi-wallet, ebsi-notary, ebsi-storage, ebsi-diploma, ext-eca, ext-taxud ",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fetch Resource."
+          },
+          "404": {
+            "description": "Resource not found!"
+          }
+        }
+      }
+    },
+    "/ebsitrustedapp/authorized-apps/{appName}": {
+      "get": {
+        "operationId": "getAuthApps",
+        "summary": "",
+        "description": "Get get a list of authorized apps for a specific App. Query is done by app-name (i.e. ebsi-wallet)",
+        "parameters": [
+          {
+            "name": "appName",
+            "required": true,
+            "in": "path",
+            "description": "Existing values: ebsi-besu, ebsi-fabric, ebsi-wallet, ebsi-notary, ebsi-storage, ebsi-diploma, ext-eca, ext-taxud ",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fetch Resource."
+          },
+          "404": {
+            "description": "Resource not found!"
+          }
+        }
+      }
+    },
+    "/ebsitrustedapp/register-app": {
+      "post": {
+        "operationId": "postAuthorizedApp",
+        "summary": "",
+        "description": "Add new app to the ledger, need app-name and public hex key",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthAppBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Application added"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "409": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/ebsitrustedapp/authorize": {
+      "post": {
+        "operationId": "postAuthorization",
+        "summary": "",
+        "description": "Add new authorized apps based on a specific appname",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthorizationBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Application added"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "409": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/ebsitrustedapp/swagger.json": {
+      "get": {
+        "operationId": "getSwagger",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    }
+  }
+}
