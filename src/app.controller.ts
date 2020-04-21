@@ -33,12 +33,8 @@ export class AppController {
   @Get('/v1/issuers')
   async issuers(@Query() query) {
     try {
-      let size = 10;
-      let after = 0;
-      if (query.hasOwnProperty('page')) {
-        size = query.page.size;
-        after = query.page.after;
-      }
+      const size = query.page ? query.page.size ?? 10 : 10;
+      const after = query.page ? query.page.after ?? 0 : 0;
       let pages;
       const univ = (await this.appService.getUniversityTrustedIssuers()).map((tiUniv) => this.appFormatter.formatUnivIssuer(tiUniv));
       const gov = (await this.appService.getGovTrustedIssuers()).map((tiGov) => this.appFormatter.formatGovIssuer(tiGov));
@@ -63,7 +59,7 @@ export class AppController {
       }
       for (let i = 0; i < gov.length; i++) {
         counter++;
-        if (itemStartingFrom > counter) {
+        if (itemStartingFrom >= counter) {
           continue;
         }
         if (maxCounter >= size) {
