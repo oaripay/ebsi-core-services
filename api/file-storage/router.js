@@ -4,7 +4,6 @@ const fs = require("fs");
 const Busboy = require("busboy");
 const { v4: uuidv4 } = require("uuid");
 
-const auth = require("../../auth");
 const logger = require("../../logger");
 const { BadRequestError, TooLargeError } = require("../../errors");
 const controller = require("./controller");
@@ -51,8 +50,6 @@ function saveInTempFile(req) {
     req.pipe(busboy);
   });
 }
-
-router.use(auth.handleToken);
 
 // Get list of files
 router.get("/", async (req, res, next) => {

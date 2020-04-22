@@ -91,6 +91,8 @@ app.param("store", (req, res, next, store) => {
 
 app.post("/storage/v1/sessions", auth.callNewSession);
 
+app.use(auth.handleToken);
+
 app.get("/storage/v1/stores", (req, res) => {
   res.send({ items: ["distributed"], total: 1 });
 });
