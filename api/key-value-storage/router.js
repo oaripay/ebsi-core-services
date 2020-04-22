@@ -45,7 +45,7 @@ router.get("/:key", async (req, res, next) => {
 router.delete("/:key", async (req, res, next) => {
   try {
     const { key } = req.params;
-    await controller.deletetKey(req.store, key);
+    await controller.deleteKey(req.store, key);
     res.status(204).send();
   } catch (error) {
     next(error);

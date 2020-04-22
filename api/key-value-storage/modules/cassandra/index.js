@@ -59,8 +59,8 @@ async function setKey(key, value) {
   if (record) {
     // update key
     type = "update";
-    query = `update ${TABLE_KEY_VALUE_STORAGE} set value = ? where key= ? if exists`;
-    params = [stringValue];
+    query = `update ${TABLE_KEY_VALUE_STORAGE} set value = ? where key = ? if exists`;
+    params = [stringValue, key];
   } else {
     // insert key
     type = "insert";
