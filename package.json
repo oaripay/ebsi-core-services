@@ -27,6 +27,7 @@
     "ethereumjs-tx": "^2.1.2",
     "ethers": "^4.0.40",
     "express": "^4.17.1",
+    "fast-json-patch": "^3.0.0-1",
     "jose": "^1.17.1",
     "mongoose": "^5.7.3",
     "uuid": "^7.0.3",
