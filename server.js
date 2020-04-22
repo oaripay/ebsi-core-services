@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const fs = require("fs");
 const cassandraDriver = require("cassandra-driver");
+const bodyParser = require("body-parser");
 
 const config = require("./config");
 const utils = require("./utils");
@@ -89,7 +90,7 @@ app.param("store", (req, res, next, store) => {
   next();
 });
 
-app.post("/storage/v1/sessions", auth.callNewSession);
+app.post("/storage/v1/sessions", bodyParser.json(), auth.callNewSession);
 
 app.use(auth.handleToken);
 
