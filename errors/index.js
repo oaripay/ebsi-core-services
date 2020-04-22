@@ -7,9 +7,11 @@ const InternalError = require("./InternalError");
 const InvalidAppError = require("./InvalidAppError");
 const InvalidTokenError = require("./InvalidTokenError");
 const IssuerNotFoundError = require("./IssuerNotFoundError");
+const KeyTooLargeError = require("./KeyTooLargeError");
 const NotFoundError = require("./NotFoundError");
 const TooLargeError = require("./TooLargeError");
 const UnauthorizedError = require("./UnauthorizedError");
+const ValueTooLargeError = require("./ValueTooLargeError");
 
 function handler(_error, req, res, next) {
   let error;
@@ -35,12 +37,14 @@ module.exports = {
   handler,
   HTTPError,
   BadRequestError,
-  InvalidTokenError,
-  InvalidAppError,
-  IssuerNotFoundError,
-  UnauthorizedError,
   ForbiddenError,
+  InternalError,
+  InvalidAppError,
+  InvalidTokenError,
+  IssuerNotFoundError,
+  KeyTooLargeError,
   NotFoundError,
   TooLargeError,
-  InternalError,
+  UnauthorizedError,
+  ValueTooLargeError,
 };
