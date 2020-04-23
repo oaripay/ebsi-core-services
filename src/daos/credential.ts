@@ -1,4 +1,4 @@
-import { ICredentialInfoList } from "src/dtos/attributeInfo";
+import { ICredentialInfoList } from "../dtos/attributeInfo";
 
 export interface ICredential {
   did: string;

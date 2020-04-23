@@ -21,6 +21,8 @@ export interface ICredData {
 export interface IAttributeInput {
   id: string;
   issuer?: string;
+  type: string[];
+  name: string;
   data: ICredData;
 }
 

@@ -1,33 +1,34 @@
 import {
   ICredentialInfoList,
-  Filters,
   ICredentialOut,
   IAttributeInput,
-} from "src/dtos/attributeInfo";
-import { EBSI_API_ERRORS } from "src/error";
-import { IDHub } from "src/libs/identityHub/IDHub";
-import { ICallResponse } from "src/dtos/messages";
+} from "../../dtos/attributeInfo";
+import { BadRequestError, API_ERROR_MESSAGES } from "../../errors";
+import { ICallResponse } from "../../dtos/messages";
+import { IDHub } from "../../libs/identityHub/IDHub";
 
 export default class Controller {
   static async getAttributes(did: string): Promise<ICredentialInfoList> {
-    if (!did) throw Error(EBSI_API_ERRORS.BAD_REQUEST);
     return IDHub.Instance.getAttributes(did);
   }
 
   static async getAttributesFiltered(
     did: string,
-    filters: Filters
+    type: string
   ): Promise<ICredentialInfoList> {
-    if (!did || !filters || !filters.types)
-      throw Error(EBSI_API_ERRORS.BAD_REQUEST);
-    return IDHub.Instance.getAttributesFiltered(did, filters.types);
+    try {
+      JSON.parse(type);
+    } catch (error) {
+      throw new BadRequestError(API_ERROR_MESSAGES.ATTRIBUTE_TYPE_MALFORMED);
+    }
+    const types = JSON.parse(decodeURIComponent(type));
+    return IDHub.Instance.getAttributesFiltered(did, types);
   }
 
   static async getAttribute(
     did: string,
     hash: string
   ): Promise<ICredentialOut> {
-    if (!did || !hash) throw Error(EBSI_API_ERRORS.BAD_REQUEST);
     return IDHub.Instance.getAttribute(did, hash);
   }
 
@@ -35,13 +36,14 @@ export default class Controller {
     did: string,
     iAttributeInput: IAttributeInput
   ): Promise<ICallResponse> {
-    if (!did || !iAttributeInput) throw Error(EBSI_API_ERRORS.BAD_REQUEST);
-    this.checkParamsSetAttribute(iAttributeInput);
+    if (
+      !iAttributeInput.id ||
+      !iAttributeInput.type ||
+      !iAttributeInput.name ||
+      !iAttributeInput.data ||
+      !iAttributeInput.data.base64
+    )
+      throw new BadRequestError(API_ERROR_MESSAGES.ATTRIBUTE_INPUT_MALFORMED);
     return IDHub.Instance.setAttribute(did, iAttributeInput);
-  }
-
-  private static checkParamsSetAttribute(input: IAttributeInput): void {
-    if (!input.id || !input.data || !input.data.base64)
-      throw Error(EBSI_API_ERRORS.BAD_REQUEST);
   }
 }

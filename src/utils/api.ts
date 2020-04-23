@@ -1,8 +1,8 @@
 import axios from "axios";
-import { PRINT_SILLY, PRINT_ERROR } from "src/utils/util";
-import { LOG_LEVEL } from "src/config";
-import { ICASFile } from "src/daos/casFile";
-import { ICASStorageOut } from "src/dtos/dataStorage";
+import { PRINT_SILLY, PRINT_ERROR } from "./util";
+import { LOG_LEVEL } from "../config";
+import { ICASFile } from "../daos/casFile";
+import { ICASStorageOut } from "../dtos/dataStorage";
 
 import FormData = require("form-data");
 

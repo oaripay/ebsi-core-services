@@ -1,44 +1,25 @@
 import moment from "moment";
 import { JWT } from "jose";
-import { IEbsiApiAuthConnection, ILoginReturn } from "src/dtos/ebsiApi";
-import { WALLET_API_ERRORS } from "src/error";
-import * as config from "src/config";
+import { IEbsiApiAuthConnection, ILoginReturn } from "../../dtos/ebsiApi";
+import { API_ERROR_MESSAGES } from "../../errors";
+import * as config from "../../config";
 import {
   doGetCallWithToken,
   doPostCallWithToken,
   doPostFormCallWithToken,
-} from "src/utils/api";
-import { ICASFile } from "src/daos/casFile";
-import { ICASStorageOut } from "src/dtos/dataStorage";
+} from "../../utils/api";
+import { ICASFile } from "../../daos/casFile";
+import { ICASStorageOut } from "../../dtos/dataStorage";
 import { ICallResponse } from "../../dtos/messages";
 import { isTokenExpired } from "../../utils/Util";
 import SecureEnclave from "./SecureEnclave";
 import ComponentSecureEnclave from "./secureEnclave/ComponentSecureEnclave";
 import { IUserAuthZToken } from "./secureEnclave/JWT";
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
-export default interface IAuthManager {
-  createAuthorizationToken(payload: any, subject: string): Promise<string>;
-
-  getAuthZToken(targetApp: string): Promise<string>;
-
-  doGetCall(url: string, targetApp: string): Promise<any>;
-
-  doPostCall(data: any, url: string, targetApp: string): Promise<ICallResponse>;
-
-  doPostFormCall(
-    iFile: ICASFile,
-    url: string,
-    targetApp: string
-  ): Promise<ICASStorageOut>;
-
-  // eslint-disable-next-line semi
-}
-
 /**
  * Class to a SingleTon Class AuthManager
  */
-export class AuthManager implements IAuthManager {
+export default class AuthManager {
   private static instance: AuthManager;
 
   private ebsiApiAuthZTokenMap!: Map<string, IEbsiApiAuthConnection>;
@@ -53,7 +34,7 @@ export class AuthManager implements IAuthManager {
     private secureEnclave: SecureEnclave = ComponentSecureEnclave.Instance
   ) {
     if (!config.EBSI_API_MAP)
-      throw new Error(WALLET_API_ERRORS.NO_CONFIG_TRUSTED_APP_NAMES);
+      throw new Error(API_ERROR_MESSAGES.NO_CONFIG_TRUSTED_APP_NAMES);
 
     this.ebsiApiAuthZTokenMap = new Map<string, IEbsiApiAuthConnection>();
     this.receivedAuthZTokenMap = new Map<string, string>();
@@ -118,7 +99,7 @@ export class AuthManager implements IAuthManager {
    */
   async getAuthZToken(targetApp: string): Promise<string> {
     const appInfo = this.ebsiApiAuthZTokenMap.get(targetApp);
-    if (!appInfo) throw new Error(WALLET_API_ERRORS.NO_TARGET_APP_INFO);
+    if (!appInfo) throw new Error(API_ERROR_MESSAGES.NO_TARGET_APP_INFO);
 
     if (appInfo.token === "" || isTokenExpired(appInfo.token)) {
       const authZToken = await this.doLogin(targetApp);
@@ -133,7 +114,7 @@ export class AuthManager implements IAuthManager {
 
   getReceivedAuthZUserToken(did: string): string {
     const token = this.receivedAuthZTokenMap.get(did);
-    if (!token) throw Error(WALLET_API_ERRORS.NO_AUTHZ_TOKEN);
+    if (!token) throw Error(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
     return token;
   }
 
@@ -147,13 +128,13 @@ export class AuthManager implements IAuthManager {
   saveReceivedAuthZUserToken(token: string): void {
     const authZToken = <IUserAuthZToken>JWT.decode(token);
     if (!authZToken || !authZToken.did)
-      throw Error(WALLET_API_ERRORS.NO_AUTHZ_TOKEN);
+      throw Error(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
     this.receivedAuthZTokenMap.set(authZToken.did, token);
   }
 
   async createAuthNToken(targetApp: string): Promise<string> {
     const payload = {
-      iss: config.COMPONENT_WALLET_ID,
+      iss: config.API_NAME,
       aud: targetApp,
       iat: moment().unix(),
       exp: moment().add(15, "minutes").unix(),
@@ -177,7 +158,7 @@ export class AuthManager implements IAuthManager {
       sub: subject, // Should be the id of the app that is requesting the token
       iat: moment().unix(),
       exp: moment().add(15, "minutes").unix(),
-      aud: config.COMPONENT_WALLET_ID,
+      aud: config.API_NAME,
     };
 
     Object.assign(ebsiPayload, payload);
@@ -203,7 +184,7 @@ export class AuthManager implements IAuthManager {
     // send to remote /login endpoint
     const appInfo = this.ebsiApiAuthZTokenMap.get(targetApp);
 
-    if (!appInfo) throw new Error(WALLET_API_ERRORS.NO_TARGET_APP_INFO);
+    if (!appInfo) throw new Error(API_ERROR_MESSAGES.NO_TARGET_APP_INFO);
 
     const resp = await doGetCallWithToken(
       token,
@@ -211,7 +192,7 @@ export class AuthManager implements IAuthManager {
     );
 
     if (!resp || !resp.token || resp.token === "")
-      throw new Error(WALLET_API_ERRORS.NO_AUTHZ_TOKEN);
+      throw new Error(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
 
     return resp;
   }

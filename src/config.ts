@@ -16,7 +16,8 @@ const EBSI_APP_PROD_URL = "https://app.ebsi.tech.ec.europa.eu";
 const ECAS_DEV_URL = "https://ecas.acceptance.ec.europa.eu/cas";
 const UNIVERSAL_RESOLVER_PATH = "/universal-resolver";
 const BESU_SERVICE_PATH = "/blockchain/besu";
-const OPENAPI_PATH = "/api/openapi.yml";
+const OPENAPI_PATH = "../../api/openapi.yaml";
+const API_VERSION = "v1"
 
 // GLOBAL ENVIRONMENT CONFIG AND URLS PER EACH ENV
 const GLOBAL_CONFIG = {
@@ -98,12 +99,12 @@ const GLOBAL_CONFIG = {
 };
 // eslint-disable-next-line prettier/prettier
 const ENVIRONMENT =
-  process.env.NODE_ENV === "test" ||
-  process.env.NODE_ENV === "production" ||
-  process.env.NODE_ENV === "development" ||
+  process.env.EBSI_ENV === "test" ||
+  process.env.EBSI_ENV === "production" ||
+  process.env.EBSI_ENV === "development" ||
   // eslint-disable-next-line prettier/prettier
-  process.env.NODE_ENV === "local"
-    ? process.env.NODE_ENV
+  process.env.EBSI_ENV === "local"
+    ? process.env.EBSI_ENV
     : "integration"; // integration by default
 
 const FINAL_CONFIG = GLOBAL_CONFIG[ENVIRONMENT];
@@ -117,10 +118,9 @@ const WALLET_APP_BASE_URL = FINAL_CONFIG.walletAppBaseUrl;
 const EBSI_EXTERNAL_API_BASE_URL = FINAL_CONFIG.ebsiApiBaseUrl;
 const EBSI_UNIVERSAL_RESOLVER_API_URI = FINAL_CONFIG.universalResolverUri;
 const BESU_SERVICE_PROVIDER = FINAL_CONFIG.besuServiceProvider;
-const IDHUB_EXTERNAL_URL = FINAL_CONFIG.idHubExternal;
 
 const EBSI_BASE_PATH = {
-  IDHUB: "/idhub",
+  IDHUB: `/identity-hub/${API_VERSION}`,
   ICC: "/company",
   WALLET: "/wallet",
   VERIFIABLE_PRESENTATION: "/verifiable-presentation",
@@ -170,7 +170,6 @@ const EBSI_SERVICE_BASE_URL = {
   CREDENTIAL: EBSI_INTERNAL_API_BASE_URL,
   NOTARY_API: EBSI_EXTERNAL_API_BASE_URL,
   VERIFIABLEID: EBSI_INTERNAL_API_BASE_URL,
-  IDHUB_EXTERNAL: IDHUB_EXTERNAL_URL,
   FILE_STORAGE: EBSI_EXTERNAL_API_BASE_URL,
   WALLET_DATA_STORE: EBSI_INTERNAL_API_BASE_URL,
   WALLET_AUTHMANAGER: EBSI_INTERNAL_API_BASE_URL,
@@ -185,9 +184,9 @@ const EBSI_SERVICE_BASE_URL = {
 
 const EBSI_SERVICE_PORT = {
   ICC: 9011,
-  IDHUB: 3009,
+  IDHUB: 9000,
   WALLET: 3002,
-  VERIFIABLE_PRESENTATION: 9000,
+  VERIFIABLE_PRESENTATION: 9012,
   CREDENTIAL: 3008,
   UNIVERSITY: 9010,
   VERIFIABLEID: 3011,
@@ -207,7 +206,7 @@ const EBSI_SERVICE_SWAGGER = {
   WALLET_NOTIFICATIONS: EBSI_BASE_PATH.WALLET + EBSI_BASE_PATH.API_DOCS,
   WALLET_SECURE_ENCLAVE: EBSI_BASE_PATH.WALLET + EBSI_BASE_PATH.API_DOCS,
   ICC: EBSI_BASE_PATH.WALLET + EBSI_BASE_PATH.ICC + EBSI_BASE_PATH.API_DOCS,
-  IDHUB: EBSI_BASE_PATH.WALLET + EBSI_BASE_PATH.IDHUB + EBSI_BASE_PATH.API_DOCS,
+  IDHUB: EBSI_BASE_PATH.IDHUB + EBSI_BASE_PATH.API_DOCS,
   VERIFIABLE_PRESENTATION:
     EBSI_BASE_PATH.WALLET +
     EBSI_BASE_PATH.VERIFIABLE_PRESENTATION +
@@ -224,7 +223,7 @@ const EBSI_SERVICE_CALL = {
   TOKEN: "/token",
   SIGN_TX: "/signtx",
   SEND_TX: "/sendtx",
-  EBSI_LOGIN: "/login",
+  EBSI_LOGIN: "/sessions",
   PUBLIC_KEY: "/diddocument/publickey",
   DIPLOMA_CREATION: "",
   COMPANY_CREATION: "",
@@ -234,8 +233,8 @@ const EBSI_SERVICE_CALL = {
   USER_LOGIN: "/user/login",
   ENTERPRISE_LOGIN: "/login",
   DIDDOCUMENT: "/diddocument",
-  GET_ATTRIBUTE: "/attribute",
-  SET_ATTRIBUTE: "/attribute",
+  GET_ATTRIBUTE: "/attributes",
+  SET_ATTRIBUTE: "/attributes",
   GET_ATTRIBUTES: "/attributes",
   SIGNATURE_CREATION: "/signature",
   COMPANY_VALIDATION: "/validation",
@@ -287,13 +286,8 @@ const EBSI_SERVICE_URL = {
   IDHUB:
     ENVIRONMENT === "test"
       ? EBSI_SERVICE_BASE_URL.IDHUB +
-        EBSI_BASE_PATH.WALLET +
         EBSI_BASE_PATH.IDHUB
-      : `${EBSI_SERVICE_BASE_URL.IDHUB}:${EBSI_SERVICE_PORT.IDHUB}${EBSI_BASE_PATH.WALLET}${EBSI_BASE_PATH.IDHUB}`,
-  IDHUB_EXTERNAL:
-    EBSI_SERVICE_BASE_URL.IDHUB_EXTERNAL +
-    EBSI_BASE_PATH.WALLET +
-    EBSI_BASE_PATH.IDHUB,
+      : `${EBSI_SERVICE_BASE_URL.IDHUB}:${EBSI_SERVICE_PORT.IDHUB}${EBSI_BASE_PATH.IDHUB}`,
   WALLET_HISTORICAL_STORAGE:
     EBSI_SERVICE_BASE_URL.WALLET_REQUEST_STORAGE +
     EBSI_BASE_PATH.WALLET_HISTORICAL_STORAGE,
@@ -404,6 +398,7 @@ const EBSI_SERVICE = {
   SWAGGER: EBSI_SERVICE_SWAGGER,
   CALL: EBSI_SERVICE_CALL,
   URL: EBSI_SERVICE_URL,
+  BASE_PATH: EBSI_BASE_PATH,
   SWAGGER_FULL_URL: EBSI_SERVICE_SWAGGER_FULL_URL,
   EXTERNAL_SWAGGER_FULL_URL: EBSI_SERVICE_EXTERNAL_SWAGGER_FULL_URL,
 };
@@ -412,6 +407,7 @@ const EBSI_TRUSTED_APP_API_URI = EBSI_SERVICE.URL.TRUSTED_APP_API;
 
 enum EBSI_APPS {
   BESU = "ebsi-besu",
+  IDHUB = "ebsi-idhub",
   WALLET = "ebsi-wallet",
   STORAGE = "ebsi-storage",
   FILE_STORAGE = "ebsi-storage",
@@ -424,6 +420,7 @@ const EBSI_API_MAP = new Map<string, string>([
   [EBSI_APPS.BESU, BESU_SERVICE_PROVIDER],
   [EBSI_APPS.WALLET, EBSI_SERVICE.URL.WALLET],
   [EBSI_APPS.STORAGE, EBSI_SERVICE.URL.FILE_STORAGE],
+  [EBSI_APPS.IDHUB, EBSI_SERVICE.URL.IDHUB],
 ]);
 
 export enum EBSI_DATA_STORE_TYPE {
@@ -522,16 +519,17 @@ const notary = {
 };
 
 const KEY_PASSPHRASE = process.env.KEY_PASSPHRASE || "no default password";
-const COMPONENT_WALLET_ID = EBSI_APPS.WALLET;
+const API_NAME = EBSI_APPS.IDHUB;
+const trustedAppsRegistry = `${EBSI_EXTERNAL_API_BASE_URL}/trusted-apps-registry/v1`;
 const COMPONENT_PASSWORD =
   process.env.COMPONENT_PASSWORD || "no default password";
 const COMPONENT_KEYSTORE =
   process.env.COMPONENT_KEYSTORE || "no default key provider";
-const WALLET_UI_CALLBACK_URL = `${EBSI_SERVICE.URL.WALLET_APP}/notifications`;
 
 export {
   besu,
   notary,
+  API_NAME,
   LOG_LEVEL,
   EBSI_APPS,
   ENVIRONMENT,
@@ -540,13 +538,12 @@ export {
   EBSI_SERVICE,
   OPENAPI_PATH,
   KEY_PASSPHRASE,
-  COMPONENT_WALLET_ID,
-  WALLET_UI_CALLBACK_URL,
+  COMPONENT_PASSWORD,
+  COMPONENT_KEYSTORE,
+  trustedAppsRegistry,
   EBSI_DEFAULT_DATA_STORE,
   WALLET_DATASTORE_CONFIG,
   EBSI_TRUSTED_APP_API_URI,
-  COMPONENT_PASSWORD,
-  COMPONENT_KEYSTORE,
   WALLET_DATA_STORE_TYPE_MAP,
   WALLET_DATA_STORE_CONFIG_MAP,
   EBSI_UNIVERSAL_RESOLVER_API_URI,

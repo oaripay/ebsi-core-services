@@ -1,7 +1,7 @@
 import { JWK, JWKECKey } from "jose";
 import base64url from "base64url";
 import { Buffer } from "buffer";
-import { COMPONENT_WALLET_ID } from "src/config";
+import { API_NAME } from "../../../config";
 
 interface IJwk {
   crv: string;
@@ -27,7 +27,7 @@ const getJWKfromHex = (
   const jwk = <IJwk>{
     crv: "secp256k1",
     kty: "EC",
-    kid: COMPONENT_WALLET_ID,
+    kid: API_NAME,
   };
 
   const cleanPublicKeyHex = publicKeyHex.replace("0x04", "");

@@ -5,14 +5,6 @@ import { v4 as uuidv4 } from "uuid";
 import * as util from "util";
 import KeyEncoder from "key-encoder";
 import fs from "fs";
-import { IComponentAuthZToken } from "src/libs/authManager/secureEnclave/JWT";
-import {
-  WALLET_DATA_STORE_TYPE_MAP,
-  WALLET_DATA_STORE_CONFIG_MAP,
-  LOG_LEVEL,
-} from "../config";
-import { WALLET_API_ERRORS, getCode } from "../error";
-import LOGGER from "../logger";
 import {
   DEFAULT_VERIFIABLEID_TYPE,
   DEFAULT_VID_TYPE_TEXT,
@@ -20,6 +12,13 @@ import {
   DEFAULT_DIPLOMA_TYPE_TEXT,
 } from "./constants";
 import { FullVC, FullVID, DiplomaIssuer } from "./types";
+import {
+  WALLET_DATA_STORE_TYPE_MAP,
+  WALLET_DATA_STORE_CONFIG_MAP,
+} from "../config";
+import LOGGER from "../logger";
+import { API_ERROR_MESSAGES, InternalError } from "../errors";
+import { IComponentAuthZToken } from "../libs/authManager/secureEnclave/JWT";
 
 const toHex = (data: string): string =>
   Buffer.from(data, "base64").toString("hex");
@@ -68,11 +67,11 @@ const isHex = (data: string): boolean => {
 const getStorageConfig = (walletStorageType: number): [string, string] => {
   const storageType = WALLET_DATA_STORE_TYPE_MAP.get(walletStorageType);
   if (typeof storageType === "undefined")
-    throw Error(WALLET_API_ERRORS.INVALID_WALLET_STORAGE_TYPE);
+    throw new InternalError(API_ERROR_MESSAGES.INVALID_WALLET_STORAGE_TYPE);
 
   const storageConfig = WALLET_DATA_STORE_CONFIG_MAP.get(storageType);
   if (typeof storageConfig === "undefined")
-    throw Error(WALLET_API_ERRORS.INVALID_DATA_STORE_CONFIG_TYPE);
+    throw new InternalError(API_ERROR_MESSAGES.INVALID_DATA_STORE_CONFIG_TYPE);
 
   return storageConfig;
 };
@@ -172,16 +171,6 @@ const PRINT_JSON = (data: any): void => {
   PRINT_DEBUG(`\n${toPrint}`);
 };
 
-const onErrorResponse = (err: any, req: any, res: any, next: any): void => {
-  if (res.headersSent) next(err);
-
-  if (LOG_LEVEL === "silly") PRINT_ERROR(err);
-
-  res
-    .status(getCode((<Error>err).message))
-    .json({ message: (<Error>err).message, stack: (<Error>err).stack });
-};
-
 const pubkeyHexToPem = (pubkeyHex: string): string => {
   const keyEncoder = new KeyEncoder("secp256k1");
   // removes the initial 0x
@@ -211,5 +200,4 @@ export {
   hashFromFile,
   pubkeyHexToPem,
   generateKeys,
-  onErrorResponse,
 };

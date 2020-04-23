@@ -1,25 +1,25 @@
 /* eslint-disable no-empty-function */
 /* eslint-disable no-useless-constructor */
 
-import { ICallResponse } from "src/dtos/messages";
+import { ICallResponse } from "../../dtos/messages";
 import {
   ICredentialInfoList,
   ICredentialOut,
   ICredentialInfo,
   IAttributeInput,
-} from "src/dtos/attributeInfo";
-import CredentiaInfoList from "src/models/credentialInfoList";
-import CASFile from "src/models/casFile";
-import { ICASFile } from "src/daos/casFile";
-import { EBSI_DEFAULT_DATA_STORE } from "src/config";
+} from "../../dtos/attributeInfo";
+import CredentialInfoList from "../../models/credentialInfoList";
+import CASFile from "../../models/casFile";
+import { ICASFile } from "../../daos/casFile";
+import { EBSI_DEFAULT_DATA_STORE } from "../../config";
 import {
   setCredId,
   setId,
   setCredIssuer,
   setCredType,
   setCredName,
-} from "src/utils/Util";
-import { DataStoreManager } from "../dataStorages/dataStoreManager";
+} from "../../utils/Util";
+import { DataStoreManager } from "../dataStorages";
 
 // eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export default interface IIDHub {
@@ -43,7 +43,7 @@ export class IDHub implements IIDHub {
   private static instance: IDHub;
 
   private constructor(
-    private credInfoListDB: CredentiaInfoList = DataStoreManager.Instance
+    private credInfoListDB: CredentialInfoList = DataStoreManager.Instance
       .credInfoListDB,
     private credFileDB: CASFile = DataStoreManager.Instance.credentialFileDB
   ) {}

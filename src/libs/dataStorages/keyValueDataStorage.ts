@@ -1,7 +1,7 @@
-import { getStorageConfig } from "src/utils/Util";
-import { WALLET_DATASTORE_CONFIG } from "src/config";
-import { ICallResponse } from "src/dtos/messages";
-import IAuthManager, { AuthManager } from "../authManager/authManager";
+import { getStorageConfig } from "../../utils/Util";
+import { WALLET_DATASTORE_CONFIG } from "../../config";
+import { ICallResponse } from "../../dtos/messages";
+import { AuthManager } from "../authManager";
 import IDataStorage from "./dataStorage";
 
 /**
@@ -18,7 +18,7 @@ export default class KeyValueDataStorage implements IDataStorage {
    */
   public constructor(
     private walletDataStoreType: number,
-    private iAuthManager: IAuthManager = AuthManager.Instance
+    private iAuthManager: AuthManager = AuthManager.Instance
   ) {
     this.uri = getStorageConfig(walletDataStoreType)[
       WALLET_DATASTORE_CONFIG.URI

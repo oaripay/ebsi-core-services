@@ -1,5 +1,6 @@
-import * as config from "src/config";
-import { WALLET_API_ERRORS } from "src/error";
+import { JWK } from "jose";
+import * as config from "../../../config";
+import { API_ERROR_MESSAGES, InternalError } from "../../../errors";
 import Wallet, { WalletOptions } from "./Wallet";
 import ComponentWallet from "./ComponentWallet";
 import SecureEnclave from "../SecureEnclave";
@@ -50,22 +51,32 @@ export default class ComponentSecureEnclave implements SecureEnclave {
    *
    * @param encryptedKeystore, Optionally, keystore can be provided as input parameter.
    */
-  async init(encryptedKeystore: string): Promise<string> {
+  async init(
+    encryptedKeystore: string
+  ): Promise<{ did: string; key: JWK.ECKey }> {
     if (this.semaphore)
-      throw new Error("Semaphore blocked, Enclave already being initialized");
+      throw new InternalError(
+        "Semaphore blocked, Enclave already being initialized"
+      );
 
     // If Did exists, return it.
-    if (this.enclaveDid !== "") return this.enclaveDid;
+    if (this.enclaveDid !== "") {
+      const key = (this.getWallet(this.enclaveDid) as ComponentWallet).toJWK();
+      return { did: this.enclaveDid, key };
+    }
 
     if (!encryptedKeystore)
-      throw Error(WALLET_API_ERRORS.ERROR_ON_COMPONENT_WALLET_INIT);
+      throw new InternalError(
+        API_ERROR_MESSAGES.ERROR_ON_COMPONENT_WALLET_INIT
+      );
     const did = await this.restoreWallet({
       encryptedKey: encryptedKeystore,
       password: config.COMPONENT_PASSWORD,
     });
     this.enclaveDid = did;
+    const key = (this.getWallet(did) as ComponentWallet).toJWK();
 
-    return did;
+    return { did, key };
   }
 
   /**
@@ -88,21 +99,21 @@ export default class ComponentSecureEnclave implements SecureEnclave {
 
   getPublicKey(did: string): string {
     const wallet = this.wallets.get(did);
-    if (!wallet) throw new Error(WALLET_API_ERRORS.WALLET_NOT_FOUND);
+    if (!wallet) throw new Error(API_ERROR_MESSAGES.WALLET_NOT_FOUND);
 
     return wallet.publicKey;
   }
 
   exportEncryptedKeys(did: string): string {
     const wallet = this.wallets.get(did);
-    if (!wallet) throw new Error(WALLET_API_ERRORS.WALLET_NOT_FOUND);
+    if (!wallet) throw new Error(API_ERROR_MESSAGES.WALLET_NOT_FOUND);
 
     return wallet.exportEncryptedKeys();
   }
 
   async signJwt(did: string, data: Buffer): Promise<any> {
     const wallet = this.wallets.get(did);
-    if (!wallet) throw new Error(WALLET_API_ERRORS.WALLET_NOT_FOUND);
+    if (!wallet) throw new Error(API_ERROR_MESSAGES.WALLET_NOT_FOUND);
 
     const response = await wallet.signJwt(data);
     return response;

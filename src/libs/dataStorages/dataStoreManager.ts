@@ -2,20 +2,11 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable no-useless-constructor */
 
-import CASFile from "src/models/casFile";
-import { WALLET_DATA_STORE_TYPE } from "src/config";
-import CredentialInfoList from "src/models/credentialInfoList";
+import CASFile from "../../models/casFile";
+import { WALLET_DATA_STORE_TYPE } from "../../config";
+import CredentialInfoList from "../../models/credentialInfoList";
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
-export default interface IDataStoreManager {
-  // Key-Value Data Storage
-  credInfoListDB: CredentialInfoList;
-  // CAS File Data Storage
-  credentialFileDB: CASFile;
-  // eslint-disable-next-line semi
-}
-
-export class DataStoreManager implements IDataStoreManager {
+export default class DataStoreManager {
   private static instance: DataStoreManager;
 
   private privCredentialFileDB!: CASFile;

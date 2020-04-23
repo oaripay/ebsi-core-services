@@ -34,12 +34,18 @@ export interface JWTClaims {
   jti?: string; // (JWT ID) Claim
 }
 
-export interface IUserAuthNToken extends JWTClaims {
+export interface UserAuthNToken extends JWTClaims {
   ticket: string;
-  publicKey?: string;
+  publicKey: string;
+  frontEndpoint: string;
 }
 
-export interface IComponentAuthNToken extends JWTClaims {
+export interface LegalEntityAuthNToken extends JWTClaims {
+  enterpriseName: string;
+  nonce: string;
+}
+
+export interface ComponentAuthNToken extends JWTClaims {
   sub: string;
   iss: string;
   aud: string;
@@ -61,4 +67,35 @@ export interface IEnterpriseAuthZToken extends JWTClaims {
   did: string;
   enterpriseName: string;
   nonce: string;
+}
+
+export enum GRANT_TYPE {
+  jwtBearer = "urn:ietf:params:oauth:grant-type:jwt-bearer",
+}
+
+export enum EBSI_ACCESS_TOKEN_SCOPE {
+  USER = "ebsi profile user",
+  ENTITY = "ebsi profile entity",
+  COMPONENT = "ebsi profile component",
+}
+
+export interface AccessTokenRequestBody {
+  grantType: GRANT_TYPE.jwtBearer;
+  assertion: string;
+  scope?: EBSI_ACCESS_TOKEN_SCOPE;
+}
+
+export enum TOKEN_TYPE {
+  bearer = "Bearer",
+}
+
+export interface AccessTokenResponseBody {
+  accessToken: string;
+  tokenType: TOKEN_TYPE.bearer;
+  expiresIn: number; // 15 minutes
+  issuedAt: number;
+}
+
+export enum SignatureTypes {
+  EcdsaSecp256k1Signature2019 = "EcdsaSecp256k1Signature2019",
 }

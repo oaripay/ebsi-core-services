@@ -1,19 +1,10 @@
 import axios from "axios";
 import { JWT } from "jose";
-import { IAuthenticationOutput } from "src/dtos/dto";
-import {
-  BELGIUM_GOVE_NAME,
-  SPANISH_UNIV_NAME,
-  FLANDES_GOV_NAME,
-} from "src/utils/constants";
+import { dto } from "../src/dtos";
+import { EBSI, util } from "../src/utils";
 import { EBSI_SERVICE, LOG_LEVEL, COMPONENT_KEYSTORE } from "../src/config";
-import { WALLET_API_ERRORS } from "../src/error";
-import { PRINT_SILLY, PRINT_DEBUG } from "../src/utils/Util";
-import {
-  IEnterpriseAuthZToken,
-  IUserAuthZToken,
-} from "../src/libs/authManager/secureEnclave/JWT";
-import ComponentSecureEnclave from "../src/libs/authManager/secureEnclave/ComponentSecureEnclave";
+import { API_ERROR_MESSAGES } from "../src/errors";
+import { jwt, ComponentSecureEnclave } from "../src/libs/authManager";
 
 const mockComponentDid = "did:ebsi:0x04-mocked-did"; // the actual DID -> 'did:ebsi:0x4d3171BaF3eC3CE370Ec65E7D354741a970ba038';
 
@@ -35,8 +26,8 @@ interface DiplomaTestingSetup extends TestingSetup {
 
 async function auxDoPostCall(data: any, url: string): Promise<any> {
   if (LOG_LEVEL === "silly") {
-    PRINT_SILLY(`URL: ${url}`);
-    PRINT_SILLY(data);
+    util.PRINT_SILLY(`URL: ${url}`);
+    util.PRINT_SILLY(data);
   }
   const response = await axios.post(url, data);
   return response.data;
@@ -49,8 +40,8 @@ async function auxDoGetCallWithToken(token: string, url: string): Promise<any> {
     },
   };
   if (LOG_LEVEL === "silly") {
-    PRINT_SILLY(`URL: ${url}`);
-    PRINT_SILLY(config);
+    util.PRINT_SILLY(`URL: ${url}`);
+    util.PRINT_SILLY(config);
   }
   const response = await axios.get(url, config);
   return response.data;
@@ -65,8 +56,9 @@ async function getEnterpriseAuthZTokenWithName(
     nonce: `Swagger-${randNum}`,
   };
   const url = EBSI_SERVICE.URL.WALLET + EBSI_SERVICE.CALL.TOKEN;
-  const response: IAuthenticationOutput = await auxDoPostCall(data, url);
-  if (!response || !response.jwt) throw Error(WALLET_API_ERRORS.NO_AUTHZ_TOKEN);
+  const response: dto.IAuthenticationOutput = await auxDoPostCall(data, url);
+  if (!response || !response.jwt)
+    throw Error(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
   return response.jwt;
 }
 
@@ -91,8 +83,9 @@ async function getUserAuthZToken(): Promise<string> {
     },
   };
   const url = EBSI_SERVICE.URL.WALLET + EBSI_SERVICE.CALL.USER_TOKEN;
-  const response: IAuthenticationOutput = await auxDoPostCall(data, url);
-  if (!response || !response.jwt) throw Error(WALLET_API_ERRORS.NO_AUTHZ_TOKEN);
+  const response: dto.IAuthenticationOutput = await auxDoPostCall(data, url);
+  if (!response || !response.jwt)
+    throw Error(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
   return response.jwt;
 }
 
@@ -100,8 +93,8 @@ async function initSecureEnclave(): Promise<string> {
   const did: string = await ComponentSecureEnclave.Instance.init(
     COMPONENT_KEYSTORE
   );
-  if (!did) throw Error(WALLET_API_ERRORS.ENCLAVE_DID_NULL);
-  PRINT_DEBUG(`Secure Enclave initialized with DID:${did}`);
+  if (!did) throw Error(API_ERROR_MESSAGES.ENCLAVE_DID_NULL);
+  util.PRINT_DEBUG(`Secure Enclave initialized with DID:${did}`);
 
   return did;
 }
@@ -110,18 +103,18 @@ async function initSetupForTesting(): Promise<TestingSetup> {
   await initSecureEnclave();
 
   const enterpriseToken = await getEnterpriseAuthZToken();
-  const enterpriseDID = (<IEnterpriseAuthZToken>JWT.decode(enterpriseToken))
+  const enterpriseDID = (<jwt.IEnterpriseAuthZToken>JWT.decode(enterpriseToken))
     .did;
-  PRINT_DEBUG(`Enterprise DID: ${enterpriseDID}`);
+  util.PRINT_DEBUG(`Enterprise DID: ${enterpriseDID}`);
   const belgiumGovToken = await getEnterpriseAuthZTokenWithName(
-    BELGIUM_GOVE_NAME
+    EBSI.BELGIUM_GOVE_NAME
   );
-  const belgiumGovDID = (<IEnterpriseAuthZToken>JWT.decode(belgiumGovToken))
+  const belgiumGovDID = (<jwt.IEnterpriseAuthZToken>JWT.decode(belgiumGovToken))
     .did;
-  PRINT_DEBUG(`Belgium Government DID: ${belgiumGovDID}`);
+  util.PRINT_DEBUG(`Belgium Government DID: ${belgiumGovDID}`);
   const userToken = await getUserAuthZToken();
-  const userDID = (<IUserAuthZToken>JWT.decode(userToken)).did;
-  PRINT_DEBUG(`User DID: ${userDID}`);
+  const userDID = (<jwt.IUserAuthZToken>JWT.decode(userToken)).did;
+  util.PRINT_DEBUG(`User DID: ${userDID}`);
 
   return {
     belgiumGovToken,
@@ -136,17 +129,17 @@ async function initSetupForTesting(): Promise<TestingSetup> {
 async function initSetupForDiplomaTesting(): Promise<DiplomaTestingSetup> {
   const testingSetup: TestingSetup = await initSetupForTesting();
   const spanishUniToken = await getEnterpriseAuthZTokenWithName(
-    SPANISH_UNIV_NAME
+    EBSI.SPANISH_UNIV_NAME
   );
-  const spanishUniDID = (<IEnterpriseAuthZToken>JWT.decode(spanishUniToken))
+  const spanishUniDID = (<jwt.IEnterpriseAuthZToken>JWT.decode(spanishUniToken))
     .did;
-  PRINT_DEBUG(`Spanish University DID: ${spanishUniDID}`);
+  util.PRINT_DEBUG(`Spanish University DID: ${spanishUniDID}`);
   const flandesUniToken = await getEnterpriseAuthZTokenWithName(
-    FLANDES_GOV_NAME
+    EBSI.FLANDES_GOV_NAME
   );
-  const flandesUniDID = (<IEnterpriseAuthZToken>JWT.decode(flandesUniToken))
+  const flandesUniDID = (<jwt.IEnterpriseAuthZToken>JWT.decode(flandesUniToken))
     .did;
-  PRINT_DEBUG(`Flandes University DID: ${flandesUniDID}`);
+  util.PRINT_DEBUG(`Flandes University DID: ${flandesUniDID}`);
 
   return {
     belgiumGovToken: testingSetup.belgiumGovToken,
@@ -194,9 +187,9 @@ async function auxDoPostCallWithToken(
     },
   };
   if (LOG_LEVEL === "silly") {
-    PRINT_SILLY(`URL: ${url}`);
-    PRINT_SILLY(config);
-    PRINT_SILLY(data);
+    util.PRINT_SILLY(`URL: ${url}`);
+    util.PRINT_SILLY(config);
+    util.PRINT_SILLY(data);
   }
   const response = await axios.post(url, data, config);
   return response.data;

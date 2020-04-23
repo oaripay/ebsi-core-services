@@ -2,9 +2,9 @@ import { Resolver } from "did-resolver";
 import { verifyJWT } from "did-jwt";
 import { JWK, JWT } from "jose";
 import moment from "moment";
-import * as config from "src/config";
-import { doGetCallWithToken } from "src/utils/api";
-import { PRINT_ERROR } from "src/utils/Util";
+import * as config from "../../../config";
+import { doGetCallWithToken } from "../../../utils/api";
+import { PRINT_ERROR } from "../../../utils/Util";
 import ComponentSecureEnclave from "./ComponentSecureEnclave";
 import {
   IComponentAuthZToken,
@@ -17,15 +17,7 @@ import SecureEnclave from "../secureEnclave";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const EbsiDidResolver = require("ebsi-did-resolver");
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
-export default interface IVerifier {
-  verifyVcJwt(data: string, options?: JWTVerifyOptions): Promise<VerifiedJwt>;
-
-  verifyJwt(jwt: string): Promise<VerifiedJwt>;
-  // eslint-disable-next-line semi
-}
-
-export class Verifier implements IVerifier {
+export default class Verifier {
   private static instance: Verifier;
 
   private resolver: Resolver;
@@ -130,7 +122,7 @@ export class Verifier implements IVerifier {
       sub: "ebsi-wallet", // Should be the id of the app that is requesting the token
       iat: moment().unix(),
       exp: moment().add(15, "minutes").unix(),
-      aud: config.COMPONENT_WALLET_ID,
+      aud: config.API_NAME,
     };
     const buffer = Buffer.from(JSON.stringify(payload));
     const token = await se.signJwt(se.enclaveDid, buffer);

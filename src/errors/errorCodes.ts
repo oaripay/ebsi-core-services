@@ -1,4 +1,10 @@
-export enum EBSI_API_ERRORS {
+interface EbsiError {
+  title: string;
+  status: number;
+  detail: string;
+}
+
+enum EBSI_API_ERRORS {
   BAD_REQUEST = "Request failed with status code 400",
   NOT_AUTENTICATED_USER = "Request failed with status code 401",
   UNAUTHORIZED_ACCESS = "Request failed with status code 403",
@@ -7,7 +13,7 @@ export enum EBSI_API_ERRORS {
   NOT_IMPLEMENTED = "Request failed with status code 501",
 }
 
-export enum EBSI_API_ERRORS_INT {
+enum EBSI_API_ERRORS_INT {
   BAD_REQUEST_400 = 400,
   NOT_AUTENTICATED_USER_401 = 401,
   UNAUTHORIZED_ACCESS_403 = 403,
@@ -16,39 +22,7 @@ export enum EBSI_API_ERRORS_INT {
   NOT_IMPLEMENTED_501 = 501,
 }
 
-export const getCode = (inErrorMessage: string): EBSI_API_ERRORS_INT => {
-  const errorMessage = inErrorMessage.replace("Error: ", "");
-  switch (errorMessage) {
-    case EBSI_API_ERRORS.BAD_REQUEST:
-      return EBSI_API_ERRORS_INT.BAD_REQUEST_400;
-    case EBSI_API_ERRORS.NOT_AUTENTICATED_USER:
-      return EBSI_API_ERRORS_INT.NOT_AUTENTICATED_USER_401;
-    case EBSI_API_ERRORS.UNAUTHORIZED_ACCESS:
-      return EBSI_API_ERRORS_INT.UNAUTHORIZED_ACCESS_403;
-    case EBSI_API_ERRORS.NOT_FOUND:
-      return EBSI_API_ERRORS_INT.NOT_FOUND_404;
-    case EBSI_API_ERRORS.INTERNAL_ERROR:
-      return EBSI_API_ERRORS_INT.INTERNAL_ERROR_500;
-    case EBSI_API_ERRORS.NOT_IMPLEMENTED:
-      return EBSI_API_ERRORS_INT.NOT_IMPLEMENTED_501;
-    default:
-      return 500;
-  }
-};
-
-export const getMessage = (error: any): string => {
-  if (error.response && error.response.data) {
-    return <string>error.response.data;
-  }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return "Error in API call";
-};
-
-export enum WALLET_API_ERRORS {
+enum API_ERROR_MESSAGES {
   CONNECTION_NOT_OPEN = "Server connection is not set.",
   NO_COMPONENT_PASSWORD = "No Component Wallet provided",
   AUTHMANAGER_ERROR = "Auth Manager not initizalized",
@@ -104,9 +78,23 @@ export enum WALLET_API_ERRORS {
   DID_NOT_DEFINED = "DID parameter from call or from the JWT token is not defined",
   DID_MISMATCH = "DID parameter from call differs from the AuthZToken DID provided",
   WALLET_OPTIONS_NOT_PROVIDED = "Wallet options parameters are not provided",
+  NO_INPUT_CREDENTIAL = "No input credential provided.",
+  NO_ISSUER_CREDENTIALSUBJECT = "No issuer or credential subject provided.",
+  NO_ID_CREDENTIALSUBJECT = "No id or credential subject provided.",
+  BAD_CREDENTIAL_PARAMETERS = "Credential parameters are not valid.",
+  BAD_PRESENTATION_PARAMETERS = "Presentation parameters are not valid.",
+  NO_BODY_SIGNATURE = "Signature not found in body Request.",
+  PRESENTATION_PAYLOAD_NOT_FOUND = "Presentation payload not found.",
+  PRESENTATION_CREDENTIALS_NOT_FOUND = "Credentials not found on Presentation Creation.",
+  PRESENTATION_ISSUER_NOT_FOUND = "Issuer not found on Presentation Creation.",
+  ATTRIBUTES_DID_HASH_NOT_FOUND = "Attribute hash or did in token not found",
+  ATTRIBUTES_DID_NOT_FOUND = "Attribute did not found",
+  ATTRIBUTES_DID_TYPE_NOT_FOUND = "Attribute did or type not found",
+  ATTRIBUTE_TYPE_MALFORMED = `"type" must be url-encoded type, e.g. encodeURIComponent(JSON.stringify(["EssifVerifiableID", "EuropassDiploma"]))`,
+  ATTRIBUTE_INPUT_MALFORMED = `Attribute must contain id, type, name, data and data.base64`,
 }
 
-export enum WALLET_MESSAGES {
+enum WALLET_MESSAGES {
   ELEMENT_DELETED = "Message deleted",
   ELEMENT_ADDED = "Message inserted",
   KEY_ADDED = "key inserted",
@@ -118,3 +106,11 @@ export enum WALLET_MESSAGES {
   VID_CREATED_OK = "The request is successfully processed. Please, redirect to the designated URL to accept your notification",
   SIGNATURE_VALIDATED_OK = "Signature validated successfully",
 }
+
+export {
+  EbsiError,
+  WALLET_MESSAGES,
+  API_ERROR_MESSAGES,
+  EBSI_API_ERRORS_INT,
+  EBSI_API_ERRORS,
+};

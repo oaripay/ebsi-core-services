@@ -1,7 +1,9 @@
-import ComponentSecureEnclave from "src/libs/secureEnclave/componentSecureEnclave";
-import { AuthManager } from "src/libs/authManager/authManager";
-import { EBSI_APPS, COMPONENT_KEYSTORE } from "src/config";
-import { IUserAuthZToken } from "src/libs/secureEnclave/jwt";
+import {
+  ComponentSecureEnclave,
+  AuthManager,
+  jwt,
+} from "../../../src/libs/authManager";
+import { COMPONENT_KEYSTORE, EBSI_APPS } from "../../../src/config";
 
 describe("authManager tests", () => {
   it("should create an AuthN token", async () => {
@@ -19,7 +21,7 @@ describe("authManager tests", () => {
     const did = "did:ebsi:0x7f9273a6F709f3A08772a8612c427069a4720E64";
     await ComponentSecureEnclave.Instance.init(COMPONENT_KEYSTORE);
 
-    const payload: IUserAuthZToken = {
+    const payload: jwt.IUserAuthZToken = {
       did,
       userName: "Jara&EBSI",
       userId: "jara",

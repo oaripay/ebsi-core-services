@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-unused-vars */
 /* eslint-disable class-methods-use-this */
-import { getStorageConfig } from "src/utils/Util";
-import { WALLET_DATASTORE_CONFIG } from "src/config";
-import { ICASFile } from "src/daos/casFile";
-import { ICASStorageOut } from "src/dtos/dataStorage";
-import { AuthManager } from "../authManager/authManager";
+
 import IDataStorage from "./dataStorage";
+import { getStorageConfig } from "../../utils/util";
+import { WALLET_DATASTORE_CONFIG } from "../../config";
+import { ICASFile } from "../../daos/casFile";
+import { ICASStorageOut } from "../../dtos/dataStorage";
+import { AuthManager } from "../authManager";
 
 /**
  * Class to a Content Addressable Data Storage using EBSI API

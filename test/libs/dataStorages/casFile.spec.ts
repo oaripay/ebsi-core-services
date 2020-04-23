@@ -1,12 +1,12 @@
 import fs from "fs";
 import path from "path";
-import { DataStoreManager } from "src/libs/dataStorages/dataStoreManager";
-import CASFile from "src/models/casFile";
-import { initSecureEnclave } from "test/auxAPICalls";
-import { WALLET_DATA_STORE_TYPE } from "src/config";
-import { ICASFile } from "src/daos/casFile";
-import { ICASStorageOut } from "src/dtos/dataStorage";
-import { ICallResponse } from "src/dtos/messages";
+import { DataStoreManager } from "../../../src/libs/dataStorages";
+import { CASFile } from "../../../src/models";
+import { initSecureEnclave } from "../../auxAPICalls";
+import { WALLET_DATA_STORE_TYPE } from "../../../src/config";
+import { ICASFile } from "../../../src/daos/casFile";
+import { ICASStorageOut } from "../../../src/dtos/dataStorage";
+import { ICallResponse } from "../../../src/dtos/messages";
 
 // Instantiate one of the CASFile Manager
 const credCAS = DataStoreManager.Instance.credentialFileDB;

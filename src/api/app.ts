@@ -3,43 +3,45 @@ import swaggerUi from "swagger-ui-express";
 import cors from "cors";
 import http from "http";
 import net from "net";
+import path from "path";
 import YAML from "yamljs";
 import * as bodyParser from "body-parser";
-import { WALLET_API_ERRORS } from "src/error";
-import ComponentSecureEnclave from "src/libs/authManager/secureEnclave/ComponentSecureEnclave";
-import { onErrorResponse, PRINT_INFO, PRINT_ERROR } from "src/utils/Util";
-import { EBSI_SERVICE, OPENAPI_PATH, COMPONENT_KEYSTORE } from "src/config";
-import AuthmanagerRouter from "src/api/authManager/router";
-import IdentityHubRouter from "src/api/identityHub/router";
+import IdentityHubRouter from "./identityHub/router";
+import { PRINT_INFO, PRINT_ERROR } from "../utils/Util";
+import { EBSI_SERVICE, OPENAPI_PATH, COMPONENT_KEYSTORE } from "../config";
+import ComponentSecureEnclave from "../libs/authManager/secureEnclave/ComponentSecureEnclave";
+import { API_ERROR_MESSAGES, handleError } from "../errors";
 
 class App {
   private connection!: http.Server;
 
-  private router!: AuthmanagerRouter | IdentityHubRouter;
+  private router!: IdentityHubRouter;
 
   public constructor(ebsiService: string, private httpServer = express()) {
     this.httpServer.use(bodyParser.urlencoded({ extended: true }));
     this.httpServer.use(bodyParser.json());
     this.httpServer.use(cors());
-    this.httpServer.use(onErrorResponse);
+    this.httpServer.use((req, res, next) => {
+      PRINT_INFO(`${req.method} ${req.url}`);
+      next();
+    });
+    this.httpServer.use(handleError);
+    const yamlFilePath = path.join(__dirname, OPENAPI_PATH);
 
     switch (ebsiService) {
-      case EBSI_SERVICE.NAME.WALLET_AUTHMANAGER:
-        this.router = new AuthmanagerRouter(this.httpServer);
-        break;
-      case EBSI_SERVICE.NAME.CREDENTIAL:
+      case EBSI_SERVICE.NAME.IDHUB:
         this.router = new IdentityHubRouter(
           this.httpServer,
-          YAML.load(OPENAPI_PATH)
+          YAML.load(yamlFilePath)
         );
         this.httpServer.use(
-          EBSI_SERVICE.SWAGGER.CREDENTIAL,
+          EBSI_SERVICE.SWAGGER.IDHUB,
           swaggerUi.serve,
-          swaggerUi.setup(YAML.load(OPENAPI_PATH))
+          swaggerUi.setup(YAML.load(yamlFilePath))
         );
         break;
       default:
-        throw Error(WALLET_API_ERRORS.NO_EBSI_SERVICE_AVAILABLE);
+        throw Error(API_ERROR_MESSAGES.NO_EBSI_SERVICE_AVAILABLE);
     }
   }
 
@@ -47,7 +49,7 @@ class App {
     const did: string = await ComponentSecureEnclave.Instance.init(
       COMPONENT_KEYSTORE
     );
-    if (!did) throw Error(WALLET_API_ERRORS.ENCLAVE_DID_NULL);
+    if (!did) throw Error(API_ERROR_MESSAGES.ENCLAVE_DID_NULL);
     PRINT_INFO(`Component Secure Enclave initialized with DID:${did}`);
 
     return new Promise((resolve, reject) => {

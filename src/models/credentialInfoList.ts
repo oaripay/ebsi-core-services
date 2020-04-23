@@ -1,14 +1,14 @@
 /* eslint-disable no-useless-constructor */
-import KeyValueDataStorage from "src/libs/dataStorages/keyValueDataStorage";
-import { ICallResponse } from "src/dtos/messages";
-import { ICredential } from "src/daos/credential";
-import { ICredentialInfo, ICredentialInfoList } from "src/dtos/attributeInfo";
+import { ICallResponse } from "../dtos/messages";
+import { ICredential } from "../daos/credential";
+import { ICredentialInfo, ICredentialInfoList } from "../dtos/attributeInfo";
+import KeyValueDataStorage from "../libs/dataStorages/keyValueDataStorage";
 
 /**
  * Class to a Credential Data
  */
-export default class CredentiaInfoList extends KeyValueDataStorage {
-  private static instance: CredentiaInfoList;
+export default class CredentialInfoList extends KeyValueDataStorage {
+  private static instance: CredentialInfoList;
 
   private constructor(walletDataStoreType: number) {
     super(walletDataStoreType);
@@ -72,7 +72,7 @@ export default class CredentiaInfoList extends KeyValueDataStorage {
    */
   async insert(data: ICredential): Promise<ICallResponse> {
     return super.insert({
-      key: CredentiaInfoList.setKey(data.did),
+      key: CredentialInfoList.setKey(data.did),
       value: JSON.parse(JSON.stringify(data.data)),
     });
   }
@@ -104,7 +104,7 @@ export default class CredentiaInfoList extends KeyValueDataStorage {
   async update(data: ICredential): Promise<ICallResponse> {
     // performs an Insert as it does the same behaviour as an update
     return super.insert({
-      key: CredentiaInfoList.setKey(data.did),
+      key: CredentialInfoList.setKey(data.did),
       value: JSON.parse(JSON.stringify(data.data)),
     });
   }
@@ -135,7 +135,7 @@ export default class CredentiaInfoList extends KeyValueDataStorage {
    * @param key User's DID to identify documents
    */
   async delete(key: string): Promise<ICallResponse> {
-    return super.delete(CredentiaInfoList.setKey(key));
+    return super.delete(CredentialInfoList.setKey(key));
   }
 
   /**
@@ -143,7 +143,7 @@ export default class CredentiaInfoList extends KeyValueDataStorage {
    * @param key key to identify the element to retrieve
    */
   async get(key: string): Promise<ICredential> {
-    const value = await super.get(CredentiaInfoList.setKey(key));
+    const value = await super.get(CredentialInfoList.setKey(key));
     return {
       did: key,
       data: <ICredentialInfoList>JSON.parse(JSON.stringify(value)),

@@ -2,7 +2,7 @@ import { createLogger, format, transports } from "winston";
 import "winston-daily-rotate-file";
 import fs from "fs";
 import path from "path";
-import { LOG_LEVEL } from "src/config";
+import { LOG_LEVEL } from "./config";
 
 const logDir = "log";
 

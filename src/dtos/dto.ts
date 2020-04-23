@@ -1,3 +1,8 @@
+import {
+  UserAuthNToken,
+  LegalEntityAuthNToken,
+} from "../libs/authManager/secureEnclave/JWT";
+
 export interface PublicKey {
   pubkey: string;
 }
@@ -45,13 +50,7 @@ export interface IBondInput {
   front_endpoint: string;
 }
 
-export interface IUserLoginInput {
-  ticket: string;
-  publicKey: string;
-  address?: string;
-  front_endpoint: string;
-  did?: string;
-}
+export type IUserLoginInput = UserAuthNToken;
 
 export interface ITestUserUE {
   uid: string;
@@ -63,11 +62,7 @@ export interface IUserTestLoginInput extends IUserLoginInput {
   userEU: ITestUserUE;
 }
 
-export interface IEnterpriseLoginInput {
-  nonce: string;
-  enterpriseName: string;
-  [x: string]: any;
-}
+export type IEnterpriseLoginInput = LegalEntityAuthNToken;
 
 export interface IAuthenticationOutput {
   jwt: string;
