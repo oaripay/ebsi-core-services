@@ -3,9 +3,15 @@
   "private": true,
   "version": "1.0.0",
   "description": "EBSI Identity Hub",
+  "author": "",
+  "license": "EUPL-1.2",
+  "repository": {
+    "type": "bitbucket",
+    "url": "https://ec.europa.eu/cefdigital/code/scm/ebsi/identity-hub-api.git"
+  },
   "scripts": {
-    "start": "node dist/src/start.js",
-    "start:dev": "nodemon dist/src/start.js",
+    "start": "node dist/start.js",
+    "start:dev": "nodemon dist/start.js",
     "build": "npm run clean && tsc -p tsconfig-build.json",
     "clean": "rm -rf ./dist ./coverage ./log ./build",
     "compile": "tsc",
