@@ -21,7 +21,7 @@ class Router {
     router.post(EBSI_SERVICE.CALL.EBSI_LOGIN, auth.callNewSession);
 
     router.put(
-      `${EBSI_SERVICE.CALL.SET_ATTRIBUTE}`,
+      `${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/:hash`,
       cors(),
       auth.handleToken,
       verifyJwt,
@@ -52,18 +52,17 @@ class Router {
       parseEntityJWT,
       verifyJWTParamDIDs,
       async (req: express.Request, res: express.Response, next) => {
+        const { did, type } = req.params;
         try {
-          if (!req.params.did)
+          if (!did)
             throw new BadRequestError(
               API_ERROR_MESSAGES.ATTRIBUTES_DID_NOT_FOUND
             );
           // when type query param is set, we call the filtered function
-          if (req.params.type) {
-            const { did, type } = req.params;
+          if (type) {
             const result = await Controller.getAttributesFiltered(did, type);
             res.status(200).json(result);
           }
-          const { did } = req.params;
           const result = await Controller.getAttributes(did);
           res.status(200).json(result);
         } catch (error) {
@@ -73,18 +72,20 @@ class Router {
     );
 
     router.get(
-      `${EBSI_SERVICE.CALL.GET_ATTRIBUTE}`,
+      `${EBSI_SERVICE.CALL.GET_ATTRIBUTES}/:hash`,
       cors(),
       auth.handleToken,
       verifyJwt,
       parseEntityJWT,
+      verifyJWTParamDIDs,
       async (req: express.Request, res: express.Response, next) => {
+        const { didJwt, hash } = req.params;
         try {
-          if (!req.params.didJwt || !req.params.hash)
+          // when hash is present, it retrieves the specifific attribute corresponding to the hash
+          if (!hash || !didJwt)
             throw new BadRequestError(
               API_ERROR_MESSAGES.ATTRIBUTES_DID_HASH_NOT_FOUND
             );
-          const { didJwt, hash } = req.params;
           const result = await Controller.getAttribute(didJwt, hash);
           res.status(200).json(result);
         } catch (error) {
