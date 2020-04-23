@@ -15,7 +15,7 @@ services:
     ports:
       - 9000:8080
     environment:
-      - NODE_ENV=integration
+      - EBSI_ENV=integration
       - COMPONENT_PASSWORD=${component_password}
       - COMPONENT_KEYSTORE=${component_keystore}
       - DID_REGISTRY_SC_ADDRESS=${did_registry_sc_address}
