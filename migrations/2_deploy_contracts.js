@@ -111,6 +111,16 @@ module.exports = async (deployer, network) => {
 
     await registryInstance.addApplication(app.pubKey, app.name)
 
+
+    app = {
+        name: 'trusted-issuers-registry',
+        pubKey: 'LS0tLS1CRUdJTiBSU0EgUFVCTElDIEtFWS0tLS0tCk1JSUJDZ0tDQVFFQXhBV045QjlQM2l4RVVPZXM3d3g4UXJXOXpwcmp3TGRnMHRGRUkvUVFXd09adGo1dnNvUVUKYjVZbXF2TVRQT3kxSnpobUlzVU9CNFpmeUlhVkdvZ3B3bWxvUzlBd3VhMXd1alVBNW95K1BNcTEyV3doTnRMaApYQWdXTGRXaHdKSWpCMko5aHZ5b0pZWVIyZnp2TVdGeEZqV1BleXNHRmdJZTJiRW4zQVQ4b2IxNUwvL0I5MUpVCjRDNnFSUjh0SGhWbm1ZeXc0Y3V1RWJEVGs1Z0ltZ2dPbjRUWHdaOHJOT21SZkw4NlZmZTB1d2VuN0o4WjVocnEKQ2trVjVkMXdIeSt6RkxXdUZrcEo0N0ZQVWpESGExM09oeVFWOUlwYjlBWm9QVGUyZjhUOGdUVGlUNGQyZkQxQgp0bk9IT0ZmbGhyREM4YzAzRWwwdzZvaThSN2lFQU1TbHlRSURBUUFCCi0tLS0tRU5EIFJTQSBQVUJMSUMgS0VZLS0tLS0='
+
+    }
+    console.log('adding app ', app.name)
+
+    await registryInstance.addApplication(app.pubKey, app.name)
+
     app = {
         name: 'ebsi-idhub',
         pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVkT3NiWEZmRUpzZHdsc3JmZ0xaVHJrUG1iVU5uN2VUTgp5MGRqQW5UZTNoM2RGM09mZkVJTk1xUzlSRm5vMnVXS1RINzlsdTNMYmVnc3pGOHdWUFpnUGc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0='
@@ -122,7 +132,7 @@ module.exports = async (deployer, network) => {
 
     console.log ('adding access from all to all')
 
-    let apps = ['ebsi-besu', 'ebsi-fabric', 'ebsi-wallet', 'ebsi-notary', 'ebsi-storage', 'ebsi-diploma', 'ebsi-ledger', 'trusted-apps-registry', 'ebsi-eidas-bridge', 'ebsi-idhub'];
+    let apps = ['ebsi-besu', 'ebsi-fabric', 'ebsi-wallet', 'ebsi-notary', 'ebsi-storage', 'ebsi-diploma', 'ebsi-ledger', 'trusted-apps-registry', 'ebsi-eidas-bridge', 'ebsi-idhub', 'trusted-issuers-registry'];
 
     for(i=0; i<apps.length; i++) {
         for(j=0; j<apps.length; j++) {
