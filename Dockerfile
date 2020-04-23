@@ -13,4 +13,4 @@ COPY api ./api
 USER node
 RUN npm run build
 EXPOSE 8080/tcp
-CMD [ "node", "src/start.js" ]
+CMD [ "node", "start.js" ]
