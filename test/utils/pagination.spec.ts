@@ -104,7 +104,6 @@ describe("pagination tests", () => {
   it("should return a json with empty items when offset is greater than total items", () => {
     expect.assertions(2);
     const json = paginate(posts, "", 10, 20);
-    console.log(json);
     expect(json).toBeDefined();
     expect(json.items).toHaveLength(0);
   });
