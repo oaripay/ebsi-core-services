@@ -93,7 +93,7 @@ export class AppController {
   @ApiOperation({ description: 'Get public key of a specific App. Query is done by app-name (i.e. ebsi-wallet)' })
   @ApiResponse({ status: 200, description: HTTP_200})
   @ApiResponse({ status: 404, description: HTTP_404})
-  @Get('/apps/:appName')
+  @Get('/v1/apps/:appName')
   async get(@Param() param: PublicKeyParam) {
     try {
       const appPublicKey = await this.ethersService.getApplicationPublicKey(param.appName);
