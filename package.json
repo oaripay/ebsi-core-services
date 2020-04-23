@@ -28,6 +28,7 @@
     "class-validator": "^0.11.0",
     "dotenv": "^8.2.0",
     "ethers": "^4.0.42",
+    "jose": "^1.26.0",
     "node-rsa": "^1.0.7",
     "reflect-metadata": "^0.1.13",
     "rimraf": "^3.0.0",

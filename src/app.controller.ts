@@ -204,18 +204,51 @@ export class AppController {
 
 
     try {
-      let univTypeIssuer = {};
-      let govTypeIssuer = {};
+      let univTypeIssuer;
+      let govTypeIssuer;
+      let result = {};
       if (await this.appService.doesIssuerExists(params.did)) {
         univTypeIssuer = await this.appService.getIssuer(params.did);
+        const documents = await this.appService.getDocuments(params.did);
+        const accs = await this.appService.getAccreditations(params.did);
+        for (let i = 0; i < documents.length; i++) {
+          documents[i].body = null;
+          try {
+            let downloadedDoc = await this.appService.downloadDocument(documents[i].vcCode);
+            documents[i].body = downloadedDoc ? (downloadedDoc.status === 200 ? downloadedDoc.data : null) : '';
+          } catch (error) {
+           console.log(error.message);
+          }
+        }
+        result = {...result, ...{
+            moderator: univTypeIssuer.moderator,
+            issuerDID: univTypeIssuer.issuerDID,
+            preferredName: univTypeIssuer.preferredName,
+            alternativeName: univTypeIssuer.alternativeName,
+            homepage: univTypeIssuer.homepage,
+            escoOrganizationType: univTypeIssuer.escoOrganizationType,
+            siteLocation: univTypeIssuer.siteLocation,
+            status: univTypeIssuer.status,
+            documents: documents.map(doc => this.appFormatter.formatDocument(doc)),
+            accreditations: accs.map(acc => this.appFormatter.formatAccreditation(acc)),
+          }};
       }
       if (await this.appService.doesIssuerForGovExists(params.did)) {
         govTypeIssuer = await this.appService.getIssuerForGov(params.did);
+        const documents = await this.appService.getDocumentsForGov(params.did);
+        result = {...result, ...{
+            moderator: govTypeIssuer.moderator,
+            issuerDID: govTypeIssuer.issuerDID,
+            name: govTypeIssuer.name,
+            country: govTypeIssuer.country,
+            status: govTypeIssuer.status,
+            documents: documents.map((document) => this.appFormatter.formatDocument(document)),
+          }};
       }
-      const result =  {...univTypeIssuer, ...govTypeIssuer};
       if (!Object.keys(result).length) {
         throw new NotFoundException('The format of {did} parameter is not valid or entity not found');
       }
+
       return result;
     } catch (error) {
       throw(error);

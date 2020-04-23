@@ -5,11 +5,14 @@ import {GovernmentBody, UniversityBody, Document, Accreditation} from './validat
 import config from './config';
 import fs from 'fs';
 import NodeRSA from 'node-rsa';
+import jose from 'jose';
+import axios from 'axios';
 
 @Injectable()
 export class AppService {
     private univContract;
     private govContract;
+    private jwtToken;
 
     constructor(private ethersService: EthersService) {
         this.univContract = this.ethersService.getContracts().univContract;
@@ -50,7 +53,7 @@ export class AppService {
     }
 
     async addDocumentToIssuer(did: string, body: Document) {
-         const univDoc = await this.univContract.addDocument(
+        const univDoc = await this.univContract.addDocument(
             did,
             body.vcCode,
             body.title,
@@ -59,7 +62,7 @@ export class AppService {
             body.type,
             body.dateStart,
         );
-         return univDoc.wait();
+        return univDoc.wait();
     }
 
     async addGovDocumentToIssuer(did: string, body: Document) {
@@ -147,6 +150,7 @@ export class AppService {
         const privateKey = fs.readFileSync(__dirname + '/../key/private.pem').toString('utf-8');
         return new NodeRSA(privateKey, 'pkcs8');
     }
+
     async decryptChallenge(encryptedChallenge: string) {
         const key = this.loadKey();
         return key.decrypt(encryptedChallenge, 'utf8');
@@ -181,5 +185,45 @@ export class AppService {
         // return DID
         return messageDecryptedArray[0];
     }
-
+    async login() {
+        if (typeof this.jwtToken === 'undefined') {
+            try {
+                const response = await this.generateLoginJWT();
+                console.log(response);
+                this.jwtToken = response.data.accessToken;
+            } catch (error) {
+                console.log(error.message);
+            }
+        }
+    }
+    async generateLoginJWT() {
+        const key = this.loadKey();
+        const {JWT, JWK} = jose;
+        const privateKey = JWK.asKey(key.exportKey());
+        const payload = {
+            iss: config.APP_NAME,
+            aud: config.APP_AUTH_REQUEST_NAME,
+        };
+        const token = JWT.sign(payload, privateKey, {
+            expiresIn: '15 minutes',
+        });
+        const jwtToken = axios.get((config.STORAGE).replace(/\/$/, '') + '/v1/sessions', {
+            headers: {
+                Authorization: 'Bearer ' + token,
+            },
+        });
+        return jwtToken;
+    }
+    async downloadDocument(documentHash: string) {
+        await this.login();
+        try {
+            return axios.get((config.APP_STORAGE).replace(/\/$/, '') + '/v1/' + documentHash, {
+                headers: {
+                    Authorization: 'Bearer ' + this.jwtToken,
+                },
+            });
+        } catch (Error) {
+            return null;
+        }
+    }
 }
