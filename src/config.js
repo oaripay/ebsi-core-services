@@ -28,7 +28,9 @@ const config = {
   },
 };
 
-const environment = process.env.EBSI_ENV || "development";
+if (!process.env.EBSI_ENV) throw new Error("EBSI_ENV is not defined");
+
+const environment = process.env.EBSI_ENV;
 const finalConfig = config[environment];
 const { url } = finalConfig;
 
