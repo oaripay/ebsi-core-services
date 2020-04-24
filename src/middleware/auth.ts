@@ -178,13 +178,21 @@ async function handleToken(
     return;
   }
 
-  if (payload.aud !== config.API_NAME) {
+  if (
+    payload.aud !== config.API_NAME &&
+    payload.aud !== config.EBSI_APPS.WALLET // supports AuthZ tokens from wallet
+  ) {
     next(
       new InvalidTokenError(
         `Token with incorrect audience. Please create a new session with '${config.API_NAME}'`
       )
     );
     return;
+  }
+
+  if (!process.env.EBSI_TEST_MODE) {
+    const appName = payload.iss;
+    await trustedAppsRegistryValidation(appName, token);
   }
 
   PRINT_DEBUG(`token: Valid token`);
