@@ -8,7 +8,7 @@ interface QueryPage {
   after?: string;
 }
 
-const paginateArray = (
+const applyPaginationFormat = (
   data: any[],
   req: express.Request,
   res: express.Response,
@@ -58,4 +58,4 @@ const paginateArray = (
   next();
 };
 
-export default paginateArray;
+export default applyPaginationFormat;

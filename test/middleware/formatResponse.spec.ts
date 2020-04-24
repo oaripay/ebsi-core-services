@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 
 import httpMocks from "node-mocks-http";
-import paginateArray from "../../src/middleware/formatResponse";
+import applyPaginationFormat from "../../src/middleware/formatResponse";
 import { mockedPosts } from "../auxAPICalls";
 import { PaginateResult } from "../../src/utils";
 
@@ -47,7 +47,7 @@ describe("formatResponse middleware test suite", () => {
       const result = JSON.parse(res._getData());
       expect(result).toMatchObject(expectedResult);
     });
-    paginateArray(mockedPosts, req, res, next);
+    applyPaginationFormat(mockedPosts, req, res, next);
   });
 
   it("returns the first 5 elements when setting page[size]=5", () => {
@@ -85,7 +85,7 @@ describe("formatResponse middleware test suite", () => {
       const result = JSON.parse(res._getData());
       expect(result).toMatchObject(expectedResult);
     });
-    paginateArray(mockedPosts, req, res, next);
+    applyPaginationFormat(mockedPosts, req, res, next);
   });
 
   it("returns the next 5 elements when using the next parameter", () => {
@@ -123,7 +123,7 @@ describe("formatResponse middleware test suite", () => {
       const result = JSON.parse(res._getData());
       expect(result).toMatchObject(expectedResult);
     });
-    paginateArray(mockedPosts, req, res, next);
+    applyPaginationFormat(mockedPosts, req, res, next);
   });
 
   it("returns the previous 5 elements when using the before parameter", () => {
@@ -161,7 +161,7 @@ describe("formatResponse middleware test suite", () => {
       const result = JSON.parse(res._getData());
       expect(result).toMatchObject(expectedResult);
     });
-    paginateArray(mockedPosts, req, res, next);
+    applyPaginationFormat(mockedPosts, req, res, next);
   });
 
   it("returns the first 5 elements when offset is less than 0", () => {
@@ -199,6 +199,6 @@ describe("formatResponse middleware test suite", () => {
       const result = JSON.parse(res._getData());
       expect(result).toMatchObject(expectedResult);
     });
-    paginateArray(mockedPosts, req, res, next);
+    applyPaginationFormat(mockedPosts, req, res, next);
   });
 });
