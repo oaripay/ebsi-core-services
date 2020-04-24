@@ -1,11 +1,23 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 
+const { BadRequestError } = require("../../errors");
 const controller = require("./controller");
 
 const router = express.Router();
 
-router.use(bodyParser.json({ limit: "10mb", extended: true, type: "*/*" }));
+router.use(bodyParser.json({ type: "application/json" }));
+router.use(bodyParser.json({ type: "application/*json" }));
+router.use(bodyParser.json({ type: "application/*+json" }));
+router.use((error, req, res, next) => {
+  if (error)
+    throw new BadRequestError(
+      "The body is defined for 'application/*json' but it cannot be parsed as JSON. Try it defining body as 'text/plain'"
+    );
+  next();
+});
+
+router.use(bodyParser.text({ type: "text/plain" }));
 
 // List of key-values
 router.get("/", async (req, res, next) => {
