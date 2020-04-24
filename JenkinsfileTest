@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        EBSI_ENV='test'
+        NODE_ENV='test'
         COMPONENT_WALLET_PASSWORD=credentials('COMPONENT_WALLET_PASSWORD')
         KEY_PASSPHRASE='test'
         DID_REGISTRY_SC_ADDRESS=credentials('DID_REGISTRY_SC_ADDRESS')
