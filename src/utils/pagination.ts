@@ -1,12 +1,27 @@
+interface PaginateLinks {
+  first: string;
+  prev: string;
+  next: string;
+  last: string;
+}
+
+interface PaginateResult {
+  items: any[];
+  total: number;
+  pageSize: number;
+  links: PaginateLinks;
+}
+
 const paginate = (
   collection: Array<any>,
   baseUrl: string,
-  pageSize: number = 10,
+  inSize: number = 10,
   offset: number = 0
-) => {
+): PaginateResult => {
   if (!Array.isArray(collection)) {
     throw Error(`Expect array and got ${typeof collection}`);
   }
+  const pageSize = +inSize; // forcing to be number type
   const paginatedItems = collection.slice(offset, offset + pageSize);
   const total = collection.length;
   const limit = offset + pageSize >= total ? total : offset + pageSize - 1;
@@ -24,4 +39,4 @@ const paginate = (
   };
 };
 
-export default paginate;
+export { paginate, PaginateResult, PaginateLinks };

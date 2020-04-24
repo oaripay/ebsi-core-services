@@ -1,63 +1,5 @@
 import { paginate } from "../../src/utils";
-
-interface Element {
-  id: number;
-  title: string;
-  author: string;
-}
-
-const posts: Element[] = [
-  {
-    id: 1,
-    title: "One",
-    author: "I",
-  },
-  {
-    id: 2,
-    title: "two",
-    author: "I",
-  },
-  {
-    id: 3,
-    title: "three",
-    author: "I",
-  },
-  {
-    id: 4,
-    title: "Four",
-    author: "I",
-  },
-  {
-    id: 5,
-    title: "Five",
-    author: "I",
-  },
-  {
-    id: 6,
-    title: "Six",
-    author: "I",
-  },
-  {
-    id: 7,
-    title: "Seven",
-    author: "I",
-  },
-  {
-    id: 8,
-    title: "Eight",
-    author: "I",
-  },
-  {
-    id: 9,
-    title: "Nine",
-    author: "I",
-  },
-  {
-    id: 10,
-    title: "Ten",
-    author: "I",
-  },
-];
+import { mockedPosts } from "../auxAPICalls";
 
 describe("pagination tests", () => {
   it("should throw an error when no Array is passed", () => {
@@ -67,7 +9,7 @@ describe("pagination tests", () => {
 
   it("should return a json with 10 elements", () => {
     expect.assertions(2);
-    const json = paginate(posts, "");
+    const json = paginate(mockedPosts, "");
     expect(json).toBeDefined();
     expect(json.items).toHaveLength(10);
   });
@@ -96,14 +38,14 @@ describe("pagination tests", () => {
 
   it("should return a json with 10 elements requesting more per page", () => {
     expect.assertions(2);
-    const json = paginate(posts, "", 20);
+    const json = paginate(mockedPosts, "", 20);
     expect(json).toBeDefined();
     expect(json.items).toHaveLength(10);
   });
 
   it("should return a json with empty items when offset is greater than total items", () => {
     expect.assertions(2);
-    const json = paginate(posts, "", 10, 20);
+    const json = paginate(mockedPosts, "", 10, 20);
     expect(json).toBeDefined();
     expect(json.items).toHaveLength(0);
   });
@@ -111,7 +53,7 @@ describe("pagination tests", () => {
   it("should return a formated json with 10 elements", () => {
     expect.assertions(14);
     const baseUrl = "/test";
-    const json = paginate(posts, baseUrl);
+    const json = paginate(mockedPosts, baseUrl);
     expect(json).toHaveProperty("items");
     expect(json).toHaveProperty("total");
     expect(json.total).toBe(10);
@@ -130,7 +72,7 @@ describe("pagination tests", () => {
   it("should return a formated json with the first 5 elements", () => {
     expect.assertions(3);
     const baseUrl = "/test";
-    const json = paginate(posts, baseUrl, 5);
+    const json = paginate(mockedPosts, baseUrl, 5);
     expect(json.items).toHaveLength(5);
     expect(json.items[0].id).toBe(1);
     expect(json.items[4].id).toBe(5);
@@ -138,7 +80,7 @@ describe("pagination tests", () => {
   it("should return a formatted json with the last 5 elements", () => {
     expect.assertions(3);
     const baseUrl = "/test";
-    const json = paginate(posts, baseUrl, 5, 5);
+    const json = paginate(mockedPosts, baseUrl, 5, 5);
     expect(json.items).toHaveLength(5);
     expect(json.items[0].id).toBe(6);
     expect(json.items[4].id).toBe(10);
