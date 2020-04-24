@@ -7,11 +7,6 @@ services:
     ports:
       - "7000:7000"
       - "9042:9042"
-  mongodb:
-    image: mongo:latest
-    container_name: mongodb
-    ports:
-      - "27017:27017"
   api:
     build: .
     container_name: storage-api
@@ -22,4 +17,3 @@ services:
       - API_STORAGE_PRIVATE_KEY=${API_STORAGE_PRIVATE_KEY}
     depends_on:
       - "cassandradb"
-      - "mongodb"

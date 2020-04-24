@@ -36,22 +36,6 @@ const { url } = finalConfig;
 
 const sharedConfig = {
   trustedAppsRegistry: `${url}/trusted-apps-registry/v1`,
-  mongo: {
-    connectionString: "mongodb://mongodb:27017/ebsi",
-    opts: {
-      appname: "EBSI",
-      poolSize: 10,
-      autoIndex: false,
-      bufferMaxEntries: 0,
-      reconnectTries: Number.MAX_VALUE,
-      reconnectInterval: 500,
-      autoReconnect: true,
-      loggerLevel: "error",
-      keepAlive: 120,
-      validateOptions: true,
-      useNewUrlParser: true,
-    },
-  },
   cassandra: {
     connection: {
       contactPoints: ["cassandradb"],
@@ -62,9 +46,6 @@ const sharedConfig = {
       reconnectTries: Number.MAX_VALUE,
       reconnectInterval: 5000,
     },
-  },
-  gluster: {
-    path: `${__dirname}/files`,
   },
   jwt: {
     privKey: utils.getJWKfromHex(process.env.API_STORAGE_PRIVATE_KEY),

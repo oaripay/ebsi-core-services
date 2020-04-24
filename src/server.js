@@ -1,6 +1,4 @@
 const express = require("express");
-const mongoose = require("mongoose");
-const fs = require("fs");
 const cassandraDriver = require("cassandra-driver");
 const bodyParser = require("body-parser");
 
@@ -15,13 +13,6 @@ const keyValueStorageAPI = require("./api/key-value-storage/router");
 /*
  * Initializations
  */
-const mongoConnection = config.mongo.connectionString;
-const mongoOpts = config.mongo.opts;
-mongoose.connect(mongoConnection, mongoOpts, (error) => {
-  if (error) throw error;
-  logger.info("Connected with Mongo");
-});
-
 const cassandraConnection = config.cassandra.connection;
 const cassandraOpts = config.cassandra.opts;
 const cassandra = new cassandraDriver.Client(cassandraConnection);
@@ -62,11 +53,6 @@ async function checkTablesCassandra() {
   /* eslint-enable no-await-in-loop */
   logger.error("Imposible to connect with Cassandra");
 })();
-
-if (!fs.existsSync(config.gluster.path)) {
-  fs.mkdirSync(config.gluster.path, { recursive: true });
-}
-logger.info(`==> Gluster files in ${config.gluster.path}`);
 
 /*
  * Router
