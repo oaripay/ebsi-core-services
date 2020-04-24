@@ -62,7 +62,8 @@ class Router {
           // when type query param is set, we call the filtered function
           if (type) {
             const result = await Controller.getAttributesFiltered(did, type);
-            res.status(200).json(result);
+            res.status(200);
+            paginateArray(result.list, req, res, next);
           }
           const result = await Controller.getAttributes(did);
           res.status(200);
