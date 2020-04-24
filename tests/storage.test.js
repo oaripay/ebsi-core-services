@@ -2,10 +2,10 @@ const ethers = require("ethers");
 const jose = require("jose");
 require("dotenv").config();
 
-const config = require("../config");
-const { BadRequestError, InvalidTokenError } = require("../errors");
-const utils = require("../utils");
-const auth = require("../auth");
+const config = require("../src/config");
+const { BadRequestError, InvalidTokenError } = require("../src/errors");
+const utils = require("../src/utils");
+const auth = require("../src/auth");
 
 const wallet = ethers.Wallet.createRandom();
 const privKey = utils.getJWKfromHex(wallet.privateKey);
