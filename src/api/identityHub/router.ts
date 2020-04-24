@@ -9,6 +9,7 @@ import { EBSI_SERVICE } from "../../config";
 import { handleError, BadRequestError, API_ERROR_MESSAGES } from "../../errors";
 import * as auth from "../../middleware/auth";
 import Controller from "./controller";
+import paginateArray from "../../middleware/formatResponse";
 
 class Router {
   constructor(server: express.Express, swaggerDoc: any) {
@@ -64,7 +65,8 @@ class Router {
             res.status(200).json(result);
           }
           const result = await Controller.getAttributes(did);
-          res.status(200).json(result);
+          res.status(200);
+          paginateArray(result.list, req, res, next);
         } catch (error) {
           next(error);
         }
