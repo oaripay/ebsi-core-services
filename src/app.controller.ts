@@ -206,7 +206,7 @@ export class AppController {
     try {
       let univTypeIssuer;
       let govTypeIssuer;
-      let result = {};
+      let result = [];
       if (await this.appService.doesIssuerExists(params.did)) {
         univTypeIssuer = await this.appService.getIssuer(params.did);
         const documents = await this.appService.getDocuments(params.did);
@@ -220,7 +220,7 @@ export class AppController {
            console.log(error.message);
           }
         }
-        result = {...result, ...{
+        result.push({
             moderator: univTypeIssuer.moderator,
             issuerDID: univTypeIssuer.issuerDID,
             preferredName: univTypeIssuer.preferredName,
@@ -231,21 +231,21 @@ export class AppController {
             status: univTypeIssuer.status,
             documents: documents.map(doc => this.appFormatter.formatDocument(doc)),
             accreditations: accs.map(acc => this.appFormatter.formatAccreditation(acc)),
-          }};
+          });
       }
       if (await this.appService.doesIssuerForGovExists(params.did)) {
         govTypeIssuer = await this.appService.getIssuerForGov(params.did);
         const documents = await this.appService.getDocumentsForGov(params.did);
-        result = {...result, ...{
+        result.push({
             moderator: govTypeIssuer.moderator,
             issuerDID: govTypeIssuer.issuerDID,
             name: govTypeIssuer.name,
             country: govTypeIssuer.country,
             status: govTypeIssuer.status,
             documents: documents.map((document) => this.appFormatter.formatDocument(document)),
-          }};
+          });
       }
-      if (!Object.keys(result).length) {
+      if (!result.length) {
         throw new NotFoundException('The format of {did} parameter is not valid or entity not found');
       }
 
