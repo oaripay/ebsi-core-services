@@ -1,0 +1,19 @@
+version: "3.7"
+
+services:
+  cassandradb:
+    image: cassandra:latest
+    container_name: cassandradb
+    ports:
+      - "7000:7000"
+      - "9042:9042"
+  api:
+    build: .
+    container_name: storage-api
+    ports:
+      - "8080:8080"
+    environment:
+      - EBSI_ENV=integration
+      - API_STORAGE_PRIVATE_KEY=${API_STORAGE_PRIVATE_KEY}
+    depends_on:
+      - "cassandradb"
