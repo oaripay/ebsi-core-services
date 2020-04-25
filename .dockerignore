@@ -1,2 +1,7 @@
-node_modules
-dist
+.
+!package*.json
+!nest-cli.json
+!tsconfig.build.json
+!tsconfig.json
+!src
+

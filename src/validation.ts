@@ -1,5 +1,5 @@
-import {IsString, IsDefined, IsBoolean, IsNumber, Max, IsUrl} from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsDefined, IsNumber, Max, IsUrl } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
 
 export class DIDParams {
   @IsString()
@@ -14,9 +14,10 @@ export class ChallengeParams {
   @IsDefined()
   @ApiProperty()
   did: string;
+
   @IsString()
   @IsDefined()
-  @ApiProperty({ enum: ['universities', 'governments']})
+  @ApiProperty({ enum: ["universities", "governments"] })
   type: string;
 }
 // tslint:disable-next-line:max-classes-per-file
@@ -25,6 +26,7 @@ export class Authorize {
   @IsDefined()
   @ApiProperty()
   cryptedMessage: string;
+
   @IsString()
   @IsDefined()
   @ApiProperty()
@@ -87,6 +89,7 @@ export class UniversityBody {
   @IsString()
   @IsDefined()
   identifier: string;
+
   @ApiProperty()
   @IsDefined()
   authorize: Authorize;
@@ -102,6 +105,7 @@ export class GovernmentBody {
   @ApiProperty()
   @IsDefined()
   authorize: Authorize;
+
   @ApiProperty()
   @IsString()
   @IsDefined()
