@@ -68,7 +68,12 @@ describe("key value storage tests", () => {
 
   it("create key", async () => {
     expect.assertions(1);
-    const response = await axiosAuth.put(`${apiKeyValue}/${key}`, valueText);
+    const opts = { headers: { "Content-Type": "text/plain" } };
+    const response = await axiosAuth.put(
+      `${apiKeyValue}/${key}`,
+      valueText,
+      opts
+    );
     expect(response.status).toBe(200);
   });
 
