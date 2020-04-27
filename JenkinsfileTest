@@ -11,11 +11,9 @@ pipeline {
         }
         stage('Unit test') {
             steps {
-                dir('api/besu') {
-                    sh 'npm install'
-                    withCredentials([string(credentialsId: 'TEST_APP_PRIVATE_KEY', variable: 'API_STORAGE_PRIVATE_KEY')]) {
-                        sh 'npm run test'
-                    }
+                sh 'npm install'
+                withCredentials([string(credentialsId: 'TEST_APP_PRIVATE_KEY', variable: 'API_STORAGE_PRIVATE_KEY')]) {
+                    sh 'npm run test'
                 }
             }
         }
