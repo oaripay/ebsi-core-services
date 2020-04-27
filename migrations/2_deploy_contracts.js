@@ -51,7 +51,7 @@ module.exports = async (deployer, network) => {
 
    app = {
         name: 'ebsi-storage',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVPb0ZRSkVhbWJCeUFPL29yMStNL0pCSXpQQU1FTFBpaAp0RlZQdTNYWnV2Y3MzaGJ2b0tKN1VkbVpXaDFsaWcvOW1haVdWQ05OaFhUN2wwTHVkSEFQNnc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0='
+        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVUQ2czYnNmWmh4NENLQkRpUUFLeUFsNU5rTVpXNFdxbwo0U2pvRjZxNDR0VFJtSUYxTlZlSXo3LzFaeHppMFhWRTcyUU9NeXZIWnpXeEQ1Q3MrVjl2QVE9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0'
     }
     console.log('adding app ', app.name)
 
@@ -129,6 +129,16 @@ module.exports = async (deployer, network) => {
     console.log('adding app ', app.name)
 
     await registryInstance.addApplication(app.pubKey, app.name)
+
+    app = {
+        name: 'ebsi-self-sovereign-identity',
+        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVsUmUyZGNFVGlrMHBzZWJOZGJUaFdPc0FQT2UrWFQ3OQpxTTRCTmd6N2NOVXJ1bklIYmxZZExPWmNUeUU3SS9wamVGaTJPUFZ1cjlqMTh0Uzg5anhoWXc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K'
+
+    }
+    console.log('adding app ', app.name)
+
+    await registryInstance.addApplication(app.pubKey, app.name)
+
 
     console.log ('adding access from all to all')
 
