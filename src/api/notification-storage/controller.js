@@ -1,5 +1,5 @@
 const cassandraDriver = require("cassandra-driver");
-const uuidv1 = require("uuid/v1");
+const { v1: uuidv1 } = require("uuid");
 
 const config = require("../../config");
 const logger = require("../../logger");
@@ -23,7 +23,7 @@ async function addNotification(data) {
   let { message } = data;
   message = JSON.stringify(message);
   const query = `insert into ${TABLE_NOTIFICATION_STORAGE} (id, created, sender, receiver, message) values (?, toTimestamp(now()), ?, ?, ?)`;
-  const params = [uuidv1(), sender, receiver, message];
+  const params = [id, sender, receiver, message];
   const result = await cassandra.execute(query, params);
 
   if (!result.info || !result.info.isSchemaInAgreement) {
@@ -118,7 +118,7 @@ async function getListNotifications(q) {
     params = [receiver];
   }
 
-  query += " limit ?";
+  query += " limit ? allow filtering";
   params.push(pageSize);
 
   const result = await cassandra.execute(query, params, { prepare: true });

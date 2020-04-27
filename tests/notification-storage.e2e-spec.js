@@ -136,7 +136,9 @@ describe("notification storage tests", () => {
     id21 = response21.data.id;
     id22 = response22.data.id;
 
-    const responseQueue1 = await axios.get(`${apiNotif}?receiver=${receiver1}`);
+    const responseQueue1 = await axiosAuth.get(
+      `${apiNotif}?receiver=${receiver1}`
+    );
     expect(responseQueue1.status).toBe(200);
     expect(responseQueue1.data).toStrictEqual(
       expect.objectContaining({
@@ -145,7 +147,9 @@ describe("notification storage tests", () => {
       })
     );
 
-    const responseQueue2 = await axios.get(`${apiNotif}?receiver=${receiver2}`);
+    const responseQueue2 = await axiosAuth.get(
+      `${apiNotif}?receiver=${receiver2}`
+    );
     expect(responseQueue2.status).toBe(200);
     expect(responseQueue2.data).toStrictEqual(
       expect.objectContaining({
@@ -165,13 +169,23 @@ describe("notification storage tests", () => {
   });
 
   it("get history", async () => {
-    expect.assertions(8);
+    expect.assertions(2);
 
-    const response = await axios.get(
+    const response = await axiosAuth.get(
       `${apiNotif}?receiver=${receiver1}&history=true`
     );
     expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(
+
+    // remove "created" and "deleted" fields in the list
+    const { data } = response;
+    /* eslint-disable no-param-reassign */
+    data.items.forEach((item) => {
+      delete item.created;
+      delete item.deleted;
+    });
+    /* eslint-enable no-param-reassign */
+
+    expect(data).toStrictEqual(
       expect.objectContaining({
         total: 3,
         items: expect.arrayContaining([notification11, notification21]),

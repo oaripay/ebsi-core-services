@@ -14,7 +14,7 @@ const config = {
     url: "https://api.intebsi.xyz",
   },
   local: {
-    url: `http://localhost:${port}`,
+    url: process.env.EBSI_API || `http://localhost:${port}`,
   },
 };
 

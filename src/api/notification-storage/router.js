@@ -21,7 +21,7 @@ router.get("/", async (req, res, next) => {
 router.put("/", async (req, res, next) => {
   try {
     const value = req.body;
-    const result = await controller.addNotification(null, value);
+    const result = await controller.addNotification(value);
     res.send(result);
   } catch (error) {
     next(error);
