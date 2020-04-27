@@ -9,7 +9,8 @@ export class AppFormatter {
       status: document.status,
       revision: document.revision,
       vcCode: document.vcCode,
-      dateStart: document.dateStart.toNumber()
+      dateStart: document.dateStart.toNumber(),
+      body: document.body ?? null
     };
   }
 

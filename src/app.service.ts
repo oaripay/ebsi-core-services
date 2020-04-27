@@ -1,7 +1,8 @@
 import {
   Injectable,
   NotImplementedException,
-  UnauthorizedException
+  UnauthorizedException,
+  Logger
 } from "@nestjs/common";
 
 import fs from "fs";
@@ -216,7 +217,6 @@ export class AppService {
     if (typeof this.jwtToken === "undefined") {
       try {
         const response = await this.generateLoginJWT();
-        console.log(response);
         this.jwtToken = response.data.accessToken;
       } catch (error) {
         console.log(error.message);
@@ -235,22 +235,24 @@ export class AppService {
     const token = JWT.sign(payload, privateKey, {
       expiresIn: "15 minutes"
     });
-    const jwtToken = axios.get(
+    const response = axios.post(
       `${config.STORAGE.replace(/\/$/, "")}/v1/sessions`,
       {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        assertion: token
       }
     );
-    return jwtToken;
+    return response;
   }
 
   async downloadDocument(documentHash: string) {
     await this.login();
     try {
       return axios.get(
-        `${config.APP_STORAGE.replace(/\/$/, "")}/v1/${documentHash}`,
+        `${config.STORAGE.replace(
+          /\/$/,
+          ""
+        )}/v1/stores/distributed/files/${documentHash}`,
         {
           headers: {
             Authorization: `Bearer ${this.jwtToken}`
@@ -258,6 +260,7 @@ export class AppService {
         }
       );
     } catch (Error) {
+      Logger.warn(Error);
       return null;
     }
   }

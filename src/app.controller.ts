@@ -4,7 +4,8 @@ import {
   BadRequestException,
   Param,
   NotFoundException,
-  Query
+  Query,
+  Logger
 } from "@nestjs/common";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { AppService } from "./app.service";
@@ -107,9 +108,10 @@ export class AppController {
       let univTypeIssuer;
       let govTypeIssuer;
       const result = [];
+      let documents = [];
       if (await this.appService.doesIssuerExists(params.did)) {
         univTypeIssuer = await this.appService.getIssuer(params.did);
-        const documents = await this.appService.getDocuments(params.did);
+        documents = await this.appService.getDocuments(params.did);
         const accs = await this.appService.getAccreditations(params.did);
         for (let i = 0; i < documents.length; i += 1) {
           documents[i].body = null;
@@ -117,6 +119,7 @@ export class AppController {
             const downloadedDoc = await this.appService.downloadDocument(
               documents[i].vcCode
             );
+            // console.log(downloadedDoc.data);
             documents[i].body = downloadedDoc
               ? downloadedDoc.status === 200
                 ? downloadedDoc.data
@@ -124,7 +127,9 @@ export class AppController {
               : "";
           } catch (error) {
             // do nothing, can't extract from besu
-            console.log(error.message);
+            Logger.warn(
+              `Error at index ${i} hash ${documents[i].vcCode}. Cannot extract from besu, message: ${error.message}`
+            );
           }
         }
         result.push({
@@ -146,7 +151,7 @@ export class AppController {
       }
       if (await this.appService.doesIssuerForGovExists(params.did)) {
         govTypeIssuer = await this.appService.getIssuerForGov(params.did);
-        const documents = await this.appService.getDocumentsForGov(params.did);
+        documents = await this.appService.getDocumentsForGov(params.did);
         result.push({
           moderator: govTypeIssuer.moderator,
           issuerDID: govTypeIssuer.issuerDID,
@@ -165,7 +170,7 @@ export class AppController {
       }
       return result;
     } catch (error) {
-      throw BadRequestException("there was a problem with besu");
+      throw new BadRequestException("there was a problem with besu");
     }
   }
   //
