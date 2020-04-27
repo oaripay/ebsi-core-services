@@ -77,7 +77,7 @@ function pipeFile(response) {
 
 describe("file storage tests", () => {
   it("create a new session with storage API", async () => {
-    expect.hasAssertions();
+    expect.assertions(2);
     const payload = {
       iss: TEST_APP_NAME,
       aud: config.API_NAME,
