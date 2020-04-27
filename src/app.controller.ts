@@ -163,6 +163,7 @@ export class AppController {
     try {
       const authorizedApps = await this.ethersService.getAuthorizedApps(param.appName);
       let [apps,] = authorizedApps;
+      console.log(apps);
       if (apps.includes(param.authorizedAppName)) {
         return { authorizedAppName: param.authorizedAppName}
       } else {
@@ -170,7 +171,7 @@ export class AppController {
       }
     } catch (ex) {
       if (ex instanceof Error) {
-        throw new NotFoundException(param.appName + ' not found')
+        throw new NotFoundException(param.authorizedAppName + ' not found in the list of authorized apps')
       }
       throw(ex);
       // throw new NotFoundException(param.appName + ' not found');
