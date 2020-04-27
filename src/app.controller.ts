@@ -171,7 +171,7 @@ export class AppController {
       }
     } catch (ex) {
       if (ex instanceof Error) {
-        throw new NotFoundException(param.authorizedAppName + ' not found in the list of authorized apps')
+        throw new NotFoundException(param.authorizedAppName + ' not found in the list of authorized apps of ' + param.appName);
       }
       throw(ex);
       // throw new NotFoundException(param.appName + ' not found');
