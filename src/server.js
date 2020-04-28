@@ -9,6 +9,7 @@ const auth = require("./auth");
 const errors = require("./errors");
 const fileStorageAPI = require("./api/file-storage/router");
 const keyValueStorageAPI = require("./api/key-value-storage/router");
+const notificationStorageAPI = require("./api/notification-storage/router");
 
 /*
  * Initializations
@@ -17,24 +18,59 @@ const cassandraConnection = config.cassandra.connection;
 const cassandraOpts = config.cassandra.opts;
 const cassandra = new cassandraDriver.Client(cassandraConnection);
 
-async function createTablesCassandra() {
-  logger.info("Creating tables: file_storage, key_value_storage");
-  await cassandra.execute(
-    `create table file_storage (id uuid, filename text, hash text, data blob, primary key(id, hash))`
-  );
-  await cassandra.execute(
-    `create table key_value_storage (key text, value text, primary key(key))`
-  );
-  logger.info("Tables created");
+async function checkTableFileStorage() {
+  try {
+    await cassandra.execute(`select * from file_storage limit 1`);
+  } catch (error) {
+    logger.info("Creating table 'file_storage'");
+    await cassandra.execute(
+      `create table file_storage (id uuid, filename text, hash text, data blob, primary key(id, hash))`
+    );
+  }
+}
+
+async function checkTableKeyValueStorage() {
+  try {
+    await cassandra.execute(`select * from key_value_storage limit 1`);
+  } catch (error) {
+    logger.info("Creating table 'key_value_storage'");
+    await cassandra.execute(
+      `create table key_value_storage (key text, value text, primary key(key))`
+    );
+  }
+}
+
+async function checkTableNotificationStorage() {
+  try {
+    await cassandra.execute(`select * from notification_storage limit 1`);
+  } catch (error) {
+    logger.info("Creating table 'notification_storage'");
+    await cassandra.execute(
+      `create table notification_storage (id uuid, created timestamp, sender text, receiver text, message text, primary key(id))`
+    );
+  }
+}
+
+async function checkTableNotificationHistoricalStorage() {
+  try {
+    await cassandra.execute(
+      `select * from notification_historical_storage limit 1`
+    );
+  } catch (error) {
+    logger.info("Creating table 'notification_historical_storage'");
+    await cassandra.execute(
+      `create table notification_historical_storage (id uuid, created timestamp, deleted timestamp, sender text, receiver text, message text, primary key(id))`
+    );
+  }
 }
 
 async function checkTablesCassandra() {
-  try {
-    await cassandra.execute(`select * from file_storage`);
-    await cassandra.execute(`select * from key_value_storage`);
-  } catch (error) {
-    createTablesCassandra();
-  }
+  const checks = [];
+  checks.push(checkTableFileStorage());
+  checks.push(checkTableKeyValueStorage());
+  checks.push(checkTableNotificationStorage());
+  checks.push(checkTableNotificationHistoricalStorage());
+  return Promise.all(checks);
 }
 
 (async () => {
@@ -46,7 +82,7 @@ async function checkTablesCassandra() {
       await checkTablesCassandra();
       return;
     } catch (error) {
-      logger.error(error);
+      logger.error(`Connection with cassandra: ${error.message}`);
     }
     await utils.sleep(cassandraOpts.reconnectInterval);
   }
@@ -89,6 +125,7 @@ app.get("/storage/v1/stores/:store", (req, res) => {
 
 app.use("/storage/v1/stores/:store/files", fileStorageAPI);
 app.use("/storage/v1/stores/:store/key-values", keyValueStorageAPI);
+app.use("/storage/v1/stores/:store/notifications", notificationStorageAPI);
 
 app.use((req, res, next) => {
   next(
@@ -100,4 +137,5 @@ app.use(errors.handler);
 
 app.listen(config.port, () => {
   logger.info(`Storage API started at port ${config.port}`);
+  if (config.testMode) logger.info("EBSI TEST MODE enabled");
 });

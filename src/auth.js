@@ -111,7 +111,11 @@ async function newSession(body) {
   }
 
   // validate token in the trusted app registry
-  if (!process.env.EBSI_TEST_MODE) {
+  if (config.testMode) {
+    logger.info(
+      "EBSI TEST MODE enabled. Trusted app registry will not be checked"
+    );
+  } else {
     const appName = payload.iss;
     await trustedAppsRegistryValidation(appName, token);
   }

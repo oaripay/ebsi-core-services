@@ -3,7 +3,8 @@
   "scripts": {
     "prettier-format": "prettier --write 'src/**/*.{js,ts,tsx}'",
     "start": "node src/server.js",
-    "test": "EBSI_TEST_MODE=true jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar"
+    "test": "EBSI_TEST_MODE=true jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar",
+    "test:e2e": "jest --config ./tests/jest-e2e.json"
   },
   "keywords": [
     "EBSI",
@@ -22,6 +23,7 @@
     "ethers": "^4.0.40",
     "express": "^4.17.1",
     "fast-json-patch": "^3.0.0-1",
+    "form-data": "^3.0.0",
     "jose": "^1.17.1",
     "uuid": "^7.0.3",
     "winston": "^3.2.1"

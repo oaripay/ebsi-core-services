@@ -13,7 +13,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - EBSI_ENV=integration
+      - EBSI_ENV=${EBSI_ENV}
       - API_STORAGE_PRIVATE_KEY=${API_STORAGE_PRIVATE_KEY}
+      - EBSI_TEST_MODE=${EBSI_TEST_MODE}
     depends_on:
       - "cassandradb"

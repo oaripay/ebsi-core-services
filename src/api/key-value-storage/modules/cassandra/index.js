@@ -124,7 +124,7 @@ async function patchKey(key, patch) {
   }
 
   const { result } = await setKey(key, newValue);
-  return result;
+  return result[key];
 }
 
 async function getListKeys(q, store) {
