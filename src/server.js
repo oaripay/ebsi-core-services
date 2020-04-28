@@ -82,7 +82,7 @@ async function checkTablesCassandra() {
       await checkTablesCassandra();
       return;
     } catch (error) {
-      logger.error(error);
+      logger.error(`Connection with cassandra: ${error.message}`);
     }
     await utils.sleep(cassandraOpts.reconnectInterval);
   }
@@ -137,4 +137,5 @@ app.use(errors.handler);
 
 app.listen(config.port, () => {
   logger.info(`Storage API started at port ${config.port}`);
+  if (config.testMode) logger.info("EBSI TEST MODE enabled");
 });

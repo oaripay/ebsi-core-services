@@ -50,6 +50,7 @@ const sharedConfig = {
   jwt: {
     privKey: utils.getJWKfromHex(process.env.API_STORAGE_PRIVATE_KEY),
   },
+  testMode: process.env.EBSI_TEST_MODE === "true",
 };
 
 module.exports = {
