@@ -1,4 +1,5 @@
 const express = require("express");
+const bodyParser = require("body-parser");
 
 const config = require("./config");
 const logger = require("./logger");
@@ -9,6 +10,8 @@ const errors = require("./errors");
 const app = express();
 
 app.use("*", require("cors")());
+
+app.use(bodyParser.json({ limit: "10mb", extended: true, type: "*/*" }));
 
 app.use((req, res, next) => {
   logger.info(`${req.method} ${req.url}`);
@@ -26,4 +29,5 @@ app.use(errors.handler);
 
 app.listen(config.port, () => {
   logger.info(`Hyperledger Besu API started at port ${config.port}`);
+  if (config.testMode) logger.info("EBSI TEST MODE enabled");
 });
