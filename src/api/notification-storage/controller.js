@@ -131,6 +131,7 @@ async function getListNotifications(q) {
   if (history === "true") {
     result.rows.forEach((r) => {
       items.push({
+        id: r.id,
         sender: r.sender,
         receiver: r.receiver,
         message: JSON.parse(r.message),
@@ -141,6 +142,7 @@ async function getListNotifications(q) {
   } else {
     result.rows.forEach((r) => {
       items.push({
+        id: r.id,
         sender: r.sender,
         receiver: r.receiver,
         message: JSON.parse(r.message),
