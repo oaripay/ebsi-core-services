@@ -89,11 +89,11 @@ Starting migrations...
 
    Replacing 'Migrations'
    ----------------------
-   > transaction hash:    0x65604cc6f8e96754a1b78cb59247825a9eab22c726b00b6014d76c821e4ab711
+   > transaction hash:    0x39f86b4d9385b9ac928984cc67d84adc19058b8d3dbbfc951552d64d4a2ca96f
    > Blocks: 0            Seconds: 0
-   > contract address:    0x2F2ccEFbc991BC8A1f71D9cDF7E918c787A2ba27
-   > block number:        1638181
-   > block timestamp:     1588155024
+   > contract address:    0x2E6499993037Bfd9F81f4C3e5a815e2Ce8FB0fb7
+   > block number:        1641298
+   > block timestamp:     1588161258
    > account:             0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73
    > balance:             0
    > gas used:            263741
@@ -114,11 +114,11 @@ Deploying Universities Trusted Issuers smart contract on network:  intebsi
 
    Replacing 'UniversitiesTrustedIssuers'
    --------------------------------------
-   > transaction hash:    0x65242130a507391f5782368c154c72b1938733bf45771c68a0c24475c8e58f13
+   > transaction hash:    0x1dd23a46de62d1876fdb9d24f713c6965acd568ba1a46cf1ba47fb3601e5dcd7
    > Blocks: 0            Seconds: 0
-   > contract address:    0xB4299D7596529fF8dF496e53fFD77944bCCA3AE1
-   > block number:        1638185
-   > block timestamp:     1588155032
+   > contract address:    0xcb29a1C8bf556047e164A51EB011B5b3047348f7
+   > block number:        1641301
+   > block timestamp:     1588161264
    > account:             0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73
    > balance:             0
    > gas used:            7054160
@@ -126,16 +126,16 @@ Deploying Universities Trusted Issuers smart contract on network:  intebsi
    > value sent:          0 ETH
    > total cost:          0 ETH
 
-Contract deployed at address 0xB4299D7596529fF8dF496e53fFD77944bCCA3AE1
+Contract deployed at address 0xcb29a1C8bf556047e164A51EB011B5b3047348f7
 Deploying Governments Trusted Issuers smart contract on network:  intebsi
 
    Replacing 'GovernmentsTrustedIssuers'
    -------------------------------------
-   > transaction hash:    0x234f9f0df85be449191f379c895ef0223f640ee6e7eece4524bc68a928368e0d
-   > Blocks: 0            Seconds: 0
-   > contract address:    0xa48dA31871b0cf9dbdE82184a8Dcd0f44f338bBe
-   > block number:        1638187
-   > block timestamp:     1588155036
+   > transaction hash:    0x4e0bb7f092ae66e0ebd732cb13a9c1ca6083afaf135d6a4037089043b74dd30d
+   > Blocks: 2            Seconds: 4
+   > contract address:    0xCa5D58D19775dE8e14CF8a1aEeC880f7cC31f902
+   > block number:        1641304
+   > block timestamp:     1588161270
    > account:             0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73
    > balance:             0
    > gas used:            3454563
@@ -143,17 +143,15 @@ Deploying Governments Trusted Issuers smart contract on network:  intebsi
    > value sent:          0 ETH
    > total cost:          0 ETH
 
-Contract deployed at address 0xa48dA31871b0cf9dbdE82184a8Dcd0f44f338bBe
-Adding university Diploma Sample App: Issue Master's Diploma code did:ebsi:0xAa54d8B05f6EE6e57bDC1008F48EbCBC4dEaE831
+Contract deployed at address 0xCa5D58D19775dE8e14CF8a1aEeC880f7cC31f902
+Adding university Diploma Sample App: Issue Master's Diploma code did:ebsi:0x464190367BE948210608a46847bed183607f685A
 Adding diploma Sample University - Master's Programme to the university Diploma Sample App: Issue Master's Diploma
 Adding accreditation Europass Accreditation Database to the university Diploma Sample App: Issue Master's Diploma
-Adding Government Sample Verifiable ID Issuer code did:ebsi:0xdE3d8e8f30B425ACe6F6549D3188Ae9F0047Ea1A
+Adding Government Sample Verifiable ID Issuer code did:ebsi:0x9f99F1f7482bC56735f8Df9f3Ffb280d54395c49
 Adding Government Sample Verifiable ID Issuer document
-Adding Flamish GOV Univ Sample Verifiable ID Issuer code did:ebsi:0xdE3d8e8f30B425ACe6F6549D3188Ae9F0047Ea1A
+Adding Flamish GOV Univ Sample Verifiable ID Issuer code did:ebsi:0x9f99F1f7482bC56735f8Df9f3Ffb280d54395c49
 Adding diploma Diploma Sample App: Issue Bachelor's Diploma to the Universities Sample Verifiable ID Issuer
 Adding accreditation Europass Accreditation Database to the government Sample Verifiable ID Issuer
-Adding Government Sample Verifiable ID Issuer code did:ebsi:0xdE3d8e8f30B425ACe6F6549D3188Ae9F0047Ea1A0
-Adding Government Sample Verifiable ID Issuer document
 
    > Saving migration to chain.
    > Saving artifacts
@@ -165,6 +163,8 @@ Summary
 =======
 > Total deployments:   3
 > Final cost:          0 ETH
+
+
 
 ```
 

@@ -1389,8 +1389,8 @@
     "6971": {
       "events": {},
       "links": {},
-      "address": "0x2F2ccEFbc991BC8A1f71D9cDF7E918c787A2ba27",
-      "transactionHash": "0x65604cc6f8e96754a1b78cb59247825a9eab22c726b00b6014d76c821e4ab711"
+      "address": "0x2E6499993037Bfd9F81f4C3e5a815e2Ce8FB0fb7",
+      "transactionHash": "0x39f86b4d9385b9ac928984cc67d84adc19058b8d3dbbfc951552d64d4a2ca96f"
     },
     "1584530352949": {
       "events": {},
@@ -1478,7 +1478,7 @@
     }
   },
   "schemaVersion": "3.0.11",
-  "updatedAt": "2020-04-29T10:11:00.459Z",
+  "updatedAt": "2020-04-29T11:54:54.653Z",
   "devdoc": {
     "methods": {}
   },

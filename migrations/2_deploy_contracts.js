@@ -17,7 +17,7 @@ module.exports = async (deployer, network) => {
 
     // Add University
     const SpanishUniversity = {
-        issuerDID: 'did:ebsi:0xAa54d8B05f6EE6e57bDC1008F48EbCBC4dEaE831',
+        issuerDID: 'did:ebsi:0x464190367BE948210608a46847bed183607f685A',
         id: 'U04200000',
         legalIdentifier: 'U04200078',
         vatIdentifier: 'Q9350003A',
@@ -51,7 +51,7 @@ module.exports = async (deployer, network) => {
 
     // Adding diploma
     const Diploma = {
-        vcCode: '4313148',
+        vcCode: '0x15f5e9d610c3027072dd5566629d121c183f213bd34a610af69452fea3870e11',
         title: 'Sample University - Master\'s Programme',
         revision: 'Master Royal Decree 1393/2007',
         status: 'Published in B.O.E. Active',
@@ -85,7 +85,7 @@ module.exports = async (deployer, network) => {
 
     // Add Belgium Government
     const Government = {
-        issuerDID: 'did:ebsi:0xdE3d8e8f30B425ACe6F6549D3188Ae9F0047Ea1A',
+        issuerDID: 'did:ebsi:0x9f99F1f7482bC56735f8Df9f3Ffb280d54395c49',
         name: 'Sample Verifiable ID Issuer',
         country: 'Belgium'
     };
@@ -99,7 +99,7 @@ module.exports = async (deployer, network) => {
     };
 
     const FlamishGovUniv = {
-        issuerDID: 'did:ebsi:0x9771A32Fe902c961CbE7c78Ec5183BEFBF782c19',
+        issuerDID: 'did:ebsi:0x4ecC24C0a1912D8fA77E8e8dD823781a6e67BF1D',
         id: 'urn:agent:000',
         legalIdentifier: 'LID89GRE',
         vatIdentifier: 'VAT12Y11I',
@@ -140,7 +140,7 @@ module.exports = async (deployer, network) => {
     );
 
     const FlamishGovDiploma = {
-        vcCode: '4313149',
+        vcCode: '0x09eca16ba76840a8ad92f5cc86f54ec1820c55cbdba736d7ff4554e28aa42968',
         title: 'Diploma Sample App: Issue Bachelor\'s Diploma',
         revision: 'Bachelor Royal Decree 1393/2007',
         status: 'Published in B.O.E. Active',
@@ -165,39 +165,5 @@ module.exports = async (deployer, network) => {
         FlamishGovUniv.issuerDID,
         Accreditation.targetFramework,
         Accreditation.targetResource
-    );
-
-
-    // Add Belgium Government
-    const Government2 = {
-        issuerDID: 'did:ebsi:0xdE3d8e8f30B425ACe6F6549D3188Ae9F0047Ea1A0',
-        name: 'Sample Verifiable ID Issuer',
-        country: 'Belgium'
-    };
-
-    const GovDocument2 = {
-        vcCode: '4313141',
-        title: 'ESSIF Sample App: Issue eID Verifiable Credential',
-        revision: '1',
-        status: 'Published',
-        dateStart: Date.now()
-    };
-
-
-    console.log ('Adding Government ' + Government2.name + ' code ' + Government2.issuerDID);
-    await governmentsTrustedIssuersInstance.addTrustedIssuer(
-        Government2.issuerDID,
-        Government2.name,
-        Government2.country
-    );
-
-    console.log ('Adding Government ' + Government2.name + ' document');
-    await governmentsTrustedIssuersInstance.addDocument(
-        Government2.issuerDID,
-        GovDocument2.vcCode,
-        GovDocument2.title,
-        GovDocument2.revision,
-        GovDocument2.status,
-        GovDocument2.dateStart
     );
 };
