@@ -13,7 +13,6 @@
     "API"
   ],
   "dependencies": {
-    "axios": "^0.19.2",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "debug": "^4.1.1",
@@ -23,6 +22,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
+    "axios": "^0.19.2",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-config-prettier": "^6.10.1",
