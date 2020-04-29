@@ -4,7 +4,8 @@
   "scripts": {
     "prettier-format": "prettier --write 'src/**/*.{js,ts,tsx}'",
     "start": "node server.js",
-    "test": "EBSI_TEST_MODE=true jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar"
+    "test": "EBSI_TEST_MODE=true jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar",
+    "test:e2e": "jest --config ./tests/jest-e2e.json"
   },
   "keywords": [
     "EBSI",
@@ -12,6 +13,7 @@
     "API"
   ],
   "dependencies": {
+    "axios": "^0.19.2",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "debug": "^4.1.1",
