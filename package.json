@@ -4,7 +4,8 @@
   "scripts": {
     "prettier-format": "prettier --write 'src/**/*.{js,ts,tsx}'",
     "start": "node server.js",
-    "test": "EBSI_TEST_MODE=true jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar"
+    "test": "EBSI_TEST_MODE=true jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar",
+    "test:e2e": "jest --config ./tests/jest-e2e.json"
   },
   "keywords": [
     "EBSI",
@@ -21,6 +22,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
+    "axios": "^0.19.2",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-config-prettier": "^6.10.1",
