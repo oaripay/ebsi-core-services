@@ -1,4 +1,5 @@
 /* eslint-disable no-useless-constructor */
+
 import CASDataStorage from "../libs/dataStorages/casDataStorage";
 
 /**

@@ -5,7 +5,7 @@ import {
 } from "../../dtos/attributeInfo";
 import { BadRequestError, API_ERROR_MESSAGES } from "../../errors";
 import { ICallResponse } from "../../dtos/messages";
-import { IDHub } from "../../libs/identityHub/IDHub";
+import { IDHub } from "../../libs/identityHub/idHub";
 
 export default class Controller {
   static async getAttributes(did: string): Promise<ICredentialInfoList> {

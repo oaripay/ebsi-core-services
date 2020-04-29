@@ -1,5 +1,4 @@
 import express from "express";
-import qs from "qs";
 import { paginate } from "../utils";
 
 interface QueryPage {
@@ -14,11 +13,11 @@ const applyPaginationFormat = (
   res: express.Response,
   next: express.NextFunction
 ): void => {
-  const { baseUrl, originalUrl } = req;
-  const parsed = qs.parse(originalUrl);
+  const { baseUrl } = req;
+  const queryPage = req.query.page;
 
-  if (parsed.page) {
-    const { size, before, after } = parsed.page as QueryPage;
+  if (queryPage) {
+    const { size, before, after } = (queryPage as any) as QueryPage;
     // when before is specified, calls the previous elements page
     if (before) {
       const formatedJson = paginate(

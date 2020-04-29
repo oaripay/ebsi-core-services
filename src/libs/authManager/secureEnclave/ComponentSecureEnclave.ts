@@ -1,9 +1,9 @@
-import { JWK } from "jose";
 import * as config from "../../../config";
-import { API_ERROR_MESSAGES, InternalError } from "../../../errors";
-import Wallet, { WalletOptions } from "./Wallet";
-import ComponentWallet from "./ComponentWallet";
-import SecureEnclave from "../SecureEnclave";
+import Wallet, { WalletOptions } from "./wallet";
+import ComponentWallet from "./componentWallet";
+import SecureEnclave, { InitComponent } from "../secureEnclave";
+import { InternalError, API_ERROR_MESSAGES } from "../../../errors";
+import { PRINT_DEBUG } from "../../../utils/util";
 
 /**
  * Class to a Secure Enclave
@@ -52,8 +52,9 @@ export default class ComponentSecureEnclave implements SecureEnclave {
    * @param encryptedKeystore, Optionally, keystore can be provided as input parameter.
    */
   async init(
-    encryptedKeystore: string
-  ): Promise<{ did: string; key: JWK.ECKey }> {
+    encryptedKeystore: string,
+    privateKey?: boolean
+  ): Promise<InitComponent> {
     if (this.semaphore)
       throw new InternalError(
         "Semaphore blocked, Enclave already being initialized"
@@ -61,7 +62,9 @@ export default class ComponentSecureEnclave implements SecureEnclave {
 
     // If Did exists, return it.
     if (this.enclaveDid !== "") {
-      const key = (this.getWallet(this.enclaveDid) as ComponentWallet).toJWK();
+      const key = (this.getWallet(this.enclaveDid) as ComponentWallet).toJWK(
+        false
+      );
       return { did: this.enclaveDid, key };
     }
 
@@ -74,8 +77,7 @@ export default class ComponentSecureEnclave implements SecureEnclave {
       password: config.COMPONENT_PASSWORD,
     });
     this.enclaveDid = did;
-    const key = (this.getWallet(did) as ComponentWallet).toJWK();
-
+    const key = (this.getWallet(did) as ComponentWallet).toJWK(privateKey);
     return { did, key };
   }
 
@@ -99,21 +101,21 @@ export default class ComponentSecureEnclave implements SecureEnclave {
 
   getPublicKey(did: string): string {
     const wallet = this.wallets.get(did);
-    if (!wallet) throw new Error(API_ERROR_MESSAGES.WALLET_NOT_FOUND);
+    if (!wallet) throw new InternalError(API_ERROR_MESSAGES.WALLET_NOT_FOUND);
 
     return wallet.publicKey;
   }
 
   exportEncryptedKeys(did: string): string {
     const wallet = this.wallets.get(did);
-    if (!wallet) throw new Error(API_ERROR_MESSAGES.WALLET_NOT_FOUND);
+    if (!wallet) throw new InternalError(API_ERROR_MESSAGES.WALLET_NOT_FOUND);
 
     return wallet.exportEncryptedKeys();
   }
 
   async signJwt(did: string, data: Buffer): Promise<any> {
     const wallet = this.wallets.get(did);
-    if (!wallet) throw new Error(API_ERROR_MESSAGES.WALLET_NOT_FOUND);
+    if (!wallet) throw new InternalError(API_ERROR_MESSAGES.WALLET_NOT_FOUND);
 
     const response = await wallet.signJwt(data);
     return response;
@@ -121,13 +123,19 @@ export default class ComponentSecureEnclave implements SecureEnclave {
 
   // encrypt data using Component public key
   encrypt(dataToEncrypt: Buffer): Buffer {
-    const wallet = this.getWallet(this.enclaveDid) as Wallet;
+    PRINT_DEBUG(this.enclaveDid);
+    const wallet = this.getWallet(this.enclaveDid);
+    if (!wallet) throw new InternalError(API_ERROR_MESSAGES.WALLET_NOT_FOUND);
+
     return wallet.encrypt(dataToEncrypt);
   }
 
   // decrypt data using Component protected key
   decrypt(dataToDecrypt: Buffer): Buffer {
-    const wallet = this.getWallet(this.enclaveDid) as Wallet;
+    PRINT_DEBUG(this.enclaveDid);
+    const wallet = this.getWallet(this.enclaveDid);
+    if (!wallet) throw new InternalError(API_ERROR_MESSAGES.WALLET_NOT_FOUND);
+
     return wallet.decrypt(dataToDecrypt);
   }
 }

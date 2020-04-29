@@ -1,20 +1,21 @@
 import moment from "moment";
 import { JWT } from "jose";
-import { IEbsiApiAuthConnection, ILoginReturn } from "../../dtos/ebsiApi";
-import { API_ERROR_MESSAGES } from "../../errors";
-import * as config from "../../config";
-import {
-  doGetCallWithToken,
-  doPostCallWithToken,
-  doPostFormCallWithToken,
-} from "../../utils/api";
 import { ICASFile } from "../../daos/casFile";
 import { ICASStorageOut } from "../../dtos/dataStorage";
-import { ICallResponse } from "../../dtos/messages";
-import { isTokenExpired } from "../../utils/Util";
-import SecureEnclave from "./SecureEnclave";
-import ComponentSecureEnclave from "./secureEnclave/ComponentSecureEnclave";
-import { IUserAuthZToken } from "./secureEnclave/JWT";
+import { IEbsiApiAuthConnection, ILoginReturn } from "../../dtos/ebsiApi";
+import * as config from "../../config";
+import * as api from "../../utils/api";
+import { InternalError, API_ERROR_MESSAGES } from "../../errors";
+import { isTokenExpired } from "../../utils/util";
+import {
+  IUserAuthZToken,
+  AccessTokenRequestBody,
+  GRANT_TYPE,
+  AccessTokenResponseBody,
+  TOKEN_TYPE,
+} from "./secureEnclave/jwt";
+import ComponentSecureEnclave from "./secureEnclave/componentSecureEnclave";
+import SecureEnclave from "./secureEnclave";
 
 /**
  * Class to a SingleTon Class AuthManager
@@ -34,7 +35,7 @@ export default class AuthManager {
     private secureEnclave: SecureEnclave = ComponentSecureEnclave.Instance
   ) {
     if (!config.EBSI_API_MAP)
-      throw new Error(API_ERROR_MESSAGES.NO_CONFIG_TRUSTED_APP_NAMES);
+      throw new InternalError(API_ERROR_MESSAGES.NO_CONFIG_TRUSTED_APP_NAMES);
 
     this.ebsiApiAuthZTokenMap = new Map<string, IEbsiApiAuthConnection>();
     this.receivedAuthZTokenMap = new Map<string, string>();
@@ -62,13 +63,39 @@ export default class AuthManager {
    * @param data data to sent insie the POST call
    * @param url complete url to a POST REST API call
    */
-  async doPostCall(
-    data: any,
-    url: string,
-    targetApp: string
-  ): Promise<ICallResponse> {
+  async doPostCall(data: any, url: string, targetApp: string): Promise<any> {
     const token = await this.getAuthZToken(targetApp);
-    return doPostCallWithToken(token, data, url);
+    return api.doPostCallWithToken(token, data, url);
+  }
+
+  /**
+   * Executes a PUTH call
+   * @param data data to sent insie the POST call
+   * @param url complete url to a POST REST API call
+   */
+  async doPutCall(data: any, url: string, targetApp: string): Promise<any> {
+    const token = await this.getAuthZToken(targetApp);
+    return api.doPutCallWithToken(token, data, url);
+  }
+
+  /**
+   * Executes a PATCH call
+   * @param data data to sent insie the POST call
+   * @param url complete url to a POST REST API call
+   */
+  async doPatchCall(data: any, url: string, targetApp: string): Promise<any> {
+    const token = await this.getAuthZToken(targetApp);
+    return api.doPatchCallWithToken(token, data, url);
+  }
+
+  /**
+   * Executes a DELETE call
+   * @param data data to sent insie the POST call
+   * @param url complete url to a POST REST API call
+   */
+  async doDeleteCall(url: string, targetApp: string): Promise<void> {
+    const token = await this.getAuthZToken(targetApp);
+    await api.doDeleteCallWithToken(token, url);
   }
 
   /**
@@ -82,7 +109,7 @@ export default class AuthManager {
     targetApp: string
   ): Promise<ICASStorageOut> {
     const token = await this.getAuthZToken(targetApp);
-    return doPostFormCallWithToken(token, iFile, url);
+    return api.doPostFormCallWithToken(token, iFile, url);
   }
 
   /**
@@ -91,7 +118,7 @@ export default class AuthManager {
    */
   async doGetCall(url: string, targetApp: string): Promise<any> {
     const token = await this.getAuthZToken(targetApp);
-    return doGetCallWithToken(token, url);
+    return api.doGetCallWithToken(token, url);
   }
 
   /**
@@ -99,7 +126,8 @@ export default class AuthManager {
    */
   async getAuthZToken(targetApp: string): Promise<string> {
     const appInfo = this.ebsiApiAuthZTokenMap.get(targetApp);
-    if (!appInfo) throw new Error(API_ERROR_MESSAGES.NO_TARGET_APP_INFO);
+    if (!appInfo)
+      throw new InternalError(API_ERROR_MESSAGES.NO_TARGET_APP_INFO);
 
     if (appInfo.token === "" || isTokenExpired(appInfo.token)) {
       const authZToken = await this.doLogin(targetApp);
@@ -114,7 +142,7 @@ export default class AuthManager {
 
   getReceivedAuthZUserToken(did: string): string {
     const token = this.receivedAuthZTokenMap.get(did);
-    if (!token) throw Error(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
+    if (!token) throw new InternalError(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
     return token;
   }
 
@@ -128,7 +156,7 @@ export default class AuthManager {
   saveReceivedAuthZUserToken(token: string): void {
     const authZToken = <IUserAuthZToken>JWT.decode(token);
     if (!authZToken || !authZToken.did)
-      throw Error(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
+      throw new InternalError(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
     this.receivedAuthZTokenMap.set(authZToken.did, token);
   }
 
@@ -142,26 +170,23 @@ export default class AuthManager {
     const buffer = Buffer.from(JSON.stringify(payload));
     const se = this.secureEnclave;
 
-    try {
-      const jwt = await se.signJwt(se.enclaveDid, buffer);
-      return jwt;
-    } catch (error) {
-      throw new Error(error.message);
-    }
+    const jwt = await se.signJwt(se.enclaveDid, buffer);
+    return jwt;
   }
 
   async createAuthorizationToken(
     payload: any,
-    subject: string
+    subject?: string
   ): Promise<string> {
     const ebsiPayload = {
-      sub: subject, // Should be the id of the app that is requesting the token
-      iat: moment().unix(),
-      exp: moment().add(15, "minutes").unix(),
-      aud: config.API_NAME,
+      ...payload,
+      ...{
+        sub: subject, // Should be the id of the app that is requesting the token
+        iat: moment().unix(),
+        exp: moment().add(15, "minutes").unix(),
+        aud: config.API_NAME,
+      },
     };
-
-    Object.assign(ebsiPayload, payload);
 
     const buffer = Buffer.from(JSON.stringify(ebsiPayload));
 
@@ -171,29 +196,34 @@ export default class AuthManager {
       const jwt = await se.signJwt(se.enclaveDid, buffer);
       return jwt;
     } catch (error) {
-      throw new Error(error.message);
+      throw new InternalError(error.message);
     }
   }
 
   /**
-   * call EBSI API /login
+   * call EBSI API /sessions
    */
   private async doLogin(targetApp: string): Promise<ILoginReturn> {
     // generate AuthN token
     const token = await this.createAuthNToken(targetApp);
-    // send to remote /login endpoint
+    // send to remote /sessions endpoint
     const appInfo = this.ebsiApiAuthZTokenMap.get(targetApp);
 
-    if (!appInfo) throw new Error(API_ERROR_MESSAGES.NO_TARGET_APP_INFO);
+    if (!appInfo)
+      throw new InternalError(API_ERROR_MESSAGES.NO_TARGET_APP_INFO);
 
-    const resp = await doGetCallWithToken(
-      token,
+    const payload: AccessTokenRequestBody = {
+      grantType: GRANT_TYPE.jwtBearer,
+      assertion: token,
+    };
+    const resp: AccessTokenResponseBody = await api.doPostCallWithoutToken(
+      payload,
       appInfo.url + config.EBSI_SERVICE.CALL.EBSI_LOGIN
     );
 
-    if (!resp || !resp.token || resp.token === "")
-      throw new Error(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
+    if (!resp || !resp.accessToken || resp.tokenType !== TOKEN_TYPE.bearer)
+      throw new InternalError(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
 
-    return resp;
+    return { token: resp.accessToken };
   }
 }

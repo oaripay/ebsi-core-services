@@ -7,7 +7,7 @@ import { getStorageConfig } from "../../utils/util";
 import { WALLET_DATASTORE_CONFIG } from "../../config";
 import { ICASFile } from "../../daos/casFile";
 import { ICASStorageOut } from "../../dtos/dataStorage";
-import { AuthManager } from "../authManager";
+import AuthManager from "../authManager/authManager";
 
 /**
  * Class to a Content Addressable Data Storage using EBSI API

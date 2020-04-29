@@ -1,8 +1,13 @@
-import Wallet, { WalletOptions } from "./secureEnclave/Wallet";
+import { JWKECKey } from "jose";
+import Wallet, { WalletOptions } from "./secureEnclave/wallet";
 
 export enum KeyAlgorithm {
   EC,
   RSA,
+}
+export interface InitComponent {
+  did: string;
+  key: JWKECKey;
 }
 
 export default interface SecureEnclave {
@@ -14,7 +19,7 @@ export default interface SecureEnclave {
 
   signJwt(did: string, data: Buffer, password?: string): Promise<any>;
 
-  init(encryptedKeystore: string): Promise<any>;
+  init(encryptedKeystore: string, privKey?: boolean): Promise<InitComponent>;
 
   restoreWallet(options?: WalletOptions): Promise<string>;
 

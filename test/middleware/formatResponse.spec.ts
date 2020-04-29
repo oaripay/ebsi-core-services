@@ -2,8 +2,8 @@
 
 import httpMocks from "node-mocks-http";
 import applyPaginationFormat from "../../src/middleware/formatResponse";
-import { mockedPosts } from "../auxAPICalls";
 import { PaginateResult } from "../../src/utils";
+import { mockedPosts } from "../utils/auxAPICalls";
 
 const next = () => {};
 describe("formatResponse middleware test suite", () => {
@@ -61,6 +61,7 @@ describe("formatResponse middleware test suite", () => {
       method: "GET",
       baseUrl: "/attributes",
       originalUrl: "/attributes?did=did:ebsi:0x04&page[size]=5",
+      query: { page: { size: 5 } },
     });
 
     const expectedResult: PaginateResult = {
@@ -99,6 +100,7 @@ describe("formatResponse middleware test suite", () => {
       method: "GET",
       baseUrl: "/attributes",
       originalUrl: "/attributes?did=did:ebsi:0x04&page[after]=4&page[size]=5",
+      query: { page: { after: 4, size: 5 } },
     });
 
     const expectedResult: PaginateResult = {
@@ -137,6 +139,7 @@ describe("formatResponse middleware test suite", () => {
       method: "GET",
       baseUrl: "/attributes",
       originalUrl: "/attributes?did=did:ebsi:0x04&page[before]=5&page[size]=5",
+      query: { page: { before: 5, size: 5 } },
     });
 
     const expectedResult: PaginateResult = {
@@ -175,6 +178,7 @@ describe("formatResponse middleware test suite", () => {
       method: "GET",
       baseUrl: "/attributes",
       originalUrl: "/attributes?did=did:ebsi:0x04&page[before]=-3&page[size]=5",
+      query: { page: { before: -3, size: 5 } },
     });
 
     const expectedResult: PaginateResult = {

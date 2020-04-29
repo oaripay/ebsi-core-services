@@ -92,6 +92,7 @@ enum API_ERROR_MESSAGES {
   ATTRIBUTES_DID_TYPE_NOT_FOUND = "Attribute did or type not found",
   ATTRIBUTE_TYPE_MALFORMED = `"type" must be url-encoded type, e.g. encodeURIComponent(JSON.stringify(["EssifVerifiableID", "EuropassDiploma"]))`,
   ATTRIBUTE_INPUT_MALFORMED = `Attribute must contain id, type, name, data and data.base64`,
+  ERROR_DECODING_JWT = "Error decoding JWT",
 }
 
 enum WALLET_MESSAGES {

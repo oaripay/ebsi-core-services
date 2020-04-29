@@ -65,7 +65,7 @@ export class IDHub implements IIDHub {
         throw Error("Could not retrieve a CredentialInfoList");
       }
       // creates an empty list and inserts it
-      await this.credInfoListDB.insert({ did, data: { list: [] } });
+      await this.credInfoListDB.insertValue({ did, data: { list: [] } });
       return (await this.credInfoListDB.get(did)).data;
     }
   }

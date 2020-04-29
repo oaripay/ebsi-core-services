@@ -20,7 +20,9 @@
     "lint": "eslint 'src/**/*.{js,ts,tsx}' 'test/**/*.{js,ts,tsx}' --quiet",
     "full-lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --quiet --fix && prettier --write 'src/**/*.{js,ts,tsx}'",
     "format": "prettier --write 'src/**/*.{js,ts,tsx}' 'test/**/*.{js,ts,tsx}'",
-    "test": "jest --runInBand --verbose false --coverage --reporters=default --reporters=jest-sonar"
+    "test": "jest --clearCache && jest --runInBand --verbose false --coverage --reporters=default --reporters=jest-sonar",
+    "test:e2e": "jest --clearCache && jest --config ./test/jest-e2e.json",
+    "clearCache": "jest --clearCache"
   },
   "devDependencies": {
     "@types/body-parser": "^1.19.0",

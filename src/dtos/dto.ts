@@ -1,7 +1,7 @@
 import {
   UserAuthNToken,
   LegalEntityAuthNToken,
-} from "../libs/authManager/secureEnclave/JWT";
+} from "../libs/authManager/secureEnclave/jwt";
 
 export interface PublicKey {
   pubkey: string;

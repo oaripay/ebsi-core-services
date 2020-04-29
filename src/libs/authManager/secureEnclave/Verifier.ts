@@ -1,18 +1,19 @@
 import { Resolver } from "did-resolver";
-import { verifyJWT } from "did-jwt";
+import { verifyJWT, decodeJWT } from "did-jwt";
 import { JWK, JWT } from "jose";
 import moment from "moment";
 import * as config from "../../../config";
 import { doGetCallWithToken } from "../../../utils/api";
 import { PRINT_ERROR } from "../../../utils/Util";
-import ComponentSecureEnclave from "./ComponentSecureEnclave";
+import ComponentSecureEnclave from "./componentSecureEnclave";
 import {
   IComponentAuthZToken,
   JWTHeader,
   JWTVerifyOptions,
   VerifiedJwt,
-} from "./JWT";
+} from "./jwt";
 import SecureEnclave from "../secureEnclave";
+import { API_ERROR_MESSAGES } from "../../../errors";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const EbsiDidResolver = require("ebsi-did-resolver");
@@ -27,8 +28,8 @@ export default class Verifier {
   ) {
     this.resolver = new Resolver(
       EbsiDidResolver.getResolver({
-        rpcUrl: config.besu.provider,
-        registry: config.besu.didRegistry,
+        rpcUrl: config.LEDGER_BESU.provider,
+        registry: config.LEDGER_BESU.didRegistry,
       })
     );
   }
@@ -49,18 +50,26 @@ export default class Verifier {
     inOptions?: JWTVerifyOptions
   ): Promise<VerifiedJwt> {
     let options = inOptions;
-    if (!options) options = <JWTVerifyOptions>{};
-
+    if (options === undefined) {
+      options = {
+        resolver: this.resolver,
+      };
+    }
+    const audience = Verifier.getAudience(data);
+    if (audience) {
+      // if audience it is a DID, it needs to be set as options audience
+      if (audience.match(/^did:/)) {
+        options.audience = audience;
+      } else {
+        // if audience it is not a DID, it needs to be set as a callback url
+        options.callbackUrl = audience;
+      }
+    }
     try {
-      options.resolver = this.resolver;
-      const signedJwt = data;
-      const result = await verifyJWT(signedJwt, options);
-
+      const result = await verifyJWT(data, options);
       return result;
     } catch (error) {
-      PRINT_ERROR((<Error>error).message, "Error verifying JWT: verifyVcJwt");
-      PRINT_ERROR((<Error>error).name);
-      PRINT_ERROR((<Error>error).stack);
+      PRINT_ERROR(error);
       throw error;
     }
   }
@@ -114,7 +123,7 @@ export default class Verifier {
   ): Promise<string> {
     const trustedListApiUrl = url
       ? `${url}/${appName}`
-      : `${config.EBSI_TRUSTED_APP_API_URI}/public-keys/${appName}`;
+      : `${config.trustedAppsRegistry}/apps/${appName}`;
     const se = this.iSecureEnclave;
 
     // Temporary, the JWT should not be needed in the future.
@@ -130,5 +139,11 @@ export default class Verifier {
     const publicKey = await doGetCallWithToken(token, trustedListApiUrl);
 
     return publicKey.pubKey;
+  }
+
+  private static getAudience(jwt: string): string | undefined {
+    const { payload } = decodeJWT(jwt);
+    if (!payload) throw new Error(API_ERROR_MESSAGES.ERROR_DECODING_JWT);
+    return payload.aud;
   }
 }

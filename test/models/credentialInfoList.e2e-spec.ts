@@ -1,7 +1,10 @@
-import { DataStoreManager } from "../../../src/libs/dataStorages";
-import { attributes } from "../../../src/dtos";
-import { initSecureEnclave } from "../../auxAPICalls";
-import { CredentialInfoList } from "../../../src/models";
+import { CredentialInfoList } from "../../src/models";
+import { initSecureEnclave } from "../utils/auxAPICalls";
+import {
+  ICredentialInfo,
+  ICredentialInfoList,
+} from "../../src/dtos/verifiableCredentials";
+import DataStoreManager from "../../src/libs/dataStorages/dataStoreManager";
 
 // Instantiate a CredentialnfoList DB
 const { credInfoListDB } = DataStoreManager.Instance;
@@ -17,26 +20,26 @@ describe("iCredentialInfoList model", () => {
   it("should return a credentialInfoList inserted to the KeyValue DataBase, from one initial CredentialInfoList, and then delete the complete list", async () => {
     expect.assertions(2);
     await initSecureEnclave();
-    const iCredentialInfo: attributes.ICredentialInfo = {
+    const iCredentialInfo: ICredentialInfo = {
       id: "cred001-testing",
       type: "credential.pdf",
       hash: "897872138472",
     };
 
-    const iCredentialInfoList: attributes.ICredentialInfoList = {
+    const iCredentialInfoList: ICredentialInfoList = {
       list: [iCredentialInfo],
     };
 
     const did = "0x0002-testing";
 
-    await credInfoListDB.insert({ did, data: iCredentialInfoList });
+    await credInfoListDB.insertValue({ did, data: iCredentialInfoList });
     const iCredentialInfoListOut = (await credInfoListDB.get(did)).data;
     expect(iCredentialInfoListOut).toStrictEqual(iCredentialInfoList);
 
     // deletes the inserted credentialInfoList
     await credInfoListDB.delete(did);
     // checks if it really deletes it
-    await expect(() => credInfoListDB.get(did)).toThrow(
+    await expect(credInfoListDB.get(did)).rejects.toThrow(
       "Request failed with status code 404"
     );
   });
@@ -45,7 +48,7 @@ describe("iCredentialInfoList model", () => {
     expect.assertions(1);
     await initSecureEnclave();
     const did = "AAA-cred-0x0001";
-    await expect(() => credInfoListDB.get(did)).toThrow(
+    await expect(credInfoListDB.get(did)).rejects.toThrow(
       "Request failed with status code 404"
     );
   });
@@ -53,23 +56,23 @@ describe("iCredentialInfoList model", () => {
   it("should update a credentialInfoList inserted to the KeyValue DataBase, and then deletes it", async () => {
     expect.assertions(3);
     await initSecureEnclave();
-    const iCredentialInfo: attributes.ICredentialInfo = {
+    const iCredentialInfo: ICredentialInfo = {
       id: "cred001-testing",
       type: "credential.pdf",
       hash: "897872138472",
     };
 
-    const iCredentialInfoList: attributes.ICredentialInfoList = {
+    const iCredentialInfoList: ICredentialInfoList = {
       list: [iCredentialInfo],
     };
 
     const did = "0x0002-testing";
 
-    await credInfoListDB.insert({ did, data: iCredentialInfoList });
+    await credInfoListDB.insertValue({ did, data: iCredentialInfoList });
     const iCredentialInfoListOut = (await credInfoListDB.get(did)).data;
     expect(iCredentialInfoListOut).toStrictEqual(iCredentialInfoList);
 
-    const newData: attributes.ICredentialInfo = {
+    const newData: ICredentialInfo = {
       id: "cred001-testing",
       type: "credential2.pdf",
       hash: "8000000000",
@@ -82,14 +85,14 @@ describe("iCredentialInfoList model", () => {
     // updates CredentialInfo List with the new value
     iCredentialInfoListOut.list[index] = newData;
 
-    await credInfoListDB.update({ did, data: iCredentialInfoListOut });
+    await credInfoListDB.updateValue({ did, data: iCredentialInfoListOut });
     const iCredentialInfoListOut2 = (await credInfoListDB.get(did)).data;
     expect(iCredentialInfoListOut2).toStrictEqual(iCredentialInfoListOut);
 
     // deletes the inserted credentialInfoList
     await credInfoListDB.delete(did);
     // checks if it really deletes it
-    await expect(() => credInfoListDB.get(did)).toThrow(
+    await expect(credInfoListDB.get(did)).rejects.toThrow(
       "Request failed with status code 404"
     );
   });
@@ -98,7 +101,7 @@ describe("iCredentialInfoList model", () => {
     expect.assertions(3);
     await initSecureEnclave();
     const randNum: number = Math.floor(Math.random() * 1000000);
-    const iCredentialInfo: attributes.ICredentialInfo = {
+    const iCredentialInfo: ICredentialInfo = {
       id: "cred001-testing",
       type: "credential.pdf",
       hash: "897872138472",
@@ -113,14 +116,18 @@ describe("iCredentialInfoList model", () => {
     // delete element
     await credInfoListDB.deleteElem(did, iCredentialInfo.id);
     // checks if it really deletes it
-    await expect(() => credInfoListDB.getElem(did, iCredentialInfo.id)).toThrow(
-      `Credential Info not found with this id: ${iCredentialInfo.id}`
+    await expect(
+      credInfoListDB.getElem(did, iCredentialInfo.id)
+    ).rejects.toThrow(
+      expect.objectContaining({
+        detail: `Credential Info not found with this id: ${iCredentialInfo.id}`,
+      })
     );
 
     // delete the whole CredentialInfoList
     await credInfoListDB.delete(did);
     // checks if it really deletes it
-    await expect(() => credInfoListDB.get(did)).toThrow(
+    await expect(credInfoListDB.get(did)).rejects.toThrow(
       "Request failed with status code 404"
     );
   });

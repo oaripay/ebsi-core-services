@@ -1,10 +1,6 @@
 import * as express from "express";
 import cors from "cors";
-import {
-  verifyJwt,
-  parseEntityJWT,
-  verifyJWTParamDIDs,
-} from "../../middleware/Jwt";
+import { parseEntityJWT, verifyJWTParamDIDs } from "../../middleware/jwt";
 import { EBSI_SERVICE } from "../../config";
 import { handleError, BadRequestError, API_ERROR_MESSAGES } from "../../errors";
 import * as auth from "../../middleware/auth";
@@ -25,7 +21,6 @@ class Router {
       `${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/:hash`,
       cors(),
       auth.handleToken,
-      verifyJwt,
       parseEntityJWT,
       async (req: express.Request, res: express.Response, next) => {
         try {
@@ -49,7 +44,6 @@ class Router {
       `${EBSI_SERVICE.CALL.GET_ATTRIBUTES}`,
       cors(),
       auth.handleToken,
-      verifyJwt,
       parseEntityJWT,
       verifyJWTParamDIDs,
       async (req: express.Request, res: express.Response, next) => {
@@ -78,7 +72,6 @@ class Router {
       `${EBSI_SERVICE.CALL.GET_ATTRIBUTES}/:hash`,
       cors(),
       auth.handleToken,
-      verifyJwt,
       parseEntityJWT,
       verifyJWTParamDIDs,
       async (req: express.Request, res: express.Response, next) => {

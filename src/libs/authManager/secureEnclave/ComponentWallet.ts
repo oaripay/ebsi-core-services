@@ -1,27 +1,26 @@
-import { JWT, JWK } from "jose";
+import { JWT, JWK, JWKECKey } from "jose";
 import { encrypt, decrypt } from "eciesjs";
 import { ethers } from "ethers";
 import { TransactionRequest } from "ethers/providers";
-import * as config from "../../../config";
-import * as util from "../../../utils/Util";
-import { API_ERROR_MESSAGES } from "../../../errors";
-import Wallet, { WalletOptions } from "./Wallet";
-import { getJWKfromHex } from "./JWK";
+import * as util from "../../../utils/util";
+import Wallet, { WalletOptions } from "./wallet";
+import { getJWKfromHex } from "./jwk";
+import { InternalError, API_ERROR_MESSAGES } from "../../../errors";
 
 export default class ComponentWallet implements Wallet {
   static async componentWalletBuilder(
     options?: WalletOptions
   ): Promise<ComponentWallet> {
     if (!options)
-      throw new Error(API_ERROR_MESSAGES.WALLET_OPTIONS_NOT_PROVIDED);
+      throw new InternalError(API_ERROR_MESSAGES.WALLET_OPTIONS_NOT_PROVIDED);
     if (!options.password) {
-      throw new Error("Password needs to be provided");
+      throw new InternalError("Password needs to be provided");
     }
 
     const wallet = new ComponentWallet();
 
     if (!options.encryptedKey)
-      throw Error(
+      throw new InternalError(
         API_ERROR_MESSAGES.COMPONENT_WALLET_ENCRYPTEDKEY_NOT_PROVIDED
       );
     await wallet.loadFromEncryptedKeys(options.encryptedKey, options.password);
@@ -75,7 +74,6 @@ export default class ComponentWallet implements Wallet {
       header: {
         alg: "ES256K",
         typ: "JWT",
-        jku: `${config.EBSI_TRUSTED_APP_API_URI}/public-keys/`,
       },
     });
 
@@ -94,8 +92,8 @@ export default class ComponentWallet implements Wallet {
     return JWK.isKey(this.jwk);
   }
 
-  toJWK(): JWK.ECKey {
-    return this.jwk;
+  toJWK(withPrivate = true): JWKECKey {
+    return this.jwk.toJWK(withPrivate);
   }
 
   async signTx(txJSON: TransactionRequest): Promise<string> {

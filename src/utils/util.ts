@@ -17,8 +17,8 @@ import {
   WALLET_DATA_STORE_CONFIG_MAP,
 } from "../config";
 import LOGGER from "../logger";
-import { API_ERROR_MESSAGES, InternalError } from "../errors";
-import { IComponentAuthZToken } from "../libs/authManager/secureEnclave/JWT";
+import { API_ERROR_MESSAGES, InternalError, HTTPError } from "../errors";
+import { IComponentAuthZToken } from "../libs/authManager/secureEnclave/jwt";
 
 const toHex = (data: string): string =>
   Buffer.from(data, "base64").toString("hex");
@@ -152,7 +152,18 @@ const PRINT_DEBUG = (data: any, operation?: string): void => {
 };
 
 const PRINT_ERROR = (error: any, operation?: string): void => {
-  LOGGER.error(util.inspect(error), "error", operation);
+  // check if it is an EBSI error
+  if ((error as Error).name === "HTTPError") {
+    const ebsiError = error as HTTPError;
+    LOGGER.error(ebsiError.Title, "error", operation);
+    LOGGER.error(ebsiError.Status.toString(), "error", operation);
+    LOGGER.error(ebsiError.Detail, "error", operation);
+  } else {
+    const ebsiError = error as Error;
+    LOGGER.error(ebsiError.message, "error", operation);
+    LOGGER.error(ebsiError.name, "error", operation);
+    if (ebsiError.stack) LOGGER.error(ebsiError.stack, "error", operation);
+  }
   if (error.response) {
     LOGGER.error(util.inspect(error.response.data));
   }

@@ -9,7 +9,7 @@ import * as bodyParser from "body-parser";
 import IdentityHubRouter from "./identityHub/router";
 import { PRINT_INFO, PRINT_ERROR } from "../utils/Util";
 import { EBSI_SERVICE, OPENAPI_PATH, COMPONENT_KEYSTORE } from "../config";
-import ComponentSecureEnclave from "../libs/authManager/secureEnclave/ComponentSecureEnclave";
+import ComponentSecureEnclave from "../libs/authManager/secureEnclave/componentSecureEnclave";
 import { API_ERROR_MESSAGES, handleError } from "../errors";
 
 class App {
@@ -46,7 +46,7 @@ class App {
   }
 
   public Start = async (port: number): Promise<http.Server> => {
-    const did: string = await ComponentSecureEnclave.Instance.init(
+    const { did } = await ComponentSecureEnclave.Instance.init(
       COMPONENT_KEYSTORE
     );
     if (!did) throw Error(API_ERROR_MESSAGES.ENCLAVE_DID_NULL);

@@ -1,27 +1,22 @@
 import axios from "axios";
-import { PRINT_SILLY, PRINT_ERROR } from "./util";
-import { LOG_LEVEL } from "../config";
 import { ICASFile } from "../daos/casFile";
 import { ICASStorageOut } from "../dtos/dataStorage";
+import { PRINT_SILLY, PRINT_ERROR } from "./util";
+import { LOG_LEVEL } from "../config";
 
 import FormData = require("form-data");
 
-async function doInternalPostCall(data: any, url: string): Promise<any> {
-  if (LOG_LEVEL === "silly") {
-    PRINT_SILLY(`URL: ${url}`);
-    PRINT_SILLY(data);
-  }
+async function doPostCallWithoutToken(data: any, url: string): Promise<any> {
+  PRINT_SILLY(`POST: ${url}`);
+  PRINT_SILLY(data);
   try {
     const response = await axios.post(url, data);
-    if (LOG_LEVEL === "silly") {
-      PRINT_SILLY("AXIOS RESPONSE: ");
-      PRINT_SILLY(response.data);
-    }
+    PRINT_SILLY("AXIOS POST RESPONSE: ");
+    PRINT_SILLY(response.data);
+
     return response.data;
   } catch (error) {
-    PRINT_ERROR((<Error>error).message, url);
-    PRINT_ERROR((<Error>error).name);
-    PRINT_ERROR((<Error>error).stack);
+    PRINT_ERROR(error);
     throw error;
   }
 }
@@ -32,22 +27,17 @@ async function doPostCallWithToken(
   url: string
 ): Promise<any> {
   const config = { headers: { Authorization: `Bearer ${token}` } };
-  if (LOG_LEVEL === "silly") {
-    PRINT_SILLY(`URL: ${url}`);
-    PRINT_SILLY(config);
-    PRINT_SILLY(data);
-  }
+  PRINT_SILLY(`POST: ${url}`);
+  PRINT_SILLY(config);
+  PRINT_SILLY(data);
   try {
     const response = await axios.post(url, data, config);
-    if (LOG_LEVEL === "silly") {
-      PRINT_SILLY("AXIOS RESPONSE: ");
-      PRINT_SILLY(response.data);
-    }
+    PRINT_SILLY("AXIOS POST RESPONSE: ");
+    PRINT_SILLY(response.data);
+
     return response.data;
   } catch (error) {
-    PRINT_ERROR((<Error>error).message, url);
-    PRINT_ERROR((<Error>error).name);
-    PRINT_ERROR((<Error>error).stack);
+    PRINT_ERROR(error);
     throw error;
   }
 }
@@ -58,22 +48,64 @@ async function doPutCallWithToken(
   url: string
 ): Promise<any> {
   const config = { headers: { Authorization: `Bearer ${token}` } };
-  if (LOG_LEVEL === "silly") {
-    PRINT_SILLY(`URL: ${url}`);
-    PRINT_SILLY(config);
-    PRINT_SILLY(data);
-  }
+  PRINT_SILLY(`PUT: ${url}`);
+  PRINT_SILLY(config);
+  PRINT_SILLY(data);
   try {
     const response = await axios.put(url, data, config);
     if (LOG_LEVEL === "silly") {
-      PRINT_SILLY("AXIOS RESPONSE: ");
+      PRINT_SILLY("AXIOS PUT RESPONSE: ");
       PRINT_SILLY(response.data);
     }
     return response.data;
   } catch (error) {
-    PRINT_ERROR((<Error>error).message, url);
-    PRINT_ERROR((<Error>error).name);
-    PRINT_ERROR((<Error>error).stack);
+    PRINT_ERROR(error);
+    throw error;
+  }
+}
+
+async function doPatchCallWithToken(
+  token: string,
+  data: any,
+  url: string
+): Promise<any> {
+  const config = { headers: { Authorization: `Bearer ${token}` } };
+  PRINT_SILLY(`PATCH: ${url}`);
+  PRINT_SILLY(config);
+  PRINT_SILLY(data);
+  try {
+    const response = await axios.patch(url, data, config);
+    PRINT_SILLY("AXIOS PATCH RESPONSE: ");
+    PRINT_SILLY(response.data);
+    return response.data;
+  } catch (error) {
+    PRINT_ERROR(error);
+    throw error;
+  }
+}
+
+async function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function doDeleteCallWithToken(
+  token: string,
+  url: string
+): Promise<void> {
+  const config = { headers: { Authorization: `Bearer ${token}` } };
+  if (LOG_LEVEL === "silly") {
+    PRINT_SILLY(`DELETE: ${url}`);
+    PRINT_SILLY(config);
+  }
+  try {
+    const response = await axios.delete(url, config);
+    // wait all nodes to sync
+    if (response.status === 204) {
+      PRINT_SILLY("DELETED: waiting all nodes to sync.");
+      await delay(500);
+    }
+  } catch (error) {
+    PRINT_ERROR(error);
     throw error;
   }
 }
@@ -90,12 +122,6 @@ async function doPostFormCallWithToken(
 ): Promise<ICASStorageOut> {
   const form = new FormData();
   form.append("file", iFile.fileData, iFile.fileName);
-  /* USING DEFAULT VALUE: CASSANDRA !!!
-  if (iFile.database != null)
-    form.append('database', iFile.database)
-  else
-    form.append('database', "cassandra") // default value
-  */
   form.append("database", "cassandra");
   const config = {
     headers: {
@@ -103,69 +129,55 @@ async function doPostFormCallWithToken(
       Authorization: `Bearer ${token}`,
     },
   };
-  if (LOG_LEVEL === "silly") {
-    PRINT_SILLY(`URL: ${url}**** SENDING A FILE ****`);
-    PRINT_SILLY(config);
-  }
+  PRINT_SILLY(`POST: ${url} **** SENDING A FILE ****`);
+  PRINT_SILLY(config);
 
   try {
     const response = await axios.post(url, form, config);
-    if (LOG_LEVEL === "silly") {
-      PRINT_SILLY("AXIOS RESPONSE: ");
-      PRINT_SILLY(response.data);
-    }
+    PRINT_SILLY("AXIOS POST FORM RESPONSE: ");
+    PRINT_SILLY(response.data);
     return response.data;
   } catch (error) {
-    PRINT_ERROR((<Error>error).message);
-    PRINT_ERROR((<Error>error).name);
-    PRINT_ERROR((<Error>error).stack);
+    PRINT_ERROR(error);
     throw error;
   }
 }
 
-async function doInternalGetCall(url: string): Promise<any> {
-  if (LOG_LEVEL === "silly") PRINT_SILLY(`URL: ${url}`);
+async function doGetCallWithoutToken(url: string): Promise<any> {
+  PRINT_SILLY(`GET: ${url}`);
   try {
     const response = await axios.get(url);
-    if (LOG_LEVEL === "silly") {
-      PRINT_SILLY("AXIOS RESPONSE: ");
-      PRINT_SILLY(response.data);
-    }
+    PRINT_SILLY("AXIOS GET RESPONSE: ");
+    PRINT_SILLY(response.data);
     return response.data;
   } catch (error) {
-    PRINT_ERROR((<Error>error).message, url);
-    PRINT_ERROR((<Error>error).name);
-    PRINT_ERROR((<Error>error).stack);
+    PRINT_ERROR(error);
     throw error;
   }
 }
 
 async function doGetCallWithToken(token: string, url: string): Promise<any> {
   const config = { headers: { Authorization: `Bearer ${token}` } };
-  if (LOG_LEVEL === "silly") {
-    PRINT_SILLY(`URL: ${url}`);
-    PRINT_SILLY(config);
-  }
+  PRINT_SILLY(`GET: ${url}`);
+  PRINT_SILLY(config);
   try {
     const response = await axios.get(url, config);
-    if (LOG_LEVEL === "silly") {
-      PRINT_SILLY("AXIOS RESPONSE: ");
-      PRINT_SILLY(response.data);
-    }
+    PRINT_SILLY("AXIOS GET RESPONSE: ");
+    PRINT_SILLY(response.data);
     return response.data;
   } catch (error) {
-    PRINT_ERROR((<Error>error).message, url);
-    PRINT_ERROR((<Error>error).name);
-    PRINT_ERROR((<Error>error).stack);
+    PRINT_ERROR(error);
     throw error;
   }
 }
 
 export {
-  doInternalPostCall,
-  doInternalGetCall,
+  doPostFormCallWithToken,
+  doPostCallWithoutToken,
+  doGetCallWithoutToken,
+  doDeleteCallWithToken,
+  doPatchCallWithToken,
   doPostCallWithToken,
   doGetCallWithToken,
   doPutCallWithToken,
-  doPostFormCallWithToken,
 };

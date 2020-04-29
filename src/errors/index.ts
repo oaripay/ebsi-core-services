@@ -20,6 +20,8 @@ const handleError = (err, req, res, next) => {
   if (res.headersSent) next(err);
   let error: HTTPError;
   if (err.Name === "HTTPError") error = err;
+  else if (err.message && err.message.includes("400"))
+    error = new BadRequestError(err.message);
   else error = new InternalError(err.message);
 
   if (error.Status >= 500) {
@@ -31,7 +33,7 @@ const handleError = (err, req, res, next) => {
   res.setHeader("Content-Type", "application/json");
   res.status(error.Status);
   res.json(error.print());
-  next(err);
+  res.render("error", { error });
 };
 
 export {

@@ -8,31 +8,28 @@ import {
   BadRequestError,
 } from "../errors";
 import * as config from "../config";
-import { PRINT_INFO, PRINT_DEBUG } from "../utils/util";
-import ComponentSecureEnclave from "../libs/authManager/secureEnclave/ComponentSecureEnclave";
+import { util } from "../utils";
+import { COMPONENT_KEYSTORE } from "../config";
+import AuthManager from "../libs/authManager/authManager";
 import {
   AccessTokenResponseBody,
   TOKEN_TYPE,
   ComponentAuthNToken,
   AccessTokenRequestBody,
-} from "../libs/authManager/secureEnclave/JWT";
+} from "../libs/authManager/secureEnclave/jwt";
+import ComponentSecureEnclave from "../libs/authManager/secureEnclave/componentSecureEnclave";
 
 const GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer";
 
 /*
  * Generate a new token for the client
  */
-async function generateComponentToken(): Promise<string> {
+async function generateComponentToken(aud: string): Promise<string> {
   const payload = {
     iss: config.API_NAME,
-    aud: config.API_NAME,
+    aud,
   };
-  const jwt = await ComponentSecureEnclave.Instance.init(
-    config.COMPONENT_KEYSTORE
-  );
-  const token = jose.JWT.sign(payload, jwt.privKey, {
-    expiresIn: "15 minutes",
-  });
+  const token = await AuthManager.Instance.createAuthorizationToken(payload);
   return token;
 }
 
@@ -60,7 +57,7 @@ async function trustedAppsRegistryValidation(appName: string, token: string) {
   let url = `${config.trustedAppsRegistry}/apps/${appName}`;
   let response;
   try {
-    PRINT_INFO(`Accesing ${url}`);
+    util.PRINT_INFO(`Accesing ${url}`);
     response = await axios.get(url);
   } catch (error) {
     if (error.response.status >= 500)
@@ -85,7 +82,7 @@ async function trustedAppsRegistryValidation(appName: string, token: string) {
 
   url = `${config.trustedAppsRegistry}/apps/${config.API_NAME}/authorized-apps/${appName}`;
   try {
-    PRINT_INFO(`Accesing ${url}`);
+    util.PRINT_INFO(`Accesing ${url}`);
     await axios.get(url);
   } catch (error) {
     if (error.response.status >= 500)
@@ -103,10 +100,6 @@ async function trustedAppsRegistryValidation(appName: string, token: string) {
 async function newComponentSession(
   token: string
 ): Promise<AccessTokenResponseBody> {
-  if (!token) {
-    throw new InvalidTokenError("No token present in the headers");
-  }
-
   const payload = jose.JWT.decode(token) as ComponentAuthNToken;
   if (!payload.aud || !payload.iss || !payload.iat || !payload.exp) {
     throw new InvalidTokenError(
@@ -127,8 +120,8 @@ async function newComponentSession(
     await trustedAppsRegistryValidation(appName, token);
   }
 
-  const jwt = await generateComponentToken();
-  const sessionToken = generateAccessTokenResponseBody(jwt);
+  const result = await generateComponentToken(payload.iss);
+  const sessionToken = generateAccessTokenResponseBody(result);
   return sessionToken;
 }
 
@@ -140,11 +133,11 @@ async function newComponentSession(
  * Get the token from the headers
  */
 function getToken(req: express.Request) {
-  PRINT_DEBUG("headers");
-  PRINT_DEBUG(req.headers);
+  util.PRINT_DEBUG("headers");
+  util.PRINT_DEBUG(req.headers);
   const token = req.headers.authorization;
-  PRINT_DEBUG("token");
-  PRINT_DEBUG(token);
+  util.PRINT_DEBUG("token");
+  util.PRINT_DEBUG(token);
   if (token) return token.replace("Bearer ", "");
   return null;
 }
@@ -161,7 +154,7 @@ async function handleToken(
 
   if (!token) {
     // No token in the headers. Continue the call as unauthenticated user
-    PRINT_DEBUG(`token: Token not present in the headers`);
+    util.PRINT_DEBUG(`token: Token not present in the headers`);
     Object.assign(req.params, { authenticated: false });
     next();
     return;
@@ -169,10 +162,10 @@ async function handleToken(
 
   let payload;
   try {
-    const jwt = await ComponentSecureEnclave.Instance.init(
-      config.COMPONENT_KEYSTORE
+    const { key } = await ComponentSecureEnclave.Instance.init(
+      COMPONENT_KEYSTORE
     );
-    payload = jose.JWT.verify(token, jwt.privKey);
+    payload = jose.JWT.verify(token, key);
   } catch (error) {
     next(new InvalidTokenError(error.message));
     return;
@@ -190,12 +183,7 @@ async function handleToken(
     return;
   }
 
-  if (!process.env.EBSI_TEST_MODE) {
-    const appName = payload.iss;
-    await trustedAppsRegistryValidation(appName, token);
-  }
-
-  PRINT_DEBUG(`token: Valid token`);
+  util.PRINT_DEBUG(`token: Valid token`);
   Object.assign(req.params, { authenticated: true });
   next();
 }
@@ -209,7 +197,6 @@ async function callNewSession(
   next: express.NextFunction
 ) {
   const accessToken: AccessTokenRequestBody = req.body;
-  let result: any;
   try {
     if (accessToken.grantType !== GRANT_TYPE)
       throw new BadRequestError(`grantType must be '${GRANT_TYPE}'`);
@@ -217,7 +204,7 @@ async function callNewSession(
     if (!accessToken.assertion)
       throw new BadRequestError("No assertion present in the body");
 
-    result = await newComponentSession(accessToken.assertion);
+    const result = await newComponentSession(accessToken.assertion);
     res.send(result);
   } catch (error) {
     next(error);

@@ -1,14 +1,12 @@
 import fs from "fs";
 import path from "path";
-import { JWT } from "jose";
 import {
   b64EncodeUrl,
   strB64dec,
   isTokenExpired,
-  PRINT_DEBUG,
   hash,
   hashFromFile,
-} from "../../src/utils/Util";
+} from "../../src/utils/util";
 
 const testFilePath = "../data/documents/";
 const testFilename = "ebsi-test-util-file-99.txt";
@@ -49,9 +47,6 @@ describe("utils Test Suite", () => {
       "eyJraWQiOiJvaGlLeHh3TWtUYXl5eGg5b0xlTGtUOE5NVHRBSVVBUlpUNEF6bVlEM3lzIiwiYWxnIjoiRVMyNTZLIn0.eyJpc3MiOiJlYnNpLXN0b3JhZ2UiLCJhdWQiOiJlYnNpLXN0b3JhZ2UiLCJpYXQiOjE1NzcwMzI1MTUsImV4cCI6MTU3NzAzMzQxNX0.xmKBJfDQ1m3EYNvenvzOxRKGu-PdNTcTxFDnD_QW4uC2nwa0PWs2WvSxnEZPx1AxfnvKaNIBQ6OvZxQxoJVKoA";
     const token2 =
       "eyJraWQiOiJvaGlLeHh3TWtUYXl5eGg5b0xlTGtUOE5NVHRBSVVBUlpUNEF6bVlEM3lzIiwiYWxnIjoiRVMyNTZLIn0.eyJpc3MiOiJlYnNpLXN0b3JhZ2UiLCJhdWQiOiJlYnNpLXN0b3JhZ2UiLCJpYXQiOjE1NzY5OTM3MTcsImV4cCI6MTU3Njk5NDYxN30.eyLvZEojL4ttVjyOC90q85cShfeFT3uocPOXiWegE0x48NIGGr3nk4LmbbZSPtXNUBJqBUw_15xAhpfd1-sb1w";
-
-    PRINT_DEBUG(JSON.stringify(JWT.decode(token1)));
-    PRINT_DEBUG(JSON.stringify(JWT.decode(token2)));
 
     expect(isTokenExpired(token1)).toBe(true);
     expect(isTokenExpired(token2)).toBe(true);

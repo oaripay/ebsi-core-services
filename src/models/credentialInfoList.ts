@@ -1,7 +1,9 @@
 /* eslint-disable no-useless-constructor */
-import { ICallResponse } from "../dtos/messages";
-import { ICredential } from "../daos/credential";
+
 import { ICredentialInfo, ICredentialInfoList } from "../dtos/attributeInfo";
+import { ICallResponse } from "../dtos/messages";
+import { InternalError, BadRequestError } from "../errors";
+import { ICredential } from "../daos/credential";
 import KeyValueDataStorage from "../libs/dataStorages/keyValueDataStorage";
 
 /**
@@ -48,19 +50,19 @@ export default class CredentialInfoList extends KeyValueDataStorage {
           // push the new value (a sigle CredentialInfo) and insert the list again
           iCredList.list.push(value);
         } else {
-          throw Error("Error in getting a CredentialInfo element");
+          throw new InternalError("Error in getting a CredentialInfo element");
         }
       }
     } catch (error) {
       // In case list does not exist we create a new one
       // throw error when error is different from key not exist: 400
       if ((<Error>error).message !== "Request failed with status code 404") {
-        throw Error("Get from DB returned an error");
+        throw new InternalError("Get from DB returned an error");
       }
       // create a new list
       iCredList = { list: [value] };
     }
-    return this.insert({
+    return this.insertValue({
       did: key,
       data: iCredList,
     });
@@ -70,11 +72,11 @@ export default class CredentialInfoList extends KeyValueDataStorage {
    * Inserts an element to the Data Storage
    * @param data Data to be inserted
    */
-  async insert(data: ICredential): Promise<ICallResponse> {
-    return super.insert({
-      key: CredentialInfoList.setKey(data.did),
-      value: JSON.parse(JSON.stringify(data.data)),
-    });
+  async insertValue(data: ICredential): Promise<ICallResponse> {
+    return super.insert(
+      CredentialInfoList.setKey(data.did),
+      JSON.parse(JSON.stringify(data.data))
+    );
   }
 
   /**
@@ -91,7 +93,7 @@ export default class CredentialInfoList extends KeyValueDataStorage {
     // updates CredentialInfo List with the new value
     iCredList.list[index] = <ICredentialInfo>iCredInfo;
     // inserts the new ICredentialInfoList
-    await this.insert({
+    await this.updateValue({
       did: key,
       data: iCredList,
     });
@@ -101,12 +103,12 @@ export default class CredentialInfoList extends KeyValueDataStorage {
    * Updates an already inserted element to the Data Storage
    * @param data Data to be updated
    */
-  async update(data: ICredential): Promise<ICallResponse> {
+  async updateValue(data: ICredential): Promise<ICallResponse> {
     // performs an Insert as it does the same behaviour as an update
-    return super.insert({
-      key: CredentialInfoList.setKey(data.did),
-      value: JSON.parse(JSON.stringify(data.data)),
-    });
+    return super.update(
+      CredentialInfoList.setKey(data.did),
+      JSON.parse(JSON.stringify(data.data))
+    );
   }
 
   /**
@@ -123,7 +125,7 @@ export default class CredentialInfoList extends KeyValueDataStorage {
     // removes CredentialInfo from the List
     delete iCredList.list[index];
     // inserts the new ICredential
-    await this.insert({
+    await this.insertValue({
       did: key,
       data: iCredList,
     });
@@ -134,8 +136,8 @@ export default class CredentialInfoList extends KeyValueDataStorage {
    *
    * @param key User's DID to identify documents
    */
-  async delete(key: string): Promise<ICallResponse> {
-    return super.delete(CredentialInfoList.setKey(key));
+  async delete(key: string): Promise<void> {
+    await super.delete(CredentialInfoList.setKey(key));
   }
 
   /**
@@ -164,12 +166,16 @@ export default class CredentialInfoList extends KeyValueDataStorage {
     const iCredList: ICredentialInfoList = (await this.get(key)).data;
     // checks if list has elements
     if (iCredList.list[0] == null)
-      throw Error(`Credential Info not found with this id: ${id}`);
+      throw new BadRequestError(
+        `Credential Info not found with this id: ${id}`
+      );
     // finds the index of the element
     const index: number = iCredList.list.findIndex((x) => x.id === id);
     // throws error if not found
     if (index === -1)
-      throw Error(`Credential Info not found with this id: ${id}`);
+      throw new BadRequestError(
+        `Credential Info not found with this id: ${id}`
+      );
     // returns the element
     const iCredInfo = iCredList.list[index];
     // return the elem index and its value
