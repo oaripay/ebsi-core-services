@@ -98,7 +98,7 @@ async function getListNotifications(q) {
   }
 
   let query = `select * from `;
-  let params;
+  let params = [];
 
   // select table
   if (history === "true") query += TABLE_NOTIFICATION_HISTORICAL_STORAGE;
