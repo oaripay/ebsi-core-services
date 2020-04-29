@@ -47,6 +47,7 @@ async function trustedAppsRegistryValidation(appName, token) {
     logger.info(`Accesing ${url}`);
     response = await axios.get(url);
   } catch (error) {
+    if (!error.response) throw error;
     if (error.response.status >= 500)
       error.response.data = `Trusted Apps Registry: ${error.response.data}`;
     throw new IssuerNotFoundError(error.response.data);
