@@ -17,14 +17,14 @@ module.exports = async (deployer, network) => {
 
     // Add University
     const SpanishUniversity = {
-        issuerDID: '0x5B7a2FC380cb6f6389779c9FCCed050533FB21bb',
+        issuerDID: 'did:ebsi:0xAa54d8B05f6EE6e57bDC1008F48EbCBC4dEaE831',
         id: 'U04200000',
         legalIdentifier: 'U04200078',
         vatIdentifier: 'Q9350003A',
         taxIdentifier: 'Q9350003A',
         identifier: 'agentIdentifier1',
-        preferredName: 'Universitat Rovira i Virgili',
-        alternativeName: 'Universitat Rovira i Virgili',
+        preferredName: 'Diploma Sample App: Issue Master\'s Diploma',
+        alternativeName: 'Diploma Sample App: Issue Master\'s Diploma',
         homepage: 'http://www.urv.cat/',
         siteLocation: 'Tarragona',
         escoOrganizationType: 'Educational Institution'
@@ -52,7 +52,7 @@ module.exports = async (deployer, network) => {
     // Adding diploma
     const Diploma = {
         vcCode: '4313148',
-        title: 'Máster en bioinformática',
+        title: 'Sample University - Master\'s Programme',
         revision: 'Master Royal Decree 1393/2007',
         status: 'Published in B.O.E. Active',
         type: 2,
@@ -85,28 +85,28 @@ module.exports = async (deployer, network) => {
 
     // Add Belgium Government
     const Government = {
-        issuerDID: '0x4D1A5522D2823941340d965b685a811483Bc7359',
-        name: 'Government of Belgium',
+        issuerDID: 'did:ebsi:0xdE3d8e8f30B425ACe6F6549D3188Ae9F0047Ea1A',
+        name: 'Sample Verifiable ID Issuer',
         country: 'Belgium'
     };
 
     const GovDocument = {
         vcCode: '4313141',
-        title: 'Identifier',
+        title: 'ESSIF Sample App: Issue eID Verifiable Credential',
         revision: '1',
         status: 'Published',
         dateStart: Date.now()
     };
 
     const FlamishGovUniv = {
-        issuerDID: '0x5B7a2FC380cb6f6389779c9FCCed050533FB21bE',
+        issuerDID: 'did:ebsi:0x9771A32Fe902c961CbE7c78Ec5183BEFBF782c19',
         id: 'urn:agent:000',
         legalIdentifier: 'LID89GRE',
         vatIdentifier: 'VAT12Y11I',
         taxIdentifier: 'TAX1249J',
         identifier: 'agentIdentifier1',
-        preferredName: 'Katholieke Universiteit Leuven',
-        alternativeName: 'KU Leuven',
+        preferredName: 'Sample University - Bachelor\'s Programme',
+        alternativeName: 'Sample University - Bachelor\'s Programme',
         homepage: 'https://www.keuleuven.be',
         siteLocation: 'Leuven',
         escoOrganizationType: 'Educational Institution'
@@ -141,7 +141,7 @@ module.exports = async (deployer, network) => {
 
     const FlamishGovDiploma = {
         vcCode: '4313149',
-        title: 'Bachelor en bioinformática',
+        title: 'Diploma Sample App: Issue Bachelor\'s Diploma',
         revision: 'Bachelor Royal Decree 1393/2007',
         status: 'Published in B.O.E. Active',
         type: 1,
@@ -165,5 +165,39 @@ module.exports = async (deployer, network) => {
         FlamishGovUniv.issuerDID,
         Accreditation.targetFramework,
         Accreditation.targetResource
+    );
+
+
+    // Add Belgium Government
+    const Government2 = {
+        issuerDID: 'did:ebsi:0xdE3d8e8f30B425ACe6F6549D3188Ae9F0047Ea1A0',
+        name: 'Sample Verifiable ID Issuer',
+        country: 'Belgium'
+    };
+
+    const GovDocument2 = {
+        vcCode: '4313141',
+        title: 'ESSIF Sample App: Issue eID Verifiable Credential',
+        revision: '1',
+        status: 'Published',
+        dateStart: Date.now()
+    };
+
+
+    console.log ('Adding Government ' + Government2.name + ' code ' + Government2.issuerDID);
+    await governmentsTrustedIssuersInstance.addTrustedIssuer(
+        Government2.issuerDID,
+        Government2.name,
+        Government2.country
+    );
+
+    console.log ('Adding Government ' + Government2.name + ' document');
+    await governmentsTrustedIssuersInstance.addDocument(
+        Government2.issuerDID,
+        GovDocument2.vcCode,
+        GovDocument2.title,
+        GovDocument2.revision,
+        GovDocument2.status,
+        GovDocument2.dateStart
     );
 };

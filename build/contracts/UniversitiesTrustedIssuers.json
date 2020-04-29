@@ -29413,10 +29413,118 @@
       "links": {},
       "address": "0x7F5089999C14b9B1D99eAD410201863bC441dF37",
       "transactionHash": "0x1f62db5e212d5e46e5eeaac66217723e2930b93afa23569529aaa60414cb2042"
+    },
+    "1588154356963": {
+      "events": {
+        "0x3fa3ab3bac0cccd0cb57495c0a834d60cfa7421c8150780ec693705cd6365165": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "issuerDID",
+              "type": "string"
+            }
+          ],
+          "name": "TrustedIssuerAdded",
+          "type": "event",
+          "signature": "0x3fa3ab3bac0cccd0cb57495c0a834d60cfa7421c8150780ec693705cd6365165"
+        },
+        "0x6cdbc87127419616508c205c4bfcdaa0a7ab72de0f387c6154f276c369a67a40": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "issuerDID",
+              "type": "string"
+            }
+          ],
+          "name": "TrustedIssuerUpdated",
+          "type": "event",
+          "signature": "0x6cdbc87127419616508c205c4bfcdaa0a7ab72de0f387c6154f276c369a67a40"
+        },
+        "0x1b9d4f039318ae0f0d9651ec9261427078653ce8e7f6128c7e8937582f1a3970": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "documentHash",
+              "type": "bytes32"
+            },
+            {
+              "indexed": true,
+              "name": "trustedIssuerDIDHash",
+              "type": "bytes32"
+            }
+          ],
+          "name": "DocumentAdded",
+          "type": "event",
+          "signature": "0x1b9d4f039318ae0f0d9651ec9261427078653ce8e7f6128c7e8937582f1a3970"
+        },
+        "0xe33d6cb21c1ec1bd1a3a01898ff389e369e7ac5a1e57b658487468b1c9ef7d37": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "targetFramework",
+              "type": "string"
+            }
+          ],
+          "name": "AccreditationAdded",
+          "type": "event",
+          "signature": "0xe33d6cb21c1ec1bd1a3a01898ff389e369e7ac5a1e57b658487468b1c9ef7d37"
+        },
+        "0x47d1c22a25bb3a5d4e481b9b1e6944c2eade3181a0a20b495ed61d35b5323f24": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "account",
+              "type": "address"
+            }
+          ],
+          "name": "SignerAdded",
+          "type": "event",
+          "signature": "0x47d1c22a25bb3a5d4e481b9b1e6944c2eade3181a0a20b495ed61d35b5323f24"
+        },
+        "0x3525e22824a8a7df2c9a6029941c824cf95b6447f1e13d5128fd3826d35afe8b": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "account",
+              "type": "address"
+            }
+          ],
+          "name": "SignerRemoved",
+          "type": "event",
+          "signature": "0x3525e22824a8a7df2c9a6029941c824cf95b6447f1e13d5128fd3826d35afe8b"
+        },
+        "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "previousOwner",
+              "type": "address"
+            },
+            {
+              "indexed": true,
+              "name": "newOwner",
+              "type": "address"
+            }
+          ],
+          "name": "OwnershipTransferred",
+          "type": "event",
+          "signature": "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0"
+        }
+      },
+      "links": {},
+      "address": "0x7e9915a36B0e0107DBB7e9e2df166B7a0F3fC63A",
+      "transactionHash": "0xf7a3dc5cd7eef7f2e3ddd9ec16346ac496f35cce620922869e0a476da6e0e7d9"
     }
   },
   "schemaVersion": "3.0.11",
-  "updatedAt": "2020-04-29T04:53:34.277Z",
+  "updatedAt": "2020-04-29T10:00:18.267Z",
   "devdoc": {
     "methods": {
       "isOwner()": {
