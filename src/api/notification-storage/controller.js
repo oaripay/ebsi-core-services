@@ -19,11 +19,10 @@ async function getRecord(id) {
 
 async function addNotification(data) {
   const id = uuidv1();
-  const { sender, receiver } = data;
-  let { message } = data;
-  message = JSON.stringify(message);
+  const { sender, receiver, message } = data;
+  const messageString = JSON.stringify(message);
   const query = `insert into ${TABLE_NOTIFICATION_STORAGE} (id, created, sender, receiver, message) values (?, toTimestamp(now()), ?, ?, ?)`;
-  const params = [id, sender, receiver, message];
+  const params = [id, sender, receiver, messageString];
   const result = await cassandra.execute(query, params);
 
   if (!result.info || !result.info.isSchemaInAgreement) {
@@ -37,11 +36,10 @@ async function updateNotification(id, data) {
   const record = await getRecord(id);
   if (!record) throw new NotFoundError("Notification not found");
 
-  const { sender, receiver } = data;
-  let { message } = data;
-  message = JSON.stringify(message);
+  const { sender, receiver, message } = data;
+  const messageString = JSON.stringify(message);
   const query = `update ${TABLE_NOTIFICATION_STORAGE} set sender = ?, receiver = ?, message = ? where id= ? if exists`;
-  const params = [sender, receiver, message, id];
+  const params = [sender, receiver, messageString, id];
   const result = await cassandra.execute(query, params);
 
   if (!result.info || !result.info.isSchemaInAgreement) {
