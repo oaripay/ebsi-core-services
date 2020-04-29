@@ -72,6 +72,11 @@ Unless required by applicable law or agreed to in writing, software distributed 
 #Migration intebsi info:
 
 ```
+Compiling your contracts...
+===========================
+> Everything is up to date, there is nothing to compile.
+
+
 Starting migrations...
 ======================
 > Network name:    'intebsi'
@@ -82,13 +87,13 @@ Starting migrations...
 1_initial_migration.js
 ======================
 
-   Deploying 'Migrations'
+   Replacing 'Migrations'
    ----------------------
-   > transaction hash:    0x68403616b03e6ad28b5a4711efe38b52a56d43047a692209dfa9dac0f04daadd
+   > transaction hash:    0x65604cc6f8e96754a1b78cb59247825a9eab22c726b00b6014d76c821e4ab711
    > Blocks: 0            Seconds: 0
-   > contract address:    0x3b7f51aBe2E8e6Af03e1571dB791DDA7B5a68cE6
-   > block number:        49687
-   > block timestamp:     1581423404
+   > contract address:    0x2F2ccEFbc991BC8A1f71D9cDF7E918c787A2ba27
+   > block number:        1638181
+   > block timestamp:     1588155024
    > account:             0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73
    > balance:             0
    > gas used:            263741
@@ -102,66 +107,53 @@ Starting migrations...
    -------------------------------------
    > Total cost:                   0 ETH
 
+
 2_deploy_contracts.js
 =====================
-Deploying ethr did registry smart contract on network:  intebsi
-
-   Deploying 'EthereumDIDRegistry'
-   -------------------------------
-   > transaction hash:    0x46d43618e84206200dbcdd7d816dfc7f64054ec80e0afe63ec026b9e2cafd556
-   > Blocks: 3            Seconds: 4
-   > contract address:    0x9a3DBCa554e9f6b9257aAa24010DA8377C57c17e
-   > block number:        3197
-   > block timestamp:     1584625144
-   > account:             0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73
-   > balance:             0
-   > gas used:            2356456
-   > gas price:           0 gwei
-   > value sent:          0 ETH
-   > total cost:          0 ETH
-
 Deploying Universities Trusted Issuers smart contract on network:  intebsi
 
    Replacing 'UniversitiesTrustedIssuers'
    --------------------------------------
-   > transaction hash:    0x44eff06c7c11eec3a293c884d44eecf9bf527b0caa4842e3d16f562d4e0e63ef
+   > transaction hash:    0x65242130a507391f5782368c154c72b1938733bf45771c68a0c24475c8e58f13
    > Blocks: 0            Seconds: 0
-   > contract address:    0x9B8397f1B0FEcD3a1a40CdD5E8221Fa461898517
-   > block number:        3199
-   > block timestamp:     1584625148
+   > contract address:    0xB4299D7596529fF8dF496e53fFD77944bCCA3AE1
+   > block number:        1638185
+   > block timestamp:     1588155032
    > account:             0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73
    > balance:             0
-   > gas used:            6704695
+   > gas used:            7054160
    > gas price:           0 gwei
    > value sent:          0 ETH
    > total cost:          0 ETH
 
-Contract deployed at address 0x9B8397f1B0FEcD3a1a40CdD5E8221Fa461898517
+Contract deployed at address 0xB4299D7596529fF8dF496e53fFD77944bCCA3AE1
 Deploying Governments Trusted Issuers smart contract on network:  intebsi
 
    Replacing 'GovernmentsTrustedIssuers'
    -------------------------------------
-   > transaction hash:    0xa99ff8bb01ea259ffa8249b6379400e3ad25c5f87c1a67c88c0288e7afa5bed4
+   > transaction hash:    0x234f9f0df85be449191f379c895ef0223f640ee6e7eece4524bc68a928368e0d
    > Blocks: 0            Seconds: 0
-   > contract address:    0x2E1f232a9439C3D459FcEca0BeEf13acc8259Dd8
-   > block number:        3200
-   > block timestamp:     1584625150
+   > contract address:    0xa48dA31871b0cf9dbdE82184a8Dcd0f44f338bBe
+   > block number:        1638187
+   > block timestamp:     1588155036
    > account:             0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73
    > balance:             0
-   > gas used:            3205207
+   > gas used:            3454563
    > gas price:           0 gwei
    > value sent:          0 ETH
    > total cost:          0 ETH
 
-Contract deployed at address 0x2E1f232a9439C3D459FcEca0BeEf13acc8259Dd8
-Adding university Universitat Rovira i Virgili code 0x5B7a2FC380cb6f6389779c9FCCed050533FB21bb
-Adding diploma Máster en bioinformática to the university Universitat Rovira i Virgili
-Adding accreditation Europass Accreditation Database to the university Universitat Rovira i Virgili
-Adding Government Government of Belgium code 0x4D1A5522D2823941340d965b685a811483Bc7359
-Adding Government Government of Belgium document
-Adding Flamish GOV Univ Government of Belgium code 0x4D1A5522D2823941340d965b685a811483Bc7359
-Adding diploma Bachelor en bioinformática to the Universities Government of Belgium
-Adding accreditation Europass Accreditation Database to the government Government of Belgium
+Contract deployed at address 0xa48dA31871b0cf9dbdE82184a8Dcd0f44f338bBe
+Adding university Diploma Sample App: Issue Master's Diploma code did:ebsi:0xAa54d8B05f6EE6e57bDC1008F48EbCBC4dEaE831
+Adding diploma Sample University - Master's Programme to the university Diploma Sample App: Issue Master's Diploma
+Adding accreditation Europass Accreditation Database to the university Diploma Sample App: Issue Master's Diploma
+Adding Government Sample Verifiable ID Issuer code did:ebsi:0xdE3d8e8f30B425ACe6F6549D3188Ae9F0047Ea1A
+Adding Government Sample Verifiable ID Issuer document
+Adding Flamish GOV Univ Sample Verifiable ID Issuer code did:ebsi:0xdE3d8e8f30B425ACe6F6549D3188Ae9F0047Ea1A
+Adding diploma Diploma Sample App: Issue Bachelor's Diploma to the Universities Sample Verifiable ID Issuer
+Adding accreditation Europass Accreditation Database to the government Sample Verifiable ID Issuer
+Adding Government Sample Verifiable ID Issuer code did:ebsi:0xdE3d8e8f30B425ACe6F6549D3188Ae9F0047Ea1A0
+Adding Government Sample Verifiable ID Issuer document
 
    > Saving migration to chain.
    > Saving artifacts
@@ -171,7 +163,7 @@ Adding accreditation Europass Accreditation Database to the government Governmen
 
 Summary
 =======
-> Total deployments:   4
+> Total deployments:   3
 > Final cost:          0 ETH
 
 ```

@@ -29205,11 +29205,24 @@
           "name": "OwnershipTransferred",
           "type": "event",
           "signature": "0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0"
+        },
+        "0x6cdbc87127419616508c205c4bfcdaa0a7ab72de0f387c6154f276c369a67a40": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "issuerDID",
+              "type": "string"
+            }
+          ],
+          "name": "TrustedIssuerUpdated",
+          "type": "event",
+          "signature": "0x6cdbc87127419616508c205c4bfcdaa0a7ab72de0f387c6154f276c369a67a40"
         }
       },
       "links": {},
-      "address": "0x9B8397f1B0FEcD3a1a40CdD5E8221Fa461898517",
-      "transactionHash": "0x44eff06c7c11eec3a293c884d44eecf9bf527b0caa4842e3d16f562d4e0e63ef"
+      "address": "0xB4299D7596529fF8dF496e53fFD77944bCCA3AE1",
+      "transactionHash": "0x65242130a507391f5782368c154c72b1938733bf45771c68a0c24475c8e58f13"
     },
     "1584531474257": {
       "events": {
@@ -29524,7 +29537,7 @@
     }
   },
   "schemaVersion": "3.0.11",
-  "updatedAt": "2020-04-29T10:00:18.267Z",
+  "updatedAt": "2020-04-29T10:11:00.423Z",
   "devdoc": {
     "methods": {
       "isOwner()": {
