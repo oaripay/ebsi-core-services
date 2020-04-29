@@ -99,12 +99,12 @@ const GLOBAL_CONFIG = {
 };
 // eslint-disable-next-line prettier/prettier
 const ENVIRONMENT =
-  process.env.NODE_ENV === "test" ||
-  process.env.NODE_ENV === "production" ||
-  process.env.NODE_ENV === "development" ||
+  process.env.EBSI_ENV === "test" ||
+  process.env.EBSI_ENV === "production" ||
+  process.env.EBSI_ENV === "development" ||
   // eslint-disable-next-line prettier/prettier
-  process.env.NODE_ENV === "local"
-    ? process.env.NODE_ENV
+  process.env.EBSI_ENV === "local"
+    ? process.env.EBSI_ENV
     : "integration"; // integration by default
 
 const FINAL_CONFIG = GLOBAL_CONFIG[ENVIRONMENT];
