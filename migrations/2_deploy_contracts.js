@@ -1,19 +1,15 @@
 const UniversitiesTrustedIssuers = artifacts.require('UniversitiesTrustedIssuers');
 const GovernmentsTrustedIssuers = artifacts.require('GovernmentsTrustedIssuers');
-const EthereumDIDRegistry = artifacts.require('EthereumDIDRegistry');
 
 module.exports = async (deployer, network) => {
 
-    console.log('Deploying ethr did registry smart contract on network: ', network);
-    await deployer.deploy(EthereumDIDRegistry);
-
 
     console.log('Deploying Universities Trusted Issuers smart contract on network: ', network);
-    await deployer.deploy(UniversitiesTrustedIssuers, EthereumDIDRegistry.address);
+    await deployer.deploy(UniversitiesTrustedIssuers, {gas: 9000000});
     console.log('Contract deployed at address ' + UniversitiesTrustedIssuers.address);
 
     console.log('Deploying Governments Trusted Issuers smart contract on network: ', network);
-    await deployer.deploy(GovernmentsTrustedIssuers, EthereumDIDRegistry.address);
+    await deployer.deploy(GovernmentsTrustedIssuers);
     console.log('Contract deployed at address ' + GovernmentsTrustedIssuers.address);
 
     const universitiesTrustedIssuersInstance = await UniversitiesTrustedIssuers.deployed();

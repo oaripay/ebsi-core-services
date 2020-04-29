@@ -2,12 +2,10 @@ pragma solidity >=0.4.21 <0.6.0;
 
 import '../roles/roles/Ownable.sol';
 import '../roles/roles/SignerRole.sol';
-import '../EthereumDIDRegistry/EthereumDIDRegistry.sol';
 
 contract UniversitiesTrustedIssuers is Ownable, SignerRole {
 
     // external variables
-    EthereumDIDRegistry ethereumDIDRegistry;
     enum DocumentType {DEMO_EID_TYPE, DEMO_BACHELOR_TYPE, DEMO_MASTER_TYPE}
 
     // variable types
@@ -71,14 +69,12 @@ contract UniversitiesTrustedIssuers is Ownable, SignerRole {
 
     // events
     event TrustedIssuerAdded (string indexed issuerDID);
+    event TrustedIssuerUpdated (string indexed issuerDID);
     event DocumentAdded (bytes32 indexed documentHash, bytes32 indexed trustedIssuerDIDHash);
     event AccreditationAdded (string targetFramework);
 
     // constructor; make trusted issuer list aware of did registry in order to verify dids
-    constructor (address ethereumDIDRegistryAddress) public {
-        require(ethereumDIDRegistryAddress != address(0));
-
-        ethereumDIDRegistry = EthereumDIDRegistry(ethereumDIDRegistryAddress);
+    constructor () public {
     }
 
     function addTrustedIssuer(string calldata issuerDID, string calldata preferredName, string calldata alternativeName, string calldata homepage, string calldata escoOrganizationType, string calldata siteLocation)
@@ -100,6 +96,22 @@ contract UniversitiesTrustedIssuers is Ownable, SignerRole {
         trustedIssuers[keccak256(abi.encodePacked(issuerDID))] = trustedIssuer;
         trustedIssuerIndex.push(keccak256(abi.encodePacked(issuerDID)));
         emit TrustedIssuerAdded(issuerDID);
+    }
+
+    function updateTrustedIssuer(string calldata issuerDID, string calldata preferredName, string calldata alternativeName, string calldata homepage, string calldata escoOrganizationType, string calldata siteLocation)
+    external
+    onlySigner
+    {
+        require(bytes(issuerDID).length != 0, 'Invalid Issuer DID');
+        require(trustedIssuers[keccak256(abi.encodePacked(issuerDID))].status == true, 'Trusted Issuer does not exists');
+        TrustedIssuer storage trustedIssuer = trustedIssuers[keccak256(abi.encodePacked(issuerDID))];
+        require(trustedIssuer.moderator == _msgSender(), 'This trusted issuer has to be moderated by the same account');
+        trustedIssuer.preferredName = preferredName;
+        trustedIssuer.alternativeName = alternativeName;
+        trustedIssuer.homepage = homepage;
+        trustedIssuer.escoOrganizationType = escoOrganizationType;
+        trustedIssuer.siteLocation = siteLocation;
+        emit TrustedIssuerUpdated(issuerDID);
     }
 
     function addTrustedIssuerIdentifiers(string calldata issuerDID, string calldata id, string calldata legalIdentifier, string calldata vatIdentifier, string calldata taxIdentifier, string calldata identifier)

@@ -2,10 +2,8 @@ pragma solidity >=0.4.21 <0.6.0;
 
 import '../roles/roles/Ownable.sol';
 import '../roles/roles/SignerRole.sol';
-import '../EthereumDIDRegistry/EthereumDIDRegistry.sol';
 
 contract GovernmentsTrustedIssuers is Ownable, SignerRole {
-    EthereumDIDRegistry ethereumDIDRegistry;
 
     struct TrustedIssuer {
         address moderator;
@@ -31,12 +29,10 @@ contract GovernmentsTrustedIssuers is Ownable, SignerRole {
     mapping(bytes32 => bytes32[]) internal documentIndex;
 
     event TrustedIssuerAdded (string indexed issuerDID);
+    event TrustedIssuerUpdated (string indexed issuerDID);
     event DocumentAdded (bytes32 indexed documentHash, bytes32 indexed trustedIssuerDIDHash);
 
-    constructor (address ethereumDIDRegistryAddress) public {
-        require(ethereumDIDRegistryAddress != address(0));
-
-        ethereumDIDRegistry = EthereumDIDRegistry(ethereumDIDRegistryAddress);
+    constructor () public {
     }
 
 
@@ -45,8 +41,7 @@ contract GovernmentsTrustedIssuers is Ownable, SignerRole {
     onlySigner
     {
         require(bytes(issuerDID).length != 0, 'Invalid Issuer DID address');
-        require(trustedIssuers[keccak256(abi.encodePacked(issuerDID))].status != true, '`Trusted` Issuer already exists');
-
+        require(trustedIssuers[keccak256(abi.encodePacked(issuerDID))].status != true, 'Trusted Issuer already exists');
         TrustedIssuer memory trustedIssuer;
         trustedIssuer.status = true;
         trustedIssuer.moderator = _msgSender();
@@ -56,6 +51,19 @@ contract GovernmentsTrustedIssuers is Ownable, SignerRole {
         trustedIssuers[keccak256(abi.encodePacked(issuerDID))] = trustedIssuer;
         trustedIssuerIndex.push(keccak256(abi.encodePacked(issuerDID)));
         emit TrustedIssuerAdded(issuerDID);
+    }
+
+    function updateTrustedIssuer(string calldata issuerDID, string calldata name, string calldata country)
+    external
+    onlySigner
+    {
+        require(bytes(issuerDID).length != 0, 'Invalid Issuer DID address');
+        require(trustedIssuers[keccak256(abi.encodePacked(issuerDID))].status == true, 'Trusted Issuer does not exists');
+        TrustedIssuer storage trustedIssuer = trustedIssuers[keccak256(abi.encodePacked(issuerDID))];
+        require(trustedIssuer.moderator == _msgSender(), "This trusted issuer is not moderated by this address");
+        trustedIssuer.name = name;
+        trustedIssuer.country = country;
+        emit TrustedIssuerUpdated(issuerDID);
     }
 
     function addDocument(
@@ -71,14 +79,12 @@ contract GovernmentsTrustedIssuers is Ownable, SignerRole {
     returns (bool)
     {
         bytes32 DIDHash = keccak256(abi.encodePacked(issuerDID));
-
+        bytes32 computedVCCode = keccak256(abi.encodePacked(vcCode));
         // check for empty vccode
         require(keccak256(abi.encodePacked(vcCode)) != '');
         // check document is not created and entity exists
         require(trustedIssuers[DIDHash].status != false, 'Trusted Issuer does not exist');
-        require(bytes(trustedIssuers[DIDHash].documents[keccak256(abi.encodePacked(vcCode))].vcCode).length == 0, 'Document already defined');
-
-
+        require(bytes(trustedIssuers[DIDHash].documents[computedVCCode].vcCode).length == 0, 'Document already defined');
         // check the moderator for the current entity
         require(trustedIssuers[DIDHash].moderator == _msgSender(), 'You are currently not moderating this Trusted Issuer');
         // check document type exists
@@ -91,16 +97,16 @@ contract GovernmentsTrustedIssuers is Ownable, SignerRole {
         document.status = status;
         document.dateStart = dateStart;
         // insert the document into storage mapping
-        trustedIssuers[DIDHash].documents[keccak256(abi.encodePacked(vcCode))] = document;
+        trustedIssuers[DIDHash].documents[computedVCCode] = document;
 
         // add document to issuer index
-        documentToTrustedIssuer[keccak256(abi.encodePacked(vcCode))] = DIDHash;
+        documentToTrustedIssuer[computedVCCode] = DIDHash;
 
         // add document to documentIndex
-        documentIndex[DIDHash].push(keccak256(abi.encodePacked(vcCode)));
+        documentIndex[DIDHash].push(computedVCCode);
 
         // emit event
-        emit DocumentAdded(keccak256(abi.encodePacked(vcCode)), DIDHash);
+        emit DocumentAdded(computedVCCode, DIDHash);
         return true;
     }
 
@@ -127,9 +133,7 @@ contract GovernmentsTrustedIssuers is Ownable, SignerRole {
     {
         bytes32 DIDHash = keccak256(abi.encodePacked(addr));
         TrustedIssuer memory ts = trustedIssuers[DIDHash];
-
         require(ts.status != false, 'Trusted Issuer does not exist');
-
         return (ts.moderator, ts.issuerDID, ts.name, ts.country, ts.status);
     }
 
