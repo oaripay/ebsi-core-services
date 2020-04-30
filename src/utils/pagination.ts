@@ -25,16 +25,17 @@ const paginate = (
   const paginatedItems = collection.slice(offset, offset + pageSize);
   const total = collection.length;
   const limit = offset + pageSize >= total ? total : offset + pageSize - 1;
+  const separator = baseUrl.includes("?") ? "&" : "?";
 
   return {
     items: paginatedItems,
     total,
     pageSize,
     links: {
-      first: `${baseUrl}?page[after]=0&page[size]=${pageSize}`,
-      prev: `${baseUrl}?page[after]=${offset}&page[size]=${pageSize}`,
-      next: `${baseUrl}?page[after]=${limit}&page[size]=${pageSize}`,
-      last: `${baseUrl}?page[after]=${total}&page[size]=${pageSize}`,
+      first: `${baseUrl}${separator}page[after]=0&page[size]=${pageSize}`,
+      prev: `${baseUrl}${separator}page[after]=${offset}&page[size]=${pageSize}`,
+      next: `${baseUrl}${separator}page[after]=${limit}&page[size]=${pageSize}`,
+      last: `${baseUrl}${separator}page[after]=${total}&page[size]=${pageSize}`,
     },
   };
 };
