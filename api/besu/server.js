@@ -27,7 +27,9 @@ app.use((req, res, next) => {
 
 app.use(errors.handler);
 
-app.listen(config.port, () => {
+const server = app.listen(config.port, () => {
   logger.info(`Hyperledger Besu API started at port ${config.port}`);
   if (config.testMode) logger.info("EBSI TEST MODE enabled");
 });
+
+module.exports = server;

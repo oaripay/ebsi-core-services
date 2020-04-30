@@ -1,26 +1,35 @@
-const axios = require("axios");
+const supertest = require("supertest");
 const jose = require("jose");
 const ethers = require("ethers");
 
+const app = require("../server");
 const config = require("../config");
 const utils = require("../utils");
 const configTest = require("./config");
 
-const { api, TEST_APP_NAME, privKey } = configTest;
-const apiBesu = `${api}/blockchains/besu`;
+const { TEST_APP_NAME, privKey } = configTest;
 
 const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
 const wallet = ethers.Wallet.createRandom();
 const r = Math.random().toString(36);
 const randomHash = ethers.utils.keccak256(Buffer.from(r, "utf8"));
-
 let txId;
 
-// axios: don't throw error for status >= 400
-axios.defaults.validateStatus = () => {
-  return true;
+const request = supertest(app);
+
+const callBesu = (method, params) => {
+  return request
+    .post("/ledger/v1/blockchains/besu")
+    .set("Accept", "application/json")
+    .send({
+      jsonrpc: "2.0",
+      method,
+      params,
+      id: 1,
+    });
 };
-let axiosAuth;
+
+let callBesuAuth;
 
 /*
  * Functions
@@ -32,15 +41,6 @@ function respBesu(result) {
     id: expect.any(Number),
     result,
   });
-}
-
-function packBody(method, params) {
-  return {
-    jsonrpc: "2.0",
-    method,
-    params,
-    id: 1,
-  };
 }
 
 async function getNotarizeTransaction(hash) {
@@ -74,64 +74,64 @@ async function getDeployTransaction() {
  * Tests
  */
 
+/* eslint jest/no-hooks: "off" */
 describe("hyperledger Besu integration test", () => {
+  afterAll(async () => {
+    app.close();
+  });
+
   it("getBalance", async () => {
-    expect.assertions(2);
+    expect.assertions(1);
     const params = [wallet.address, "latest"];
-    const response = await axios.post(
-      apiBesu,
-      packBody("eth_getBalance", params)
-    );
-    expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(respBesu("0x0"));
+    await callBesu("eth_getBalance", params)
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(respBesu("0x0"));
+      });
   });
 
   it("getBlockByNumber", async () => {
-    expect.assertions(2);
+    expect.assertions(1);
     const params = ["11", true];
-    const response = await axios.post(
-      apiBesu,
-      packBody("eth_getBlockByNumber", params)
-    );
-    expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(
-      respBesu(
-        expect.objectContaining({
-          number: expect.any(String),
-          hash: expect.any(String),
-          transactions: expect.arrayContaining([]),
-        })
-      )
-    );
+    await callBesu("eth_getBlockByNumber", params)
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          respBesu(
+            expect.objectContaining({
+              number: expect.any(String),
+              hash: expect.any(String),
+              transactions: expect.arrayContaining([]),
+            })
+          )
+        );
+      });
   });
 
   it("get net_version", async () => {
-    expect.assertions(2);
-    const response = await axios.post(apiBesu, packBody("net_version", []));
-    expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(respBesu(expect.any(String)));
+    expect.assertions(1);
+    await callBesu("net_version", [])
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(respBesu(expect.any(String)));
+      });
   });
 
   it("incorrect method is rejected", async () => {
-    expect.assertions(1);
-    const response = await axios.post(
-      apiBesu,
-      packBody("incorrect_method", [])
-    );
-    expect(response.status).toBe(400);
+    expect.assertions(0);
+    await callBesu("incorrect_method", []).expect(400);
   });
 
   it("sendRawTransaction without authentication not allowed", async () => {
-    expect.assertions(1);
-    const response = await axios.post(
-      apiBesu,
-      packBody("eth_sendRawTransaction", ["0x000"])
-    );
-    expect(response.status).toBe(401);
+    expect.assertions(0);
+    await callBesu("eth_sendRawTransaction", ["0x000"]).expect(401);
   });
 
   it("session with Ledger API", async () => {
-    expect.assertions(2);
+    expect.assertions(1);
     const payload = {
       iss: TEST_APP_NAME,
       aud: config.API_NAME,
@@ -139,67 +139,76 @@ describe("hyperledger Besu integration test", () => {
     const opts = { expiresIn: "15 minutes" };
     const selfToken = jose.JWT.sign(payload, privKey, opts);
 
-    const response = await axios.post(`${api}/sessions`, {
-      grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: selfToken,
-    });
-    expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(
-      expect.objectContaining({
-        accessToken: expect.any(String),
-        tokenType: "Bearer",
-        expiresIn: 900, // 15 minutes
-        issuedAt: expect.any(Number),
+    await request
+      .post("/ledger/v1/sessions")
+      .set("Accept", "application/json")
+      .send({
+        grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        assertion: selfToken,
       })
-    );
-    const token = response.data.accessToken;
-    axiosAuth = axios.create({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.objectContaining({
+            accessToken: expect.any(String),
+            tokenType: "Bearer",
+            expiresIn: 900, // 15 minutes
+            issuedAt: expect.any(Number),
+          })
+        );
+        const token = response.body.accessToken;
+
+        callBesuAuth = (method, params) => {
+          return request
+            .post("/ledger/v1/blockchains/besu")
+            .set("Accept", "application/json")
+            .set("Authorization", `Bearer ${token}`)
+            .send({
+              jsonrpc: "2.0",
+              method,
+              params,
+              id: 1,
+            });
+        };
+      });
   });
 
   it("notarize a hash (sendRawTransaction + auth)", async () => {
-    expect.assertions(2);
+    expect.assertions(1);
     const sgnTx = await getNotarizeTransaction(randomHash);
-    const response = await axiosAuth.post(
-      apiBesu,
-      packBody("eth_sendRawTransaction", [sgnTx])
-    );
-    expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(respBesu(expect.any(String)));
-    txId = response.data.result;
+    await callBesuAuth("eth_sendRawTransaction", [sgnTx])
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(respBesu(expect.any(String)));
+        txId = response.body.result;
+      });
   });
 
   it("check good receipt after 2 seconds", async () => {
-    expect.assertions(3);
+    expect.assertions(2);
     await utils.sleep(2000);
-    const response = await axiosAuth.post(
-      apiBesu,
-      packBody("eth_getTransactionReceipt", [txId])
-    );
-    expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(
-      respBesu(
-        expect.objectContaining({
-          blockHash: expect.any(String),
-          blockNumber: expect.any(String),
-          from: expect.any(String),
-        })
-      )
-    );
-    const from = response.data.result.from.toLowerCase();
-    expect(from).toBe(wallet.address.toLowerCase());
+    await callBesuAuth("eth_getTransactionReceipt", [txId])
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          respBesu(
+            expect.objectContaining({
+              blockHash: expect.any(String),
+              blockNumber: expect.any(String),
+              from: expect.any(String),
+            })
+          )
+        );
+        const from = response.body.result.from.toLowerCase();
+        expect(from).toBe(wallet.address.toLowerCase());
+      });
   });
 
   it("reject the deployment of a new smart contract", async () => {
-    expect.assertions(1);
+    expect.assertions(0);
     const sgnTx = await getDeployTransaction();
-    const response = await axiosAuth.post(
-      apiBesu,
-      packBody("eth_sendRawTransaction", [sgnTx])
-    );
-    expect(response.status).toBe(403);
+    await callBesuAuth("eth_sendRawTransaction", [sgnTx]).expect(403);
   });
 });
