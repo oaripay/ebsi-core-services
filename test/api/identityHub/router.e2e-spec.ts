@@ -7,8 +7,9 @@ import { EBSI_API_ERRORS_INT } from "../../../src/errors";
 import { initSetupForTesting, mockedAttributes } from "../../utils/auxAPICalls";
 import { IAttributeInput } from "../../../src/dtos/attributeInfo";
 import IDHub from "../../../src/libs/identityHub/idHub";
+import { PaginateResult } from "../../../src/utils";
 
-jest.setTimeout(100000);
+jest.setTimeout(1000000);
 
 describe("wallet router API calls", () => {
   let server: http.Server;
@@ -70,6 +71,146 @@ describe("wallet router API calls", () => {
         expectedResult.hash,
         attributeInput
       );
+      spy.mockRestore();
+    });
+
+    it("should return 200 with an existing attribute", async () => {
+      expect.assertions(4);
+      const attributeInput = { ...mockedAttributes[0] };
+      const attributeHash = attributeInput.hash;
+      delete attributeInput.did;
+      delete attributeInput.hash;
+      const expectedResult = { ...mockedAttributes[0] };
+      expectedResult.did = userDid;
+      let spy = jest
+        .spyOn(IDHub.prototype, "setAttribute")
+        .mockResolvedValue({ attribute: expectedResult, newAttribute: true });
+      const res = await request(server)
+        .put(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
+        )
+        .set("Authorization", `Bearer ${userToken}`)
+        .send(attributeInput as IAttributeInput);
+      expect(res.status).toStrictEqual(201);
+      spy = jest
+        .spyOn(IDHub.prototype, "setAttribute")
+        .mockResolvedValue({ attribute: expectedResult, newAttribute: false });
+      // we add the same attribute again
+      const res2 = await request(server)
+        .put(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
+        )
+        .set("Authorization", `Bearer ${userToken}`)
+        .send(attributeInput as IAttributeInput);
+      expect(res2.status).toStrictEqual(200);
+      expect(res2.body).toMatchObject(expectedResult);
+      expect(spy).toHaveBeenCalledWith(
+        userDid,
+        expectedResult.hash,
+        attributeInput
+      );
+      spy.mockRestore();
+    });
+    it("should returnn 401 with no token", async () => {
+      expect.assertions(2);
+      const attributeInput = { ...mockedAttributes[0] };
+      const attributeHash = attributeInput.hash;
+      delete attributeInput.did;
+      delete attributeInput.hash;
+
+      const expectedResult = {
+        title: "Unauthorized",
+        status: 401,
+        detail: "You are not authorized to access the resources.",
+      };
+      const res = await request(server)
+        .put(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
+        )
+        .send(attributeInput as IAttributeInput);
+      expect(res.status).toStrictEqual(401);
+      expect(res.body).toMatchObject(expectedResult);
+    });
+
+    it("should retrieve an existing attribute", async () => {
+      expect.assertions(4);
+      const attributeInput = { ...mockedAttributes[0] };
+      const attributeHash = attributeInput.hash;
+      delete attributeInput.did;
+      delete attributeInput.hash;
+      const expectedResult = { ...mockedAttributes[0] };
+      expectedResult.did = userDid;
+      const spy = jest
+        .spyOn(IDHub.prototype, "setAttribute")
+        .mockResolvedValue({ attribute: expectedResult, newAttribute: true });
+      const res = await request(server)
+        .put(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
+        )
+        .set("Authorization", `Bearer ${userToken}`)
+        .send(attributeInput as IAttributeInput);
+      expect(res.status).toStrictEqual(201);
+      const spyGet = jest
+        .spyOn(IDHub.prototype, "getAttribute")
+        .mockResolvedValue(expectedResult);
+      // we add the same attribute again
+      const res2 = await request(server)
+        .get(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTE}/${attributeHash}`
+        )
+        .set("Authorization", `Bearer ${userToken}`);
+      expect(res2.status).toStrictEqual(200);
+      expect(res2.body).toMatchObject(expectedResult);
+      expect(spyGet).toHaveBeenCalledWith(userDid, expectedResult.hash);
+      spy.mockRestore();
+      spyGet.mockRestore();
+    });
+
+    describe("get attributes endpoint (mocked)", () => {
+      it("should return a Bad Request withoud parameter DID", async () => {
+        expect.assertions(2);
+        const expectedResult = {
+          title: "Bad Request",
+          status: 400,
+          detail: "The format of did parameter is not valid",
+        };
+
+        const res = await request(server)
+          .get(
+            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}`
+          )
+          .set("Authorization", `Bearer ${userToken}`);
+        expect(res.status).toStrictEqual(400);
+        expect(res.body).toMatchObject(expectedResult);
+      });
+
+      it("should return an empty formatted result", async () => {
+        expect.assertions(3);
+        const expectedResult: PaginateResult = {
+          items: [],
+          total: 0,
+          pageSize: 10,
+          links: {
+            first: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+            last: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+            next: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+            prev: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+          },
+        };
+        const spyGet = jest
+          .spyOn(IDHub.prototype, "getAttributes")
+          .mockResolvedValue(expectedResult.items);
+        // we add the same attribute again
+        const res = await request(server)
+          .get(
+            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}`
+          )
+          .set("Authorization", `Bearer ${userToken}`);
+        expect(res.status).toStrictEqual(200);
+        expect(res.body).toMatchObject(expectedResult);
+        expect(spyGet).toHaveBeenCalledWith(userDid);
+        spyGet.mockRestore();
+      });
     });
   });
 });
