@@ -2,17 +2,16 @@ pipeline {
     agent any
     environment {
         EBSI_ENV='test'
-        COMPONENT_WALLET_PASSWORD=credentials('COMPONENT_WALLET_PASSWORD')
-        KEY_PASSPHRASE='test'
+        DEBUG_LEVEL='silly'
+        COMPONENT_PASSWORD=credentials('COMPONENT_PASSWORD_HUB')
         DID_REGISTRY_SC_ADDRESS=credentials('DID_REGISTRY_SC_ADDRESS')
-        NOTARY_SC_ADDRESS=credentials('NOTARY_SC_ADDRESS')
-        COMPONENT_WALLET_KEYSTORE_iv=credentials('COMPONENT_WALLET_KEYSTORE_iv')
-        COMPONENT_WALLET_KEYSTORE_salt=credentials('COMPONENT_WALLET_KEYSTORE_salt')
-        COMPONENT_WALLET_KEYSTORE_n=credentials('COMPONENT_WALLET_KEYSTORE_n')
-        COMPONENT_WALLET_KEYSTORE_p=credentials('COMPONENT_WALLET_KEYSTORE_p')
-        COMPONENT_WALLET_KEYSTORE_r=credentials('COMPONENT_WALLET_KEYSTORE_r')
-        COMPONENT_WALLET_KEYSTORE_mac=credentials('COMPONENT_WALLET_KEYSTORE_mac')
-        COMPONENT_WALLET_KEYSTORE="""{"address":"4d3171baf3ec3ce370ec65e7d354741a970ba038","id":"6469004e-63ef-4bca-a7c2-d7d2d94ec477","version":3,"Crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"${env.COMPONENT_WALLET_KEYSTORE_iv}"},"ciphertext":"cc27e4c1fc942e220f1578ad75da1ccf62631aa21708cc29f1c123aa7bee2d9e","kdf":"scrypt","kdfparams":{"salt":"${env.COMPONENT_WALLET_KEYSTORE_salt}","n":"${env.COMPONENT_WALLET_KEYSTORE_n}","dklen":32,"p":"${env.COMPONENT_WALLET_KEYSTORE_p}","r":"${env.COMPONENT_WALLET_KEYSTORE_r}"},"mac":"${env.COMPONENT_WALLET_KEYSTORE_mac}"}}""";
+        COMPONENT_KEYSTORE_iv=credentials('COMPONENT_KEYSTORE_iv')
+        COMPONENT_KEYSTORE_salt=credentials('COMPONENT_KEYSTORE_salt')
+        COMPONENT_KEYSTORE_n=credentials('COMPONENT_KEYSTORE_n')
+        COMPONENT_KEYSTORE_p=credentials('COMPONENT_KEYSTORE_p')
+        COMPONENT_KEYSTORE_r=credentials('COMPONENT_KEYSTORE_r')
+        COMPONENT_KEYSTORE_mac=credentials('COMPONENT_KEYSTORE_mac')
+        COMPONENT_KEYSTORE="""{"address":"4d3171baf3ec3ce370ec65e7d354741a970ba038","id":"6469004e-63ef-4bca-a7c2-d7d2d94ec477","version":3,"Crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"${env.COMPONENT_KEYSTORE_iv}"},"ciphertext":"cc27e4c1fc942e220f1578ad75da1ccf62631aa21708cc29f1c123aa7bee2d9e","kdf":"scrypt","kdfparams":{"salt":"${env.COMPONENT_KEYSTORE_salt}","n":"${env.COMPONENT_KEYSTORE_n}","dklen":32,"p":"${env.COMPONENT_KEYSTORE_p}","r":"${env.COMPONENT_KEYSTORE_r}"},"mac":"${env.COMPONENT_KEYSTORE_mac}"}}""";
     }
     stages {
         stage('Clone repo') {
