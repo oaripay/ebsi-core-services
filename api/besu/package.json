@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "prettier-format": "prettier --write 'src/**/*.{js,ts,tsx}'",
-    "start": "node server.js",
+    "start": "node start.js",
     "test": "EBSI_TEST_MODE=true jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar",
     "test:e2e": "jest --config ./tests/jest-e2e.json"
   },

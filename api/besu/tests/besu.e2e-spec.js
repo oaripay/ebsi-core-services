@@ -2,12 +2,11 @@ const supertest = require("supertest");
 const jose = require("jose");
 const ethers = require("ethers");
 
-const app = require("../server");
 const config = require("../config");
 const utils = require("../utils");
 const configTest = require("./config");
 
-const { TEST_APP_NAME, privKey } = configTest;
+const { server, TEST_APP_NAME, privKey } = configTest;
 
 const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
 const wallet = ethers.Wallet.createRandom();
@@ -15,7 +14,7 @@ const r = Math.random().toString(36);
 const randomHash = ethers.utils.keccak256(Buffer.from(r, "utf8"));
 let txId;
 
-const request = supertest(app);
+const request = supertest(server);
 
 const callBesu = (method, params) => {
   return request
@@ -77,7 +76,7 @@ async function getDeployTransaction() {
 /* eslint jest/no-hooks: "off" */
 describe("hyperledger Besu integration test", () => {
   afterAll(async () => {
-    app.close();
+    if (typeof server !== "string") server.close();
   });
 
   it("getBalance", async () => {

@@ -1,21 +1,21 @@
 const utils = require("../utils");
+const Server = require("../server");
 require("dotenv").config();
 
+const testMode = process.env.EBSI_TEST_MODE === "true";
 const port = process.env.PORT || 8080;
 
 const config = {
   production: {
-    url: "https://api.ebsi.tech.ec.europa.eu",
+    server: "https://api.ebsi.tech.ec.europa.eu",
   },
   development: {
-    url: "https://api.ebsi.xyz",
+    server: "https://api.ebsi.xyz",
   },
   integration: {
-    url: "https://api.intebsi.xyz",
+    server: "https://api.intebsi.xyz",
   },
-  local: {
-    url: process.env.EBSI_API || `http://localhost:${port}`,
-  },
+  local: {},
 };
 
 if (!process.env.EBSI_ENV) throw new Error("EBSI_ENV is not defined");
@@ -24,13 +24,20 @@ if (!process.env.TEST_APP_PRIVATE_KEY)
   throw new Error("TEST_APP_PRIVATE_KEY is not defined");
 
 const environment = process.env.EBSI_ENV;
-const finalConfig = config[environment];
+
+let server;
+if (environment === "local") {
+  if (process.env.EBSI_API) server = process.env.EBSI_API;
+  else server = new Server().start(port, testMode);
+} else {
+  server = config[environment].server;
+}
+
 const { TEST_APP_NAME } = process.env;
 const privKey = utils.getJWKfromHex(process.env.TEST_APP_PRIVATE_KEY);
-const api = `${finalConfig.url}/ledger/v1`;
 
 module.exports = {
-  api,
+  server,
   TEST_APP_NAME,
   privKey,
 };
