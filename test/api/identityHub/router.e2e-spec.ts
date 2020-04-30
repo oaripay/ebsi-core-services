@@ -184,7 +184,7 @@ describe("wallet router API calls", () => {
         expect(res.body).toMatchObject(expectedResult);
       });
 
-      it("should return an empty formatted result", async () => {
+      it("should return an empty formatted result: only DID passed", async () => {
         expect.assertions(3);
         const expectedResult: PaginateResult = {
           items: [],
@@ -204,6 +204,36 @@ describe("wallet router API calls", () => {
         const res = await request(server)
           .get(
             `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}`
+          )
+          .set("Authorization", `Bearer ${userToken}`);
+        expect(res.status).toStrictEqual(200);
+        expect(res.body).toMatchObject(expectedResult);
+        expect(spyGet).toHaveBeenCalledWith(userDid);
+        spyGet.mockRestore();
+      });
+
+      it("should return an empty formatted result: passed DID and Type", async () => {
+        expect.assertions(3);
+        const type = ["EssifVerifiableID", "EuropassCredential"];
+        const encodedType = encodeURIComponent(JSON.stringify(type));
+        const expectedResult: PaginateResult = {
+          items: [],
+          total: 0,
+          pageSize: 10,
+          links: {
+            first: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
+            last: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
+            next: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
+            prev: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
+          },
+        };
+        const spyGet = jest
+          .spyOn(IDHub.prototype, "getAttributes")
+          .mockResolvedValue(expectedResult.items);
+        // we add the same attribute again
+        const res = await request(server)
+          .get(
+            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}&type=${encodedType}`
           )
           .set("Authorization", `Bearer ${userToken}`);
         expect(res.status).toStrictEqual(200);

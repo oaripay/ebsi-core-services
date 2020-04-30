@@ -59,8 +59,9 @@ class Router {
               );
             const result = await Controller.getAttributesFiltered(did, type);
             res.status(200);
-            // adding path, did and type to format link results
-            req.baseUrl += `${req.path}?did=${did}&type=${type}`;
+            // adding path, did and encoded type to format link results
+            const encodedType = encodeURIComponent(type);
+            req.baseUrl += `${req.path}?did=${did}&type=${encodedType}`;
             applyPaginationFormat(result, req, res, next);
           }
           const result = await Controller.getAttributes(did);

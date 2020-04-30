@@ -12,7 +12,7 @@ export default class Controller {
     type: string
   ): Promise<IAttribute[]> {
     try {
-      JSON.parse(type);
+      JSON.parse(decodeURIComponent(type));
     } catch (error) {
       throw new BadRequestError(API_ERROR_MESSAGES.ATTRIBUTE_TYPE_MALFORMED);
     }
