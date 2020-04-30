@@ -1,6 +1,6 @@
 import * as express from "express";
 import cors from "cors";
-import { parseEntityJWT, verifyJWTParamDIDs } from "../../middleware/jwt";
+import { parseEntityJWT } from "../../middleware/jwt";
 import { EBSI_SERVICE } from "../../config";
 import { handleError, BadRequestError, API_ERROR_MESSAGES } from "../../errors";
 import * as auth from "../../middleware/auth";
@@ -44,23 +44,29 @@ class Router {
       `${EBSI_SERVICE.CALL.GET_ATTRIBUTES}`,
       cors(),
       auth.handleToken,
-      parseEntityJWT,
-      verifyJWTParamDIDs,
       async (req: express.Request, res: express.Response, next) => {
-        const { did, type } = req.params;
+        const { did, type } = req.query;
         try {
-          if (!did)
+          if (!did || typeof did !== "string")
             throw new BadRequestError(
               API_ERROR_MESSAGES.ATTRIBUTES_DID_NOT_FOUND
             );
           // when type query param is set, we call the filtered function
           if (type) {
+            if (typeof type !== "string")
+              throw new BadRequestError(
+                API_ERROR_MESSAGES.ATTRIBUTES_TYPE_NOT_FOUND
+              );
             const result = await Controller.getAttributesFiltered(did, type);
             res.status(200);
+            // adding path, did and type to format link results
+            req.baseUrl += `${req.path}?did=${did}&type=${type}`;
             applyPaginationFormat(result, req, res, next);
           }
           const result = await Controller.getAttributes(did);
           res.status(200);
+          // adding path & did to format link results
+          req.baseUrl += `${req.path}?did=${did}`;
           applyPaginationFormat(result, req, res, next);
         } catch (error) {
           next(error);
@@ -69,11 +75,10 @@ class Router {
     );
 
     router.get(
-      `${EBSI_SERVICE.CALL.GET_ATTRIBUTES}/:hash`,
+      `${EBSI_SERVICE.CALL.GET_ATTRIBUTE}/:hash`,
       cors(),
       auth.handleToken,
       parseEntityJWT,
-      verifyJWTParamDIDs,
       async (req: express.Request, res: express.Response, next) => {
         const { didJwt, hash } = req.params;
         try {
