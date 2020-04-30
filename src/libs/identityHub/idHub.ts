@@ -10,7 +10,6 @@ import AttributeInfoList from "../../models/attributeInfoList";
 import CASFile from "../../models/casFile";
 import { ICASFile } from "../../daos/casFile";
 import { EBSI_DEFAULT_DATA_STORE } from "../../config";
-import { setCredIssuer, setCredName } from "../../utils/Util";
 import { DataStoreManager } from "../dataStorages";
 import { ICASStorageOut } from "../../dtos/dataStorage";
 import {
@@ -42,9 +41,15 @@ export default class IDHub {
     try {
       const attributes: IAttribute[] = [];
       const attrInfoList = (await this.attributeInfoListDB.get(did)).data;
-      attrInfoList.list.forEach(async (elem) => {
-        attributes.push(await this.getAttribute(did, elem.hash));
-      });
+
+      await Promise.all(
+        attrInfoList.list.map(async (elem) => {
+          const result = this.attributeFileDB.get(elem.hash);
+          Promise.resolve(result).then((base64) => {
+            attributes.push({ ...elem, data: { base64 } });
+          });
+        })
+      );
       return attributes;
     } catch (error) {
       if ((<Error>error).message !== "Request failed with status code 404") {
@@ -81,17 +86,8 @@ export default class IDHub {
    * @param hash attribute hash to identify it
    */
   async getAttribute(did: string, hash: string): Promise<IAttribute> {
-    const data = await this.attributeFileDB.get(hash);
-    const iCredInfo = await this.getAttributeInfo(did, hash);
-
-    return {
-      id: iCredInfo.id,
-      type: iCredInfo.type,
-      name: iCredInfo.name,
-      did: iCredInfo.did,
-      hash: iCredInfo.hash,
-      data: { base64: data },
-    };
+    const attributes = await this.getAttributes(did);
+    return IDHub.getElemByHash(hash, attributes);
   }
 
   /**
@@ -112,13 +108,12 @@ export default class IDHub {
     };
     const { newAttribute } = await this.addAttributeFile(file, hash);
 
-    const issuer = setCredIssuer(attributeInput.id, attributeInput.data.base64);
     const attributeInfo: IAttributeInfo = {
       id: attributeInput.id,
       type: attributeInput.type,
       hash,
-      name: setCredName(attributeInput.id, attributeInput.data.base64),
-      did: issuer || did, // attribute's did issuer or the did provided (which will be from the user who stores it)
+      name: attributeInput.name,
+      did,
     };
     // compares if already stored attribute's info is the same as provided
     if (
@@ -126,8 +121,8 @@ export default class IDHub {
       !equal(attributeInfo, await this.getAttributeInfo(did, hash))
     )
       throw new InternalError(API_ERROR_MESSAGES.ATTRIBUTES_MISMATCH);
-
-    await this.addAttributeInfo(did, attributeInfo);
+    // we add attribute info only when it is a new attribute
+    if (newAttribute) await this.addAttributeInfo(did, attributeInfo);
     return {
       attribute: {
         ...attributeInfo,
@@ -141,8 +136,9 @@ export default class IDHub {
     did: string,
     hash: string
   ): Promise<IAttributeInfo> {
-    const attributes = await this.getAttributes(did);
-    return IDHub.getElemByHash(hash, attributes);
+    const desiredAttribute = await this.getAttribute(did, hash);
+    delete desiredAttribute.data;
+    return desiredAttribute;
   }
 
   /**
@@ -163,7 +159,7 @@ export default class IDHub {
       return { hash: response.hash, newAttribute };
     } catch (error) {
       if (
-        (error as Error).message.includes(EBSI_API_ERRORS.BAD_REQUEST) &&
+        (error as Error).message.includes(EBSI_API_ERRORS.BAD_REQUEST) ||
         (error as BadRequestError).Detail.includes(
           "This file is already stored with name"
         )
@@ -191,7 +187,7 @@ export default class IDHub {
   private static getElemByHash(
     hash: string,
     attributes: IAttribute[]
-  ): IAttributeInfo {
+  ): IAttribute {
     // checks if list has elements
     if (!attributes.length)
       throw Error(`Attribute Info not found with this hash: ${hash}`);

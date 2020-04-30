@@ -182,6 +182,6 @@ export default class AttributeInfoList extends KeyValueDataStorage {
   private static setKey(key: string): string {
     // We generate a User's DID to identify documents + a identifier of docunents -
     // to avoid key matching with DIDs (credentials also are identified with a DID key)
-    return `credentials-${key}`;
+    return `attributes-${key}`;
   }
 }
