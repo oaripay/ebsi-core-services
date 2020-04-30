@@ -11,7 +11,7 @@ export default class DataStoreManager {
 
   private privAtttributeFileDB!: CASFile;
 
-  private privCredInfoListDB!: AttributeInfoList;
+  private privAttributeInfoListDB!: AttributeInfoList;
 
   private privAttributeDBType = "cassandra";
 
@@ -26,13 +26,13 @@ export default class DataStoreManager {
   /* Key Value Data Base Storage Instances */
   /** ************************************** */
 
-  public get credInfoListDB(): AttributeInfoList {
-    if (!this.privCredInfoListDB) {
-      this.privCredInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.CREDINFOLIST_STORAGE
+  public get attributeInfoListDB(): AttributeInfoList {
+    if (!this.privAttributeInfoListDB) {
+      this.privAttributeInfoListDB = AttributeInfoList.getInstance(
+        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
       );
     }
-    return this.privCredInfoListDB;
+    return this.privAttributeInfoListDB;
   }
 
   /** ************************************** */
@@ -42,7 +42,7 @@ export default class DataStoreManager {
   public get attributeFileDB(): CASFile {
     if (!this.privAtttributeFileDB) {
       this.privAtttributeFileDB = CASFile.getInstance(
-        WALLET_DATA_STORE_TYPE.CREDENTIALFILE_STORAGE,
+        WALLET_DATA_STORE_TYPE.ATTRIBUTES_FILE_STORAGE,
         this.privAttributeDBType
       );
     }
