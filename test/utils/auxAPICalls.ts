@@ -11,11 +11,17 @@ import {
   IUserAuthZToken,
   IEnterpriseAuthZToken,
 } from "../../src/libs/authManager/secureEnclave/jwt";
-import { PRINT_SILLY, PRINT_DEBUG } from "../../src/utils/util";
+import {
+  PRINT_SILLY,
+  PRINT_DEBUG,
+  b64EncodeUrl,
+  hash,
+} from "../../src/utils/util";
 import { InternalError, API_ERROR_MESSAGES } from "../../src/errors";
 import { InitComponent } from "../../src/libs/authManager/secureEnclave";
 import ComponentSecureEnclave from "../../src/libs/authManager/secureEnclave/componentSecureEnclave";
 import AuthManager from "../../src/libs/authManager/authManager";
+import { IAttribute } from "../../src/dtos/attributeInfo";
 
 const mockComponentKey = JWK.asKey({
   crv: "secp256k1",
@@ -299,11 +305,95 @@ const mockedPosts: mockedElement[] = [
   },
 ];
 
+const mockedAttributes: IAttribute[] = [
+  {
+    id: uuidv4(),
+    type: ["attributeType1", "attributeType2"],
+    name: "Attribute Sample 01",
+    data: {
+      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-01` })),
+    },
+    did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+    hash: hash(JSON.stringify({ test: `sample Data-01` })),
+  },
+  {
+    id: uuidv4(),
+    type: ["attributeType1", "attributeType2"],
+    name: "Attribute Sample 02",
+    data: {
+      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-02` })),
+    },
+    did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+    hash: hash(JSON.stringify({ test: `sample Data-02` })),
+  },
+  {
+    id: uuidv4(),
+    type: ["attributeType1", "attributeType2"],
+    name: "Attribute Sample 03",
+    data: {
+      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-03` })),
+    },
+    did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+    hash: hash(JSON.stringify({ test: `sample Data-03` })),
+  },
+  {
+    id: uuidv4(),
+    type: ["attributeType1", "attributeType2"],
+    name: "Attribute Sample 04",
+    data: {
+      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-04` })),
+    },
+    did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+    hash: hash(JSON.stringify({ test: `sample Data-04` })),
+  },
+  {
+    id: uuidv4(),
+    type: ["attributeType1", "attributeType2"],
+    name: "Attribute Sample 05",
+    data: {
+      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-05` })),
+    },
+    did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+    hash: hash(JSON.stringify({ test: `sample Data-05` })),
+  },
+  {
+    id: uuidv4(),
+    type: ["attributeType1", "attributeType2"],
+    name: "Attribute Sample 06",
+    data: {
+      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-06` })),
+    },
+    did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+    hash: hash(JSON.stringify({ test: `sample Data-06` })),
+  },
+  {
+    id: uuidv4(),
+    type: ["attributeType1", "attributeType2"],
+    name: "Attribute Sample 07",
+    data: {
+      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-07` })),
+    },
+    did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+    hash: hash(JSON.stringify({ test: `sample Data-07` })),
+  },
+  {
+    id: uuidv4(),
+    type: ["attributeType1", "attributeType2"],
+    name: "Attribute Sample 08",
+    data: {
+      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-08` })),
+    },
+    did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+    hash: hash(JSON.stringify({ test: `sample Data-08` })),
+  },
+];
+
 export {
   mockedPosts,
   mockedUserUE,
   TestingSetup,
   testAuthNToken,
+  mockedAttributes,
   mockComponentKey,
   mockComponentDid,
   mockInitComponent,

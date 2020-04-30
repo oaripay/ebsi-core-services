@@ -30,7 +30,7 @@ class Router {
             );
           const { didJwt, hash } = req.params;
           const result = await Controller.setAttribute(didJwt, hash, req.body);
-          res.status(201).json(result);
+          res.status(result.newAttribute ? 201 : 200).json(result.attribute);
         } catch (error) {
           next(error);
         }
@@ -57,11 +57,11 @@ class Router {
           if (type) {
             const result = await Controller.getAttributesFiltered(did, type);
             res.status(200);
-            applyPaginationFormat(result.list, req, res, next);
+            applyPaginationFormat(result, req, res, next);
           }
           const result = await Controller.getAttributes(did);
           res.status(200);
-          applyPaginationFormat(result.list, req, res, next);
+          applyPaginationFormat(result, req, res, next);
         } catch (error) {
           next(error);
         }

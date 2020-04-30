@@ -2,7 +2,6 @@
 /* eslint-disable no-useless-constructor */
 import equal from "fast-deep-equal";
 import {
-  IAttributeInfoList,
   IAttribute,
   IAttributeInfo,
   IAttributeInput,
@@ -39,36 +38,41 @@ export default class IDHub {
   /**
    * Retrieves all attributes objects stored in user's ID Hub
    */
-  async getAttributes(did: string): Promise<IAttributeInfoList> {
+  async getAttributes(did: string): Promise<IAttribute[]> {
     try {
-      return (await this.credInfoListDB.get(did)).data;
+      const attributes: IAttribute[] = [];
+      const attrInfoList = (await this.credInfoListDB.get(did)).data;
+      attrInfoList.list.forEach(async (elem) => {
+        attributes.push(await this.getAttribute(did, elem.hash));
+      });
+      return attributes;
     } catch (error) {
       if ((<Error>error).message !== "Request failed with status code 404") {
         throw new InternalError(API_ERROR_MESSAGES.ERROR_RETRIEVING_ATTRIBUTES);
       }
       // creates an empty list and inserts it
       await this.credInfoListDB.insertValue({ did, data: { list: [] } });
-      return (await this.credInfoListDB.get(did)).data;
+      return [];
     }
   }
 
   async getAttributesFiltered(
     did: string,
     filter: string[]
-  ): Promise<IAttributeInfoList> {
-    const attributeList: IAttributeInfoList = await this.getAttributes(did);
-    const resultList: IAttributeInfoList = { list: [] };
+  ): Promise<IAttribute[]> {
+    const attributes: IAttribute[] = await this.getAttributes(did);
+    const resultAttributes: IAttribute[] = [];
 
-    attributeList.list.forEach((elem) => {
+    attributes.forEach((elem) => {
       // eslint-disable-next-line no-restricted-syntax
       for (const filterElem of filter) {
         if (elem.type.includes(filterElem)) {
-          resultList.list.push(elem);
+          resultAttributes.push(elem);
           break;
         }
       }
     });
-    return resultList;
+    return resultAttributes;
   }
 
   /**
@@ -99,7 +103,7 @@ export default class IDHub {
     did: string,
     hash: string,
     attributeInput: IAttributeInput
-  ): Promise<IAttribute> {
+  ): Promise<{ attribute: IAttribute; newAttribute: boolean }> {
     // stores the Attribute File
     const file: ICASFile = {
       fileData: attributeInput.data.base64,
@@ -125,8 +129,11 @@ export default class IDHub {
 
     await this.addAttributeInfo(did, attributeInfo);
     return {
-      ...attributeInfo,
-      data: attributeInput.data,
+      attribute: {
+        ...attributeInfo,
+        data: attributeInput.data,
+      },
+      newAttribute,
     };
   }
 
@@ -134,8 +141,8 @@ export default class IDHub {
     did: string,
     hash: string
   ): Promise<IAttributeInfo> {
-    const iCredInfoList = await this.getAttributes(did);
-    return IDHub.getElemByHash(hash, iCredInfoList);
+    const attributes = await this.getAttributes(did);
+    return IDHub.getElemByHash(hash, attributes);
   }
 
   /**
@@ -183,17 +190,17 @@ export default class IDHub {
 
   private static getElemByHash(
     hash: string,
-    iAttributeList: IAttributeInfoList
+    attributes: IAttribute[]
   ): IAttributeInfo {
     // checks if list has elements
-    if (iAttributeList.list[0] == null)
+    if (!attributes.length)
       throw Error(`Attribute Info not found with this hash: ${hash}`);
     // finds the index of the element
-    const index: number = iAttributeList.list.findIndex((x) => x.hash === hash);
+    const index: number = attributes.findIndex((x) => x.hash === hash);
     // throws error if not found
     if (index === -1)
       throw Error(`Attribute Info not found with this hash: ${hash}`);
     // returns the element
-    return iAttributeList.list[index];
+    return attributes[index];
   }
 }
