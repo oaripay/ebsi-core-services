@@ -24,7 +24,7 @@ class Router {
       parseEntityJWT,
       async (req: express.Request, res: express.Response, next) => {
         try {
-          if (!req.params.didJwt || req.params.hash)
+          if (!req.params.didJwt || !req.params.hash)
             throw new BadRequestError(
               API_ERROR_MESSAGES.ATTRIBUTES_DID_HASH_NOT_FOUND
             );

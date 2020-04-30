@@ -120,8 +120,8 @@ const testUserAuthNToken = async (): Promise<{
 interface TestingSetup {
   belgiumGovToken: string;
   belgiumGovDid: string;
-  enterpriseToken: string;
-  enterpriseDid: string;
+  entityToken: string;
+  entityDid: string;
   userToken: string;
   userDid: string;
 }
@@ -191,9 +191,9 @@ async function getUserAuthZToken(): Promise<{
 }
 
 function mockedSetupForTesting(): TestingSetup {
-  const enterpriseToken =
+  const entityToken =
     "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwczovL2FwaS5pbnRlYnNpLnh5ei9lYnNpdHJ1c3RlZGFwcC9wdWJsaWMta2V5cy8iLCJraWQiOiJlYnNpLXdhbGxldCJ9.eyJzdWIiOiJkZW1vIHRlc3QiLCJpYXQiOjE1ODYzNTY5MzQsImV4cCI6MTU4NjM1NzgzNCwiYXVkIjoiZWJzaS13YWxsZXQiLCJkaWQiOiJkaWQ6ZWJzaToweEFiZDQwZkNjNDc1NzRGMTg2NUFGNzc4NGRCNDcxZTVlN2Q1N0UwQmEiLCJlbnRlcnByaXNlTmFtZSI6ImRlbW8gdGVzdCIsIm5vbmNlIjoiMmt0ZDJGc2JHVjBJbjAuIn0.2e-YW3c-ZYnv_HxGS94aZZeLRdUEOj6IFQZjb3yWkX4TcBRP-72tXIi0c_4mpI15Eb8VGk9ajGCQf8C1_QFlKA";
-  const enterpriseDid = "did:ebsi:0xAbd40fCc47574F1865AF7784dB471e5e7d57E0Ba";
+  const entityDid = "did:ebsi:0xAbd40fCc47574F1865AF7784dB471e5e7d57E0Ba";
   const belgiumGovToken =
     "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwczovL2FwaS5pbnRlYnNpLnh5ei9lYnNpdHJ1c3RlZGFwcC9wdWJsaWMta2V5cy8iLCJraWQiOiJlYnNpLXdhbGxldCJ9.eyJzdWIiOiJCZWxnaXVtIEdvdmVybm1lbnQiLCJpYXQiOjE1ODYzNTczMzQsImV4cCI6MTU4NjM1ODIzNCwiYXVkIjoiZWJzaS13YWxsZXQiLCJkaWQiOiJkaWQ6ZWJzaToweGRFM2Q4ZThmMzBCNDI1QUNlNkY2NTQ5RDMxODhBZTlGMDA0N0VhMUEiLCJlbnRlcnByaXNlTmFtZSI6IkJlbGdpdW0gR292ZXJubWVudCIsIm5vbmNlIjoiMmt0ZDJGc2JHVjBJbjAuIn0.16Q_Uy7HBDrYuwTmBT2gEG4YrpMd4KFjpa2d-kCCw3t5bJL1jmn8aIEMzaDU_rYxdMhyqYw6Sm5TN1RuNqpLOQ";
   const belgiumGovDid = "did:ebsi:0x9f99F1f7482bC56735f8Df9f3Ffb280d54395c49";
@@ -204,8 +204,8 @@ function mockedSetupForTesting(): TestingSetup {
   return {
     belgiumGovToken,
     belgiumGovDid,
-    enterpriseToken,
-    enterpriseDid,
+    entityToken,
+    entityDid,
     userToken,
     userDid,
   };
@@ -220,8 +220,8 @@ const initSetupForTesting = async (): Promise<TestingSetup> => {
   return {
     belgiumGovToken: mockedData.belgiumGovToken,
     belgiumGovDid: mockedData.belgiumGovDid,
-    enterpriseToken: mockedEntity.jwt,
-    enterpriseDid: mockedEntity.did,
+    entityToken: mockedEntity.jwt,
+    entityDid: mockedEntity.did,
     userToken: jwt,
     userDid: did,
   };
