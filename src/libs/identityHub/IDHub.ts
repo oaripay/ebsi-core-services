@@ -1,7 +1,6 @@
 /* eslint-disable no-empty-function */
 /* eslint-disable no-useless-constructor */
-
-import { ICallResponse } from "../../dtos/messages";
+import equal from "fast-deep-equal";
 import {
   ICredentialInfoList,
   ICredentialOut,
@@ -14,32 +13,21 @@ import { ICASFile } from "../../daos/casFile";
 import { EBSI_DEFAULT_DATA_STORE } from "../../config";
 import {
   setCredId,
-  setId,
   setCredIssuer,
   setCredType,
   setCredName,
 } from "../../utils/Util";
 import { DataStoreManager } from "../dataStorages";
+import { ICASStorageOut } from "../../dtos/dataStorage";
+import {
+  InternalError,
+  API_ERROR_MESSAGES,
+  EBSI_API_ERRORS,
+  BadRequestError,
+} from "../../errors";
+import { ICredential } from "../../daos/credential";
 
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
-export default interface IIDHub {
-  setAttribute(
-    did: string,
-    iAttributeInput: IAttributeInput
-  ): Promise<ICallResponse>;
-
-  getAttributes(did: string): Promise<ICredentialInfoList>;
-
-  getAttributesFiltered(
-    did: string,
-    filter: string[]
-  ): Promise<ICredentialInfoList>;
-
-  getAttribute(did: string, hash: string): Promise<ICredentialOut>;
-  // eslint-disable-next-line semi
-}
-
-export class IDHub implements IIDHub {
+export default class IDHub {
   private static instance: IDHub;
 
   private constructor(
@@ -55,14 +43,13 @@ export class IDHub implements IIDHub {
 
   /**
    * Retrieves all Credentials objects stored in user's ID Hub
-   * @param bondId Session ID between the front-end and backend wallet
    */
   async getAttributes(did: string): Promise<ICredentialInfoList> {
     try {
       return (await this.credInfoListDB.get(did)).data;
     } catch (error) {
       if ((<Error>error).message !== "Request failed with status code 404") {
-        throw Error("Could not retrieve a CredentialInfoList");
+        throw new InternalError(API_ERROR_MESSAGES.ERROR_RETRIEVING_ATTRIBUTES);
       }
       // creates an empty list and inserts it
       await this.credInfoListDB.insertValue({ did, data: { list: [] } });
@@ -95,51 +82,56 @@ export class IDHub implements IIDHub {
    * @param hash Credential hash to identify it
    */
   async getAttribute(did: string, hash: string): Promise<ICredentialOut> {
-    let data = await this.credFileDB.get(hash);
-    // remove ebsi-uuid from the data file
-    data = IDHub.deletePrefix(data);
+    const data = await this.credFileDB.get(hash);
     const iCredInfo = await this.getAttributeInfo(did, hash);
 
     return {
       id: iCredInfo.id,
       type: iCredInfo.type,
+      name: iCredInfo.name,
+      did: iCredInfo.did,
       hash: iCredInfo.hash,
       data: { base64: data },
-      name: iCredInfo.name,
-      issuer: iCredInfo.issuer,
     };
   }
 
   /**
    * Stores the specified credential to DID's ID HUB and its associated metadata to the DID's CredentialInfoList
-   * @param did Session ID between the front-end and backend wallet
+   * @param did attribute's did owner
    * @param iAttributeInput Necessary data to store a Credential File to ID Hub and its correspondent CredentialInfo to the DID's CredentialInfoList
    */
   async setAttribute(
     did: string,
-    iAttributeInput: IAttributeInput
-  ): Promise<ICallResponse> {
-    // stores the Credential File
-    const iCredentialFile: ICASFile = {
-      fileData: iAttributeInput.data.base64,
-      fileName: iAttributeInput.id,
+    hash: string,
+    attributeInput: IAttributeInput
+  ): Promise<ICredentialOut> {
+    // stores the Attribute File
+    const file: ICASFile = {
+      fileData: attributeInput.data.base64,
+      fileName: attributeInput.id,
       database: EBSI_DEFAULT_DATA_STORE,
     };
-    const fileHash = await this.addAttributeFile(did, iCredentialFile);
-    // stores the correspondent Credential Info
-    const issuer =
-      setCredIssuer(iAttributeInput.id, iAttributeInput.data.base64) ||
-      iAttributeInput.issuer;
-    const iCredentialInfo: ICredentialInfo = {
+    const { newAttribute } = await this.addAttributeFile(file, hash);
+
+    const issuer = setCredIssuer(attributeInput.id, attributeInput.data.base64);
+    const attributeInfo: ICredentialInfo = {
       id: setCredId(),
-      type: setCredType(iAttributeInput.id),
-      hash: fileHash,
-      name: setCredName(iAttributeInput.id, iAttributeInput.data.base64),
-      issuer,
+      type: setCredType(attributeInput.id),
+      hash,
+      name: setCredName(attributeInput.id, attributeInput.data.base64),
+      did: issuer || did, // attribute's did issuer or the did provided (which will be from the user who stores it)
     };
+    // compares if already stored attribute's info is the same as provided
+    if (
+      !newAttribute &&
+      !equal(attributeInfo, await this.getAttributeInfo(did, hash))
+    )
+      throw new InternalError(API_ERROR_MESSAGES.ATTRIBUTES_MISMATCH);
+
+    await this.addCredentialInfo(did, attributeInfo);
     return {
-      ...(await this.addCredentialInfo(did, iCredentialInfo)),
-      hash: fileHash,
+      ...attributeInfo,
+      data: attributeInput.data,
     };
   }
 
@@ -153,24 +145,32 @@ export class IDHub implements IIDHub {
 
   /**
    * Adds a specific credential file to user's ID Hub (or the specified database)
-   * @param did Session ID between the front-end and backend wallet. We require this to be sure the call is coming from an authenticated user
-   * @param iCredentialFile Credential data File to be stored to the specified database
    */
   private async addAttributeFile(
-    did: string,
-    inCredentialFile: ICASFile
-  ): Promise<string> {
-    // to avoid duplicate files, we add a random prefix
-    const iCredentialFile = IDHub.addPrefix(inCredentialFile);
-    // add a Credential to ID Hub
-    const response = await this.credFileDB.insert(iCredentialFile);
-    // check response and return file hash
-    if (!response || !response.hash) {
-      throw Error(
-        `Document File ${iCredentialFile.fileName} could not be added to ${iCredentialFile.database}`
-      );
+    file: ICASFile,
+    inHash: string
+  ): Promise<{ hash: string; newAttribute: boolean }> {
+    // tries to add attribute file, if it exists, returns the same hash indicating so
+    try {
+      const response: ICASStorageOut = await this.credFileDB.insert(file);
+      if (!response || !response.hash)
+        throw new InternalError(API_ERROR_MESSAGES.ERROR_STORING_FILE);
+      if (response.hash !== inHash)
+        throw new InternalError(API_ERROR_MESSAGES.HASH_MISMATCH);
+      const newAttribute = true;
+      return { hash: response.hash, newAttribute };
+    } catch (error) {
+      if (
+        (error as Error).message.includes(EBSI_API_ERRORS.BAD_REQUEST) &&
+        (error as BadRequestError).Detail.includes(
+          "This file is already stored with name"
+        )
+      ) {
+        const newAttribute = false;
+        return { hash: inHash, newAttribute };
+      }
+      throw error;
     }
-    return response.hash;
   }
 
   /**
@@ -181,7 +181,7 @@ export class IDHub implements IIDHub {
   private async addCredentialInfo(
     did: string,
     iCredentialInfo: ICredentialInfo
-  ): Promise<ICallResponse> {
+  ): Promise<ICredential> {
     // adds a new element to the list -> it checks if list exists, and creates a new one
     return this.credInfoListDB.insertElem(did, iCredentialInfo);
   }
@@ -200,18 +200,5 @@ export class IDHub implements IIDHub {
       throw Error(`Credential Info not found with this hash: ${hash}`);
     // returns the element
     return iCredList.list[index];
-  }
-
-  private static addPrefix(inFile: ICASFile): ICASFile {
-    const prefix = setId("ebsi");
-    const file = inFile;
-    file.fileData = `${prefix}:${inFile.fileData}`;
-    return file;
-  }
-
-  private static deletePrefix(data: string): string {
-    // delete the 42 initial characters of the prefix set
-    // ebsi-uuid:
-    return data.substring(42);
   }
 }

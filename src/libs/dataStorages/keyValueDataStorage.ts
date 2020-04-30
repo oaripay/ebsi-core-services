@@ -1,7 +1,6 @@
 import AuthManager from "../authManager/authManager";
 import { getStorageConfig } from "../../utils/util";
 import { WALLET_DATASTORE_CONFIG } from "../../config";
-import { ICallResponse } from "../../dtos/messages";
 
 /**
  * Class to a Key Value Data Storage using EBSI API
@@ -31,7 +30,7 @@ export default class KeyValueDataStorage {
    * Inserts an element to the Data Storage
    * @param data Data to be inserted
    */
-  async insert(key: string, data: any): Promise<ICallResponse> {
+  async insert(key: string, data: any): Promise<any> {
     return this.iAuthManager.doPutCall(
       data,
       `${this.uri}/${key}`,
@@ -43,7 +42,7 @@ export default class KeyValueDataStorage {
    * Updates an already inserted element to the Data Storage
    * @param data Data to be inserted
    */
-  async update(key: string, data: any): Promise<ICallResponse> {
+  async update(key: string, data: any): Promise<any> {
     // performs an Insert as it does the same behaviour as an update
     return this.iAuthManager.doPutCall(
       data,

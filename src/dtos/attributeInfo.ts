@@ -5,9 +5,9 @@ export interface ICredentialInfoList {
 export interface ICredentialInfo {
   id: string;
   type: string;
+  name: string;
   hash: string;
-  name?: string;
-  issuer?: string;
+  did: string;
 }
 
 export interface ICredentialOut extends ICredentialInfo {
@@ -20,7 +20,6 @@ export interface ICredData {
 
 export interface IAttributeInput {
   id: string;
-  issuer?: string;
   type: string[];
   name: string;
   data: ICredData;

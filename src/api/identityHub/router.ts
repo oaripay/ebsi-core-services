@@ -28,8 +28,8 @@ class Router {
             throw new BadRequestError(
               API_ERROR_MESSAGES.ATTRIBUTES_DID_HASH_NOT_FOUND
             );
-          const { didJwt } = req.params;
-          const result = await Controller.setAttribute(didJwt, req.body);
+          const { didJwt, hash } = req.params;
+          const result = await Controller.setAttribute(didJwt, hash, req.body);
           res.status(201).json(result);
         } catch (error) {
           next(error);

@@ -2,17 +2,17 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable class-methods-use-this */
 
-import IDataStorage from "./dataStorage";
+import AuthManager from "../authManager/authManager";
 import { getStorageConfig } from "../../utils/util";
 import { WALLET_DATASTORE_CONFIG } from "../../config";
 import { ICASFile } from "../../daos/casFile";
 import { ICASStorageOut } from "../../dtos/dataStorage";
-import AuthManager from "../authManager/authManager";
+import { InternalError } from "../../errors";
 
 /**
  * Class to a Content Addressable Data Storage using EBSI API
  */
-export default class CASDataStorage implements IDataStorage {
+export default class CASDataStorage {
   private uri: string;
 
   private targetApp: string;
@@ -41,7 +41,7 @@ export default class CASDataStorage implements IDataStorage {
   async insert(data: ICASFile): Promise<ICASStorageOut> {
     return AuthManager.Instance.doPostFormCall(
       data,
-      `${this.uri}/store`,
+      `${this.uri}`,
       this.targetApp
     );
   }
@@ -52,19 +52,16 @@ export default class CASDataStorage implements IDataStorage {
    */
   // eslint-disable-next-line @typescript-eslint/require-await
   async update(data: any): Promise<any> {
-    throw Error("Method not implemented on CASDataStorage");
+    throw new InternalError("Method not implemented on CASDataStorage");
   }
 
   /**
    * Deletes an element from the Data Storage
    * @param hash key to identify the element to delete
    */
-  async delete(hash: string): Promise<any> {
-    // the only database supportes is cassandra
-    const database = "cassandra";
-    return AuthManager.Instance.doPostCall(
-      null,
-      `${this.uri}/delete/${hash}/${database}`,
+  async delete(hash: string): Promise<void> {
+    await AuthManager.Instance.doDeleteCall(
+      `${this.uri}/${hash}`,
       this.targetApp
     );
   }
@@ -75,11 +72,6 @@ export default class CASDataStorage implements IDataStorage {
    */
   async get(hash: string): Promise<string> {
     const url = `${this.uri}/${hash}`;
-    // add database as a parameter when it is set
-    /* USING CASSANDRA AS DEFAULT
-          if (this.database)
-              url += '/' + this.database
-          */
     return AuthManager.Instance.doGetCall(url, this.targetApp);
   }
 }

@@ -4,8 +4,7 @@ import {
   IAttributeInput,
 } from "../../dtos/attributeInfo";
 import { BadRequestError, API_ERROR_MESSAGES } from "../../errors";
-import { ICallResponse } from "../../dtos/messages";
-import { IDHub } from "../../libs/identityHub/idHub";
+import IDHub from "../../libs/identityHub/idHub";
 
 export default class Controller {
   static async getAttributes(did: string): Promise<ICredentialInfoList> {
@@ -34,8 +33,9 @@ export default class Controller {
 
   static async setAttribute(
     did: string,
+    hash: string,
     iAttributeInput: IAttributeInput
-  ): Promise<ICallResponse> {
+  ): Promise<ICredentialOut> {
     if (
       !iAttributeInput.id ||
       !iAttributeInput.type ||
@@ -44,6 +44,6 @@ export default class Controller {
       !iAttributeInput.data.base64
     )
       throw new BadRequestError(API_ERROR_MESSAGES.ATTRIBUTE_INPUT_MALFORMED);
-    return IDHub.Instance.setAttribute(did, iAttributeInput);
+    return IDHub.Instance.setAttribute(did, hash, iAttributeInput);
   }
 }

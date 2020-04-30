@@ -1,7 +1,6 @@
 /* eslint-disable no-useless-constructor */
 
 import { ICredentialInfo, ICredentialInfoList } from "../dtos/attributeInfo";
-import { ICallResponse } from "../dtos/messages";
 import { InternalError, BadRequestError } from "../errors";
 import { ICredential } from "../daos/credential";
 import KeyValueDataStorage from "../libs/dataStorages/keyValueDataStorage";
@@ -27,10 +26,7 @@ export default class CredentialInfoList extends KeyValueDataStorage {
    * @param key User's DID to identify documents
    * @param value a new ICredentialInfo to be inserted to the list
    */
-  async insertElem(
-    key: string,
-    value: ICredentialInfo
-  ): Promise<ICallResponse> {
+  async insertElem(key: string, value: ICredentialInfo): Promise<ICredential> {
     let iCredList: ICredentialInfoList;
 
     try {
@@ -72,7 +68,7 @@ export default class CredentialInfoList extends KeyValueDataStorage {
    * Inserts an element to the Data Storage
    * @param data Data to be inserted
    */
-  async insertValue(data: ICredential): Promise<ICallResponse> {
+  async insertValue(data: ICredential): Promise<ICredential> {
     return super.insert(
       CredentialInfoList.setKey(data.did),
       JSON.parse(JSON.stringify(data.data))
@@ -85,7 +81,7 @@ export default class CredentialInfoList extends KeyValueDataStorage {
    * @param key User's DID to identify documents
    * @param value a new ICredentialInfo to be updated to the list
    */
-  async updateElem(key: string, value: ICredentialInfo): Promise<void> {
+  async updateElem(key: string, value: ICredentialInfo): Promise<ICredential> {
     // we first get the list stored in the DB value
     const iCredList: ICredentialInfoList = (await this.get(key)).data;
     // returns the index element (it already throws an error if not exists)
@@ -93,7 +89,7 @@ export default class CredentialInfoList extends KeyValueDataStorage {
     // updates CredentialInfo List with the new value
     iCredList.list[index] = <ICredentialInfo>iCredInfo;
     // inserts the new ICredentialInfoList
-    await this.updateValue({
+    return this.updateValue({
       did: key,
       data: iCredList,
     });
@@ -103,7 +99,7 @@ export default class CredentialInfoList extends KeyValueDataStorage {
    * Updates an already inserted element to the Data Storage
    * @param data Data to be updated
    */
-  async updateValue(data: ICredential): Promise<ICallResponse> {
+  async updateValue(data: ICredential): Promise<ICredential> {
     // performs an Insert as it does the same behaviour as an update
     return super.update(
       CredentialInfoList.setKey(data.did),

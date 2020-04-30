@@ -93,6 +93,10 @@ enum API_ERROR_MESSAGES {
   ATTRIBUTE_TYPE_MALFORMED = `"type" must be url-encoded type, e.g. encodeURIComponent(JSON.stringify(["EssifVerifiableID", "EuropassDiploma"]))`,
   ATTRIBUTE_INPUT_MALFORMED = `Attribute must contain id, type, name, data and data.base64`,
   ERROR_DECODING_JWT = "Error decoding JWT",
+  ERROR_STORING_FILE = "Error storing file",
+  HASH_MISMATCH = "File hash provided mismatches from the file hash stored.",
+  ERROR_RETRIEVING_ATTRIBUTES = "Error retrieving attributes",
+  ATTRIBUTES_MISMATCH = "Trying to store same hash with different data file",
 }
 
 enum WALLET_MESSAGES {
