@@ -70,11 +70,13 @@ npm run test
 
 ## Integration tests
 
-Define `EBSI_ENV` to select the location of the timestamp api to test. Run:
+Integration tests can be done locally or connecting to an existing api deployed.
 
-```
-npm run test:e2e
-```
+- Run `EBSI_ENV=local npm run test:e2e` to run the tests without launching the api.
+- Run `EBSI_ENV=integration npm run test:e2e` to run the tests connecting to the api in the integration environment.
+- Run `EBSI_ENV=local EBSI_API=http://localhost:8080 npm run test:e2e` to run the tests connecting to a particular api already launched and listening in the url `EBSI_API`
+
+If you run it locally you can add `EBSI_TEST_MODE=true` to not connect to the Trusted App Registry when doing `/sessions`. If this variable is not set then both `TEST_APP_NAME` and `TEST_APP_PRIVATE_KEY` must correspond with an app registered and authorized in the Trusted App Registry.
 
 ## Swagger documentation
 
