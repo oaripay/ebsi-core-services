@@ -7,7 +7,7 @@ import { ICASStorageOut } from "../../src/dtos/dataStorage";
 import DataStoreManager from "../../src/libs/dataStorages/dataStoreManager";
 
 jest.setTimeout(100000);
-const { credentialFileDB } = DataStoreManager.Instance;
+const { attributeFileDB } = DataStoreManager.Instance;
 const testFilename2 = "swagger.pdf";
 const testF2Hash =
   "0x4f50f224bb05e6c647d50da7a21617909bfef0c6ed65bf5068a66b8da266438d";
@@ -16,7 +16,7 @@ const testFilePath = "../data/documents/";
 describe("cASFile model", () => {
   it("should return a CASFile empty object", () => {
     expect.assertions(1);
-    expect(credentialFileDB).toBeInstanceOf(CASFile);
+    expect(attributeFileDB).toBeInstanceOf(CASFile);
   });
 
   // TEST PASSES BUT FILE ALREADY STORED: SO COMMENTED UNTIL DELETE FILE STORE API CALL IS PROVIDED
@@ -39,15 +39,15 @@ describe("cASFile model", () => {
       function: "keccak256",
     };
 
-    await expect(credentialFileDB.insert(iFile)).rejects.toThrow(
+    await expect(attributeFileDB.insert(iFile)).rejects.toThrow(
       "Request failed with status code 400"
     );
 
     // we then delete it
-    await credentialFileDB.delete(testF2Hash);
+    await attributeFileDB.delete(testF2Hash);
 
     // and we insert again
-    const insertResponse = <ICASStorageOut>await credentialFileDB.insert(iFile);
+    const insertResponse = <ICASStorageOut>await attributeFileDB.insert(iFile);
     expect(insertResponse).toMatchObject(expectedInsertResult);
   });
 });

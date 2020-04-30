@@ -78,23 +78,6 @@ const getStorageConfig = (walletStorageType: number): [string, string] => {
 
 const setId = (prefix: string): string => `${prefix}-${uuidv4()}`;
 
-const setCredId = (): string => setId("cred");
-
-const setCredType = (credType: string): string => {
-  // usually credential type is a string with an array of strings "['VerifiableCredential', 'EssifVerifiableID']"
-  // but when building a Verifiable Presentation, it needs to be shown to the user this Credential Type,
-  // so we simplify it with just one string more UI friendly: EssifVerifiableID -> Verifiable ID
-  let outCredType = credType;
-  const tmpCredType: string[] = [];
-  if (credType.includes(DEFAULT_VERIFIABLEID_TYPE))
-    tmpCredType.push(DEFAULT_VID_TYPE_TEXT);
-  if (credType.includes(DEFAULT_DIPLOMA_TYPE))
-    tmpCredType.push(DEFAULT_DIPLOMA_TYPE_TEXT);
-  if (tmpCredType.length > 0) outCredType = JSON.stringify(tmpCredType);
-
-  return outCredType;
-};
-
 const setCredName = (credType: string, base64Data: string): string => {
   if (credType.includes(DEFAULT_VERIFIABLEID_TYPE))
     return DEFAULT_VID_TYPE_TEXT;
@@ -203,9 +186,7 @@ export {
   setId,
   isHex,
   getStorageConfig,
-  setCredId,
   isTokenExpired,
-  setCredType,
   setCredName,
   setCredIssuer,
   hashFromFile,

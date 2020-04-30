@@ -1,4 +1,4 @@
 import CASFile from "./casFile";
-import CredentialInfoList from "./credentialInfoList";
+import AttributeInfoList from "./attributeInfoList";
 
-export { CASFile, CredentialInfoList };
+export { CASFile, AttributeInfoList };

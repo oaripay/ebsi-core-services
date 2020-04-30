@@ -4,16 +4,16 @@
 
 import CASFile from "../../models/casFile";
 import { WALLET_DATA_STORE_TYPE } from "../../config";
-import CredentialInfoList from "../../models/credentialInfoList";
+import AttributeInfoList from "../../models/attributeInfoList";
 
 export default class DataStoreManager {
   private static instance: DataStoreManager;
 
-  private privCredentialFileDB!: CASFile;
+  private privAtttributeFileDB!: CASFile;
 
-  private privCredInfoListDB!: CredentialInfoList;
+  private privCredInfoListDB!: AttributeInfoList;
 
-  private privCredentialDBType = "cassandra";
+  private privAttributeDBType = "cassandra";
 
   private constructor() {}
 
@@ -26,9 +26,9 @@ export default class DataStoreManager {
   /* Key Value Data Base Storage Instances */
   /** ************************************** */
 
-  public get credInfoListDB(): CredentialInfoList {
+  public get credInfoListDB(): AttributeInfoList {
     if (!this.privCredInfoListDB) {
-      this.privCredInfoListDB = CredentialInfoList.getInstance(
+      this.privCredInfoListDB = AttributeInfoList.getInstance(
         WALLET_DATA_STORE_TYPE.CREDINFOLIST_STORAGE
       );
     }
@@ -39,13 +39,13 @@ export default class DataStoreManager {
   /* CAS File Data Base Storage Instances */
   /** ************************************** */
 
-  public get credentialFileDB(): CASFile {
-    if (!this.privCredentialFileDB) {
-      this.privCredentialFileDB = CASFile.getInstance(
+  public get attributeFileDB(): CASFile {
+    if (!this.privAtttributeFileDB) {
+      this.privAtttributeFileDB = CASFile.getInstance(
         WALLET_DATA_STORE_TYPE.CREDENTIALFILE_STORAGE,
-        this.privCredentialDBType
+        this.privAttributeDBType
       );
     }
-    return this.privCredentialFileDB;
+    return this.privAtttributeFileDB;
   }
 }

@@ -1,20 +1,20 @@
 import {
-  ICredentialInfoList,
-  ICredentialOut,
+  IAttributeInfoList,
+  IAttribute,
   IAttributeInput,
 } from "../../dtos/attributeInfo";
 import { BadRequestError, API_ERROR_MESSAGES } from "../../errors";
 import IDHub from "../../libs/identityHub/idHub";
 
 export default class Controller {
-  static async getAttributes(did: string): Promise<ICredentialInfoList> {
+  static async getAttributes(did: string): Promise<IAttributeInfoList> {
     return IDHub.Instance.getAttributes(did);
   }
 
   static async getAttributesFiltered(
     did: string,
     type: string
-  ): Promise<ICredentialInfoList> {
+  ): Promise<IAttributeInfoList> {
     try {
       JSON.parse(type);
     } catch (error) {
@@ -24,10 +24,7 @@ export default class Controller {
     return IDHub.Instance.getAttributesFiltered(did, types);
   }
 
-  static async getAttribute(
-    did: string,
-    hash: string
-  ): Promise<ICredentialOut> {
+  static async getAttribute(did: string, hash: string): Promise<IAttribute> {
     return IDHub.Instance.getAttribute(did, hash);
   }
 
@@ -35,7 +32,7 @@ export default class Controller {
     did: string,
     hash: string,
     iAttributeInput: IAttributeInput
-  ): Promise<ICredentialOut> {
+  ): Promise<IAttribute> {
     if (
       !iAttributeInput.id ||
       !iAttributeInput.type ||

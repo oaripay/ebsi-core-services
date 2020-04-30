@@ -2,21 +2,16 @@
 /* eslint-disable no-useless-constructor */
 import equal from "fast-deep-equal";
 import {
-  ICredentialInfoList,
-  ICredentialOut,
-  ICredentialInfo,
+  IAttributeInfoList,
+  IAttribute,
+  IAttributeInfo,
   IAttributeInput,
 } from "../../dtos/attributeInfo";
-import CredentialInfoList from "../../models/credentialInfoList";
+import AttributeInfoList from "../../models/attributeInfoList";
 import CASFile from "../../models/casFile";
 import { ICASFile } from "../../daos/casFile";
 import { EBSI_DEFAULT_DATA_STORE } from "../../config";
-import {
-  setCredId,
-  setCredIssuer,
-  setCredType,
-  setCredName,
-} from "../../utils/Util";
+import { setCredIssuer, setCredName } from "../../utils/Util";
 import { DataStoreManager } from "../dataStorages";
 import { ICASStorageOut } from "../../dtos/dataStorage";
 import {
@@ -25,15 +20,15 @@ import {
   EBSI_API_ERRORS,
   BadRequestError,
 } from "../../errors";
-import { ICredential } from "../../daos/credential";
+import { AttributeDAO } from "../../daos/attribute";
 
 export default class IDHub {
   private static instance: IDHub;
 
   private constructor(
-    private credInfoListDB: CredentialInfoList = DataStoreManager.Instance
+    private credInfoListDB: AttributeInfoList = DataStoreManager.Instance
       .credInfoListDB,
-    private credFileDB: CASFile = DataStoreManager.Instance.credentialFileDB
+    private credFileDB: CASFile = DataStoreManager.Instance.attributeFileDB
   ) {}
 
   static get Instance() {
@@ -42,9 +37,9 @@ export default class IDHub {
   }
 
   /**
-   * Retrieves all Credentials objects stored in user's ID Hub
+   * Retrieves all attributes objects stored in user's ID Hub
    */
-  async getAttributes(did: string): Promise<ICredentialInfoList> {
+  async getAttributes(did: string): Promise<IAttributeInfoList> {
     try {
       return (await this.credInfoListDB.get(did)).data;
     } catch (error) {
@@ -60,9 +55,9 @@ export default class IDHub {
   async getAttributesFiltered(
     did: string,
     filter: string[]
-  ): Promise<ICredentialInfoList> {
-    const attributeList: ICredentialInfoList = await this.getAttributes(did);
-    const resultList: ICredentialInfoList = { list: [] };
+  ): Promise<IAttributeInfoList> {
+    const attributeList: IAttributeInfoList = await this.getAttributes(did);
+    const resultList: IAttributeInfoList = { list: [] };
 
     attributeList.list.forEach((elem) => {
       // eslint-disable-next-line no-restricted-syntax
@@ -77,11 +72,11 @@ export default class IDHub {
   }
 
   /**
-   * Retrieves a specific Credential file stored in user's ID Hub
+   * Retrieves a specific attribute file stored in user's ID Hub
    * @param did's Wallet DID
-   * @param hash Credential hash to identify it
+   * @param hash attribute hash to identify it
    */
-  async getAttribute(did: string, hash: string): Promise<ICredentialOut> {
+  async getAttribute(did: string, hash: string): Promise<IAttribute> {
     const data = await this.credFileDB.get(hash);
     const iCredInfo = await this.getAttributeInfo(did, hash);
 
@@ -96,15 +91,15 @@ export default class IDHub {
   }
 
   /**
-   * Stores the specified credential to DID's ID HUB and its associated metadata to the DID's CredentialInfoList
+   * Stores the specified credential to DID's ID HUB and its associated metadata to the DID's AttributeInfoList
    * @param did attribute's did owner
-   * @param iAttributeInput Necessary data to store a Credential File to ID Hub and its correspondent CredentialInfo to the DID's CredentialInfoList
+   * @param iAttributeInput Necessary data to store a attribute File to ID Hub and its correspondent AttributeInfo to the DID's AttributeInfoList
    */
   async setAttribute(
     did: string,
     hash: string,
     attributeInput: IAttributeInput
-  ): Promise<ICredentialOut> {
+  ): Promise<IAttribute> {
     // stores the Attribute File
     const file: ICASFile = {
       fileData: attributeInput.data.base64,
@@ -114,9 +109,9 @@ export default class IDHub {
     const { newAttribute } = await this.addAttributeFile(file, hash);
 
     const issuer = setCredIssuer(attributeInput.id, attributeInput.data.base64);
-    const attributeInfo: ICredentialInfo = {
-      id: setCredId(),
-      type: setCredType(attributeInput.id),
+    const attributeInfo: IAttributeInfo = {
+      id: attributeInput.id,
+      type: attributeInput.type,
       hash,
       name: setCredName(attributeInput.id, attributeInput.data.base64),
       did: issuer || did, // attribute's did issuer or the did provided (which will be from the user who stores it)
@@ -128,7 +123,7 @@ export default class IDHub {
     )
       throw new InternalError(API_ERROR_MESSAGES.ATTRIBUTES_MISMATCH);
 
-    await this.addCredentialInfo(did, attributeInfo);
+    await this.addAttributeInfo(did, attributeInfo);
     return {
       ...attributeInfo,
       data: attributeInput.data,
@@ -138,7 +133,7 @@ export default class IDHub {
   private async getAttributeInfo(
     did: string,
     hash: string
-  ): Promise<ICredentialInfo> {
+  ): Promise<IAttributeInfo> {
     const iCredInfoList = await this.getAttributes(did);
     return IDHub.getElemByHash(hash, iCredInfoList);
   }
@@ -174,31 +169,31 @@ export default class IDHub {
   }
 
   /**
-   * Adda a new CredentialInfo to the DID's CredentialInfoList
+   * Adda a new AttributeInfo to the DID's AttributeInfoList
    * @param did Session ID between the front-end and backend wallet
-   * @param iCredentialInfo the new ICredentialInfo to be inserted in the list
+   * @param IAttributeInfo the new IAttributeInfo to be inserted in the list
    */
-  private async addCredentialInfo(
+  private async addAttributeInfo(
     did: string,
-    iCredentialInfo: ICredentialInfo
-  ): Promise<ICredential> {
+    attributeInfo: IAttributeInfo
+  ): Promise<AttributeDAO> {
     // adds a new element to the list -> it checks if list exists, and creates a new one
-    return this.credInfoListDB.insertElem(did, iCredentialInfo);
+    return this.credInfoListDB.insertElem(did, attributeInfo);
   }
 
   private static getElemByHash(
     hash: string,
-    iCredList: ICredentialInfoList
-  ): ICredentialInfo {
+    iAttributeList: IAttributeInfoList
+  ): IAttributeInfo {
     // checks if list has elements
-    if (iCredList.list[0] == null)
-      throw Error(`Credential Info not found with this hash: ${hash}`);
+    if (iAttributeList.list[0] == null)
+      throw Error(`Attribute Info not found with this hash: ${hash}`);
     // finds the index of the element
-    const index: number = iCredList.list.findIndex((x) => x.hash === hash);
+    const index: number = iAttributeList.list.findIndex((x) => x.hash === hash);
     // throws error if not found
     if (index === -1)
-      throw Error(`Credential Info not found with this hash: ${hash}`);
+      throw Error(`Attribute Info not found with this hash: ${hash}`);
     // returns the element
-    return iCredList.list[index];
+    return iAttributeList.list[index];
   }
 }

@@ -46,7 +46,7 @@ enum API_ERROR_MESSAGES {
   NO_AUTHZ_TOKEN = "No AuthZ Token.",
   NO_BEARER_TOKEN = "No Bearer Token.",
   NO_CONFIG_TRUSTED_APP_NAMES = "No configuration found for Trusted App Names",
-  NO_CREDINFO_FOUND = "Credential Info object not found",
+  NO_CREDINFO_FOUND = "Attribute Info object not found",
   NO_DATA_NOTIFICATION = "Notification has no data",
   NO_EBSI_SERVICE_AVAILABLE = "The current EBSI SERVICE specified is not available",
   NO_SUBSCRIBER_URL = "Requester needs to provide an URL to send the presentation",

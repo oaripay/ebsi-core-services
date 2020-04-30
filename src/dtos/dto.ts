@@ -29,7 +29,7 @@ export interface OpInfo {
   opTypeId: string;
 }
 
-export interface CredentialInfo {
+export interface AttributeInfo {
   id: string;
   credTypeId: string;
   name: string;

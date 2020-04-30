@@ -1,15 +1,15 @@
 /* eslint-disable no-useless-constructor */
 
-import { ICredentialInfo, ICredentialInfoList } from "../dtos/attributeInfo";
+import { IAttributeInfo, IAttributeInfoList } from "../dtos/attributeInfo";
 import { InternalError, BadRequestError } from "../errors";
-import { ICredential } from "../daos/credential";
+import { AttributeDAO } from "../daos/attribute";
 import KeyValueDataStorage from "../libs/dataStorages/keyValueDataStorage";
 
 /**
  * Class to a Credential Data
  */
-export default class CredentialInfoList extends KeyValueDataStorage {
-  private static instance: CredentialInfoList;
+export default class AttributeInfoList extends KeyValueDataStorage {
+  private static instance: AttributeInfoList;
 
   private constructor(walletDataStoreType: number) {
     super(walletDataStoreType);
@@ -21,32 +21,32 @@ export default class CredentialInfoList extends KeyValueDataStorage {
   }
 
   /**
-   * Insert a new Credential Info to the List
+   * Insert a new Attribute Info to the List
    *
    * @param key User's DID to identify documents
-   * @param value a new ICredentialInfo to be inserted to the list
+   * @param value a new IAttributeInfo to be inserted to the list
    */
-  async insertElem(key: string, value: ICredentialInfo): Promise<ICredential> {
-    let iCredList: ICredentialInfoList;
+  async insertElem(key: string, value: IAttributeInfo): Promise<AttributeDAO> {
+    let iAttributeList: IAttributeInfoList;
 
     try {
       // we first get the list stored in the DB value (if it exists)
-      iCredList = (await this.get(key)).data;
+      iAttributeList = (await this.get(key)).data;
       try {
-        // checks if the CredentialInfo already exists
+        // checks if the AttributeInfo already exists
         const { index, iCredInfo } = await this.getElem(key, value.id);
-        // updates CredentialInfo List with the new value
-        iCredList.list[index] = <ICredentialInfo>iCredInfo;
+        // updates AttributeInfo List with the new value
+        iAttributeList.list[index] = <IAttributeInfo>iCredInfo;
       } catch (error) {
         // value does not exist
         if (
           (<Error>error).message ===
-          `Credential Info not found with this id: ${value.id}`
+          `Attribute Info not found with this id: ${value.id}`
         ) {
-          // push the new value (a sigle CredentialInfo) and insert the list again
-          iCredList.list.push(value);
+          // push the new value (a sigle AttributeInfo) and insert the list again
+          iAttributeList.list.push(value);
         } else {
-          throw new InternalError("Error in getting a CredentialInfo element");
+          throw new InternalError("Error in getting a AttributeInfo element");
         }
       }
     } catch (error) {
@@ -56,11 +56,11 @@ export default class CredentialInfoList extends KeyValueDataStorage {
         throw new InternalError("Get from DB returned an error");
       }
       // create a new list
-      iCredList = { list: [value] };
+      iAttributeList = { list: [value] };
     }
     return this.insertValue({
       did: key,
-      data: iCredList,
+      data: iAttributeList,
     });
   }
 
@@ -68,30 +68,30 @@ export default class CredentialInfoList extends KeyValueDataStorage {
    * Inserts an element to the Data Storage
    * @param data Data to be inserted
    */
-  async insertValue(data: ICredential): Promise<ICredential> {
+  async insertValue(data: AttributeDAO): Promise<AttributeDAO> {
     return super.insert(
-      CredentialInfoList.setKey(data.did),
+      AttributeInfoList.setKey(data.did),
       JSON.parse(JSON.stringify(data.data))
     );
   }
 
   /**
-   * Update a specific Credential Info from DB
+   * Update a specific Attribute Info from DB
    *
    * @param key User's DID to identify documents
-   * @param value a new ICredentialInfo to be updated to the list
+   * @param value a new IAttributeInfo to be updated to the list
    */
-  async updateElem(key: string, value: ICredentialInfo): Promise<ICredential> {
+  async updateElem(key: string, value: IAttributeInfo): Promise<AttributeDAO> {
     // we first get the list stored in the DB value
-    const iCredList: ICredentialInfoList = (await this.get(key)).data;
+    const iAttributeList: IAttributeInfoList = (await this.get(key)).data;
     // returns the index element (it already throws an error if not exists)
     const { index, iCredInfo } = await this.getElem(key, value.id);
-    // updates CredentialInfo List with the new value
-    iCredList.list[index] = <ICredentialInfo>iCredInfo;
-    // inserts the new ICredentialInfoList
+    // updates AttributeInfo List with the new value
+    iAttributeList.list[index] = <IAttributeInfo>iCredInfo;
+    // inserts the new IAttributeInfoList
     return this.updateValue({
       did: key,
-      data: iCredList,
+      data: iAttributeList,
     });
   }
 
@@ -99,31 +99,31 @@ export default class CredentialInfoList extends KeyValueDataStorage {
    * Updates an already inserted element to the Data Storage
    * @param data Data to be updated
    */
-  async updateValue(data: ICredential): Promise<ICredential> {
+  async updateValue(data: AttributeDAO): Promise<AttributeDAO> {
     // performs an Insert as it does the same behaviour as an update
     return super.update(
-      CredentialInfoList.setKey(data.did),
+      AttributeInfoList.setKey(data.did),
       JSON.parse(JSON.stringify(data.data))
     );
   }
 
   /**
-   * Deletes a specific Credential Info from DB
+   * Deletes a specific Attribute Info from DB
    *
    * @param key User's DID to identify documents
-   * @param id a ICredentialInfo identifier
+   * @param id a IAttributeInfo identifier
    */
   async deleteElem(key: string, id: string): Promise<void> {
     // we first get the list stored in the DB value
-    const iCredList: ICredentialInfoList = (await this.get(key)).data;
+    const iAttributeList: IAttributeInfoList = (await this.get(key)).data;
     // returns the index element (it already throws an error if not exists)
     const { index } = await this.getElem(key, id);
-    // removes CredentialInfo from the List
-    delete iCredList.list[index];
-    // inserts the new ICredential
+    // removes AttributeInfo from the List
+    delete iAttributeList.list[index];
+    // inserts the new AttributeDAO
     await this.insertValue({
       did: key,
-      data: iCredList,
+      data: iAttributeList,
     });
   }
 
@@ -133,47 +133,43 @@ export default class CredentialInfoList extends KeyValueDataStorage {
    * @param key User's DID to identify documents
    */
   async delete(key: string): Promise<void> {
-    await super.delete(CredentialInfoList.setKey(key));
+    await super.delete(AttributeInfoList.setKey(key));
   }
 
   /**
    * Retrieves an element from the Data Storage
    * @param key key to identify the element to retrieve
    */
-  async get(key: string): Promise<ICredential> {
-    const value = await super.get(CredentialInfoList.setKey(key));
+  async get(key: string): Promise<AttributeDAO> {
+    const value = await super.get(AttributeInfoList.setKey(key));
     return {
       did: key,
-      data: <ICredentialInfoList>JSON.parse(JSON.stringify(value)),
+      data: <IAttributeInfoList>JSON.parse(JSON.stringify(value)),
     };
   }
 
   /**
-   * Retrieve a specific CredentialInfo from the list
+   * Retrieve a specific AttributeInfo from the list
    *
    * @param key User's DID to identify documents
-   * @param id a ICredentialInfo identifier
+   * @param id a IAttributeInfo identifier
    */
   async getElem(
     key: string,
     id: string
-  ): Promise<{ index: number; iCredInfo: ICredentialInfo | undefined }> {
+  ): Promise<{ index: number; iCredInfo: IAttributeInfo | undefined }> {
     // we first get the list stored in the DB value
-    const iCredList: ICredentialInfoList = (await this.get(key)).data;
+    const iAttributeList: IAttributeInfoList = (await this.get(key)).data;
     // checks if list has elements
-    if (iCredList.list[0] == null)
-      throw new BadRequestError(
-        `Credential Info not found with this id: ${id}`
-      );
+    if (iAttributeList.list[0] == null)
+      throw new BadRequestError(`Attribute Info not found with this id: ${id}`);
     // finds the index of the element
-    const index: number = iCredList.list.findIndex((x) => x.id === id);
+    const index: number = iAttributeList.list.findIndex((x) => x.id === id);
     // throws error if not found
     if (index === -1)
-      throw new BadRequestError(
-        `Credential Info not found with this id: ${id}`
-      );
+      throw new BadRequestError(`Attribute Info not found with this id: ${id}`);
     // returns the element
-    const iCredInfo = iCredList.list[index];
+    const iCredInfo = iAttributeList.list[index];
     // return the elem index and its value
     return { index, iCredInfo };
   }

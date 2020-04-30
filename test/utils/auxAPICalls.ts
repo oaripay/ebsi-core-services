@@ -1,5 +1,5 @@
 import axios from "axios";
-import { JWK, JWKECKey } from "jose";
+import { JWK, JWKECKey, JWT } from "jose";
 import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
 import { SimpleSigner, createJWT } from "did-jwt";
@@ -8,6 +8,8 @@ import { COMPONENT_KEYSTORE, API_NAME, LOG_LEVEL } from "../../src/config";
 import {
   LegalEntityAuthNToken,
   UserAuthNToken,
+  IUserAuthZToken,
+  IEnterpriseAuthZToken,
 } from "../../src/libs/authManager/secureEnclave/jwt";
 import { PRINT_SILLY, PRINT_DEBUG } from "../../src/utils/util";
 import { InternalError, API_ERROR_MESSAGES } from "../../src/errors";
@@ -36,6 +38,14 @@ const mockedUserUE = {
   lastname: "Long",
 };
 
+const mockedEnterpriseUser = {
+  name: "Test Legal Entity",
+  data: {
+    did: "did:ebsi:0xefb3F269Bb3a0aa5BB4Cd6E6629BAa66863d3a92",
+    publickey: "0x04",
+  },
+};
+
 const testAuthNToken = async (): Promise<{
   did: string;
   key: JWKECKey;
@@ -49,20 +59,28 @@ const testAuthNToken = async (): Promise<{
 
 const testEntityAuthNToken = async (
   enterpiseName?: string
-): Promise<string> => {
+): Promise<{ jwt: string; jwk: JWK.ECKey; did: string }> => {
+  // generate a new keypair
+  const jwk = JWK.generateSync("EC", "secp256k1", { use: "sig" });
+  const privKeyString = Buffer.from(<string>jwk.d, "base64").toString("hex");
+  const wallet: ethers.Wallet = new ethers.Wallet(privKeyString);
+  const did = `did:ebsi:${wallet.address}`;
+
   const payload: LegalEntityAuthNToken = {
-    iss: enterpiseName || `Test Legal Entity`,
+    iss: enterpiseName || mockedEnterpriseUser.name,
     aud: API_NAME,
     iat: moment().unix(),
     exp: moment().add(15, "minutes").unix(),
     nonce: uuidv4(),
   };
-  const buffer = Buffer.from(JSON.stringify(payload));
-  const se = ComponentSecureEnclave.Instance;
-  await se.init(COMPONENT_KEYSTORE);
 
-  const jwt = await se.signJwt(se.enclaveDid, buffer);
-  return jwt;
+  const jwt = JWT.sign(payload, jwk, {
+    header: {
+      alg: "ES256K",
+      typ: "JWT",
+    },
+  });
+  return { jwt, jwk, did };
 };
 
 const testUserAuthNToken = async (): Promise<{
@@ -126,6 +144,46 @@ async function initSecureEnclave(): Promise<string> {
   return did;
 }
 
+async function getEnterpriseAuthZToken(
+  enterpiseName?: string
+): Promise<{
+  jwt: string;
+  did: string;
+}> {
+  const { did } = await testEntityAuthNToken(enterpiseName);
+  const payload: IEnterpriseAuthZToken = {
+    did,
+    aud: API_NAME,
+    nonce: uuidv4(),
+  };
+  // Create and sign JWT
+  const jwt = await AuthManager.Instance.createAuthorizationToken(
+    payload,
+    payload.aud
+  );
+  return { jwt, did };
+}
+
+async function getUserAuthZToken(): Promise<{
+  jwt: string;
+  did: string;
+}> {
+  const { did } = await testUserAuthNToken();
+  const payload: IUserAuthZToken = {
+    sub: mockedUserUE.uid,
+    did,
+    userName: `${mockedUserUE.firstname}&${mockedUserUE.lastname}`,
+  };
+
+  // Create and sign JWT
+  const jwt = await AuthManager.Instance.createAuthorizationToken(
+    payload,
+    mockedUserUE.uid
+  );
+
+  return { jwt, did };
+}
+
 function mockedSetupForTesting(): TestingSetup {
   const enterpriseToken =
     "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwczovL2FwaS5pbnRlYnNpLnh5ei9lYnNpdHJ1c3RlZGFwcC9wdWJsaWMta2V5cy8iLCJraWQiOiJlYnNpLXdhbGxldCJ9.eyJzdWIiOiJkZW1vIHRlc3QiLCJpYXQiOjE1ODYzNTY5MzQsImV4cCI6MTU4NjM1NzgzNCwiYXVkIjoiZWJzaS13YWxsZXQiLCJkaWQiOiJkaWQ6ZWJzaToweEFiZDQwZkNjNDc1NzRGMTg2NUFGNzc4NGRCNDcxZTVlN2Q1N0UwQmEiLCJlbnRlcnByaXNlTmFtZSI6ImRlbW8gdGVzdCIsIm5vbmNlIjoiMmt0ZDJGc2JHVjBJbjAuIn0.2e-YW3c-ZYnv_HxGS94aZZeLRdUEOj6IFQZjb3yWkX4TcBRP-72tXIi0c_4mpI15Eb8VGk9ajGCQf8C1_QFlKA";
@@ -147,17 +205,20 @@ function mockedSetupForTesting(): TestingSetup {
   };
 }
 
-const mockedEnterpriseUser = {
-  name: "Test Legal Entity",
-  data: {
-    did: "did:ebsi:0xefb3F269Bb3a0aa5BB4Cd6E6629BAa66863d3a92",
-    publickey: "0x04",
-  },
-};
-
 const initSetupForTesting = async (): Promise<TestingSetup> => {
   await initSecureEnclave();
-  return mockedSetupForTesting();
+  const mockedData = mockedSetupForTesting();
+  const mockedEntity = await getEnterpriseAuthZToken();
+  const { jwt, did } = await getUserAuthZToken();
+
+  return {
+    belgiumGovToken: mockedData.belgiumGovToken,
+    belgiumGovDid: mockedData.belgiumGovDid,
+    enterpriseToken: mockedEntity.jwt,
+    enterpriseDid: mockedEntity.did,
+    userToken: jwt,
+    userDid: did,
+  };
 };
 
 async function auxDoPostCallWithToken(
