@@ -106,7 +106,9 @@ const parseEntityJWT = (req: Request, res: Response, next): void => {
 
     next();
   } catch (error) {
-    next(new UnauthorizedError("Error parsing JWT"));
+    next(
+      new UnauthorizedError("You are not authorized to access the resources.")
+    );
   }
 };
 
