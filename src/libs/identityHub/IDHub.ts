@@ -25,9 +25,9 @@ export default class IDHub {
   private static instance: IDHub;
 
   private constructor(
-    private credInfoListDB: AttributeInfoList = DataStoreManager.Instance
-      .credInfoListDB,
-    private credFileDB: CASFile = DataStoreManager.Instance.attributeFileDB
+    private attributeInfoListDB: AttributeInfoList = DataStoreManager.Instance
+      .attributeInfoListDB,
+    private attributeFileDB: CASFile = DataStoreManager.Instance.attributeFileDB
   ) {}
 
   static get Instance() {
@@ -41,7 +41,7 @@ export default class IDHub {
   async getAttributes(did: string): Promise<IAttribute[]> {
     try {
       const attributes: IAttribute[] = [];
-      const attrInfoList = (await this.credInfoListDB.get(did)).data;
+      const attrInfoList = (await this.attributeInfoListDB.get(did)).data;
       attrInfoList.list.forEach(async (elem) => {
         attributes.push(await this.getAttribute(did, elem.hash));
       });
@@ -51,7 +51,7 @@ export default class IDHub {
         throw new InternalError(API_ERROR_MESSAGES.ERROR_RETRIEVING_ATTRIBUTES);
       }
       // creates an empty list and inserts it
-      await this.credInfoListDB.insertValue({ did, data: { list: [] } });
+      await this.attributeInfoListDB.insertValue({ did, data: { list: [] } });
       return [];
     }
   }
@@ -81,7 +81,7 @@ export default class IDHub {
    * @param hash attribute hash to identify it
    */
   async getAttribute(did: string, hash: string): Promise<IAttribute> {
-    const data = await this.credFileDB.get(hash);
+    const data = await this.attributeFileDB.get(hash);
     const iCredInfo = await this.getAttributeInfo(did, hash);
 
     return {
@@ -154,7 +154,7 @@ export default class IDHub {
   ): Promise<{ hash: string; newAttribute: boolean }> {
     // tries to add attribute file, if it exists, returns the same hash indicating so
     try {
-      const response: ICASStorageOut = await this.credFileDB.insert(file);
+      const response: ICASStorageOut = await this.attributeFileDB.insert(file);
       if (!response || !response.hash)
         throw new InternalError(API_ERROR_MESSAGES.ERROR_STORING_FILE);
       if (response.hash !== inHash)
@@ -185,7 +185,7 @@ export default class IDHub {
     attributeInfo: IAttributeInfo
   ): Promise<AttributeDAO> {
     // adds a new element to the list -> it checks if list exists, and creates a new one
-    return this.credInfoListDB.insertElem(did, attributeInfo);
+    return this.attributeInfoListDB.insertElem(did, attributeInfo);
   }
 
   private static getElemByHash(
