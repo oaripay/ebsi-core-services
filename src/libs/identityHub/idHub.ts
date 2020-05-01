@@ -17,6 +17,7 @@ import {
   API_ERROR_MESSAGES,
   EBSI_API_ERRORS,
   BadRequestError,
+  NotFoundError,
 } from "../../errors";
 import { AttributeDAO } from "../../daos/attribute";
 
@@ -190,12 +191,16 @@ export default class IDHub {
   ): IAttribute {
     // checks if list has elements
     if (!attributes.length)
-      throw Error(`Attribute Info not found with this hash: ${hash}`);
+      throw new NotFoundError(
+        `Attribute Info not found with this hash: ${hash}`
+      );
     // finds the index of the element
     const index: number = attributes.findIndex((x) => x.hash === hash);
     // throws error if not found
     if (index === -1)
-      throw Error(`Attribute Info not found with this hash: ${hash}`);
+      throw new NotFoundError(
+        `Attribute Info not found with this hash: ${hash}`
+      );
     // returns the element
     return attributes[index];
   }

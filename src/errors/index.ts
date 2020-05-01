@@ -7,6 +7,8 @@ import InvalidTokenError from "./InvalidTokenError";
 import IssuerNotFoundError from "./IssuerNotFoundError";
 import TooLargeError from "./TooLargeError";
 import UnauthorizedError from "./UnauthorizedError";
+import NotFoundError from "./NotFoundError";
+
 import LOGGER from "../logger";
 import {
   EbsiError,
@@ -37,19 +39,20 @@ const handleError = (err, req, res, next) => {
 };
 
 export {
+  HTTPError,
   EbsiError,
   handleError,
-  WALLET_MESSAGES,
-  API_ERROR_MESSAGES,
-  EBSI_API_ERRORS_INT,
-  EBSI_API_ERRORS,
-  HTTPError,
-  BadRequestError,
-  InvalidTokenError,
-  InvalidAppError,
-  IssuerNotFoundError,
-  UnauthorizedError,
-  ForbiddenError,
+  NotFoundError,
   TooLargeError,
   InternalError,
+  ForbiddenError,
+  InvalidAppError,
+  EBSI_API_ERRORS,
+  WALLET_MESSAGES,
+  BadRequestError,
+  InvalidTokenError,
+  UnauthorizedError,
+  API_ERROR_MESSAGES,
+  EBSI_API_ERRORS_INT,
+  IssuerNotFoundError,
 };

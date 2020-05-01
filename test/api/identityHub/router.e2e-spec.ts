@@ -318,5 +318,139 @@ describe("wallet router API calls", () => {
       spy.mockRestore();
       spyGet.mockRestore();
     });
+
+    it("should retrieve an existing attribute", async () => {
+      expect.assertions(5);
+      const attributeInput = { ...mockedAttributes[0] };
+      const attributeHash = attributeInput.hash;
+      delete attributeInput.did;
+      delete attributeInput.hash;
+      const expectedResult = { ...mockedAttributes[0] };
+      expectedResult.did = userDid;
+      const spy = jest
+        .spyOn(CASDataStorage.prototype, "insert")
+        .mockResolvedValue({ hash: attributeHash, function: "keccak256" });
+      const spyGet = jest
+        .spyOn(CASDataStorage.prototype, "get")
+        .mockResolvedValue(attributeInput.data.base64);
+      const res = await request(server)
+        .put(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
+        )
+        .set("Authorization", `Bearer ${userToken}`)
+        .send(attributeInput as IAttributeInput);
+      expect(res.status).toStrictEqual(201);
+
+      // we retrieve the element
+      const res2 = await request(server)
+        .get(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTE}/${attributeHash}`
+        )
+        .set("Authorization", `Bearer ${userToken}`);
+      expect(res2.status).toStrictEqual(200);
+      expect(res2.body).toMatchObject(expectedResult);
+      expect(spy).toHaveBeenCalledWith({
+        fileData: attributeInput.data.base64,
+        fileName: attributeInput.id,
+        database: EBSI_DEFAULT_DATA_STORE,
+      } as ICASFile);
+      expect(spyGet).toHaveBeenCalledWith(attributeHash);
+      spy.mockRestore();
+      spyGet.mockRestore();
+    });
+
+    it("should throw a 404 error with a not existing hash but with a DID with attributes", async () => {
+      expect.assertions(5);
+      const attributeInput = { ...mockedAttributes[0] };
+      const attributeHash = attributeInput.hash;
+      const mockedHash =
+        "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321";
+      delete attributeInput.did;
+      delete attributeInput.hash;
+      const expectedResult = {
+        title: "Not Found",
+        status: 404,
+        detail: `Attribute Info not found with this hash: ${mockedHash}`,
+      };
+      const spy = jest
+        .spyOn(CASDataStorage.prototype, "insert")
+        .mockResolvedValue({ hash: attributeHash, function: "keccak256" });
+      const spyGet = jest
+        .spyOn(CASDataStorage.prototype, "get")
+        .mockResolvedValue(attributeInput.data.base64);
+      const res = await request(server)
+        .put(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
+        )
+        .set("Authorization", `Bearer ${userToken}`)
+        .send(attributeInput as IAttributeInput);
+      expect(res.status).toStrictEqual(201);
+
+      // we retrieve the element
+      const res2 = await request(server)
+        .get(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTE}/${mockedHash}`
+        )
+        .set("Authorization", `Bearer ${userToken}`);
+      expect(res2.status).toStrictEqual(404);
+      expect(res2.body).toMatchObject(expectedResult);
+      expect(spy).toHaveBeenCalledWith({
+        fileData: attributeInput.data.base64,
+        fileName: attributeInput.id,
+        database: EBSI_DEFAULT_DATA_STORE,
+      } as ICASFile);
+      expect(spyGet).toHaveBeenCalledWith(attributeHash);
+      spy.mockRestore();
+      spyGet.mockRestore();
+    });
+
+    it("should throw a 404 error with a not existing hash and a DID with no attributes", async () => {
+      expect.assertions(2);
+      const mockedHash =
+        "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321";
+      const expectedResult = {
+        title: "Not Found",
+        status: 404,
+        detail: `Attribute Info not found with this hash: ${mockedHash}`,
+      };
+      // we retrieve the element
+      const res2 = await request(server)
+        .get(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTE}/${mockedHash}`
+        )
+        .set("Authorization", `Bearer ${userToken}`);
+      expect(res2.status).toStrictEqual(404);
+      expect(res2.body).toMatchObject(expectedResult);
+    });
+
+    describe("get attributes endpoint (mocked only File Storage calls)", () => {
+      it("should return an empty formatted result: only DID passed", async () => {
+        expect.assertions(3);
+        const expectedResult: PaginateResult = {
+          items: [],
+          total: 0,
+          pageSize: 10,
+          links: {
+            first: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+            last: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+            next: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+            prev: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+          },
+        };
+        const spyGet = jest
+          .spyOn(IDHub.prototype, "getAttributes")
+          .mockResolvedValue(expectedResult.items);
+        // we add the same attribute again
+        const res = await request(server)
+          .get(
+            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}`
+          )
+          .set("Authorization", `Bearer ${userToken}`);
+        expect(res.status).toStrictEqual(200);
+        expect(res.body).toMatchObject(expectedResult);
+        expect(spyGet).toHaveBeenCalledWith(userDid);
+        spyGet.mockRestore();
+      });
+    });
   });
 });
