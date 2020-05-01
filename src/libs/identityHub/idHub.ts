@@ -64,20 +64,13 @@ export default class IDHub {
 
   async getAttributesFiltered(
     did: string,
-    filter: string[]
+    filterArr: string[]
   ): Promise<IAttribute[]> {
     const attributes: IAttribute[] = await this.getAttributes(did);
-    const resultAttributes: IAttribute[] = [];
-
-    attributes.forEach((elem) => {
-      // eslint-disable-next-line no-restricted-syntax
-      for (const filterElem of filter) {
-        if (elem.type.includes(filterElem)) {
-          resultAttributes.push(elem);
-          break;
-        }
-      }
-    });
+    // returns a list of attributes that contains any of the filtered attributes in as type element
+    const resultAttributes = attributes.filter((attribute) =>
+      attribute.type.some((typeElem) => filterArr.indexOf(typeElem) > -1)
+    );
     return resultAttributes;
   }
 

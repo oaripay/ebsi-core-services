@@ -69,6 +69,7 @@ class Router {
             const encodedType = encodeURIComponent(type);
             req.baseUrl += `${req.path}?did=${did}&type=${encodedType}`;
             applyPaginationFormat(result, req, res, next);
+            return;
           }
           const result = await Controller.getAttributes(did);
           res.status(200);
