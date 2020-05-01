@@ -30,7 +30,7 @@ const GLOBAL_CONFIG = {
     ebsiApiBaseUrl: EBSI_API_INT_URL,
   },
   local: {
-    logLevel: process.env.DEBUG_LEVEL === "silly" ? "silly" : "debug",
+    logLevel: process.env.DEBUG_LEVEL ? process.env.DEBUG_LEVEL : "silly",
     ebsiApiBaseUrl: EBSI_API_INT_URL,
   },
 };
