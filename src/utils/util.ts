@@ -142,8 +142,13 @@ const pubkeyHexToPem = (pubkeyHex: string): string => {
   return keyEncoder.encodePublic(rawPubKey, "raw", "pem");
 };
 
+async function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export {
   hash,
+  delay,
   setId,
   isHex,
   toHex,
