@@ -1,10 +1,6 @@
 import { JWKECKey } from "jose";
 import Wallet, { WalletOptions } from "./secureEnclave/wallet";
 
-export enum KeyAlgorithm {
-  EC,
-  RSA,
-}
 export interface InitComponent {
   did: string;
   key: JWKECKey;

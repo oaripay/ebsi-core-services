@@ -3,18 +3,14 @@ import { JWT } from "jose";
 import { PRINT_DEBUG, PRINT_ERROR } from "../utils/util";
 import {
   UnauthorizedError,
-  ForbiddenError,
-  BadRequestError,
   InternalError,
   API_ERROR_MESSAGES,
 } from "../errors";
-import AuthManager from "../libs/authManager/authManager";
 import {
   IUserAuthZToken,
   IEnterpriseAuthZToken,
   UserAuthNToken,
 } from "../libs/authManager/secureEnclave/jwt";
-import ComponentSecureEnclave from "../libs/authManager/secureEnclave/componentSecureEnclave";
 
 const logRequest = (req: Request): void => {
   PRINT_DEBUG(`Request logged:${req.method}${req.path}`);
@@ -30,22 +26,6 @@ const getTokenFromHeader = (req: Request): string => {
   }
   PRINT_ERROR(API_ERROR_MESSAGES.NO_BEARER_TOKEN, "getTokenFromHeader");
   throw new InternalError(API_ERROR_MESSAGES.NO_BEARER_TOKEN);
-};
-
-const checkAuthorization = (req: Request, res: Response, next): void => {
-  try {
-    const enclave = ComponentSecureEnclave.Instance;
-
-    if (req.body.issuer !== enclave.enclaveDid) {
-      next(
-        new ForbiddenError("DID does not match: Body Issuer !== enclaveDID")
-      );
-    }
-
-    next();
-  } catch (error) {
-    next(new UnauthorizedError("Error verifying JWT: verifyVcJwt"));
-  }
 };
 
 /**
@@ -112,56 +92,4 @@ const parseEntityJWT = (req: Request, res: Response, next): void => {
   }
 };
 
-const saveToken = (req: Request, res: Response, next): void => {
-  try {
-    const token = getTokenFromHeader(req);
-    // Assign token to AuthManager to be accessible to call other EBSI components
-    AuthManager.Instance.saveReceivedAuthZUserToken(token);
-    next();
-  } catch (error) {
-    next(new UnauthorizedError("Error saving token"));
-  }
-};
-
-const verifyJWTParamDIDs = (req: Request, res: Response, next): any => {
-  if (!req || !req.params.did || !req.params.didJwt) {
-    next(new BadRequestError(API_ERROR_MESSAGES.DID_NOT_DEFINED));
-  }
-  if (req.params.didJwt !== req.params.did) {
-    next(new BadRequestError(API_ERROR_MESSAGES.DID_MISMATCH));
-  }
-  next();
-  return true;
-};
-
-const verifyJWTBodyIssuerDIDs = (req: Request, res: Response, next): any => {
-  if (!req || !req.body || !req.body.issuer || !req.params.didJwt) {
-    next(new BadRequestError(API_ERROR_MESSAGES.DID_NOT_DEFINED));
-  }
-  if (req.params.didJwt !== req.body.issuer) {
-    next(new BadRequestError(API_ERROR_MESSAGES.DID_MISMATCH));
-  }
-  next();
-  return true;
-};
-
-const verifyJWTBodyDIDs = (req: Request, res: Response, next): any => {
-  if (!req || !req.body || !req.body.did || !req.params.didJwt) {
-    next(new BadRequestError(API_ERROR_MESSAGES.DID_NOT_DEFINED));
-  }
-  if (req.params.didJwt !== req.body.did) {
-    next(new BadRequestError(API_ERROR_MESSAGES.DID_MISMATCH));
-  }
-  next();
-  return true;
-};
-
-export {
-  saveToken,
-  logRequest,
-  parseEntityJWT,
-  verifyJWTBodyDIDs,
-  verifyJWTParamDIDs,
-  checkAuthorization,
-  verifyJWTBodyIssuerDIDs,
-};
+export { logRequest, parseEntityJWT };
