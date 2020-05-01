@@ -54,7 +54,7 @@ export default class IDHub {
       return attributes;
     } catch (error) {
       if ((<Error>error).message !== "Request failed with status code 404") {
-        throw new InternalError(API_ERROR_MESSAGES.ERROR_RETRIEVING_ATTRIBUTES);
+        throw error;
       }
       // creates an empty list and inserts it
       await this.attributeInfoListDB.insertValue({ did, data: { list: [] } });

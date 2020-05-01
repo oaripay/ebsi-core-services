@@ -1,9 +1,9 @@
 /* eslint-disable no-useless-constructor */
 
 import { IAttributeInfo, IAttributeInfoList } from "../dtos/attributeInfo";
-import { InternalError, BadRequestError } from "../errors";
 import { AttributeDAO } from "../daos/attribute";
 import KeyValueDataStorage from "../libs/dataStorages/keyValueDataStorage";
+import { BadRequestError, HTTPError } from "../errors";
 
 /**
  * Class to a Credential Data
@@ -34,26 +34,25 @@ export default class AttributeInfoList extends KeyValueDataStorage {
       iAttributeList = (await this.get(key)).data;
       try {
         // checks if the AttributeInfo already exists
-        const { index, iCredInfo } = await this.getElem(key, value.id);
+        const { index, attributeInfo } = await this.getElem(key, value.id);
         // updates AttributeInfo List with the new value
-        iAttributeList.list[index] = <IAttributeInfo>iCredInfo;
+        iAttributeList.list[index] = attributeInfo;
       } catch (error) {
         // value does not exist
         if (
-          (<Error>error).message ===
-          `Attribute Info not found with this id: ${value.id}`
-        ) {
-          // push the new value (a sigle AttributeInfo) and insert the list again
-          iAttributeList.list.push(value);
-        } else {
-          throw new InternalError("Error in getting a AttributeInfo element");
-        }
+          !(error as HTTPError).Detail.includes(
+            `Attribute Info not found with this id: ${value.id}`
+          )
+        )
+          throw error;
+        // push the new value (a sigle AttributeInfo) and insert the list again
+        iAttributeList.list.push(value);
       }
     } catch (error) {
       // In case list does not exist we create a new one
       // throw error when error is different from key not exist: 400
       if ((<Error>error).message !== "Request failed with status code 404") {
-        throw new InternalError("Get from DB returned an error");
+        throw error;
       }
       // create a new list
       iAttributeList = { list: [value] };
@@ -85,9 +84,9 @@ export default class AttributeInfoList extends KeyValueDataStorage {
     // we first get the list stored in the DB value
     const iAttributeList: IAttributeInfoList = (await this.get(key)).data;
     // returns the index element (it already throws an error if not exists)
-    const { index, iCredInfo } = await this.getElem(key, value.id);
+    const { index, attributeInfo } = await this.getElem(key, value.id);
     // updates AttributeInfo List with the new value
-    iAttributeList.list[index] = <IAttributeInfo>iCredInfo;
+    iAttributeList.list[index] = attributeInfo;
     // inserts the new IAttributeInfoList
     return this.updateValue({
       did: key,
@@ -157,11 +156,11 @@ export default class AttributeInfoList extends KeyValueDataStorage {
   async getElem(
     key: string,
     id: string
-  ): Promise<{ index: number; iCredInfo: IAttributeInfo | undefined }> {
+  ): Promise<{ index: number; attributeInfo: IAttributeInfo }> {
     // we first get the list stored in the DB value
     const iAttributeList: IAttributeInfoList = (await this.get(key)).data;
     // checks if list has elements
-    if (iAttributeList.list[0] == null)
+    if (!iAttributeList.list)
       throw new BadRequestError(`Attribute Info not found with this id: ${id}`);
     // finds the index of the element
     const index: number = iAttributeList.list.findIndex((x) => x.id === id);
@@ -169,9 +168,9 @@ export default class AttributeInfoList extends KeyValueDataStorage {
     if (index === -1)
       throw new BadRequestError(`Attribute Info not found with this id: ${id}`);
     // returns the element
-    const iCredInfo = iAttributeList.list[index];
+    const attributeInfo = iAttributeList.list[index];
     // return the elem index and its value
-    return { index, iCredInfo };
+    return { index, attributeInfo };
   }
 
   /**

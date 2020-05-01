@@ -499,20 +499,71 @@ describe("wallet router API calls", () => {
         expect(res.body).toMatchObject(expectedResult);
       });
 
-      it("should return an two element formatted result: only DID passed", async () => {
-        expect.assertions(2);
+      it("should return one element formatted result: only DID passed", async () => {
+        expect.assertions(3);
         const { userToken, userDid } = await initSetupForTesting();
         const expectedResult: PaginateResult = {
-          items: mockedAttributes.slice(0, 2),
-          total: 0,
+          items: mockedAttributes.slice(0, 1),
+          total: 1,
           pageSize: 10,
           links: {
             first: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
-            last: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
-            next: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+            last: `/identity-hub/v1/attributes?did=${userDid}&page[after]=1&page[size]=10`,
+            next: `/identity-hub/v1/attributes?did=${userDid}&page[after]=1&page[size]=10`,
             prev: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
           },
         };
+        expectedResult.items[0].did = userDid;
+        const attributeInput1 = { ...mockedAttributes[0] };
+        const attributeHash1 = attributeInput1.hash;
+        delete attributeInput1.did;
+        delete attributeInput1.hash;
+
+        const spy = jest
+          .spyOn(CASDataStorage.prototype, "insert")
+          .mockResolvedValueOnce({
+            hash: attributeHash1,
+            function: "keccak256",
+          });
+        const spyGet = jest
+          .spyOn(CASDataStorage.prototype, "get")
+          .mockResolvedValue(attributeInput1.data.base64);
+
+        const res1 = await request(server)
+          .put(
+            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash1}`
+          )
+          .set("Authorization", `Bearer ${userToken}`)
+          .send(attributeInput1 as IAttributeInput);
+        expect(res1.status).toStrictEqual(201);
+
+        const resGet = await request(server)
+          .get(
+            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}`
+          )
+          .set("Authorization", `Bearer ${userToken}`);
+        expect(resGet.status).toStrictEqual(200);
+        expect(resGet.body).toMatchObject(expectedResult);
+        spy.mockRestore();
+        spyGet.mockRestore();
+      });
+
+      it("should return a two element formatted result: only DID passed", async () => {
+        expect.assertions(4);
+        const { userToken, userDid } = await initSetupForTesting();
+        const expectedResult: PaginateResult = {
+          items: mockedAttributes.slice(0, 2),
+          total: 2,
+          pageSize: 10,
+          links: {
+            first: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+            last: `/identity-hub/v1/attributes?did=${userDid}&page[after]=2&page[size]=10`,
+            next: `/identity-hub/v1/attributes?did=${userDid}&page[after]=2&page[size]=10`,
+            prev: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+          },
+        };
+        expectedResult.items[0].did = userDid;
+        expectedResult.items[1].did = userDid;
         const attributeInput1 = { ...mockedAttributes[0] };
         const attributeHash1 = attributeInput1.hash;
         delete attributeInput1.did;
@@ -534,8 +585,8 @@ describe("wallet router API calls", () => {
           });
         const spyGet = jest
           .spyOn(CASDataStorage.prototype, "get")
-          .mockResolvedValue(attributeInput1.data.base64)
-          .mockResolvedValue(attributeInput2.data.base64);
+          .mockResolvedValueOnce(attributeInput1.data.base64)
+          .mockResolvedValueOnce(attributeInput2.data.base64);
 
         const res1 = await request(server)
           .put(
