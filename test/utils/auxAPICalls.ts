@@ -318,7 +318,7 @@ const mockedAttributes: IAttribute[] = [
   },
   {
     id: uuidv4(),
-    type: ["attributeType1", "attributeType2"],
+    type: ["attributeType1", "attributeType3"],
     name: "Attribute Sample 02",
     data: {
       base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-02` })),
@@ -338,7 +338,7 @@ const mockedAttributes: IAttribute[] = [
   },
   {
     id: uuidv4(),
-    type: ["attributeType1", "attributeType2"],
+    type: ["attributeType1", "attributeType4"],
     name: "Attribute Sample 04",
     data: {
       base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-04` })),
@@ -396,6 +396,7 @@ export {
   mockedAttributes,
   mockComponentKey,
   mockComponentDid,
+  getUserAuthZToken,
   mockInitComponent,
   initSecureEnclave,
   testUserAuthNToken,

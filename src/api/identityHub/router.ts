@@ -6,6 +6,7 @@ import { handleError, BadRequestError, API_ERROR_MESSAGES } from "../../errors";
 import * as auth from "../../middleware/auth";
 import Controller from "./controller";
 import applyPaginationFormat from "../../middleware/formatResponse";
+import { isHash } from "../../utils/util";
 
 class Router {
   constructor(server: express.Express, swaggerDoc: any) {
@@ -24,11 +25,16 @@ class Router {
       parseEntityJWT,
       async (req: express.Request, res: express.Response, next) => {
         try {
-          if (!req.params.didJwt || !req.params.hash)
+          const { didJwt, hash } = req.params;
+          if (!didJwt || !hash)
             throw new BadRequestError(
               API_ERROR_MESSAGES.ATTRIBUTES_DID_HASH_NOT_FOUND
             );
-          const { didJwt, hash } = req.params;
+          if (!isHash(hash))
+            throw new BadRequestError(
+              `The hash:${hash} parameter is not valid`
+            );
+
           const result = await Controller.setAttribute(didJwt, hash, req.body);
           res.status(result.newAttribute ? 201 : 200).json(result.attribute);
         } catch (error) {
@@ -83,11 +89,15 @@ class Router {
       async (req: express.Request, res: express.Response, next) => {
         const { didJwt, hash } = req.params;
         try {
-          // when hash is present, it retrieves the specifific attribute corresponding to the hash
           if (!hash || !didJwt)
             throw new BadRequestError(
               API_ERROR_MESSAGES.ATTRIBUTES_DID_HASH_NOT_FOUND
             );
+          if (!isHash(hash))
+            throw new BadRequestError(
+              `The hash:${hash} parameter is not valid`
+            );
+
           const result = await Controller.getAttribute(didJwt, hash);
           res.status(200).json(result);
         } catch (error) {
