@@ -9,7 +9,6 @@ import {
 } from "../errors";
 import * as config from "../config";
 import { util } from "../utils";
-import { COMPONENT_KEYSTORE } from "../config";
 import AuthManager from "../libs/authManager/authManager";
 import {
   AccessTokenResponseBody,
@@ -115,7 +114,7 @@ async function newComponentSession(
   }
 
   // validate token in the trusted app registry
-  if (!process.env.EBSI_TEST_MODE) {
+  if (config.EBSI_TEST_MODE) {
     const appName = payload.iss;
     await trustedAppsRegistryValidation(appName, token);
   }
@@ -163,7 +162,7 @@ async function handleToken(
   let payload;
   try {
     const { key } = await ComponentSecureEnclave.Instance.init(
-      COMPONENT_KEYSTORE
+      config.COMPONENT_KEYSTORE
     );
     payload = jose.JWT.verify(token, key);
   } catch (error) {
