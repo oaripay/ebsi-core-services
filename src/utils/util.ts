@@ -6,13 +6,6 @@ import * as util from "util";
 import KeyEncoder from "key-encoder";
 import fs from "fs";
 import {
-  DEFAULT_VERIFIABLEID_TYPE,
-  DEFAULT_VID_TYPE_TEXT,
-  DEFAULT_DIPLOMA_TYPE,
-  DEFAULT_DIPLOMA_TYPE_TEXT,
-} from "./constants";
-import { FullVC, FullVID, DiplomaIssuer } from "./types";
-import {
   WALLET_DATA_STORE_TYPE_MAP,
   WALLET_DATA_STORE_CONFIG_MAP,
 } from "../config";
@@ -64,6 +57,11 @@ const isHex = (data: string): boolean => {
   return regex.test(data);
 };
 
+const isHash = (data: string): boolean => {
+  const hexDigits = data.replace("0x", "");
+  return hexDigits.length === 64 && isHex(hexDigits);
+};
+
 const getStorageConfig = (walletStorageType: number): [string, string] => {
   const storageType = WALLET_DATA_STORE_TYPE_MAP.get(walletStorageType);
   if (typeof storageType === "undefined")
@@ -77,35 +75,6 @@ const getStorageConfig = (walletStorageType: number): [string, string] => {
 };
 
 const setId = (prefix: string): string => `${prefix}-${uuidv4()}`;
-
-const setCredName = (credType: string, base64Data: string): string => {
-  if (credType.includes(DEFAULT_VERIFIABLEID_TYPE))
-    return DEFAULT_VID_TYPE_TEXT;
-  if (credType.includes(DEFAULT_DIPLOMA_TYPE)) {
-    const fullVC: FullVC = JSON.parse(strB64dec(base64Data));
-    if (fullVC && fullVC.title && fullVC.title[0] && fullVC.title[0].text)
-      return fullVC.title[0].text;
-  }
-  return credType;
-};
-
-const setCredIssuer = (credType: string, base64Data: string): string => {
-  if (credType === DEFAULT_VID_TYPE_TEXT) {
-    const fullVID: FullVID = JSON.parse(strB64dec(base64Data));
-    if (fullVID && fullVID.issuer) return fullVID.issuer;
-  }
-  if (credType === DEFAULT_DIPLOMA_TYPE_TEXT) {
-    const fullVC: FullVC = JSON.parse(strB64dec(base64Data));
-    if (fullVC && fullVC.issuer) {
-      const issuer = <DiplomaIssuer>fullVC.issuer;
-      if (issuer.organization && issuer.organization.preferredName) {
-        return issuer.organization.preferredName;
-      }
-      return fullVC.issuer.toString();
-    }
-  }
-  return "";
-};
 
 const isTokenExpired = (token: string): boolean => {
   const payload = <IComponentAuthZToken>JWT.decode(token);
@@ -174,22 +143,21 @@ const pubkeyHexToPem = (pubkeyHex: string): string => {
 };
 
 export {
+  hash,
+  setId,
+  isHex,
   toHex,
+  isHash,
+  strB64dec,
+  PRINT_JSON,
   PRINT_INFO,
   PRINT_DEBUG,
   PRINT_ERROR,
   PRINT_SILLY,
-  PRINT_JSON,
   b64EncodeUrl,
-  strB64dec,
-  hash,
-  setId,
-  isHex,
-  getStorageConfig,
-  isTokenExpired,
-  setCredName,
-  setCredIssuer,
   hashFromFile,
-  pubkeyHexToPem,
   generateKeys,
+  isTokenExpired,
+  pubkeyHexToPem,
+  getStorageConfig,
 };

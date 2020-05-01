@@ -6,6 +6,7 @@ import {
   isTokenExpired,
   hash,
   hashFromFile,
+  isHash,
 } from "../../src/utils/util";
 
 const testFilePath = "../data/documents/";
@@ -50,6 +51,19 @@ describe("utils Test Suite", () => {
 
     expect(isTokenExpired(token1)).toBe(true);
     expect(isTokenExpired(token2)).toBe(true);
+  });
+
+  it("should return true when a hash is a 32 hexadecimal character string", () => {
+    expect.assertions(1);
+    expect(
+      isHash(
+        "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470"
+      )
+    ).toBe(true);
+  });
+  it("should return false when a hash is NOT a 32 hexadecimal character string", () => {
+    expect.assertions(1);
+    expect(isHash("this is a test")).toBe(false);
   });
 });
 
