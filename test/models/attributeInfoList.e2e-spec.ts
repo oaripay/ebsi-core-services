@@ -25,7 +25,7 @@ describe("iAttributeInfoList model", () => {
     const did = `0x${randNum}-testing`;
     const hashData1 = hash(JSON.stringify({ test: "sample" }));
     const attributeInfo: IAttributeInfo = {
-      id: "cred001-testing",
+      id: "attribute-001-testing",
       type: ["credential.pdf"],
       hash: hashData1,
       name: "test1",
@@ -64,7 +64,7 @@ describe("iAttributeInfoList model", () => {
     const did = `0x${randNum}-testing`;
     const hashData1 = hash(JSON.stringify({ test: "sample" }));
     const attributeInfo: IAttributeInfo = {
-      id: "cred001-testing",
+      id: "attribute-001-testing",
       type: ["credential.pdf"],
       hash: hashData1,
       name: "test1",
@@ -80,7 +80,7 @@ describe("iAttributeInfoList model", () => {
     expect(attributeInfoListOut).toStrictEqual(attributeInfoList);
 
     const newData: IAttributeInfo = {
-      id: "cred001-testing",
+      id: "attribute-001-testing",
       type: ["credential2.pdf"],
       hash: attributeInfo.hash,
       name: "test2",
@@ -112,8 +112,8 @@ describe("iAttributeInfoList model", () => {
     const randNum: number = Math.floor(Math.random() * 1000000);
     const did = `0x${randNum}-testing`;
     const hashData1 = hash(JSON.stringify({ test: `sample ${randNum}` }));
-    const attributeInfo: IAttributeInfo = {
-      id: "cred001-testing",
+    const attrInfo: IAttributeInfo = {
+      id: "attribute-001-testing",
       type: ["credential.pdf"],
       hash: hashData1,
       name: "test1",
@@ -121,21 +121,19 @@ describe("iAttributeInfoList model", () => {
     };
 
     // insert element
-    await attributeInfoListDB.insertElem(did, attributeInfo);
-    const { iCredInfo } = await attributeInfoListDB.getElem(
+    await attributeInfoListDB.insertElem(did, attrInfo);
+    const { attributeInfo } = await attributeInfoListDB.getElem(
       did,
-      attributeInfo.id
+      attrInfo.id
     );
-    expect(iCredInfo).toStrictEqual(attributeInfo);
+    expect(attributeInfo).toStrictEqual(attrInfo);
 
     // delete element
-    await attributeInfoListDB.deleteElem(did, attributeInfo.id);
+    await attributeInfoListDB.deleteElem(did, attrInfo.id);
     // checks if it really deletes it
-    await expect(
-      attributeInfoListDB.getElem(did, attributeInfo.id)
-    ).rejects.toThrow(
+    await expect(attributeInfoListDB.getElem(did, attrInfo.id)).rejects.toThrow(
       expect.objectContaining({
-        detail: `Attribute Info not found with this id: ${attributeInfo.id}`,
+        detail: `Attribute Info not found with this id: ${attrInfo.id}`,
       })
     );
 

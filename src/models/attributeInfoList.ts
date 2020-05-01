@@ -160,7 +160,7 @@ export default class AttributeInfoList extends KeyValueDataStorage {
     // we first get the list stored in the DB value
     const iAttributeList: IAttributeInfoList = (await this.get(key)).data;
     // checks if list has elements
-    if (!iAttributeList.list)
+    if (iAttributeList.list[0] === null)
       throw new BadRequestError(`Attribute Info not found with this id: ${id}`);
     // finds the index of the element
     const index: number = iAttributeList.list.findIndex((x) => x.id === id);
