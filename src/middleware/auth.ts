@@ -15,8 +15,8 @@ import {
   TOKEN_TYPE,
   ComponentAuthNToken,
   AccessTokenRequestBody,
+  JWTClaims,
 } from "../libs/authManager/secureEnclave/jwt";
-import ComponentSecureEnclave from "../libs/authManager/secureEnclave/componentSecureEnclave";
 
 const GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer";
 
@@ -46,14 +46,8 @@ function generateAccessTokenResponseBody(
   };
 }
 
-/*
- * Trusted Apps Registry Validation
- * - Verify that {appName} is a trusted app
- * - Verify the signature using the public key in the registry
- * - Verify that {appName} is authorized to use the API
- */
-async function trustedAppsRegistryValidation(appName: string, token: string) {
-  let url = `${config.trustedAppsRegistry}/apps/${appName}`;
+async function getPublicKey(appName: string): Promise<string> {
+  const url = `${config.trustedAppsRegistry}/apps/${appName}`;
   let response;
   try {
     util.PRINT_INFO(`Accesing ${url}`);
@@ -72,6 +66,17 @@ async function trustedAppsRegistryValidation(appName: string, token: string) {
 
   const base64pubkey = response.data.pubKey;
   const publicKeyPEM = Buffer.from(base64pubkey, "base64").toString("utf8");
+  return publicKeyPEM;
+}
+
+/*
+ * Trusted Apps Registry Validation
+ * - Verify that {appName} is a trusted app
+ * - Verify the signature using the public key in the registry
+ * - Verify that {appName} is authorized to use the API
+ */
+async function trustedAppsRegistryValidation(appName: string, token: string) {
+  const publicKeyPEM = await getPublicKey(appName);
 
   try {
     jose.JWT.verify(token, publicKeyPEM);
@@ -79,7 +84,7 @@ async function trustedAppsRegistryValidation(appName: string, token: string) {
     throw new InvalidTokenError(error.message);
   }
 
-  url = `${config.trustedAppsRegistry}/apps/${config.API_NAME}/authorized-apps/${appName}`;
+  const url = `${config.trustedAppsRegistry}/apps/${config.API_NAME}/authorized-apps/${appName}`;
   try {
     util.PRINT_INFO(`Accesing ${url}`);
     await axios.get(url);
@@ -113,11 +118,8 @@ async function newComponentSession(
     );
   }
 
-  // validate token in the trusted app registry
-  if (config.EBSI_TEST_MODE) {
-    const appName = payload.iss;
-    await trustedAppsRegistryValidation(appName, token);
-  }
+  const appName = payload.iss;
+  await trustedAppsRegistryValidation(appName, token);
 
   const result = await generateComponentToken(payload.iss);
   const sessionToken = generateAccessTokenResponseBody(result);
@@ -159,17 +161,7 @@ async function handleToken(
     return;
   }
 
-  let payload;
-  try {
-    const { key } = await ComponentSecureEnclave.Instance.init(
-      config.COMPONENT_KEYSTORE
-    );
-    payload = jose.JWT.verify(token, key);
-  } catch (error) {
-    next(new InvalidTokenError(error.message));
-    return;
-  }
-
+  const payload = jose.JWT.decode(token) as JWTClaims;
   if (
     payload.aud !== config.API_NAME &&
     payload.aud !== config.EBSI_APPS.WALLET // supports AuthZ tokens from wallet
@@ -181,6 +173,9 @@ async function handleToken(
     );
     return;
   }
+
+  const publicKeyPEM = await getPublicKey(payload.aud);
+  jose.JWT.verify(token, publicKeyPEM);
 
   util.PRINT_DEBUG(`token: Valid token`);
   Object.assign(req.params, { authenticated: true });
