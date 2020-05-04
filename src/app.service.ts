@@ -99,7 +99,7 @@ export class AppService {
     return accUniv.wait();
   }
 
-  async getDocuments(did: string) {
+  async getDocuments(did: string): Promise<any> {
     const documentIndexes = await this.univContract.getAllDocumentIndexes(did);
     const documentsPromises = documentIndexes.map(item => {
       return this.univContract.getDocument(did, item);

@@ -94,6 +94,9 @@ export class AppController {
       };
       return result;
     } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       throw new NotFoundException("error");
     }
   }
@@ -170,7 +173,9 @@ export class AppController {
       }
       return result;
     } catch (error) {
-      throw new BadRequestException("there was a problem with besu");
+      throw new BadRequestException(
+        "there was a problem processing your request"
+      );
     }
   }
   //
