@@ -9,7 +9,7 @@ import * as auth from "../../../src/middleware/auth";
 import { GRANT_TYPE } from "../../../src/libs/authManager/secureEnclave/jwt";
 
 jest.setTimeout(100000);
-jest.mock("../../../src/middleware/Jwt");
+jest.mock("../../../src/middleware/jwt");
 jest.mock("../../../src/middleware/auth");
 
 const mockcallNewSession = auth.callNewSession as jest.Mock;
