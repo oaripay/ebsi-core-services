@@ -97,7 +97,7 @@ export default class IDHub {
     // stores the Attribute File
     const file: ICASFile = {
       fileData: attributeInput.data.base64,
-      fileName: attributeInput.id,
+      fileName: `${attributeInput.id}.attribute`,
       database: EBSI_DEFAULT_DATA_STORE,
     };
     const { newAttribute } = await this.addAttributeFile(file, hash);
