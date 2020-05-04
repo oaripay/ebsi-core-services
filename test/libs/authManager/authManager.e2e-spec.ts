@@ -1,7 +1,7 @@
 /* eslint-disable jest/no-hooks */
 import http from "http";
-import AuthManager from "../../../src/libs/authManager/AuthManager";
-import ComponentSecureEnclave from "../../../src/libs/authManager/secureEnclave/ComponentSecureEnclave";
+import AuthManager from "../../../src/libs/authManager/authManager";
+import ComponentSecureEnclave from "../../../src/libs/authManager/secureEnclave/componentSecureEnclave";
 import {
   COMPONENT_KEYSTORE,
   EBSI_APPS,
