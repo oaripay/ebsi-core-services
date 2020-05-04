@@ -46,9 +46,6 @@ const ENVIRONMENT =
 
 const FINAL_CONFIG = GLOBAL_CONFIG[ENVIRONMENT];
 const LOG_LEVEL = FINAL_CONFIG.logLevel;
-const EBSI_TEST_MODE = process.env.EBSI_TEST_MODE
-  ? process.env.EBSI_TEST_MODE
-  : ENVIRONMENT === "test";
 const EBSI_DEFAULT_DATA_STORE = "cassandra";
 const EBSI_EXTERNAL_API_BASE_URL = FINAL_CONFIG.ebsiApiBaseUrl;
 
@@ -220,7 +217,6 @@ export {
   EBSI_API_MAP,
   EBSI_SERVICE,
   OPENAPI_PATH,
-  EBSI_TEST_MODE,
   COMPONENT_PASSWORD,
   COMPONENT_KEYSTORE,
   trustedAppsRegistry,
