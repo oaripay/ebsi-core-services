@@ -154,9 +154,10 @@ export default class IDHub {
     } catch (error) {
       if (
         (error as Error).message.includes(EBSI_API_ERRORS.BAD_REQUEST) ||
-        (error as BadRequestError).Detail.includes(
-          "This file is already stored with name"
-        )
+        ((error as BadRequestError).Detail &&
+          (error as BadRequestError).Detail.includes(
+            "This file is already stored with name"
+          ))
       ) {
         const newAttribute = false;
         return { hash: inHash, newAttribute };
