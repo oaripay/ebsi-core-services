@@ -102,7 +102,7 @@ describe("auth middleware test suite", () => {
   });
 
   it("should return a signed Component AuthZtoken", async () => {
-    expect.assertions(2);
+    expect.hasAssertions();
     const next = () => {};
     const req = httpMocks.createRequest({
       method: "POST",
@@ -134,7 +134,8 @@ describe("auth middleware test suite", () => {
       const { payload } = decodeJWT(result.accessToken);
       expect(payload).toMatchObject(expectedComponentAuthZ);
     });
-
-    await auth.callNewSession(req, res, next);
+    expect(
+      await Promise.resolve(auth.callNewSession(req, res, next))
+    ).toBeUndefined();
   });
 });

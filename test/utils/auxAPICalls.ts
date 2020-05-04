@@ -408,7 +408,7 @@ const mockedAttributes: IAttribute[] = [
   },
   {
     id: uuidv4(),
-    type: ["attributeType1", "attributeType2"],
+    type: ["attributeType1", "attributeType3"],
     name: "Attribute Sample 08",
     data: {
       base64: b64EncodeUrl(
