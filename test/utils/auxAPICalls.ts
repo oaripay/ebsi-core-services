@@ -305,13 +305,17 @@ const mockedPosts: mockedElement[] = [
   },
 ];
 
+const randNum: number = Math.floor(Math.random() * 1000000);
+
 const mockedAttributes: IAttribute[] = [
   {
     id: uuidv4(),
     type: ["attributeType1", "attributeType2"],
     name: "Attribute Sample 01",
     data: {
-      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-01` })),
+      base64: b64EncodeUrl(
+        JSON.stringify({ test: `sample Data-01-${randNum}` })
+      ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
     hash: hash(JSON.stringify({ test: `sample Data-01` })),
@@ -321,7 +325,9 @@ const mockedAttributes: IAttribute[] = [
     type: ["attributeType1", "attributeType3"],
     name: "Attribute Sample 02",
     data: {
-      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-02` })),
+      base64: b64EncodeUrl(
+        JSON.stringify({ test: `sample Data-02-${randNum}` })
+      ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
     hash: hash(JSON.stringify({ test: `sample Data-02` })),
@@ -331,7 +337,9 @@ const mockedAttributes: IAttribute[] = [
     type: ["attributeType1", "attributeType2"],
     name: "Attribute Sample 03",
     data: {
-      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-03` })),
+      base64: b64EncodeUrl(
+        JSON.stringify({ test: `sample Data-03-${randNum}` })
+      ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
     hash: hash(JSON.stringify({ test: `sample Data-03` })),
@@ -341,7 +349,9 @@ const mockedAttributes: IAttribute[] = [
     type: ["attributeType1", "attributeType4"],
     name: "Attribute Sample 04",
     data: {
-      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-04` })),
+      base64: b64EncodeUrl(
+        JSON.stringify({ test: `sample Data-04-${randNum}` })
+      ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
     hash: hash(JSON.stringify({ test: `sample Data-04` })),
@@ -351,7 +361,9 @@ const mockedAttributes: IAttribute[] = [
     type: ["attributeType1", "attributeType2"],
     name: "Attribute Sample 05",
     data: {
-      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-05` })),
+      base64: b64EncodeUrl(
+        JSON.stringify({ test: `sample Data-05-${randNum}` })
+      ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
     hash: hash(JSON.stringify({ test: `sample Data-05` })),
@@ -361,7 +373,9 @@ const mockedAttributes: IAttribute[] = [
     type: ["attributeType1", "attributeType2"],
     name: "Attribute Sample 06",
     data: {
-      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-06` })),
+      base64: b64EncodeUrl(
+        JSON.stringify({ test: `sample Data-06-${randNum}` })
+      ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
     hash: hash(JSON.stringify({ test: `sample Data-06` })),
@@ -371,7 +385,9 @@ const mockedAttributes: IAttribute[] = [
     type: ["attributeType1", "attributeType2"],
     name: "Attribute Sample 07",
     data: {
-      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-07` })),
+      base64: b64EncodeUrl(
+        JSON.stringify({ test: `sample Data-07-${randNum}` })
+      ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
     hash: hash(JSON.stringify({ test: `sample Data-07` })),
@@ -381,7 +397,9 @@ const mockedAttributes: IAttribute[] = [
     type: ["attributeType1", "attributeType2"],
     name: "Attribute Sample 08",
     data: {
-      base64: b64EncodeUrl(JSON.stringify({ test: `sample Data-08` })),
+      base64: b64EncodeUrl(
+        JSON.stringify({ test: `sample Data-08-${randNum}` })
+      ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
     hash: hash(JSON.stringify({ test: `sample Data-08` })),
