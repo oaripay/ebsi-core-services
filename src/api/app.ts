@@ -28,21 +28,18 @@ class App {
     this.httpServer.use(handleError);
     const yamlFilePath = path.join(__dirname, OPENAPI_PATH);
 
-    switch (ebsiService) {
-      case EBSI_SERVICE.NAME.IDHUB:
-        this.router = new IdentityHubRouter(
-          this.httpServer,
-          YAML.load(yamlFilePath)
-        );
-        this.httpServer.use(
-          EBSI_SERVICE.SWAGGER.IDHUB,
-          swaggerUi.serve,
-          swaggerUi.setup(YAML.load(yamlFilePath))
-        );
-        break;
-      default:
-        throw Error(API_ERROR_MESSAGES.NO_EBSI_SERVICE_AVAILABLE);
-    }
+    if (ebsiService !== EBSI_SERVICE.NAME.IDHUB)
+      throw Error(API_ERROR_MESSAGES.NO_EBSI_SERVICE_AVAILABLE);
+
+    this.router = new IdentityHubRouter(
+      this.httpServer,
+      YAML.load(yamlFilePath)
+    );
+    this.httpServer.use(
+      EBSI_SERVICE.SWAGGER.IDHUB,
+      swaggerUi.serve,
+      swaggerUi.setup(YAML.load(yamlFilePath))
+    );
   }
 
   public Start = async (port: number): Promise<http.Server> => {
