@@ -318,7 +318,9 @@ const mockedAttributes: IAttribute[] = [
       ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
-    hash: hash(JSON.stringify({ test: `sample Data-01` })),
+    hash: hash(
+      b64EncodeUrl(JSON.stringify({ test: `sample Data-01-${randNum}` }))
+    ),
   },
   {
     id: uuidv4(),
@@ -330,7 +332,9 @@ const mockedAttributes: IAttribute[] = [
       ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
-    hash: hash(JSON.stringify({ test: `sample Data-02` })),
+    hash: hash(
+      b64EncodeUrl(JSON.stringify({ test: `sample Data-02-${randNum}` }))
+    ),
   },
   {
     id: uuidv4(),
@@ -342,7 +346,9 @@ const mockedAttributes: IAttribute[] = [
       ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
-    hash: hash(JSON.stringify({ test: `sample Data-03` })),
+    hash: hash(
+      b64EncodeUrl(JSON.stringify({ test: `sample Data-03-${randNum}` }))
+    ),
   },
   {
     id: uuidv4(),
@@ -354,7 +360,9 @@ const mockedAttributes: IAttribute[] = [
       ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
-    hash: hash(JSON.stringify({ test: `sample Data-04` })),
+    hash: hash(
+      b64EncodeUrl(JSON.stringify({ test: `sample Data-04-${randNum}` }))
+    ),
   },
   {
     id: uuidv4(),
@@ -366,7 +374,9 @@ const mockedAttributes: IAttribute[] = [
       ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
-    hash: hash(JSON.stringify({ test: `sample Data-05` })),
+    hash: hash(
+      b64EncodeUrl(JSON.stringify({ test: `sample Data-05-${randNum}` }))
+    ),
   },
   {
     id: uuidv4(),
@@ -378,7 +388,9 @@ const mockedAttributes: IAttribute[] = [
       ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
-    hash: hash(JSON.stringify({ test: `sample Data-06` })),
+    hash: hash(
+      b64EncodeUrl(JSON.stringify({ test: `sample Data-06-${randNum}` }))
+    ),
   },
   {
     id: uuidv4(),
@@ -390,7 +402,9 @@ const mockedAttributes: IAttribute[] = [
       ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
-    hash: hash(JSON.stringify({ test: `sample Data-07` })),
+    hash: hash(
+      b64EncodeUrl(JSON.stringify({ test: `sample Data-07-${randNum}` }))
+    ),
   },
   {
     id: uuidv4(),
@@ -402,7 +416,9 @@ const mockedAttributes: IAttribute[] = [
       ),
     },
     did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
-    hash: hash(JSON.stringify({ test: `sample Data-08` })),
+    hash: hash(
+      b64EncodeUrl(JSON.stringify({ test: `sample Data-08-${randNum}` }))
+    ),
   },
 ];
 

@@ -98,6 +98,7 @@ enum API_ERROR_MESSAGES {
   HASH_MISMATCH = "File hash provided mismatches from the file hash stored.",
   ERROR_RETRIEVING_ATTRIBUTES = "Error retrieving attributes",
   ATTRIBUTES_MISMATCH = "Trying to store same hash with different data file",
+  ATTRIBUTES_FILE_DATA_ERROR = "File data could not be all retrieved.",
 }
 
 enum WALLET_MESSAGES {
