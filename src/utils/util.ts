@@ -8,6 +8,7 @@ import fs from "fs";
 import {
   WALLET_DATA_STORE_TYPE_MAP,
   WALLET_DATA_STORE_CONFIG_MAP,
+  ENVIRONMENT,
 } from "../config";
 import LOGGER from "../logger";
 import { API_ERROR_MESSAGES, InternalError, HTTPError } from "../errors";
@@ -88,6 +89,9 @@ const isTokenExpired = (token: string): boolean => {
 };
 
 const PRINT = (data: any, level: string, operation?: string): void => {
+  if (ENVIRONMENT === "test") {
+    LOGGER.silent = true;
+  }
   LOGGER.log({
     message: data,
     level,
@@ -104,6 +108,9 @@ const PRINT_DEBUG = (data: any, operation?: string): void => {
 };
 
 const PRINT_ERROR = (error: any, operation?: string): void => {
+  if (ENVIRONMENT === "test") {
+    LOGGER.silent = true;
+  }
   // check if it is an EBSI error
   if ((error as Error).name === "HTTPError") {
     const ebsiError = error as HTTPError;
