@@ -16,6 +16,8 @@ class EtherServiceMock {
   addApplication() {return []; }
   addNewAuthorization() {return []; }
   revertMessage() {return []; }
+  getApplicationKeys() {return []; }
+  getApplicationByKey() {return []; }
 }
 
 // tslint:disable-next-line:max-classes-per-file
@@ -51,27 +53,95 @@ describe ('AppController', () => {
   });
 
   describe('Test GET\'s', () => {
+    it(`/GET all apps`, () => {
+      jest.spyOn(etherService, 'getApplicationKeys').mockResolvedValue(['key0', 'key1']);
+
+      jest.spyOn(etherService, 'getApplicationByKey').mockImplementation(
+          (key) => { return [
+            'appName'+key, 'pubKey'+key
+          ]}
+          );
+
+      return request(app.getHttpServer())
+          .get('/trusted-apps-registry/v1/apps')
+          .expect(200)
+          .expect( {
+                items: [
+                  { appName: 'appNamekey0', pubKey: 'pubKeykey0' },
+                  { appName: 'appNamekey1', pubKey: 'pubKeykey1' }
+                ],
+                total: 2,
+                pageSize: 10,
+                first: '/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10',
+                prev: '/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10',
+                next: '/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10',
+                last: '/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10'
+              }
+          );
+    });
+
+    it(`/GET all apps invalid page number`, () => {
+      jest.spyOn(etherService, 'getApplicationKeys').mockResolvedValue(['key0', 'key1']);
+
+      jest.spyOn(etherService, 'getApplicationByKey').mockImplementation(
+          (key) => { return [
+            'appName'+key, 'pubKey'+key
+          ]}
+      );
+
+      return request(app.getHttpServer())
+          .get('/trusted-apps-registry/v1/apps?page[after]=10')
+          .expect(400)
+          .expect( (response) => {
+                expect(response.body.message).toEqual('invalid page number');
+              }
+          );
+    });
+
+    it(`/GET all apps no application found`, () => {
+      jest.spyOn(etherService, 'getApplicationKeys').mockResolvedValue([]);
+
+      jest.spyOn(etherService, 'getApplicationByKey').mockImplementation(
+          (key) => { return [
+            'appName'+key, 'pubKey'+key
+          ]}
+      );
+
+      return request(app.getHttpServer())
+          .get('/trusted-apps-registry/v1/apps')
+          .expect(200)
+          .expect({
+                items: [],
+                total: 0,
+                pageSize: 10,
+                first: '/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10',
+                prev: '/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10',
+                next: '/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10',
+                last: '/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10'
+              }
+          );
+    });
 
     it(`/GET app public key`, () => {
       jest.spyOn(etherService, 'getApplicationPublicKey').mockResolvedValue('thekey');
-      const key = 'noappkey';
+      const key = 'testappkey';
       return request(app.getHttpServer())
-        .get('/ebsitrustedapp/public-keys/' + key)
+        .get('/trusted-apps-registry/v1/apps/' + key)
         .expect(200)
-        .expect( {pubKey: 'thekey'});
+        .expect( { appName: 'testappkey', pubKey: 'thekey' });
     });
 
     it(`/GET app pub key -> throw entity not found`, () => {
       jest.spyOn(etherService, 'getApplicationPublicKey').mockImplementation(() => {throw new NotFoundException(); });
       const key = 'noappkey';
       return request(app.getHttpServer())
-        .get('/ebsitrustedapp/public-keys/' + key)
+        .get('/trusted-apps-registry/v1/apps/' + key)
         .expect(404)
         .expect(
           (res) => {
             const resp = JSON.parse(res.text);
 
-            expect(resp.message).toEqual('Application does not exist');
+            expect(resp.message).toEqual(`${key} not found`);
           },
         );
     });
@@ -88,11 +158,18 @@ describe ('AppController', () => {
         ]);
       const appName = 'ebsi-wallet-test-app-name';
       return request(app.getHttpServer())
-        .get('/ebsitrustedapp/authorized-apps/' + appName)
+        .get(`/trusted-apps-registry/v1/apps/${appName}/authorized-apps/`)
         .expect(200)
         .expect( {
-          'ebsi-besu': true,
-        });
+              items: [ { authorizedAppName: 'ebsi-besu' } ],
+              total: 1,
+              pageSize: 10,
+              first: '/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10',
+              prev: '/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10',
+              next: '/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10',
+              last: '/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10'
+            }
+        );
     });
 
     it(`/GET authorized apps by appname - >test malware service`, () => {
@@ -100,7 +177,7 @@ describe ('AppController', () => {
         {test: 'scrambled value'});
       const appName = 'ebsi-wallet-test-app-name';
       return request(app.getHttpServer())
-        .get('/ebsitrustedapp/authorized-apps/' + appName)
+        .get(`/trusted-apps-registry/v1/apps/${appName}/authorized-apps/`)
         .expect(404)
         .expect(
           (res) => {
@@ -115,7 +192,7 @@ describe ('AppController', () => {
       jest.spyOn(etherService, 'getAuthorizedApps').mockImplementation(() => { throw new NotFoundException(); });
       const appName = 'ebsi-wallet-test-app-name';
       return request(app.getHttpServer())
-        .get('/ebsitrustedapp/authorized-apps/' + appName)
+        .get(`/trusted-apps-registry/v1/apps/${appName}/authorized-apps/`)
         .expect(404)
         .expect(
           (res) => {
@@ -132,7 +209,7 @@ describe ('AppController', () => {
       jest.spyOn(appService, 'generateLoginChallenge').mockImplementation(() => 'the key');
       const appName = 'the_name';
       return request(app.getHttpServer())
-        .get('/ebsitrustedapp/challenge/' + appName)
+        .get('/trusted-apps-registry/v1/challenge/' + appName)
         .expect(200)
         .expect( 'the key');
     });
@@ -141,7 +218,7 @@ describe ('AppController', () => {
       jest.spyOn(appService, 'generateLoginChallenge').mockImplementation(() => { throw new NotFoundException(); });
       const appName = 'the_name';
       return request(app.getHttpServer())
-        .get('/ebsitrustedapp/challenge/' + appName)
+        .get('/trusted-apps-registry/v1/challenge/' + appName)
         .expect(400)
         .expect(
           (res) => {
@@ -167,7 +244,7 @@ describe ('AppController', () => {
         },
       };
       return request(app.getHttpServer())
-        .post('/ebsitrustedapp/register-app')
+        .post('/trusted-apps-registry/v1/register-app')
         .send(body)
         .expect(201)
         .expect('app-added-to-besu');
@@ -187,7 +264,7 @@ describe ('AppController', () => {
         },
       };
       return request(app.getHttpServer())
-        .post('/ebsitrustedapp/register-app')
+        .post('/trusted-apps-registry/v1/register-app')
         .send(body)
         .expect(400)
         .expect(
@@ -213,7 +290,7 @@ describe ('AppController', () => {
         },
       };
       return request(app.getHttpServer())
-        .post('/ebsitrustedapp/register-app')
+        .post('/trusted-apps-registry/v1/register-app')
         .send(body)
         .expect(400)
         .expect(
@@ -240,7 +317,7 @@ describe ('AppController', () => {
         },
       };
       return request(app.getHttpServer())
-        .post('/ebsitrustedapp/authorize')
+        .post('/trusted-apps-registry/v1/authorize')
         .send(body)
         .expect(201)
         .expect('authorization added');
@@ -261,7 +338,7 @@ describe ('AppController', () => {
         },
       };
       return request(app.getHttpServer())
-        .post('/ebsitrustedapp/authorize')
+        .post('/trusted-apps-registry/v1/authorize')
         .send(body)
         .expect(400)
         .expect(
@@ -289,7 +366,7 @@ describe ('AppController', () => {
         },
       };
       return request(app.getHttpServer())
-        .post('/ebsitrustedapp/authorize')
+        .post('/trusted-apps-registry/v1/authorize')
         .send(body)
         .expect(400)
         .expect(
@@ -318,7 +395,7 @@ describe ('AppController', () => {
         },
       };
       return request(app.getHttpServer())
-        .post('/ebsitrustedapp/authorize')
+        .post('/trusted-apps-registry/v1/authorize')
         .send(body)
         .expect(400)
         .expect(

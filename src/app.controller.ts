@@ -10,7 +10,7 @@ import {
   Redirect,
   UseGuards,
   Response,
-  BadRequestException, UnauthorizedException,
+  BadRequestException, UnauthorizedException, InternalServerErrorException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import * as status from 'http-status';
@@ -86,6 +86,9 @@ export class AppController {
       };
       return result;
     } catch (ex) {
+      if (ex instanceof BadRequestException) {
+        throw (ex);
+      }
       throw new NotFoundException('Application does not exist');
     }
   }
@@ -99,6 +102,9 @@ export class AppController {
       const appPublicKey = await this.ethersService.getApplicationPublicKey(param.appName);
       return { appName: param.appName, pubKey: appPublicKey };
     } catch (ex) {
+        if (ex instanceof InternalServerErrorException) {
+          throw(ex);
+        }
         throw new NotFoundException(param.appName + ' not found');
     }
   }
@@ -187,7 +193,7 @@ export class AppController {
   @ApiResponse({ status: 409, description: HTTP_400})
   @ApiResponse({ status: 400, description: HTTP_400})
 
-  @Post('/register-app')
+  @Post('/v1/register-app')
   @HttpCode(status.CREATED)
   async postAuthorizedApp(@Body() authAppBody: AuthAppBody) {
     try {
@@ -210,7 +216,7 @@ export class AppController {
   @ApiResponse({ status: 201, description: 'Application added'})
   @ApiResponse({ status: 409, description: HTTP_400})
   @ApiResponse({ status: 400, description: HTTP_400})
-  @Post('/authorize')
+  @Post('/v1/authorize')
   @HttpCode(status.CREATED)
   async postAuthorization(@Body() authBody: AuthorizationBody) {
     try {
@@ -233,7 +239,7 @@ export class AppController {
   @ApiResponse({ status: 200, description: 'Challenge encrypted'})
   @ApiResponse({ status: 404, description: HTTP_404})
   @ApiResponse({ status: 401, description: HTTP_401})
-  @Get('/challenge/:name')
+  @Get('/v1/challenge/:name')
   async challenge(@Param() params: ChallengeParams, @Response() response) {
     try {
       return response.status(200).send(this.appService.generateLoginChallenge(params.name));
