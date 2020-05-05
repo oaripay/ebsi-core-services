@@ -1,7 +1,6 @@
 /**
  * Data Storage Interface
  */
-// eslint-disable-next-line @typescript-eslint/interface-name-prefix
 export default interface IDataStorage {
   /**
    * Inserts an element to the Data Storage
@@ -27,5 +26,4 @@ export default interface IDataStorage {
    * @param uri complete URL of the API REST call
    */
   get(key: string, uri: string): Promise<any>;
-  // eslint-disable-next-line semi
 }

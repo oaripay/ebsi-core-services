@@ -1,5 +1,3 @@
-/* eslint-disable no-underscore-dangle */
-
 import httpMocks from "node-mocks-http";
 import applyPaginationFormat from "../../src/middleware/formatResponse";
 import { PaginateResult } from "../../src/utils";
@@ -44,6 +42,7 @@ describe("formatResponse middleware test suite", () => {
     };
 
     res.on("end", () => {
+      // eslint-disable-next-line no-underscore-dangle
       const result = JSON.parse(res._getData());
       expect(result).toMatchObject(expectedResult);
     });
@@ -83,6 +82,7 @@ describe("formatResponse middleware test suite", () => {
     };
 
     res.on("end", () => {
+      // eslint-disable-next-line no-underscore-dangle
       const result = JSON.parse(res._getData());
       expect(result).toMatchObject(expectedResult);
     });
@@ -122,6 +122,7 @@ describe("formatResponse middleware test suite", () => {
     };
 
     res.on("end", () => {
+      // eslint-disable-next-line no-underscore-dangle
       const result = JSON.parse(res._getData());
       expect(result).toMatchObject(expectedResult);
     });
@@ -161,6 +162,7 @@ describe("formatResponse middleware test suite", () => {
     };
 
     res.on("end", () => {
+      // eslint-disable-next-line no-underscore-dangle
       const result = JSON.parse(res._getData());
       expect(result).toMatchObject(expectedResult);
     });
@@ -200,6 +202,7 @@ describe("formatResponse middleware test suite", () => {
     };
 
     res.on("end", () => {
+      // eslint-disable-next-line no-underscore-dangle
       const result = JSON.parse(res._getData());
       expect(result).toMatchObject(expectedResult);
     });

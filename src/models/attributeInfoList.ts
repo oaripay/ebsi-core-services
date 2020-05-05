@@ -1,5 +1,3 @@
-/* eslint-disable no-useless-constructor */
-
 import { IAttributeInfo, IAttributeInfoList } from "../dtos/attributeInfo";
 import { AttributeDAO } from "../daos/attribute";
 import KeyValueDataStorage from "../libs/dataStorages/keyValueDataStorage";

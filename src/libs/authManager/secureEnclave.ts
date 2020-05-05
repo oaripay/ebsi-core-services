@@ -28,5 +28,4 @@ export default interface SecureEnclave {
 
   // decrypt data using Component private key
   decrypt(dataToDecrypt: Buffer): Buffer;
-  // eslint-disable-next-line semi
 }

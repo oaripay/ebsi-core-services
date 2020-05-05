@@ -1,13 +1,8 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-unused-vars */
-/* eslint-disable class-methods-use-this */
-
 import AuthManager from "../authManager/authManager";
 import { getStorageConfig } from "../../utils/util";
 import { WALLET_DATASTORE_CONFIG } from "../../config";
 import { ICASFile } from "../../daos/casFile";
 import { ICASStorageOut } from "../../dtos/dataStorage";
-import { InternalError } from "../../errors";
 
 /**
  * Class to a Content Addressable Data Storage using EBSI API
@@ -44,15 +39,6 @@ export default class CASDataStorage {
       `${this.uri}`,
       this.targetApp
     );
-  }
-
-  /**
-   * Updates an already inserted element to the Data Storage
-   * @param data Data to be inserted
-   */
-  // eslint-disable-next-line @typescript-eslint/require-await
-  async update(data: any): Promise<any> {
-    throw new InternalError("Method not implemented on CASDataStorage");
   }
 
   /**

@@ -34,12 +34,11 @@ const GLOBAL_CONFIG = {
     ebsiApiBaseUrl: EBSI_API_INT_URL,
   },
 };
-// eslint-disable-next-line prettier/prettier
+
 const ENVIRONMENT =
   process.env.EBSI_ENV === "test" ||
   process.env.EBSI_ENV === "production" ||
   process.env.EBSI_ENV === "development" ||
-  // eslint-disable-next-line prettier/prettier
   process.env.EBSI_ENV === "local"
     ? process.env.EBSI_ENV
     : "integration"; // integration by default

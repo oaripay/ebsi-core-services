@@ -1,5 +1,3 @@
-/* eslint-disable no-underscore-dangle */
-
 import httpMocks from "node-mocks-http";
 import { decodeJWT } from "did-jwt";
 import * as auth from "../../src/middleware/auth";
@@ -129,6 +127,7 @@ describe("auth middleware test suite", () => {
       exp: expect.any(Number),
     };
     res.on("end", () => {
+      // eslint-disable-next-line no-underscore-dangle
       const result: AccessTokenResponseBody = res._getData();
       expect(result).toMatchObject(expectedResult);
       const { payload } = decodeJWT(result.accessToken);

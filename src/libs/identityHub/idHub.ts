@@ -1,5 +1,3 @@
-/* eslint-disable no-empty-function */
-/* eslint-disable no-useless-constructor */
 import equal from "fast-deep-equal";
 import {
   IAttribute,

@@ -1,7 +1,3 @@
-/* eslint-disable no-empty-function */
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable no-useless-constructor */
-
 import CASFile from "../../models/casFile";
 import { WALLET_DATA_STORE_TYPE } from "../../config";
 import AttributeInfoList from "../../models/attributeInfoList";
@@ -14,8 +10,6 @@ export default class DataStoreManager {
   private privAttributeInfoListDB!: AttributeInfoList;
 
   private privAttributeDBType = "cassandra";
-
-  private constructor() {}
 
   public static get Instance(): DataStoreManager {
     if (!this.instance) this.instance = new this();
