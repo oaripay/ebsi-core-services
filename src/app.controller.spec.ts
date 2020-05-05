@@ -135,7 +135,20 @@ describe ('AppController', () => {
                     }]
                 );
         });
+        it(`#/v1/issuers/:did no issuer found`, () => {
+            jest.spyOn(appService, 'doesIssuerExists').mockImplementation(() => false);
+            jest.spyOn(appService, 'doesIssuerForGovExists').mockImplementation(() => false);
+            const did = 'noissuerfound';
 
+            return request(app.getHttpServer())
+                .get(`/trusted-issuers-registry/v1/issuers/${did}`)
+                .expect(404)
+                .expect(
+                    (res) => {
+                        expect(res.body.message).toEqual(`The format of ${did} parameter is not valid or entity not found`);
+                    },
+                );
+        });
         // it(`#/v1/issuers will fail not found`, () => {
         //     jest.spyOn(appService, 'getUniversityTrustedIssuers').mockImplementation(() => {throw new Error('test'); } );
         //     return request(app.getHttpServer())

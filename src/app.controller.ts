@@ -168,11 +168,14 @@ export class AppController {
       }
       if (!result.length) {
         throw new NotFoundException(
-          "The format of {did} parameter is not valid or entity not found"
+          `The format of ${params.did} parameter is not valid or entity not found`
         );
       }
       return result;
     } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
       throw new BadRequestException(
         "there was a problem processing your request"
       );
