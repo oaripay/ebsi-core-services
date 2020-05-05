@@ -15,7 +15,7 @@
     "!**/node_modules/**"
   ],
   "collectCoverage": true,
-  "coverageReporters": ["text", "lcov", "json", "text", "clover", "cobertura"],
+  "reporters": ["default", "jest-sonar"],
   "globals": {
     "ts-jest": {
       "diagnostics": true,
