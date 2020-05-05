@@ -2,8 +2,8 @@ const supertest = require("supertest");
 const jose = require("jose");
 const ethers = require("ethers");
 
-const config = require("../config");
-const utils = require("../utils");
+const config = require("../src/config");
+const utils = require("../src/utils");
 const configTest = require("./config");
 
 const { server, TEST_APP_NAME, privKey } = configTest;

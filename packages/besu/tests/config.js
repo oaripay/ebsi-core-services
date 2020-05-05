@@ -1,5 +1,5 @@
-const utils = require("../utils");
-const Server = require("../server");
+const utils = require("../src/utils");
+const Server = require("../src/server");
 require("dotenv").config();
 
 const testMode = process.env.EBSI_TEST_MODE === "true";

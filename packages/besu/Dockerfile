@@ -4,13 +4,13 @@ RUN apk add --update --no-cache \
   make \
   g++
 WORKDIR /api
-COPY api/besu/package*.json /api/
+COPY ./package*.json /api/
 RUN npm ci --only=production
 
 FROM node:12.16.1-alpine
 WORKDIR /api
 COPY --from=base /api/node_modules /api/node_modules
-COPY ./api/besu /api
+COPY . /api
 RUN chown node:node /api
 USER node
 EXPOSE 8080

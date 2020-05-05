@@ -10,12 +10,6 @@ Clone the repository and move to the project directory
 git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/ledger-api.git
 ```
 
-This repo contains Fabric and Besu APIs. Go to the folder for Besu:
-
-```
-cd ledger-api/api/besu
-```
-
 Create a .env file with the private keys used in the api and the smart contract for notarization
 
 ```

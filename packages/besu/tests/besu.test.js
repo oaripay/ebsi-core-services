@@ -2,15 +2,15 @@ const ethers = require("ethers");
 const jose = require("jose");
 require("dotenv").config();
 
-const config = require("../config");
+const config = require("../src/config");
 const {
   BadRequestError,
   UnauthorizedError,
   ForbiddenError,
-} = require("../errors");
-const utils = require("../utils");
-const auth = require("../auth");
-const controller = require("../controller");
+} = require("../src/errors");
+const utils = require("../src/utils");
+const auth = require("../src/auth");
+const controller = require("../src/controller");
 
 const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
 const wallet = ethers.Wallet.createRandom();
