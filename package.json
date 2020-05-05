@@ -21,7 +21,7 @@
     "full-lint": "tsc --noEmit && eslint 'src/**/*.{js,ts,tsx}' --quiet --fix && prettier --write 'src/**/*.{js,ts,tsx}'",
     "format": "prettier --write 'src/**/*.{js,ts,tsx}' 'test/**/*.{js,ts,tsx}'",
     "test": "jest --clearCache && jest --runInBand --verbose false",
-    "test:e2e": "jest --clearCache && jest --config ./test/jest-e2e.json --runInBand",
+    "test:e2e": "jest --clearCache && jest --config ./test/jest-e2e.json --runInBand --verbose false",
     "test:all": "jest --clearCache && jest --config ./jest-all.json --runInBand --verbose false",
     "clearCache": "jest --clearCache"
   },
