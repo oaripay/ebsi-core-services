@@ -37,7 +37,7 @@ describe("app test suite", () => {
     const server = await startEbsiService(
       EBSI_SERVICE.NAME.IDHUB,
       testPort + 1,
-      EBSI_SERVICE.SWAGGER_FULL_URL.IDHUB
+      EBSI_SERVICE.SWAGGER_INTERNAL_URL.IDHUB
     );
     expect(server).toBeInstanceOf(http.Server);
     expect((server.address() as net.AddressInfo).port).toBe(testPort + 1);

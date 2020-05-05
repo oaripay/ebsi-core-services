@@ -1,4 +1,3 @@
-/* eslint-disable operator-linebreak */
 import { EBSI_SERVICE, ENVIRONMENT } from "./config";
 import { startEbsiService } from "./api/app";
 

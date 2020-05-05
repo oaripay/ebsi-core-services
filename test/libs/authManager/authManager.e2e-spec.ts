@@ -18,7 +18,7 @@ describe("authManager tests", () => {
     server = await startEbsiService(
       EBSI_SERVICE.NAME.IDHUB,
       testPort,
-      EBSI_SERVICE.SWAGGER_FULL_URL.IDHUB
+      EBSI_SERVICE.SWAGGER_INTERNAL_URL.IDHUB
     );
 
     done();
