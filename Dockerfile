@@ -15,8 +15,8 @@ COPY ./packages/besu /usr/src/api/
 # Stage 3: run light api
 FROM node:12-alpine
 WORKDIR /usr/src/api
-COPY --from=builder-backend /usr/src/api/node_modules /usr/src/api/node_modules
-COPY --from=builder-backend /usr/src/api/src /usr/src/app/dist
+COPY --from=besu-api /usr/src/api/node_modules /usr/src/api/node_modules
+COPY --from=besu-api /usr/src/api/src /usr/src/api/dist
 COPY ./packages/besu/package*.json /usr/src/api/
 RUN npm prune --production
 RUN chown -R node:node /usr/src/api

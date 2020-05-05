@@ -4,7 +4,11 @@
     "prettier-format": "prettier --write 'src/**/*.{js,ts,tsx}'",
     "start": "node src/start.js",
     "test": "EBSI_TEST_MODE=true jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar",
-    "test:e2e": "jest --config ./tests/jest-e2e.json"
+    "test:e2e": "jest --config ./tests/jest-e2e.json",
+    "lint-staged": "lint-staged",
+    "lint": "npm run lint:js && npm run lint:prettier",
+    "lint:js": "eslint \"*/**/*.{js,ts}\"",
+    "lint:prettier": "prettier --check \"**/*.{md,mdx,html,json,yml,js,jsx,ts,tsx,css,scss}\""
   },
   "keywords": [
     "EBSI",

@@ -1,14 +1,12 @@
 {
   "private": true,
   "scripts": {
-    "audit": "audit-ci --moderate && run-s audit:frontend",
-    "audit:backend": "cd backend && audit-ci --moderate",
-    "audit:frontend": "cd frontend && audit-ci --moderate",
     "bootstrap": "run-s bootstrap:*",
     "bootstrap:besu": "cd packages/besu && npm install",
+    "lint": "run-s lint:*",
+    "lint:backend": "cd packages/besu && npm run lint ",
     "pre-commit": "run-s pre-commit:*",
-    "pre-commit:backend": "cd packages/essif-backend && npm run lint-staged ",
-    "pre-commit:frontend": "cd packages/essif-frontend && npm run lint-staged",
+    "pre-commit:backend": "cd packages/besu && npm run lint-staged ",
     "test": "run-s test:*",
     "test:besu": "cd packages/besu && npm test"
   },

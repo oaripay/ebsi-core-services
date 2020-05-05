@@ -11,18 +11,6 @@ npm install
 npm run bootstrap
 ```
 
-## Auditing the dependencies
-
-```sh
-npm run audit
-```
-
-## Linting
-
-```sh
-npm run lint
-```
-
 ## Testing
 
 ```sh
