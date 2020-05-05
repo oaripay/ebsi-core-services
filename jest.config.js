@@ -18,6 +18,7 @@ module.exports = {
     "!**/node_modules/**",
   ],
   collectCoverage: true,
+  reporters: ["default", "jest-sonar"],
   coverageReporters: ["text", "lcov", "json", "text", "clover", "cobertura"],
   globals: {
     "ts-jest": {
