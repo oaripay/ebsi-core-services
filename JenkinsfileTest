@@ -11,7 +11,7 @@ pipeline {
         COMPONENT_KEYSTORE_p=credentials('COMPONENT_KEYSTORE_p')
         COMPONENT_KEYSTORE_r=credentials('COMPONENT_KEYSTORE_r')
         COMPONENT_KEYSTORE_mac=credentials('COMPONENT_KEYSTORE_mac')
-        COMPONENT_KEYSTORE="""{"address":"4d3171baf3ec3ce370ec65e7d354741a970ba038","id":"6469004e-63ef-4bca-a7c2-d7d2d94ec477","version":3,"Crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"${env.COMPONENT_KEYSTORE_iv}"},"ciphertext":"cc27e4c1fc942e220f1578ad75da1ccf62631aa21708cc29f1c123aa7bee2d9e","kdf":"scrypt","kdfparams":{"salt":"${env.COMPONENT_KEYSTORE_salt}","n":"${env.COMPONENT_KEYSTORE_n}","dklen":32,"p":"${env.COMPONENT_KEYSTORE_p}","r":"${env.COMPONENT_KEYSTORE_r}"},"mac":"${env.COMPONENT_KEYSTORE_mac}"}}""";
+        COMPONENT_KEYSTORE="""{"address":"83c58c6f114bf746648a09427140bf5cc2c1873b","id":"c794ff50-10f1-446c-ab2f-dda0f8cc9444","version":3,"Crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"${env.COMPONENT_KEYSTORE_iv}"},"ciphertext":"a35a19e0beca2b19dfdde97e765a51b5b19c88b7b7326e861960c8bafc1f6c4b","kdf":"scrypt","kdfparams":{"salt":"${env.COMPONENT_KEYSTORE_salt}","n":"${env.COMPONENT_KEYSTORE_n}","dklen":32,"p":"${env.COMPONENT_KEYSTORE_p}","r":"${env.COMPONENT_KEYSTORE_r}"},"mac":"${env.COMPONENT_KEYSTORE_mac}"}}""";
     }
     stages {
         stage('Clone repo') {
@@ -27,7 +27,7 @@ pipeline {
         }
         stage('SonarQube Analysis') {
             steps{
-                sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=identity-hub-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=identity-hub-api -Dsonar.sources=. -Dsonar.projectBaseDir=/var/lib/jenkins/workspace/identity-hub-api-test_${env.BRANCH_NAME}"
+                sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=identity-hub-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=identity-hub-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}"
             }
         }
     }
