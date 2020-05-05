@@ -1,0 +1,21 @@
+version: "3.7"
+
+services:
+  wallet-api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: ebsi/identity-hub-api:v1.0
+    container_name: identity-hub-api
+    restart: always
+    logging:
+      options:
+        max-size: "100m"
+        max-file: "50"
+    ports:
+      - 8080:9000
+    environment:
+      - EBSI_ENV=integration
+      - COMPONENT_PASSWORD=${component_password}
+      - COMPONENT_KEYSTORE=${component_keystore}
+      - DID_REGISTRY_SC_ADDRESS=${did_registry_sc_address}

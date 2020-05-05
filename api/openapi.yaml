@@ -11,7 +11,7 @@ info:
     name: "EUPL-1.2"
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
 servers:
-  - url: "http://localhost"
+  - url: "http://localhost:9000"
     description: Local Computer Environment
   - url: "https://api.ebsi.xyz"
     description: EBSI Testing Environment
