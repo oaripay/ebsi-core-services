@@ -1,0 +1,12 @@
+version: "3.7"
+
+services:
+  besu:
+    build: .
+    container_name: besu-api
+    ports:
+      - "8080:8080"
+    environment:
+      - EBSI_ENV=integration
+      - API_LEDGER_PRIVATE_KEY=${API_LEDGER_PRIVATE_KEY}
+      - BESU_ADDRESS_NOTARY=${BESU_ADDRESS_NOTARY}

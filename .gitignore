@@ -1,4 +1,5 @@
 .env
+node_modules
 
 sonar-report.xml
 packages/besu/node_modules
