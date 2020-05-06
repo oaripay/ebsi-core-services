@@ -35,7 +35,7 @@ const handleError = (err, req, res, next) => {
   res.setHeader("Content-Type", "application/json");
   res.status(error.Status);
   res.json(error.print());
-  res.render("error", { error });
+  next();
 };
 
 export {
