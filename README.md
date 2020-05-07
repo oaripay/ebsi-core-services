@@ -21,6 +21,8 @@ npm test
 
 Before starting Docker Compose, create a copy of `.env.example` and name it `.env`. Set the environment variables accordingly.
 
+Copy into `packages/fabric/ssl/tlsca.pem` the corresponding certificate to connect with Hyperledger Fabric.
+
 Now, run:
 
 ```sh
