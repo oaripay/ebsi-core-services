@@ -21,7 +21,7 @@
             **/pom.xml
         </sonar.exclusions>
     </properties>
-        
+
     <repositories>
         <repository>
             <id>central</id>
@@ -35,12 +35,12 @@
             <url>https://mvnrepository.com</url>
         </repository>
     </repositories>
-    
-    <pluginRepositories>        
+
+    <pluginRepositories>
         <pluginRepository>
             <id>central</id>
             <name>My custom repo1</name>
-            <url>https://repo.maven.apache.org/maven2</url>            
+            <url>https://repo.maven.apache.org/maven2</url>
         </pluginRepository>
     </pluginRepositories>
 
@@ -52,11 +52,11 @@
                 <version>1.27.0</version>
             </dependency>
         </dependencies>
-    </dependencyManagement>    
+    </dependencyManagement>
 
 
     <dependencies>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -66,26 +66,26 @@
                     <artifactId>spring-boot-starter-logging</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>        
-        
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-        
+
         <!--  spring security for authentication and authorization -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-        
+
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt</artifactId>
             <version>0.9.1</version>
-        </dependency>  
+        </dependency>
         <!--  spring security for authentication and authorization   -->
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -123,21 +123,21 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-        
-        
+
+
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
             <version>1.1.44</version>
-        </dependency>   
-                     
+        </dependency>
+
         <!-- Fabric dependencies -->
         <dependency>
             <groupId>org.hyperledger.fabric-sdk-java</groupId>
             <artifactId>fabric-sdk-java</artifactId>
             <version>1.4.7</version>
             <type>jar</type>
-        </dependency> 
+        </dependency>
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty</artifactId>
@@ -183,17 +183,17 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
-        </dependency>    
+        </dependency>
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
             <version>3.10.0</version>
-        </dependency>  
+        </dependency>
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java-util</artifactId>
             <version>3.10.0</version>
-        </dependency>        
+        </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
@@ -209,7 +209,7 @@
             <groupId>org.glassfish</groupId>
             <artifactId>javax.json</artifactId>
             <version>1.1.4</version>
-        </dependency>          
+        </dependency>
 
         <dependency>
             <groupId>io.netty</groupId>
@@ -219,8 +219,8 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-codec-http2</artifactId>
-            <version>4.1.43.Final</version>                
-        </dependency>        
+            <version>4.1.43.Final</version>
+        </dependency>
         <!-- Fabric dependencies -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
@@ -236,10 +236,9 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-            
-            <!-- Create a docker image -->
 
-            <plugin>
+            <!-- Create a docker image -->
+            <!-- <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>0.31.0</version>
@@ -255,15 +254,15 @@
                 <configuration>
                     <images>
                         <image>
-                            <name>ebsi_fabric_api</name>                       
+                            <name>ebsi_fabric_api</name>
                             <build>
                                 <dockerFile>${project.basedir}/Dockerfile</dockerFile >
                             </build>
                         </image>
- 
+
                     </images>
                 </configuration>
-            </plugin> 
+            </plugin> -->
             <!-- Create a docker image -->
         </plugins>
     </build>
