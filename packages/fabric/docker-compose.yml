@@ -14,7 +14,7 @@ services:
       - ORDERER_NODE_NAME=${ORDERER_NODE_NAME}
       - ORDERER_NODE_URL=${ORDERER_NODE_URL}
     volumes:
-      - ./ssl:/app/ssl/
-      - ./src/main/resources/server.jks:/app/server.jks
-      #- ./logs:/app/logs/
-      - ./wallet:/app/wallet/
+      - ./ssl:/api/ssl/
+      - ./src/main/resources/server.jks:/api/server.jks
+      #- ./logs:/api/logs/
+      - ./wallet:/api/wallet/
