@@ -91,7 +91,7 @@ const EBSI_SERVICE_BASE_URL = {
 };
 
 const EBSI_SERVICE_PORT = {
-  IDHUB: 9000,
+  IDHUB: process.env.IDHUB_PORT ? +process.env.IDHUB_PORT : 9000,
 };
 
 const EBSI_SERVICE_SWAGGER = {
