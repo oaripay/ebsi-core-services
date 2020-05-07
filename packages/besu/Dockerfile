@@ -16,7 +16,7 @@ COPY . /usr/src/api/
 FROM node:12-alpine
 WORKDIR /usr/src/api
 COPY --from=besu-api /usr/src/api/node_modules /usr/src/api/node_modules
-COPY --from=besu-api /usr/src/api/src /usr/src/api/dist
+COPY --from=besu-api /usr/src/api/src /usr/src/api/src
 COPY ./package*.json /usr/src/api/
 RUN npm prune --production
 RUN chown -R node:node /usr/src/api
