@@ -8,8 +8,9 @@
 
 1. [Getting started](#Getting)
 2. [Building](#Building)
-3. [Swagger Documentation](#Swagger-Documentation)
-4. [Licensing](#Licensing)
+3. [Testing](#Testing)
+4. [Swagger Documentation](#Swagger-Documentation)
+5. [Licensing](#Licensing)
 
 ## Getting started
 
@@ -75,7 +76,40 @@ Start the swagger service API
 npm run start
 ```
 
-This command starts a node server exposing the EBSI Swagger API at <http://localhost:9000/api-docs/> where you can play with the EBSI API.
+This command starts a node server exposing the EBSI Swagger API at <http://localhost:9000/identity-hub/v1/api-docs/> where you can play with the EBSI API.
+
+## Testing
+
+Copy .env.example to .env and set the following environment variables:
+
+- `EBSI_ENV` : set to test, local, integration, development or production
+- `COMPONENT_PASSWORD` <-- TYPE HERE COMPONENT WALLET PASSWORD
+- `COMPONENT_KEYSTORE` <-- TYPE HERE COMPONENT WALLET KEYSTORE
+- `DID_REGISTRY_SC_ADDRESS` <-- TYPE HERE DID REGISTRY SC ADDRESS
+
+### Unit tests
+
+Run
+
+```sh
+npm run test
+```
+
+### Integration tests
+
+Run
+
+```sh
+npm run test:e2e
+```
+
+### Unit & Integration tests
+
+Run
+
+```sh
+npm run test:all
+```
 
 ## Swagger Documentation
 
