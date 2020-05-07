@@ -1,3 +1,9 @@
+# Build the project
+FROM maven:3.5-jdk-8-alpine
+WORKDIR /app
+COPY . /app 
+RUN mvn install
+
 FROM openjdk:8
 
 EXPOSE 8080
@@ -10,7 +16,7 @@ RUN mkdir $APP_HOME
 #Create folder to save configuration files
 WORKDIR $APP_HOME
 #Copy executable jar file from the builder image
-COPY ./target/fabric-0.0.1-SNAPSHOT.jar $APP_HOME
+COPY --from=0 /app/target/fabric-0.0.1-SNAPSHOT.jar $APP_HOME
 
 ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar fabric-0.0.1-SNAPSHOT.jar" ]
 
