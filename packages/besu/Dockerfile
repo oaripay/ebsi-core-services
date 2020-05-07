@@ -1,18 +1,24 @@
-FROM node:12.16.1-alpine as base
+# Stage 0: prepare node alpine image
+FROM node:12-alpine AS base
 RUN apk add --update --no-cache \
   python \
   make \
   g++
-WORKDIR /api
-COPY ./package*.json /api/
-RUN npm ci --only=production
 
-FROM node:12.16.1-alpine
-WORKDIR /api
-COPY --from=base /api/node_modules /api/node_modules
-COPY . /api
-RUN chown node:node /api
+# Stage 1: Besu api
+FROM base AS besu-api
+WORKDIR /usr/src/api
+COPY ./package*.json /usr/src/api/
+RUN npm ci --quiet --no-progress
+COPY . /usr/src/api/
+
+# Stage 3: run light api
+FROM node:12-alpine
+WORKDIR /usr/src/api
+COPY --from=besu-api /usr/src/api/node_modules /usr/src/api/node_modules
+COPY --from=besu-api /usr/src/api/src /usr/src/api/dist
+COPY ./package*.json /usr/src/api/
+RUN npm prune --production
+RUN chown -R node:node /usr/src/api
 USER node
-EXPOSE 8080
-ENV NODE_ENV production
 CMD npm run start
