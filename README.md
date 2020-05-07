@@ -1,6 +1,7 @@
 # Ledger API
 
 API to interact with Besu API and Hyperledger Fabric API. In the `packages/` folder, you will find both apis.
+Besu API is based on NodeJS. Fabric API is based on Java.
 
 In development, you can run both project separately. Refer to their own documentation for more information.
 
