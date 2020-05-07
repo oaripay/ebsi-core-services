@@ -10,12 +10,6 @@ Clone the repository and move to the project directory
 git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/ledger-api.git
 ```
 
-This repo contains Fabric and Besu APIs. Go to the folder for Besu:
-
-```
-cd ledger-api/api/besu
-```
-
 Create a .env file with the private keys used in the api and the smart contract for notarization
 
 ```
@@ -58,7 +52,7 @@ npm run start
 
 The api will be accesible at http://localhost:8080
 
-## Test
+## Unit tests
 
 Set the environmental variable `EBSI_ENV` to integration, development or production to determine the location of Besu RPC node.
 
@@ -67,6 +61,16 @@ Then run
 ```
 npm run test
 ```
+
+## Integration tests
+
+Integration tests can be done locally or connecting to an existing api deployed.
+
+- Run `EBSI_ENV=local npm run test:e2e` to run the tests without launching the api.
+- Run `EBSI_ENV=integration npm run test:e2e` to run the tests connecting to the api in the integration environment.
+- Run `EBSI_ENV=local EBSI_API=http://localhost:8080 npm run test:e2e` to run the tests connecting to a particular api already launched and listening in the url `EBSI_API`
+
+If you run it locally you can add `EBSI_TEST_MODE=true` to not connect to the Trusted App Registry when doing `/sessions`. If this variable is not set then both `TEST_APP_NAME` and `TEST_APP_PRIVATE_KEY` must correspond with an app registered and authorized in the Trusted App Registry.
 
 ## Swagger documentation
 

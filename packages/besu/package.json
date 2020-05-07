@@ -1,21 +1,20 @@
 {
-  "name": "restful",
-  "version": "1.0.0",
-  "description": "REST API for an EBSI node",
-  "main": "index.js",
+  "private": true,
   "scripts": {
     "prettier-format": "prettier --write 'src/**/*.{js,ts,tsx}'",
-    "start": "node server.js",
-    "test": "EBSI_TEST_MODE=true jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar"
+    "start": "node src/start.js",
+    "test": "EBSI_TEST_MODE=true jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar",
+    "test:e2e": "jest --config ./tests/jest-e2e.json",
+    "lint-staged": "lint-staged",
+    "lint": "npm run lint:js && npm run lint:prettier",
+    "lint:js": "eslint \"*/**/*.{js,ts}\"",
+    "lint:prettier": "prettier --check \"**/*.{md,mdx,html,json,yml,js,jsx,ts,tsx,css,scss}\""
   },
-  "private": true,
   "keywords": [
     "EBSI",
     "REST",
     "API"
   ],
-  "author": "Julian Gonzalez",
-  "license": "ISC",
   "dependencies": {
     "axios": "^0.19.0",
     "body-parser": "^1.19.0",
@@ -35,28 +34,14 @@
     "eslint-plugin-import": "^2.20.2",
     "eslint-plugin-jest": "^23.8.2",
     "eslint-plugin-prettier": "^3.1.3",
-    "husky": "^4.2.5",
     "jest": "^25.1.0",
     "jest-sonar": "^0.2.5",
     "lint-staged": "^10.1.3",
-    "prettier": "^2.0.4"
+    "prettier": "^2.0.4",
+    "supertest": "^4.0.2"
   },
   "jest": {
-    "coverageDirectory": "./coverage/",
-    "collectCoverage": true,
-    "coverageReporters": [
-      "text",
-      "lcov",
-      "json",
-      "text",
-      "clover",
-      "cobertura"
-    ]
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
+    "coverageDirectory": "./coverage/"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
