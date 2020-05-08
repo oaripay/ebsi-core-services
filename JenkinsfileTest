@@ -17,8 +17,15 @@ pipeline {
             }
         }
         stage('SonarQube Analysis') {
-            steps{
-                sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=timestamp-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=timestamp-api -Dsonar.sources=. -Dsonar.projectBaseDir=/var/lib/jenkins/workspace/timestamp-api-test_${env.BRANCH_NAME}"
+            steps {
+                withSonarQubeEnv('LocalSonar'){
+                    sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=timestamp-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=timestamp-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}"
+                }
+            }
+        }
+        stage("Quality Gate") {
+            steps {
+                waitForQualityGate abortPipeline: true
             }
         }
     }
