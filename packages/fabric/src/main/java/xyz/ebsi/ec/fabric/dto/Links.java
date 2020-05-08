@@ -2,6 +2,7 @@
 package xyz.ebsi.ec.fabric.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.math.BigDecimal;
 import lombok.Data;
 
 /**
@@ -31,17 +32,20 @@ public class Links {
         String sizePage="&page[size]=";
         
         int lastPageNumber = (totalElement/pageSize);
-        this.first="/ledger/v1/blockchains/fabric/channels/"+channelName+"/"+collectionName+"?page[number]=1&page[size]="+pageSize;
+        BigDecimal bd = new BigDecimal(lastPageNumber);
+        bd= bd.setScale(0,BigDecimal.ROUND_UP);
+        lastPageNumber=bd.intValue();
         
+        this.first="/ledger/v1/blockchains/fabric/channels/"+channelName+"/"+collectionName+"?page[number]=0&page[size]="+pageSize;
         
-        if(totalElement<pageSize){
-            this.last="";
+        if(totalElement<=pageSize){
+            this.last=this.first;
             this.prev="";
             this.next="";
         }else{
             this.last=ledger+channelName+"/"+collectionName+pageNumber+lastPageNumber+sizePage+pageSize;
             this.next=ledger+channelName+"/"+collectionName+pageNumber+(currentPageNumber+1)+sizePage+pageSize;
-            this.prev=ledger+channelName+"/"+collectionName+pageNumber+(currentPageNumber-1)+sizePage+pageSize; 
+            this.prev=""; 
         }
         
     }
