@@ -9,7 +9,8 @@ services:
     environment:
       - EBSI_ENV=integration
       - API_LEDGER_PRIVATE_KEY=${API_LEDGER_PRIVATE_KEY}
-      - BESU_ADDRESS_NOTARY=${BESU_ADDRESS_NOTARY}
+      - BESU_ADDRESS_NOTARY=${BESU_ADDRESS_NOTARY}     
+      
   fabric:
     build: "./packages/fabric"
     container_name: ledger-fabric-api
@@ -23,6 +24,11 @@ services:
       - ORDERER_NODE_NAME=${ORDERER_NODE_NAME}
       - ORDERER_NODE_URL=${ORDERER_NODE_URL}
     volumes:
-      - ./ssl:/app/ssl/
-      - ./src/main/resources/server.jks:/app/server.jks
-      - ./wallet:/app/wallet/
+      - ./packages/fabric/ssl:/app/ssl/
+      - ./packages/fabric/src/main/resources/server.jks:/app/server.jks
+      - ./packages/fabric/wallet:/app/wallet/
+    logging:
+      options:
+        max-size: "200K"
+        max-file: "10"     
+      
