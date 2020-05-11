@@ -143,7 +143,7 @@ const EBSI_SERVICE = {
 };
 
 enum EBSI_APPS {
-  BESU = "ebsi-besu",
+  BESU = "ebsi-ledger",
   IDHUB = "ebsi-idhub",
   EIDAS = "ebsi-eidas",
   WALLET = "ebsi-wallet",
