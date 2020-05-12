@@ -17,6 +17,7 @@ import {
   AccessTokenRequestBody,
   JWTClaims,
 } from "../libs/authManager/secureEnclave/jwt";
+import { PRINT_ERROR } from "../utils/util";
 
 const GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer";
 
@@ -175,7 +176,13 @@ async function handleToken(
   }
 
   const publicKeyPEM = await getPublicKey(payload.aud);
-  jose.JWT.verify(token, publicKeyPEM);
+  try {
+    jose.JWT.verify(token, publicKeyPEM);
+  } catch (error) {
+    PRINT_ERROR(error);
+    next(new InvalidTokenError(`Error verifying token: ${error.message}`));
+    return;
+  }
 
   util.PRINT_DEBUG(`token: Valid token`);
   Object.assign(req.params, { authenticated: true });
