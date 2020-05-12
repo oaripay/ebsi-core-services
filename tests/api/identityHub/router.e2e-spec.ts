@@ -685,11 +685,38 @@ describe("identity hub router API calls", () => {
     });
   });
   describe("get attributes endpoint (whole flow)", () => {
+    it("should retrieve an existing attribute", async () => {
+      expect.assertions(3);
+      const { userToken, userDid } = await initSetupForTesting();
+      const attributeInput = { ...mockedAttributes[0] };
+      const attributeHash = attributeInput.hash;
+      delete attributeInput.did;
+      delete attributeInput.hash;
+      const expectedResult = { ...mockedAttributes[0] };
+      expectedResult.did = userDid;
+      const res = await request(server)
+        .put(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
+        )
+        .set("Authorization", `Bearer ${userToken}`)
+        .send(attributeInput as IAttributeInput);
+      expect(res.status).toStrictEqual(201);
+
+      // we retrieve the element
+      const res2 = await request(server)
+        .get(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTE}/${attributeHash}`
+        )
+        .set("Authorization", `Bearer ${userToken}`);
+      expect(res2.status).toStrictEqual(200);
+      expect(res2.body).toMatchObject(expectedResult);
+    });
+
     it("should return one element formatted result: only DID passed", async () => {
       expect.assertions(3);
       const { userToken, userDid } = await initSetupForTesting();
       const expectedResult: PaginateResult = {
-        items: mockedAttributes.slice(0, 1),
+        items: mockedAttributes.slice(1, 2),
         total: 1,
         pageSize: 10,
         links: {
@@ -700,7 +727,7 @@ describe("identity hub router API calls", () => {
         },
       };
       expectedResult.items[0].did = userDid;
-      const attributeInput1 = { ...mockedAttributes[0] };
+      const attributeInput1 = { ...mockedAttributes[1] };
       const attributeHash1 = attributeInput1.hash;
       delete attributeInput1.did;
       delete attributeInput1.hash;
@@ -726,7 +753,7 @@ describe("identity hub router API calls", () => {
       expect.assertions(4);
       const { userToken, userDid } = await initSetupForTesting();
       const expectedResult: PaginateResult = {
-        items: mockedAttributes.slice(1, 3),
+        items: mockedAttributes.slice(2, 4),
         total: 2,
         pageSize: 10,
         links: {
@@ -738,11 +765,11 @@ describe("identity hub router API calls", () => {
       };
       expectedResult.items[0].did = userDid;
       expectedResult.items[1].did = userDid;
-      const attributeInput1 = { ...mockedAttributes[1] };
+      const attributeInput1 = { ...mockedAttributes[2] };
       const attributeHash1 = attributeInput1.hash;
       delete attributeInput1.did;
       delete attributeInput1.hash;
-      const attributeInput2 = { ...mockedAttributes[2] };
+      const attributeInput2 = { ...mockedAttributes[3] };
       const attributeHash2 = attributeInput2.hash;
       delete attributeInput2.did;
       delete attributeInput2.hash;
