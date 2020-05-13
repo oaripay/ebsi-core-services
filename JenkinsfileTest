@@ -13,15 +13,20 @@ pipeline {
             steps {
                 sh 'npm install'
                 withCredentials([string(credentialsId: 'TEST_APP_PRIVATE_KEY', variable: 'WALLET_PRIV_KEY')]) {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh 'npm run test:cov'
-                    }
+                    sh 'npm run test:cov'
                 }
             }
         }
         stage('SonarQube Analysis') {
-            steps{
-                sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-apps-registry-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-apps-registry-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}"
+            steps {
+                withSonarQubeEnv('LocalSonar'){
+                    sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-apps-registry-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-apps-registry-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}"
+                }
+            }
+        }
+        stage("Quality Gate") {
+            steps {
+                waitForQualityGate abortPipeline: true
             }
         }
     }
