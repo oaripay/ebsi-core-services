@@ -107,11 +107,12 @@ export default class IDHub {
       did,
     };
     // compares if already stored attribute's info is the same as provided
-    if (
-      !newAttribute &&
-      !equal(attributeInfo, await this.getAttributeInfo(did, hash))
-    )
-      throw new InternalError(API_ERROR_MESSAGES.ATTRIBUTES_MISMATCH);
+    if (!newAttribute) {
+      const tmpAttribute = { ...attributeInfo };
+      delete tmpAttribute.id;
+      if (!equal(tmpAttribute, await this.getAttributeInfo(did, hash)))
+        throw new InternalError(API_ERROR_MESSAGES.ATTRIBUTES_MISMATCH);
+    }
     // we add attribute info only when it is a new attribute
     if (newAttribute) await this.addAttributeInfo(did, attributeInfo);
     return {
@@ -129,6 +130,7 @@ export default class IDHub {
   ): Promise<IAttributeInfo> {
     const desiredAttribute = await this.getAttribute(did, hash);
     delete desiredAttribute.data;
+    delete desiredAttribute.id;
     return desiredAttribute;
   }
 
