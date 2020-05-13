@@ -140,6 +140,25 @@ module.exports = async (deployer, network) => {
     await registryInstance.addApplication(app.pubKey, app.name)
 
 
+    app = {
+        name: 'ebsi-diploma-bachelor',
+        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVZcTV2dEg5aWlmZERhaU5yTFVpTFEwMHcxRmdVWk1VWQpjamg3amFCUHE4cnlxck9Pa2lESlh3d0dDazNKRXF0TW8vUGMrOE1DUEtDVWY3TTAxakFjcHc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K'
+
+    }
+    console.log('adding app ', app.name)
+
+    await registryInstance.addApplication(app.pubKey, app.name)
+
+    app = {
+        name: 'ebsi-diploma-master',
+        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVwRjAvd21qc3RLbnh3c1l0anBpbnowc3Z2V0V4RCt0MgpEeWdoMFRxQ2V0M1VRcVJTbFJaRGlKV2ptTTlaQnljTEFIaXliYjU4SVd5OFVDWXM4dWhDYWc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K'
+
+    }
+    console.log('adding app ', app.name)
+
+    await registryInstance.addApplication(app.pubKey, app.name)
+
+
     console.log ('adding access from all to all')
 
     let apps = ['ebsi-besu', 'ebsi-fabric', 'ebsi-wallet', 'ebsi-notary', 'ebsi-storage', 'ebsi-diploma', 'ebsi-ledger', 'trusted-apps-registry', 'ebsi-eidas-bridge', 'ebsi-idhub', 'trusted-issuers-registry'];
@@ -158,5 +177,8 @@ module.exports = async (deployer, network) => {
 
     console.log ('adding access of ebsi-fabric to ext-taxud')
     await registryInstance.addNewAuthorization('ebsi-fabric', 'ext-taxud', true);
+
+    await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-diploma-bachelor', true);
+    await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-diploma-master', true);
 
 }
