@@ -61,12 +61,28 @@ export default class IDHub {
 
   async getAttributesFiltered(
     did: string,
-    filterArr: string[]
+    filterArr: string[] | string[][]
   ): Promise<IAttribute[]> {
     const attributes: IAttribute[] = await this.getAttributes(did);
     // returns a list of attributes that contains any of the filtered attributes in as type element
+    // filter Array is empty returns an empty array
+    if (filterArr.length <= 0) return [];
+    // filter Array is an array of string arrays
+    if (Array.isArray(filterArr[0])) {
+      const resultAttributes = attributes.filter((attribute) =>
+        attribute.type.some((typeElem) =>
+          (filterArr as string[][]).some((filterElemArr) =>
+            filterElemArr.indexOf(typeElem)
+          )
+        )
+      );
+      return resultAttributes;
+    }
+    // otherwiese, filter Array is an array of string
     const resultAttributes = attributes.filter((attribute) =>
-      attribute.type.some((typeElem) => filterArr.indexOf(typeElem) > -1)
+      attribute.type.some(
+        (typeElem) => (filterArr as string[]).indexOf(typeElem) > -1
+      )
     );
     return resultAttributes;
   }

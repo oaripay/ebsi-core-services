@@ -683,7 +683,80 @@ describe("identity hub router API calls", () => {
         spyGet.mockRestore();
       });
     });
+
+    it("should return two elements filtered with an array of string arrays", async () => {
+      expect.assertions(4);
+      const { userToken, userDid } = await initSetupForTesting();
+      const type = [
+        ["attributeType1", "attributeType2"],
+        ["attributeType1", "attributeType3"],
+      ];
+      const encodedType = encodeURIComponent(JSON.stringify(type));
+      const expectedResult: PaginateResult = {
+        items: mockedAttributes.slice(0, 2),
+        total: 2,
+        pageSize: 10,
+        links: {
+          first: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
+          last: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=2&page[size]=10`,
+          next: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=2&page[size]=10`,
+          prev: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
+        },
+      };
+      expectedResult.items[0].did = userDid;
+      expectedResult.items[1].did = userDid;
+      const attributeInput1 = { ...mockedAttributes[0] };
+      const attributeHash1 = attributeInput1.hash;
+      delete attributeInput1.did;
+      delete attributeInput1.hash;
+      const attributeInput2 = { ...mockedAttributes[1] };
+      const attributeHash2 = attributeInput2.hash;
+      delete attributeInput2.did;
+      delete attributeInput2.hash;
+
+      const spy = jest
+        .spyOn(CASDataStorage.prototype, "insert")
+        .mockResolvedValueOnce({
+          hash: attributeHash1,
+          function: "keccak256",
+        })
+        .mockResolvedValueOnce({
+          hash: attributeHash2,
+          function: "keccak256",
+        });
+      const spyGet = jest
+        .spyOn(CASDataStorage.prototype, "get")
+        .mockResolvedValueOnce(attributeInput1.data.base64)
+        .mockResolvedValueOnce(attributeInput2.data.base64);
+
+      const res1 = await request(server)
+        .put(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash1}`
+        )
+        .set("Authorization", `Bearer ${userToken}`)
+        .send(attributeInput1 as IAttributeInput);
+      expect(res1.status).toStrictEqual(201);
+
+      const res2 = await request(server)
+        .put(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash2}`
+        )
+        .set("Authorization", `Bearer ${userToken}`)
+        .send(attributeInput2 as IAttributeInput);
+      expect(res2.status).toStrictEqual(201);
+
+      const resGet = await request(server)
+        .get(
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}&type=${encodedType}`
+        )
+        .set("Authorization", `Bearer ${userToken}`);
+      expect(resGet.status).toStrictEqual(200);
+      expect(resGet.body).toMatchObject(expectedResult);
+      spy.mockRestore();
+      spyGet.mockRestore();
+    });
   });
+
   describe("get attributes endpoint (whole flow)", () => {
     it("should retrieve an existing attribute", async () => {
       expect.assertions(3);
