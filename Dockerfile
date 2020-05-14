@@ -17,4 +17,5 @@ RUN npm prune --production && \
   chown -R node:node log
 USER node
 EXPOSE 9000/tcp
+ENV NODE_ENV production
 CMD [ "node", "dist/start.js" ]
