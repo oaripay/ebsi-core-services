@@ -2,7 +2,12 @@ import * as express from "express";
 import cors from "cors";
 import { parseEntityJWT } from "../../middleware/jwt";
 import { EBSI_SERVICE } from "../../config";
-import { handleError, BadRequestError, API_ERROR_MESSAGES } from "../../errors";
+import {
+  handleError,
+  BadRequestError,
+  API_ERROR_MESSAGES,
+  UnauthorizedError,
+} from "../../errors";
 import * as auth from "../../middleware/auth";
 import Controller from "./controller";
 import applyPaginationFormat from "../../middleware/formatResponse";
@@ -11,7 +16,7 @@ import { isHash } from "../../utils/util";
 class Router {
   constructor(server: express.Express, swaggerDoc: any) {
     const router = express.Router();
-    router.get("/swagger.json", (req: express.Request, res: express.Response) =>
+    router.get("/openapi.json", (req: express.Request, res: express.Response) =>
       res.send(swaggerDoc)
     );
 
@@ -25,6 +30,10 @@ class Router {
       parseEntityJWT,
       async (req: express.Request, res: express.Response, next) => {
         try {
+          if (!req.params.authenticated)
+            throw new UnauthorizedError(
+              `The method '${req.method} ${req.path}' is not available for anonymous access`
+            );
           const { didJwt, hash } = req.params;
           if (!didJwt || !hash)
             throw new BadRequestError(
@@ -53,6 +62,10 @@ class Router {
       async (req: express.Request, res: express.Response, next) => {
         const { did, type } = req.query;
         try {
+          if (!req.params.authenticated)
+            throw new UnauthorizedError(
+              `The method '${req.method} ${req.path}' is not available for anonymous access`
+            );
           if (!did || typeof did !== "string")
             throw new BadRequestError(
               API_ERROR_MESSAGES.ATTRIBUTES_DID_NOT_FOUND
@@ -90,6 +103,10 @@ class Router {
       async (req: express.Request, res: express.Response, next) => {
         const { didJwt, hash } = req.params;
         try {
+          if (!req.params.authenticated)
+            throw new UnauthorizedError(
+              `The method '${req.method} ${req.path}' is not available for anonymous access`
+            );
           if (!hash || !didJwt)
             throw new BadRequestError(
               API_ERROR_MESSAGES.ATTRIBUTES_DID_HASH_NOT_FOUND
