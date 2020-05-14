@@ -2,11 +2,33 @@ version: "3.7"
 
 services:
   besu:
-    build: .
+    build: "./packages/besu"
     container_name: ledger-besu-api
     ports:
       - "8080:8080"
     environment:
       - EBSI_ENV=integration
       - API_LEDGER_PRIVATE_KEY=${API_LEDGER_PRIVATE_KEY}
-      - BESU_ADDRESS_NOTARY=${BESU_ADDRESS_NOTARY}
+      - BESU_ADDRESS_NOTARY=${BESU_ADDRESS_NOTARY}     
+      
+  fabric:
+    build: "./packages/fabric"
+    container_name: ledger-fabric-api
+    ports:
+      - 8081:8081
+    environment:
+      - CA_URL=${CA_URL}
+      - CA_MSP_ID=${CA_MSP_ID}
+      - PEER_NODE_NAME=${PEER_NODE_NAME}
+      - PEER_NODE_URL=${PEER_NODE_URL}
+      - ORDERER_NODE_NAME=${ORDERER_NODE_NAME}
+      - ORDERER_NODE_URL=${ORDERER_NODE_URL}
+    volumes:
+      - ./packages/fabric/ssl:/app/ssl/
+      - ./packages/fabric/src/main/resources/server.jks:/app/server.jks
+      - ./packages/fabric/wallet:/app/wallet/
+    logging:
+      options:
+        max-size: "200K"
+        max-file: "10"     
+      

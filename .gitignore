@@ -5,3 +5,5 @@ sonar-report.xml
 packages/besu/node_modules
 packages/besu/.env
 packages/besu/coverage
+
+packages/fabric/target

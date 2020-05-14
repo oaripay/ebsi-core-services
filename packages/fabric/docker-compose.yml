@@ -1,0 +1,20 @@
+version: "3.7"
+
+services:
+  fabric:
+    build: .
+    container_name: fabric-api
+    ports:
+      - 8081:8081
+    environment:
+      - CA_URL=${CA_URL}
+      - CA_MSP_ID=${CA_MSP_ID}
+      - PEER_NODE_NAME=${PEER_NODE_NAME}
+      - PEER_NODE_URL=${PEER_NODE_URL}
+      - ORDERER_NODE_NAME=${ORDERER_NODE_NAME}
+      - ORDERER_NODE_URL=${ORDERER_NODE_URL}
+    volumes:
+      - ./ssl:/api/ssl/
+      - ./src/main/resources/server.jks:/api/server.jks
+      #- ./logs:/api/logs/
+      - ./wallet:/api/wallet/
