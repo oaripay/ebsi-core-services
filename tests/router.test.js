@@ -1,9 +1,9 @@
 const ethers = require("ethers");
 const supertest = require("supertest");
 
-const { url } = require("./config");
+const server = require("../src/start");
 
-const request = supertest(url);
+const request = supertest(server);
 
 const callTimestamp = (method) => {
   return request
@@ -19,6 +19,11 @@ describe("timestamp api router tests", () => {
     blockNumber: expect.any(Number),
     timestamp: expect.any(String),
     registeredBy: expect.any(String),
+  });
+
+  /* eslint jest/no-hooks: "off" */
+  afterAll(async () => {
+    server.close();
   });
 
   it("get list of recent records", async () => {

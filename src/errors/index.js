@@ -2,10 +2,8 @@ const logger = require("../logger");
 
 const HTTPError = require("./HTTPError");
 const BadRequestError = require("./BadRequestError");
-const ForbiddenError = require("./ForbiddenError");
 const InternalError = require("./InternalError");
 const NotFoundError = require("./NotFoundError");
-const UnauthorizedError = require("./UnauthorizedError");
 
 function handler(_error, req, res, next) {
   let error;
@@ -29,8 +27,6 @@ module.exports = {
   handler,
   HTTPError,
   BadRequestError,
-  ForbiddenError,
   InternalError,
   NotFoundError,
-  UnauthorizedError,
 };
