@@ -1,10 +1,12 @@
 const ethers = require("ethers");
-const { BadRequestError, NotFoundError } = require("../errors");
-const controller = require("../api/controller");
+const { BadRequestError, NotFoundError } = require("../src/errors");
+const controller = require("../src/api/controller");
 
 /*
  * Tests
  */
+
+jest.setTimeout(10000);
 
 describe("timestamp API Test", () => {
   let hash;
