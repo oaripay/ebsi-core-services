@@ -11,6 +11,8 @@ const callTimestamp = (method) => {
     .set("Accept", "application/json");
 };
 
+jest.setTimeout(10000);
+
 describe("timestamp api router tests", () => {
   let hash;
   const expectedRecord = expect.objectContaining({

@@ -6,6 +6,8 @@ const controller = require("../src/api/controller");
  * Tests
  */
 
+jest.setTimeout(10000);
+
 describe("timestamp API Test", () => {
   let hash;
   const expectedRecord = expect.objectContaining({
