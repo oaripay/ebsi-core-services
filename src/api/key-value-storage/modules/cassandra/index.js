@@ -20,9 +20,9 @@ const cassandra = new cassandraDriver.Client(cassandraConnection);
 
 function buildLink(store, before, after, pageSize) {
   const query = {};
-  if (before) query["page[before]"] = before;
+  /* if (before) query["page[before]"] = before;
 
-  if (after) query["page[after]"] = after;
+  if (after) query["page[after]"] = after; */
 
   if (pageSize && pageSize !== config.DEFAULT_PAGE_SIZE)
     query["page[size]"] = pageSize;
@@ -36,7 +36,7 @@ async function getRecord(key) {
   return result.first();
 }
 
-async function setKey(key, value) {
+async function setKey(key, value, skipReadThenUpdate = false) {
   let type;
   let query;
   let params;
@@ -54,9 +54,10 @@ async function setKey(key, value) {
     );
 
   // check if the key exists
-  const record = await getRecord(key);
+  let exist = false;
+  if (!skipReadThenUpdate) exist = !!(await getRecord(key));
 
-  if (record) {
+  if (exist || skipReadThenUpdate) {
     // update key
     type = "update";
     query = `update ${TABLE_KEY_VALUE_STORAGE} set value = ? where key = ? if exists`;
@@ -123,7 +124,7 @@ async function patchKey(key, patch) {
     throw new BadRequestError(`Impossible to apply patch: ${error.message}`);
   }
 
-  const { result } = await setKey(key, newValue);
+  const { result } = await setKey(key, newValue, true);
   return result[key];
 }
 
@@ -132,9 +133,9 @@ async function getListKeys(q, store) {
   if (q && q.page) {
     const { page } = q;
     if (page.size) {
-      if (Number(q["page[size]"]) < 0)
+      if (Number(page.size) < 0)
         throw new BadRequestError("page[size] must be a positive integer");
-      pageSize = page.size;
+      pageSize = parseInt(Number(page.size), 10);
     }
   }
 
@@ -147,12 +148,6 @@ async function getListKeys(q, store) {
   result.rows.forEach((r) => {
     items.push(r.key);
   });
-
-  if (result.rows.length === 0)
-    return {
-      items,
-      total: 0,
-    };
 
   const links = {
     first: buildLink(store, null, null, pageSize),

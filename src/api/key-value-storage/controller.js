@@ -1,48 +1,23 @@
 const KeyValueCassandra = require("./modules/cassandra");
 
 async function setKey(store, key, value) {
-  switch (store) {
-    case "distributed":
-      return KeyValueCassandra.setKey(key, value);
-    default:
-      throw new Error(`No handle for store '${store}'`);
-  }
+  return KeyValueCassandra.setKey(key, value);
 }
 
 async function getKey(store, key) {
-  switch (store) {
-    case "distributed":
-      return KeyValueCassandra.getKey(key);
-    default:
-      throw new Error(`No handle for store '${store}'`);
-  }
+  return KeyValueCassandra.getKey(key);
 }
 
 async function deleteKey(store, key) {
-  switch (store) {
-    case "distributed":
-      return KeyValueCassandra.deleteKey(key);
-    default:
-      throw new Error(`No handle for store '${store}'`);
-  }
+  return KeyValueCassandra.deleteKey(key);
 }
 
 async function patchKey(store, key, patch) {
-  switch (store) {
-    case "distributed":
-      return KeyValueCassandra.patchKey(key, patch);
-    default:
-      throw new Error(`No handle for store '${store}'`);
-  }
+  return KeyValueCassandra.patchKey(key, patch);
 }
 
 async function getListKeys(store, query) {
-  switch (store) {
-    case "distributed":
-      return KeyValueCassandra.getListKeys(query, store);
-    default:
-      throw new Error(`No handle for store '${store}'`);
-  }
+  return KeyValueCassandra.getListKeys(query, store);
 }
 
 module.exports = {

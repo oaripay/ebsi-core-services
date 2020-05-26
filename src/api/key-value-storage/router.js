@@ -6,18 +6,44 @@ const controller = require("./controller");
 
 const router = express.Router();
 
-router.use(bodyParser.json({ type: "application/json" }));
-router.use(bodyParser.json({ type: "application/*json" }));
-router.use(bodyParser.json({ type: "application/*+json" }));
-router.use((error, req, res, next) => {
-  if (error)
-    throw new BadRequestError(
-      "The body is defined for 'application/*json' but it cannot be parsed as JSON. Try it defining body as 'text/plain'"
+const opts = {
+  limit: "50mb",
+  extended: true,
+};
+
+router.use((req, res, next) => {
+  if (!req.get("content-type")) {
+    next();
+    return;
+  }
+  if (
+    !req.is("text/plain") &&
+    !req.is("application/json") &&
+    !req.is("application/*json") &&
+    !req.is("application/*+json")
+  ) {
+    next(
+      new BadRequestError(
+        `The content type ${req.get("content-type")} is not supported`
+      )
     );
+    return;
+  }
   next();
 });
 
-router.use(bodyParser.text({ type: "text/plain" }));
+router.use(bodyParser.json({ type: "application/json", ...opts }));
+router.use(bodyParser.json({ type: "application/*json", ...opts }));
+router.use(bodyParser.json({ type: "application/*+json", ...opts }));
+router.use((error, req, res, next) => {
+  next(
+    new BadRequestError(
+      "The body is defined for 'application/*json' but it cannot be parsed as JSON. Try it defining body as 'text/plain'"
+    )
+  );
+});
+
+router.use(bodyParser.text({ type: "text/plain", ...opts }));
 
 // List of key-values
 router.get("/", async (req, res, next) => {
