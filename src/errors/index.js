@@ -28,7 +28,7 @@ function handler(_error, req, res, next) {
   logger.info(`Error ${error.status}: ${error.detail}`);
   res.setHeader("Content-Type", "application/problem+json");
   res.status(error.status);
-  res.send(error.jsonString());
+  res.send(error.print());
 
   next();
 }

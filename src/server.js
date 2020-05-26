@@ -1,6 +1,7 @@
 const express = require("express");
 const cassandraDriver = require("cassandra-driver");
 const bodyParser = require("body-parser");
+const cors = require("cors");
 
 const config = require("./config");
 const utils = require("./utils");
@@ -90,52 +91,66 @@ async function checkTablesCassandra() {
   logger.error("Imposible to connect with Cassandra");
 })();
 
-/*
- * Router
- */
+class App {
+  constructor() {
+    this.httpServer = express();
 
-const app = express();
+    this.httpServer.use("*", cors());
 
-app.use("*", require("cors")());
+    this.httpServer.use((req, res, next) => {
+      logger.info(`${req.method} ${req.url}`);
+      next();
+    });
 
-app.use((req, res, next) => {
-  logger.info(`${req.method} ${req.url}`);
-  next();
-});
+    this.httpServer.param("store", (req, res, next, store) => {
+      if (store !== "distributed") {
+        next(new errors.NotFoundError(`Store '${store}' not found`));
+        return;
+      }
+      req.store = store;
+      next();
+    });
 
-app.param("store", (req, res, next, store) => {
-  if (store !== "distributed") {
-    next(new errors.NotFoundError(`Store '${store}' not found`));
-    return;
+    this.httpServer.post(
+      "/storage/v1/sessions",
+      bodyParser.urlencoded({ extended: false }),
+      auth.callNewSession
+    );
+
+    this.httpServer.use(auth.handleToken);
+
+    this.httpServer.get("/storage/v1/stores", (req, res) => {
+      res.send({ items: ["distributed"], total: 1 });
+    });
+    this.httpServer.get("/storage/v1/stores/:store", (req, res) => {
+      res.status(204).send();
+    });
+
+    this.httpServer.use("/storage/v1/stores/:store/files", fileStorageAPI);
+    this.httpServer.use(
+      "/storage/v1/stores/:store/key-values",
+      keyValueStorageAPI
+    );
+    this.httpServer.use(
+      "/storage/v1/stores/:store/notifications",
+      notificationStorageAPI
+    );
+
+    this.httpServer.use((req, res, next) => {
+      next(
+        new errors.BadRequestError(`Invalid service '${req.method} ${req.url}'`)
+      );
+    });
+
+    this.httpServer.use(errors.handler);
   }
-  req.store = store;
-  next();
-});
 
-app.post("/storage/v1/sessions", bodyParser.json(), auth.callNewSession);
+  start(port, testMode = false) {
+    return this.httpServer.listen(port, () => {
+      logger.info(`Storage API started at port ${port}`);
+      if (testMode) logger.info("EBSI TEST MODE enabled");
+    });
+  }
+}
 
-app.use(auth.handleToken);
-
-app.get("/storage/v1/stores", (req, res) => {
-  res.send({ items: ["distributed"], total: 1 });
-});
-app.get("/storage/v1/stores/:store", (req, res) => {
-  res.status(204).send();
-});
-
-app.use("/storage/v1/stores/:store/files", fileStorageAPI);
-app.use("/storage/v1/stores/:store/key-values", keyValueStorageAPI);
-app.use("/storage/v1/stores/:store/notifications", notificationStorageAPI);
-
-app.use((req, res, next) => {
-  next(
-    new errors.BadRequestError(`Invalid service '${req.method} ${req.url}'`)
-  );
-});
-
-app.use(errors.handler);
-
-app.listen(config.port, () => {
-  logger.info(`Storage API started at port ${config.port}`);
-  if (config.testMode) logger.info("EBSI TEST MODE enabled");
-});
+module.exports = App;
