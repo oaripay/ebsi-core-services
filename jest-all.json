@@ -1,0 +1,18 @@
+{
+  "rootDir": ".",
+  "roots": ["<rootDir>/src/", "<rootDir>/tests/"],
+  "testMatch": ["**/*.+(test|e2e-test).+(jsx|js)"],
+  "transform": {
+    "^.+\\.(ts|tsx)?$": "jest"
+  },
+  "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json"],
+  "coverageDirectory": "./coverage/",
+  "collectCoverageFrom": [
+    "src/**/*.{js,jsx}",
+    "!src/start.js",
+    "!**/node_modules/**"
+  ],
+  "collectCoverage": true,
+  "reporters": ["default", "jest-sonar"],
+  "testEnvironment": "node"
+}

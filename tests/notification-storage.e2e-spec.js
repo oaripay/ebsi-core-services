@@ -149,7 +149,10 @@ describe("notification storage tests", () => {
     expect(responseQueue1.data).toStrictEqual(
       expect.objectContaining({
         total: 2,
-        items: expect.arrayContaining([notification11, notification21]),
+        items: expect.arrayContaining([
+          { ...notification11, id: id11 },
+          { ...notification21, id: id21 },
+        ]),
       })
     );
 
@@ -160,7 +163,10 @@ describe("notification storage tests", () => {
     expect(responseQueue2.data).toStrictEqual(
       expect.objectContaining({
         total: 2,
-        items: expect.arrayContaining([notification12, notification22]),
+        items: expect.arrayContaining([
+          { ...notification12, id: id12 },
+          { ...notification22, id: id22 },
+        ]),
       })
     );
 
@@ -194,7 +200,10 @@ describe("notification storage tests", () => {
     expect(data).toStrictEqual(
       expect.objectContaining({
         total: 3,
-        items: expect.arrayContaining([notification11, notification21]),
+        items: expect.arrayContaining([
+          { ...notification11, id: expect.any(String) },
+          { ...notification21, id: expect.any(String) },
+        ]),
       })
     );
   });

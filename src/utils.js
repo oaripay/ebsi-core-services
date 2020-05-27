@@ -31,6 +31,11 @@ function getJWKfromHex(_privKey) {
   });
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 module.exports = {
   getJWKfromHex,
+  sleep,
 };
