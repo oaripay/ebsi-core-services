@@ -7,9 +7,8 @@
     "lint": "npm run lint:js && npm run lint:prettier",
     "lint:js": "eslint \"*/**/*.{js,ts}\"",
     "lint:prettier": "prettier --check \"**/*.{md,mdx,html,json,yml,js,jsx,ts,tsx,css,scss}\"",
-    "test": "npm run test:all",
-    "test:all": "jest --clearCache && jest --config ./jest-all.json --runInBand --verbose false",
-    "test:unit": "jest --coverage --reporters=default --reporters=jest-sonar",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "jest --coverage --reporters=default --reporters=jest-sonar  --runInBand",
     "test:e2e": "jest --config ./jest-e2e.json"
   },
   "keywords": [

@@ -86,10 +86,10 @@ function cassandraResponse(rows) {
 
 const mockExecute = jest.spyOn(cassandraDriver.Client.prototype, "execute");
 
-// function to get calls of cassandra.execute in the instance key value
+// function to get calls of cassandra.execute in the instance notification
 function getExecuteCalls() {
-  const instanceKeyValue = cassandraDriver.Client.mock.instances[2];
-  return instanceKeyValue.execute.mock.calls;
+  const instanceNotification = cassandraDriver.Client.mock.instances[2];
+  return instanceNotification.execute.mock.calls;
 }
 
 expect.extend({
@@ -150,8 +150,8 @@ describe("notification storage tests", () => {
 
   beforeEach(() => {
     // clear calls to cassandra.execute
-    const instanceKeyValue = cassandraDriver.Client.mock.instances[2];
-    instanceKeyValue.execute.mock.calls = [];
+    const instanceNotification = cassandraDriver.Client.mock.instances[2];
+    instanceNotification.execute.mock.calls = [];
   });
 
   it("get list notifications all users", async () => {

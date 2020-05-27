@@ -84,25 +84,33 @@ npm run start
 
 The api will be accesible at http://localhost:8080
 
-## Unit Tests
+## Tests
 
-Unit tests do not include tests that requires access to Cassandra.
+Tests for File Storage, Key Value Storage, and Notification Storage and their connection with Cassandra. Create an `.env` file using `.env.example` and update the corresponding values.
+
+Launch unit tests and e2e tests with:
 
 ```
-npm run test
+EBSI_ENV=integration npm run test
 ```
 
-## Integration tests
+To connect with a local api for e2e run:
 
-Integration tests for File Storage, Key Value Storage, and Notification Storage and their connection with Cassandra.
+```
+EBSI_ENV=local EBSI_API=http://localhost:8080 npm run test
+```
 
-- Create an .env file using .env.example
-- Deploy the api `docker-compose up --build`
-- Run `npm run test:e2e`
+To run only unit tests:
 
-These tests can be used to check a local api or an api deployed in integration or development environment.
-To test it locally deploy the api using EBSI_TEST_MODE=true and EBSI_ENV=local. In this case, the api will not check the Trusted App Registry for sessions.
-To test the integration or development environment define in TEST_APP_NAME and TEST_APP_PRIVATE_KEY with a valid app registered in the Trusted App Registy.
+```
+npm run test:unit
+```
+
+To run only integration tests:
+
+```
+npm run test:e2e
+```
 
 ## Swagger documentation
 
