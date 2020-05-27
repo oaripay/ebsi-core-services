@@ -383,9 +383,9 @@ describe("appController", () => {
         .send(body);
 
       expect(response.body).toStrictEqual({
-        error: "Not Found",
+        error: "Bad Request",
         message: "a message from besu",
-        statusCode: 404,
+        statusCode: 400,
       });
       expect(response.status).toBe(400);
     });
@@ -485,9 +485,9 @@ describe("appController", () => {
         .send(body);
 
       expect(response.body).toStrictEqual({
-        error: "Not Found",
+        error: "Bad Request",
         message: "test",
-        statusCode: 404,
+        statusCode: 400,
       });
       expect(response.status).toBe(400);
     });

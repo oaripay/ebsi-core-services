@@ -72,7 +72,7 @@ export class AppService {
 
   async checkLogin(cryptedMessage, signature: string) {
     // recover address from signature
-    const address = await this.ethersService.recoverAddress(
+    const address = await EthersService.recoverAddress(
       cryptedMessage,
       signature
     );

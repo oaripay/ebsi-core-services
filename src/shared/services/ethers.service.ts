@@ -89,8 +89,7 @@ export class EthersService {
     return authorize.wait();
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  recoverAddress(cryptedChallenge, signature) {
+  static recoverAddress(cryptedChallenge, signature) {
     return ethers.utils.verifyMessage(cryptedChallenge, signature);
   }
 

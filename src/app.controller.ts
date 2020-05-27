@@ -316,12 +316,6 @@ export class AppController {
       );
     }
   }
-
-  @Get("/swagger.json")
-  // eslint-disable-next-line class-methods-use-this
-  async getSwagger(@Res() response: Response) {
-    return response.redirect("/ebsitrustedapp/api-docs-json");
-  }
 }
 
 export default AppController;
