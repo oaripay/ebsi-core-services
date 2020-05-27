@@ -1,3 +1,4 @@
+const utils = require("../src/utils");
 require("dotenv").config();
 
 const port = process.env.PORT || 8080;
@@ -26,9 +27,11 @@ const environment = process.env.EBSI_ENV;
 const finalConfig = config[environment];
 const { TEST_APP_NAME } = process.env;
 const privKey = process.env.TEST_APP_PRIVATE_KEY;
+const privKeyJWK = utils.getJWKfromHex(process.env.TEST_APP_PRIVATE_KEY);
 
 module.exports = {
   ...finalConfig,
   TEST_APP_NAME,
   privKey,
+  privKeyJWK,
 };
