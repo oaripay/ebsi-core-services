@@ -1,3 +1,5 @@
 export enum StrategyType {
-  API = 'API',
+  API = "API",
 }
+
+export default StrategyType;
