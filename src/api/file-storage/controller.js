@@ -1,44 +1,19 @@
-const EBSIcassandra = require("./modules/cassandra");
+const FileCassandra = require("./modules/cassandra");
 
-function storeFile(input) {
-  const { store, filename, file } = input;
-  switch (store) {
-    case "distributed":
-      return EBSIcassandra.storeFile(filename, file);
-    default:
-      throw new Error(`No handle for store '${store}'`);
-  }
+function storeFile(store, filename, file) {
+  return FileCassandra.storeFile(filename, file);
 }
 
-function readFile(input) {
-  const { store, hash } = input;
-  switch (store) {
-    case "distributed":
-      return EBSIcassandra.readFile(hash);
-    default:
-      throw new Error(`No handle for store '${store}'`);
-  }
+function readFile(store, hash) {
+  return FileCassandra.readFile(hash);
 }
 
-async function deleteFile(input) {
-  const { store, hash } = input;
-  switch (store) {
-    case "distributed":
-      await EBSIcassandra.deleteFile(hash);
-      return;
-    default:
-      throw new Error(`No handle for store '${store}'`);
-  }
+function deleteFile(store, hash) {
+  return FileCassandra.deleteFile(hash);
 }
 
-function getListFiles(input) {
-  const { store, query } = input;
-  switch (store) {
-    case "distributed":
-      return EBSIcassandra.getListFiles(query, store);
-    default:
-      throw new Error(`No handle for store '${store}'`);
-  }
+function getListFiles(store, query) {
+  return FileCassandra.getListFiles(query, store);
 }
 
 module.exports = {

@@ -14,19 +14,10 @@ const cassandra = new cassandraDriver.Client(cassandraConnection);
 
 function buildLink(store, before, after, pageSize) {
   const query = {};
-  if (before) query["page[before]"] = before;
-
-  if (after) query["page[after]"] = after;
-
   if (pageSize && pageSize !== config.DEFAULT_PAGE_SIZE)
     query["page[size]"] = pageSize;
 
   return `/storage/v1/stores/${store}/files?${querystring.stringify(query)}`;
-}
-
-function toBuffer(uuid) {
-  const hexStr = uuid.replace(/-/g, "");
-  return Buffer.from(hexStr, "hex");
 }
 
 async function getRecord(hash) {
@@ -36,8 +27,6 @@ async function getRecord(hash) {
 }
 
 async function storeFile(filename, file) {
-  if (!filename || !file) throw new Error("No filename or file defined");
-
   const data = fs.readFileSync(file);
   const hash = ethers.utils.keccak256(data);
   const record = await getRecord(hash);
@@ -80,44 +69,19 @@ async function deleteFile(hash) {
 
 async function getListFiles(q, store) {
   let pageSize = config.DEFAULT_PAGE_SIZE;
-  let pageAfter = null;
-  let pageBefore = null;
   if (q && q.page) {
     const { page } = q;
     if (page.size) {
-      if (Number(q["page[size]"]) < 0)
+      if (Number(page.size) < 0)
         throw new BadRequestError("page[size] must be a positive integer");
-      pageSize = page.size;
+      pageSize = parseInt(Number(page.size), 10);
     }
-
-    if (page.after) pageAfter = toBuffer(page.after);
-    if (page.before) pageBefore = toBuffer(page.before);
   }
 
-  let query = `select id, hash from ${TABLE_FILE_STORAGE}`;
-  let params;
-  if (pageAfter) {
-    query += ` where id > maxTimeuuid(unixTimestampOf(?)) limit ? allow filtering`;
-    params = [pageAfter, pageSize];
-  } else if (pageBefore) {
-    query += ` where id < minTimeuuid(unixTimestampOf(?)) order by id desc limit ? allow filtering`;
-    params = [pageBefore, pageSize];
-  } else {
-    query += ` limit ?`;
-    params = [pageSize];
-  }
+  const query = `select id, hash from ${TABLE_FILE_STORAGE} limit ?`;
+  const params = [pageSize];
 
-  let result;
-  try {
-    result = await cassandra.execute(query, params, { prepare: true });
-  } catch (error) {
-    if (
-      error.message.includes("Invalid string representation of Uuid") ||
-      error.message.includes("UUID should be 16 or 0 bytes")
-    )
-      throw new BadRequestError(`Invalid parameter: ${error.message}`);
-    throw error;
-  }
+  const result = await cassandra.execute(query, params, { prepare: true });
 
   if (!result.info || !result.info.isSchemaInAgreement) {
     logger.error(result);
@@ -129,18 +93,10 @@ async function getListFiles(q, store) {
     items.push(r.hash);
   });
 
-  if (result.rows.length === 0)
-    return {
-      items,
-      total: 0,
-    };
-
-  const lastID = result.rows[result.rows.length - 1].id.toString();
-
   const links = {
     first: buildLink(store, null, null, pageSize),
-    prev: buildLink(store, lastID, null, pageSize),
-    next: buildLink(store, null, lastID, pageSize),
+    prev: buildLink(store, null, null, pageSize),
+    next: buildLink(store, null, null, pageSize),
     last: buildLink(store, null, null, pageSize),
   };
 
