@@ -1,9 +1,8 @@
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import Web3 from "web3";
-
 import * as EBSIApplicationRegistry from "../contracts/EBSIApplicationRegistry.json";
-import config from "../config";
 
 function hexToAscii(str1) {
   const hex = str1.toString();
@@ -28,23 +27,24 @@ export class EthersService {
 
   private web3;
 
-  constructor() {
+  constructor(private configService: ConfigService) {
+    this.configService = configService;
     this.ethersProvider = new ethers.providers.JsonRpcProvider(
-      config.WEB3_PROVIDER,
+      this.configService.get("WEB3_PROVIDER"),
       { name: "besu", chainId: 6971 }
     );
     this.contract = new ethers.Contract(
-      config.CONTRACT_ADDR,
+      this.configService.get("CONTRACT_ADDR"),
       EBSIApplicationRegistry.abi,
       this.ethersProvider
     );
     this.ethersWallet = new ethers.Wallet(
-      config.WALLET_PRIV_KEY,
+      this.configService.get("WALLET_PRIV_KEY"),
       this.ethersProvider
     );
     this.contractWithSigner = this.contract.connect(this.ethersWallet);
     this.signer = this.contractWithSigner.owner();
-    this.web3 = new Web3(config.WEB3_PROVIDER);
+    this.web3 = new Web3(this.configService.get("WEB3_PROVIDER"));
   }
 
   getContract() {

@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import * as jose from "jose";
 import fs from "fs";
 import path from "path";
 import NodeRSA from "node-rsa";
-import config from "../config";
 import { EthersService } from "./ethers.service";
 
 @Injectable()
@@ -25,9 +25,13 @@ export class AppService {
     | jose.JWK.OKPKey
     | jose.JWK.OctKey;
 
-  constructor(private readonly ethersService: EthersService) {
+  constructor(
+    private readonly ethersService: EthersService,
+    private configService: ConfigService
+  ) {
     this.jwt = jose.JWT;
     this.ethersService = ethersService;
+    this.configService = configService;
   }
 
   static base64Buffer(key: string) {
@@ -52,7 +56,8 @@ export class AppService {
 
   // eslint-disable-next-line class-methods-use-this
   generateLoginChallenge(name: string) {
-    const timestamp = Date.now() + config.AUTH_EXPIRE_TIME * 60 * 1000;
+    const timestamp =
+      Date.now() + this.configService.get("AUTH_EXPIRE_TIME") * 60 * 1000;
     const challenge = `${name}.${timestamp}`;
     const key = AppService.loadKey();
     return key.encrypt(challenge, "base64");

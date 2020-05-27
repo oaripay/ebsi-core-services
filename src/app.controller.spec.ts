@@ -1,9 +1,11 @@
 import request from "supertest";
 import { Test } from "@nestjs/testing";
 import { INestApplication, NotFoundException } from "@nestjs/common";
+import { ConfigModule } from "@nestjs/config";
 import { AppController } from "./app.controller";
 import { EthersService } from "./shared/services/ethers.service";
 import { AppService } from "./shared/services/app.service";
+import configuration from "./config/configuration";
 
 class TestBesuException extends Error {
   private readonly response;
@@ -25,6 +27,12 @@ describe("appController", () => {
   // eslint-disable-next-line jest/no-hooks
   beforeAll(async () => {
     const module = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot({
+          envFilePath: [".env.test", ".env"],
+          load: [configuration],
+        }),
+      ],
       controllers: [AppController],
       providers: [EthersService, AppService],
     }).compile();

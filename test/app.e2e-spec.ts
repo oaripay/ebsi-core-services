@@ -1,6 +1,8 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import * as request from "supertest";
+import { ConfigModule } from "@nestjs/config";
+import request from "supertest";
 import { AppModule } from "../src/app.module";
+import configuration from "../src/config/configuration";
 
 describe("appController (e2e)", () => {
   let app;
@@ -8,7 +10,14 @@ describe("appController (e2e)", () => {
   // eslint-disable-next-line jest/no-hooks
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [
+        ConfigModule.forRoot({
+          isGlobal: true,
+          envFilePath: [".env.test", ".env"],
+          load: [configuration],
+        }),
+        AppModule,
+      ],
     }).compile();
 
     app = moduleFixture.createNestApplication();

@@ -1,7 +1,6 @@
 import { PassportStrategy } from "@nestjs/passport";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { Strategy } from "passport-http-bearer";
-
 import { StrategyType } from "./constants";
 import { AppService } from "../../services/app.service";
 import { EthersService } from "../../services/ethers.service";
