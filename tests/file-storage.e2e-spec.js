@@ -1,5 +1,5 @@
 const axios = require("axios");
-const jose = require("jose");
+const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 const crypto = require("crypto");
 const ethers = require("ethers");
 const fs = require("fs");
@@ -9,8 +9,8 @@ require("dotenv").config();
 const config = require("../src/config");
 const configTest = require("./config");
 
-const { api, TEST_APP_NAME, privKey } = configTest;
-const apiFiles = `${api}/stores/distributed/files`;
+const { url, TEST_APP_NAME, privKey } = configTest;
+const apiFiles = `${url}/storage/v1/stores/distributed/files`;
 
 jest.setTimeout(30000);
 
@@ -78,17 +78,23 @@ function pipeFile(response) {
 describe("file storage tests", () => {
   it("create a new session with storage API", async () => {
     expect.assertions(2);
-    const payload = {
-      iss: TEST_APP_NAME,
-      aud: config.API_NAME,
-    };
-    const opts = { expiresIn: "15 minutes" };
-    const selfToken = jose.JWT.sign(payload, privKey, opts);
+    const agent = new ebsiAppJwt.Agent(
+      TEST_APP_NAME,
+      privKey,
+      config.trustedAppsRegistry
+    );
+    const requestToken = agent.newRequest("ebsi-storage");
 
-    const response = await axios.post(`${api}/sessions`, {
-      grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: selfToken,
-    });
+    const opts = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    };
+    const response = await axios.post(
+      `${url}/storage/v1/sessions`,
+      requestToken,
+      opts
+    );
     expect(response.status).toBe(200);
     expect(response.data).toStrictEqual(
       expect.objectContaining({
@@ -108,7 +114,7 @@ describe("file storage tests", () => {
 
   it("store file without auth is not allowed", async () => {
     expect.assertions(1);
-    const response = await axios.post(`${api}/sessions`);
+    const response = await axios.post(`${url}/storage/v1/sessions`);
     expect(response.status).toBe(400);
   });
 

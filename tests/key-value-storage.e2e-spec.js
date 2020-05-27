@@ -1,11 +1,11 @@
 const axios = require("axios");
-const jose = require("jose");
+const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 
 const config = require("../src/config");
 const configTest = require("./config");
 
-const { api, TEST_APP_NAME, privKey } = configTest;
-const apiKeyValue = `${api}/stores/distributed/key-values`;
+const { url, TEST_APP_NAME, privKey } = configTest;
+const apiKeyValue = `${url}/storage/v1/stores/distributed/key-values`;
 
 const key = `test-${Date.now()}`;
 const value = { data: "This is a test", list: [] };
@@ -38,17 +38,23 @@ let axiosAuth;
 describe("key value storage tests", () => {
   it("create a new session with storage API", async () => {
     expect.assertions(2);
-    const payload = {
-      iss: TEST_APP_NAME,
-      aud: config.API_NAME,
-    };
-    const opts = { expiresIn: "15 minutes" };
-    const selfToken = jose.JWT.sign(payload, privKey, opts);
+    const agent = new ebsiAppJwt.Agent(
+      TEST_APP_NAME,
+      privKey,
+      config.trustedAppsRegistry
+    );
+    const requestToken = agent.newRequest("ebsi-storage");
 
-    const response = await axios.post(`${api}/sessions`, {
-      grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: selfToken,
-    });
+    const opts = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    };
+    const response = await axios.post(
+      `${url}/storage/v1/sessions`,
+      requestToken,
+      opts
+    );
     expect(response.status).toBe(200);
     expect(response.data).toStrictEqual(
       expect.objectContaining({
