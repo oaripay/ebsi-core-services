@@ -1,10 +1,10 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import Web3 from "web3";
 import * as EBSIApplicationRegistry from "../contracts/EBSIApplicationRegistry.json";
 
-function hexToAscii(str1) {
+function hex2Ascii(str1) {
   const hex = str1.toString();
   let str = "";
   for (let n = 0; n < hex.length; n += 2) {
@@ -26,6 +26,8 @@ export class EthersService {
   private signer;
 
   private web3;
+
+  private readonly logger = new Logger(EthersService.name);
 
   constructor(private configService: ConfigService) {
     this.configService = configService;
@@ -96,13 +98,13 @@ export class EthersService {
   async revertMessage(txHash) {
     const tx = await this.web3.eth.getTransactionReceipt(txHash);
 
-    console.log(tx);
+    this.logger.debug(tx);
     if (!tx) {
-      console.log("tx not found");
+      this.logger.debug("tx not found");
       return null;
     }
 
-    return hexToAscii(tx.revertReason.substr(138));
+    return hex2Ascii(tx.revertReason.substr(138));
   }
 }
 

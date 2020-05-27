@@ -8,15 +8,6 @@ import { EthersService } from "./ethers.service";
 
 @Injectable()
 export class AppService {
-  private jwt: {
-    decode: (token: string) => object;
-    verify: (jwt: string, key: jose.ConsumeKeyInput) => string | object;
-    sign: (
-      payload: string | Buffer | object,
-      key: jose.ProduceKeyInput
-    ) => string;
-  };
-
   private etherService;
 
   private key:
@@ -29,7 +20,6 @@ export class AppService {
     private readonly ethersService: EthersService,
     private configService: ConfigService
   ) {
-    this.jwt = jose.JWT;
     this.ethersService = ethersService;
     this.configService = configService;
   }
@@ -42,16 +32,12 @@ export class AppService {
     return jose.JWK.asKey(key);
   }
 
-  sign(payload: string | Buffer | object) {
-    return this.jwt.sign(payload, this.key);
+  sign(payload: object) {
+    return jose.JWT.sign(payload, this.key);
   }
 
   verify(jwt: string, key: jose.ConsumeKeyInput) {
-    return this.jwt.verify(jwt, key || this.key);
-  }
-
-  decode(token: string) {
-    return this.jwt.decode(token);
+    return jose.JWT.verify(jwt, key || this.key);
   }
 
   // eslint-disable-next-line class-methods-use-this

@@ -4,7 +4,6 @@ import * as Joi from "@hapi/joi";
 import { AppController } from "./app.controller";
 import { AppService } from "./shared/services/app.service";
 import { EthersService } from "./shared/services/ethers.service";
-import { AuthModule } from "./shared/auth/auth.module";
 import configuration from "./config/configuration";
 
 @Module({
@@ -21,7 +20,6 @@ import configuration from "./config/configuration";
         WALLET_PRIV_KEY: Joi.string().required(),
       }),
     }),
-    AuthModule,
   ],
   controllers: [AppController],
   providers: [EthersService, AppService],
