@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class AppFormatter {
+export default class AppFormatter {
   formatDocument(document: any) {
     return {
       title: document.title,

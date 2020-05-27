@@ -8,16 +8,18 @@ import {
   Logger
 } from "@nestjs/common";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
-import { AppService } from "./app.service";
-import { DIDParams } from "./validation";
-import { AppFormatter } from "./app.formatter";
+import AppService from "./app.service";
+import DIDParams from "./types/DIDParams";
+import AppFormatter from "./app.formatter";
 
 const HTTP_401 = "The client is not allowed to access resource";
 const HTTP_404 = "Resource not found!";
 const HTTP_200 = "Fetch Resource.";
 
 @Controller("/trusted-issuers-registry")
-export class AppController {
+export default class AppController {
+  private readonly logger = new Logger(AppController.name);
+
   constructor(
     private appService: AppService,
     private appFormatter: AppFormatter
@@ -46,7 +48,18 @@ export class AppController {
       let maxCounter = 0;
       const items = [];
       const itemStartingFrom = after * size;
-      for (let i = 0; i < univ.length; i += 1) {
+      univ.forEach((val, id) => {
+        counter += 1;
+        if (itemStartingFrom <= counter && maxCounter < size) {
+          maxCounter += 1;
+          items.push({
+            name: univ[id].preferredName,
+            did: univ[id].issuerDID
+          });
+        }
+      });
+
+      /*  for (let i = 0; i < univ.length; i += 1) {
         counter += 1;
         if (itemStartingFrom > counter) {
           continue;
@@ -59,8 +72,19 @@ export class AppController {
           name: univ[i].preferredName,
           did: univ[i].issuerDID
         });
-      }
-      for (let i = 0; i < gov.length; i += 1) {
+      } */
+
+      univ.forEach((val, id) => {
+        counter += 1;
+        if (itemStartingFrom < counter && maxCounter < size) {
+          maxCounter += 1;
+          items.push({
+            name: gov[id].name,
+            did: gov[id].issuerDID
+          });
+        }
+      });
+      /*  for (let i = 0; i < gov.length; i += 1) {
         counter += 1;
         if (itemStartingFrom >= counter) {
           continue;
@@ -73,7 +97,7 @@ export class AppController {
           name: gov[i].name,
           did: gov[i].issuerDID
         });
-      }
+      } */
       const pages = Math.ceil((counter + 1) / size);
       if (pages - 1 < after) {
         throw new BadRequestException("invalid page number");
@@ -116,7 +140,26 @@ export class AppController {
         univTypeIssuer = await this.appService.getIssuer(params.did);
         documents = await this.appService.getDocuments(params.did);
         const accs = await this.appService.getAccreditations(params.did);
-        for (let i = 0; i < documents.length; i += 1) {
+        const dlDocs = documents.map((doc, id) => {
+          return async () => {
+            try {
+              const downloadedDoc = await this.appService.downloadDocument(
+                doc.vcCode
+              );
+              const dlStatus =
+                downloadedDoc.status === 200 ? downloadedDoc.data : null;
+              documents[id].body = downloadedDoc ? dlStatus : "";
+            } catch (error) {
+              // do nothing, can't extract from besu
+              Logger.warn(
+                `Error at index ${id} hash ${documents[id].vcCode}. Cannot extract from besu, message: ${error.message}`
+              );
+            }
+          };
+        });
+        await Promise.all(dlDocs);
+
+        /*  for (let i = 0; i < documents.length; i += 1) {
           documents[i].body = null;
           try {
             const downloadedDoc = await this.appService.downloadDocument(
@@ -134,7 +177,7 @@ export class AppController {
               `Error at index ${i} hash ${documents[i].vcCode}. Cannot extract from besu, message: ${error.message}`
             );
           }
-        }
+        } */
         result.push({
           moderator: univTypeIssuer.moderator,
           issuerDID: univTypeIssuer.issuerDID,
@@ -181,47 +224,4 @@ export class AppController {
       );
     }
   }
-  //
-  // @ApiOperation({ description: 'Get government by DID' })
-  // @ApiResponse({ status: 200, description: 'Government JSON'})
-  // @ApiResponse({ status: 404, description: HTTP_404})
-  // @ApiResponse({ status: 401, description: HTTP_401})
-  // @Get('/governments/:did')
-  // async issuerGov(@Param() params: DIDParams) {
-  //   if (!(await this.appService.doesIssuerForGovExists(params.did))) {
-  //     throw new NotFoundException('Government does not exist!');
-  //   }
-  //   const issuer = await this.appService.getIssuerForGov(params.did);
-  //   const documents = await this.appService.getDocumentsForGov(params.did);
-  //   return {
-  //     moderator: issuer.moderator,
-  //     issuerDID: issuer.issuerDID,
-  //     name: issuer.name,
-  //     country: issuer.country,
-  //     status: issuer.status,
-  //     documents: documents.map((document) => this.appFormatter.formatDocument(document)),
-  //   };
-  // }
-  // @ApiOperation({ description: 'Get challenge to be signed with the eth address' })
-  // @ApiResponse({ status: 200, description: 'Government JSON'})
-  // @ApiResponse({ status: 404, description: HTTP_404})
-  // @ApiResponse({ status: 401, description: HTTP_401})
-  // @Get('/challenge/:did/:type')
-  // async challenge(@Param() params: ChallengeParams) {
-  //   switch (params.type) {
-  //     case 'universities':
-  //       if ((await this.appService.doesIssuerForGovExists(params.did))) {
-  //         throw new NotFoundException('Government does exist!');
-  //       }
-  //       break;
-  //     case 'governments':
-  //       if ((await this.appService.doesIssuerExists(params.did))) {
-  //         throw new NotFoundException('University does exist!');
-  //       }
-  //       break;
-  //     default:
-  //       throw new NotImplementedException('entity not implemented');
-  //   }
-  //   return this.appService.generateLoginChallenge(params.did, params.type);
-  // }
 }

@@ -1,0 +1,79 @@
+{
+  "issuerResult": {
+    "moderator": "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73",
+    "issuerDID": "did:ebsi:0xBDB8618DE3ecdF37a4f13caAC7d9abc097bf9FC2",
+    "preferredName": "Katholieke Universiteit Leuven",
+    "alternativeName": "KU Leuven",
+    "homepage": "https://www.keuleuven.be",
+    "escoOrganizationType": "Educational Institution",
+    "siteLocation": "Leuven",
+    "status": true,
+    "documents": [
+      {
+        "title": "Bachelor en bioinformática",
+        "documentType": "Demo Bachelor doc",
+        "status": "Published in B.O.E. Active",
+        "revision": "Bachelor Royal Decree 1393/2007",
+        "vcCode": "4313149",
+        "dateStart": "1582265889"
+      }
+    ],
+    "accreditations": [
+      {
+        "targetFramework": "Europass Accreditation Database",
+        "targetResource": "https://accreditation.europass.eu/12341455"
+      }
+    ]
+  },
+  "resultUniversities": [
+    {
+      "moderator": "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73",
+      "issuerDID": "0x5B7a2FC380cb6f6389779c9FCCed050533FB21bb",
+      "preferredName": "Universitat Rovira i Virgili",
+      "alternativeName": "Universitat Rovira i Virgili",
+      "homepage": "http://www.urv.cat/",
+      "siteLocation": "Tarragona",
+      "escoOrganizationType": "Educational Institution",
+      "status": true
+    },
+    {
+      "moderator": "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73",
+      "issuerDID": "0x5B7a2FC380cb6f6389779c9FCCed050533FB21bE",
+      "preferredName": "Katholieke Universiteit Leuven",
+      "alternativeName": "KU Leuven",
+      "homepage": "https://www.keuleuven.be",
+      "siteLocation": "Leuven",
+      "escoOrganizationType": "Educational Institution",
+      "status": true
+    }
+  ],
+  "resultGov": [
+    {
+      "moderator": "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73",
+      "issuerDID": "0x4D1A5522D2823941340d965b685a811483Bc7359",
+      "name": "Government of Belgium",
+      "country": "Belgium",
+      "status": true
+    },
+    {
+      "moderator": "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73",
+      "issuerDID": "0x4D1A5522D2823941340d965b685a811483Bc7350",
+      "name": "some other government",
+      "country": "some country",
+      "status": true
+    }
+  ],
+  "univBody": {
+    "issuerDID": "test",
+    "preferedName": "test",
+    "alternativeName": "test",
+    "homepage": "test",
+    "escoOrganizationType": "test",
+    "siteLocation": "test",
+    "id": "test",
+    "legalIdentifier": "test",
+    "vatIdentifier": "test",
+    "taxIdentifier": "test",
+    "identifier": "test"
+  }
+}

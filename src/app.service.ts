@@ -5,21 +5,21 @@ import {
   Logger
 } from "@nestjs/common";
 
-import fs from "fs";
+import * as fs from "fs";
 import NodeRSA from "node-rsa";
-import jose from "jose";
-import axios from "axios";
-import config from "./config";
-import {
-  GovernmentBody,
-  UniversityBody,
-  Document,
-  Accreditation
-} from "./validation";
-import { EthersService } from "./ethers.service";
+import { JWT, JWK } from "jose";
+import axios, { AxiosResponse } from "axios";
+
+import EthersService from "./ethers.service";
+import GovernmentBody from "./types/GovernmentBody";
+import UniversityBody from "./types/UniversityBody";
+import DocumentDto from "./types/Document";
+import Accreditation from "./types/Accreditation";
 
 @Injectable()
-export class AppService {
+export default class AppService {
+  private readonly logger = new Logger(AppService.name);
+
   private univContract;
 
   private govContract;
@@ -65,7 +65,7 @@ export class AppService {
     await univTii.wait();
   }
 
-  async addDocumentToIssuer(did: string, body: Document) {
+  async addDocumentToIssuer(did: string, body: DocumentDto) {
     const univDoc = await this.univContract.addDocument(
       did,
       body.vcCode,
@@ -78,7 +78,7 @@ export class AppService {
     return univDoc.wait();
   }
 
-  async addGovDocumentToIssuer(did: string, body: Document) {
+  async addGovDocumentToIssuer(did: string, body: DocumentDto) {
     const govDoc = await this.govContract.addDocument(
       did,
       body.vcCode,
@@ -161,7 +161,9 @@ export class AppService {
   }
 
   async generateLoginChallenge(did: string, type: string) {
-    const timestamp = Date.now() + config.AUTH_EXPIRE_TIME * 60 * 1000;
+    const timestamp =
+      Date.now() +
+      Number.parseInt(process.env.AUTH_EXPIRE_TIME, 10) * 60 * 1000;
     const challenge = `${did}.${timestamp}.${type}`;
     const key = this.loadKey();
     return key.encrypt(challenge, "base64");
@@ -219,24 +221,24 @@ export class AppService {
         const response = await this.generateLoginJWT();
         this.jwtToken = response.data.accessToken;
       } catch (error) {
-        console.log(error.message);
+        this.logger.log(error.message);
       }
     }
   }
 
   async generateLoginJWT() {
     const key = this.loadKey();
-    const { JWT, JWK } = jose;
+
     const privateKey = JWK.asKey(key.exportKey());
     const payload = {
-      iss: config.APP_NAME,
-      aud: config.APP_AUTH_REQUEST_NAME
+      iss: process.env.APP_NAME,
+      aud: process.env.APP_AUTH_REQUEST_NAME
     };
     const token = JWT.sign(payload, privateKey, {
       expiresIn: "15 minutes"
     });
     const response = axios.post(
-      `${config.STORAGE.replace(/\/$/, "")}/v1/sessions`,
+      `${process.env.STORAGE.replace(/\/$/, "")}/v1/sessions`,
       {
         grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer",
         assertion: token
@@ -245,11 +247,11 @@ export class AppService {
     return response;
   }
 
-  async downloadDocument(documentHash: string) {
+  async downloadDocument(documentHash: string): Promise<AxiosResponse<any>> {
     await this.login();
     try {
       return axios.get(
-        `${config.STORAGE.replace(
+        `${process.env.STORAGE.replace(
           /\/$/,
           ""
         )}/v1/stores/distributed/files/${documentHash}`,
@@ -260,7 +262,7 @@ export class AppService {
         }
       );
     } catch (Error) {
-      Logger.warn(Error);
+      this.logger.warn(Error);
       return null;
     }
   }

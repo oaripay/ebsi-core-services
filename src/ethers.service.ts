@@ -1,13 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { ethers } from "ethers";
 
-import UniversitiesTrustedIssuers from "./contracts/UniversitiesTrustedIssuers.json";
-import GovernmentsTrustedIssuers from "./contracts/GovernmentsTrustedIssuers.json";
-
-import config from "./config";
+import * as UniversitiesTrustedIssuers from "./contracts/UniversitiesTrustedIssuers.json";
+import * as GovernmentsTrustedIssuers from "./contracts/GovernmentsTrustedIssuers.json";
 
 @Injectable()
-export class EthersService {
+export default class EthersService {
   private ethersWallet;
 
   private contract;
@@ -19,18 +17,20 @@ export class EthersService {
   private govTrustedIssuersContract;
 
   constructor() {
-    this.ethersProvider = new ethers.providers.JsonRpcProvider(config.PROVIDER);
+    this.ethersProvider = new ethers.providers.JsonRpcProvider(
+      process.env.PROVIDER
+    );
     this.ethersWallet = new ethers.Wallet(
-      config.WALLET_PRIV_KEY,
+      process.env.WALLET_PRIV_KEY,
       this.ethersProvider
     );
     const univContractWithoutWallet = new ethers.Contract(
-      config.UNIV_CONTRACT_ADDR,
+      process.env.UNIV_CONTRACT_ADDR,
       UniversitiesTrustedIssuers.abi,
       this.ethersProvider
     );
     const govContractWithoutWallet = new ethers.Contract(
-      config.GOV_CONTRACT_ADDR,
+      process.env.GOV_CONTRACT_ADDR,
       GovernmentsTrustedIssuers.abi,
       this.ethersProvider
     );
