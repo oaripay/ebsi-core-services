@@ -2,10 +2,14 @@ const express = require("express");
 const bodyParser = require("body-parser");
 
 const controller = require("./controller");
+const { BadRequestError } = require("../../errors");
 
 const router = express.Router();
 
 router.use(bodyParser.json({ type: "*/*" }));
+router.use((error, req, res, next) => {
+  next(new BadRequestError("The body can not be parsed as application/json"));
+});
 
 // List of notifications
 router.get("/", async (req, res, next) => {

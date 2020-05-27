@@ -38,7 +38,7 @@ async function updateNotification(id, data) {
 
   const { sender, receiver, message } = data;
   const messageString = JSON.stringify(message);
-  const query = `update ${TABLE_NOTIFICATION_STORAGE} set sender = ?, receiver = ?, message = ? where id= ? if exists`;
+  const query = `update ${TABLE_NOTIFICATION_STORAGE} set sender = ?, receiver = ?, message = ? where id = ? if exists`;
   const params = [sender, receiver, messageString, id];
   const result = await cassandra.execute(query, params);
 
@@ -91,9 +91,9 @@ async function getListNotifications(q) {
   if (q && q.page) {
     const { page } = q;
     if (page.size) {
-      if (Number(q["page[size]"]) < 0)
+      if (Number(page.size) < 0)
         throw new BadRequestError("page[size] must be a positive integer");
-      pageSize = page.size;
+      pageSize = parseInt(Number(page.size), 10);
     }
   }
 
@@ -121,12 +121,6 @@ async function getListNotifications(q) {
 
   const result = await cassandra.execute(query, params, { prepare: true });
   const items = [];
-
-  if (result.rows.length === 0)
-    return {
-      items,
-      total: 0,
-    };
 
   if (history === "true") {
     result.rows.forEach((r) => {
