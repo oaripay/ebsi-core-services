@@ -17,7 +17,7 @@
     "API"
   ],
   "dependencies": {
-    "@cef-ebsi/app-jwt": "0.0.0",
+    "@cef-ebsi/app-jwt": "0.0.2",
     "axios": "^0.19.0",
     "body-parser": "^1.19.0",
     "busboy": "^0.3.1",

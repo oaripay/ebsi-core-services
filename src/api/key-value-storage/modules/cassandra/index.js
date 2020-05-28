@@ -20,9 +20,6 @@ const cassandra = new cassandraDriver.Client(cassandraConnection);
 
 function buildLink(store, before, after, pageSize) {
   const query = {};
-  /* if (before) query["page[before]"] = before;
-
-  if (after) query["page[after]"] = after; */
 
   if (pageSize && pageSize !== config.DEFAULT_PAGE_SIZE)
     query["page[size]"] = pageSize;
