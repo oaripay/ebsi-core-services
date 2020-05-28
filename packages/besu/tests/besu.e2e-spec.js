@@ -1,5 +1,4 @@
 const supertest = require("supertest");
-const axios = require("axios");
 const jose = require("jose");
 const ethers = require("ethers");
 
@@ -180,24 +179,5 @@ describe("hyperledger Besu integration test", () => {
   it("reject invalid url", async () => {
     expect.assertions(0);
     await request.get("/ledger/v1/bad-url").expect(400);
-  });
-
-  it("handle internal error", async () => {
-    expect.assertions(0);
-
-    jest.mock("axios");
-    jest.spyOn(axios, "post").mockImplementation(() => {
-      throw new Error("error with connection");
-    });
-
-    await callBesu("net_version", []).expect(500);
-
-    jest.spyOn(axios, "post").mockImplementation(() => {
-      throw new InternalError("internal error");
-    });
-
-    await callBesu("net_version", []).expect(500);
-
-    axios.post.mockRestore();
   });
 });
