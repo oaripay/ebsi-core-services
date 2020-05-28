@@ -15,7 +15,6 @@ function hex2base64url(dataHex) {
 
 function getJWKfromHex(_privKey) {
   let privKey = _privKey;
-  if (!privKey.startsWith("0x")) privKey = `0x${privKey}`;
 
   const s = new ethers.utils.SigningKey(privKey);
   let pubKey = s.publicKey;
