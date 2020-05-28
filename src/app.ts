@@ -25,15 +25,32 @@ export async function bootstrap() {
   });
   const configService = app.get(ConfigService);
 
+  // Dynamically update the logger level based on conf (only for Console transport)
+  // @ts-ignore
+  logger.logger.transports[0].level = configService.get("LOG_LEVEL");
+
+  // Display server info on bootstrap
+  logger.debug(`Log level: ${configService.get("LOG_LEVEL")}`, "ServerInfo");
+  logger.debug(`Port: ${configService.get("APP_PORT")}`, "ServerInfo");
+
   const options = new DocumentBuilder()
     .addBearerAuth()
-    .setTitle("Application Registry API")
-    .setDescription("The interface for the APP Registry BESU contract.")
-    .setVersion("1.0")
+    .setTitle("Trusted Apps Registry API")
+    .setDescription(
+      "Trusted Apps Registry API is a Core Service of the EBSI platform providing the capability of verifying if an application is trusted and authorized to interact with other applications in the EBSI network."
+    )
+    .setVersion("1.0.0")
+    .setTermsOfService("/docs/terms")
+    .setLicense("EUPL-1.2", "https://joinup.ec.europa.eu/page/eupl-text-11-12")
+    .setContact(
+      "EBSI Support",
+      "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi",
+      "CEF-BUILDING-BLOCKS@ec.europa.eu"
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, options);
-  SwaggerModule.setup("trusted-apps-registry/api-docs", app, document);
+  SwaggerModule.setup("trusted-apps-registry/v1/api-docs", app, document);
 
   app.enableCors();
   app.use(helmet());
