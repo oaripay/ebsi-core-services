@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
         EBSI_ENV="integration"
+        PORT="8180"
     }
     stages {
         stage('Clone repo') {
