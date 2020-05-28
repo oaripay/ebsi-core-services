@@ -1,3 +1,5 @@
+![EBSI Logo](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
+
 # Hyperledger Besu API
 
 API to interact with Besu RPC.
@@ -52,26 +54,45 @@ npm run start
 
 The api will be accesible at http://localhost:8080
 
-## Unit tests
+## Tests
 
-Set the environmental variable `EBSI_ENV` to integration, development or production to determine the location of Besu RPC node.
+Create an `.env` file using `.env.example` and update the corresponding values.
 
-Then run
+Launch unit tests and e2e tests with:
 
 ```
-npm run test
+EBSI_ENV=integration npm run test
 ```
 
-## Integration tests
+To connect with a local api for e2e run:
 
-Integration tests can be done locally or connecting to an existing api deployed.
+```
+EBSI_ENV=local EBSI_API=http://localhost:8080 npm run test
+```
 
-- Run `EBSI_ENV=local npm run test:e2e` to run the tests without launching the api.
-- Run `EBSI_ENV=integration npm run test:e2e` to run the tests connecting to the api in the integration environment.
-- Run `EBSI_ENV=local EBSI_API=http://localhost:8080 npm run test:e2e` to run the tests connecting to a particular api already launched and listening in the url `EBSI_API`
+To run only unit tests:
 
-If you run it locally you can add `EBSI_TEST_MODE=true` to not connect to the Trusted App Registry when doing `/sessions`. If this variable is not set then both `TEST_APP_NAME` and `TEST_APP_PRIVATE_KEY` must correspond with an app registered and authorized in the Trusted App Registry.
+```
+npm run test:unit
+```
+
+To run only integration tests:
+
+```
+npm run test:e2e
+```
 
 ## Swagger documentation
 
 You can read the documentation at https://api.intebsi.xyz/docs/?urls.primaryName=Ledger%20API
+
+## Licensing
+
+Copyright (c) 2019 European Commission  
+Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
+You may not use this work except in compliance with the Licence.
+You may obtain a copy of the Licence at:
+
+- <https://joinup.ec.europa.eu/page/eupl-text-11-12>
+
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.
