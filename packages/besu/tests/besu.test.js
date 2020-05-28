@@ -1,25 +1,36 @@
-const ethers = require("ethers");
+const supertest = require("supertest");
+const axios = require("axios");
 const jose = require("jose");
-require("dotenv").config();
+const ethers = require("ethers");
 
 const config = require("../src/config");
-const {
-  BadRequestError,
-  UnauthorizedError,
-  ForbiddenError,
-} = require("../src/errors");
 const utils = require("../src/utils");
-const auth = require("../src/auth");
-const controller = require("../src/controller");
+const Server = require("../src/server");
+
+const { InternalError } = require("../src/errors");
+
+const server = new Server().start(config.port);
+const request = supertest(server);
 
 const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
 const wallet = ethers.Wallet.createRandom();
 const r = Math.random().toString(36);
 const randomHash = ethers.utils.keccak256(Buffer.from(r, "utf8"));
-
-const ANONYMOUS = false;
-
 let txId;
+
+const callBesu = (method, params) => {
+  return request
+    .post("/ledger/v1/blockchains/besu")
+    .set("Accept", "application/json")
+    .send({
+      jsonrpc: "2.0",
+      method,
+      params,
+      id: 1,
+    });
+};
+
+let callBesuAuth;
 
 /*
  * Functions
@@ -31,16 +42,6 @@ function respBesu(result) {
     id: expect.any(Number),
     result,
   });
-}
-
-function callAPI(method, params, authenticated = true) {
-  const data = {
-    jsonrpc: "2.0",
-    method,
-    params,
-    id: 1,
-  };
-  return controller.besuRPC(data, authenticated);
 }
 
 async function getNotarizeTransaction(hash) {
@@ -70,107 +71,138 @@ async function getDeployTransaction() {
   return wallet.sign(transaction);
 }
 
-/*
- * Tests
- */
+/* eslint jest/no-hooks: "off" */
+describe("hyperledger Besu integration test", () => {
+  afterAll(async () => {
+    server.close();
+  });
 
-describe("hyperledger Besu Test", () => {
+  beforeAll(async () => {
+    const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKeyJWK);
+    callBesuAuth = (method, params) => {
+      return request
+        .post("/ledger/v1/blockchains/besu")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params,
+          id: 1,
+        });
+    };
+  });
+
   it("getBalance", async () => {
-    expect.hasAssertions();
+    expect.assertions(1);
     const params = [wallet.address, "latest"];
-    const result = await callAPI("eth_getBalance", params, ANONYMOUS);
-    expect(result).toStrictEqual(respBesu("0x0"));
+    await callBesu("eth_getBalance", params)
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(respBesu("0x0"));
+      });
   });
 
   it("getBlockByNumber", async () => {
-    expect.hasAssertions();
+    expect.assertions(1);
     const params = ["11", true];
-    const result = await callAPI("eth_getBlockByNumber", params, ANONYMOUS);
-    expect(result).toStrictEqual(
-      respBesu(
-        expect.objectContaining({
-          number: expect.any(String),
-          hash: expect.any(String),
-          transactions: expect.arrayContaining([]),
-        })
-      )
-    );
+    await callBesu("eth_getBlockByNumber", params)
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          respBesu(
+            expect.objectContaining({
+              number: expect.any(String),
+              hash: expect.any(String),
+              transactions: expect.arrayContaining([]),
+            })
+          )
+        );
+      });
   });
 
   it("get net_version", async () => {
-    expect.hasAssertions();
-    const result = await callAPI("net_version", [], ANONYMOUS);
-    expect(result).toStrictEqual(respBesu(expect.any(String)));
+    expect.assertions(1);
+    await callBesu("net_version", [])
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(respBesu(expect.any(String)));
+      });
   });
 
   it("incorrect method is rejected", async () => {
-    expect.hasAssertions();
-    const check = async () => {
-      await callAPI("incorrect_method", [], ANONYMOUS);
-    };
-    await expect(check()).rejects.toThrow(BadRequestError);
+    expect.assertions(0);
+    await callBesu("incorrect_method", []).expect(400);
   });
 
   it("sendRawTransaction without authentication not allowed", async () => {
-    expect.hasAssertions();
-    const check = async () => {
-      await callAPI("eth_sendRawTransaction", ["0x000"], ANONYMOUS);
-    };
-    await expect(check()).rejects.toThrow(UnauthorizedError);
-  });
-
-  it("session with Ledger API", async () => {
-    expect.hasAssertions();
-    const payload = {
-      iss: "test-app",
-      aud: config.API_NAME,
-    };
-    const privKey = utils.getJWKfromHex(wallet.privateKey);
-    const opts = { expiresIn: "15 minutes" };
-    const selfToken = jose.JWT.sign(payload, privKey, opts);
-
-    const result = await auth.newSession(selfToken);
-    expect(result).toStrictEqual(
-      expect.objectContaining({
-        accessToken: expect.any(String),
-        tokenType: "Bearer",
-        expiresIn: 900, // 15 minutes
-        issuedAt: expect.any(Number),
-      })
-    );
+    expect.assertions(0);
+    await callBesu("eth_sendRawTransaction", ["0x000"]).expect(401);
   });
 
   it("notarize a hash (sendRawTransaction + auth)", async () => {
-    expect.hasAssertions();
+    expect.assertions(1);
     const sgnTx = await getNotarizeTransaction(randomHash);
-    const result = await callAPI("eth_sendRawTransaction", [sgnTx]);
-    expect(result).toStrictEqual(respBesu(expect.any(String)));
-    txId = result.result;
+    await callBesuAuth("eth_sendRawTransaction", [sgnTx])
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(respBesu(expect.any(String)));
+        txId = response.body.result;
+      });
   });
 
   it("check good receipt after 2 seconds", async () => {
-    expect.hasAssertions();
+    expect.assertions(2);
     await utils.sleep(2000);
-    const result = await callAPI("eth_getTransactionReceipt", [txId]);
-    expect(result).toStrictEqual(
-      respBesu(
-        expect.objectContaining({
-          blockHash: expect.any(String),
-          blockNumber: expect.any(String),
-          from: expect.any(String),
-        })
-      )
-    );
-    const from = result.result.from.toLowerCase();
-    expect(from).toBe(wallet.address.toLowerCase());
+    await callBesuAuth("eth_getTransactionReceipt", [txId])
+      .expect("Content-Type", /json/)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          respBesu(
+            expect.objectContaining({
+              blockHash: expect.any(String),
+              blockNumber: expect.any(String),
+              from: expect.any(String),
+            })
+          )
+        );
+        const from = response.body.result.from.toLowerCase();
+        expect(from).toBe(wallet.address.toLowerCase());
+      });
   });
 
   it("reject the deployment of a new smart contract", async () => {
-    expect.hasAssertions();
+    expect.assertions(0);
     const sgnTx = await getDeployTransaction();
-    const check = async () => {
-      await callAPI("eth_sendRawTransaction", [sgnTx]);
-    };
-    await expect(check()).rejects.toThrow(ForbiddenError);
+    await callBesuAuth("eth_sendRawTransaction", [sgnTx]).expect(403);
+  });
+
+  it("reject invalid url", async () => {
+    expect.assertions(0);
+    await request.get("/ledger/v1/bad-url").expect(400);
+  });
+
+  it("handle internal error", async () => {
+    expect.assertions(0);
+
+    jest.mock("axios");
+    jest.spyOn(axios, "post").mockImplementation(() => {
+      throw new Error("error with connection");
+    });
+
+    await callBesu("net_version", []).expect(500);
+
+    jest.spyOn(axios, "post").mockImplementation(() => {
+      throw new InternalError("internal error");
+    });
+
+    await callBesu("net_version", []).expect(500);
+
+    axios.post.mockRestore();
   });
 });

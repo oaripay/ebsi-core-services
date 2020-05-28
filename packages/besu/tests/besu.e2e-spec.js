@@ -1,20 +1,21 @@
 const supertest = require("supertest");
+const axios = require("axios");
 const jose = require("jose");
 const ethers = require("ethers");
 
 const config = require("../src/config");
-const utils = require("../src/utils");
 const configTest = require("./config");
+const utils = require("../src/utils");
 
-const { server, TEST_APP_NAME, privKey } = configTest;
+const { InternalError } = require("../src/errors");
+
+const request = supertest(configTest.url);
 
 const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
 const wallet = ethers.Wallet.createRandom();
 const r = Math.random().toString(36);
 const randomHash = ethers.utils.keccak256(Buffer.from(r, "utf8"));
 let txId;
-
-const request = supertest(server);
 
 const callBesu = (method, params) => {
   return request
@@ -69,14 +70,22 @@ async function getDeployTransaction() {
   return wallet.sign(transaction);
 }
 
-/*
- * Tests
- */
-
 /* eslint jest/no-hooks: "off" */
 describe("hyperledger Besu integration test", () => {
-  afterAll(async () => {
-    if (typeof server !== "string") server.close();
+  beforeAll(async () => {
+    const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKeyJWK);
+    callBesuAuth = (method, params) => {
+      return request
+        .post("/ledger/v1/blockchains/besu")
+        .set("Accept", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params,
+          id: 1,
+        });
+    };
   });
 
   it("getBalance", async () => {
@@ -129,49 +138,6 @@ describe("hyperledger Besu integration test", () => {
     await callBesu("eth_sendRawTransaction", ["0x000"]).expect(401);
   });
 
-  it("session with Ledger API", async () => {
-    expect.assertions(1);
-    const payload = {
-      iss: TEST_APP_NAME,
-      aud: config.API_NAME,
-    };
-    const opts = { expiresIn: "15 minutes" };
-    const selfToken = jose.JWT.sign(payload, privKey, opts);
-
-    await request
-      .post("/ledger/v1/sessions")
-      .set("Accept", "application/json")
-      .send({
-        grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        assertion: selfToken,
-      })
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            accessToken: expect.any(String),
-            tokenType: "Bearer",
-            expiresIn: 900, // 15 minutes
-            issuedAt: expect.any(Number),
-          })
-        );
-        const token = response.body.accessToken;
-
-        callBesuAuth = (method, params) => {
-          return request
-            .post("/ledger/v1/blockchains/besu")
-            .set("Accept", "application/json")
-            .set("Authorization", `Bearer ${token}`)
-            .send({
-              jsonrpc: "2.0",
-              method,
-              params,
-              id: 1,
-            });
-        };
-      });
-  });
-
   it("notarize a hash (sendRawTransaction + auth)", async () => {
     expect.assertions(1);
     const sgnTx = await getNotarizeTransaction(randomHash);
@@ -209,5 +175,29 @@ describe("hyperledger Besu integration test", () => {
     expect.assertions(0);
     const sgnTx = await getDeployTransaction();
     await callBesuAuth("eth_sendRawTransaction", [sgnTx]).expect(403);
+  });
+
+  it("reject invalid url", async () => {
+    expect.assertions(0);
+    await request.get("/ledger/v1/bad-url").expect(400);
+  });
+
+  it("handle internal error", async () => {
+    expect.assertions(0);
+
+    jest.mock("axios");
+    jest.spyOn(axios, "post").mockImplementation(() => {
+      throw new Error("error with connection");
+    });
+
+    await callBesu("net_version", []).expect(500);
+
+    jest.spyOn(axios, "post").mockImplementation(() => {
+      throw new InternalError("internal error");
+    });
+
+    await callBesu("net_version", []).expect(500);
+
+    axios.post.mockRestore();
   });
 });
