@@ -15,8 +15,8 @@ import {
 import { Response } from "express";
 import * as status from "http-status";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
-import { EthersService } from "./shared/services/ethers.service";
-import { AppService } from "./shared/services/app.service";
+import { EthersService } from "./services/ethers.service";
+import { AppService } from "./services/app.service";
 import {
   AuthAppBody,
   AuthorizationBody,

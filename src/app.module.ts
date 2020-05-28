@@ -2,8 +2,8 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import * as Joi from "@hapi/joi";
 import { AppController } from "./app.controller";
-import { AppService } from "./shared/services/app.service";
-import { EthersService } from "./shared/services/ethers.service";
+import { AppService } from "./services/app.service";
+import { EthersService } from "./services/ethers.service";
 import configuration from "./config/configuration";
 
 @Module({
@@ -18,6 +18,19 @@ import configuration from "./config/configuration";
           .valid("development", "production", "test")
           .default("development"),
         WALLET_PRIV_KEY: Joi.string().required(),
+        APP_PORT: Joi.number().default(9000),
+        LOG_LEVEL: Joi.string().valid(
+          "error",
+          "warn",
+          "info",
+          "http",
+          "verbose",
+          "debug",
+          "silly"
+        ),
+        WEB3_PROVIDER: Joi.string(),
+        CONTRACT_ADDR: Joi.string(),
+        AUTH_EXPIRE_TIME: Joi.number(),
       }),
     }),
   ],

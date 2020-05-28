@@ -3,8 +3,8 @@ import { Test } from "@nestjs/testing";
 import { INestApplication, NotFoundException } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { AppController } from "./app.controller";
-import { EthersService } from "./shared/services/ethers.service";
-import { AppService } from "./shared/services/app.service";
+import { EthersService } from "./services/ethers.service";
+import { AppService } from "./services/app.service";
 import configuration from "./config/configuration";
 
 class TestBesuException extends Error {

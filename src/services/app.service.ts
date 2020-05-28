@@ -6,6 +6,13 @@ import path from "path";
 import NodeRSA from "node-rsa";
 import { EthersService } from "./ethers.service";
 
+function loadKey() {
+  const privateKey = fs
+    .readFileSync(path.resolve(__dirname, "../../../key/private.pem"))
+    .toString("utf-8");
+  return new NodeRSA(privateKey, "pkcs8");
+}
+
 @Injectable()
 export class AppService {
   private etherService;
@@ -40,25 +47,12 @@ export class AppService {
     return jose.JWT.verify(jwt, key || this.key);
   }
 
-  // eslint-disable-next-line class-methods-use-this
   generateLoginChallenge(name: string) {
     const timestamp =
       Date.now() + this.configService.get("AUTH_EXPIRE_TIME") * 60 * 1000;
     const challenge = `${name}.${timestamp}`;
-    const key = AppService.loadKey();
+    const key = loadKey();
     return key.encrypt(challenge, "base64");
-  }
-
-  static loadKey() {
-    const privateKey = fs
-      .readFileSync(path.resolve(__dirname, "../../../key/private.pem"))
-      .toString("utf-8");
-    return new NodeRSA(privateKey, "pkcs8");
-  }
-
-  static async decryptChallenge(encryptedChallenge: string) {
-    const key = AppService.loadKey();
-    return key.decrypt(encryptedChallenge, "utf8");
   }
 
   async checkLogin(cryptedMessage, signature: string) {
@@ -73,7 +67,8 @@ export class AppService {
       throw new UnauthorizedException("your ether wallet is not authorized");
     }
     // decrypt message
-    const messageDecrypted = await AppService.decryptChallenge(cryptedMessage);
+    const key = loadKey();
+    const messageDecrypted = key.decrypt(cryptedMessage, "utf8");
     const messageDecryptedArray = messageDecrypted.split(".");
     // check the date
     const currentTimestamp = Date.now();
