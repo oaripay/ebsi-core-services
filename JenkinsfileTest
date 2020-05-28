@@ -3,6 +3,7 @@ pipeline {
     environment {
         EBSI_ENV="integration"
         PORT="8180"
+        TEST_APP_NAME="ebsi-wallet"
     }
     stages {
         stage('Clone repo') {
