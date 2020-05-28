@@ -4,16 +4,18 @@ services:
   besu:
     build: "./packages/besu"
     container_name: ledger-besu-api
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/ledger-besu-api
     ports:
       - "8080:8080"
     environment:
       - EBSI_ENV=integration
       - API_LEDGER_PRIVATE_KEY=${API_LEDGER_PRIVATE_KEY}
-      - BESU_ADDRESS_NOTARY=${BESU_ADDRESS_NOTARY}     
-      
+      - BESU_ADDRESS_NOTARY=${BESU_ADDRESS_NOTARY}
+
   fabric:
     build: "./packages/fabric"
     container_name: ledger-fabric-api
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/ledger-fabric-api
     ports:
       - 8081:8081
     environment:
@@ -30,5 +32,5 @@ services:
     logging:
       options:
         max-size: "200K"
-        max-file: "10"     
-      
+        max-file: "10"
+

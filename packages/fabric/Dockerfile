@@ -10,5 +10,6 @@ EXPOSE 8080
 RUN mkdir /api
 WORKDIR /api
 COPY --from=builder-fabric-api /api/target/fabric-0.0.1-SNAPSHOT.jar /api
+COPY src/main/resources/server.jks /app/server.jks
 
 ENTRYPOINT [ "sh", "-c", "java -Djava.security.egd=file:/dev/./urandom -jar /api/fabric-0.0.1-SNAPSHOT.jar" ]
