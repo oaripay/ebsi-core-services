@@ -6,8 +6,6 @@ const config = require("../src/config");
 const configTest = require("./config");
 const utils = require("../src/utils");
 
-const { InternalError } = require("../src/errors");
-
 const request = supertest(configTest.url);
 
 const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
