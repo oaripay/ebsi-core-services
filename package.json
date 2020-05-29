@@ -10,8 +10,9 @@
     "url": "https://ec.europa.eu/cefdigital/code/scm/ebsi/identity-hub-api.git"
   },
   "scripts": {
+    "audit": "audit-ci --moderate",
     "start": "node dist/start.js",
-    "start:dev": "nodemon --watch 'src//*.ts' --ignore 'src//*.spec.ts' --exec 'ts-node' src/start.ts",
+    "start:dev": "nodemon --watch src --ignore 'src/*.spec.ts' --exec 'ts-node' src/start.ts",
     "build": "npm run clean && tsc -p tsconfig-build.json",
     "clean": "rm -rf ./dist ./coverage ./log ./build",
     "compile": "tsc",
@@ -47,6 +48,7 @@
     "@types/yamljs": "^0.2.30",
     "@typescript-eslint/eslint-plugin": "^2.27.0",
     "@typescript-eslint/parser": "^2.25.0",
+    "audit-ci": "^3.0.1",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-typescript": "^7.2.0",
     "eslint-config-prettier": "^6.10.1",
