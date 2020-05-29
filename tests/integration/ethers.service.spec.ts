@@ -2,58 +2,10 @@ import { Test } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import utils from "web3-utils";
-import configuration from "../config/configuration";
-import { EthersService } from "./ethers.service";
+import { EthersService } from "../../src/services/ethers.service";
+import configuration from "../../src/config/configuration";
 
-jest.mock("Web3", () =>
-  jest.fn().mockImplementation(() => ({
-    eth: {
-      getTransactionReceipt(txHash) {
-        if (txHash === "test")
-          return Promise.reject(new Error("Invalid params"));
-
-        return null;
-      },
-    },
-  }))
-);
-
-jest.mock("ethers", () => ({
-  ethers: {
-    providers: {
-      JsonRpcProvider: jest.fn(),
-    },
-    Contract: jest.fn().mockImplementation(() => ({
-      connect() {
-        return {
-          owner() {
-            return "0xtest";
-          },
-          getApplicationPublicKey() {
-            return Buffer.from("-----BEGIN PUBLIC KEY----- ...");
-          },
-          getApplicationKeys() {
-            return ["0xtest1", "0xtest2"];
-          },
-          getApplicationByKey() {
-            throw new Error(
-              'invalid input argument (arg="appKey", reason="invalid bytes32 value", value="key1", version=4.0.47)'
-            );
-          },
-          getAuthorizedApps() {
-            return [
-              ["ebsi-wallet", "ebsi-storage"],
-              [true, false],
-            ];
-          },
-        };
-      },
-    })),
-    Wallet: jest.fn().mockImplementation(() => ({})),
-  },
-}));
-
-describe("ethers.service", () => {
+describe("ethers.service (integration)", () => {
   let ethersService: EthersService;
 
   // eslint-disable-next-line jest/no-hooks

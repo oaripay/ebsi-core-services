@@ -14,11 +14,11 @@
     "lint:js": "eslint \"*/**/*.{js,ts}\"",
     "lint:ts": "tsc --noEmit --incremental false",
     "lint:prettier": "prettier --check \"**/*.{md,json,yml,yaml,js,ts}\"",
-    "test": "jest",
+    "test": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage --reporters=default --reporters=jest-sonar",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./tests/e2e/jest-e2e.json"
+    "test:unit": "jest --coverage --reporters=default --reporters=jest-sonar",
+    "test:integration": "jest --config ./tests/integration/jest-integration.json --coverage --reporters=default --reporters=jest-sonar",
+    "test:e2e": "jest --config ./tests/e2e/jest-e2e.json --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
     "@hapi/joi": "^17.1.1",

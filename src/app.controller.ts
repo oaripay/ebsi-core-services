@@ -120,7 +120,6 @@ export class AppController {
       throw new NotFoundException(`${param.appName} not found`);
     }
   }
-  // @UseGuards(AuthGuard(StrategyType.API))
 
   @ApiOperation({
     description:

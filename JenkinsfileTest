@@ -13,7 +13,7 @@ pipeline {
             steps {
                 sh 'npm install'
                 withCredentials([string(credentialsId: 'TEST_APP_PRIVATE_KEY', variable: 'WALLET_PRIV_KEY')]) {
-                    sh 'npm run test:cov'
+                    sh 'npm run test:unit'
                 }
             }
         }

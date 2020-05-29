@@ -48,10 +48,17 @@ Now you can run the following command to run all the tests:
 npm test
 ```
 
-If you want to get the code coverage, you can run:
+You can also target the tests specifically:
 
 ```sh
-nm run test:cov
+# unit tests
+npm run test:unit
+
+# integration tests
+npm run test:integration
+
+# e2e test
+npm run test:e2e
 ```
 
 ## Run with Docker Compose
