@@ -76,12 +76,15 @@ class Router {
               throw new BadRequestError(
                 API_ERROR_MESSAGES.ATTRIBUTES_TYPE_NOT_FOUND
               );
-            const result = await Controller.getAttributesFiltered(did, type);
+            const filteredResult = await Controller.getAttributesFiltered(
+              did,
+              type
+            );
             res.status(200);
             // adding path, did and encoded type to format link results
             const encodedType = encodeURIComponent(type);
             req.baseUrl += `${req.path}?did=${did}&type=${encodedType}`;
-            applyPaginationFormat(result, req, res, next);
+            applyPaginationFormat(filteredResult, req, res, next);
             return;
           }
           const result = await Controller.getAttributes(did);
