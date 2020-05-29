@@ -31,14 +31,6 @@ export class AppService {
     this.configService = configService;
   }
 
-  static base64Buffer(key: string) {
-    return Buffer.from(key, "base64").toString("utf8");
-  }
-
-  static asKey(key: string) {
-    return jose.JWK.asKey(key);
-  }
-
   sign(payload: object) {
     return jose.JWT.sign(payload, this.key);
   }

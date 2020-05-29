@@ -4,15 +4,6 @@ import { ethers } from "ethers";
 import Web3 from "web3";
 import * as EBSIApplicationRegistry from "../contracts/EBSIApplicationRegistry.json";
 
-function hex2Ascii(str1) {
-  const hex = str1.toString();
-  let str = "";
-  for (let n = 0; n < hex.length; n += 2) {
-    str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
-  }
-  return str;
-}
-
 @Injectable()
 export class EthersService {
   private ethersWallet;
@@ -49,27 +40,23 @@ export class EthersService {
     this.web3 = new Web3(this.configService.get("WEB3_PROVIDER"));
   }
 
-  getContract() {
-    return this.contractWithSigner;
-  }
-
   async getSigner() {
     return this.signer;
   }
 
-  getApplicationPublicKey(appName: string) {
+  async getApplicationPublicKey(appName: string) {
     return this.contractWithSigner.getApplicationPublicKey(appName);
   }
 
-  getApplicationKeys() {
+  async getApplicationKeys() {
     return this.contractWithSigner.getApplicationKeys();
   }
 
-  getApplicationByKey(key: string) {
+  async getApplicationByKey(key: string) {
     return this.contractWithSigner.getApplicationByKey(key);
   }
 
-  getAuthorizedApps(appName: string) {
+  async getAuthorizedApps(appName: string) {
     return this.contractWithSigner.getAuthorizedApps(appName);
   }
 
@@ -104,7 +91,7 @@ export class EthersService {
       return null;
     }
 
-    return hex2Ascii(tx.revertReason.substr(138));
+    return this.web3.toAscii(tx.revertReason.substr(138));
   }
 }
 

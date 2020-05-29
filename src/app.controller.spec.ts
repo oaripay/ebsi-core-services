@@ -59,7 +59,7 @@ describe("appController", () => {
 
       jest
         .spyOn(etherService, "getApplicationByKey")
-        .mockImplementation((key) => {
+        .mockImplementation(async (key) => {
           return [`appName${key}`, `pubKey${key}`];
         });
 
@@ -96,7 +96,7 @@ describe("appController", () => {
 
       jest
         .spyOn(etherService, "getApplicationByKey")
-        .mockImplementation((key) => {
+        .mockImplementation(async (key) => {
           return [`appName${key}`, `pubKey${key}`];
         });
 
@@ -119,7 +119,7 @@ describe("appController", () => {
 
       jest
         .spyOn(etherService, "getApplicationByKey")
-        .mockImplementation((key) => {
+        .mockImplementation(async (key) => {
           return [`appName${key}`, `pubKey${key}`];
         });
 

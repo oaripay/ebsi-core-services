@@ -41,6 +41,7 @@
     "rxjs": "^6.5.5",
     "swagger-ui-express": "^4.1.4",
     "web3": "^1.2.8",
+    "web3-utils": "^1.2.8",
     "winston": "^3.2.1"
   },
   "devDependencies": {
