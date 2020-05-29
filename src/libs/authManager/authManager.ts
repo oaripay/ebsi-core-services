@@ -1,5 +1,4 @@
 import moment from "moment";
-import { JWT } from "jose";
 import { ICASFile } from "../../daos/casFile";
 import { ICASStorageOut } from "../../dtos/dataStorage";
 import { IEbsiApiAuthConnection, ILoginReturn } from "../../dtos/ebsiApi";
@@ -8,7 +7,6 @@ import * as api from "../../utils/api";
 import { InternalError, API_ERROR_MESSAGES } from "../../errors";
 import { isTokenExpired } from "../../utils/util";
 import {
-  IUserAuthZToken,
   AccessTokenRequestBody,
   GRANT_TYPE,
   AccessTokenResponseBody,
@@ -24,8 +22,6 @@ export default class AuthManager {
 
   private ebsiApiAuthZTokenMap!: Map<string, IEbsiApiAuthConnection>;
 
-  private receivedAuthZTokenMap!: Map<string, string>;
-
   /**
    * Create an instance of an AuthManager.
    * @param EBSIAPICred Authentication Credentials (user,pass)? to access protected EBSI API calls
@@ -33,11 +29,7 @@ export default class AuthManager {
   private constructor(
     private secureEnclave: ComponentSecureEnclave = ComponentSecureEnclave.Instance
   ) {
-    if (!config.EBSI_API_MAP)
-      throw new InternalError(API_ERROR_MESSAGES.NO_CONFIG_TRUSTED_APP_NAMES);
-
     this.ebsiApiAuthZTokenMap = new Map<string, IEbsiApiAuthConnection>();
-    this.receivedAuthZTokenMap = new Map<string, string>();
 
     config.EBSI_API_MAP.forEach((url, name) => {
       this.ebsiApiAuthZTokenMap.set(name, <IEbsiApiAuthConnection>{
@@ -139,26 +131,6 @@ export default class AuthManager {
     return appInfo.token;
   }
 
-  getReceivedAuthZUserToken(did: string): string {
-    const token = this.receivedAuthZTokenMap.get(did);
-    if (!token) throw new InternalError(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
-    return token;
-  }
-
-  /**
-   * stores the authZ token that belongs to a specific did
-   * decode token and extract the did from it
-   * it can be either a IUserAuthZToken or a IEnterpriseAuthZToken
-   * both cases contain a did
-   * @param token
-   */
-  saveReceivedAuthZUserToken(token: string): void {
-    const authZToken = <IUserAuthZToken>JWT.decode(token);
-    if (!authZToken || !authZToken.did)
-      throw new InternalError(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
-    this.receivedAuthZTokenMap.set(authZToken.did, token);
-  }
-
   async createAuthNToken(targetApp: string): Promise<string> {
     const payload = {
       iss: config.API_NAME,
@@ -191,12 +163,8 @@ export default class AuthManager {
 
     const se = this.secureEnclave;
 
-    try {
-      const jwt = await se.signJwt(se.enclaveDid, buffer);
-      return jwt;
-    } catch (error) {
-      throw new InternalError(error.message);
-    }
+    const jwt = await se.signJwt(se.enclaveDid, buffer);
+    return jwt;
   }
 
   /**
@@ -220,7 +188,12 @@ export default class AuthManager {
       appInfo.url + config.EBSI_SERVICE.CALL.EBSI_LOGIN
     );
 
-    if (!resp || !resp.accessToken || resp.tokenType !== TOKEN_TYPE.bearer)
+    if (
+      !resp ||
+      !resp.accessToken ||
+      !resp.tokenType ||
+      resp.tokenType !== TOKEN_TYPE.bearer
+    )
       throw new InternalError(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
 
     return { token: resp.accessToken };
