@@ -83,8 +83,8 @@ This command starts a node server exposing the EBSI Swagger API at <http://local
 Copy .env.example to .env and set the following environment variables:
 
 - `EBSI_ENV` : set to test, local, integration, development or production
-- `COMPONENT_PASSWORD` <-- TYPE HERE COMPONENT WALLET PASSWORD
-- `COMPONENT_KEYSTORE` <-- TYPE HERE COMPONENT WALLET KEYSTORE
+- `COMPONENT_PASSWORD` <-- TYPE HERE COMPONENT PASSWORD
+- `COMPONENT_KEYSTORE` <-- TYPE HERE COMPONENT KEYSTORE
 - `DID_REGISTRY_SC_ADDRESS` <-- TYPE HERE DID REGISTRY SC ADDRESS
 
 ### Unit tests
