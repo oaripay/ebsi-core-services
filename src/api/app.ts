@@ -66,9 +66,10 @@ export const startEbsiService = async (
   port: number,
   swaggerUrl: string
 ): Promise<http.Server> => {
-  const app = new App(service);
   let server!: http.Server;
   try {
+    const app = new App(service);
+
     server = await app.Start(port);
     PRINT_INFO(
       `Server ${service} running on port ${
