@@ -116,7 +116,7 @@ export default class AttributeInfoList extends KeyValueDataStorage {
     // returns the index element (it already throws an error if not exists)
     const { index } = await this.getElem(key, id);
     // removes AttributeInfo from the List
-    delete iAttributeList.list[index];
+    iAttributeList.list.splice(index, 1);
     // inserts the new AttributeDAO
     await this.insertValue({
       did: key,

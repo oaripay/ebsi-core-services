@@ -79,12 +79,12 @@ export default class IDHub {
       return resultAttributes;
     }
     // otherwiese, filter Array is an array of string
-    const resultAttributes = attributes.filter((attribute) =>
+    const resultAttributesStr = attributes.filter((attribute) =>
       attribute.type.some(
         (typeElem) => (filterArr as string[]).indexOf(typeElem) > -1
       )
     );
-    return resultAttributes;
+    return resultAttributesStr;
   }
 
   /**

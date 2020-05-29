@@ -20,7 +20,7 @@ const applyPaginationFormat = (
     const { size, before, after } = (queryPage as any) as QueryPage;
     // when before is specified, calls the previous elements page
     if (before) {
-      const formatedJson = paginate(
+      const formatedJsonBefore = paginate(
         data,
         baseUrl,
         size,
@@ -28,12 +28,12 @@ const applyPaginationFormat = (
         +before - size > 0 ? +before - size : 0
       );
       res.type("application/json");
-      res.json(formatedJson);
+      res.json(formatedJsonBefore);
       next();
     }
     // when after is specified, calls the next elements page
     if (after) {
-      const formatedJson = paginate(
+      const formatedJsonAfter = paginate(
         data,
         baseUrl,
         size,
@@ -41,13 +41,13 @@ const applyPaginationFormat = (
         +after + 1
       );
       res.type("application/json");
-      res.json(formatedJson);
+      res.json(formatedJsonAfter);
       next();
     }
     // when size is specified without a specific page
-    const formatedJson = paginate(data, baseUrl, size);
+    const formatedJsonSize = paginate(data, baseUrl, size);
     res.type("application/json");
-    res.json(formatedJson);
+    res.json(formatedJsonSize);
     next();
   }
   // default behaviour when no page is specified
