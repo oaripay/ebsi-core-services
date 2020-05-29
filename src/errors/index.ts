@@ -1,13 +1,11 @@
 import InternalError from "./InternalError";
 import HTTPError from "./HTTPError";
 import BadRequestError from "./BadRequestError";
-import ForbiddenError from "./ForbiddenError";
 import InvalidAppError from "./InvalidAppError";
-import InvalidTokenError from "./InvalidTokenError";
-import IssuerNotFoundError from "./IssuerNotFoundError";
-import TooLargeError from "./TooLargeError";
-import UnauthorizedError from "./UnauthorizedError";
 import NotFoundError from "./NotFoundError";
+import InvalidTokenError from "./InvalidTokenError";
+import UnauthorizedError from "./UnauthorizedError";
+import TrustedAppNotFoundError from "./TrustedAppNotFoundError";
 
 import LOGGER from "../logger";
 import {
@@ -26,6 +24,7 @@ const handleError = (err, req, res, next) => {
     error = new BadRequestError(err.message);
   else error = new InternalError(err.message);
 
+  if (process.env.EBSI_ENV === "test") LOGGER.silent = true;
   if (error.Status >= 500) {
     LOGGER.error(error.Detail);
     LOGGER.error(error);
@@ -43,9 +42,7 @@ export {
   EbsiError,
   handleError,
   NotFoundError,
-  TooLargeError,
   InternalError,
-  ForbiddenError,
   InvalidAppError,
   EBSI_API_ERRORS,
   WALLET_MESSAGES,
@@ -54,5 +51,5 @@ export {
   UnauthorizedError,
   API_ERROR_MESSAGES,
   EBSI_API_ERRORS_INT,
-  IssuerNotFoundError,
+  TrustedAppNotFoundError,
 };

@@ -18,13 +18,6 @@ export default interface Wallet {
     expiresIn?: number
   ): Promise<any> | any;
 
-  /**
-   * Verify the data signed
-   * @param data : The JWS signed
-   */
-
-  signTx(txJSON: any, password?: string): Promise<any>;
-
   getDid(): string;
 
   exportEncryptedKeys(): string;

@@ -2,10 +2,10 @@ import axios from "axios";
 import jose from "jose";
 import express from "express";
 import {
-  IssuerNotFoundError,
   InvalidTokenError,
   InvalidAppError,
   BadRequestError,
+  TrustedAppNotFoundError,
 } from "../errors";
 import * as config from "../config";
 import { util } from "../utils";
@@ -17,7 +17,6 @@ import {
   AccessTokenRequestBody,
   JWTClaims,
 } from "../libs/authManager/secureEnclave/jwt";
-import { PRINT_ERROR } from "../utils/util";
 
 const GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer";
 
@@ -56,11 +55,11 @@ async function getPublicKey(appName: string): Promise<string> {
   } catch (error) {
     if (error.response.status >= 500)
       error.response.data = `Trusted Apps Registry: ${error.response.data}`;
-    throw new IssuerNotFoundError(error.response.data);
+    throw new TrustedAppNotFoundError(error.response.data);
   }
 
   if (!response.data.pubKey) {
-    throw new IssuerNotFoundError(
+    throw new TrustedAppNotFoundError(
       `'${appName}' not found in the list of trusted apps`
     );
   }
@@ -174,12 +173,18 @@ async function handleToken(
     );
     return;
   }
+  let publicKeyPEM: string;
+  try {
+    publicKeyPEM = await getPublicKey(payload.aud);
+  } catch (error) {
+    next(error);
+    return;
+  }
 
-  const publicKeyPEM = await getPublicKey(payload.aud);
   try {
     jose.JWT.verify(token, publicKeyPEM);
   } catch (error) {
-    PRINT_ERROR(error);
+    util.PRINT_ERROR(error);
     next(new InvalidTokenError(`Error verifying token: ${error.message}`));
     return;
   }

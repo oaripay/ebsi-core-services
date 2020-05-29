@@ -14,7 +14,6 @@ import {
   AccessTokenResponseBody,
   TOKEN_TYPE,
 } from "./secureEnclave/jwt";
-import SecureEnclave from "./secureEnclave";
 import ComponentSecureEnclave from "./secureEnclave/componentSecureEnclave";
 
 /**
@@ -32,7 +31,7 @@ export default class AuthManager {
    * @param EBSIAPICred Authentication Credentials (user,pass)? to access protected EBSI API calls
    */
   private constructor(
-    private secureEnclave: SecureEnclave = ComponentSecureEnclave.Instance
+    private secureEnclave: ComponentSecureEnclave = ComponentSecureEnclave.Instance
   ) {
     if (!config.EBSI_API_MAP)
       throw new InternalError(API_ERROR_MESSAGES.NO_CONFIG_TRUSTED_APP_NAMES);

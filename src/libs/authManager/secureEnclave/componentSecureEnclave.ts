@@ -1,19 +1,22 @@
+import { JWKECKey } from "jose";
 import * as config from "../../../config";
 import Wallet, { WalletOptions } from "./wallet";
 import ComponentWallet from "./componentWallet";
-import SecureEnclave, { InitComponent } from "../secureEnclave";
-import { InternalError, API_ERROR_MESSAGES } from "../../../errors";
+import { API_ERROR_MESSAGES, InternalError } from "../../../errors";
 import { PRINT_DEBUG } from "../../../utils/util";
+
+export interface InitComponent {
+  did: string;
+  key: JWKECKey;
+}
 
 /**
  * Class to a Secure Enclave
  */
-export default class ComponentSecureEnclave implements SecureEnclave {
+export default class ComponentSecureEnclave {
   protected static instance: ComponentSecureEnclave;
 
   protected wallets: Map<string, Wallet>;
-
-  protected semaphore = false;
 
   protected EnclaveDid: string;
 
@@ -27,7 +30,7 @@ export default class ComponentSecureEnclave implements SecureEnclave {
    * Used when it is not known the constructor parameters, which
    * should be known only in the controller class
    */
-  static get Instance(): SecureEnclave {
+  static get Instance(): ComponentSecureEnclave {
     if (!this.instance) this.instance = new this();
     return this.instance;
   }
@@ -55,17 +58,12 @@ export default class ComponentSecureEnclave implements SecureEnclave {
     encryptedKeystore: string,
     privateKey?: boolean
   ): Promise<InitComponent> {
-    if (this.semaphore)
-      throw new InternalError(
-        "Semaphore blocked, Enclave already being initialized"
-      );
-
     // If Did exists, return it.
     if (this.enclaveDid !== "") {
-      const key = (this.getWallet(this.enclaveDid) as ComponentWallet).toJWK(
+      const outKey = (this.getWallet(this.enclaveDid) as ComponentWallet).toJWK(
         false
       );
-      return { did: this.enclaveDid, key };
+      return { did: this.enclaveDid, key: outKey };
     }
 
     if (!encryptedKeystore)

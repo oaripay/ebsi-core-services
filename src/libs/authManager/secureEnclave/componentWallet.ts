@@ -1,11 +1,10 @@
 import { JWT, JWK, JWKECKey } from "jose";
 import { encrypt, decrypt } from "eciesjs";
 import { ethers } from "ethers";
-import { TransactionRequest } from "ethers/providers";
 import * as util from "../../../utils/util";
 import Wallet, { WalletOptions } from "./wallet";
-import { getJWKfromHex } from "./jwk";
 import { InternalError, API_ERROR_MESSAGES } from "../../../errors";
+import getJWKfromHex from "./jwk";
 
 export default class ComponentWallet implements Wallet {
   static async componentWalletBuilder(
@@ -94,10 +93,6 @@ export default class ComponentWallet implements Wallet {
 
   toJWK(withPrivate = true): JWKECKey {
     return this.jwk.toJWK(withPrivate);
-  }
-
-  async signTx(txJSON: TransactionRequest): Promise<string> {
-    return this.wallet.sign(txJSON);
   }
 
   getDid(): string {
