@@ -5,7 +5,7 @@ pipeline {
         BESU_ADDRESS_NOTARY="0x3c5316F3223626f8D8Ea50Eed697F739c2778D3b"
         PORT="8180"
         TEST_APP_NAME="ebsi-wallet"
-        API_STORAGE_PRIVATE_KEY=credentials('API_STORAGE_PRIVATE_KEY')
+        API_LEDGER_PRIVATE_KEY=credentials('API_LEDGER_PRIVATE_KEY')
         TEST_APP_PRIVATE_KEY=credentials('TEST_APP_PRIVATE_KEY')
     }
     stages {
