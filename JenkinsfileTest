@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        NODE_ENV='integration'
+        EBSI_ENV='integration'
     }
     stages {
         stage('Clone repo') {
@@ -13,7 +13,7 @@ pipeline {
             steps {
                 sh 'npm install'
                 withCredentials([string(credentialsId: 'TEST_APP_PRIVATE_KEY', variable: 'WALLET_PRIV_KEY')]) {
-                    sh 'npm run test:unit'
+                    sh 'npm run test'
                 }
             }
         }
