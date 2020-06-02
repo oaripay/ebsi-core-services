@@ -207,12 +207,13 @@ export class AppController {
   }
 
   @ApiOperation({
-    description:
-      "Add new app to the ledger, need app-name and public hex key." +
-      " In order to create a new app you need to authenticate. " +
-      "To do so you need to call the challenge API with an app-name you want to add new authorization or create. " +
-      "Next step is to create an ethereum signature with your private ethereum key that is allowed to add. " +
-      "In the authorization description you need to add the challenge and the ETH signature",
+    description: `
+      Add new app to the ledger, need app-name and public hex key.
+      In order to create a new app you need to authenticate.
+      To do so, you need to call the challenge API with an app-name you want to add new authorization or create.
+      Next step is to create an ethereum signature with your private ethereum key that is allowed to add.
+      In the authorization description you need to add the challenge and the ETH signature.
+    `,
   })
   @ApiResponse({ status: 201, description: "Application added" })
   @ApiResponse({ status: 409, description: HTTP_400 })
@@ -248,12 +249,13 @@ export class AppController {
   }
 
   @ApiOperation({
-    description:
-      "dd new authorized apps based on a specific appname." +
-      " In order to create a new app you need to authenticate. " +
-      "To do so you need to call the challenge API with an app-name you want to add new authorization or create. " +
-      "Next step is to create an ethereum signature with your private ethereum key that is allowed to add. " +
-      "In the authorization description you need to add the challenge and the ETH signature",
+    description: `
+      Add new authorized apps based on a specific app-name.
+      In order to create a new app, you need to authenticate.
+      To do so, you need to call the challenge API with an app-name you want to add new authorization or create.
+      Next step is to create an ethereum signature with your private ethereum key that is allowed to add.
+      In the authorization description, you need to add the challenge and the ETH signature.
+    `,
   })
   @ApiResponse({ status: 201, description: "Application added" })
   @ApiResponse({ status: 409, description: HTTP_400 })
