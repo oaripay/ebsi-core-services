@@ -2,7 +2,6 @@ import axios from "axios";
 import { ICASFile } from "../daos/casFile";
 import { ICASStorageOut } from "../dtos/dataStorage";
 import { PRINT_SILLY, PRINT_ERROR } from "./util";
-import { LOG_LEVEL } from "../config";
 
 import FormData = require("form-data");
 
@@ -53,10 +52,8 @@ async function doPutCallWithToken(
   PRINT_SILLY(data);
   try {
     const response = await axios.put(url, data, config);
-    if (LOG_LEVEL === "silly") {
-      PRINT_SILLY("AXIOS PUT RESPONSE: ");
-      PRINT_SILLY(response.data);
-    }
+    PRINT_SILLY("AXIOS PUT RESPONSE: ");
+    PRINT_SILLY(response.data);
     return response.data;
   } catch (error) {
     PRINT_ERROR(error);
@@ -84,26 +81,16 @@ async function doPatchCallWithToken(
   }
 }
 
-async function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 async function doDeleteCallWithToken(
   token: string,
   url: string
 ): Promise<void> {
   const config = { headers: { Authorization: `Bearer ${token}` } };
-  if (LOG_LEVEL === "silly") {
-    PRINT_SILLY(`DELETE: ${url}`);
-    PRINT_SILLY(config);
-  }
+  PRINT_SILLY(`DELETE: ${url}`);
+  PRINT_SILLY(config);
   try {
-    const response = await axios.delete(url, config);
-    // wait all nodes to sync
-    if (response.status === 204) {
-      PRINT_SILLY("DELETED: waiting all nodes to sync.");
-      await delay(500);
-    }
+    await axios.delete(url, config);
+    PRINT_SILLY("DELETED");
   } catch (error) {
     PRINT_ERROR(error);
     throw error;
