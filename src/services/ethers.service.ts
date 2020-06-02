@@ -1,14 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { ethers } from "ethers";
 
-import * as UniversitiesTrustedIssuers from "./contracts/UniversitiesTrustedIssuers.json";
-import * as GovernmentsTrustedIssuers from "./contracts/GovernmentsTrustedIssuers.json";
+import * as UniversitiesTrustedIssuers from "../contracts/UniversitiesTrustedIssuers.json";
+import * as GovernmentsTrustedIssuers from "../contracts/GovernmentsTrustedIssuers.json";
 
 @Injectable()
 export default class EthersService {
   private ethersWallet;
-
-  private contract;
 
   private ethersProvider;
 

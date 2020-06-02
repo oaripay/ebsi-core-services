@@ -1,11 +1,13 @@
-import request from "supertest";
+import * as request from "supertest";
 import { Test } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
 
-import { AppService } from "../src/app.service";
-import { AppController } from "../src/app.controller";
-import { AppFormatter } from "../src/app.formatter";
-import testValues from "../src/testVar.json";
+import AppService from "../src/services/app.service";
+import AppController from "../src/app.controller";
+import AppFormatter from "../src/util/app.formatter";
+import * as testValues from "./testVar.json";
+import UniversityIssuer from "../src/types/UniversityIssuer";
+import GovernmentIssuer from "../src/types/GovernmentIssuer";
 
 class AppServiceMock {
   getIssuer() {
@@ -47,9 +49,8 @@ class AppServiceMock {
 
 describe("AppController", () => {
   let app: INestApplication;
-  let appController: AppController;
   let appService: AppService;
-  let appFormatter: AppFormatter;
+
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       controllers: [AppController],
@@ -58,9 +59,8 @@ describe("AppController", () => {
       .overrideProvider(AppService)
       .useValue(new AppServiceMock())
       .compile();
-    appController = module.get<AppController>(AppController);
+
     appService = module.get<AppService>(AppService);
-    appFormatter = module.get<AppFormatter>(AppFormatter);
 
     app = module.createNestApplication();
     await app.init();
@@ -98,7 +98,10 @@ describe("AppController", () => {
       jest
         .spyOn(appService, "getGovTrustedIssuers")
         .mockImplementation(() => Promise.all(testValues.resultGov));
-      const it = [...testValues.resultUniversities, ...testValues.resultGov];
+      const it: (UniversityIssuer | GovernmentIssuer)[] = [
+        ...testValues.resultUniversities,
+        ...testValues.resultGov
+      ];
 
       return request(app.getHttpServer())
         .get("/trusted-issuers-registry/v1/issuers?page[size]=2")
@@ -107,7 +110,7 @@ describe("AppController", () => {
           items: it
             .map(item => {
               return {
-                name: item.preferredName ?? item.name,
+                name: "preferredName" in item ? item.preferredName : item.name,
                 did: item.issuerDID
               };
             })
@@ -157,40 +160,41 @@ describe("AppController", () => {
       jest
         .spyOn(appService, "getAccreditations")
         .mockResolvedValue(testValues.issuerResult.accreditations);
-
+      const expectedRes = {
+        issuerDID: "test",
+        alternativeName: "test",
+        homepage: "test",
+        escoOrganizationType: "test",
+        siteLocation: "test",
+        documents: [
+          {
+            title: testValues.issuerResult.documents[0].title,
+            documentType:
+              testValues.issuerResult.documents[0].documentType || "",
+            status: testValues.issuerResult.documents[0].status,
+            revision: testValues.issuerResult.documents[0].revision,
+            vcCode: testValues.issuerResult.documents[0].vcCode,
+            dateStart: parseInt(
+              testValues.issuerResult.documents[0].dateStart,
+              10
+            ),
+            body: ""
+          }
+        ],
+        accreditations: [
+          {
+            targetFramework: "Europass Accreditation Database",
+            targetResource: "https://accreditation.europass.eu/12341455"
+          }
+        ]
+      };
       return request(app.getHttpServer())
         .get("/trusted-issuers-registry/v1/issuers/testdid")
         .expect(200)
-        .expect([
-          {
-            issuerDID: "test",
-            alternativeName: "test",
-            homepage: "test",
-            escoOrganizationType: "test",
-            siteLocation: "test",
-            documents: [
-              {
-                title: testValues.issuerResult.documents[0].title,
-                documentType:
-                  testValues.issuerResult.documents[0].documentType || "",
-                status: testValues.issuerResult.documents[0].status,
-                revision: testValues.issuerResult.documents[0].revision,
-                vcCode: testValues.issuerResult.documents[0].vcCode,
-                dateStart: parseInt(
-                  testValues.issuerResult.documents[0].dateStart,
-                  10
-                ),
-                body: ""
-              }
-            ],
-            accreditations: [
-              {
-                targetFramework: "Europass Accreditation Database",
-                targetResource: "https://accreditation.europass.eu/12341455"
-              }
-            ]
-          }
-        ]);
+        .then(response => {
+          const res = JSON.parse(response.text);
+          expect(res).toEqual([expectedRes]);
+        });
     });
     it(`#/v1/issuers/:did no issuer found`, () => {
       jest
@@ -210,89 +214,25 @@ describe("AppController", () => {
           );
         });
     });
-    // it(`#/v1/issuers will fail not found`, () => {
-    //     jest.spyOn(appService, 'getUniversityTrustedIssuers').mockImplementation(() => {throw new Error('test'); } );
-    //     return request(app.getHttpServer())
-    //         .get('/trusted-issuers/universities')
-    //         .expect(404)
-    //         .expect(
-    //             (res) => {
-    //                 const resp = JSON.parse(res.text);
-    //
-    //                 expect(resp.message).toEqual('Besu API not working.');
-    //             },
-    //         );
-    // });
-    // it(`/POST universities - create universities - university already exists`, () => {
-    //     jest.spyOn(appService, 'doesIssuerExists').mockImplementation(() => true );
-    //     return request(app.getHttpServer())
-    //         .post('/trusted-issuers/universities')
-    //         .expect(400)
-    //         .expect(
-    //             (res) => {
-    //                 const resp = JSON.parse(res.text);
-    //
-    //                 expect(resp.message).toEqual('University already exists!');
-    //             },
-    //         );
-    // });
-    // it(`/POST universities - create universities - no priv key found`, () => {
-    //     jest.spyOn(appService, 'doesIssuerExists').mockImplementation(() => false );
-    //     jest.spyOn(appService, 'insertUniversity').mockImplementation(() => {throw new Error('test'); } );
-    //     return request(app.getHttpServer())
-    //         .post('/trusted-issuers/universities')
-    //         .expect(401)
-    //         .expect(
-    //             (res) => {
-    //                 const resp = JSON.parse(res.text);
-    //
-    //                 expect(resp.message).toEqual('ether key not found');
-    //             },
-    //         );
-    // });
-    //
-    // test(`/POST universities - create universities - success`, async (done) => {
-    //     jest.spyOn(appService, 'doesIssuerExists').mockImplementation(() => false );
-    //     jest.spyOn(appService, 'insertUniversity').mockImplementation(async (body: UniversityBody) => Promise.resolve() );
-    //     const bodyVar = testValues.univBody;
-    //     request( app.getHttpServer())
-    //         .post('/trusted-issuers/universities')
-    //         .send(bodyVar)
-    //         .then(res => {
-    //             expect(res.status).toBe(201);
-    //             expect(JSON.stringify(res.body)).toBe(JSON.stringify(bodyVar));
-    //         });
-    //     done();
-    //
-    // });
+    it(`#/v1/issuers will fail not found`, () => {
+      jest
+        .spyOn(appService, "getUniversityTrustedIssuers")
+        .mockImplementation(() => {
+          throw new Error("test");
+        });
+      return request(app.getHttpServer())
+        .get("/trusted-issuers/universities")
+        .expect(404)
+        .expect(res => {
+          const resp = JSON.parse(res.text);
+
+          expect(resp.message).toEqual(
+            "Cannot GET /trusted-issuers/universities"
+          );
+        });
+    });
   });
-  // describe('Governments APIs', () => {
-  //
-  //     it(`/GET Gov issuers`, () => {
-  //         jest.spyOn(appService, 'getGovTrustedIssuers').mockImplementation(() => Promise.all(testValues.resultGov));
-  //         return request(app.getHttpServer())
-  //             .get('/trusted-issuers/governments')
-  //             .expect(200)
-  //             .expect(
-  //                 testValues.resultGov,
-  //             );
-  //     });
-  //
-  //     it(`/GET Gov issuers will fail service not found`, () => {
-  //         jest.spyOn(appService, 'getGovTrustedIssuers').mockImplementation(() => {throw new Error('test'); } );
-  //         return request(app.getHttpServer())
-  //             .get('/trusted-issuers/governments')
-  //             .expect(404)
-  //             .expect(
-  //                 (res) => {
-  //                     const resp = JSON.parse(res.text);
-  //
-  //                     expect(resp.message).toEqual('Besu API not working.');
-  //                 },
-  //             );
-  //     });
-  //
-  // });
+
   afterAll(async () => {
     await app.close();
   });

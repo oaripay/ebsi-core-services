@@ -8,9 +8,10 @@ import {
   Logger
 } from "@nestjs/common";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
-import AppService from "./app.service";
+import AppService from "./services/app.service";
 import DIDParams from "./types/DIDParams";
-import AppFormatter from "./app.formatter";
+import AppFormatter from "./util/app.formatter";
+import TrustedIssuer from "./types/TrustedIssuer";
 
 const HTTP_401 = "The client is not allowed to access resource";
 const HTTP_404 = "Resource not found!";
@@ -24,6 +25,16 @@ export default class AppController {
     private appService: AppService,
     private appFormatter: AppFormatter
   ) {}
+
+  @ApiOperation({
+    summary: "health endpoint",
+    description: `will return ok if api is up`
+  })
+  @Get("/v1/health")
+  health() {
+    this.logger.debug("GET health/  ");
+    return "ok";
+  }
 
   @ApiOperation({
     description:
@@ -40,9 +51,11 @@ export default class AppController {
       const univ = (
         await this.appService.getUniversityTrustedIssuers()
       ).map(tiUniv => this.appFormatter.formatUnivIssuer(tiUniv));
+
       const gov = (await this.appService.getGovTrustedIssuers()).map(tiGov =>
         this.appFormatter.formatGovIssuer(tiGov)
       );
+
       let result = {};
       let counter = 0;
       let maxCounter = 0;
@@ -59,22 +72,7 @@ export default class AppController {
         }
       });
 
-      /*  for (let i = 0; i < univ.length; i += 1) {
-        counter += 1;
-        if (itemStartingFrom > counter) {
-          continue;
-        }
-        if (maxCounter >= size) {
-          continue;
-        }
-        maxCounter += 1;
-        items.push({
-          name: univ[i].preferredName,
-          did: univ[i].issuerDID
-        });
-      } */
-
-      univ.forEach((val, id) => {
+      gov.forEach((val, id) => {
         counter += 1;
         if (itemStartingFrom < counter && maxCounter < size) {
           maxCounter += 1;
@@ -84,20 +82,7 @@ export default class AppController {
           });
         }
       });
-      /*  for (let i = 0; i < gov.length; i += 1) {
-        counter += 1;
-        if (itemStartingFrom >= counter) {
-          continue;
-        }
-        if (maxCounter >= size) {
-          continue;
-        }
-        maxCounter += 1;
-        items.push({
-          name: gov[i].name,
-          did: gov[i].issuerDID
-        });
-      } */
+
       const pages = Math.ceil((counter + 1) / size);
       if (pages - 1 < after) {
         throw new BadRequestException("invalid page number");
@@ -130,54 +115,41 @@ export default class AppController {
   @ApiResponse({ status: 404, description: HTTP_404 })
   @ApiResponse({ status: 401, description: HTTP_401 })
   @Get("/v1/issuers/:did")
-  async issuer(@Param() params: DIDParams): Promise<Array<{}>> {
+  async issuer(@Param() params: DIDParams): Promise<Array<TrustedIssuer>> {
     try {
+      this.logger.debug(`/v1/issuers/:${JSON.stringify(params)}`);
       let univTypeIssuer;
       let govTypeIssuer;
-      const result = [];
+      const result: Array<TrustedIssuer> = [];
       let documents = [];
       if (await this.appService.doesIssuerExists(params.did)) {
         univTypeIssuer = await this.appService.getIssuer(params.did);
         documents = await this.appService.getDocuments(params.did);
         const accs = await this.appService.getAccreditations(params.did);
         const dlDocs = documents.map((doc, id) => {
-          return async () => {
+          const f = async () => {
             try {
               const downloadedDoc = await this.appService.downloadDocument(
                 doc.vcCode
               );
-              const dlStatus =
-                downloadedDoc.status === 200 ? downloadedDoc.data : null;
+
+              let dlStatus = null;
+              if (downloadedDoc) {
+                dlStatus =
+                  downloadedDoc.status === 200 ? downloadedDoc.data : null;
+              }
               documents[id].body = downloadedDoc ? dlStatus : "";
             } catch (error) {
               // do nothing, can't extract from besu
-              Logger.warn(
+              this.logger.warn(
                 `Error at index ${id} hash ${documents[id].vcCode}. Cannot extract from besu, message: ${error.message}`
               );
             }
           };
+          return f();
         });
         await Promise.all(dlDocs);
 
-        /*  for (let i = 0; i < documents.length; i += 1) {
-          documents[i].body = null;
-          try {
-            const downloadedDoc = await this.appService.downloadDocument(
-              documents[i].vcCode
-            );
-            // console.log(downloadedDoc.data);
-            documents[i].body = downloadedDoc
-              ? downloadedDoc.status === 200
-                ? downloadedDoc.data
-                : null
-              : "";
-          } catch (error) {
-            // do nothing, can't extract from besu
-            Logger.warn(
-              `Error at index ${i} hash ${documents[i].vcCode}. Cannot extract from besu, message: ${error.message}`
-            );
-          }
-        } */
         result.push({
           moderator: univTypeIssuer.moderator,
           issuerDID: univTypeIssuer.issuerDID,

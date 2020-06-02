@@ -13,6 +13,7 @@
     "src/**/*.{ts,tsx}",
     "!src/**/*.spec.ts",
     "!src/**/*.d.ts",
+    "!src/types/**",
     "!**/node_modules/**",
     "!src/main.ts"
   ],

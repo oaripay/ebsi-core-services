@@ -2,9 +2,9 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { WinstonModule } from "nest-winston";
 import AppController from "./app.controller";
-import AppService from "./app.service";
-import EthersService from "./ethers.service";
-import AppFormatter from "./app.formatter";
+import AppService from "./services/app.service";
+import EthersService from "./services/ethers.service";
+import AppFormatter from "./util/app.formatter";
 
 @Module({
   imports: [
@@ -17,8 +17,6 @@ import AppFormatter from "./app.formatter";
       ],
       // other options
       level: process.env.LOG_LEVEL
-      // format: winston.format.json(),
-      // defaultMeta: { service: 'user-service' },
     })
   ],
   controllers: [AppController],

@@ -18,11 +18,11 @@ COPY --from=builder /app/node_modules node_modules
 COPY --from=builder /app/dist dist
 
 
-ENV PORT=9000
+ENV APP_PORT=3000
 
 RUN chown node:node /app
 USER node
 
-EXPOSE 9000/tcp
+EXPOSE 3000/tcp
 
 CMD [ "node", "dist/main" ]

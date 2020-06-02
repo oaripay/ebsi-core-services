@@ -1,8 +1,12 @@
 import { Injectable } from "@nestjs/common";
+import UniversityIssuer from "../types/UniversityIssuer";
+import GovernmentIssuer from "../types/GovernmentIssuer";
+import DocumentInfo from "../types/DocumentInfo";
+import Accreditation from "../types/Accreditation";
 
 @Injectable()
 export default class AppFormatter {
-  formatDocument(document: any) {
+  formatDocument(document: any): DocumentInfo {
     return {
       title: document.title,
       documentType: document.documentType || "",
@@ -14,7 +18,7 @@ export default class AppFormatter {
     };
   }
 
-  formatGovIssuer(govIssuer: any) {
+  formatGovIssuer(govIssuer: any): GovernmentIssuer {
     return {
       moderator: govIssuer.moderator,
       issuerDID: govIssuer.issuerDID,
@@ -24,7 +28,7 @@ export default class AppFormatter {
     };
   }
 
-  formatUnivIssuer(univIssuer: any) {
+  formatUnivIssuer(univIssuer: any): UniversityIssuer {
     return {
       moderator: univIssuer.moderator,
       issuerDID: univIssuer.issuerDID,
@@ -37,7 +41,7 @@ export default class AppFormatter {
     };
   }
 
-  formatAccreditation(acc: any) {
+  formatAccreditation(acc: any): Accreditation {
     return {
       targetFramework: acc.targetFramework,
       targetResource: acc.targetResource

@@ -5,7 +5,7 @@ services:
     build: .
     container_name: api_trusted_issuers
     ports:
-      - "9000:9000"
+      - "3000:3000"
     environment:
       - NODE_ENV=development
     env_file:

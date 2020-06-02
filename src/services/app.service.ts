@@ -1,20 +1,12 @@
-import {
-  Injectable,
-  NotImplementedException,
-  UnauthorizedException,
-  Logger
-} from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 
-import * as fs from "fs";
-import NodeRSA from "node-rsa";
-import { JWT, JWK } from "jose";
-import axios, { AxiosResponse } from "axios";
-
+import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
+import * as ebsiAppJwt from "@cef-ebsi/app-jwt";
 import EthersService from "./ethers.service";
-import GovernmentBody from "./types/GovernmentBody";
-import UniversityBody from "./types/UniversityBody";
-import DocumentDto from "./types/Document";
-import Accreditation from "./types/Accreditation";
+import GovernmentBody from "../types/GovernmentBody";
+import UniversityBody from "../types/UniversityBody";
+import DocumentDto from "../types/Document";
+import Accreditation from "../types/Accreditation";
 
 @Injectable()
 export default class AppService {
@@ -160,61 +152,6 @@ export default class AppService {
     return Promise.all(universityTrustedIssuersPromises);
   }
 
-  async generateLoginChallenge(did: string, type: string) {
-    const timestamp =
-      Date.now() +
-      Number.parseInt(process.env.AUTH_EXPIRE_TIME, 10) * 60 * 1000;
-    const challenge = `${did}.${timestamp}.${type}`;
-    const key = this.loadKey();
-    return key.encrypt(challenge, "base64");
-  }
-
-  loadKey() {
-    const privateKey = fs
-      .readFileSync(`${__dirname}/../key/private.pem`)
-      .toString("utf-8");
-    return new NodeRSA(privateKey, "pkcs8");
-  }
-
-  async decryptChallenge(encryptedChallenge: string) {
-    const key = this.loadKey();
-    return key.decrypt(encryptedChallenge, "utf8");
-  }
-
-  async checkLogin(cryptedMessage, signature: string, type: string) {
-    // recover address from signature
-    const address = await this.ethersService.recoverAddress(
-      cryptedMessage,
-      signature
-    );
-    // check address is admin onchain
-    let signer;
-    switch (type) {
-      case "universities":
-        signer = await this.univContract.isSigner(address);
-        break;
-      case "governments":
-        signer = await this.govContract.isSigner(address);
-        break;
-      default:
-        // not implemented
-        throw new NotImplementedException("not implemented");
-    }
-    if (!signer) {
-      throw new UnauthorizedException("your ether wallet is not authorized");
-    }
-    // decrypt message
-    const messageDecrypted = await this.decryptChallenge(cryptedMessage);
-    const messageDecryptedArray = messageDecrypted.split(".");
-    // check the date
-    const currentTimestamp = Date.now();
-    if (currentTimestamp > parseInt(messageDecryptedArray[1], 10)) {
-      throw new UnauthorizedException("login expired");
-    }
-    // return DID
-    return messageDecryptedArray[0];
-  }
-
   async login() {
     if (typeof this.jwtToken === "undefined") {
       try {
@@ -227,28 +164,30 @@ export default class AppService {
   }
 
   async generateLoginJWT() {
-    const key = this.loadKey();
+    // build payload for session authentication
+    const agent = new ebsiAppJwt.default.Agent(
+      "ebsi-trusted-issuers",
+      `0x${process.env.WALLET_PRIV_KEY}`,
+      `${process.env.TRUSTED_APP_REGISTRY.replace(/\/$/, "")}/v1`
+    );
 
-    const privateKey = JWK.asKey(key.exportKey());
-    const payload = {
-      iss: process.env.APP_NAME,
-      aud: process.env.APP_AUTH_REQUEST_NAME
+    const payload = agent.newRequest("ebsi-storage");
+    const conf: AxiosRequestConfig = {
+      headers: { "Content-Type": "application/x-www-form-urlencoded" }
     };
-    const token = JWT.sign(payload, privateKey, {
-      expiresIn: "15 minutes"
-    });
+
     const response = axios.post(
       `${process.env.STORAGE.replace(/\/$/, "")}/v1/sessions`,
-      {
-        grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        assertion: token
-      }
+      payload,
+      conf
     );
+
     return response;
   }
 
   async downloadDocument(documentHash: string): Promise<AxiosResponse<any>> {
     await this.login();
+
     try {
       return axios.get(
         `${process.env.STORAGE.replace(

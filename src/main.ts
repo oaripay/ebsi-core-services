@@ -13,7 +13,7 @@ import { CorsOptions } from "@nestjs/common/interfaces/external/cors-options.int
 import AppModule from "./app.module";
 
 Logger.log(
-  `API start, URL: ${process.env.PUBLIC_URL} NODE_ENV: ${process.env.NODE_ENV} port:${process.env.PORT}`,
+  `API start, URL: ${process.env.PUBLIC_URL} NODE_ENV: ${process.env.NODE_ENV} port:${process.env.APP_PORT}`,
   "main"
 );
 Logger.debug(`Log level: ${process.env.LOG_LEVEL}`, "main");
@@ -46,6 +46,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup("trusted-issuers-registry/api-docs", app, document);
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(process.env.APP_PORT || 9000);
+  await app.listen(process.env.APP_PORT || 3000);
 }
 bootstrap();

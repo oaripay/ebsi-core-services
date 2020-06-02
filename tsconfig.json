@@ -12,8 +12,9 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "types": ["jest", "node"],
-    "incremental": true
+    "incremental": true,
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["src", "tests/app.controller.spec.ts"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist", "uploads"]
 }
