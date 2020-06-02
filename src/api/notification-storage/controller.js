@@ -1,6 +1,5 @@
 const cassandraDriver = require("cassandra-driver");
 const { v1: uuidv1 } = require("uuid");
-
 const config = require("../../config");
 const logger = require("../../logger");
 const { BadRequestError, NotFoundError } = require("../../errors");
@@ -87,6 +86,7 @@ async function deleteNotification(id) {
 
 async function getListNotifications(q) {
   let pageSize = config.DEFAULT_PAGE_SIZE;
+  let pageAfter = 0;
   const { sender, receiver, history } = q;
   if (q && q.page) {
     const { page } = q;
@@ -95,6 +95,8 @@ async function getListNotifications(q) {
         throw new BadRequestError("page[size] must be a positive integer");
       pageSize = parseInt(Number(page.size), 10);
     }
+
+    if (page.after) pageAfter = parseInt(page.after, 10);
   }
 
   let query = `select * from `;
@@ -120,33 +122,34 @@ async function getListNotifications(q) {
   params.push(pageSize);
 
   const result = await cassandra.execute(query, params, { prepare: true });
-  const items = [];
+  let items = [];
 
   if (history === "true") {
-    result.rows.forEach((r) => {
-      items.push({
+    items = result.rows
+      .filter((r, i) => i >= pageAfter && i < pageAfter + pageSize)
+      .map((r) => ({
         id: r.id,
         sender: r.sender,
         receiver: r.receiver,
         message: JSON.parse(r.message),
         created: r.created,
         deleted: r.deleted,
-      });
-    });
+      }));
   } else {
-    result.rows.forEach((r) => {
-      items.push({
+    items = result.rows
+      .filter((r, i) => i >= pageAfter && i < pageAfter + pageSize)
+      .map((r) => ({
         id: r.id,
         sender: r.sender,
         receiver: r.receiver,
         message: JSON.parse(r.message),
-      });
-    });
+      }));
   }
 
   return {
     items,
-    total: items.length,
+    total: result.rows.length,
+    pageSize,
   };
 }
 

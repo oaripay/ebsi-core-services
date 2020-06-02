@@ -63,16 +63,108 @@ const dummyData = [
   },
 ];
 
-const dummyDataParsed = [];
-dummyData.forEach((data) => {
-  const { id, sender, receiver, message } = data;
-  dummyDataParsed.push({
+const extensiveDummyData = [
+  {
+    id: "e406c4d3-a184-44f4-8f9d-407e87081dff",
+    created: "2020-01-01T00:00:00Z",
+    sender: "0x4fC083473a44a6F6D2044F17552b1942a517bF8D",
+    receiver: "0x1c74563f88fcE476C98a4Ffcd339e60975442f5a",
+    message: '{"msg":"message 1"}',
+  },
+  {
+    id: "932729b0-dcb0-4304-a376-5dba15148864",
+    created: "2020-01-02T00:00:00Z",
+    sender: "0x1A3AD65DF5934fE072e84f9220Cb82146Bbd62C9",
+    receiver: "0x1c74563f88fcE476C98a4Ffcd339e60975442f5a",
+    message: '{"msg":"message 2"}',
+  },
+  {
+    id: "e406c4d3-a184-44f4-8f9d-407e87081d01",
+    created: "2020-01-01T00:00:00Z",
+    sender: "0x4fC083473a44a6F6D2044F17552b1942a517bF8D",
+    receiver: "0x1c74563f88fcE476C98a4Ffcd339e60975442f5a",
+    message: '{"msg":"message 3"}',
+  },
+  {
+    id: "932729b0-dcb0-4304-a376-5dba15148801",
+    created: "2020-01-02T00:00:00Z",
+    sender: "0x1A3AD65DF5934fE072e84f9220Cb82146Bbd62C9",
+    receiver: "0x1c74563f88fcE476C98a4Ffcd339e60975442f5a",
+    message: '{"msg":"message 4"}',
+  },
+  {
+    id: "e406c4d3-a184-44f4-8f9d-407e87081d02",
+    created: "2020-01-01T00:00:00Z",
+    sender: "0x4fC083473a44a6F6D2044F17552b1942a517bF8D",
+    receiver: "0x1c74563f88fcE476C98a4Ffcd339e60975442f5a",
+    message: '{"msg":"message 5"}',
+  },
+  {
+    id: "932729b0-dcb0-4304-a376-5dba15148802",
+    created: "2020-01-02T00:00:00Z",
+    sender: "0x1A3AD65DF5934fE072e84f9220Cb82146Bbd62C9",
+    receiver: "0x1c74563f88fcE476C98a4Ffcd339e60975442f5a",
+    message: '{"msg":"message 6"}',
+  },
+  {
+    id: "e406c4d3-a184-44f4-8f9d-407e87081d03",
+    created: "2020-01-01T00:00:00Z",
+    sender: "0x4fC083473a44a6F6D2044F17552b1942a517bF8D",
+    receiver: "0x1c74563f88fcE476C98a4Ffcd339e60975442f5a",
+    message: '{"msg":"message 7"}',
+  },
+  {
+    id: "932729b0-dcb0-4304-a376-5dba15148803",
+    created: "2020-01-02T00:00:00Z",
+    sender: "0x1A3AD65DF5934fE072e84f9220Cb82146Bbd62C9",
+    receiver: "0x1c74563f88fcE476C98a4Ffcd339e60975442f5a",
+    message: '{"msg":"message 8"}',
+  },
+  {
+    id: "e406c4d3-a184-44f4-8f9d-407e87081d04",
+    created: "2020-01-01T00:00:00Z",
+    sender: "0x4fC083473a44a6F6D2044F17552b1942a517bF8D",
+    receiver: "0x1c74563f88fcE476C98a4Ffcd339e60975442f5a",
+    message: '{"msg":"message 9"}',
+  },
+  {
+    id: "932729b0-dcb0-4304-a376-5dba15148804",
+    created: "2020-01-02T00:00:00Z",
+    sender: "0x1A3AD65DF5934fE072e84f9220Cb82146Bbd62C9",
+    receiver: "0x1c74563f88fcE476C98a4Ffcd339e60975442f5a",
+    message: '{"msg":"message 10"}',
+  },
+  {
+    id: "e406c4d3-a184-44f4-8f9d-407e87081d05",
+    created: "2020-01-01T00:00:00Z",
+    sender: "0x4fC083473a44a6F6D2044F17552b1942a517bF8D",
+    receiver: "0x1c74563f88fcE476C98a4Ffcd339e60975442f5a",
+    message: '{"msg":"message 11"}',
+  },
+  {
+    id: "932729b0-dcb0-4304-a376-5dba15148805",
+    created: "2020-01-02T00:00:00Z",
+    sender: "0x1A3AD65DF5934fE072e84f9220Cb82146Bbd62C9",
+    receiver: "0x1c74563f88fcE476C98a4Ffcd339e60975442f5a",
+    message: '{"msg":"message 12"}',
+  },
+];
+
+const dummyDataParsed = dummyData.map(({ id, sender, receiver, message }) => ({
+  id,
+  sender,
+  receiver,
+  message: JSON.parse(message),
+}));
+
+const extensiveDummyDataParsed = extensiveDummyData.map(
+  ({ id, sender, receiver, message }) => ({
     id,
     sender,
     receiver,
     message: JSON.parse(message),
-  });
-});
+  })
+);
 
 function cassandraResponse(rows) {
   return Promise.resolve({
@@ -335,6 +427,44 @@ describe("notification storage tests", () => {
       expect.arrayContaining([
         query,
         [dummyData[0].receiver, 11],
+        { prepare: true },
+      ])
+    );
+  });
+
+  it("get list of notifications and custom page size with pageAfter", async () => {
+    expect.assertions(2);
+
+    mockExecute.mockImplementation(() => {
+      return cassandraResponse(extensiveDummyData);
+    });
+
+    const pageSize = 6;
+    const pageAfter = 5;
+
+    await callApi
+      .get(
+        `/?page[size]=${pageSize}&page[after]=${pageAfter}&receiver=${extensiveDummyDataParsed[0].receiver}`
+      )
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.objectContaining({
+            items: extensiveDummyDataParsed.filter(
+              (r, i) => i >= pageAfter && i < pageAfter + pageSize
+            ),
+            total: extensiveDummyData.length,
+            pageSize,
+          })
+        );
+      });
+
+    const [callSearch] = getExecuteCalls();
+    const query = queries.getListNotifications(false, true, false);
+    expect(callSearch).toStrictEqual(
+      expect.arrayContaining([
+        query,
+        [extensiveDummyDataParsed[0].receiver, pageSize],
         { prepare: true },
       ])
     );
