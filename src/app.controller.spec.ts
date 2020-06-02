@@ -47,7 +47,7 @@ class TestBesuException extends Error {
   private getErrorString;
 }
 
-describe("appController", () => {
+describe("app.controller", () => {
   let app: INestApplication;
   let ethersService: EthersService;
   let appService: AppService;
