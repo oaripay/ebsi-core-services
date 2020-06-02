@@ -37,10 +37,7 @@ export class AppService {
 
   async checkLogin(cryptedMessage, signature: string) {
     // Recover address from signature
-    const address = await EthersService.recoverAddress(
-      cryptedMessage,
-      signature
-    );
+    const address = EthersService.recoverAddress(cryptedMessage, signature);
 
     // Check if address is admin onchain
     const signer = await this.ethersService.getSigner();

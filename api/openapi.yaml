@@ -2,7 +2,9 @@ openapi: 3.0.3
 info:
   title: Trusted Apps Registry API
   description: |
-    Trusted Apps Registry API is a Core Service of the EBSI platform providing the capability of verifying if an application is trusted and authorized to interact with other applications in the EBSI network.
+    Trusted Apps Registry API is a Core Service of the EBSI platform providing the capability of
+    verifying if an application is trusted and authorized to interact with other applications in
+    the EBSI network.
   version: 1.0.0
   termsOfService: "/docs/terms"
   contact:
@@ -150,7 +152,8 @@ paths:
       tags:
         - Trusted Apps Registry
       summary: List of trusted apps authorized to consume services
-      description: Returns a list of trusted apps that are authorized to consume service of the {appName} app.
+      description: |
+        Returns a list of trusted apps that are authorized to consume service of the {appName} app.
       parameters:
         - name: appName
           in: path
@@ -251,7 +254,8 @@ paths:
       tags:
         - Trusted Apps Registry
       summary: Verify if app is authorized to consume service
-      description: Verify if {authorizedAppName} app is authorized to consume {appName} app services.
+      description: |
+        Verify if {authorizedAppName} app is authorized to consume {appName} app services.
       parameters:
         - name: appName
           in: path
