@@ -22,12 +22,6 @@ Required libraries:
 
 ### Installing
 
-Move to the base directory (example: `test-ebsi`)
-
-```sh
-cd test-ebsi
-```
-
 Clone the repository and move to the project directory
 
 ```sh
@@ -36,6 +30,12 @@ cd identity-hub-api
 ```
 
 #### Docker Build and Up
+
+Copy `.env.example.docker` to `.env` and set the following environment variables:
+
+- `component_keystore`= <-- TYPE HERE COMPONENT KEYSTORE
+- `component_password`= <-- TYPE HERE COMPONENT PASSWORD
+- `did_registry_sc_address`= <-- TYPE HERE DID REGISTRY SC ADDRESS
 
 Build and Run ebsi-identity-hub-api Docker Image
 
@@ -51,7 +51,7 @@ docker-compose down
 
 ## Building
 
-Clone the repository and move to the project directory and move to the base directory.
+Clone the repository and move to the project directory:
 
 ```sh
 git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/identity-hub-api.git
