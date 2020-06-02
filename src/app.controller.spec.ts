@@ -7,7 +7,7 @@ import { EthersService } from "./services/ethers.service";
 import { AppService } from "./services/app.service";
 import configuration from "./config/configuration";
 
-jest.mock("Web3", () =>
+jest.mock("web3", () =>
   jest.fn().mockImplementation(() => ({
     eth: {
       getTransactionReceipt() {},

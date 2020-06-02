@@ -5,7 +5,7 @@ import utils from "web3-utils";
 import configuration from "../config/configuration";
 import { EthersService } from "./ethers.service";
 
-jest.mock("Web3", () =>
+jest.mock("web3", () =>
   jest.fn().mockImplementation(() => ({
     eth: {
       getTransactionReceipt(txHash) {
