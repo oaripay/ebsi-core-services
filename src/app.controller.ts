@@ -77,16 +77,16 @@ export class AppController {
         items,
         total: counter,
         pageSize: size,
-        first: `/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=${size}`,
-        prev: `/trusted-issuers-registry/v1/issuers?page[after]=${Math.max(
+        first: `/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=${size}`,
+        prev: `/trusted-apps-registry/v1/issuers?page[after]=${Math.max(
           0,
           after - 1
         )}&page[size]=${size}`,
-        next: `/trusted-issuers-registry/v1/issuers?page[after]=${Math.min(
+        next: `/trusted-apps-registry/v1/issuers?page[after]=${Math.min(
           pages - 1,
           after - -1
         )}&page[size]=${size}`,
-        last: `/trusted-issuers-registry/v1/issuers?page[after]=${
+        last: `/trusted-apps-registry/v1/issuers?page[after]=${
           pages - 1
         }&page[size]=${size}`,
       };
@@ -157,16 +157,16 @@ export class AppController {
         items,
         total: counter,
         pageSize: size,
-        first: `/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=${size}`,
-        prev: `/trusted-issuers-registry/v1/issuers?page[after]=${Math.max(
+        first: `/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=${size}`,
+        prev: `/trusted-apps-registry/v1/issuers?page[after]=${Math.max(
           0,
           after - 1
         )}&page[size]=${size}`,
-        next: `/trusted-issuers-registry/v1/issuers?page[after]=${Math.min(
+        next: `/trusted-apps-registry/v1/issuers?page[after]=${Math.min(
           pages - 1,
           after - -1
         )}&page[size]=${size}`,
-        last: `/trusted-issuers-registry/v1/issuers?page[after]=${
+        last: `/trusted-apps-registry/v1/issuers?page[after]=${
           pages - 1
         }&page[size]=${size}`,
       };

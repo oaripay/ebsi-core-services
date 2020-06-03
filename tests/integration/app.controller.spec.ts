@@ -74,14 +74,10 @@ describe("app.controller (integration)", () => {
         ],
         total: 2,
         pageSize: 10,
-        first:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
-        prev:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
-        next:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
-        last:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
+        first: "/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=10",
+        prev: "/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=10",
+        next: "/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=10",
+        last: "/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=10",
       });
 
       expect(response.status).toBe(200);
@@ -131,14 +127,10 @@ describe("app.controller (integration)", () => {
         items: [],
         total: 0,
         pageSize: 10,
-        first:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
-        prev:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
-        next:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
-        last:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
+        first: "/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=10",
+        prev: "/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=10",
+        next: "/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=10",
+        last: "/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=10",
       });
       expect(response.status).toBe(200);
     });
@@ -203,14 +195,10 @@ describe("app.controller (integration)", () => {
         items: [{ authorizedAppName: "ebsi-besu" }],
         total: 1,
         pageSize: 10,
-        first:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
-        prev:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
-        next:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
-        last:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
+        first: "/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=10",
+        prev: "/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=10",
+        next: "/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=10",
+        last: "/trusted-apps-registry/v1/issuers?page[after]=0&page[size]=10",
       });
       expect(response.status).toBe(200);
     });
