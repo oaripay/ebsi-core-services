@@ -1,5 +1,5 @@
 import IDHub from "../../../src/libs/identityHub/idHub";
-import AttributeInfoList from "../../../src/models/attributeInfoList";
+import { AttributeInfoList, CASFile } from "../../../src/models";
 import {
   IAttribute,
   IAttributeInfo,
@@ -8,7 +8,6 @@ import {
 } from "../../../src/dtos/attributeInfo";
 import { util } from "../../../src/utils";
 import { AttributeDAO } from "../../../src/daos/attribute";
-import CASFile from "../../../src/models/casFile";
 import { BadRequestError } from "../../../src/errors";
 
 describe("identity Hub api suite", () => {

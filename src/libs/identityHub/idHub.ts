@@ -4,8 +4,7 @@ import {
   IAttributeInfo,
   IAttributeInput,
 } from "../../dtos/attributeInfo";
-import AttributeInfoList from "../../models/attributeInfoList";
-import CASFile from "../../models/casFile";
+import { AttributeInfoList, CASFile } from "../../models";
 import { ICASFile } from "../../daos/casFile";
 import { EBSI_DEFAULT_DATA_STORE } from "../../config";
 import { DataStoreManager } from "../dataStorages";

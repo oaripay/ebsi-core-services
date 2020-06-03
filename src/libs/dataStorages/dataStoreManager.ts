@@ -1,6 +1,5 @@
-import CASFile from "../../models/casFile";
 import { WALLET_DATA_STORE_TYPE } from "../../config";
-import AttributeInfoList from "../../models/attributeInfoList";
+import { AttributeInfoList, CASFile } from "../../models";
 
 export default class DataStoreManager {
   private static instance: DataStoreManager;
