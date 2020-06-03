@@ -12,7 +12,13 @@ pipeline {
         stage('Unit Test') {
             steps{
                 sh "npm install"
-                sh "npm run test:cov"
+                sh "npm run test"
+            }
+        }
+        stage('e2e Test') {
+            steps{
+                sh "npm install"
+                sh "npm run test:e2e"
             }
         }
         stage('SonarQube Analysis') {
