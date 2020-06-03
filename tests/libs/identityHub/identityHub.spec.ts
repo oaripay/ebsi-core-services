@@ -4,10 +4,12 @@ import {
   IAttribute,
   IAttributeInfo,
   IAttributeInfoList,
+  IAttributeInput,
 } from "../../../src/dtos/attributeInfo";
 import { util } from "../../../src/utils";
 import { AttributeDAO } from "../../../src/daos/attribute";
 import CASFile from "../../../src/models/casFile";
+import { BadRequestError } from "../../../src/errors";
 
 describe("identity Hub api suite", () => {
   it("should retun an IDHub instance", () => {
@@ -15,7 +17,7 @@ describe("identity Hub api suite", () => {
     expect(IDHub.Instance).toBeInstanceOf(IDHub);
   });
 
-  describe("getAttributes tests", () => {
+  describe("getAttributes & getAttributesFiltered tests", () => {
     it("should return an empty array", async () => {
       expect.assertions(1);
       jest
@@ -243,6 +245,279 @@ describe("identity Hub api suite", () => {
         [["a subtype"], ["another subtype"]]
       );
       expect(response).toStrictEqual([iAttribute, iAttribute2]);
+      jest.restoreAllMocks();
+    });
+  });
+
+  describe("getAttribute tests", () => {
+    it("should return an attribute given a hash", async () => {
+      expect.assertions(1);
+      const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const iAttributeInfo: IAttributeInfo = {
+        id: "0001",
+        type: ["a type", "a subtype"],
+        name: "attribute name",
+        hash,
+        did,
+      };
+      const attribute: IAttribute = {
+        ...iAttributeInfo,
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      jest
+        .spyOn(IDHub.prototype, "getAttributes")
+        .mockResolvedValue([attribute]);
+      const response = await IDHub.Instance.getAttribute(did, hash);
+      expect(response).toMatchObject(attribute);
+      jest.restoreAllMocks();
+    });
+
+    it("should throw NotFoundError with an empty attribute list", async () => {
+      expect.assertions(1);
+      const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      jest.spyOn(IDHub.prototype, "getAttributes").mockResolvedValue([]);
+      await expect(IDHub.Instance.getAttribute(did, hash)).rejects.toThrow(
+        "Not Found"
+      );
+      jest.restoreAllMocks();
+    });
+
+    it("should throw NotFoundError with a hash not found", async () => {
+      expect.assertions(1);
+      const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const iAttributeInfo: IAttributeInfo = {
+        id: "0001",
+        type: ["a type", "a subtype"],
+        name: "attribute name",
+        hash: "0xc9A8940Ab318d4d4631a86DcF9E0b9A359421000",
+        did,
+      };
+      const attribute: IAttribute = {
+        ...iAttributeInfo,
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      jest
+        .spyOn(IDHub.prototype, "getAttributes")
+        .mockResolvedValue([attribute]);
+      await expect(IDHub.Instance.getAttribute(did, hash)).rejects.toThrow(
+        "Not Found"
+      );
+      jest.restoreAllMocks();
+    });
+  });
+
+  describe("setAttribute tests", () => {
+    it("should add a new attribute", async () => {
+      expect.assertions(1);
+      const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const iAttributeInfo: IAttributeInfo = {
+        id: "0001",
+        type: ["a type", "a subtype"],
+        name: "attribute name",
+        hash,
+        did,
+      };
+      const attribute: IAttribute = {
+        ...iAttributeInfo,
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      const attributeInput: IAttributeInput = {
+        id: iAttributeInfo.id,
+        type: iAttributeInfo.type,
+        name: iAttributeInfo.name,
+        data: attribute.data,
+      };
+      const expectedResponse = {
+        attribute,
+        newAttribute: true,
+      };
+      jest.spyOn(CASFile.prototype, "insert").mockResolvedValue({
+        hash,
+        function: "keccak256",
+      });
+      jest
+        .spyOn(AttributeInfoList.prototype, "insertElem")
+        .mockResolvedValue({} as any);
+      const response = await IDHub.Instance.setAttribute(
+        did,
+        hash,
+        attributeInput
+      );
+      expect(response).toMatchObject(expectedResponse);
+      jest.restoreAllMocks();
+    });
+
+    it("should return an exising attribute", async () => {
+      expect.assertions(1);
+      const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const iAttributeInfo: IAttributeInfo = {
+        id: "0001",
+        type: ["a type", "a subtype"],
+        name: "attribute name",
+        hash,
+        did,
+      };
+      const attribute: IAttribute = {
+        ...iAttributeInfo,
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      const attributeInput: IAttributeInput = {
+        id: iAttributeInfo.id,
+        type: iAttributeInfo.type,
+        name: iAttributeInfo.name,
+        data: attribute.data,
+      };
+      const expectedResponse = {
+        attribute,
+        newAttribute: false,
+      };
+      jest
+        .spyOn(CASFile.prototype, "insert")
+        .mockRejectedValue(
+          new BadRequestError("This file is already stored with name")
+        );
+      jest.spyOn(IDHub.Instance, "getAttribute").mockResolvedValue(attribute);
+      const response = await IDHub.Instance.setAttribute(
+        did,
+        hash,
+        attributeInput
+      );
+      expect(response).toMatchObject(expectedResponse);
+      jest.restoreAllMocks();
+    });
+
+    it("should throw an InternalError when no response is returned", async () => {
+      expect.assertions(1);
+      const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const attributeInput: IAttributeInput = {
+        id: "0001",
+        type: ["a type", "a subtype"],
+        name: "attribute name",
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      jest
+        .spyOn(CASFile.prototype, "insert")
+        .mockResolvedValue(undefined as any);
+      await expect(
+        IDHub.Instance.setAttribute(did, hash, attributeInput)
+      ).rejects.toThrow("Internal Server Error");
+      jest.restoreAllMocks();
+    });
+
+    it("should throw an InternalError when no hash is returned", async () => {
+      expect.assertions(1);
+      const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const attributeInput: IAttributeInput = {
+        id: "0001",
+        type: ["a type", "a subtype"],
+        name: "attribute name",
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      jest.spyOn(CASFile.prototype, "insert").mockResolvedValue({
+        function: "keccak256",
+      } as any);
+      await expect(
+        IDHub.Instance.setAttribute(did, hash, attributeInput)
+      ).rejects.toThrow("Internal Server Error");
+      jest.restoreAllMocks();
+    });
+
+    it("should throw an InternalError when hash returned differs from the one passed", async () => {
+      expect.assertions(1);
+      const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const attributeInput: IAttributeInput = {
+        id: "0001",
+        type: ["a type", "a subtype"],
+        name: "attribute name",
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      jest.spyOn(CASFile.prototype, "insert").mockResolvedValue({
+        hash: "0xc9A8940Ab318d4d4631a86DcF9E0b9A359421400",
+        function: "keccak256",
+      });
+      await expect(
+        IDHub.Instance.setAttribute(did, hash, attributeInput)
+      ).rejects.toThrow("Internal Server Error");
+      jest.restoreAllMocks();
+    });
+
+    it("should throw an Error when a file could not be inserted", async () => {
+      expect.assertions(1);
+      const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const attributeInput: IAttributeInput = {
+        id: "0001",
+        type: ["a type", "a subtype"],
+        name: "attribute name",
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      jest
+        .spyOn(CASFile.prototype, "insert")
+        .mockRejectedValue(new Error("Houston we have a problem"));
+      await expect(
+        IDHub.Instance.setAttribute(did, hash, attributeInput)
+      ).rejects.toThrow("Houston we have a problem");
+      jest.restoreAllMocks();
+    });
+
+    it("should throw an InternalError when a file could not be inserted", async () => {
+      expect.assertions(1);
+      const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
+      const attributeInput: IAttributeInput = {
+        id: "0001",
+        type: ["a type", "a subtype"],
+        name: "attribute name",
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      const iAttributeInfo: IAttributeInfo = {
+        id: "0001",
+        type: ["a type", "a subtype"],
+        name: "random name",
+        hash,
+        did,
+      };
+      const attribute: IAttribute = {
+        ...iAttributeInfo,
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      jest
+        .spyOn(CASFile.prototype, "insert")
+        .mockRejectedValue(
+          new BadRequestError("This file is already stored with name")
+        );
+      jest.spyOn(IDHub.Instance, "getAttribute").mockResolvedValue(attribute);
+      await expect(
+        IDHub.Instance.setAttribute(did, hash, attributeInput)
+      ).rejects.toThrow("Internal Server Error");
       jest.restoreAllMocks();
     });
   });
