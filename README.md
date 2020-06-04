@@ -17,10 +17,7 @@ You can choose to run the project locally with your own Node.js environment, or 
 
 First, create an `.env` file locally. You can duplicate `.env.example` and name the new copy `.env`. Adapt the variables to your needs.
 
-You will need to fill the WALLET_PRIV_KEY env variable. This private key is needed to be identified into besu
-
-Please note that you need to fill the APP_PRIVATE_KEY env variable with a base64 encode private key. The private key is of the form
-`-----BEGIN PRIVATE KEY-----\nXXXXXXXXXXXXXXXXXXXXXXXXXX\n-----END PRIVATE KEY-----`
+Please note that you need to fill the APP_PRIVATE_KEY env variable with a secp256k1 elliptic curve private key in hexadecimal.
 
 ### Run the project locally
 
@@ -58,7 +55,7 @@ You can now open http://localhost:3000/demo/notarisation
 $ npm install
 ```
 
-You need to fill the WALLET_PRIV_KEY env variable with a private key
+You need to fill the APP_PRIVATE_KEY env variable with a secp256k1 elliptic curve private key
 
 ## Linting
 

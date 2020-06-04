@@ -173,7 +173,7 @@ export default class AppService {
     // build payload for session authentication
     const agent = new ebsiAppJwt.default.Agent(
       "trusted-issuers-registry",
-      `0x${process.env.WALLET_PRIV_KEY}`,
+      `0x${process.env.APP_PRIVATE_KEY}`,
       `${process.env.TRUSTED_APP_REGISTRY.replace(/\/$/, "")}/v1`
     );
 
