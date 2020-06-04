@@ -7,6 +7,11 @@ pipeline {
         MASTER_DIPLOMA="0x15f5e9d610c3027072dd5566629d121c183f213bd34a610af69452fea3870e11"
         BACHELOR_DIPLOMA="0x09eca16ba76840a8ad92f5cc86f54ec1820c55cbdba736d7ff4554e28aa42968"
         APP_PRIVATE_KEY=credentials('APP_PRIVATE_KEY_TRUSTED_ISSUERS')
+        AUTH_EXPIRE_TIME='60'
+        PROVIDER='https://www.intebsi.xyz/jsonrpc'
+        STORAGE='https://api.ebsi.xyz/storage'
+        APP_PORT='3000'
+        LOG_LEVEL='debug'
     }
     stages {
         stage('Clone repo') {
