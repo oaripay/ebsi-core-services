@@ -5,8 +5,8 @@ services:
     build: .
     container_name: api_trusted_issuers
     ports:
-      - "3000:3000"
+      - "9000:9000"
     environment:
-      - NODE_ENV=development
+      - EBSI_ENV=development
     env_file:
       - .env

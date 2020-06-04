@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@cef-ebsi/app-jwt": "0.0.2",
+    "@hapi/joi": "^17.1.1",
     "@nestjs/common": "^7.1.3",
     "@nestjs/config": "^0.5.0",
     "@nestjs/core": "^7.1.3",
@@ -36,6 +37,7 @@
     "class-validator": "^0.12.2",
     "dotenv": "^8.2.0",
     "ethers": "^4.0.47",
+    "helmet": "^3.22.0",
     "jose": "^1.27.0",
     "nest-winston": "^1.3.4",
     "reflect-metadata": "^0.1.13",

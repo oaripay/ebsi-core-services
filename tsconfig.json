@@ -2,7 +2,6 @@
   "compilerOptions": {
     "module": "commonjs",
     "resolveJsonModule": true,
-    "lib": ["dom", "es6", "es7", "es2017", "es2015.promise"],
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -13,7 +12,9 @@
     "baseUrl": "./",
     "types": ["jest", "node"],
     "incremental": true,
-    "allowSyntheticDefaultImports": true
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist", "uploads"]
