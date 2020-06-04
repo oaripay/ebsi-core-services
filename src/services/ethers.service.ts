@@ -19,7 +19,7 @@ export default class EthersService {
       process.env.PROVIDER
     );
     this.ethersWallet = new ethers.Wallet(
-      process.env.WALLET_PRIV_KEY,
+      process.env.APP_PRIVATE_KEY,
       this.ethersProvider
     );
     const univContractWithoutWallet = new ethers.Contract(
