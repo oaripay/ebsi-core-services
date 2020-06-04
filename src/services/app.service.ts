@@ -158,6 +158,12 @@ export default class AppService {
         const response = await this.generateLoginJWT();
         this.jwtToken = response.data.accessToken;
       } catch (error) {
+        this.logger.error(
+          `error received from ${process.env.STORAGE.replace(
+            /\/$/,
+            ""
+          )}/v1/sessions:${error.message}`
+        );
         this.logger.log(error.message);
       }
     }
@@ -166,7 +172,7 @@ export default class AppService {
   async generateLoginJWT() {
     // build payload for session authentication
     const agent = new ebsiAppJwt.default.Agent(
-      "ebsi-trusted-issuers",
+      "trusted-issuers-registry",
       `0x${process.env.WALLET_PRIV_KEY}`,
       `${process.env.TRUSTED_APP_REGISTRY.replace(/\/$/, "")}/v1`
     );
