@@ -123,7 +123,7 @@ export class AppController {
 
   @ApiOperation({
     description:
-      "Get get a list of authorized apps for a specific App. Query is done by app-name (i.e. ebsi-wallet)",
+      "Get a list of authorized apps for a specific App. Query is done by app-name (i.e. ebsi-wallet)",
   })
   @ApiResponse({ status: 200, description: HTTP_200 })
   @ApiResponse({ status: 404, description: HTTP_404 })
