@@ -1,71 +1,83 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo_text.svg" width="320" alt="Nest Logo" /></a>
-</p>
+![EBSI Logo](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
 
-[travis-image]: https://api.travis-ci.org/nestjs/nest.svg?branch=master
-[travis-url]: https://travis-ci.org/nestjs/nest
-[linux-image]: https://img.shields.io/travis/nestjs/nest/master.svg?label=linux
-[linux-url]: https://travis-ci.org/nestjs/nest
-  
-  <p align="center">A progressive <a href="http://nodejs.org" target="blank">Node.js</a> framework for building efficient and scalable server-side applications, heavily inspired by <a href="https://angular.io" target="blank">Angular</a>.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/dm/@nestjs/core.svg" alt="NPM Downloads" /></a>
-<a href="https://travis-ci.org/nestjs/nest"><img src="https://api.travis-ci.org/nestjs/nest.svg?branch=master" alt="Travis" /></a>
-<a href="https://travis-ci.org/nestjs/nest"><img src="https://img.shields.io/travis/nestjs/nest/master.svg?label=linux" alt="Linux" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#5" alt="Coverage" /></a>
-<a href="https://gitter.im/nestjs/nestjs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=body_badge"><img src="https://badges.gitter.im/nestjs/nestjs.svg" alt="Gitter" /></a>
-<a href="https://opencollective.com/nest#backer"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec"><img src="https://img.shields.io/badge/Donate-PayPal-dc3d53.svg"/></a>
-  <a href="https://twitter.com/nestframework"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+# Trusted Apps Registry API
 
-## Description
+This repository contains the code of the Trusted Apps Registry API.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Table of Contents
 
-## Running from docker
-```bash
-cp .env.dist .env
-docker-compose build
-docker-compose up
+1. [Getting started](#Getting-started)
+2. [Linting](#Linting)
+3. [Auditing](#Auditing)
+4. [Testing](#Testing)
+5. [Run with Docker Compose](#Run-with-Docker-Compose)
+
+## Getting started
+
+First of all, make sure to correctly configure your environment. Create a copy of `.env.example` and name it `.env`. Set the variables. Make sure the private key is correctly defined.
+
+```sh
+npm install
 ```
 
-## Installation
+Then, start the server:
 
-```bash
-$ npm install
+```sh
+npm start
 ```
 
-## Running the app
+You should be able to open http://localhost:9000/trusted-apps-registry/v1/api-docs/.
 
-```bash
-# development
-$ npm run start
+## Linting
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+```sh
+npm run lint
 ```
 
-## Test
+## Auditing
 
-```bash
+```sh
+npm audit
+```
+
+## Testing
+
+Now you can run the following command to run all the tests:
+
+```sh
+npm test
+```
+
+You can also target the tests specifically:
+
+```sh
 # unit tests
-$ npm run test
+npm run test:unit
 
-# e2e tests
-$ npm run test:e2e
+# integration tests
+npm run test:integration
 
-# test coverage
-$ npm run test:cov
+# e2e test
+npm run test:e2e
 ```
-## License
 
-  Nest is [MIT licensed](LICENSE).
+## Run with Docker Compose
+
+You can start the server locally with Docker Compose:
+
+```sh
+docker-compose up --build
+```
+
+You should be able to open http://localhost:9000/trusted-apps-registry/v1/api-docs/.
+
+## Licensing
+
+Copyright (c) 2019 European Commission  
+Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
+You may not use this work except in compliance with the Licence.
+You may obtain a copy of the Licence at:
+
+- <https://joinup.ec.europa.eu/page/eupl-text-11-12>
+
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.

@@ -1,3 +1,10 @@
-node_modules
-dist
-key
+# Exclude everything
+*
+
+# Only add what is necessary
+!package*.json
+!nest-cli.json
+!tsconfig.build.json
+!tsconfig.json
+!scripts
+!src

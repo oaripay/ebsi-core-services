@@ -2,38 +2,10 @@ import request from "supertest";
 import { Test } from "@nestjs/testing";
 import { INestApplication, NotFoundException } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { AppController } from "./app.controller";
-import { EthersService } from "./services/ethers.service";
-import { AppService } from "./services/app.service";
-import configuration from "./config/configuration";
-
-jest.mock("web3", () =>
-  jest.fn().mockImplementation(() => ({
-    eth: {
-      getTransactionReceipt() {},
-    },
-  }))
-);
-
-jest.mock("ethers", () => ({
-  ethers: {
-    providers: {
-      JsonRpcProvider: jest.fn(),
-    },
-    Contract: jest.fn().mockImplementation(() => ({
-      connect() {
-        return {
-          owner() {},
-          getApplicationPublicKey() {},
-          getApplicationKeys() {},
-          getApplicationByKey() {},
-          getAuthorizedApps() {},
-        };
-      },
-    })),
-    Wallet: jest.fn().mockImplementation(() => ({})),
-  },
-}));
+import { AppController } from "../../src/app.controller";
+import { EthersService } from "../../src/services/ethers.service";
+import { AppService } from "../../src/services/app.service";
+import configuration from "../../src/config/configuration";
 
 class TestBesuException extends Error {
   private readonly response;
@@ -47,9 +19,9 @@ class TestBesuException extends Error {
   private getErrorString;
 }
 
-describe("app.controller", () => {
+describe("app.controller (integration)", () => {
   let app: INestApplication;
-  let ethersService: EthersService;
+  let etherService: EthersService;
   let appService: AppService;
 
   // eslint-disable-next-line jest/no-hooks
@@ -65,7 +37,7 @@ describe("app.controller", () => {
       providers: [EthersService, AppService],
     }).compile();
 
-    ethersService = module.get<EthersService>(EthersService);
+    etherService = module.get<EthersService>(EthersService);
     appService = module.get<AppService>(AppService);
 
     app = module.createNestApplication();
@@ -78,15 +50,15 @@ describe("app.controller", () => {
   });
 
   describe("test GET's", () => {
-    it("/GET all apps", async () => {
+    it(`/GET all apps`, async () => {
       expect.assertions(2);
 
       jest
-        .spyOn(ethersService, "getApplicationKeys")
-        .mockImplementation(async () => ["key0", "key1"]);
+        .spyOn(etherService, "getApplicationKeys")
+        .mockResolvedValue(["key0", "key1"]);
 
       jest
-        .spyOn(ethersService, "getApplicationByKey")
+        .spyOn(etherService, "getApplicationByKey")
         .mockImplementation(async (key) => {
           return [`appName${key}`, `pubKey${key}`];
         });
@@ -115,11 +87,11 @@ describe("app.controller", () => {
       expect.assertions(2);
 
       jest
-        .spyOn(ethersService, "getApplicationKeys")
+        .spyOn(etherService, "getApplicationKeys")
         .mockResolvedValue(["key0", "key1"]);
 
       jest
-        .spyOn(ethersService, "getApplicationByKey")
+        .spyOn(etherService, "getApplicationByKey")
         .mockImplementation(async (key) => {
           return [`appName${key}`, `pubKey${key}`];
         });
@@ -139,10 +111,10 @@ describe("app.controller", () => {
     it(`/GET all apps no application found`, async () => {
       expect.assertions(2);
 
-      jest.spyOn(ethersService, "getApplicationKeys").mockResolvedValue([]);
+      jest.spyOn(etherService, "getApplicationKeys").mockResolvedValue([]);
 
       jest
-        .spyOn(ethersService, "getApplicationByKey")
+        .spyOn(etherService, "getApplicationByKey")
         .mockImplementation(async (key) => {
           return [`appName${key}`, `pubKey${key}`];
         });
@@ -167,7 +139,7 @@ describe("app.controller", () => {
       expect.assertions(2);
 
       jest
-        .spyOn(ethersService, "getApplicationPublicKey")
+        .spyOn(etherService, "getApplicationPublicKey")
         .mockResolvedValue("thekey");
 
       const key = "testappkey";
@@ -187,7 +159,7 @@ describe("app.controller", () => {
       expect.assertions(2);
 
       jest
-        .spyOn(ethersService, "getApplicationPublicKey")
+        .spyOn(etherService, "getApplicationPublicKey")
         .mockImplementation(() => {
           throw new NotFoundException();
         });
@@ -210,7 +182,7 @@ describe("app.controller", () => {
       expect.assertions(2);
 
       jest
-        .spyOn(ethersService, "getAuthorizedApps")
+        .spyOn(etherService, "getAuthorizedApps")
         .mockResolvedValue([["ebsi-besu"], [true]]);
 
       const appName = "ebsi-wallet-test-app-name";
@@ -235,7 +207,7 @@ describe("app.controller", () => {
       expect.assertions(2);
 
       jest
-        .spyOn(ethersService, "getAuthorizedApps")
+        .spyOn(etherService, "getAuthorizedApps")
         .mockResolvedValue({ test: "scrambled value" });
 
       const appName = "ebsi-wallet-test-app-name";
@@ -255,7 +227,7 @@ describe("app.controller", () => {
     it(`/GET authorized apps by appname - >test service throws if besu doesnt have app`, async () => {
       expect.assertions(2);
 
-      jest.spyOn(ethersService, "getAuthorizedApps").mockImplementation(() => {
+      jest.spyOn(etherService, "getAuthorizedApps").mockImplementation(() => {
         throw new NotFoundException();
       });
 
@@ -328,7 +300,7 @@ describe("app.controller", () => {
         .mockResolvedValue("ebsi-wallet-jest-test");
 
       jest
-        .spyOn(ethersService, "addApplication")
+        .spyOn(etherService, "addApplication")
         .mockResolvedValue("app-added-to-besu");
 
       const body = {
@@ -357,7 +329,7 @@ describe("app.controller", () => {
         .mockResolvedValue("ebsi-wallet-jest-test");
 
       jest
-        .spyOn(ethersService, "addApplication")
+        .spyOn(etherService, "addApplication")
         .mockResolvedValue("app-added-to-besu");
 
       const body = {
@@ -389,7 +361,7 @@ describe("app.controller", () => {
         .spyOn(appService, "checkLogin")
         .mockResolvedValue("ebsi-wallet-jest-test");
 
-      jest.spyOn(ethersService, "addApplication").mockImplementation(() => {
+      jest.spyOn(etherService, "addApplication").mockImplementation(() => {
         throw new NotFoundException("a message from besu");
       });
 
@@ -423,7 +395,7 @@ describe("app.controller", () => {
         .mockResolvedValue("ebsi-wallet-jest-test");
 
       jest
-        .spyOn(ethersService, "addNewAuthorization")
+        .spyOn(etherService, "addNewAuthorization")
         .mockResolvedValue("authorization added");
 
       const body = {
@@ -453,7 +425,7 @@ describe("app.controller", () => {
         .mockResolvedValue("ebsi-wallet-jest-test");
 
       jest
-        .spyOn(ethersService, "addNewAuthorization")
+        .spyOn(etherService, "addNewAuthorization")
         .mockResolvedValue("authorization added");
 
       const body = {
@@ -486,14 +458,12 @@ describe("app.controller", () => {
         .spyOn(appService, "checkLogin")
         .mockResolvedValue("ebsi-wallet-jest-test");
 
-      jest
-        .spyOn(ethersService, "addNewAuthorization")
-        .mockImplementation(() => {
-          throw new NotFoundException("test");
-        });
+      jest.spyOn(etherService, "addNewAuthorization").mockImplementation(() => {
+        throw new NotFoundException("test");
+      });
 
       jest
-        .spyOn(ethersService, "revertMessage")
+        .spyOn(etherService, "revertMessage")
         .mockResolvedValue("a message from besu");
 
       const body = {
@@ -526,14 +496,12 @@ describe("app.controller", () => {
         .spyOn(appService, "checkLogin")
         .mockResolvedValue("ebsi-wallet-jest-test");
 
-      jest
-        .spyOn(ethersService, "addNewAuthorization")
-        .mockImplementation(() => {
-          throw new TestBesuException("test");
-        });
+      jest.spyOn(etherService, "addNewAuthorization").mockImplementation(() => {
+        throw new TestBesuException("test");
+      });
 
       jest
-        .spyOn(ethersService, "revertMessage")
+        .spyOn(etherService, "revertMessage")
         .mockResolvedValue("besu reverted");
 
       const body = {
