@@ -6,13 +6,16 @@ import * as GovernmentsTrustedIssuers from "../contracts/GovernmentsTrustedIssue
 
 @Injectable()
 export default class EthersService {
-  private ethersWallet;
+  private ethersWallet: string | ethers.Signer | ethers.providers.Provider;
 
-  private ethersProvider;
+  private ethersProvider:
+    | ethers.Signer
+    | ethers.providers.Provider
+    | ethers.providers.JsonRpcProvider;
 
-  private univTrustedIssuersContract;
+  private univTrustedIssuersContract: ethers.Contract;
 
-  private govTrustedIssuersContract;
+  private govTrustedIssuersContract: ethers.Contract;
 
   constructor(private configService: ConfigService) {
     this.ethersProvider = new ethers.providers.JsonRpcProvider(
@@ -48,7 +51,10 @@ export default class EthersService {
     };
   }
 
-  recoverAddress(cryptedChallenge, signature) {
+  static recoverAddress(
+    cryptedChallenge: ethers.utils.Arrayish,
+    signature: string | ethers.utils.Signature
+  ) {
     return ethers.utils.verifyMessage(cryptedChallenge, signature);
   }
 }

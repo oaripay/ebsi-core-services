@@ -6,7 +6,7 @@ import Accreditation from "../types/Accreditation";
 
 @Injectable()
 export default class AppFormatter {
-  formatDocument(document: any): DocumentInfo {
+  static formatDocument(document: any): DocumentInfo {
     return {
       title: document.title,
       documentType: document.documentType || "",
@@ -18,7 +18,7 @@ export default class AppFormatter {
     };
   }
 
-  formatGovIssuer(govIssuer: any): GovernmentIssuer {
+  static formatGovIssuer(govIssuer: any): GovernmentIssuer {
     return {
       moderator: govIssuer.moderator,
       issuerDID: govIssuer.issuerDID,
@@ -28,7 +28,7 @@ export default class AppFormatter {
     };
   }
 
-  formatUnivIssuer(univIssuer: any): UniversityIssuer {
+  static formatUnivIssuer(univIssuer: any): UniversityIssuer {
     return {
       moderator: univIssuer.moderator,
       issuerDID: univIssuer.issuerDID,
@@ -41,7 +41,7 @@ export default class AppFormatter {
     };
   }
 
-  formatAccreditation(acc: any): Accreditation {
+  static formatAccreditation(acc: any): Accreditation {
     return {
       targetFramework: acc.targetFramework,
       targetResource: acc.targetResource
