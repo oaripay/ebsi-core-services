@@ -32,11 +32,12 @@ export default class AttributeInfoList extends KeyValueDataStorage {
       iAttributeList = (await this.get(key)).data;
       try {
         // checks if the AttributeInfo already exists
-        const { index, attributeInfo } = await this.getElem(key, value.id);
+        const { index } = await this.getElem(key, value.id);
         // updates AttributeInfo List with the new value
-        iAttributeList.list[index] = attributeInfo;
+        iAttributeList.list[index] = value;
       } catch (error) {
         // value does not exist
+        if (!error.Detail) throw error;
         if (
           !(error as HTTPError).Detail.includes(
             `Attribute Info not found with this id: ${value.id}`
@@ -82,9 +83,9 @@ export default class AttributeInfoList extends KeyValueDataStorage {
     // we first get the list stored in the DB value
     const iAttributeList: IAttributeInfoList = (await this.get(key)).data;
     // returns the index element (it already throws an error if not exists)
-    const { index, attributeInfo } = await this.getElem(key, value.id);
+    const { index } = await this.getElem(key, value.id);
     // updates AttributeInfo List with the new value
-    iAttributeList.list[index] = attributeInfo;
+    iAttributeList.list[index] = value;
     // inserts the new IAttributeInfoList
     return this.updateValue({
       did: key,
@@ -158,7 +159,7 @@ export default class AttributeInfoList extends KeyValueDataStorage {
     // we first get the list stored in the DB value
     const iAttributeList: IAttributeInfoList = (await this.get(key)).data;
     // checks if list has elements
-    if (iAttributeList.list[0] === null)
+    if (iAttributeList.list[0] === undefined)
       throw new BadRequestError(`Attribute Info not found with this id: ${id}`);
     // finds the index of the element
     const index: number = iAttributeList.list.findIndex((x) => x.id === id);
