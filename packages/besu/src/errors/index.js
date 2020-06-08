@@ -4,10 +4,7 @@ const HTTPError = require("./HTTPError");
 const BadRequestError = require("./BadRequestError");
 const ForbiddenError = require("./ForbiddenError");
 const InternalError = require("./InternalError");
-const InvalidAppError = require("./InvalidAppError");
 const InvalidTokenError = require("./InvalidTokenError");
-const IssuerNotFoundError = require("./IssuerNotFoundError");
-const TooLargeError = require("./TooLargeError");
 const UnauthorizedError = require("./UnauthorizedError");
 
 function handler(_error, req, res, next) {
@@ -25,7 +22,7 @@ function handler(_error, req, res, next) {
   logger.info(`Error ${error.status}: ${error.detail}`);
   res.setHeader("Content-Type", "application/problem+json");
   res.status(error.status);
-  res.send(error.jsonString());
+  res.send(error.print());
 
   next();
 }
@@ -34,11 +31,8 @@ module.exports = {
   handler,
   HTTPError,
   BadRequestError,
-  InvalidTokenError,
-  InvalidAppError,
-  IssuerNotFoundError,
   UnauthorizedError,
   ForbiddenError,
-  TooLargeError,
   InternalError,
+  InvalidTokenError,
 };

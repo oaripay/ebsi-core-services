@@ -6,7 +6,6 @@ const {
   BadRequestError,
   UnauthorizedError,
   ForbiddenError,
-  InternalError,
 } = require("./errors");
 
 const anonymousAccess = { enabled: true, requireAuth: false };
@@ -110,13 +109,17 @@ async function besuRPC(query, authenticated) {
     const response = await axios.post(config.besuRPCNode, query);
     return response.data;
   } catch (error) {
+    if (!error.response)
+      throw new Error(
+        `Error from Besu RPC ${config.besuRPCNode}. ${error.message}`
+      );
     const { status, data } = error.response;
     let message;
     if (typeof data === "object") message = JSON.stringify(data);
     else message = data;
 
     if (status >= 500)
-      throw new InternalError(
+      throw new Error(
         `Internal error from Besu RPC ${config.besuRPCNode}. ${message}`
       );
     else throw new BadRequestError(`Besu RPC Error: ${message}`);

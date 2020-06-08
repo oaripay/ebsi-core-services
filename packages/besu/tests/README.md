@@ -1,11 +1,27 @@
 # Tests Hyperledger Besu
 
-This folder contains a set of tests for Besu API.
+Create an `.env` file using `.env.example` and update the corresponding values.
 
-Set the environmental variable `EBSI_ENV` to integration, development or production to determine the location of Besu RPC node.
-
-Then run
+Launch unit tests and e2e tests with:
 
 ```
-npm run test
+EBSI_ENV=integration npm run test
+```
+
+To connect with a local api for e2e run:
+
+```
+EBSI_ENV=local EBSI_API=http://localhost:8080 npm run test
+```
+
+To run only unit tests:
+
+```
+npm run test:unit
+```
+
+To run only integration tests:
+
+```
+npm run test:e2e
 ```

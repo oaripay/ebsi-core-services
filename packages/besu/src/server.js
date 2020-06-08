@@ -13,6 +13,8 @@ class App {
 
     this.httpServer.use("*", cors());
 
+    this.httpServer.use(bodyParser.urlencoded({ extended: false }));
+
     this.httpServer.use(
       bodyParser.json({ limit: "10mb", extended: true, type: "*/*" })
     );
@@ -23,6 +25,7 @@ class App {
     });
 
     this.httpServer.post("/ledger/v1/sessions", auth.callNewSession);
+
     this.httpServer.use("/ledger/v1/blockchains/besu", besuAPI);
 
     this.httpServer.use((req, res, next) => {
@@ -32,10 +35,9 @@ class App {
     this.httpServer.use(errors.handler);
   }
 
-  start(port, testMode = false) {
+  start(port) {
     return this.httpServer.listen(port, () => {
       logger.info(`Hyperledger Besu API started at port ${port}`);
-      if (testMode) logger.info("EBSI TEST MODE enabled");
     });
   }
 }

@@ -48,10 +48,8 @@ const sharedConfig = {
     address: process.env.BESU_ADDRESS_NOTARY,
     abi,
   },
-  jwt: {
-    privKey: utils.getJWKfromHex(process.env.API_LEDGER_PRIVATE_KEY),
-  },
-  testMode: process.env.EBSI_TEST_MODE === "true",
+  privKey: process.env.API_LEDGER_PRIVATE_KEY,
+  privKeyJWK: utils.getJWKfromHex(process.env.API_LEDGER_PRIVATE_KEY),
 };
 
 module.exports = {

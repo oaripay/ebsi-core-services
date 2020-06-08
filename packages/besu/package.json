@@ -3,7 +3,8 @@
   "scripts": {
     "prettier-format": "prettier --write 'src/**/*.{js,ts,tsx}'",
     "start": "node src/start.js",
-    "test": "EBSI_TEST_MODE=true jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar",
     "test:e2e": "jest --config ./tests/jest-e2e.json",
     "lint-staged": "lint-staged",
     "lint": "npm run lint:js && npm run lint:prettier",
@@ -16,6 +17,7 @@
     "API"
   ],
   "dependencies": {
+    "@cef-ebsi/app-jwt": "0.0.2",
     "axios": "^0.19.0",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
@@ -41,7 +43,8 @@
     "supertest": "^4.0.2"
   },
   "jest": {
-    "coverageDirectory": "./coverage/"
+    "coverageDirectory": "./coverage/",
+    "testEnvironment": "node"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
