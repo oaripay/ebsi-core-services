@@ -3,6 +3,10 @@ pipeline {
     environment {
         EBSI_ENV="integration"
         BESU_ADDRESS_NOTARY="0x3c5316F3223626f8D8Ea50Eed697F739c2778D3b"
+        PORT="8180"
+        TEST_APP_NAME="ebsi-wallet"
+        API_LEDGER_PRIVATE_KEY=credentials('API_LEDGER_PRIVATE_KEY')
+        TEST_APP_PRIVATE_KEY=credentials('TEST_APP_PRIVATE_KEY')
     }
     stages {
         stage('Clone repo') {
@@ -15,9 +19,7 @@ pipeline {
                 dir('api/besu') {
                     sh 'npm install'
                     sh 'npm run bootstrap'
-                    withCredentials([string(credentialsId: 'TEST_APP_PRIVATE_KEY', variable: 'API_LEDGER_PRIVATE_KEY')]) {
-                        sh 'npm run test'
-                    }
+                    sh 'npm run test'
                 }
             }
         }
