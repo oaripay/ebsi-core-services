@@ -47,7 +47,7 @@ export default class EthersService {
   getContracts() {
     return {
       univContract: this.univTrustedIssuersContract,
-      govContract: this.govTrustedIssuersContract
+      govContract: this.govTrustedIssuersContract,
     };
   }
 

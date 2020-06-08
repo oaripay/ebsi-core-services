@@ -5,7 +5,7 @@ import {
   Param,
   NotFoundException,
   Query,
-  Logger
+  Logger,
 } from "@nestjs/common";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
 import AppService from "./services/app.service";
@@ -28,7 +28,7 @@ export default class AppController {
 
   @ApiOperation({
     summary: "health endpoint",
-    description: `will return ok if api is up`
+    description: `will return ok if api is up`,
   })
   @Get("/v1/health")
   health() {
@@ -38,7 +38,7 @@ export default class AppController {
 
   @ApiOperation({
     description:
-      "Get all universities defined as trusted issuers in BESU blockchain"
+      "Get all universities defined as trusted issuers in BESU blockchain",
   })
   @ApiResponse({ status: 200, description: HTTP_200 })
   @ApiResponse({ status: 401, description: HTTP_401 })
@@ -50,9 +50,9 @@ export default class AppController {
 
       const univ = (
         await this.appService.getUniversityTrustedIssuers()
-      ).map(tiUniv => AppFormatter.formatUnivIssuer(tiUniv));
+      ).map((tiUniv) => AppFormatter.formatUnivIssuer(tiUniv));
 
-      const gov = (await this.appService.getGovTrustedIssuers()).map(tiGov =>
+      const gov = (await this.appService.getGovTrustedIssuers()).map((tiGov) =>
         AppFormatter.formatGovIssuer(tiGov)
       );
 
@@ -67,7 +67,7 @@ export default class AppController {
           maxCounter += 1;
           items.push({
             name: univ[id].preferredName,
-            did: univ[id].issuerDID
+            did: univ[id].issuerDID,
           });
         }
       });
@@ -78,7 +78,7 @@ export default class AppController {
           maxCounter += 1;
           items.push({
             name: gov[id].name,
-            did: gov[id].issuerDID
+            did: gov[id].issuerDID,
           });
         }
       });
@@ -96,10 +96,12 @@ export default class AppController {
           0,
           after - 1
         )}&page[size]=${size}`,
-        next: `/trusted-issuers-registry/v1/issuers?page[after]=${after -
-          -1}&page[size]=${size}`,
-        last: `/trusted-issuers-registry/v1/issuers?page[after]=${pages -
-          1}&page[size]=${size}`
+        next: `/trusted-issuers-registry/v1/issuers?page[after]=${
+          after - -1
+        }&page[size]=${size}`,
+        last: `/trusted-issuers-registry/v1/issuers?page[after]=${
+          pages - 1
+        }&page[size]=${size}`,
       };
       return result;
     } catch (error) {
@@ -159,8 +161,10 @@ export default class AppController {
           escoOrganizationType: univTypeIssuer.escoOrganizationType,
           siteLocation: univTypeIssuer.siteLocation,
           status: univTypeIssuer.status,
-          documents: documents.map(doc => AppFormatter.formatDocument(doc)),
-          accreditations: accs.map(acc => AppFormatter.formatAccreditation(acc))
+          documents: documents.map((doc) => AppFormatter.formatDocument(doc)),
+          accreditations: accs.map((acc) =>
+            AppFormatter.formatAccreditation(acc)
+          ),
         });
       }
       if (await this.appService.doesIssuerForGovExists(params.did)) {
@@ -172,9 +176,9 @@ export default class AppController {
           name: govTypeIssuer.name,
           country: govTypeIssuer.country,
           status: govTypeIssuer.status,
-          documents: documents.map(document =>
+          documents: documents.map((document) =>
             AppFormatter.formatDocument(document)
-          )
+          ),
         });
       }
       if (!result.length) {

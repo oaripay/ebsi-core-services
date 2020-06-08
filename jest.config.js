@@ -5,7 +5,7 @@ module.exports = {
   roots: ["<rootDir>/src/", "<rootDir>/tests/"],
   testMatch: ["**/?(*.)+(spec|test).+(ts|tsx|js)"],
   transform: {
-    "^.+\\.(ts|tsx)?$": "ts-jest"
+    "^.+\\.(ts|tsx)?$": "ts-jest",
   },
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
   coverageDirectory: "./coverage/",
@@ -14,19 +14,19 @@ module.exports = {
     "!src/**/*.d.ts",
     "!src/types/**",
     "!**/node_modules/**",
-    "!src/main.ts"
+    "!src/main.ts",
   ],
   collectCoverage: true,
   reporters: ["default", "jest-sonar"],
-  coverageReporters: ["text", "lcov", "json", "text", "clover", "cobertura"],
+  coverageReporters: ["text", "lcov", "json", "clover", "cobertura"],
   globals: {
     "ts-jest": {
       diagnostics: true,
       warnOnly: true,
       ignoreCodes: [
-        18002 // The ‘files’ list in config file is empty. (it is strongly recommended to include this one)
+        18002, // The ‘files’ list in config file is empty. (it is strongly recommended to include this one)
       ],
-      pretty: true
-    }
-  }
+      pretty: true,
+    },
+  },
 };

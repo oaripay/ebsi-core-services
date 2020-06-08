@@ -3,20 +3,16 @@ WORKDIR /app
 RUN apk add python make g++ && apk update
 COPY package*.json ./
 COPY nest-cli.json ./
-COPY tsconfig.build.json ./
-COPY tsconfig.json ./
-RUN npm install @nestjs/cli && npm i --only=production --quiet --no-progress
+COPY tsconfig.*.json ./
+RUN npm ci --quiet --no-progress
 COPY src src
-RUN npm run build
-
+RUN npm run build && npm prune --production
 
 FROM node:12.16.1-alpine
 WORKDIR /app
-ARG NODE_ENV=production
-ENV NODE_ENV=${NODE_ENV}
+ENV NODE_ENV=production
 COPY --from=builder /app/node_modules node_modules
 COPY --from=builder /app/dist dist
-
 
 ENV APP_PORT=3000
 
