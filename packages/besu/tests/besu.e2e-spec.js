@@ -5,8 +5,16 @@ const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 const config = require("../src/config");
 const configTest = require("./config");
 const utils = require("../src/utils");
+const Server = require("../src/server");
 
-const request = supertest(configTest.url);
+let request;
+let server = null;
+if (configTest.url) {
+  request = supertest(configTest.url);
+} else {
+  server = new Server().start(config.port);
+  request = supertest(server);
+}
 
 const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
 const wallet = ethers.Wallet.createRandom();
@@ -67,7 +75,12 @@ async function getDeployTransaction() {
   return wallet.sign(transaction);
 }
 
+/* eslint jest/no-hooks: "off" */
 describe("hyperledger Besu integration test", () => {
+  afterAll(() => {
+    if (server) server.close();
+  });
+
   it("create a new session with ledger api", async () => {
     expect.assertions(1);
     const agent = new ebsiAppJwt.Agent(
