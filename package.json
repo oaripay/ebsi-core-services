@@ -4,7 +4,7 @@
   "description": "",
   "author": "",
   "private": true,
-  "license": "EUPL Version 1.2",
+  "license": "EUPL-1.2",
   "scripts": {
     "audit": "audit-ci --moderate",
     "prebuild": "rimraf dist",
@@ -42,12 +42,12 @@
     "helmet": "^3.22.0",
     "nest-winston": "^1.3.4",
     "reflect-metadata": "^0.1.13",
-    "rimraf": "^3.0.2",
     "rxjs": "^6.5.5",
     "swagger-ui-express": "^4.1.4",
     "winston": "^3.2.1"
   },
   "devDependencies": {
+    "rimraf": "^3.0.2",
     "@nestjs/cli": "^7.2.0",
     "@nestjs/schematics": "^7.0.1",
     "@nestjs/testing": "^7.1.3",
