@@ -1,5 +1,4 @@
 const supertest = require("supertest");
-const jose = require("jose");
 const ethers = require("ethers");
 const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 
@@ -68,7 +67,6 @@ async function getDeployTransaction() {
   return wallet.sign(transaction);
 }
 
-/* eslint jest/no-hooks: "off" */
 describe("hyperledger Besu integration test", () => {
   it("create a new session with ledger api", async () => {
     expect.assertions(1);
