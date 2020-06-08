@@ -1,7 +1,8 @@
 pipeline {
     agent any
     environment {
-        NODE_ENV='integration'
+        NODE_ENV='test'
+        EBSI_ENV='integration'
         UNIV_CONTRACT_ADDR='0x9B8397f1B0FEcD3a1a40CdD5E8221Fa461898517'
         GOV_CONTRACT_ADDR='0x2E1f232a9439C3D459FcEca0BeEf13acc8259Dd8'
         MASTER_DIPLOMA="0x15f5e9d610c3027072dd5566629d121c183f213bd34a610af69452fea3870e11"
