@@ -1,8 +1,8 @@
 pipeline {
     agent any
     environment {
-        EBSI_ENV="integration"
-        BESU_ADDRESS_NOTARY="0x3c5316F3223626f8D8Ea50Eed697F739c2778D3b"
+        EBSI_ENV="local"
+        BESU_ADDRESS_NOTARY="0x21b38942aA9BC992482627f63814Ffa06DA7e500"
         PORT="8180"
         TEST_APP_NAME="ebsi-wallet"
         API_LEDGER_PRIVATE_KEY=credentials('API_LEDGER_PRIVATE_KEY')
