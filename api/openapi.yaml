@@ -2,8 +2,10 @@ openapi: 3.0.3
 info:
   title: Trusted Issuers Registry API
   description: |
-    Trusted Issuers Registry API is a Core Service of the EBSI platform verifying if a legal entity is authorized to issue a W3C Verifiable Credential. 
-    The first implementation of this service in v1 checks for the presence of issuers DID in a Trusted Issuers Smart Contract and verifies if they are allowed to issue specific Verifiable Credentials.
+    Trusted Issuers Registry API is a Core Service of the EBSI platform verifying
+    if a legal entity is authorized to issue a W3C Verifiable Credential.
+    The first implementation of this service in v1 checks for the presence of issuers DID in a Trusted Issuers Smart Contract
+    and verifies if they are allowed to issue specific Verifiable Credentials.
   version: 1.0.0
   termsOfService: "/docs/terms"
   contact:
