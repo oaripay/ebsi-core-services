@@ -50,10 +50,10 @@ export default class AppController {
 
       const univ = (
         await this.appService.getUniversityTrustedIssuers()
-      ).map(tiUniv => this.appFormatter.formatUnivIssuer(tiUniv));
+      ).map(tiUniv => AppFormatter.formatUnivIssuer(tiUniv));
 
       const gov = (await this.appService.getGovTrustedIssuers()).map(tiGov =>
-        this.appFormatter.formatGovIssuer(tiGov)
+        AppFormatter.formatGovIssuer(tiGov)
       );
 
       let result = {};
@@ -159,12 +159,8 @@ export default class AppController {
           escoOrganizationType: univTypeIssuer.escoOrganizationType,
           siteLocation: univTypeIssuer.siteLocation,
           status: univTypeIssuer.status,
-          documents: documents.map(doc =>
-            this.appFormatter.formatDocument(doc)
-          ),
-          accreditations: accs.map(acc =>
-            this.appFormatter.formatAccreditation(acc)
-          )
+          documents: documents.map(doc => AppFormatter.formatDocument(doc)),
+          accreditations: accs.map(acc => AppFormatter.formatAccreditation(acc))
         });
       }
       if (await this.appService.doesIssuerForGovExists(params.did)) {
@@ -177,7 +173,7 @@ export default class AppController {
           country: govTypeIssuer.country,
           status: govTypeIssuer.status,
           documents: documents.map(document =>
-            this.appFormatter.formatDocument(document)
+            AppFormatter.formatDocument(document)
           )
         });
       }

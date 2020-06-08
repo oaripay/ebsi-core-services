@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { HttpModule } from "@nestjs/common";
-import * as request from "supertest";
+import request from "supertest";
 
 import { NestExpressApplication } from "@nestjs/platform-express";
 

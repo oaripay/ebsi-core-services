@@ -1,9 +1,16 @@
-import * as dotenv from "dotenv";
 import axios from "axios";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { Test } from "@nestjs/testing";
+import { INestApplication } from "@nestjs/common";
+import ebsiAppJwt from "@cef-ebsi/app-jwt";
+import Agent from "@cef-ebsi/app-jwt/dist/agent";
 import AppService from "../../src/services/app.service";
 import EthersService from "../../src/services/ethers.service";
+import configuration from "../../src/config/configuration";
+import AppController from "../../src/app.controller";
+import AppFormatter from "../../src/util/app.formatter";
 
-dotenv.config();
+// dotenv.config();
 const result = {
   moderator: "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73",
   issuerDID: "did:ebsi:0xBDB8618DE3ecdF37a4f13caAC7d9abc097bf9FC2",
@@ -30,63 +37,101 @@ const result = {
     }
   ]
 };
-jest.mock("axios");
+const data = {
+  document: {
+    body: "body"
+  }
+};
+const getTrustedIssuer = jest.fn(() => result);
+const getAllDocumentIndexes = jest.fn(did => [
+  `0-${did}`,
+  `1-${did}`,
+  `2-${did}`
+]);
+const getDocument = jest.fn(async (did, item) => {
+  return {
+    did,
+    item
+  };
+});
+
+jest.mock("axios", () => ({
+  get: jest.fn().mockImplementation(() => Promise.resolve(data)),
+  post: jest.fn().mockImplementation(() => Promise.resolve({ data: {} }))
+}));
+jest.mock("ethers", () => ({
+  ethers: {
+    providers: {
+      JsonRpcProvider: jest.fn()
+    },
+    Contract: jest.fn().mockImplementation(() => ({
+      connect() {
+        return {
+          getTrustedIssuer,
+          getAllDocumentIndexes,
+          getDocument
+        };
+      }
+    })),
+    Wallet: jest.fn().mockImplementation(() => ({}))
+  }
+}));
 describe("AppService", () => {
-  let ethersService: EthersService;
+  let app: INestApplication;
+  let cfSvc: ConfigService;
   let sut: AppService;
 
-  afterEach(() => {
-    jest.resetAllMocks();
+  beforeAll(async () => {
+    const module = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot({
+          envFilePath: [".env", ".env.example"],
+          load: [configuration]
+        })
+      ],
+      controllers: [AppController],
+      providers: [EthersService, AppService, ConfigService, AppFormatter]
+    }).compile();
+
+    cfSvc = module.get<ConfigService>(ConfigService);
+    sut = module.get<AppService>(AppService);
+
+    app = module.createNestApplication();
+    await app.init();
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describe("getIssuer did", () => {
     it("should return the university issuer by did", async () => {
-      const getTrustedIssuer = jest.fn(() => result);
-      const res = {
-        univContract: { getTrustedIssuer },
-
-        govContract: this.govTrustedIssuersContract
-      };
-
-      ethersService = new EthersService();
-
-      jest.spyOn(ethersService, "getContracts").mockImplementation(() => res);
-      sut = new AppService(ethersService);
-
+      expect.assertions(2);
       expect(await sut.getIssuer(result.issuerDID)).toStrictEqual(result);
-      expect(getTrustedIssuer).toHaveBeenCalledWith(result.issuerDID);
       expect(getTrustedIssuer).toHaveBeenCalledTimes(1);
     });
     it("should download document", async () => {
-      const data = {
-        document: {
-          body: "body"
-        }
-      };
-      const spyGet = jest
-        .spyOn(axios, "get")
-        .mockImplementationOnce(() => Promise.resolve(data));
-      const spyPost = jest
-        .spyOn(axios, "post")
-        .mockImplementationOnce(() => Promise.resolve({ data: {} }));
-      const getTrustedIssuer = jest.fn(() => result);
-      const res = {
-        univContract: { getTrustedIssuer },
+      const spyGet = jest.spyOn(axios, "get");
+      const spyPost = jest.spyOn(axios, "post");
 
-        govContract: this.govTrustedIssuersContract
-      };
-
-      ethersService = new EthersService();
-
-      jest.spyOn(ethersService, "getContracts").mockImplementation(() => res);
-      sut = new AppService(ethersService);
-
+      const spyAgent = jest
+        .spyOn(ebsiAppJwt, "Agent")
+        .mockImplementationOnce((name, privateKey, provider) => {
+          return ({
+            newRequest: appName =>
+              `${appName}-grantType=client_credentials&clientAssertionType=`,
+            name,
+            privateKey,
+            provider
+          } as unknown) as Agent;
+        });
       expect(await sut.downloadDocument("0xhash")).toStrictEqual(data);
+      expect(spyAgent).toHaveBeenCalledTimes(1);
+
       expect(spyGet).toHaveBeenCalledWith(
-        `${process.env.STORAGE.replace(
-          /\/$/,
-          ""
-        )}/v1/stores/distributed/files/0xhash`,
+        `${cfSvc
+          .get("STORAGE")
+          .replace(/\/$/, "")}/v1/stores/distributed/files/0xhash`,
         {
           headers: {
             Authorization: `Bearer ${this.jwtToken}`
@@ -95,7 +140,7 @@ describe("AppService", () => {
       );
       expect(spyGet).toHaveBeenCalledTimes(1);
       expect(spyPost).toHaveBeenCalledWith(
-        `${process.env.STORAGE.replace(/\/$/, "")}/v1/sessions`,
+        `${cfSvc.get("STORAGE").replace(/\/$/, "")}/v1/sessions`,
         expect.stringContaining(
           "grantType=client_credentials&clientAssertionType="
         ),
@@ -106,30 +151,7 @@ describe("AppService", () => {
       expect(spyPost).toHaveBeenCalledTimes(1);
     });
     it("should get document for gov", async () => {
-      const getTrustedIssuer = jest.fn(() => result);
-      const getAllDocumentIndexes = jest.fn(did => [
-        `0-${did}`,
-        `1-${did}`,
-        `2-${did}`
-      ]);
-      const getDocument = jest.fn(async (did, item) => {
-        return {
-          did,
-          item
-        };
-      });
-      const res = {
-        univContract: { getTrustedIssuer },
-
-        govContract: { getAllDocumentIndexes, getDocument }
-      };
-
-      ethersService = new EthersService();
-
-      const ethSvcSpy = jest
-        .spyOn(ethersService, "getContracts")
-        .mockImplementation(() => res);
-      sut = new AppService(ethersService);
+      expect.assertions(3);
       const expectedRes = [
         { did: "did:gov", item: "0-did:gov" },
         { did: "did:gov", item: "1-did:gov" },
@@ -138,7 +160,6 @@ describe("AppService", () => {
       expect(await sut.getDocumentsForGov("did:gov")).toStrictEqual(
         expectedRes
       );
-      expect(ethSvcSpy).toHaveBeenCalledTimes(2);
       expect(getAllDocumentIndexes).toHaveBeenCalledTimes(1);
       expect(getDocument).toHaveBeenCalledTimes(3);
     });

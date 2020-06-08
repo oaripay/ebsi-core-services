@@ -1,7 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 
 import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
-import * as ebsiAppJwt from "@cef-ebsi/app-jwt";
+import ebsiAppJwt from "@cef-ebsi/app-jwt";
+import { ConfigService } from "@nestjs/config";
 import EthersService from "./ethers.service";
 import GovernmentBody from "../types/GovernmentBody";
 import UniversityBody from "../types/UniversityBody";
@@ -18,7 +19,10 @@ export default class AppService {
 
   private jwtToken;
 
-  constructor(private ethersService: EthersService) {
+  constructor(
+    private ethersService: EthersService,
+    private configService: ConfigService
+  ) {
     this.univContract = this.ethersService.getContracts().univContract;
     this.govContract = this.ethersService.getContracts().govContract;
   }
@@ -159,10 +163,9 @@ export default class AppService {
         this.jwtToken = response.data.accessToken;
       } catch (error) {
         this.logger.error(
-          `error received from ${process.env.STORAGE.replace(
-            /\/$/,
-            ""
-          )}/v1/sessions:${error.message}`
+          `error received from ${this.configService
+            .get("STORAGE")
+            .replace(/\/$/, "")}/v1/sessions:${error.message}`
         );
         this.logger.log(error.message);
       }
@@ -171,19 +174,21 @@ export default class AppService {
 
   async generateLoginJWT() {
     // build payload for session authentication
-    const agent = new ebsiAppJwt.default.Agent(
+
+    const agent = new ebsiAppJwt.Agent(
       "trusted-issuers-registry",
-      `0x${process.env.APP_PRIVATE_KEY}`,
-      `${process.env.TRUSTED_APP_REGISTRY.replace(/\/$/, "")}/v1`
+      `0x${this.configService.get("APP_PRIVATE_KEY")}`,
+      `${this.configService.get("TRUSTED_APP_REGISTRY").replace(/\/$/, "")}/v1`
     );
 
     const payload = agent.newRequest("ebsi-storage");
+
     const conf: AxiosRequestConfig = {
       headers: { "Content-Type": "application/x-www-form-urlencoded" }
     };
 
     const response = axios.post(
-      `${process.env.STORAGE.replace(/\/$/, "")}/v1/sessions`,
+      `${this.configService.get("STORAGE").replace(/\/$/, "")}/v1/sessions`,
       payload,
       conf
     );
@@ -196,10 +201,9 @@ export default class AppService {
 
     try {
       return axios.get(
-        `${process.env.STORAGE.replace(
-          /\/$/,
-          ""
-        )}/v1/stores/distributed/files/${documentHash}`,
+        `${this.configService
+          .get("STORAGE")
+          .replace(/\/$/, "")}/v1/stores/distributed/files/${documentHash}`,
         {
           headers: {
             Authorization: `Bearer ${this.jwtToken}`

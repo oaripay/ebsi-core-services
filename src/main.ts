@@ -6,10 +6,10 @@ import {
   utilities as nestWinstonModuleUtilities,
   WinstonModule
 } from "nest-winston";
-import * as winston from "winston";
+import winston from "winston";
 
 import { CorsOptions } from "@nestjs/common/interfaces/external/cors-options.interface";
-
+import helmet from "helmet";
 import AppModule from "./app.module";
 
 Logger.log(
@@ -20,10 +20,21 @@ Logger.debug(`Log level: ${process.env.LOG_LEVEL}`, "main");
 
 async function bootstrap() {
   const options = new DocumentBuilder()
-    .setTitle("Issuers")
-    .setVersion("1.0")
-    .addTag("issuers")
+    .addBearerAuth()
+    .setTitle("Trusted Issuers Registry API")
+    .setDescription(
+      "Trusted Issuers Registry API is a Core Service of the EBSI platform providing the capability of verifying if an issuer is trusted and authorized to interact with other applications in the EBSI network."
+    )
+    .setVersion("1.0.0")
+    .setTermsOfService("/docs/terms")
+    .setLicense("EUPL-1.2", "https://joinup.ec.europa.eu/page/eupl-text-11-12")
+    .setContact(
+      "EBSI Support",
+      "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi",
+      "CEF-BUILDING-BLOCKS@ec.europa.eu"
+    )
     .build();
+
   const cors: CorsOptions = {
     methods: "*"
   };
@@ -45,6 +56,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, opt);
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup("trusted-issuers-registry/api-docs", app, document);
+  app.use(helmet());
   app.useGlobalPipes(new ValidationPipe());
   await app.listen(process.env.APP_PORT || 3000);
 }
