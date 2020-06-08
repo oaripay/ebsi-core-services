@@ -11,7 +11,7 @@ export default () => {
       BACHELOR_DIPLOMA:
         "0x09eca16ba76840a8ad92f5cc86f54ec1820c55cbdba736d7ff4554e28aa42968",
       TRUSTED_APP_REGISTRY: "https://api.intebsi.xyz/trusted-apps-registry",
-      LOG_LEVEL: "debug"
+      LOG_LEVEL: "debug",
     },
     integration: {
       PROVIDER: "https://www.intebsi.xyz/jsonrpc",
@@ -23,7 +23,7 @@ export default () => {
       BACHELOR_DIPLOMA:
         "0x09eca16ba76840a8ad92f5cc86f54ec1820c55cbdba736d7ff4554e28aa42968",
       TRUSTED_APP_REGISTRY: "https://api.intebsi.xyz/trusted-apps-registry",
-      LOG_LEVEL: "debug"
+      LOG_LEVEL: "debug",
     },
     development: {
       PROVIDER: "https://www.intebsi.xyz/jsonrpc",
@@ -35,7 +35,7 @@ export default () => {
       BACHELOR_DIPLOMA:
         "0x09eca16ba76840a8ad92f5cc86f54ec1820c55cbdba736d7ff4554e28aa42968",
       TRUSTED_APP_REGISTRY: "https://api.intebsi.xyz/trusted-apps-registry",
-      LOG_LEVEL: "debug"
+      LOG_LEVEL: "debug",
     },
     production: {
       PROVIDER: "https://www.ebsi.xyz/jsonrpc",
@@ -47,8 +47,8 @@ export default () => {
       BACHELOR_DIPLOMA:
         "0x09eca16ba76840a8ad92f5cc86f54ec1820c55cbdba736d7ff4554e28aa42968",
       TRUSTED_APP_REGISTRY: "https://api.ebsi.xyz/trusted-apps-registry",
-      LOG_LEVEL: "warn"
-    }
+      LOG_LEVEL: "warn",
+    },
   };
 
   return {
@@ -70,6 +70,6 @@ export default () => {
     TRUSTED_APP_REGISTRY:
       process.env.TRUSTED_APP_REGISTRY ||
       defaultConfig[EBSI_ENV].TRUSTED_APP_REGISTRY,
-    STORAGE: process.env.STORAGE || defaultConfig[EBSI_ENV].STORAGE
+    STORAGE: process.env.STORAGE || defaultConfig[EBSI_ENV].STORAGE,
   };
 };

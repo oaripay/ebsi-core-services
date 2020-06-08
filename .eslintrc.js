@@ -4,9 +4,9 @@ module.exports = {
     "airbnb-typescript/base",
     "plugin:jest/all",
     "plugin:prettier/recommended",
-    "prettier/@typescript-eslint"
+    "prettier/@typescript-eslint",
   ],
   parserOptions: {
-    project: "./tsconfig.eslint.json"
-  }
+    project: "./tsconfig.eslint.json",
+  },
 };

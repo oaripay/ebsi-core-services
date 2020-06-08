@@ -29,18 +29,18 @@ import configuration from "./config/configuration";
           "verbose",
           "debug",
           "silly"
-        )
-      })
+        ),
+      }),
     }),
     WinstonModule.forRoot({
       transports: [
         // other transports...
       ],
       // other options
-      level: process.env.LOG_LEVEL
-    })
+      level: process.env.LOG_LEVEL,
+    }),
   ],
   controllers: [AppController],
-  providers: [AppFormatter, EthersService, AppService]
+  providers: [AppFormatter, EthersService, AppService],
 })
 export default class AppModule {}

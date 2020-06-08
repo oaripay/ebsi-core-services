@@ -11,20 +11,21 @@ import AppFormatter from "../src/util/app.formatter";
 import EthersService from "../src/services/ethers.service";
 
 jest.setTimeout(10000);
-describe("AppController (e2e)", () => {
+describe("appController (e2e)", () => {
   let app: NestExpressApplication;
   const version = "v1";
 
+  // eslint-disable-next-line jest/no-hooks
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
-          envFilePath: [".env", ".env.dev"]
+          envFilePath: [".env", ".env.dev"],
         }),
         AppModule,
-        HttpModule
+        HttpModule,
       ],
-      providers: [AppService, EthersService, AppFormatter]
+      providers: [AppService, EthersService, AppFormatter],
     }).compile();
 
     app = moduleFixture.createNestApplication<NestExpressApplication>();
@@ -32,46 +33,50 @@ describe("AppController (e2e)", () => {
     await app.init();
   });
 
-  it(`(GET)  trusted-issuers-registry/${version}/health`, () => {
-    return request(app.getHttpServer())
-      .get(`/trusted-issuers-registry/${version}/health`)
-      .expect(200)
-      .expect("ok");
+  it(`(GET)  trusted-issuers-registry/${version}/health`, async () => {
+    expect.assertions(2);
+    const response = await request(app.getHttpServer()).get(
+      `/trusted-issuers-registry/${version}/health`
+    );
+    expect(response.status).toBe(200);
+    expect(response.text).toStrictEqual("ok");
   });
 
-  it(`(GET)  trusted-issuers-registry/${version}/issuers`, () => {
-    return request(app.getHttpServer())
-      .get(`/trusted-issuers-registry/${version}/issuers`)
-      .expect(200)
-      .then(response => {
-        expect(JSON.parse(response.text)).toEqual(
+  it(`(GET)  trusted-issuers-registry/${version}/issuers`, async () => {
+    expect.assertions(2);
+    const response = await request(app.getHttpServer()).get(
+      `/trusted-issuers-registry/${version}/issuers`
+    );
+    expect(response.status).toBe(200);
+
+    expect(JSON.parse(response.text)).toStrictEqual(
+      expect.objectContaining({
+        total: expect.any(Number),
+        pageSize: expect.any(Number),
+        first: expect.stringContaining(
+          `/trusted-issuers-registry/${version}/issuers`
+        ),
+        prev: expect.stringContaining(
+          `/trusted-issuers-registry/${version}/issuers`
+        ),
+        next: expect.stringContaining(
+          `/trusted-issuers-registry/${version}/issuers`
+        ),
+        last: expect.stringContaining(
+          `/trusted-issuers-registry/${version}/issuers`
+        ),
+        items: expect.arrayContaining([
           expect.objectContaining({
-            total: expect.any(Number),
-            pageSize: expect.any(Number),
-            first: expect.stringContaining(
-              `/trusted-issuers-registry/${version}/issuers`
-            ),
-            prev: expect.stringContaining(
-              `/trusted-issuers-registry/${version}/issuers`
-            ),
-            next: expect.stringContaining(
-              `/trusted-issuers-registry/${version}/issuers`
-            ),
-            last: expect.stringContaining(
-              `/trusted-issuers-registry/${version}/issuers`
-            ),
-            items: expect.arrayContaining([
-              expect.objectContaining({
-                name: expect.any(String),
-                did: expect.any(String)
-              })
-            ])
-          })
-        );
-      });
+            name: expect.any(String),
+            did: expect.any(String),
+          }),
+        ]),
+      })
+    );
   });
 
   it(`(GET) trusted-issuers-registry/${version}/issuers/{did}`, async () => {
+    expect.assertions(3);
     const issuers = await request(app.getHttpServer()).get(
       `/trusted-issuers-registry/${version}/issuers`
     );
@@ -80,27 +85,25 @@ describe("AppController (e2e)", () => {
     ).items;
     expect(typedIssuers.length).toBeGreaterThanOrEqual(1);
 
-    return request(app.getHttpServer())
-      .get(
-        `/trusted-issuers-registry/${version}/issuers/${typedIssuers[0].did}`
-      )
-      .expect(200)
-      .then(response => {
-        expect(JSON.parse(response.text)).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              alternativeName: expect.any(String),
-              escoOrganizationType: expect.any(String),
-              homepage: expect.any(String),
-              issuerDID: expect.stringMatching(typedIssuers[0].did),
-              moderator: expect.any(String),
-              preferredName: expect.stringMatching(typedIssuers[0].name),
-              siteLocation: expect.any(String),
-              accreditations: expect.any(Array),
-              documents: expect.any(Array)
-            })
-          ])
-        );
-      });
+    const response = await request(app.getHttpServer()).get(
+      `/trusted-issuers-registry/${version}/issuers/${typedIssuers[0].did}`
+    );
+    expect(response.status).toBe(200);
+
+    expect(JSON.parse(response.text)).toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          alternativeName: expect.any(String),
+          escoOrganizationType: expect.any(String),
+          homepage: expect.any(String),
+          issuerDID: expect.stringMatching(typedIssuers[0].did),
+          moderator: expect.any(String),
+          preferredName: expect.stringMatching(typedIssuers[0].name),
+          siteLocation: expect.any(String),
+          accreditations: expect.any(Array),
+          documents: expect.any(Array),
+        }),
+      ])
+    );
   });
 });

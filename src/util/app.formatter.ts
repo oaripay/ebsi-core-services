@@ -14,7 +14,7 @@ export default class AppFormatter {
       revision: document.revision,
       vcCode: document.vcCode,
       dateStart: parseInt(document.dateStart, 10),
-      body: document.body ?? null
+      body: document.body ?? null,
     };
   }
 
@@ -24,7 +24,7 @@ export default class AppFormatter {
       issuerDID: govIssuer.issuerDID,
       name: govIssuer.name,
       country: govIssuer.country,
-      status: govIssuer.status
+      status: govIssuer.status,
     };
   }
 
@@ -37,14 +37,14 @@ export default class AppFormatter {
       homepage: univIssuer.homepage,
       siteLocation: univIssuer.siteLocation,
       escoOrganizationType: univIssuer.escoOrganizationType,
-      status: univIssuer.status
+      status: univIssuer.status,
     };
   }
 
   static formatAccreditation(acc: any): Accreditation {
     return {
       targetFramework: acc.targetFramework,
-      targetResource: acc.targetResource
+      targetResource: acc.targetResource,
     };
   }
 }

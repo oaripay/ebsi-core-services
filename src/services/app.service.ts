@@ -97,7 +97,7 @@ export default class AppService {
 
   async getDocuments(did: string): Promise<any> {
     const documentIndexes = await this.univContract.getAllDocumentIndexes(did);
-    const documentsPromises = documentIndexes.map(item => {
+    const documentsPromises = documentIndexes.map((item) => {
       return this.univContract.getDocument(did, item);
     });
     return Promise.all(documentsPromises);
@@ -105,7 +105,7 @@ export default class AppService {
 
   async getDocumentsForGov(did: string) {
     const documentIndexes = await this.govContract.getAllDocumentIndexes(did);
-    const documentsPromises = documentIndexes.map(item => {
+    const documentsPromises = documentIndexes.map((item) => {
       return this.govContract.getDocument(did, item);
     });
     return Promise.all(documentsPromises);
@@ -184,7 +184,7 @@ export default class AppService {
     const payload = agent.newRequest("ebsi-storage");
 
     const conf: AxiosRequestConfig = {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" }
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
     };
 
     const response = axios.post(
@@ -206,8 +206,8 @@ export default class AppService {
           .replace(/\/$/, "")}/v1/stores/distributed/files/${documentHash}`,
         {
           headers: {
-            Authorization: `Bearer ${this.jwtToken}`
-          }
+            Authorization: `Bearer ${this.jwtToken}`,
+          },
         }
       );
     } catch (Error) {

@@ -4,7 +4,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import {
   utilities as nestWinstonModuleUtilities,
-  WinstonModule
+  WinstonModule,
 } from "nest-winston";
 import winston from "winston";
 
@@ -36,7 +36,7 @@ async function bootstrap() {
     .build();
 
   const cors: CorsOptions = {
-    methods: "*"
+    methods: "*",
   };
   const opt: NestApplicationOptions = {
     cors,
@@ -46,12 +46,12 @@ async function bootstrap() {
           format: winston.format.combine(
             winston.format.timestamp(),
             nestWinstonModuleUtilities.format.nestLike()
-          )
-        })
+          ),
+        }),
         // other transports...
       ],
-      level: process.env.LOG_LEVEL
-    })
+      level: process.env.LOG_LEVEL,
+    }),
   };
   const app = await NestFactory.create<NestExpressApplication>(AppModule, opt);
   const document = SwaggerModule.createDocument(app, options);

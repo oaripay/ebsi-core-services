@@ -27,70 +27,71 @@ const result = {
       status: "Published in B.O.E. Active",
       revision: "Bachelor Royal Decree 1393/2007",
       vcCode: "4313149",
-      dateStart: 1582265889
-    }
+      dateStart: 1582265889,
+    },
   ],
   accreditations: [
     {
       targetFramework: "Europass Accreditation Database",
-      targetResource: "https://accreditation.europass.eu/12341455"
-    }
-  ]
+      targetResource: "https://accreditation.europass.eu/12341455",
+    },
+  ],
 };
 const data = {
   document: {
-    body: "body"
-  }
+    body: "body",
+  },
 };
 const getTrustedIssuer = jest.fn(() => result);
-const getAllDocumentIndexes = jest.fn(did => [
+const getAllDocumentIndexes = jest.fn((did) => [
   `0-${did}`,
   `1-${did}`,
-  `2-${did}`
+  `2-${did}`,
 ]);
 const getDocument = jest.fn(async (did, item) => {
   return {
     did,
-    item
+    item,
   };
 });
 
 jest.mock("axios", () => ({
   get: jest.fn().mockImplementation(() => Promise.resolve(data)),
-  post: jest.fn().mockImplementation(() => Promise.resolve({ data: {} }))
+  post: jest.fn().mockImplementation(() => Promise.resolve({ data: {} })),
 }));
 jest.mock("ethers", () => ({
   ethers: {
     providers: {
-      JsonRpcProvider: jest.fn()
+      JsonRpcProvider: jest.fn(),
     },
     Contract: jest.fn().mockImplementation(() => ({
       connect() {
         return {
           getTrustedIssuer,
           getAllDocumentIndexes,
-          getDocument
+          getDocument,
         };
-      }
+      },
     })),
-    Wallet: jest.fn().mockImplementation(() => ({}))
-  }
+    Wallet: jest.fn().mockImplementation(() => ({})),
+  },
 }));
-describe("AppService", () => {
+describe("appService", () => {
   let app: INestApplication;
   let cfSvc: ConfigService;
   let sut: AppService;
 
+  // eslint-disable-next-line jest/no-hooks
   beforeAll(async () => {
     const module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
           envFilePath: [".env", ".env.example"],
-          load: [configuration]
-        })
+          load: [configuration],
+        }),
       ],
       controllers: [AppController],
-      providers: [EthersService, AppService, ConfigService, AppFormatter]
+      providers: [EthersService, AppService, ConfigService, AppFormatter],
     }).compile();
 
     cfSvc = module.get<ConfigService>(ConfigService);
@@ -100,6 +101,7 @@ describe("AppService", () => {
     await app.init();
   });
 
+  // eslint-disable-next-line jest/no-hooks
   afterAll(async () => {
     await app.close();
   });
@@ -111,6 +113,7 @@ describe("AppService", () => {
       expect(getTrustedIssuer).toHaveBeenCalledTimes(1);
     });
     it("should download document", async () => {
+      expect.assertions(6);
       const spyGet = jest.spyOn(axios, "get");
       const spyPost = jest.spyOn(axios, "post");
 
@@ -118,11 +121,11 @@ describe("AppService", () => {
         .spyOn(ebsiAppJwt, "Agent")
         .mockImplementationOnce((name, privateKey, provider) => {
           return ({
-            newRequest: appName =>
+            newRequest: (appName) =>
               `${appName}-grantType=client_credentials&clientAssertionType=`,
             name,
             privateKey,
-            provider
+            provider,
           } as unknown) as Agent;
         });
       expect(await sut.downloadDocument("0xhash")).toStrictEqual(data);
@@ -134,8 +137,8 @@ describe("AppService", () => {
           .replace(/\/$/, "")}/v1/stores/distributed/files/0xhash`,
         {
           headers: {
-            Authorization: `Bearer ${this.jwtToken}`
-          }
+            Authorization: `Bearer ${this.jwtToken}`,
+          },
         }
       );
       expect(spyGet).toHaveBeenCalledTimes(1);
@@ -145,7 +148,7 @@ describe("AppService", () => {
           "grantType=client_credentials&clientAssertionType="
         ),
         {
-          headers: { "Content-Type": "application/x-www-form-urlencoded" }
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
         }
       );
       expect(spyPost).toHaveBeenCalledTimes(1);
@@ -155,7 +158,7 @@ describe("AppService", () => {
       const expectedRes = [
         { did: "did:gov", item: "0-did:gov" },
         { did: "did:gov", item: "1-did:gov" },
-        { did: "did:gov", item: "2-did:gov" }
+        { did: "did:gov", item: "2-did:gov" },
       ];
       expect(await sut.getDocumentsForGov("did:gov")).toStrictEqual(
         expectedRes
