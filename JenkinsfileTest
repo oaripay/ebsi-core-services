@@ -16,11 +16,9 @@ pipeline {
         }
         stage('Unit test') {
             steps {
-                dir('api/besu') {
-                    sh 'npm install'
-                    sh 'npm run bootstrap'
-                    sh 'npm run test'
-                }
+                sh 'npm install'
+                sh 'npm run bootstrap'
+                sh 'npm run test'
             }
         }
         stage('SonarQube Analysis') {
