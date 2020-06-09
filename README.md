@@ -91,6 +91,7 @@ The api will be accesible at http://localhost:8080
 ## Tests
 
 Tests for File Storage, Key Value Storage, and Notification Storage and their connection with Cassandra. Create an `.env` file using `.env.example` and update the corresponding values.
+For e2e tests, TEST_APP_NAME and TEST_APP_PRIVATE_KEY need to be a valid app registered in the Trusted App Registry.
 
 Launch unit tests and e2e tests with:
 
