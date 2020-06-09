@@ -108,7 +108,7 @@ describe("identity hub router API calls", () => {
       spy.mockRestore();
     });
 
-    it("should returnn 401 with no token", async () => {
+    it("should returnn 500 with no token", async () => {
       expect.assertions(2);
       const attributeInput = { ...mockedAttributes[0] };
       const attributeHash = attributeInput.hash;
@@ -116,16 +116,16 @@ describe("identity hub router API calls", () => {
       delete attributeInput.hash;
 
       const expectedResult = {
-        title: "Unauthorized",
-        status: 401,
-        detail: "You are not authorized to access the resources.",
+        title: "Internal Server Error",
+        status: 500,
+        detail: "No Bearer Token.",
       };
       const res = await request(server)
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
         )
         .send(attributeInput as IAttributeInput);
-      expect(res.status).toStrictEqual(401);
+      expect(res.status).toStrictEqual(500);
       expect(res.body).toMatchObject(expectedResult);
     });
 
