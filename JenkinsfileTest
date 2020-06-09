@@ -16,6 +16,7 @@ pipeline {
         }
         stage('Unit & Integration test') {
             steps {
+                sh 'npm install'
                 sh 'npm run bootstrap'
                 sh 'npm run test'
             }
