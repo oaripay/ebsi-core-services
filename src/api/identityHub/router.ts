@@ -8,10 +8,10 @@ import {
   API_ERROR_MESSAGES,
   UnauthorizedError,
 } from "../../errors";
-import * as auth from "../../middleware/auth";
+import handleToken from "../../middleware/auth";
 import Controller from "./controller";
 import applyPaginationFormat from "../../middleware/formatResponse";
-import { isHash } from "../../utils/util";
+import { util, getSession } from "../../utils";
 
 class Router {
   constructor(server: express.Express, swaggerDoc: any) {
@@ -20,13 +20,24 @@ class Router {
       res.send(swaggerDoc)
     );
 
-    // sessions call managed by auth middleware
-    router.post(EBSI_SERVICE.CALL.EBSI_LOGIN, auth.callNewSession);
+    router.post(
+      EBSI_SERVICE.CALL.EBSI_LOGIN,
+      cors(),
+      async (req, res, next) => {
+        try {
+          const session = await getSession();
+          const response = await session.newSession(req.body);
+          res.send(response);
+        } catch (error) {
+          next(error);
+        }
+      }
+    );
 
     router.put(
       `${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/:hash`,
       cors(),
-      auth.handleToken,
+      handleToken,
       parseEntityJWT,
       async (req: express.Request, res: express.Response, next) => {
         try {
@@ -39,7 +50,7 @@ class Router {
             throw new BadRequestError(
               API_ERROR_MESSAGES.ATTRIBUTES_DID_HASH_NOT_FOUND
             );
-          if (!isHash(hash))
+          if (!util.isHash(hash))
             throw new BadRequestError(
               `The hash:${hash} parameter is not valid`
             );
@@ -58,7 +69,7 @@ class Router {
     router.get(
       `${EBSI_SERVICE.CALL.GET_ATTRIBUTES}`,
       cors(),
-      auth.handleToken,
+      handleToken,
       async (req: express.Request, res: express.Response, next) => {
         const { did, type } = req.query;
         try {
@@ -101,7 +112,7 @@ class Router {
     router.get(
       `${EBSI_SERVICE.CALL.GET_ATTRIBUTE}/:hash`,
       cors(),
-      auth.handleToken,
+      handleToken,
       parseEntityJWT,
       async (req: express.Request, res: express.Response, next) => {
         const { didJwt, hash } = req.params;
@@ -114,7 +125,7 @@ class Router {
             throw new BadRequestError(
               API_ERROR_MESSAGES.ATTRIBUTES_DID_HASH_NOT_FOUND
             );
-          if (!isHash(hash))
+          if (!util.isHash(hash))
             throw new BadRequestError(
               `The hash:${hash} parameter is not valid`
             );

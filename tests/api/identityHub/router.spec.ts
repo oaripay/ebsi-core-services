@@ -1,19 +1,16 @@
 import request from "supertest";
-import express from "express";
 import http from "http";
+import EBSI_JWT from "@cef-ebsi/app-jwt";
 import { startEbsiService } from "../../../src/api/app";
 import { EBSI_SERVICE } from "../../../src/config";
-import { EBSI_API_ERRORS_INT } from "../../../src/errors";
+import { EBSI_API_ERRORS_INT, BadRequestError } from "../../../src/errors";
 import * as auth from "../../../src/middleware/auth";
-import { GRANT_TYPE } from "../../../src/libs/authManager/secureEnclave/jwt";
 import * as authJwt from "../../../src/middleware/jwt";
 import Controller from "../../../src/api/identityHub/controller";
 
 jest.setTimeout(100000);
 jest.mock("../../../src/middleware/jwt");
 jest.mock("../../../src/middleware/auth");
-
-const mockcallNewSession = auth.callNewSession as jest.Mock;
 
 describe("identity Hub router API calls", () => {
   let server: http.Server;
@@ -55,16 +52,9 @@ describe("identity Hub router API calls", () => {
   describe("/sessions", () => {
     it("responds 400 to /sessions with no payload", async () => {
       expect.assertions(1);
-      mockcallNewSession.mockImplementation(
-        (
-          req: express.Request,
-          res: express.Response,
-          next: express.NextFunction
-        ) => {
-          res.sendStatus(400);
-          next();
-        }
-      );
+      jest
+        .spyOn(EBSI_JWT.Session.prototype, "newSession")
+        .mockRejectedValue(new BadRequestError("grantType must be..."));
       const res = await request(server).post(
         `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.EBSI_LOGIN}`
       );
@@ -74,20 +64,22 @@ describe("identity Hub router API calls", () => {
     it("responds 200 to /sessions with a correct structured payload mocking auth library", async () => {
       expect.assertions(1);
       const payload = {
-        grantType: GRANT_TYPE.jwtBearer,
-        assertion:
-          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+        grantType: "client_credentials",
+        clientAssertionType:
+          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+        clientAssertion: "a token",
+        scope: "openid did_authn",
       };
-      mockcallNewSession.mockImplementation(
-        (
-          req: express.Request,
-          res: express.Response,
-          next: express.NextFunction
-        ) => {
-          res.sendStatus(200);
-          next();
-        }
-      );
+      const returnedToken = {
+        accessToken: "a valid token",
+        tokenType: "Bearer",
+        expiresIn: 900, // 15 minutes
+        issuedAt: Date.now(),
+        scope: "openid did_authn",
+      };
+      jest
+        .spyOn(EBSI_JWT.Session.prototype, "newSession")
+        .mockResolvedValue(returnedToken);
       const res = await request(server)
         .post(`${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.EBSI_LOGIN}`)
         .send(payload);
@@ -101,7 +93,7 @@ describe("identity Hub router API calls", () => {
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: false });
           next();
@@ -126,7 +118,7 @@ describe("identity Hub router API calls", () => {
       expect.assertions(1);
       const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: true });
           next();
@@ -150,7 +142,7 @@ describe("identity Hub router API calls", () => {
       expect.assertions(1);
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: true });
           next();
@@ -177,7 +169,7 @@ describe("identity Hub router API calls", () => {
       const hash =
         "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470";
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: true });
           next();
@@ -208,7 +200,7 @@ describe("identity Hub router API calls", () => {
       const hash =
         "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470";
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: true });
           next();
@@ -239,7 +231,7 @@ describe("identity Hub router API calls", () => {
       expect.assertions(1);
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: false });
           next();
@@ -257,7 +249,7 @@ describe("identity Hub router API calls", () => {
     it("should throw a BadRequest error with no DID", async () => {
       expect.assertions(1);
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: true });
           next();
@@ -276,7 +268,7 @@ describe("identity Hub router API calls", () => {
         did: [],
       };
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: true });
           next();
@@ -298,7 +290,7 @@ describe("identity Hub router API calls", () => {
         did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
       };
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: true });
           next();
@@ -317,7 +309,7 @@ describe("identity Hub router API calls", () => {
       expect.assertions(2);
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: true });
           next();
@@ -342,7 +334,7 @@ describe("identity Hub router API calls", () => {
       expect.assertions(2);
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: true });
           next();
@@ -370,7 +362,7 @@ describe("identity Hub router API calls", () => {
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: false });
           next();
@@ -395,7 +387,7 @@ describe("identity Hub router API calls", () => {
       expect.assertions(1);
       const hash = "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: true });
           next();
@@ -419,7 +411,7 @@ describe("identity Hub router API calls", () => {
       expect.assertions(1);
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: true });
           next();
@@ -446,7 +438,7 @@ describe("identity Hub router API calls", () => {
       const hash =
         "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470";
       jest
-        .spyOn(auth, "handleToken")
+        .spyOn(auth, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { authenticated: true });
           next();
