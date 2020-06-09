@@ -1,6 +1,6 @@
 import * as express from "express";
 import cors from "cors";
-import { parseEntityJWT } from "../../middleware/jwt";
+import parseEntityJWT from "../../middleware/jwt";
 import { EBSI_SERVICE } from "../../config";
 import {
   handleError,

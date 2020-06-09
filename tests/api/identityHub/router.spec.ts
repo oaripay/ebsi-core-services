@@ -107,7 +107,7 @@ describe("identity Hub router API calls", () => {
           next();
         });
       jest
-        .spyOn(authJwt, "parseEntityJWT")
+        .spyOn(authJwt, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { didJwt: did });
           next();
@@ -132,7 +132,7 @@ describe("identity Hub router API calls", () => {
           next();
         });
       jest
-        .spyOn(authJwt, "parseEntityJWT")
+        .spyOn(authJwt, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           next();
         });
@@ -156,7 +156,7 @@ describe("identity Hub router API calls", () => {
           next();
         });
       jest
-        .spyOn(authJwt, "parseEntityJWT")
+        .spyOn(authJwt, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { didJwt: did });
           next();
@@ -183,7 +183,7 @@ describe("identity Hub router API calls", () => {
           next();
         });
       jest
-        .spyOn(authJwt, "parseEntityJWT")
+        .spyOn(authJwt, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { didJwt: did });
           next();
@@ -214,7 +214,7 @@ describe("identity Hub router API calls", () => {
           next();
         });
       jest
-        .spyOn(authJwt, "parseEntityJWT")
+        .spyOn(authJwt, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { didJwt: did });
           next();
@@ -376,7 +376,7 @@ describe("identity Hub router API calls", () => {
           next();
         });
       jest
-        .spyOn(authJwt, "parseEntityJWT")
+        .spyOn(authJwt, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { didJwt: did });
           next();
@@ -401,7 +401,7 @@ describe("identity Hub router API calls", () => {
           next();
         });
       jest
-        .spyOn(authJwt, "parseEntityJWT")
+        .spyOn(authJwt, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           next();
         });
@@ -425,7 +425,7 @@ describe("identity Hub router API calls", () => {
           next();
         });
       jest
-        .spyOn(authJwt, "parseEntityJWT")
+        .spyOn(authJwt, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { didJwt: did });
           next();
@@ -452,7 +452,7 @@ describe("identity Hub router API calls", () => {
           next();
         });
       jest
-        .spyOn(authJwt, "parseEntityJWT")
+        .spyOn(authJwt, "default")
         .mockImplementation(async (req: any, res: any, next: any) => {
           Object.assign(req.params, { didJwt: did });
           next();

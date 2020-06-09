@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { JWT } from "jose";
-import { PRINT_DEBUG, PRINT_ERROR } from "../utils/util";
+import { PRINT_ERROR } from "../utils/util";
 import {
   UnauthorizedError,
   InternalError,
@@ -9,12 +9,7 @@ import {
 import {
   IUserAuthZToken,
   IEnterpriseAuthZToken,
-  UserAuthNToken,
 } from "../libs/authManager/secureEnclave/jwt";
-
-const logRequest = (req: Request): void => {
-  PRINT_DEBUG(`Request logged:${req.method}${req.path}`);
-};
 
 const getTokenFromHeader = (req: Request): string => {
   let token =
@@ -52,6 +47,7 @@ const parseEntityJWT = (req: Request, res: Response, next): void => {
       const entityAuthZToken = <IUserAuthZToken>JWT.decode(token);
       if (!entityAuthZToken.did) {
         next(new UnauthorizedError("Error parsing JWT: DID not found"));
+        return;
       }
 
       Object.assign(req.params, { jwt: JSON.stringify(entityAuthZToken) });
@@ -59,7 +55,6 @@ const parseEntityJWT = (req: Request, res: Response, next): void => {
     }
 
     if (
-      entityAuthToken.did &&
       entityAuthToken.sub &&
       entityAuthToken.aud &&
       entityAuthToken.aud.match(/^ebsi/)
@@ -68,17 +63,11 @@ const parseEntityJWT = (req: Request, res: Response, next): void => {
 
       if (!entityAuthZToken.did) {
         next(new UnauthorizedError("Error parsing JWT: DID not found"));
+        return;
       }
 
       Object.assign(req.params, { jwt: JSON.stringify(entityAuthZToken) });
       Object.assign(req.params, { didJwt: entityAuthZToken.did });
-    }
-
-    if (entityAuthToken.ticket) {
-      const entityAuthNtoken = <UserAuthNToken>JWT.decode(token);
-
-      Object.assign(req.params, { jwt: JSON.stringify(entityAuthNtoken) });
-      Object.assign(req.params, { didJwt: entityAuthNtoken.iss });
     }
 
     // Save token also in params
@@ -86,10 +75,8 @@ const parseEntityJWT = (req: Request, res: Response, next): void => {
 
     next();
   } catch (error) {
-    next(
-      new UnauthorizedError("You are not authorized to access the resources.")
-    );
+    next(error);
   }
 };
 
-export { logRequest, parseEntityJWT };
+export default parseEntityJWT;
