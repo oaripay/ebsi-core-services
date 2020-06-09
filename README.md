@@ -64,6 +64,8 @@ And finally define the keyspace:
 create keyspace ebsi_integration with replication = {'class':'SimpleStrategy','replication_factor':1};
 ```
 
+For testing purposes put `replication_factor` in 1, because there is only 1 node. For production set a bigger number depending on the nodes in the network.
+
 The api connects with this keyspace and create the tables automatically.
 
 The api will be accesible at http://localhost:8080
@@ -114,7 +116,7 @@ To run only integration tests:
 npm run test:e2e
 ```
 
-## Swagger documentation
+## OpenAPI documentation
 
 You can read the documentation at https://api.intebsi.xyz/docs/?urls.primaryName=Storage%20API
 
