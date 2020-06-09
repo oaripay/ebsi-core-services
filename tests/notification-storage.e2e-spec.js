@@ -153,6 +153,7 @@ describe("notification storage tests", () => {
           { ...notification11, id: id11 },
           { ...notification21, id: id21 },
         ]),
+        links: expect.objectContaining({}),
       })
     );
 
@@ -204,6 +205,57 @@ describe("notification storage tests", () => {
           { ...notification11, id: expect.any(String) },
           { ...notification21, id: expect.any(String) },
         ]),
+      })
+    );
+  });
+
+  it("get notifications using pagination", async () => {
+    expect.assertions(16);
+
+    // several notifications sent to the same receiver
+    const receiver = ethers.Wallet.createRandom().address;
+    const promises = [];
+    for (let i = 0; i < 12; i += 1) {
+      const notification = {
+        sender: ethers.Wallet.createRandom().address,
+        receiver,
+        message: { msg: `message ${i}` },
+      };
+      promises.push(axiosAuth.put(apiNotif, notification));
+    }
+    const responses = await Promise.all(promises);
+    for (let i = 0; i < responses.length; i += 1) {
+      expect(responses[i].status).toBe(200);
+    }
+
+    // call the first page of results (10)
+    const response = await axiosAuth.get(`${apiNotif}?receiver=${receiver}`);
+    expect(response.status).toBe(200);
+    expect(response.data).toStrictEqual(
+      expect.objectContaining({
+        total: 10,
+        links: {
+          first: `/storage/v1/stores/distributed/notifications?receiver=${receiver}`,
+          next: expect.stringContaining(
+            `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bafter%5D=`
+          ),
+        },
+      })
+    );
+
+    // call the next page of results (2)
+    const { next } = response.data.links;
+    const responseNext = await axiosAuth.get(url + next);
+    expect(responseNext.status).toBe(200);
+    expect(responseNext.data).toStrictEqual(
+      expect.objectContaining({
+        total: 2,
+        links: {
+          first: `/storage/v1/stores/distributed/notifications?receiver=${receiver}`,
+          last: expect.stringContaining(
+            `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bafter%5D=`
+          ),
+        },
       })
     );
   });

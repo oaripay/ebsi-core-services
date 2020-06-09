@@ -41,7 +41,7 @@ const queries = {
       query += " where receiver = ?";
     }
 
-    query += " limit ? allow filtering";
+    query += " allow filtering";
     return query;
   },
 };
@@ -166,13 +166,14 @@ const extensiveDummyDataParsed = extensiveDummyData.map(
   })
 );
 
-function cassandraResponse(rows) {
+function cassandraResponse(rows, pageState = null) {
   return Promise.resolve({
     info: {
       isSchemaInAgreement: true,
     },
     first: () => rows[0],
     rows,
+    pageState,
   });
 }
 
@@ -267,9 +268,8 @@ describe("notification storage tests", () => {
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, false, false);
-    expect(callSearch).toStrictEqual(
-      expect.arrayContaining([query, [10], { prepare: true }])
-    );
+    const opts = { prepare: true, fetchSize: 10 };
+    expect(callSearch).toStrictEqual(expect.arrayContaining([query, [], opts]));
   });
 
   it("get list notifications for receiver", async () => {
@@ -293,12 +293,9 @@ describe("notification storage tests", () => {
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, false);
+    const opts = { prepare: true, fetchSize: 10 };
     expect(callSearch).toStrictEqual(
-      expect.arrayContaining([
-        query,
-        [dummyData[0].receiver, 10],
-        { prepare: true },
-      ])
+      expect.arrayContaining([query, [dummyData[0].receiver], opts])
     );
   });
 
@@ -323,12 +320,9 @@ describe("notification storage tests", () => {
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(true, false, false);
+    const opts = { prepare: true, fetchSize: 10 };
     expect(callSearch).toStrictEqual(
-      expect.arrayContaining([
-        query,
-        [dummyData[0].sender, 10],
-        { prepare: true },
-      ])
+      expect.arrayContaining([query, [dummyData[0].sender], opts])
     );
   });
 
@@ -353,11 +347,12 @@ describe("notification storage tests", () => {
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(true, true, false);
+    const opts = { prepare: true, fetchSize: 10 };
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([
         query,
-        [dummyData[0].sender, dummyData[0].receiver, 10],
-        { prepare: true },
+        [dummyData[0].sender, dummyData[0].receiver],
+        opts,
       ])
     );
   });
@@ -393,12 +388,9 @@ describe("notification storage tests", () => {
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, true);
+    const opts = { prepare: true, fetchSize: 10 };
     expect(callSearch).toStrictEqual(
-      expect.arrayContaining([
-        query,
-        [dummyData[0].receiver, 10],
-        { prepare: true },
-      ])
+      expect.arrayContaining([query, [dummyData[0].receiver], opts])
     );
   });
 
@@ -423,12 +415,9 @@ describe("notification storage tests", () => {
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, false);
+    const opts = { prepare: true, fetchSize: 11 };
     expect(callSearch).toStrictEqual(
-      expect.arrayContaining([
-        query,
-        [dummyData[0].receiver, 11],
-        { prepare: true },
-      ])
+      expect.arrayContaining([query, [dummyData[0].receiver], opts])
     );
   });
 
@@ -436,36 +425,40 @@ describe("notification storage tests", () => {
     expect.assertions(2);
 
     mockExecute.mockImplementation(() => {
-      return cassandraResponse(extensiveDummyData);
+      return cassandraResponse(extensiveDummyData.slice(6), "efgh");
     });
 
     const pageSize = 6;
-    const pageAfter = 5;
+    const pageAfter = "id12345";
+    const { receiver } = extensiveDummyDataParsed[0];
 
     await callApi
       .get(
-        `/?page[size]=${pageSize}&page[after]=${pageAfter}&receiver=${extensiveDummyDataParsed[0].receiver}`
+        `/?page[size]=${pageSize}&page[after]=${pageAfter}&receiver=${receiver}`
       )
       .expect(200)
       .then((response) => {
         expect(response.body).toStrictEqual(
           expect.objectContaining({
-            items: extensiveDummyDataParsed.filter(
-              (r, i) => i >= pageAfter && i < pageAfter + pageSize
-            ),
-            total: extensiveDummyData.length,
+            items: extensiveDummyDataParsed.slice(6),
+            total: extensiveDummyData.slice(6).length,
             pageSize,
+            links: {
+              first: `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bsize%5D=6`,
+              next: `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bsize%5D=6&page%5Bafter%5D=efgh`,
+            },
           })
         );
       });
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, false);
+    const opts = { prepare: true, fetchSize: pageSize, pageState: pageAfter };
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([
         query,
-        [extensiveDummyDataParsed[0].receiver, pageSize],
-        { prepare: true },
+        [extensiveDummyDataParsed[0].receiver],
+        opts,
       ])
     );
   });
@@ -491,12 +484,9 @@ describe("notification storage tests", () => {
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, false);
+    const opts = { prepare: true, fetchSize: 10 };
     expect(callSearch).toStrictEqual(
-      expect.arrayContaining([
-        query,
-        [dummyData[0].receiver, 10],
-        { prepare: true },
-      ])
+      expect.arrayContaining([query, [dummyData[0].receiver], opts])
     );
   });
 
@@ -697,19 +687,6 @@ describe("notification storage tests", () => {
       .then((response) => {
         expect(response.body).toStrictEqual(
           expect.toBeHTTPError(NotFoundError)
-        );
-      });
-  });
-
-  it("bad request error for bad page size", async () => {
-    expect.assertions(1);
-
-    await callApi
-      .get("/?page[size]=-10")
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(BadRequestError)
         );
       });
   });

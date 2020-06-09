@@ -23,20 +23,21 @@ const request = supertest(server);
 let callApi;
 
 const queries = {
-  getListFiles: "select id, hash from file_storage limit ?",
+  getListFiles: "select id, hash from file_storage",
   getFile: "select * from file_storage where hash = ? allow filtering",
   insertFile:
     "insert into file_storage (id, filename, hash, data) VALUES (now(), ?, ?, ?)",
   deleteFile: "delete from file_storage where id = ? and hash = ? if exists",
 };
 
-function cassandraResponse(rows) {
+function cassandraResponse(rows, pageState = null) {
   return Promise.resolve({
     info: {
       isSchemaInAgreement: true,
     },
     first: () => rows[0],
     rows,
+    pageState,
   });
 }
 
@@ -135,8 +136,9 @@ describe("file storage tests", () => {
       });
 
     const [callSearch] = getExecuteCalls();
+    const opts = { prepare: true, fetchSize: 10 };
     expect(callSearch).toStrictEqual(
-      expect.arrayContaining([queries.getListFiles, [10], { prepare: true }])
+      expect.arrayContaining([queries.getListFiles, [], opts])
     );
   });
 
@@ -160,8 +162,40 @@ describe("file storage tests", () => {
       });
 
     const [callSearch] = getExecuteCalls();
+    const opts = { prepare: true, fetchSize: 11 };
     expect(callSearch).toStrictEqual(
-      expect.arrayContaining([queries.getListFiles, [11], { prepare: true }])
+      expect.arrayContaining([queries.getListFiles, [], opts])
+    );
+  });
+
+  it("get list files and custom page size and page after", async () => {
+    expect.assertions(2);
+
+    mockExecute.mockImplementation(() => {
+      return cassandraResponse([{ hash: "hash1" }, { hash: "hash2" }], "efgh");
+    });
+
+    await callApi
+      .get("/?page[size]=11&page[after]=abcd")
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.objectContaining({
+            items: ["hash1", "hash2"],
+            total: 2,
+            links: {
+              first: "/storage/v1/stores/distributed/files?page%5Bsize%5D=11",
+              next:
+                "/storage/v1/stores/distributed/files?page%5Bsize%5D=11&page%5Bafter%5D=efgh",
+            },
+          })
+        );
+      });
+
+    const [callSearch] = getExecuteCalls();
+    const opts = { prepare: true, fetchSize: 11, pageState: "abcd" };
+    expect(callSearch).toStrictEqual(
+      expect.arrayContaining([queries.getListFiles, [], opts])
     );
   });
 
@@ -185,8 +219,9 @@ describe("file storage tests", () => {
       });
 
     const [callSearch] = getExecuteCalls();
+    const opts = { prepare: true, fetchSize: 10 };
     expect(callSearch).toStrictEqual(
-      expect.arrayContaining([queries.getListFiles, [10], { prepare: true }])
+      expect.arrayContaining([queries.getListFiles, [], opts])
     );
   });
 
@@ -373,19 +408,6 @@ describe("file storage tests", () => {
 
     const calls = getExecuteCalls();
     expect(calls).toHaveLength(0);
-  });
-
-  it("bad request error for bad page size", async () => {
-    expect.assertions(1);
-
-    await callApi
-      .get("/?page[size]=-10")
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(BadRequestError)
-        );
-      });
   });
 
   it("bad request error for bad file", async () => {

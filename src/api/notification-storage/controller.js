@@ -1,8 +1,9 @@
 const cassandraDriver = require("cassandra-driver");
+const querystring = require("querystring");
 const { v1: uuidv1 } = require("uuid");
 const config = require("../../config");
 const logger = require("../../logger");
-const { BadRequestError, NotFoundError } = require("../../errors");
+const { NotFoundError } = require("../../errors");
 
 const TABLE_NOTIFICATION_STORAGE = "notification_storage";
 const TABLE_NOTIFICATION_HISTORICAL_STORAGE = "notification_historical_storage";
@@ -84,19 +85,26 @@ async function deleteNotification(id) {
   }
 }
 
+function buildLink(after, size, q) {
+  const query = q;
+  delete query.page;
+
+  if (size && size !== config.DEFAULT_PAGE_SIZE) query["page[size]"] = size;
+  if (after) query["page[after]"] = after;
+
+  return `/storage/v1/stores/distributed/notifications?${querystring.stringify(
+    query
+  )}`;
+}
+
 async function getListNotifications(q) {
   let pageSize = config.DEFAULT_PAGE_SIZE;
-  let pageAfter = 0;
+  let pageAfter;
   const { sender, receiver, history } = q;
   if (q && q.page) {
     const { page } = q;
-    if (page.size) {
-      if (Number(page.size) < 0)
-        throw new BadRequestError("page[size] must be a positive integer");
-      pageSize = parseInt(Number(page.size), 10);
-    }
-
-    if (page.after) pageAfter = parseInt(page.after, 10);
+    if (page.size) pageSize = parseInt(page.size, 10);
+    if (page.after) pageAfter = page.after;
   }
 
   let query = `select * from `;
@@ -118,38 +126,42 @@ async function getListNotifications(q) {
     params = [receiver];
   }
 
-  query += " limit ? allow filtering";
-  params.push(pageSize);
+  query += " allow filtering";
 
-  const result = await cassandra.execute(query, params, { prepare: true });
+  const opts = { prepare: true, fetchSize: pageSize };
+  if (pageAfter) opts.pageState = pageAfter;
+  const result = await cassandra.execute(query, params, opts);
+  const { pageState } = result;
   let items = [];
 
   if (history === "true") {
-    items = result.rows
-      .filter((r, i) => i >= pageAfter && i < pageAfter + pageSize)
-      .map((r) => ({
-        id: r.id,
-        sender: r.sender,
-        receiver: r.receiver,
-        message: JSON.parse(r.message),
-        created: r.created,
-        deleted: r.deleted,
-      }));
+    items = result.rows.map((r) => ({
+      id: r.id,
+      sender: r.sender,
+      receiver: r.receiver,
+      message: JSON.parse(r.message),
+      created: r.created,
+      deleted: r.deleted,
+    }));
   } else {
-    items = result.rows
-      .filter((r, i) => i >= pageAfter && i < pageAfter + pageSize)
-      .map((r) => ({
-        id: r.id,
-        sender: r.sender,
-        receiver: r.receiver,
-        message: JSON.parse(r.message),
-      }));
+    items = result.rows.map((r) => ({
+      id: r.id,
+      sender: r.sender,
+      receiver: r.receiver,
+      message: JSON.parse(r.message),
+    }));
   }
+
+  const links = { first: buildLink(null, pageSize, q) };
+
+  if (pageState) links.next = buildLink(pageState, pageSize, q);
+  else links.last = buildLink(pageAfter, pageSize, q);
 
   return {
     items,
-    total: result.rows.length,
+    total: items.length,
     pageSize,
+    links,
   };
 }
 

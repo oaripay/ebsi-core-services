@@ -206,4 +206,39 @@ describe("file storage tests", () => {
     const response = await storeFile(dataBig, filenameBig);
     expect(response.status).toBe(413);
   });
+
+  it("get files using pagination", async () => {
+    expect.assertions(15);
+
+    // several notifications sent to the same receiver
+    const promises = [];
+    for (let i = 0; i < 12; i += 1) {
+      const data = crypto.randomBytes(64);
+      promises.push(storeFile(data, `my-file${i}.bin`));
+    }
+    const responses = await Promise.all(promises);
+    for (let i = 0; i < responses.length; i += 1) {
+      expect(responses[i].status).toBe(201);
+    }
+
+    // call the first page of results (10)
+    const response = await axiosAuth.get(apiFiles);
+    expect(response.status).toBe(200);
+    expect(response.data).toStrictEqual(
+      expect.objectContaining({
+        total: 10,
+        links: {
+          first: "/storage/v1/stores/distributed/files?",
+          next: expect.stringContaining(
+            "/storage/v1/stores/distributed/files?page%5Bafter%5D="
+          ),
+        },
+      })
+    );
+
+    // call the next page of results
+    const { next } = response.data.links;
+    const responseNext = await axiosAuth.get(url + next);
+    expect(responseNext.status).toBe(200);
+  });
 });

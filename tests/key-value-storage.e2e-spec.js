@@ -1,4 +1,5 @@
 const axios = require("axios");
+const crypto = require("crypto");
 const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 
 const config = require("../src/config");
@@ -110,5 +111,41 @@ describe("key value storage tests", () => {
     expect.assertions(1);
     const response = await axiosAuth.delete(`${apiKeyValue}/${key}`);
     expect(response.status).toBe(204);
+  });
+
+  it("get keys using pagination", async () => {
+    expect.assertions(15);
+
+    // several notifications sent to the same receiver
+    const promises = [];
+    for (let i = 0; i < 12; i += 1) {
+      const k = `my-key${crypto.randomBytes(10).toString("hex")}`;
+      const v = { prop: `my value ${i}` };
+      promises.push(axiosAuth.put(`${apiKeyValue}/${k}`, v));
+    }
+    const responses = await Promise.all(promises);
+    for (let i = 0; i < responses.length; i += 1) {
+      expect(responses[i].status).toBe(200);
+    }
+
+    // call the first page of results (10)
+    const response = await axiosAuth.get(apiKeyValue);
+    expect(response.status).toBe(200);
+    expect(response.data).toStrictEqual(
+      expect.objectContaining({
+        total: 10,
+        links: {
+          first: "/storage/v1/stores/distributed/key-values?",
+          next: expect.stringContaining(
+            "/storage/v1/stores/distributed/key-values?page%5Bafter%5D="
+          ),
+        },
+      })
+    );
+
+    // call the next page of results
+    const { next } = response.data.links;
+    const responseNext = await axiosAuth.get(url + next);
+    expect(responseNext.status).toBe(200);
   });
 });

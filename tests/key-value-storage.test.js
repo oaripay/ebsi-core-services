@@ -21,20 +21,21 @@ const request = supertest(server);
 let callKeyValue;
 
 const queries = {
-  getListKeys: "select key from key_value_storage limit ?",
+  getListKeys: "select key from key_value_storage",
   getKey: "select value from key_value_storage where key = ? allow filtering",
   updateKey: "update key_value_storage set value = ? where key = ? if exists",
   insertKey: "insert into key_value_storage (key, value) values (?, ?)",
   deleteKey: "delete from key_value_storage where key = ? if exists",
 };
 
-function cassandraResponse(rows) {
+function cassandraResponse(rows, pageState = null) {
   return Promise.resolve({
     info: {
       isSchemaInAgreement: true,
     },
     first: () => rows[0],
     rows,
+    pageState,
   });
 }
 
@@ -142,8 +143,9 @@ describe("key value storage tests", () => {
       });
 
     const [callSearch] = getExecuteCalls();
+    const opts = { prepare: true, fetchSize: 10 };
     expect(callSearch).toStrictEqual(
-      expect.arrayContaining([queries.getListKeys, [10], { prepare: true }])
+      expect.arrayContaining([queries.getListKeys, [], opts])
     );
   });
 
@@ -181,8 +183,58 @@ describe("key value storage tests", () => {
       });
 
     const [callSearch] = getExecuteCalls();
+    const opts = { prepare: true, fetchSize: 11 };
     expect(callSearch).toStrictEqual(
-      expect.arrayContaining([queries.getListKeys, [11], { prepare: true }])
+      expect.arrayContaining([queries.getListKeys, [], opts])
+    );
+  });
+
+  it("get list keys and custom page size and pageAfter", async () => {
+    expect.assertions(2);
+
+    mockExecute.mockImplementation((query) => {
+      switch (query) {
+        case queries.getListKeys:
+          return cassandraResponse(
+            [
+              {
+                key: "my-key1",
+                value: "my value 1",
+              },
+              {
+                key: "my-key2",
+                value: '{"msg":"my value 2"}',
+              },
+            ],
+            "efgh"
+          );
+        default:
+          throw new Error(`query not expected: ${query}`);
+      }
+    });
+
+    await callKeyValue
+      .get("/?page[size]=11&page[after]=abcd")
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.objectContaining({
+            items: ["my-key1", "my-key2"],
+            total: 2,
+            links: {
+              first:
+                "/storage/v1/stores/distributed/key-values?page%5Bsize%5D=11",
+              next:
+                "/storage/v1/stores/distributed/key-values?page%5Bsize%5D=11&page%5Bafter%5D=efgh",
+            },
+          })
+        );
+      });
+
+    const [callSearch] = getExecuteCalls();
+    const opts = { prepare: true, fetchSize: 11, pageState: "abcd" };
+    expect(callSearch).toStrictEqual(
+      expect.arrayContaining([queries.getListKeys, [], opts])
     );
   });
 
@@ -220,8 +272,9 @@ describe("key value storage tests", () => {
       });
 
     const [callSearch] = getExecuteCalls();
+    const opts = { prepare: true, fetchSize: 10 };
     expect(callSearch).toStrictEqual(
-      expect.arrayContaining([queries.getListKeys, [10], { prepare: true }])
+      expect.arrayContaining([queries.getListKeys, [], opts])
     );
   });
 
@@ -630,19 +683,6 @@ describe("key value storage tests", () => {
           op: "badOperation",
         },
       ])
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(BadRequestError)
-        );
-      });
-  });
-
-  it("bad request error for bad page size", async () => {
-    expect.assertions(1);
-
-    await callKeyValue
-      .get("/?page[size]=-10")
       .expect(400)
       .then((response) => {
         expect(response.body).toStrictEqual(
