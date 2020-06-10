@@ -8,10 +8,10 @@ import {
   API_ERROR_MESSAGES,
   UnauthorizedError,
 } from "../../errors";
-import handleToken from "../../middleware/auth";
+import * as auth from "../../middleware/auth";
 import Controller from "./controller";
 import applyPaginationFormat from "../../middleware/formatResponse";
-import { util, getSession } from "../../utils";
+import { util } from "../../utils";
 
 class Router {
   constructor(server: express.Express, swaggerDoc: any) {
@@ -20,24 +20,13 @@ class Router {
       res.send(swaggerDoc)
     );
 
-    router.post(
-      EBSI_SERVICE.CALL.EBSI_LOGIN,
-      cors(),
-      async (req, res, next) => {
-        try {
-          const session = await getSession();
-          const response = await session.newSession(req.body);
-          res.send(response);
-        } catch (error) {
-          next(error);
-        }
-      }
-    );
+    // sessions call managed by auth middleware
+    router.post(EBSI_SERVICE.CALL.EBSI_LOGIN, auth.callNewSession);
 
     router.put(
       `${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/:hash`,
       cors(),
-      handleToken,
+      auth.handleToken,
       parseEntityJWT,
       async (req: express.Request, res: express.Response, next) => {
         try {
@@ -69,7 +58,7 @@ class Router {
     router.get(
       `${EBSI_SERVICE.CALL.GET_ATTRIBUTES}`,
       cors(),
-      handleToken,
+      auth.handleToken,
       async (req: express.Request, res: express.Response, next) => {
         const { did, type } = req.query;
         try {
@@ -112,7 +101,7 @@ class Router {
     router.get(
       `${EBSI_SERVICE.CALL.GET_ATTRIBUTE}/:hash`,
       cors(),
-      handleToken,
+      auth.handleToken,
       parseEntityJWT,
       async (req: express.Request, res: express.Response, next) => {
         const { didJwt, hash } = req.params;

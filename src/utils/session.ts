@@ -19,4 +19,14 @@ const getSession = async () => {
   return session;
 };
 
-export default getSession;
+const getSessionRequestBody = async (targetApp: string) => {
+  const agent = new EBSI_JWT.Agent(
+    config.API_NAME,
+    await getComponentPrivateKey(),
+    config.EBSI_SERVICE.URL.TRUSTED_APPS_REGISTRY
+  );
+  const request = agent.newRequest(targetApp);
+  return request;
+};
+
+export { getSession, getSessionRequestBody };

@@ -3,7 +3,7 @@ import * as api from "./api";
 import * as EBSI from "./constants";
 import * as EBSI_TYPES from "./types";
 import { paginate, PaginateResult, PaginateLinks } from "./pagination";
-import getSession from "./session";
+import { getSession, getSessionRequestBody } from "./session";
 
 export {
   util,
@@ -14,4 +14,5 @@ export {
   PaginateResult,
   PaginateLinks,
   getSession,
+  getSessionRequestBody,
 };

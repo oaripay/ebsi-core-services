@@ -7,12 +7,14 @@ import * as api from "../../utils/api";
 import { InternalError, API_ERROR_MESSAGES } from "../../errors";
 import { isTokenExpired } from "../../utils/util";
 import {
-  AccessTokenRequestBody,
-  GRANT_TYPE,
   AccessTokenResponseBody,
   TOKEN_TYPE,
+  AccessTokenRequestHeaders,
+  CONTENT_TYPE,
+  AUTHORIZATION_TYPE,
 } from "./secureEnclave/jwt";
 import ComponentSecureEnclave from "./secureEnclave/componentSecureEnclave";
+import { getSessionRequestBody } from "../../utils/session";
 
 /**
  * Class to a SingleTon Class AuthManager
@@ -171,21 +173,24 @@ export default class AuthManager {
    * call EBSI API /sessions
    */
   private async doLogin(targetApp: string): Promise<ILoginReturn> {
-    // generate AuthN token
-    const token = await this.createAuthNToken(targetApp);
     // send to remote /sessions endpoint
     const appInfo = this.ebsiApiAuthZTokenMap.get(targetApp);
-
     if (!appInfo)
       throw new InternalError(API_ERROR_MESSAGES.NO_TARGET_APP_INFO);
 
-    const payload: AccessTokenRequestBody = {
-      grantType: GRANT_TYPE.jwtBearer,
-      assertion: token,
+    const payload = await getSessionRequestBody(targetApp);
+
+    const configHeaders = {
+      headers: {
+        "Content-Type": CONTENT_TYPE.urlencoded,
+        Authorization: AUTHORIZATION_TYPE.DID_CCG_TAR_V1,
+      } as AccessTokenRequestHeaders,
     };
+
     const resp: AccessTokenResponseBody = await api.doPostCallWithoutToken(
       payload,
-      appInfo.url + config.EBSI_SERVICE.CALL.EBSI_LOGIN
+      appInfo.url + config.EBSI_SERVICE.CALL.EBSI_LOGIN,
+      configHeaders
     );
 
     if (

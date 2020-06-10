@@ -2,11 +2,77 @@ import httpMocks from "node-mocks-http";
 import axios from "axios";
 import { JWT } from "jose";
 import EBSI_JWT from "@cef-ebsi/app-jwt";
-import handleToken from "../../src/middleware/auth";
+import * as auth from "../../src/middleware/auth";
 import * as config from "../../src/config";
 import { InvalidTokenError } from "../../src/errors";
+import {
+  AUTHORIZATION_TYPE,
+  CONTENT_TYPE,
+  TOKEN_TYPE,
+  EBSI_ACCESS_TOKEN_SCOPE,
+} from "../../src/libs/authManager/secureEnclave/jwt";
+import { getSessionRequestBody } from "../../src/utils";
 
 describe("auth middleware unit testing suite", () => {
+  it("should return a signed component session", async () => {
+    expect.assertions(1);
+    const payload = await getSessionRequestBody(config.API_NAME);
+    const next = () => {};
+    const req = httpMocks.createRequest({
+      method: "POST",
+      baseUrl: "/sessions",
+      headers: {
+        "Content-Type": CONTENT_TYPE.urlencoded,
+        Authorization: AUTHORIZATION_TYPE.DID_CCG_TAR_V1,
+      },
+      body: payload as any,
+    });
+    const res = httpMocks.createResponse({
+      // eslint-disable-next-line global-require
+      eventEmitter: require("events").EventEmitter,
+    });
+    const expectedResult = {
+      accessToken: "a sample token",
+      tokenType: TOKEN_TYPE.bearer,
+      expiresIn: Date.now() + 900,
+      issuedAt: Date.now(),
+      scope: EBSI_ACCESS_TOKEN_SCOPE.OPENID,
+    };
+    res.on("end", () => {
+      // eslint-disable-next-line no-underscore-dangle
+      const result = res._getData();
+      expect(result).toMatchObject(expectedResult);
+    });
+    jest
+      .spyOn(EBSI_JWT.Session.prototype, "newSession")
+      .mockResolvedValue(expectedResult);
+    await auth.callNewSession(req, res, next);
+    jest.resetAllMocks();
+  }, 10000);
+
+  it("should throw an error while creating a new session", async () => {
+    expect.assertions(2);
+    const req = httpMocks.createRequest({
+      method: "POST",
+      baseUrl: "/sessions",
+      headers: {
+        "Content-Type": CONTENT_TYPE.urlencoded,
+        Authorization: AUTHORIZATION_TYPE.DID_CCG_TAR_V1,
+      },
+      body: {},
+    });
+    const res = httpMocks.createResponse();
+    const next = (error?: any) => {
+      expect(error).toBeInstanceOf(Error);
+      expect((error as Error).message).toStrictEqual("Internal Error");
+    };
+    jest
+      .spyOn(EBSI_JWT.Session.prototype, "newSession")
+      .mockRejectedValue(new Error("Internal Error"));
+    await auth.callNewSession(req, res, next);
+    jest.resetAllMocks();
+  }, 10000);
+
   describe("handleToken test suite", () => {
     it("should return an authenticated session", async () => {
       expect.assertions(1);
@@ -30,7 +96,7 @@ describe("auth middleware unit testing suite", () => {
         },
       });
 
-      await handleToken(req, res, next);
+      await auth.handleToken(req, res, next);
       expect(req.params.authenticated).toBe(true);
       jest.resetAllMocks();
     });
@@ -44,7 +110,7 @@ describe("auth middleware unit testing suite", () => {
         headers: { Authorization: `Bearer ` },
       });
       const res = httpMocks.createResponse();
-      await handleToken(req, res, next);
+      await auth.handleToken(req, res, next);
       expect(req.params.authenticated).toBe(false);
       jest.resetAllMocks();
     });
@@ -58,7 +124,7 @@ describe("auth middleware unit testing suite", () => {
         headers: {},
       });
       const res = httpMocks.createResponse();
-      await handleToken(req, res, next);
+      await auth.handleToken(req, res, next);
       expect(req.params.authenticated).toBe(false);
       jest.resetAllMocks();
     });
@@ -82,7 +148,7 @@ describe("auth middleware unit testing suite", () => {
           "Token with incorrect audience. Please create a new session with 'ebsi-idhub'"
         );
       };
-      handleToken(req, res, next);
+      await auth.handleToken(req, res, next);
       jest.resetAllMocks();
     });
 
@@ -106,7 +172,7 @@ describe("auth middleware unit testing suite", () => {
         expect(error).toBeDefined();
         expect(error).toBeInstanceOf(Error);
       };
-      await handleToken(req, res, next);
+      await auth.handleToken(req, res, next);
       jest.resetAllMocks();
     });
 
@@ -139,7 +205,7 @@ describe("auth middleware unit testing suite", () => {
           "Error verifying token: error on verify"
         );
       };
-      await handleToken(req, res, next);
+      await auth.handleToken(req, res, next);
       jest.resetAllMocks();
     });
   });

@@ -89,6 +89,7 @@ export enum EBSI_ACCESS_TOKEN_SCOPE {
   USER = "ebsi profile user",
   ENTITY = "ebsi profile entity",
   COMPONENT = "ebsi profile component",
+  OPENID = "openid did_authn",
 }
 
 export interface AccessTokenRequestBody {
@@ -106,6 +107,20 @@ export interface AccessTokenResponseBody {
   tokenType: TOKEN_TYPE.bearer;
   expiresIn: number; // 15 minutes
   issuedAt: number;
+  scope: EBSI_ACCESS_TOKEN_SCOPE.OPENID;
+}
+
+export enum CONTENT_TYPE {
+  urlencoded = "application/x-www-form-urlencoded",
+}
+
+export enum AUTHORIZATION_TYPE {
+  DID_CCG_TAR_V1 = "DID_CCG_TAR-V1",
+}
+
+export interface AccessTokenRequestHeaders {
+  "Content-Type": CONTENT_TYPE.urlencoded;
+  Authorization: AUTHORIZATION_TYPE.DID_CCG_TAR_V1;
 }
 
 export enum SignatureTypes {

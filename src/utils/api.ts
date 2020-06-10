@@ -1,15 +1,19 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 import { ICASFile } from "../daos/casFile";
 import { ICASStorageOut } from "../dtos/dataStorage";
 import { PRINT_SILLY, PRINT_ERROR } from "./util";
 
 import FormData = require("form-data");
 
-async function doPostCallWithoutToken(data: any, url: string): Promise<any> {
+async function doPostCallWithoutToken(
+  data: any,
+  url: string,
+  config?: AxiosRequestConfig
+): Promise<any> {
   PRINT_SILLY(`POST: ${url}`);
   PRINT_SILLY(data);
   try {
-    const response = await axios.post(url, data);
+    const response = await axios.post(url, data, config);
     PRINT_SILLY("AXIOS POST RESPONSE: ");
     PRINT_SILLY(response.data);
 

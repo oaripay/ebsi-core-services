@@ -77,4 +77,19 @@ async function handleToken(
   next();
 }
 
-export default handleToken;
+async function callNewSession(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
+) {
+  try {
+    const { body } = req;
+    const session = await getSession();
+    const result = await session.newSession(body);
+    res.send(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export { handleToken, callNewSession };
