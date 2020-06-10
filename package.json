@@ -7,7 +7,7 @@
     "lint": "npm run lint:js && npm run lint:prettier",
     "lint:js": "eslint \"*/**/*.{js,ts}\"",
     "lint:prettier": "prettier --check \"**/*.{md,mdx,html,json,yml,js,jsx,ts,tsx,css,scss}\"",
-    "test": "npm run test:unit && npm run test:e2e",
+    "test": "npm run test:unit",
     "test:unit": "jest --coverage --reporters=default --reporters=jest-sonar  --runInBand",
     "test:e2e": "jest --config ./jest-e2e.json"
   },
@@ -23,7 +23,6 @@
     "busboy": "^0.3.1",
     "cassandra-driver": "^4.5.2",
     "cors": "^2.8.5",
-    "debug": "^4.1.1",
     "dotenv": "^8.1.0",
     "ethereumjs-tx": "^2.1.2",
     "ethers": "^4.0.47",

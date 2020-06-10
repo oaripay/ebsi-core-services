@@ -1,5 +1,4 @@
 const jose = require("jose");
-const debug = require("debug");
 const { Session } = require("@cef-ebsi/app-jwt").default;
 
 const {
@@ -16,9 +15,7 @@ const session = new Session(API_NAME, privKey, trustedAppsRegistry);
  * Get the token from the headers
  */
 function getToken(req) {
-  debug("headers")(req.headers);
   const token = req.headers.authorization;
-  debug("token")(token);
   if (token) return token.replace("Bearer ", "");
   return null;
 }
@@ -30,8 +27,7 @@ function handleToken(req, res, next) {
   const token = getToken(req);
 
   if (!token) {
-    // No token in the headers. Continue the call as unauthenticated user
-    debug("token")("No token present in the headers");
+    // No token in the headers
     next(new UnauthorizedError("No token present in the headers"));
     return;
   }
@@ -53,7 +49,6 @@ function handleToken(req, res, next) {
     return;
   }
 
-  debug("token")("Valid token");
   req.authenticated = true;
   next();
 }
