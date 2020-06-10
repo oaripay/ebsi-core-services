@@ -53,18 +53,20 @@ describe("appController (e2e)", () => {
       expect.objectContaining({
         total: expect.any(Number),
         pageSize: expect.any(Number),
-        first: expect.stringContaining(
-          `/trusted-issuers-registry/${version}/issuers`
-        ),
-        prev: expect.stringContaining(
-          `/trusted-issuers-registry/${version}/issuers`
-        ),
-        next: expect.stringContaining(
-          `/trusted-issuers-registry/${version}/issuers`
-        ),
-        last: expect.stringContaining(
-          `/trusted-issuers-registry/${version}/issuers`
-        ),
+        links: expect.objectContaining({
+          first: expect.stringContaining(
+            `/trusted-issuers-registry/${version}/issuers`
+          ),
+          prev: expect.stringContaining(
+            `/trusted-issuers-registry/${version}/issuers`
+          ),
+          next: expect.stringContaining(
+            `/trusted-issuers-registry/${version}/issuers`
+          ),
+          last: expect.stringContaining(
+            `/trusted-issuers-registry/${version}/issuers`
+          ),
+        }),
         items: expect.arrayContaining([
           expect.objectContaining({
             name: expect.any(String),

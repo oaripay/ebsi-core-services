@@ -87,14 +87,16 @@ describe("appController", () => {
         }),
         total: testValues.resultUniversities.length,
         pageSize: "10",
-        first:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
-        prev:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
-        next:
-          "/trusted-issuers-registry/v1/issuers?page[after]=1&page[size]=10",
-        last:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
+        links: {
+          first:
+            "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
+          prev:
+            "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
+          next:
+            "/trusted-issuers-registry/v1/issuers?page[after]=1&page[size]=10",
+          last:
+            "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
+        },
       });
     });
 
@@ -126,11 +128,16 @@ describe("appController", () => {
           .slice(0, 2),
         total: 4,
         pageSize: "2",
-        first:
-          "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=2",
-        prev: "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=2",
-        next: "/trusted-issuers-registry/v1/issuers?page[after]=1&page[size]=2",
-        last: "/trusted-issuers-registry/v1/issuers?page[after]=2&page[size]=2",
+        links: {
+          first:
+            "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=2",
+          prev:
+            "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=2",
+          next:
+            "/trusted-issuers-registry/v1/issuers?page[after]=1&page[size]=2",
+          last:
+            "/trusted-issuers-registry/v1/issuers?page[after]=2&page[size]=2",
+        },
       });
     });
     it(`#/v1/issuers invalid page number`, async () => {

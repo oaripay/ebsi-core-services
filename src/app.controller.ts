@@ -91,17 +91,19 @@ export default class AppController {
         items,
         total: counter,
         pageSize: size,
-        first: `/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=${size}`,
-        prev: `/trusted-issuers-registry/v1/issuers?page[after]=${Math.max(
-          0,
-          after - 1
-        )}&page[size]=${size}`,
-        next: `/trusted-issuers-registry/v1/issuers?page[after]=${
-          after - -1
-        }&page[size]=${size}`,
-        last: `/trusted-issuers-registry/v1/issuers?page[after]=${
-          pages - 1
-        }&page[size]=${size}`,
+        links: {
+          first: `/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=${size}`,
+          prev: `/trusted-issuers-registry/v1/issuers?page[after]=${Math.max(
+            0,
+            after - 1
+          )}&page[size]=${size}`,
+          next: `/trusted-issuers-registry/v1/issuers?page[after]=${
+            after - -1
+          }&page[size]=${size}`,
+          last: `/trusted-issuers-registry/v1/issuers?page[after]=${
+            pages - 1
+          }&page[size]=${size}`,
+        },
       };
       return result;
     } catch (error) {
