@@ -17,6 +17,11 @@ pipeline {
                 sh 'npm run test'
             }
         }
+        stage('Unit test') {
+            steps {
+                sh 'npm run test:e2e'
+            }
+        }
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('LocalSonar'){
