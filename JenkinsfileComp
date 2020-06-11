@@ -12,6 +12,12 @@ pipeline {
                checkout scm;
             }
         }
+        stage('Unit test') {
+            steps {
+                sh 'npm install'
+                sh 'npm run test'
+            }
+        }
         stage('Build image') {
             steps {
                 sh "sudo VERSION=${VERSION}_${GIT_COMMIT} AWS_REPO=intebsi/timestamp-api bash /opt/ebsi_containers_int/auto-deploy/build.sh"
