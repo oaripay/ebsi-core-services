@@ -8,7 +8,7 @@ import YAML from "yamljs";
 import * as bodyParser from "body-parser";
 import IdentityHubRouter from "./identityHub/router";
 import { PRINT_INFO, PRINT_ERROR } from "../utils/util";
-import { EBSI_SERVICE, OPENAPI_PATH, COMPONENT_KEYSTORE } from "../config";
+import { EBSI_SERVICE, OPENAPI_PATH, API_PRIVATE_KEY } from "../config";
 import ComponentSecureEnclave from "../libs/authManager/secureEnclave/componentSecureEnclave";
 import { API_ERROR_MESSAGES, handleError } from "../errors";
 
@@ -43,9 +43,7 @@ class App {
   }
 
   public Start = async (port: number): Promise<http.Server> => {
-    const { did } = await ComponentSecureEnclave.Instance.init(
-      COMPONENT_KEYSTORE
-    );
+    const { did } = await ComponentSecureEnclave.Instance.init(API_PRIVATE_KEY);
     if (!did) throw Error(API_ERROR_MESSAGES.ENCLAVE_DID_NULL);
     PRINT_INFO(`Component Secure Enclave initialized with DID:${did}`);
 

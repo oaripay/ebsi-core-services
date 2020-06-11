@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { JWK, JWT } from "jose";
+import { JWT } from "jose";
 import * as util from "util";
 import LOGGER from "../../src/logger";
 import {
@@ -8,8 +8,6 @@ import {
   strB64dec,
   isTokenExpired,
   PRINT_SILLY,
-  generateKeys,
-  toHex,
   PRINT_INFO,
   PRINT_DEBUG,
   PRINT_ERROR,
@@ -99,23 +97,6 @@ describe("utils Test Suite", () => {
     };
     jest.spyOn(JWT, "decode").mockReturnValue(payload as any);
     expect(isTokenExpired("token1")).toBe(false);
-  });
-
-  it("should create a JWK key pair", () => {
-    expect.assertions(2);
-    const key = generateKeys();
-    expect(key).toBeDefined();
-    expect(JWK.isKey(key)).toBe(true);
-  });
-
-  it("should return an hex string encoded in base64", () => {
-    expect.assertions(1);
-    const input =
-      "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAELyirt1/9cnZmMwV6V73HHmh8OHWcgNBUf/E4Os8cT2Uf+R3lW9hCiPm37f9ojCqoerhoGfoMgiNJIRhK+rDUfQ==";
-    const expectedResult =
-      "3056301006072a8648ce3d020106052b8104000a034200042f28abb75ffd72766633057a57bdc71e687c38759c80d0547ff1383acf1c4f651ff91de55bd84288f9b7edff688c2aa87ab86819fa0c82234921184afab0d47d";
-    const result = toHex(input);
-    expect(result).toMatch(expectedResult);
   });
 
   describe("print util functions suite", () => {

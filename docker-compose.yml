@@ -16,6 +16,5 @@ services:
       - 8080:9000
     environment:
       - EBSI_ENV=${ebsi_env}
-      - COMPONENT_PASSWORD=${component_password}
-      - COMPONENT_KEYSTORE=${component_keystore}
+      - API_PRIVATE_KEY=${api_private_key}
       - DID_REGISTRY_SC_ADDRESS=${did_registry_sc_address}

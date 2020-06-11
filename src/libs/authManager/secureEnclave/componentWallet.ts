@@ -1,7 +1,6 @@
 import { JWT, JWK, JWKECKey } from "jose";
 import { encrypt, decrypt } from "eciesjs";
 import { ethers } from "ethers";
-import * as util from "../../../utils/util";
 import Wallet, { WalletOptions } from "./wallet";
 import { InternalError, API_ERROR_MESSAGES } from "../../../errors";
 import getJWKfromHex from "./jwk";
@@ -12,60 +11,28 @@ export default class ComponentWallet implements Wallet {
   ): Promise<ComponentWallet> {
     if (!options)
       throw new InternalError(API_ERROR_MESSAGES.WALLET_OPTIONS_NOT_PROVIDED);
-    if (!options.password) {
-      throw new InternalError("Password needs to be provided");
-    }
-
     const wallet = new ComponentWallet();
-
-    if (!options.encryptedKey)
-      throw new InternalError(
-        API_ERROR_MESSAGES.COMPONENT_WALLET_ENCRYPTEDKEY_NOT_PROVIDED
-      );
-    await wallet.loadFromEncryptedKeys(options.encryptedKey, options.password);
+    if (!options.hexPrivateKey)
+      throw new InternalError(API_ERROR_MESSAGES.COMPONENT_KEY_NOT_PROVIDED);
+    await wallet.loadFromPrivateKey(options.hexPrivateKey);
 
     return wallet;
   }
 
-  ethAddress: any;
+  ethAddress!: string;
 
   protected jwk!: JWK.ECKey;
 
   protected wallet!: ethers.Wallet;
 
-  protected encryptedKey!: string;
-
-  async initWithPass(password: string): Promise<void> {
-    this.jwk = util.generateKeys();
-    await this.initFromECKeys(this.jwk, password);
-  }
-
-  async initFromECKeys(jwk: JWK.ECKey, password: string): Promise<void> {
-    this.wallet = new ethers.Wallet(util.toHex(<string>jwk.d));
-    this.ethAddress = this.wallet.address;
-    this.encryptedKey = await this.wallet.encrypt(password);
-  }
-
-  async loadFromEncryptedKeys(
-    v3JsonWallet: string,
-    password: string
-  ): Promise<ethers.Wallet> {
-    const wallet: ethers.Wallet = await ethers.Wallet.fromEncryptedJson(
-      v3JsonWallet,
-      password
-    );
-
+  async loadFromPrivateKey(hexPrivateKey: string): Promise<ethers.Wallet> {
+    const wallet = new ethers.Wallet(hexPrivateKey);
     this.wallet = wallet;
     this.ethAddress = wallet.address;
-    this.encryptedKey = v3JsonWallet;
     const signingKey = new ethers.utils.SigningKey(wallet.privateKey);
     this.jwk = getJWKfromHex(signingKey.publicKey, signingKey.privateKey);
 
     return wallet;
-  }
-
-  exportEncryptedKeys(): string {
-    return this.encryptedKey;
   }
 
   signJwt(payload: Buffer): string {

@@ -4,7 +4,7 @@ import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
 import { SimpleSigner, createJWT } from "did-jwt";
 import { ethers } from "ethers";
-import { COMPONENT_KEYSTORE, API_NAME, LOG_LEVEL } from "../../src/config";
+import { API_PRIVATE_KEY, API_NAME, LOG_LEVEL } from "../../src/config";
 import {
   LegalEntityAuthNToken,
   UserAuthNToken,
@@ -22,6 +22,18 @@ import { InitComponent } from "../../src/libs/authManager/secureEnclave";
 import ComponentSecureEnclave from "../../src/libs/authManager/secureEnclave/componentSecureEnclave";
 import AuthManager from "../../src/libs/authManager/authManager";
 import { IAttribute } from "../../src/dtos/attributeInfo";
+
+const toHex = (data: string): string =>
+  Buffer.from(data, "base64").toString("hex");
+
+const generateKeys = (): JWK.ECKey =>
+  JWK.generateSync("EC", "secp256k1", { use: "sig" });
+
+const generateHexPrivateKey = (): string => {
+  const key = generateKeys();
+  const hexPrivateKey = toHex(<string>key.d);
+  return hexPrivateKey;
+};
 
 const mockComponentKey = JWK.asKey({
   crv: "secp256k1",
@@ -58,7 +70,7 @@ const testAuthNToken = async (): Promise<{
   token: string;
 }> => {
   const se = ComponentSecureEnclave.Instance;
-  const { did, key } = await se.init(COMPONENT_KEYSTORE);
+  const { did, key } = await se.init(API_PRIVATE_KEY);
   const token = await AuthManager.Instance.createAuthNToken(API_NAME);
   return { did, key, token };
 };
@@ -141,9 +153,7 @@ async function auxDoGetCallWithToken(token: string, url: string): Promise<any> {
 }
 
 async function initSecureEnclave(): Promise<string> {
-  const { did } = await ComponentSecureEnclave.Instance.init(
-    COMPONENT_KEYSTORE
-  );
+  const { did } = await ComponentSecureEnclave.Instance.init(API_PRIVATE_KEY);
   if (!did) throw new InternalError(API_ERROR_MESSAGES.ENCLAVE_DID_NULL);
   PRINT_DEBUG(`Secure Enclave initialized with DID:${did}`);
 
@@ -423,9 +433,11 @@ const mockedAttributes: IAttribute[] = [
 ];
 
 export {
+  toHex,
   mockedPosts,
   mockedUserUE,
   TestingSetup,
+  generateKeys,
   testAuthNToken,
   mockedAttributes,
   mockComponentKey,
@@ -437,6 +449,7 @@ export {
   initSetupForTesting,
   mockedEnterpriseUser,
   testEntityAuthNToken,
+  generateHexPrivateKey,
   auxDoGetCallWithToken,
   mockedSetupForTesting,
   auxDoPostCallWithToken,

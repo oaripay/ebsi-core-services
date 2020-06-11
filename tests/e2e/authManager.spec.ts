@@ -1,7 +1,7 @@
 /* eslint-disable jest/no-hooks */
 import http from "http";
 import { startEbsiService } from "../../src/api/app";
-import { EBSI_SERVICE, COMPONENT_KEYSTORE, EBSI_APPS } from "../../src/config";
+import { EBSI_SERVICE, API_PRIVATE_KEY, EBSI_APPS } from "../../src/config";
 import { ComponentSecureEnclave } from "../../src/libs/authManager/secureEnclave";
 import AuthManager from "../../src/libs/authManager/authManager";
 
@@ -29,7 +29,7 @@ describe("authManager tests", () => {
     expect.assertions(1);
     const se = ComponentSecureEnclave.Instance;
 
-    await se.init(COMPONENT_KEYSTORE);
+    await se.init(API_PRIVATE_KEY);
 
     const token = await AuthManager.Instance.getAuthZToken(EBSI_APPS.STORAGE);
     expect(token).toBeDefined();

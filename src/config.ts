@@ -206,12 +206,14 @@ const LEDGER_BESU = {
     : `0x${process.env.DID_REGISTRY_SC_ADDRESS}`,
 };
 
+const throwError = (varName: string) => {
+  throw new Error(`${varName} not provided as ENV variable`);
+};
 const API_NAME = EBSI_APPS.IDHUB;
 const trustedAppsRegistry = EBSI_SERVICE.URL.TRUSTED_APPS_REGISTRY;
-const COMPONENT_PASSWORD =
-  process.env.COMPONENT_PASSWORD || "no default password";
-const COMPONENT_KEYSTORE =
-  process.env.COMPONENT_KEYSTORE || "no default key provider";
+const API_PRIVATE_KEY = process.env.API_PRIVATE_KEY
+  ? process.env.API_PRIVATE_KEY
+  : throwError("API_PRIVATE_KEY");
 
 export {
   API_NAME,
@@ -222,8 +224,7 @@ export {
   EBSI_API_MAP,
   EBSI_SERVICE,
   OPENAPI_PATH,
-  COMPONENT_PASSWORD,
-  COMPONENT_KEYSTORE,
+  API_PRIVATE_KEY,
   trustedAppsRegistry,
   EBSI_DEFAULT_DATA_STORE,
   WALLET_DATASTORE_CONFIG,

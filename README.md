@@ -33,8 +33,7 @@ cd identity-hub-api
 
 Copy `.env.example.docker` to `.env` and set the following environment variables:
 
-- `component_keystore`= <-- TYPE HERE COMPONENT KEYSTORE
-- `component_password`= <-- TYPE HERE COMPONENT PASSWORD
+- `api_private_key`= <-- TYPE HERE API PRIVATE KEY IN HEX FORMAT
 - `did_registry_sc_address`= <-- TYPE HERE DID REGISTRY SC ADDRESS
 
 Build and Run ebsi-identity-hub-api Docker Image
@@ -83,8 +82,7 @@ This command starts a node server exposing the EBSI Swagger API at <http://local
 Copy .env.example to .env and set the following environment variables:
 
 - `EBSI_ENV` : set to test, local, integration, development or production
-- `COMPONENT_PASSWORD` <-- TYPE HERE COMPONENT PASSWORD
-- `COMPONENT_KEYSTORE` <-- TYPE HERE COMPONENT KEYSTORE
+- `API_PRIVATE_KEY` <-- TYPE HERE API PRIVATE KEY IN HEX FORMAT
 - `DID_REGISTRY_SC_ADDRESS` <-- TYPE HERE DID REGISTRY SC ADDRESS
 
 ### Unit tests

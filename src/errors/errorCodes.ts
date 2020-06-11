@@ -27,7 +27,7 @@ enum API_ERROR_MESSAGES {
   NO_COMPONENT_PASSWORD = "No Component Wallet provided",
   AUTHMANAGER_ERROR = "Auth Manager not initizalized",
   CALL_SHOULD_THROW = "Call should throw an error",
-  COMPONENT_WALLET_ENCRYPTEDKEY_NOT_PROVIDED = "Component wallet needs an ecrypted key to initilize",
+  COMPONENT_KEY_NOT_PROVIDED = "Component needs key to initilize",
   CREDENTIAL_ERROR = "Error on Credential Validation",
   ELEMENT_NOT_INSERTED_FILE_STORAGE_DB = "The element could not be inserted to the File Storage DB",
   ENCLAVE_DID_NULL = "Enclave DID is null",

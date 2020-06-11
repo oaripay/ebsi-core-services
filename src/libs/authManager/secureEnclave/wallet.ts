@@ -1,6 +1,5 @@
 export interface WalletOptions {
-  encryptedKey?: string; // can be validated with ethers' isSecretStorageWallet method
-  password?: string;
+  hexPrivateKey?: string;
   did?: string;
 }
 
@@ -19,8 +18,6 @@ export default interface Wallet {
   ): Promise<any> | any;
 
   getDid(): string;
-
-  exportEncryptedKeys(): string;
 
   // encrypt data using Component public key
   encrypt(dataToEncrypt: Buffer): Buffer;

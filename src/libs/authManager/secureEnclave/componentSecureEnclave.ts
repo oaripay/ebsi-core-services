@@ -1,5 +1,4 @@
 import { JWKECKey } from "jose";
-import * as config from "../../../config";
 import Wallet, { WalletOptions } from "./wallet";
 import ComponentWallet from "./componentWallet";
 import { API_ERROR_MESSAGES, InternalError } from "../../../errors";
@@ -51,28 +50,25 @@ export default class ComponentSecureEnclave {
    * Inits the enclave at startup.
    * Loads the enclave's wallet from keyDB if exists, otherwise it creates a new wallet (thus a new DID
    * for the component).
-   *
-   * @param encryptedKeystore, Optionally, keystore can be provided as input parameter.
    */
   async init(
-    encryptedKeystore: string,
+    hexPrivateKey: string,
     privateKey?: boolean
   ): Promise<InitComponent> {
     // If Did exists, return it.
     if (this.enclaveDid !== "") {
       const outKey = (this.getWallet(this.enclaveDid) as ComponentWallet).toJWK(
-        false
+        privateKey
       );
       return { did: this.enclaveDid, key: outKey };
     }
 
-    if (!encryptedKeystore)
+    if (!hexPrivateKey)
       throw new InternalError(
         API_ERROR_MESSAGES.ERROR_ON_COMPONENT_WALLET_INIT
       );
-    const did = await this.restoreWallet({
-      encryptedKey: encryptedKeystore,
-      password: config.COMPONENT_PASSWORD,
+    const did = await this.addNewWallet({
+      hexPrivateKey,
     });
     this.enclaveDid = did;
     const key = (this.getWallet(did) as ComponentWallet).toJWK(privateKey);
@@ -89,26 +85,11 @@ export default class ComponentSecureEnclave {
     return wallet.getDid();
   }
 
-  /**
-   * Restores a wallet from a JSON encrypted file
-   * @param options
-   */
-  async restoreWallet(options?: WalletOptions): Promise<string> {
-    return this.addNewWallet(options);
-  }
-
   getPublicKey(did: string): string {
     const wallet = this.wallets.get(did);
     if (!wallet) throw new InternalError(API_ERROR_MESSAGES.WALLET_NOT_FOUND);
 
     return wallet.publicKey;
-  }
-
-  exportEncryptedKeys(did: string): string {
-    const wallet = this.wallets.get(did);
-    if (!wallet) throw new InternalError(API_ERROR_MESSAGES.WALLET_NOT_FOUND);
-
-    return wallet.exportEncryptedKeys();
   }
 
   async signJwt(did: string, data: Buffer): Promise<any> {
