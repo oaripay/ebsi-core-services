@@ -1,7 +1,8 @@
 pipeline {
     agent any
     environment {
-        EBSI_ENV="integration"
+        EBSI_ENV="local"
+        API_STORAGE_PRIVATE_KEY=credentials('API_STORAGE_PRIVATE_KEY')
     }
     stages {
         stage('Clone repo') {
@@ -12,9 +13,7 @@ pipeline {
         stage('Unit test') {
             steps {
                 sh 'npm install'
-                withCredentials([string(credentialsId: 'TEST_APP_PRIVATE_KEY', variable: 'API_STORAGE_PRIVATE_KEY')]) {
-                    sh 'npm run test'
-                }
+                sh 'npm run test'
             }
         }
         stage('SonarQube Analysis') {
