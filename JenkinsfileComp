@@ -7,6 +7,7 @@ pipeline {
         TEST_APP_NAME="ebsi-wallet"
         API_LEDGER_PRIVATE_KEY=credentials('API_LEDGER_PRIVATE_KEY')
         TEST_APP_PRIVATE_KEY=credentials('TEST_APP_PRIVATE_KEY')
+        PORT="8180"
     }
     stages {
         stage('Clone repo') {
