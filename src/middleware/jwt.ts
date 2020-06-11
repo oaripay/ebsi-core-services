@@ -36,31 +36,27 @@ const getTokenFromHeader = (req: Request): string => {
 const parseEntityJWT = (req: Request, res: Response, next): void => {
   try {
     const token = getTokenFromHeader(req);
-
-    let entityAuthToken: any;
-
     // check if token is a user Token or enterprise Token
-    // eslint-disable-next-line prefer-const
-    entityAuthToken = JWT.decode(token);
-
-    if (entityAuthToken.userName) {
-      const entityAuthZToken = <IUserAuthZToken>JWT.decode(token);
-      if (!entityAuthZToken.did) {
+    const userAuthZToken = <IUserAuthZToken>JWT.decode(token);
+    if (userAuthZToken.userName) {
+      if (!userAuthZToken.did) {
         next(new UnauthorizedError("Error parsing JWT: DID not found"));
         return;
       }
 
-      Object.assign(req.params, { jwt: JSON.stringify(entityAuthZToken) });
-      Object.assign(req.params, { didJwt: entityAuthZToken.did });
+      Object.assign(req.params, { jwt: JSON.stringify(userAuthZToken) });
+      Object.assign(req.params, { didJwt: userAuthZToken.did });
+      Object.assign(req.params, { token });
+      next();
+      return;
     }
 
+    const entityAuthZToken = <IEnterpriseAuthZToken>JWT.decode(token);
     if (
-      entityAuthToken.sub &&
-      entityAuthToken.aud &&
-      entityAuthToken.aud.match(/^ebsi/)
+      entityAuthZToken.sub &&
+      entityAuthZToken.aud &&
+      entityAuthZToken.aud.match(/^ebsi/)
     ) {
-      const entityAuthZToken = <IEnterpriseAuthZToken>JWT.decode(token);
-
       if (!entityAuthZToken.did) {
         next(new UnauthorizedError("Error parsing JWT: DID not found"));
         return;
@@ -68,12 +64,14 @@ const parseEntityJWT = (req: Request, res: Response, next): void => {
 
       Object.assign(req.params, { jwt: JSON.stringify(entityAuthZToken) });
       Object.assign(req.params, { didJwt: entityAuthZToken.did });
+      Object.assign(req.params, { token });
+      next();
+      return;
     }
-
-    // Save token also in params
-    Object.assign(req.params, { token });
-
-    next();
+    // throw error if token is neither of this two types
+    throw new UnauthorizedError(
+      "token is neither a User or Legal Entity AuthZ Token"
+    );
   } catch (error) {
     next(error);
   }

@@ -50,6 +50,30 @@ describe("jwt test suite", () => {
     jest.resetAllMocks();
   });
 
+  it("should throw an UnauthorizedError when token is neither User or Legal Entity AuthZToken", () => {
+    expect.assertions(2);
+    const payload = {
+      data: "user001",
+      moreData: "EBSI&Eva",
+    };
+    const key = JWK.generateSync("EC", "secp256k1", { use: "sig" });
+    const token = JWT.sign(payload, key);
+    const req = httpMocks.createRequest({
+      method: "POST",
+      baseUrl: "/a-simple-call",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const res = httpMocks.createResponse();
+    const next = (error?: any) => {
+      expect(error).toBeInstanceOf(UnauthorizedError);
+      expect((error as UnauthorizedError).Detail).toStrictEqual(
+        "token is neither a User or Legal Entity AuthZ Token"
+      );
+    };
+    parseEntityJWT(req, res, next);
+    jest.resetAllMocks();
+  });
+
   it("should return a user AuthZ token decoded", () => {
     expect.assertions(6);
     const payload = {
