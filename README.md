@@ -85,7 +85,7 @@ Copy .env.example to .env and set the following environment variables:
 - `API_PRIVATE_KEY` <-- TYPE HERE API PRIVATE KEY IN HEX FORMAT
 - `DID_REGISTRY_SC_ADDRESS` <-- TYPE HERE DID REGISTRY SC ADDRESS
 
-### Unit tests
+### All tests
 
 Run
 
@@ -93,20 +93,20 @@ Run
 npm run test
 ```
 
-### Integration tests
+### Unit tests
+
+Run
+
+```sh
+npm run test:unit
+```
+
+### e2e tests
 
 Run
 
 ```sh
 npm run test:e2e
-```
-
-### Unit & Integration tests
-
-Run
-
-```sh
-npm run test:all
 ```
 
 ## Swagger Documentation
