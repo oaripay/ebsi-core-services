@@ -38,15 +38,15 @@ export default class IDHub {
   async getAttributes(did: string): Promise<IAttribute[]> {
     try {
       const attrInfoList = (await this.attributeInfoListDB.get(did)).data;
-      const attributes: IAttribute[] = [];
 
-      // eslint-disable-next-line no-restricted-syntax
-      for (const elem of attrInfoList.list) {
-        // eslint-disable-next-line no-await-in-loop
-        const base64 = await this.attributeFileDB.get(elem.hash);
-        attributes.push({ ...elem, data: { base64 } });
-      }
-
+      const attributesElem = attrInfoList.list.map((elem) => {
+        return (async () => {
+          const base64 = await this.attributeFileDB.get(elem.hash);
+          const res: IAttribute = { ...elem, data: { base64 } };
+          return res;
+        })();
+      });
+      const attributes = await Promise.all(attributesElem);
       return attributes;
     } catch (error) {
       if ((<Error>error).message !== "Request failed with status code 404") {
