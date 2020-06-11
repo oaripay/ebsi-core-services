@@ -1,15 +1,15 @@
 import request from "supertest";
 import http from "http";
-import { startEbsiService } from "../../../src/api/app";
-import { EBSI_SERVICE } from "../../../src/config";
-import { EBSI_API_ERRORS_INT } from "../../../src/errors";
-import * as auth from "../../../src/middleware/auth";
-import * as authJwt from "../../../src/middleware/jwt";
-import Controller from "../../../src/api/identityHub/controller";
+import { startEbsiService } from "../../src/api/app";
+import { EBSI_SERVICE } from "../../src/config";
+import { EBSI_API_ERRORS_INT } from "../../src/errors";
+import * as auth from "../../src/middleware/auth";
+import * as authJwt from "../../src/middleware/jwt";
+import Controller from "../../src/api/identityHub/controller";
 
 jest.setTimeout(100000);
-jest.mock("../../../src/middleware/jwt");
-jest.mock("../../../src/middleware/auth");
+jest.mock("../../src/middleware/jwt");
+jest.mock("../../src/middleware/auth");
 
 describe("identity Hub router API calls", () => {
   let server: http.Server;

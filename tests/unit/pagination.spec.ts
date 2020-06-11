@@ -1,5 +1,5 @@
 import { paginate } from "../../src/utils";
-import { mockedPosts } from "./auxAPICalls";
+import { mockedPosts } from "../utils/auxAPICalls";
 
 describe("pagination tests", () => {
   it("should throw an error when no Array is passed", () => {

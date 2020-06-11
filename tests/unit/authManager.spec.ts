@@ -1,8 +1,8 @@
-import AuthManager from "../../../src/libs/authManager/authManager";
-import { EBSI_APPS } from "../../../src/config";
-import ComponentSecureEnclave from "../../../src/libs/authManager/secureEnclave/componentSecureEnclave";
-import { api, util } from "../../../src/utils";
-import { TOKEN_TYPE } from "../../../src/libs/authManager/secureEnclave/jwt";
+import AuthManager from "../../src/libs/authManager/authManager";
+import { EBSI_APPS } from "../../src/config";
+import ComponentSecureEnclave from "../../src/libs/authManager/secureEnclave/componentSecureEnclave";
+import { api, util } from "../../src/utils";
+import { TOKEN_TYPE } from "../../src/libs/authManager/secureEnclave/jwt";
 
 describe("authManager tests", () => {
   describe("create authZ token", () => {

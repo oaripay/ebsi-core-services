@@ -1,14 +1,14 @@
-import IDHub from "../../../src/libs/identityHub/idHub";
-import { AttributeInfoList, CASFile } from "../../../src/models";
+import IDHub from "../../src/libs/identityHub/idHub";
+import { AttributeInfoList, CASFile } from "../../src/models";
 import {
   IAttribute,
   IAttributeInfo,
   IAttributeInfoList,
   IAttributeInput,
-} from "../../../src/dtos/attributeInfo";
-import { util } from "../../../src/utils";
-import { AttributeDAO } from "../../../src/daos/attribute";
-import { BadRequestError } from "../../../src/errors";
+} from "../../src/dtos/attributeInfo";
+import { util } from "../../src/utils";
+import { AttributeDAO } from "../../src/daos/attribute";
+import { BadRequestError } from "../../src/errors";
 
 describe("identity Hub api suite", () => {
   it("should retun an IDHub instance", () => {

@@ -1,13 +1,9 @@
 /* eslint-disable jest/no-hooks */
 import http from "http";
-import AuthManager from "../../../src/libs/authManager/authManager";
-import ComponentSecureEnclave from "../../../src/libs/authManager/secureEnclave/componentSecureEnclave";
-import {
-  COMPONENT_KEYSTORE,
-  EBSI_APPS,
-  EBSI_SERVICE,
-} from "../../../src/config";
-import { startEbsiService } from "../../../src/api/app";
+import { startEbsiService } from "../../src/api/app";
+import { EBSI_SERVICE, COMPONENT_KEYSTORE, EBSI_APPS } from "../../src/config";
+import { ComponentSecureEnclave } from "../../src/libs/authManager/secureEnclave";
+import AuthManager from "../../src/libs/authManager/authManager";
 
 describe("authManager tests", () => {
   let server: http.Server;

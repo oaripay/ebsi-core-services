@@ -8,7 +8,6 @@ describe("session tests", () => {
     const payloadRequest = await getSessionRequestBody(config.API_NAME);
     const session = await getSession();
     const requestJSON = querystring.parse(payloadRequest);
-    console.log(requestJSON);
     const authZToken = await session.newSession(requestJSON);
     expect(authZToken).toStrictEqual(
       expect.objectContaining({

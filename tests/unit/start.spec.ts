@@ -1,7 +1,7 @@
-import startAll from "../src/start";
-import { startEbsiService } from "../src/api/app";
+import startAll from "../../src/start";
+import { startEbsiService } from "../../src/api/app";
 
-jest.mock("../src/api/app");
+jest.mock("../../src/api/app");
 const mockStartEbsi = startEbsiService as jest.Mock;
 
 describe("start test", () => {

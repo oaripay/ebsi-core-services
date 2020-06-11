@@ -1,15 +1,15 @@
 /* eslint-disable jest/no-hooks */
 import request from "supertest";
 import http from "http";
-import { startEbsiService } from "../../../src/api/app";
-import { EBSI_SERVICE, EBSI_DEFAULT_DATA_STORE } from "../../../src/config";
-import { EBSI_API_ERRORS_INT, BadRequestError } from "../../../src/errors";
-import { initSetupForTesting, mockedAttributes } from "../../utils/auxAPICalls";
-import { IAttributeInput } from "../../../src/dtos/attributeInfo";
-import IDHub from "../../../src/libs/identityHub/idHub";
-import { PaginateResult } from "../../../src/utils";
-import { CASDataStorage } from "../../../src/libs/dataStorages";
-import { ICASFile } from "../../../src/daos/casFile";
+import { startEbsiService } from "../../src/api/app";
+import { EBSI_SERVICE, EBSI_DEFAULT_DATA_STORE } from "../../src/config";
+import { EBSI_API_ERRORS_INT, BadRequestError } from "../../src/errors";
+import { initSetupForTesting, mockedAttributes } from "../utils/auxAPICalls";
+import { IAttributeInput } from "../../src/dtos/attributeInfo";
+import IDHub from "../../src/libs/identityHub/idHub";
+import { PaginateResult } from "../../src/utils";
+import { CASDataStorage } from "../../src/libs/dataStorages";
+import { ICASFile } from "../../src/daos/casFile";
 
 jest.setTimeout(1000000);
 

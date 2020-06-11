@@ -1,7 +1,7 @@
 import base64url from "base64url";
-import Controller from "../../../src/api/identityHub/controller";
-import IDHub from "../../../src/libs/identityHub/idHub";
-import { IAttribute, IAttributeInput } from "../../../src/dtos/attributeInfo";
+import Controller from "../../src/api/identityHub/controller";
+import IDHub from "../../src/libs/identityHub/idHub";
+import { IAttribute, IAttributeInput } from "../../src/dtos/attributeInfo";
 
 describe("controller test suite", () => {
   it("should return a list of IAttribute", async () => {

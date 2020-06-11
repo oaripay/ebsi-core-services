@@ -1,5 +1,5 @@
-import { ComponentSecureEnclave } from "../../../src/libs/authManager/secureEnclave";
-import { COMPONENT_KEYSTORE } from "../../../src/config";
+import { ComponentSecureEnclave } from "../../src/libs/authManager/secureEnclave";
+import { COMPONENT_KEYSTORE } from "../../src/config";
 
 describe("componentSecureEnclave test suite", () => {
   it("should throw InternalError with no encryptedKeystore", async () => {

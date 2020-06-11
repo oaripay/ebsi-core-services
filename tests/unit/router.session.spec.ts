@@ -1,10 +1,10 @@
 import request from "supertest";
 import http from "http";
 import EBSI_JWT from "@cef-ebsi/app-jwt";
-import { startEbsiService } from "../../../src/api/app";
-import { EBSI_SERVICE } from "../../../src/config";
-import { EBSI_API_ERRORS_INT, BadRequestError } from "../../../src/errors";
-import { AUTHORIZATION_TYPE } from "../../../src/libs/authManager/secureEnclave/jwt";
+import { startEbsiService } from "../../src/api/app";
+import { EBSI_SERVICE } from "../../src/config";
+import { EBSI_API_ERRORS_INT, BadRequestError } from "../../src/errors";
+import { AUTHORIZATION_TYPE } from "../../src/libs/authManager/secureEnclave/jwt";
 
 jest.setTimeout(100000);
 

@@ -1,10 +1,10 @@
 import { ethers } from "ethers";
+import { util } from "../../src/utils";
 import {
   ComponentWallet,
   WalletOptions,
   jwk,
-} from "../../../src/libs/authManager/secureEnclave";
-import { util } from "../../../src/utils";
+} from "../../src/libs/authManager/secureEnclave";
 
 const password = "00-temp-pass";
 const key = util.generateKeys();
