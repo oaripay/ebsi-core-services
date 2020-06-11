@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    environment {
+        VERSION=sh(script: 'sudo runuser -l ebsi1-robot -c "AWS_REPO=intebsi/ledger-api bash /opt/ebsi_containers_int/auto-deploy/minor_version.sh"', returnStdout: true).trim()
+        BESU_ADDRESS_NOTARY="0x21b38942aA9BC992482627f63814Ffa06DA7e500"
+        EBSI_ENV="integration"
+        TEST_APP_NAME="ebsi-wallet"
+        API_LEDGER_PRIVATE_KEY=credentials('API_LEDGER_PRIVATE_KEY')
+        TEST_APP_PRIVATE_KEY=credentials('TEST_APP_PRIVATE_KEY')
+    }
+    stages {
+        stage('Clone repo') {
+            steps {
+               checkout scm;
+            }
+        }
+        stage('Unit test') {
+            steps {
+                sh 'npm install'
+                sh 'npm run bootstrap'
+                sh 'npm run test:besu-unit'
+            }
+        }
+        stage('Build image') {
+            steps {
+                sh "sudo VERSION=${VERSION}_${GIT_COMMIT} AWS_REPO=intebsi/ledger-api bash /opt/ebsi_containers_int/auto-deploy/build.sh"
+            }
+        }
+        stage('Push to ECR') {
+            steps {
+                 sh "sudo `sudo su - ebsi1-robot -c 'aws ecr get-login --no-include-email --region eu-central-1'`"
+                 sh "sudo docker push 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/ledger-api"
+             }
+        }
+        stage("Deploy on first machine") {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
+                       sh "ssh -i $PK ebsi1-operator@app01-0-ebsi-int-lux.intebsi.xyz -o StrictHostKeyChecking=no -o 'UserKnownHostsFile /dev/null' -p 48722 'aws ecr get-login --no-include-email --region eu-central-1 | bash && cd /opt/ebsi/ledger-api && docker-compose pull && docker-compose up -d'"
+                       sh "ssh -i $PK ebsi1-operator@app02-0-ebsi-int-lux.intebsi.xyz -o StrictHostKeyChecking=no -o 'UserKnownHostsFile /dev/null' -p 48722 'aws ecr get-login --no-include-email --region eu-central-1 | bash && cd /opt/ebsi/ledger-api && docker-compose pull && docker-compose up -d'"
+                    }
+                }
+        }
+    }
+}

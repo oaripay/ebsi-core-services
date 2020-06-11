@@ -8,7 +8,8 @@
     "pre-commit": "run-s pre-commit:*",
     "pre-commit:backend": "cd packages/besu && npm run lint-staged ",
     "test": "run-s test:*",
-    "test:besu": "cd packages/besu && npm test"
+    "test:besu": "cd packages/besu && npm test",
+    "test:besu-unit": "cd packages/besu && npm test:unit"
   },
   "devDependencies": {
     "audit-ci": "^2.5.1",
