@@ -17,7 +17,7 @@ pipeline {
                 sh 'npm run test'
             }
         }
-        stage('Unit test') {
+        stage('Integration test') {
             steps {
                 sh 'npm run test:e2e'
             }
