@@ -1,4 +1,5 @@
 import httpMocks from "node-mocks-http";
+import { EventEmitter } from "events";
 import { handleError, HTTPError } from "../../src/errors";
 
 describe("handleError middleware", () => {
@@ -6,8 +7,7 @@ describe("handleError middleware", () => {
     expect.assertions(2);
     const req = httpMocks.createRequest();
     const res = httpMocks.createResponse({
-      // eslint-disable-next-line global-require
-      eventEmitter: require("events").EventEmitter,
+      eventEmitter: EventEmitter,
     });
 
     const err = new HTTPError("Test Error", 505, "this is an error");
@@ -26,8 +26,7 @@ describe("handleError middleware", () => {
     expect.assertions(1);
     const req = httpMocks.createRequest();
     const res = httpMocks.createResponse({
-      // eslint-disable-next-line global-require
-      eventEmitter: require("events").EventEmitter,
+      eventEmitter: EventEmitter,
     });
 
     const err = new Error("Text error: 400");
@@ -44,8 +43,7 @@ describe("handleError middleware", () => {
     expect.assertions(1);
     const req = httpMocks.createRequest();
     const res = httpMocks.createResponse({
-      // eslint-disable-next-line global-require
-      eventEmitter: require("events").EventEmitter,
+      eventEmitter: EventEmitter,
     });
 
     const err = new Error("Text error: another Error");
@@ -62,8 +60,7 @@ describe("handleError middleware", () => {
     expect.assertions(1);
     const req = httpMocks.createRequest();
     const res = httpMocks.createResponse({
-      // eslint-disable-next-line global-require
-      eventEmitter: require("events").EventEmitter,
+      eventEmitter: EventEmitter,
     });
 
     const err = new Error("Sample");
@@ -83,8 +80,7 @@ describe("handleError middleware", () => {
     process.env.EBSI_ENV = "test";
     const req = httpMocks.createRequest();
     const res = httpMocks.createResponse({
-      // eslint-disable-next-line global-require
-      eventEmitter: require("events").EventEmitter,
+      eventEmitter: EventEmitter,
     });
 
     const err = new Error("Sample");

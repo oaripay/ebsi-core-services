@@ -2,6 +2,7 @@ import httpMocks from "node-mocks-http";
 import axios from "axios";
 import { JWT } from "jose";
 import EBSI_JWT from "@cef-ebsi/app-jwt";
+import { EventEmitter } from "events";
 import * as auth from "../../src/middleware/auth";
 import * as config from "../../src/config";
 import { InvalidTokenError } from "../../src/errors";
@@ -28,8 +29,7 @@ describe("auth middleware unit testing suite", () => {
       body: payload as any,
     });
     const res = httpMocks.createResponse({
-      // eslint-disable-next-line global-require
-      eventEmitter: require("events").EventEmitter,
+      eventEmitter: EventEmitter,
     });
     const expectedResult = {
       accessToken: "a sample token",
