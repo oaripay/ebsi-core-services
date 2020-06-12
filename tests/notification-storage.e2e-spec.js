@@ -2,7 +2,6 @@ const axios = require("axios");
 const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 const ethers = require("ethers");
 
-const config = require("../src/config");
 const configTest = require("./config");
 
 const { url, TEST_APP_NAME, privKey } = configTest;
@@ -57,22 +56,12 @@ let axiosAuth;
 describe("notification storage tests", () => {
   it("create a new session with storage API", async () => {
     expect.assertions(2);
-    const agent = new ebsiAppJwt.Agent(
-      TEST_APP_NAME,
-      privKey,
-      config.trustedAppsRegistry
-    );
-    const requestToken = agent.newRequest("ebsi-storage");
+    const agent = new ebsiAppJwt.Agent(TEST_APP_NAME, privKey);
+    const requestToken = agent.createRequestPayload("ebsi-storage");
 
-    const opts = {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    };
     const response = await axios.post(
       `${url}/storage/v1/sessions`,
-      requestToken,
-      opts
+      requestToken
     );
     expect(response.status).toBe(200);
     expect(response.data).toStrictEqual(
