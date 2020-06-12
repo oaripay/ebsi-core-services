@@ -22,7 +22,7 @@ export default class EthersService {
       this.configService.get("PROVIDER")
     );
     this.ethersWallet = new ethers.Wallet(
-      this.configService.get("APP_PRIVATE_KEY"),
+      this.configService.get("API_PRIVATE_KEY"),
       this.ethersProvider
     );
     const univContractWithoutWallet = new ethers.Contract(

@@ -119,13 +119,12 @@ describe("appService", () => {
 
       const spyAgent = jest
         .spyOn(ebsiAppJwt, "Agent")
-        .mockImplementationOnce((name, privateKey, provider) => {
+        .mockImplementationOnce((name, privateKey) => {
           return ({
-            newRequest: (appName) =>
+            createRequestPayload: (appName) =>
               `${appName}-grantType=client_credentials&clientAssertionType=`,
             name,
             privateKey,
-            provider,
           } as unknown) as Agent;
         });
       expect(await sut.downloadDocument("0xhash")).toStrictEqual(data);
@@ -148,7 +147,7 @@ describe("appService", () => {
           "grantType=client_credentials&clientAssertionType="
         ),
         {
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          headers: { "Content-Type": "application/json" },
         }
       );
       expect(spyPost).toHaveBeenCalledTimes(1);

@@ -19,7 +19,7 @@ import configuration from "./config/configuration";
         NODE_ENV: Joi.string()
           .valid("development", "production", "test")
           .default("development"),
-        APP_PRIVATE_KEY: Joi.string().required(),
+        API_PRIVATE_KEY: Joi.string().required(),
         APP_PORT: Joi.number().default(9000),
         LOG_LEVEL: Joi.string().valid(
           "error",

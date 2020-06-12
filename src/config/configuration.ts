@@ -53,7 +53,7 @@ export default () => {
 
   return {
     EBSI_ENV,
-    APP_PRIVATE_KEY: process.env.APP_PRIVATE_KEY,
+    API_PRIVATE_KEY: process.env.API_PRIVATE_KEY,
     APP_PORT: process.env.APP_PORT || 3000,
     LOG_LEVEL: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     PROVIDER: process.env.PROVIDER || defaultConfig[EBSI_ENV].PROVIDER,

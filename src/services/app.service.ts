@@ -177,14 +177,13 @@ export default class AppService {
 
     const agent = new ebsiAppJwt.Agent(
       "trusted-issuers-registry",
-      `0x${this.configService.get("APP_PRIVATE_KEY")}`,
-      `${this.configService.get("TRUSTED_APP_REGISTRY").replace(/\/$/, "")}/v1`
+      `0x${this.configService.get("API_PRIVATE_KEY")}`
     );
 
-    const payload = agent.newRequest("ebsi-storage");
+    const payload = agent.createRequestPayload("ebsi-storage");
 
     const conf: AxiosRequestConfig = {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      headers: { "Content-Type": "application/json" },
     };
 
     const response = axios.post(

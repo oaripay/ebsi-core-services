@@ -22,9 +22,9 @@
     "lint:ts": "tsc --noEmit --incremental false",
     "lint:prettier": "prettier --check \"**/*.{md,json,yml,yaml,js,ts}\"",
     "test:watch": "jest --watch",
-    "test": "jest --coverage --reporters=default --reporters=jest-sonar",
+    "test:unit": "jest --coverage --reporters=default --reporters=jest-sonar --testPathPattern=\"^.+\\.(spec|test)\\.ts$\"",
     "test:e2e": "jest --clearCache && jest --config ./tests/jest-e2e.json --runInBand",
-    "test:all": "jest --clearCache && jest --config ./tests/jest-all.json --runInBand --verbose false",
+    "test": "jest --clearCache && jest --config ./tests/jest-all.json --runInBand --verbose false",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
   },
   "dependencies": {
