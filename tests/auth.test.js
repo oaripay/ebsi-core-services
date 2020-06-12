@@ -35,7 +35,7 @@ describe("authentication in storage api", () => {
     await request
       .post("/storage/v1/sessions")
       .send(requestToken)
-      // .expect(200)
+      .expect(200)
       .then((response) => {
         expect(response.body).toStrictEqual(
           expect.objectContaining({
