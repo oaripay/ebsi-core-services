@@ -7,6 +7,7 @@ import * as winston from "winston";
 import { utilities as winstonUtilities, WinstonModule } from "nest-winston";
 import helmet from "helmet";
 import { AppModule } from "./app.module";
+import HttpExceptionFilter from "./filters/http-exception.filter";
 
 export async function bootstrap() {
   const logger = WinstonModule.createLogger({
@@ -31,7 +32,7 @@ export async function bootstrap() {
 
   // Display server info on bootstrap
   logger.debug(`Log level: ${configService.get("LOG_LEVEL")}`, "ServerInfo");
-  logger.debug(`Port: ${configService.get("APP_PORT")}`, "ServerInfo");
+  logger.debug(`Port: ${configService.get("API_PORT")}`, "ServerInfo");
 
   const options = new DocumentBuilder()
     .addBearerAuth()
@@ -55,8 +56,9 @@ export async function bootstrap() {
   app.enableCors();
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalFilters(new HttpExceptionFilter());
 
-  await app.listen(configService.get("APP_PORT"));
+  await app.listen(configService.get("API_PORT"));
 }
 
 export default bootstrap;

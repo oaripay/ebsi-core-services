@@ -26,8 +26,8 @@ export default () => {
 
   return {
     EBSI_ENV,
-    WALLET_PRIV_KEY: process.env.WALLET_PRIV_KEY,
-    APP_PORT: process.env.APP_PORT || 9000,
+    API_PRIVATE_KEY: process.env.API_PRIVATE_KEY,
+    API_PORT: process.env.API_PORT || 9000,
     LOG_LEVEL: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     WEB3_PROVIDER:
       process.env.WEB3_PROVIDER || defaultConfig[EBSI_ENV].WEB3_PROVIDER,

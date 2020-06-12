@@ -1,10 +1,12 @@
 import { Module } from "@nestjs/common";
+import { APP_FILTER } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
 import * as Joi from "@hapi/joi";
 import { AppController } from "./app.controller";
 import { AppService } from "./services/app.service";
 import { EthersService } from "./services/ethers.service";
 import configuration from "./config/configuration";
+import HttpExceptionFilter from "./filters/http-exception.filter";
 
 @Module({
   imports: [
@@ -17,8 +19,8 @@ import configuration from "./config/configuration";
         NODE_ENV: Joi.string()
           .valid("development", "production", "test")
           .default("development"),
-        WALLET_PRIV_KEY: Joi.string().required(),
-        APP_PORT: Joi.number().default(9000),
+        API_PRIVATE_KEY: Joi.string().required(),
+        API_PORT: Joi.number().default(9000),
         LOG_LEVEL: Joi.string().valid(
           "error",
           "warn",
@@ -35,7 +37,14 @@ import configuration from "./config/configuration";
     }),
   ],
   controllers: [AppController],
-  providers: [EthersService, AppService],
+  providers: [
+    EthersService,
+    AppService,
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}
 

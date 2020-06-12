@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpStatus,
   NotFoundException,
   Param,
   Post,
@@ -13,7 +14,6 @@ import {
   InternalServerErrorException,
 } from "@nestjs/common";
 import { Response } from "express";
-import * as status from "http-status";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { EthersService } from "./services/ethers.service";
 import { AppService } from "./services/app.service";
@@ -46,8 +46,8 @@ export class AppController {
   async getAllApps(@Query() query) {
     try {
       const appKeys = await this.ethersService.getApplicationKeys();
-      const size = query.page ? query.page.size ?? 10 : 10;
-      const after = query.page ? query.page.after ?? 0 : 0;
+      const size = parseInt(query.page ? query.page.size ?? 10 : 10, 10);
+      const after = parseInt(query.page ? query.page.after ?? 0 : 0, 10);
 
       const counter = appKeys.length;
       const itemStartingFrom = after * size;
@@ -77,18 +77,20 @@ export class AppController {
         items,
         total: counter,
         pageSize: size,
-        first: `/trusted-apps-registry/v1/apps?page[after]=0&page[size]=${size}`,
-        prev: `/trusted-apps-registry/v1/apps?page[after]=${Math.max(
-          0,
-          after - 1
-        )}&page[size]=${size}`,
-        next: `/trusted-apps-registry/v1/apps?page[after]=${Math.min(
-          pages - 1,
-          after - -1
-        )}&page[size]=${size}`,
-        last: `/trusted-apps-registry/v1/apps?page[after]=${
-          pages - 1
-        }&page[size]=${size}`,
+        links: {
+          first: `/trusted-apps-registry/v1/apps?page[after]=0&page[size]=${size}`,
+          prev: `/trusted-apps-registry/v1/apps?page[after]=${Math.max(
+            0,
+            after - 1
+          )}&page[size]=${size}`,
+          next: `/trusted-apps-registry/v1/apps?page[after]=${Math.min(
+            pages - 1,
+            after - -1
+          )}&page[size]=${size}`,
+          last: `/trusted-apps-registry/v1/apps?page[after]=${
+            pages - 1
+          }&page[size]=${size}`,
+        },
       };
 
       return result;
@@ -135,8 +137,8 @@ export class AppController {
       );
       const [apps] = authApps;
 
-      const size = query.page ? query.page.size ?? 10 : 10;
-      const after = query.page ? query.page.after ?? 0 : 0;
+      const size = parseInt(query.page ? query.page.size ?? 10 : 10, 10);
+      const after = parseInt(query.page ? query.page.after ?? 0 : 0, 10);
 
       let result = {};
       const items = [];
@@ -157,18 +159,20 @@ export class AppController {
         items,
         total: counter,
         pageSize: size,
-        first: `/trusted-apps-registry/v1/apps?page[after]=0&page[size]=${size}`,
-        prev: `/trusted-apps-registry/v1/apps?page[after]=${Math.max(
-          0,
-          after - 1
-        )}&page[size]=${size}`,
-        next: `/trusted-apps-registry/v1/apps?page[after]=${Math.min(
-          pages - 1,
-          after - -1
-        )}&page[size]=${size}`,
-        last: `/trusted-apps-registry/v1/apps?page[after]=${
-          pages - 1
-        }&page[size]=${size}`,
+        links: {
+          first: `/trusted-apps-registry/v1/apps?page[after]=0&page[size]=${size}`,
+          prev: `/trusted-apps-registry/v1/apps?page[after]=${Math.max(
+            0,
+            after - 1
+          )}&page[size]=${size}`,
+          next: `/trusted-apps-registry/v1/apps?page[after]=${Math.min(
+            pages - 1,
+            after - -1
+          )}&page[size]=${size}`,
+          last: `/trusted-apps-registry/v1/apps?page[after]=${
+            pages - 1
+          }&page[size]=${size}`,
+        },
       };
       return result;
     } catch (ex) {
@@ -219,7 +223,7 @@ export class AppController {
   @ApiResponse({ status: 409, description: HTTP_400 })
   @ApiResponse({ status: 400, description: HTTP_400 })
   @Post("/v1/register-app")
-  @HttpCode(status.CREATED)
+  @HttpCode(HttpStatus.CREATED)
   async postAuthorizedApp(@Body() authAppBody: AuthAppBody) {
     let name;
     try {
@@ -234,7 +238,7 @@ export class AppController {
 
     if (name !== authAppBody.name) {
       throw new UnauthorizedException(
-        "you are not authorized to insert for this DID"
+        "You are not authorized to insert for this DID"
       );
     }
 
@@ -261,7 +265,7 @@ export class AppController {
   @ApiResponse({ status: 409, description: HTTP_400 })
   @ApiResponse({ status: 400, description: HTTP_400 })
   @Post("/v1/authorize")
-  @HttpCode(status.CREATED)
+  @HttpCode(HttpStatus.CREATED)
   async postAuthorization(@Body() authBody: AuthorizationBody) {
     let name;
 
@@ -277,7 +281,7 @@ export class AppController {
 
     if (name !== authBody.appName) {
       throw new UnauthorizedException(
-        "you are not authorized to insert for this DID"
+        "You are not authorized to insert for this DID"
       );
     }
 
@@ -313,7 +317,7 @@ export class AppController {
       return response.status(200).send(res);
     } catch (e) {
       throw new BadRequestException(
-        "there was a problem to process your request"
+        "There was a problem to process your request"
       );
     }
   }

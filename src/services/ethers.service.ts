@@ -32,7 +32,7 @@ export class EthersService {
       this.ethersProvider
     );
     this.ethersWallet = new ethers.Wallet(
-      this.configService.get("WALLET_PRIV_KEY"),
+      this.configService.get("API_PRIVATE_KEY"),
       this.ethersProvider
     );
     this.contractWithSigner = this.contract.connect(this.ethersWallet);
