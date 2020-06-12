@@ -1,3 +1,5 @@
+![EBSI Logo](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
+
 # Storage API
 
 Storage API is a Core Service of the EBSI platform providing access to the Off-chain Storage services of the lower layer Chain & Storage. This API provides read and write storage capabilities of files, Key-Value, and notifications (notifications only for wallet).
@@ -62,6 +64,8 @@ And finally define the keyspace:
 create keyspace ebsi_integration with replication = {'class':'SimpleStrategy','replication_factor':1};
 ```
 
+For testing purposes put `replication_factor` in 1, because there is only 1 node. For production set a bigger number depending on the nodes in the network.
+
 The api connects with this keyspace and create the tables automatically.
 
 The api will be accesible at http://localhost:8080
@@ -84,26 +88,46 @@ npm run start
 
 The api will be accesible at http://localhost:8080
 
-## Unit Tests
+## Tests
 
-Unit tests do not include tests that requires access to Cassandra.
+Tests for File Storage, Key Value Storage, and Notification Storage and their connection with Cassandra. Create an `.env` file using `.env.example` and update the corresponding values.
+For e2e tests, TEST_APP_NAME and TEST_APP_PRIVATE_KEY need to be a valid app registered in the Trusted App Registry.
+
+Launch unit tests and e2e tests with:
 
 ```
-npm run test
+EBSI_ENV=integration npm run test
 ```
 
-## Integration tests
+To connect with a local api for e2e run:
 
-Integration tests for File Storage, Key Value Storage, and Notification Storage and their connection with Cassandra.
+```
+EBSI_ENV=local EBSI_API=http://localhost:8080 npm run test
+```
 
-- Create an .env file using .env.example
-- Deploy the api `docker-compose up --build`
-- Run `npm run test:e2e`
+To run only unit tests:
 
-These tests can be used to check a local api or an api deployed in integration or development environment.
-To test it locally deploy the api using EBSI_TEST_MODE=true and EBSI_ENV=local. In this case, the api will not check the Trusted App Registry for sessions.
-To test the integration or development environment define in TEST_APP_NAME and TEST_APP_PRIVATE_KEY with a valid app registered in the Trusted App Registy.
+```
+npm run test:unit
+```
 
-## Swagger documentation
+To run only integration tests:
+
+```
+npm run test:e2e
+```
+
+## OpenAPI documentation
 
 You can read the documentation at https://api.intebsi.xyz/docs/?urls.primaryName=Storage%20API
+
+## Licensing
+
+Copyright (c) 2019 European Commission  
+Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
+You may not use this work except in compliance with the Licence.
+You may obtain a copy of the Licence at:
+
+- <https://joinup.ec.europa.eu/page/eupl-text-11-12>
+
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.

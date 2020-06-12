@@ -1,12 +1,12 @@
 const axios = require("axios");
+const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 const ethers = require("ethers");
-const jose = require("jose");
 
 const config = require("../src/config");
 const configTest = require("./config");
 
-const { api, TEST_APP_NAME, privKey } = configTest;
-const apiNotif = `${api}/stores/distributed/notifications`;
+const { url, TEST_APP_NAME, privKey } = configTest;
+const apiNotif = `${url}/storage/v1/stores/distributed/notifications`;
 
 const sender1 = ethers.Wallet.createRandom().address;
 const sender2 = ethers.Wallet.createRandom().address;
@@ -57,17 +57,23 @@ let axiosAuth;
 describe("notification storage tests", () => {
   it("create a new session with storage API", async () => {
     expect.assertions(2);
-    const payload = {
-      iss: TEST_APP_NAME,
-      aud: config.API_NAME,
-    };
-    const opts = { expiresIn: "15 minutes" };
-    const selfToken = jose.JWT.sign(payload, privKey, opts);
+    const agent = new ebsiAppJwt.Agent(
+      TEST_APP_NAME,
+      privKey,
+      config.trustedAppsRegistry
+    );
+    const requestToken = agent.newRequest("ebsi-storage");
 
-    const response = await axios.post(`${api}/sessions`, {
-      grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: selfToken,
-    });
+    const opts = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    };
+    const response = await axios.post(
+      `${url}/storage/v1/sessions`,
+      requestToken,
+      opts
+    );
     expect(response.status).toBe(200);
     expect(response.data).toStrictEqual(
       expect.objectContaining({
@@ -143,7 +149,11 @@ describe("notification storage tests", () => {
     expect(responseQueue1.data).toStrictEqual(
       expect.objectContaining({
         total: 2,
-        items: expect.arrayContaining([notification11, notification21]),
+        items: expect.arrayContaining([
+          { ...notification11, id: id11 },
+          { ...notification21, id: id21 },
+        ]),
+        links: expect.objectContaining({}),
       })
     );
 
@@ -154,7 +164,10 @@ describe("notification storage tests", () => {
     expect(responseQueue2.data).toStrictEqual(
       expect.objectContaining({
         total: 2,
-        items: expect.arrayContaining([notification12, notification22]),
+        items: expect.arrayContaining([
+          { ...notification12, id: id12 },
+          { ...notification22, id: id22 },
+        ]),
       })
     );
 
@@ -188,7 +201,61 @@ describe("notification storage tests", () => {
     expect(data).toStrictEqual(
       expect.objectContaining({
         total: 3,
-        items: expect.arrayContaining([notification11, notification21]),
+        items: expect.arrayContaining([
+          { ...notification11, id: expect.any(String) },
+          { ...notification21, id: expect.any(String) },
+        ]),
+      })
+    );
+  });
+
+  it("get notifications using pagination", async () => {
+    expect.assertions(16);
+
+    // several notifications sent to the same receiver
+    const receiver = ethers.Wallet.createRandom().address;
+    const promises = [];
+    for (let i = 0; i < 12; i += 1) {
+      const notification = {
+        sender: ethers.Wallet.createRandom().address,
+        receiver,
+        message: { msg: `message ${i}` },
+      };
+      promises.push(axiosAuth.put(apiNotif, notification));
+    }
+    const responses = await Promise.all(promises);
+    for (let i = 0; i < responses.length; i += 1) {
+      expect(responses[i].status).toBe(200);
+    }
+
+    // call the first page of results (10)
+    const response = await axiosAuth.get(`${apiNotif}?receiver=${receiver}`);
+    expect(response.status).toBe(200);
+    expect(response.data).toStrictEqual(
+      expect.objectContaining({
+        total: 10,
+        links: {
+          first: `/storage/v1/stores/distributed/notifications?receiver=${receiver}`,
+          next: expect.stringContaining(
+            `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bafter%5D=`
+          ),
+        },
+      })
+    );
+
+    // call the next page of results (2)
+    const { next } = response.data.links;
+    const responseNext = await axiosAuth.get(url + next);
+    expect(responseNext.status).toBe(200);
+    expect(responseNext.data).toStrictEqual(
+      expect.objectContaining({
+        total: 2,
+        links: {
+          first: `/storage/v1/stores/distributed/notifications?receiver=${receiver}`,
+          last: expect.stringContaining(
+            `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bafter%5D=`
+          ),
+        },
       })
     );
   });

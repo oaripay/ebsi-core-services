@@ -1,11 +1,12 @@
 const axios = require("axios");
-const jose = require("jose");
+const crypto = require("crypto");
+const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 
 const config = require("../src/config");
 const configTest = require("./config");
 
-const { api, TEST_APP_NAME, privKey } = configTest;
-const apiKeyValue = `${api}/stores/distributed/key-values`;
+const { url, TEST_APP_NAME, privKey } = configTest;
+const apiKeyValue = `${url}/storage/v1/stores/distributed/key-values`;
 
 const key = `test-${Date.now()}`;
 const value = { data: "This is a test", list: [] };
@@ -38,17 +39,23 @@ let axiosAuth;
 describe("key value storage tests", () => {
   it("create a new session with storage API", async () => {
     expect.assertions(2);
-    const payload = {
-      iss: TEST_APP_NAME,
-      aud: config.API_NAME,
-    };
-    const opts = { expiresIn: "15 minutes" };
-    const selfToken = jose.JWT.sign(payload, privKey, opts);
+    const agent = new ebsiAppJwt.Agent(
+      TEST_APP_NAME,
+      privKey,
+      config.trustedAppsRegistry
+    );
+    const requestToken = agent.newRequest("ebsi-storage");
 
-    const response = await axios.post(`${api}/sessions`, {
-      grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-      assertion: selfToken,
-    });
+    const opts = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    };
+    const response = await axios.post(
+      `${url}/storage/v1/sessions`,
+      requestToken,
+      opts
+    );
     expect(response.status).toBe(200);
     expect(response.data).toStrictEqual(
       expect.objectContaining({
@@ -104,5 +111,41 @@ describe("key value storage tests", () => {
     expect.assertions(1);
     const response = await axiosAuth.delete(`${apiKeyValue}/${key}`);
     expect(response.status).toBe(204);
+  });
+
+  it("get keys using pagination", async () => {
+    expect.assertions(15);
+
+    // several notifications sent to the same receiver
+    const promises = [];
+    for (let i = 0; i < 12; i += 1) {
+      const k = `my-key${crypto.randomBytes(10).toString("hex")}`;
+      const v = { prop: `my value ${i}` };
+      promises.push(axiosAuth.put(`${apiKeyValue}/${k}`, v));
+    }
+    const responses = await Promise.all(promises);
+    for (let i = 0; i < responses.length; i += 1) {
+      expect(responses[i].status).toBe(200);
+    }
+
+    // call the first page of results (10)
+    const response = await axiosAuth.get(apiKeyValue);
+    expect(response.status).toBe(200);
+    expect(response.data).toStrictEqual(
+      expect.objectContaining({
+        total: 10,
+        links: {
+          first: "/storage/v1/stores/distributed/key-values?",
+          next: expect.stringContaining(
+            "/storage/v1/stores/distributed/key-values?page%5Bafter%5D="
+          ),
+        },
+      })
+    );
+
+    // call the next page of results
+    const { next } = response.data.links;
+    const responseNext = await axiosAuth.get(url + next);
+    expect(responseNext.status).toBe(200);
   });
 });

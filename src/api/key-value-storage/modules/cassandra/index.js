@@ -18,25 +18,13 @@ const MAX_SIZE_VALUE = 1024 * 1024; // 1 MB
 const cassandraConnection = config.cassandra.connection;
 const cassandra = new cassandraDriver.Client(cassandraConnection);
 
-function buildLink(store, before, after, pageSize) {
-  const query = {};
-  if (before) query["page[before]"] = before;
-
-  if (after) query["page[after]"] = after;
-
-  if (pageSize && pageSize !== config.DEFAULT_PAGE_SIZE)
-    query["page[size]"] = pageSize;
-
-  return `/storage/v1/stores/${store}/files?${querystring.stringify(query)}`;
-}
-
 async function getRecord(key) {
   const query = `select value from ${TABLE_KEY_VALUE_STORAGE} where key = ? allow filtering`;
   const result = await cassandra.execute(query, [key]);
   return result.first();
 }
 
-async function setKey(key, value) {
+async function setKey(key, value, skipReadThenUpdate = false) {
   let type;
   let query;
   let params;
@@ -54,9 +42,10 @@ async function setKey(key, value) {
     );
 
   // check if the key exists
-  const record = await getRecord(key);
+  let exist = false;
+  if (!skipReadThenUpdate) exist = !!(await getRecord(key));
 
-  if (record) {
+  if (exist || skipReadThenUpdate) {
     // update key
     type = "update";
     query = `update ${TABLE_KEY_VALUE_STORAGE} set value = ? where key = ? if exists`;
@@ -123,43 +112,44 @@ async function patchKey(key, patch) {
     throw new BadRequestError(`Impossible to apply patch: ${error.message}`);
   }
 
-  const { result } = await setKey(key, newValue);
+  const { result } = await setKey(key, newValue, true);
   return result[key];
 }
 
-async function getListKeys(q, store) {
+function buildLink(after, size) {
+  const query = {};
+
+  if (size && size !== config.DEFAULT_PAGE_SIZE) query["page[size]"] = size;
+  if (after) query["page[after]"] = after;
+
+  return `/storage/v1/stores/distributed/key-values?${querystring.stringify(
+    query
+  )}`;
+}
+
+async function getListKeys(q) {
   let pageSize = config.DEFAULT_PAGE_SIZE;
+  let pageAfter;
   if (q && q.page) {
     const { page } = q;
-    if (page.size) {
-      if (Number(q["page[size]"]) < 0)
-        throw new BadRequestError("page[size] must be a positive integer");
-      pageSize = page.size;
-    }
+    if (page.size) pageSize = parseInt(page.size, 10);
+    if (page.after) pageAfter = page.after;
   }
 
-  const query = `select key from ${TABLE_KEY_VALUE_STORAGE} limit ?`;
-  const params = [pageSize];
+  const query = `select key from ${TABLE_KEY_VALUE_STORAGE}`;
+  const params = [];
 
-  const result = await cassandra.execute(query, params, { prepare: true });
+  const opts = { prepare: true, fetchSize: pageSize };
+  if (pageAfter) opts.pageState = pageAfter;
+  const result = await cassandra.execute(query, params, opts);
+  const { pageState } = result;
 
-  const items = [];
-  result.rows.forEach((r) => {
-    items.push(r.key);
-  });
+  const items = result.rows.map((r) => r.key);
 
-  if (result.rows.length === 0)
-    return {
-      items,
-      total: 0,
-    };
+  const links = { first: buildLink(null, pageSize) };
 
-  const links = {
-    first: buildLink(store, null, null, pageSize),
-    prev: buildLink(store, null, null, pageSize),
-    next: buildLink(store, null, null, pageSize),
-    last: buildLink(store, null, null, pageSize),
-  };
+  if (pageState) links.next = buildLink(pageState, pageSize);
+  else links.last = buildLink(pageAfter, pageSize);
 
   return {
     items,

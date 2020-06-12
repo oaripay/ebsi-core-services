@@ -7,12 +7,12 @@ class HTTPError extends Error {
     this.detail = detail;
   }
 
-  jsonString() {
-    return JSON.stringify({
+  print() {
+    return {
       title: this.title,
       status: this.status,
       detail: this.detail,
-    });
+    };
   }
 }
 

@@ -1,9 +1,9 @@
 const cassandraDriver = require("cassandra-driver");
+const querystring = require("querystring");
 const { v1: uuidv1 } = require("uuid");
-
 const config = require("../../config");
 const logger = require("../../logger");
-const { BadRequestError, NotFoundError } = require("../../errors");
+const { NotFoundError } = require("../../errors");
 
 const TABLE_NOTIFICATION_STORAGE = "notification_storage";
 const TABLE_NOTIFICATION_HISTORICAL_STORAGE = "notification_historical_storage";
@@ -38,7 +38,7 @@ async function updateNotification(id, data) {
 
   const { sender, receiver, message } = data;
   const messageString = JSON.stringify(message);
-  const query = `update ${TABLE_NOTIFICATION_STORAGE} set sender = ?, receiver = ?, message = ? where id= ? if exists`;
+  const query = `update ${TABLE_NOTIFICATION_STORAGE} set sender = ?, receiver = ?, message = ? where id = ? if exists`;
   const params = [sender, receiver, messageString, id];
   const result = await cassandra.execute(query, params);
 
@@ -85,16 +85,26 @@ async function deleteNotification(id) {
   }
 }
 
+function buildLink(after, size, q) {
+  const query = q;
+  delete query.page;
+
+  if (size && size !== config.DEFAULT_PAGE_SIZE) query["page[size]"] = size;
+  if (after) query["page[after]"] = after;
+
+  return `/storage/v1/stores/distributed/notifications?${querystring.stringify(
+    query
+  )}`;
+}
+
 async function getListNotifications(q) {
   let pageSize = config.DEFAULT_PAGE_SIZE;
+  let pageAfter;
   const { sender, receiver, history } = q;
   if (q && q.page) {
     const { page } = q;
-    if (page.size) {
-      if (Number(q["page[size]"]) < 0)
-        throw new BadRequestError("page[size] must be a positive integer");
-      pageSize = page.size;
-    }
+    if (page.size) pageSize = parseInt(page.size, 10);
+    if (page.after) pageAfter = page.after;
   }
 
   let query = `select * from `;
@@ -116,43 +126,42 @@ async function getListNotifications(q) {
     params = [receiver];
   }
 
-  query += " limit ? allow filtering";
-  params.push(pageSize);
+  query += " allow filtering";
 
-  const result = await cassandra.execute(query, params, { prepare: true });
-  const items = [];
-
-  if (result.rows.length === 0)
-    return {
-      items,
-      total: 0,
-    };
+  const opts = { prepare: true, fetchSize: pageSize };
+  if (pageAfter) opts.pageState = pageAfter;
+  const result = await cassandra.execute(query, params, opts);
+  const { pageState } = result;
+  let items = [];
 
   if (history === "true") {
-    result.rows.forEach((r) => {
-      items.push({
-        id: r.id,
-        sender: r.sender,
-        receiver: r.receiver,
-        message: JSON.parse(r.message),
-        created: r.created,
-        deleted: r.deleted,
-      });
-    });
+    items = result.rows.map((r) => ({
+      id: r.id,
+      sender: r.sender,
+      receiver: r.receiver,
+      message: JSON.parse(r.message),
+      created: r.created,
+      deleted: r.deleted,
+    }));
   } else {
-    result.rows.forEach((r) => {
-      items.push({
-        id: r.id,
-        sender: r.sender,
-        receiver: r.receiver,
-        message: JSON.parse(r.message),
-      });
-    });
+    items = result.rows.map((r) => ({
+      id: r.id,
+      sender: r.sender,
+      receiver: r.receiver,
+      message: JSON.parse(r.message),
+    }));
   }
+
+  const links = { first: buildLink(null, pageSize, q) };
+
+  if (pageState) links.next = buildLink(pageState, pageSize, q);
+  else links.last = buildLink(pageAfter, pageSize, q);
 
   return {
     items,
     total: items.length,
+    pageSize,
+    links,
   };
 }
 

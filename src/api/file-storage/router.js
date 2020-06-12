@@ -15,7 +15,12 @@ const TIMEOUT_UPLOAD_MS = 60000;
 
 function saveInTempFile(req) {
   return new Promise((resolve, reject) => {
-    const busboy = new Busboy({ headers: req.headers });
+    let busboy;
+    try {
+      busboy = new Busboy({ headers: req.headers });
+    } catch (error) {
+      throw new BadRequestError(error.message);
+    }
     const tempFile = `${uuidv4()}.tmp`;
     let filename = null;
     let receivingFile = false;
@@ -23,7 +28,7 @@ function saveInTempFile(req) {
     const timer = setTimeout(() => {
       clearTimeout(timer);
       reject(
-        TooLargeError(`Timeout of ${TIMEOUT_UPLOAD_MS} during the upload`)
+        new TooLargeError(`Timeout of ${TIMEOUT_UPLOAD_MS} during the upload`)
       );
     }, TIMEOUT_UPLOAD_MS);
 
@@ -43,8 +48,10 @@ function saveInTempFile(req) {
     });
 
     busboy.on("finish", () => {
-      if (!receivingFile)
-        throw new BadRequestError("No file received in the body");
+      if (!receivingFile) {
+        reject(new BadRequestError("No file received in the body"));
+        clearTimeout(timer);
+      }
     });
 
     req.pipe(busboy);
@@ -55,7 +62,7 @@ function saveInTempFile(req) {
 router.get("/", async (req, res, next) => {
   try {
     const { store, query } = req;
-    const result = await controller.getListFiles({ store, query });
+    const result = await controller.getListFiles(store, query);
     res.send(result);
   } catch (error) {
     next(error);
@@ -76,11 +83,7 @@ router.post("/", async (req, res, next) => {
         `Payload too large. Max size allowed ${MAX_SIZE} bytes`
       );
 
-    const result = await controller.storeFile({
-      store: req.store,
-      filename,
-      file: tempFile,
-    });
+    const result = await controller.storeFile(req.store, filename, tempFile);
     res.status(201).send(result);
     fs.unlinkSync(tempFile);
   } catch (error) {
@@ -97,7 +100,7 @@ router.post("/", async (req, res, next) => {
 router.get("/:hash", async (req, res, next) => {
   try {
     const { hash } = req.params;
-    const record = await controller.readFile({ store: req.store, hash });
+    const record = await controller.readFile(req.store, hash);
     res.writeHead(200, {
       "Content-Type": `application/${path
         .extname(record.filename)
@@ -115,7 +118,7 @@ router.get("/:hash", async (req, res, next) => {
 router.delete("/:hash", async (req, res, next) => {
   try {
     const { hash } = req.params;
-    await controller.deleteFile({ store: req.store, hash });
+    await controller.deleteFile(req.store, hash);
     res.status(204).send();
   } catch (error) {
     next(error);
