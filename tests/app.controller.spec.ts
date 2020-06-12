@@ -86,7 +86,7 @@ describe("appController", () => {
           return { name: item.preferredName, did: item.issuerDID };
         }),
         total: testValues.resultUniversities.length,
-        pageSize: "10",
+        pageSize: 10,
         links: {
           first:
             "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=10",
@@ -127,7 +127,7 @@ describe("appController", () => {
           })
           .slice(0, 2),
         total: 4,
-        pageSize: "2",
+        pageSize: 2,
         links: {
           first:
             "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=2",

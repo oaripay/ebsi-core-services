@@ -1,12 +1,13 @@
 version: "3.7"
 
 services:
-  api:
+  trusted-issuers-registry-api:
     build: .
-    container_name: api_trusted_issuers
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/trusted-issuers-registry-api:integration_EBSIINT-1379-cleanup-and-tests_v0.0.1
     ports:
       - "9000:9000"
     environment:
-      - EBSI_ENV=development
-    env_file:
-      - .env
+      API_PRIVATE_KEY: ${API_PRIVATE_KEY:?Missing API_PRIVATE_KEY variable}
+      APP_PORT: ${APP_PORT:-9000}
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      EBSI_ENV: ${EBSI_ENV:-development}

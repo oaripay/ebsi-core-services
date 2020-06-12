@@ -3,7 +3,7 @@ WORKDIR /app
 RUN apk add python make g++ && apk update
 COPY package*.json ./
 COPY nest-cli.json ./
-COPY tsconfig.*.json ./
+COPY tsconfig*.json ./
 RUN npm ci --quiet --no-progress
 COPY src src
 RUN npm run build && npm prune --production

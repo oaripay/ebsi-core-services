@@ -45,8 +45,8 @@ export default class AppController {
   @Get("/v1/issuers")
   async issuers(@Query() query) {
     try {
-      const size = query.page ? query.page.size ?? 10 : 10;
-      const after = query.page ? query.page.after ?? 0 : 0;
+      const size = parseInt(query.page ? query.page.size ?? 10 : 10, 10);
+      const after = parseInt(query.page ? query.page.after ?? 0 : 0, 10);
 
       const univ = (
         await this.appService.getUniversityTrustedIssuers()

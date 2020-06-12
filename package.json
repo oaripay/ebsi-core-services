@@ -28,7 +28,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
   },
   "dependencies": {
-    "@cef-ebsi/app-jwt": "0.0.2",
+    "@cef-ebsi/app-jwt": "0.0.3",
     "@hapi/joi": "^17.1.1",
     "@nestjs/common": "^7.1.3",
     "@nestjs/config": "^0.5.0",
