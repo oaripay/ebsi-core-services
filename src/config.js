@@ -1,4 +1,4 @@
-const utils = require("./utils");
+const { privateKeyAsJWK } = require("@cef-ebsi/app-jwt").default;
 require("dotenv").config();
 
 const API_NAME = "ebsi-storage";
@@ -47,9 +47,7 @@ const sharedConfig = {
       reconnectInterval: 5000,
     },
   },
-  privKeyJWK: utils.getJWKfromHex(process.env.API_STORAGE_PRIVATE_KEY),
-  privKey: process.env.API_STORAGE_PRIVATE_KEY,
-  testMode: process.env.EBSI_TEST_MODE === "true",
+  privKey: privateKeyAsJWK(process.env.API_PRIVATE_KEY),
 };
 
 module.exports = {

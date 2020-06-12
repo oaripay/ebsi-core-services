@@ -222,7 +222,7 @@ describe("notification storage tests", () => {
   });
 
   beforeAll(async () => {
-    const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKeyJWK);
+    const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKey);
     const fn = (type) => {
       return (method) => {
         return request[type](
