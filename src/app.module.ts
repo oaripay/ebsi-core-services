@@ -21,18 +21,13 @@ import HttpExceptionFilter from "./filters/http-exception.filter";
           .default("development"),
         API_PRIVATE_KEY: Joi.string().required(),
         API_PORT: Joi.number().default(9000),
-        LOG_LEVEL: Joi.string().valid(
-          "error",
-          "warn",
-          "info",
-          "http",
-          "verbose",
-          "debug",
-          "silly"
-        ),
-        WEB3_PROVIDER: Joi.string(),
-        CONTRACT_ADDR: Joi.string(),
-        AUTH_EXPIRE_TIME: Joi.number(),
+        LOG_LEVEL: Joi.string()
+          .valid("error", "warn", "info", "http", "verbose", "debug", "silly")
+          .allow("")
+          .optional(),
+        WEB3_PROVIDER: Joi.string().allow("").optional(),
+        CONTRACT_ADDR: Joi.string().allow("").optional(),
+        AUTH_EXPIRE_TIME: Joi.number().allow("").optional(),
       }),
     }),
   ],

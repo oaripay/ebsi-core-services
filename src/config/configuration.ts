@@ -27,12 +27,12 @@ export default () => {
   return {
     EBSI_ENV,
     API_PRIVATE_KEY: process.env.API_PRIVATE_KEY,
-    API_PORT: process.env.API_PORT || 9000,
+    API_PORT: parseInt(process.env.API_PORT, 10) || 9000,
     LOG_LEVEL: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     WEB3_PROVIDER:
       process.env.WEB3_PROVIDER || defaultConfig[EBSI_ENV].WEB3_PROVIDER,
     CONTRACT_ADDR:
       process.env.CONTRACT_ADDR || defaultConfig[EBSI_ENV].CONTRACT_ADDR,
-    AUTH_EXPIRE_TIME: process.env.AUTH_EXPIRE_TIME || 60, // minutes
+    AUTH_EXPIRE_TIME: parseInt(process.env.AUTH_EXPIRE_TIME, 10) || 60, // minutes
   };
 };
