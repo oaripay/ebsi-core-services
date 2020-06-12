@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const config = require("./config");
+const utils = require("./utils");
 const logger = require("./logger");
 const auth = require("./auth");
 const errors = require("./errors");
@@ -84,9 +85,7 @@ async function checkTablesCassandra() {
     } catch (error) {
       logger.error(`Connection with cassandra: ${error.message}`);
     }
-    await new Promise((resolve) =>
-      setTimeout(resolve, cassandraOpts.reconnectInterval)
-    );
+    await utils.sleep(cassandraOpts.reconnectInterval);
   }
   /* eslint-enable no-await-in-loop */
   logger.error("Imposible to connect with Cassandra");
@@ -114,7 +113,7 @@ class App {
 
     this.httpServer.post(
       "/storage/v1/sessions",
-      bodyParser.json(),
+      bodyParser.urlencoded({ extended: false }),
       auth.callNewSession
     );
 
@@ -146,9 +145,10 @@ class App {
     this.httpServer.use(errors.handler);
   }
 
-  start(port) {
+  start(port, testMode = false) {
     return this.httpServer.listen(port, () => {
       logger.info(`Storage API started at port ${port}`);
+      if (testMode) logger.info("EBSI TEST MODE enabled");
     });
   }
 }

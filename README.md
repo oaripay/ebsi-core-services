@@ -25,7 +25,7 @@ git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/storage-api.git
 Create a .env file with the private key used in the api
 
 ```
-API_PRIVATE_KEY=023e3d80808...
+API_STORAGE_PRIVATE_KEY=023e3d80808...
 ```
 
 This private key can be generated using ethers: https://docs.ethers.io/ethers.js/html/api-wallet.html or just taking a random string of 64 characters in hex format.

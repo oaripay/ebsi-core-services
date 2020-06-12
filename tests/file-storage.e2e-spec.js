@@ -6,6 +6,7 @@ const fs = require("fs");
 const FormData = require("form-data");
 require("dotenv").config();
 
+const config = require("../src/config");
 const configTest = require("./config");
 
 const { url, TEST_APP_NAME, privKey } = configTest;
@@ -77,12 +78,22 @@ function pipeFile(response) {
 describe("file storage tests", () => {
   it("create a new session with storage API", async () => {
     expect.assertions(2);
-    const agent = new ebsiAppJwt.Agent(TEST_APP_NAME, privKey);
-    const requestToken = agent.createRequestPayload("ebsi-storage");
+    const agent = new ebsiAppJwt.Agent(
+      TEST_APP_NAME,
+      privKey,
+      config.trustedAppsRegistry
+    );
+    const requestToken = agent.newRequest("ebsi-storage");
 
+    const opts = {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    };
     const response = await axios.post(
       `${url}/storage/v1/sessions`,
-      requestToken
+      requestToken,
+      opts
     );
     expect(response.status).toBe(200);
     expect(response.data).toStrictEqual(

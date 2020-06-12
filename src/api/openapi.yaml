@@ -2,11 +2,16 @@ openapi: 3.0.3
 info:
   title: Storage API
   description: |
-    Storage API is a Core Service of the EBSI platform providing access to the Off-chain Storage services of the lower layer Chain & Storage. This API provides read and write storage capabilities of files and Key-Value.
+    Storage API is a Core Service of the EBSI platform providing access to the Off-chain
+    Storage services of the lower layer Chain & Storage. This API provides read and write
+    storage capabilities of files and Key-Value.
 
-    File Storage API provides read and write files capabilities to off-chain distributed storage in v1 and in future to off-chain private (local) storage and off-chain external storage trusted providers.
+    File Storage API provides read and write files capabilities to off-chain distributed
+    storage in v1 and in future to off-chain private (local) storage and off-chain external
+    storage trusted providers.
 
-    Key-Value Storage API provides capabilities to save Key-Value (with data value in JSON format) in the off-chain distributed storage for v1.
+    Key-Value Storage API provides capabilities to save Key-Value (with data value in JSON
+    format) in the off-chain distributed storage for v1.
   version: 1.0.0
   termsOfService: "/docs/terms"
   contact:
@@ -1102,7 +1107,9 @@ components:
             description: Operation to perform
           path:
             type: string
-            description: string containing a JSON-Pointer value that references a location within the target document where the operation is performed.
+            description: |
+              string containing a JSON-Pointer value that references a location within
+              the target document where the operation is performed.
           value:
             oneOf:
               - type: string
@@ -1240,7 +1247,8 @@ components:
         - assertion
       properties:
         grantType:
-          description: OAuth 2.0 grant type. Must be set to "urn:ietf:params:oauth:grant-type:jwt-bearer"
+          description: |
+            OAuth 2.0 grant type. Must be set to "urn:ietf:params:oauth:grant-type:jwt-bearer"
           type: string
           example: "urn:ietf:params:oauth:grant-type:jwt-bearer"
         assertion:

@@ -84,7 +84,7 @@ describe("key value storage tests", () => {
   });
 
   beforeAll(async () => {
-    const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKey);
+    const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKeyJWK);
     const fn = (type) => {
       return (method) => {
         return request[type](
