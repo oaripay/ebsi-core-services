@@ -101,6 +101,14 @@ Run
 npm run test:unit
 ```
 
+### Integration tests
+
+Run
+
+```sh
+npm run test:integration
+```
+
 ### e2e tests
 
 Run

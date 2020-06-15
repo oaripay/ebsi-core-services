@@ -43,13 +43,13 @@ describe("identity hub router API calls", () => {
   describe("identity hub endpoints (mocking IDHub class calls)", () => {
     it("should add a new attribute and return 201", async () => {
       expect.assertions(3);
-      const { userToken, userDid } = await initSetupForTesting();
+      const { token, did } = await initSetupForTesting();
       const attributeInput = { ...mockedAttributes[0] };
       const attributeHash = attributeInput.hash;
       delete attributeInput.did;
       delete attributeInput.hash;
       const expectedResult = { ...mockedAttributes[0] };
-      expectedResult.did = userDid;
+      expectedResult.did = did;
       const spy = jest
         .spyOn(IDHub.prototype, "setAttribute")
         .mockResolvedValue({ attribute: expectedResult, newAttribute: true });
@@ -57,12 +57,12 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput as IAttributeInput);
       expect(res.status).toStrictEqual(201);
       expect(res.body).toMatchObject(expectedResult);
       expect(spy).toHaveBeenCalledWith(
-        userDid,
+        did,
         expectedResult.hash,
         attributeInput
       );
@@ -71,13 +71,13 @@ describe("identity hub router API calls", () => {
 
     it("should return 200 with an existing attribute", async () => {
       expect.assertions(4);
-      const { userToken, userDid } = await initSetupForTesting();
+      const { token, did } = await initSetupForTesting();
       const attributeInput = { ...mockedAttributes[0] };
       const attributeHash = attributeInput.hash;
       delete attributeInput.did;
       delete attributeInput.hash;
       const expectedResult = { ...mockedAttributes[0] };
-      expectedResult.did = userDid;
+      expectedResult.did = did;
       let spy = jest
         .spyOn(IDHub.prototype, "setAttribute")
         .mockResolvedValue({ attribute: expectedResult, newAttribute: true });
@@ -85,7 +85,7 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput as IAttributeInput);
       expect(res.status).toStrictEqual(201);
       spy = jest
@@ -96,12 +96,12 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput as IAttributeInput);
       expect(res2.status).toStrictEqual(200);
       expect(res2.body).toMatchObject(expectedResult);
       expect(spy).toHaveBeenCalledWith(
-        userDid,
+        did,
         expectedResult.hash,
         attributeInput
       );
@@ -131,7 +131,7 @@ describe("identity hub router API calls", () => {
 
     it("should returnn 400 with a non valid hash PUT call", async () => {
       expect.assertions(2);
-      const { userToken } = await initSetupForTesting();
+      const { token } = await initSetupForTesting();
       const attributeInput = { ...mockedAttributes[0] };
       const attributeHash = "0x004";
       delete attributeInput.did;
@@ -146,7 +146,7 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput as IAttributeInput);
       expect(res.status).toStrictEqual(400);
       expect(res.body).toMatchObject(expectedResult);
@@ -154,7 +154,7 @@ describe("identity hub router API calls", () => {
 
     it("should returnn 400 with a non valid hash GET call", async () => {
       expect.assertions(2);
-      const { userToken } = await initSetupForTesting();
+      const { token } = await initSetupForTesting();
       const attributeInput = { ...mockedAttributes[0] };
       const attributeHash = "0x004";
       delete attributeInput.did;
@@ -169,20 +169,20 @@ describe("identity hub router API calls", () => {
         .get(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`);
+        .set("Authorization", `Bearer ${token}`);
       expect(res.status).toStrictEqual(400);
       expect(res.body).toMatchObject(expectedResult);
     });
 
     it("should retrieve an existing attribute", async () => {
       expect.assertions(4);
-      const { userToken, userDid } = await initSetupForTesting();
+      const { token, did } = await initSetupForTesting();
       const attributeInput = { ...mockedAttributes[0] };
       const attributeHash = attributeInput.hash;
       delete attributeInput.did;
       delete attributeInput.hash;
       const expectedResult = { ...mockedAttributes[0] };
-      expectedResult.did = userDid;
+      expectedResult.did = did;
       const spy = jest
         .spyOn(IDHub.prototype, "setAttribute")
         .mockResolvedValue({ attribute: expectedResult, newAttribute: true });
@@ -190,7 +190,7 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput as IAttributeInput);
       expect(res.status).toStrictEqual(201);
       const spyGet = jest
@@ -201,10 +201,10 @@ describe("identity hub router API calls", () => {
         .get(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`);
+        .set("Authorization", `Bearer ${token}`);
       expect(res2.status).toStrictEqual(200);
       expect(res2.body).toMatchObject(expectedResult);
-      expect(spyGet).toHaveBeenCalledWith(userDid, expectedResult.hash);
+      expect(spyGet).toHaveBeenCalledWith(did, expectedResult.hash);
       spy.mockRestore();
       spyGet.mockRestore();
     });
@@ -212,7 +212,7 @@ describe("identity hub router API calls", () => {
     describe("get attributes endpoint (mocked)", () => {
       it("should return a Bad Request withoud parameter DID", async () => {
         expect.assertions(2);
-        const { userToken } = await initSetupForTesting();
+        const { token } = await initSetupForTesting();
         const expectedResult = {
           title: "Bad Request",
           status: 400,
@@ -223,23 +223,23 @@ describe("identity hub router API calls", () => {
           .get(
             `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}`
           )
-          .set("Authorization", `Bearer ${userToken}`);
+          .set("Authorization", `Bearer ${token}`);
         expect(res.status).toStrictEqual(400);
         expect(res.body).toMatchObject(expectedResult);
       });
 
       it("should return an empty formatted result: only DID passed", async () => {
         expect.assertions(3);
-        const { userToken, userDid } = await initSetupForTesting();
+        const { token, did } = await initSetupForTesting();
         const expectedResult: PaginateResult = {
           items: [],
           total: 0,
           pageSize: 10,
           links: {
-            first: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
-            last: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
-            next: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
-            prev: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+            first: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
+            last: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
+            next: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
+            prev: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
           },
         };
         const spyGet = jest
@@ -248,18 +248,18 @@ describe("identity hub router API calls", () => {
         // we add the same attribute again
         const res = await request(server)
           .get(
-            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}`
+            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${did}`
           )
-          .set("Authorization", `Bearer ${userToken}`);
+          .set("Authorization", `Bearer ${token}`);
         expect(res.status).toStrictEqual(200);
         expect(res.body).toMatchObject(expectedResult);
-        expect(spyGet).toHaveBeenCalledWith(userDid);
+        expect(spyGet).toHaveBeenCalledWith(did);
         spyGet.mockRestore();
       });
 
       it("should return an empty formatted result: passed DID and Type", async () => {
         expect.assertions(3);
-        const { userToken, userDid } = await initSetupForTesting();
+        const { token, did } = await initSetupForTesting();
         const type = ["EssifVerifiableID", "EuropassCredential"];
         const encodedType = encodeURIComponent(JSON.stringify(type));
         const expectedResult: PaginateResult = {
@@ -267,10 +267,10 @@ describe("identity hub router API calls", () => {
           total: 0,
           pageSize: 10,
           links: {
-            first: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
-            last: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
-            next: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
-            prev: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
+            first: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=0&page[size]=10`,
+            last: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=0&page[size]=10`,
+            next: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=0&page[size]=10`,
+            prev: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=0&page[size]=10`,
           },
         };
         const spyGet = jest
@@ -279,12 +279,12 @@ describe("identity hub router API calls", () => {
         // we add the same attribute again
         const res = await request(server)
           .get(
-            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}&type=${encodedType}`
+            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${did}&type=${encodedType}`
           )
-          .set("Authorization", `Bearer ${userToken}`);
+          .set("Authorization", `Bearer ${token}`);
         expect(res.status).toStrictEqual(200);
         expect(res.body).toMatchObject(expectedResult);
-        expect(spyGet).toHaveBeenCalledWith(userDid);
+        expect(spyGet).toHaveBeenCalledWith(did);
         spyGet.mockRestore();
       });
     });
@@ -293,13 +293,13 @@ describe("identity hub router API calls", () => {
   describe("identity hub endpoints (File Storage calls mocked)", () => {
     it("should add a new attribute and return 201", async () => {
       expect.assertions(3);
-      const { userToken, userDid } = await initSetupForTesting();
+      const { token, did } = await initSetupForTesting();
       const attributeInput = { ...mockedAttributes[0] };
       const attributeHash = attributeInput.hash;
       delete attributeInput.did;
       delete attributeInput.hash;
       const expectedResult = { ...mockedAttributes[0] };
-      expectedResult.did = userDid;
+      expectedResult.did = did;
 
       const spy = jest
         .spyOn(CASDataStorage.prototype, "insert")
@@ -308,7 +308,7 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput as IAttributeInput);
       expect(res.status).toStrictEqual(201);
       expect(res.body).toMatchObject(expectedResult);
@@ -322,13 +322,13 @@ describe("identity hub router API calls", () => {
 
     it("should return 200 with an existing attribute", async () => {
       expect.assertions(5);
-      const { userToken, userDid } = await initSetupForTesting();
+      const { token, did } = await initSetupForTesting();
       const attributeInput = { ...mockedAttributes[0] };
       const attributeHash = attributeInput.hash;
       delete attributeInput.did;
       delete attributeInput.hash;
       const expectedResult = { ...mockedAttributes[0] };
-      expectedResult.did = userDid;
+      expectedResult.did = did;
       const spy = jest
         .spyOn(CASDataStorage.prototype, "insert")
         .mockResolvedValueOnce({ hash: attributeHash, function: "keccak256" })
@@ -344,7 +344,7 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput as IAttributeInput);
       expect(res.status).toStrictEqual(201);
 
@@ -353,7 +353,7 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput as IAttributeInput);
       expect(res2.status).toStrictEqual(200);
       expect(res2.body).toMatchObject(expectedResult);
@@ -369,13 +369,13 @@ describe("identity hub router API calls", () => {
 
     it("should retrieve an existing attribute", async () => {
       expect.assertions(5);
-      const { userToken, userDid } = await initSetupForTesting();
+      const { token, did } = await initSetupForTesting();
       const attributeInput = { ...mockedAttributes[0] };
       const attributeHash = attributeInput.hash;
       delete attributeInput.did;
       delete attributeInput.hash;
       const expectedResult = { ...mockedAttributes[0] };
-      expectedResult.did = userDid;
+      expectedResult.did = did;
       const spy = jest
         .spyOn(CASDataStorage.prototype, "insert")
         .mockResolvedValue({ hash: attributeHash, function: "keccak256" });
@@ -386,7 +386,7 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput as IAttributeInput);
       expect(res.status).toStrictEqual(201);
 
@@ -395,7 +395,7 @@ describe("identity hub router API calls", () => {
         .get(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`);
+        .set("Authorization", `Bearer ${token}`);
       expect(res2.status).toStrictEqual(200);
       expect(res2.body).toMatchObject(expectedResult);
       expect(spy).toHaveBeenCalledWith({
@@ -410,7 +410,7 @@ describe("identity hub router API calls", () => {
 
     it("should throw a 404 error with a not existing hash but with a DID with attributes", async () => {
       expect.assertions(5);
-      const { userToken } = await initSetupForTesting();
+      const { token } = await initSetupForTesting();
       const attributeInput = { ...mockedAttributes[0] };
       const attributeHash = attributeInput.hash;
       const mockedHash =
@@ -432,7 +432,7 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput as IAttributeInput);
       expect(res.status).toStrictEqual(201);
 
@@ -441,7 +441,7 @@ describe("identity hub router API calls", () => {
         .get(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTE}/${mockedHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`);
+        .set("Authorization", `Bearer ${token}`);
       expect(res2.status).toStrictEqual(404);
       expect(res2.body).toMatchObject(expectedResult);
       expect(spy).toHaveBeenCalledWith({
@@ -456,7 +456,7 @@ describe("identity hub router API calls", () => {
 
     it("should throw a 404 error with a not existing hash and a DID with no attributes", async () => {
       expect.assertions(2);
-      const { userToken } = await initSetupForTesting();
+      const { token } = await initSetupForTesting();
       const mockedHash =
         "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321";
       const expectedResult = {
@@ -469,7 +469,7 @@ describe("identity hub router API calls", () => {
         .get(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTE}/${mockedHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`);
+        .set("Authorization", `Bearer ${token}`);
       expect(res2.status).toStrictEqual(404);
       expect(res2.body).toMatchObject(expectedResult);
     });
@@ -477,43 +477,43 @@ describe("identity hub router API calls", () => {
     describe("get attributes endpoint (mocked only File Storage calls)", () => {
       it("should return an empty formatted result: only DID passed", async () => {
         expect.assertions(2);
-        const { userToken, userDid } = await initSetupForTesting();
+        const { token, did } = await initSetupForTesting();
         const expectedResult: PaginateResult = {
           items: [],
           total: 0,
           pageSize: 10,
           links: {
-            first: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
-            last: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
-            next: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
-            prev: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+            first: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
+            last: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
+            next: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
+            prev: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
           },
         };
 
         const res = await request(server)
           .get(
-            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}`
+            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${did}`
           )
-          .set("Authorization", `Bearer ${userToken}`);
+          .set("Authorization", `Bearer ${token}`);
         expect(res.status).toStrictEqual(200);
         expect(res.body).toMatchObject(expectedResult);
       });
 
       it("should return one element formatted result: only DID passed", async () => {
         expect.assertions(3);
-        const { userToken, userDid } = await initSetupForTesting();
+        const { token, did } = await initSetupForTesting();
         const expectedResult: PaginateResult = {
           items: mockedAttributes.slice(0, 1),
           total: 1,
           pageSize: 10,
           links: {
-            first: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
-            last: `/identity-hub/v1/attributes?did=${userDid}&page[after]=1&page[size]=10`,
-            next: `/identity-hub/v1/attributes?did=${userDid}&page[after]=1&page[size]=10`,
-            prev: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+            first: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
+            last: `/identity-hub/v1/attributes?did=${did}&page[after]=1&page[size]=10`,
+            next: `/identity-hub/v1/attributes?did=${did}&page[after]=1&page[size]=10`,
+            prev: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
           },
         };
-        expectedResult.items[0].did = userDid;
+        expectedResult.items[0].did = did;
         const attributeInput1 = { ...mockedAttributes[0] };
         const attributeHash1 = attributeInput1.hash;
         delete attributeInput1.did;
@@ -533,15 +533,15 @@ describe("identity hub router API calls", () => {
           .put(
             `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash1}`
           )
-          .set("Authorization", `Bearer ${userToken}`)
+          .set("Authorization", `Bearer ${token}`)
           .send(attributeInput1 as IAttributeInput);
         expect(res1.status).toStrictEqual(201);
 
         const resGet = await request(server)
           .get(
-            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}`
+            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${did}`
           )
-          .set("Authorization", `Bearer ${userToken}`);
+          .set("Authorization", `Bearer ${token}`);
         expect(resGet.status).toStrictEqual(200);
         expect(resGet.body).toMatchObject(expectedResult);
         spy.mockRestore();
@@ -550,20 +550,20 @@ describe("identity hub router API calls", () => {
 
       it("should return a two element formatted result: only DID passed", async () => {
         expect.assertions(4);
-        const { userToken, userDid } = await initSetupForTesting();
+        const { token, did } = await initSetupForTesting();
         const expectedResult: PaginateResult = {
           items: mockedAttributes.slice(0, 2),
           total: 2,
           pageSize: 10,
           links: {
-            first: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
-            last: `/identity-hub/v1/attributes?did=${userDid}&page[after]=2&page[size]=10`,
-            next: `/identity-hub/v1/attributes?did=${userDid}&page[after]=2&page[size]=10`,
-            prev: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+            first: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
+            last: `/identity-hub/v1/attributes?did=${did}&page[after]=2&page[size]=10`,
+            next: `/identity-hub/v1/attributes?did=${did}&page[after]=2&page[size]=10`,
+            prev: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
           },
         };
-        expectedResult.items[0].did = userDid;
-        expectedResult.items[1].did = userDid;
+        expectedResult.items[0].did = did;
+        expectedResult.items[1].did = did;
         const attributeInput1 = { ...mockedAttributes[0] };
         const attributeHash1 = attributeInput1.hash;
         delete attributeInput1.did;
@@ -592,7 +592,7 @@ describe("identity hub router API calls", () => {
           .put(
             `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash1}`
           )
-          .set("Authorization", `Bearer ${userToken}`)
+          .set("Authorization", `Bearer ${token}`)
           .send(attributeInput1 as IAttributeInput);
         expect(res1.status).toStrictEqual(201);
 
@@ -600,15 +600,15 @@ describe("identity hub router API calls", () => {
           .put(
             `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash2}`
           )
-          .set("Authorization", `Bearer ${userToken}`)
+          .set("Authorization", `Bearer ${token}`)
           .send(attributeInput2 as IAttributeInput);
         expect(res2.status).toStrictEqual(201);
 
         const resGet = await request(server)
           .get(
-            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}`
+            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${did}`
           )
-          .set("Authorization", `Bearer ${userToken}`);
+          .set("Authorization", `Bearer ${token}`);
         expect(resGet.status).toStrictEqual(200);
         expect(resGet.body).toMatchObject(expectedResult);
         spy.mockRestore();
@@ -617,7 +617,7 @@ describe("identity hub router API calls", () => {
 
       it("should return one element filtered with type 'attributeType2'", async () => {
         expect.assertions(4);
-        const { userToken, userDid } = await initSetupForTesting();
+        const { token, did } = await initSetupForTesting();
         const type = ["attributeType2"];
         const encodedType = encodeURIComponent(JSON.stringify(type));
         const expectedResult: PaginateResult = {
@@ -625,13 +625,13 @@ describe("identity hub router API calls", () => {
           total: 1,
           pageSize: 10,
           links: {
-            first: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
-            last: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=1&page[size]=10`,
-            next: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=1&page[size]=10`,
-            prev: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
+            first: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=0&page[size]=10`,
+            last: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=1&page[size]=10`,
+            next: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=1&page[size]=10`,
+            prev: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=0&page[size]=10`,
           },
         };
-        expectedResult.items[0].did = userDid;
+        expectedResult.items[0].did = did;
         const attributeInput1 = { ...mockedAttributes[0] };
         const attributeHash1 = attributeInput1.hash;
         delete attributeInput1.did;
@@ -660,7 +660,7 @@ describe("identity hub router API calls", () => {
           .put(
             `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash1}`
           )
-          .set("Authorization", `Bearer ${userToken}`)
+          .set("Authorization", `Bearer ${token}`)
           .send(attributeInput1 as IAttributeInput);
         expect(res1.status).toStrictEqual(201);
 
@@ -668,15 +668,15 @@ describe("identity hub router API calls", () => {
           .put(
             `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash2}`
           )
-          .set("Authorization", `Bearer ${userToken}`)
+          .set("Authorization", `Bearer ${token}`)
           .send(attributeInput2 as IAttributeInput);
         expect(res2.status).toStrictEqual(201);
 
         const resGet = await request(server)
           .get(
-            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}&type=${encodedType}`
+            `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${did}&type=${encodedType}`
           )
-          .set("Authorization", `Bearer ${userToken}`);
+          .set("Authorization", `Bearer ${token}`);
         expect(resGet.status).toStrictEqual(200);
         expect(resGet.body).toMatchObject(expectedResult);
         spy.mockRestore();
@@ -686,7 +686,7 @@ describe("identity hub router API calls", () => {
 
     it("should return two elements filtered with an array of string arrays", async () => {
       expect.assertions(4);
-      const { userToken, userDid } = await initSetupForTesting();
+      const { token, did } = await initSetupForTesting();
       const type = [
         ["attributeType1", "attributeType2"],
         ["attributeType1", "attributeType3"],
@@ -697,14 +697,14 @@ describe("identity hub router API calls", () => {
         total: 2,
         pageSize: 10,
         links: {
-          first: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
-          last: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=2&page[size]=10`,
-          next: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=2&page[size]=10`,
-          prev: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
+          first: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=0&page[size]=10`,
+          last: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=2&page[size]=10`,
+          next: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=2&page[size]=10`,
+          prev: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=0&page[size]=10`,
         },
       };
-      expectedResult.items[0].did = userDid;
-      expectedResult.items[1].did = userDid;
+      expectedResult.items[0].did = did;
+      expectedResult.items[1].did = did;
       const attributeInput1 = { ...mockedAttributes[0] };
       const attributeHash1 = attributeInput1.hash;
       delete attributeInput1.did;
@@ -733,7 +733,7 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash1}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput1 as IAttributeInput);
       expect(res1.status).toStrictEqual(201);
 
@@ -741,15 +741,15 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash2}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput2 as IAttributeInput);
       expect(res2.status).toStrictEqual(201);
 
       const resGet = await request(server)
         .get(
-          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}&type=${encodedType}`
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${did}&type=${encodedType}`
         )
-        .set("Authorization", `Bearer ${userToken}`);
+        .set("Authorization", `Bearer ${token}`);
       expect(resGet.status).toStrictEqual(200);
       expect(resGet.body).toMatchObject(expectedResult);
       spy.mockRestore();
@@ -760,18 +760,18 @@ describe("identity hub router API calls", () => {
   describe("get attributes endpoint (whole flow)", () => {
     it("should retrieve an existing attribute", async () => {
       expect.assertions(3);
-      const { userToken, userDid } = await initSetupForTesting();
+      const { token, did } = await initSetupForTesting();
       const attributeInput = { ...mockedAttributes[0] };
       const attributeHash = attributeInput.hash;
       delete attributeInput.did;
       delete attributeInput.hash;
       const expectedResult = { ...mockedAttributes[0] };
-      expectedResult.did = userDid;
+      expectedResult.did = did;
       const res = await request(server)
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput as IAttributeInput);
       expect(res.status).toStrictEqual(201);
 
@@ -780,26 +780,26 @@ describe("identity hub router API calls", () => {
         .get(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTE}/${attributeHash}`
         )
-        .set("Authorization", `Bearer ${userToken}`);
+        .set("Authorization", `Bearer ${token}`);
       expect(res2.status).toStrictEqual(200);
       expect(res2.body).toMatchObject(expectedResult);
     });
 
     it("should return one element formatted result: only DID passed", async () => {
       expect.assertions(3);
-      const { userToken, userDid } = await initSetupForTesting();
+      const { token, did } = await initSetupForTesting();
       const expectedResult: PaginateResult = {
         items: mockedAttributes.slice(1, 2),
         total: 1,
         pageSize: 10,
         links: {
-          first: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
-          last: `/identity-hub/v1/attributes?did=${userDid}&page[after]=1&page[size]=10`,
-          next: `/identity-hub/v1/attributes?did=${userDid}&page[after]=1&page[size]=10`,
-          prev: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+          first: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
+          last: `/identity-hub/v1/attributes?did=${did}&page[after]=1&page[size]=10`,
+          next: `/identity-hub/v1/attributes?did=${did}&page[after]=1&page[size]=10`,
+          prev: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
         },
       };
-      expectedResult.items[0].did = userDid;
+      expectedResult.items[0].did = did;
       const attributeInput1 = { ...mockedAttributes[1] };
       const attributeHash1 = attributeInput1.hash;
       delete attributeInput1.did;
@@ -809,35 +809,35 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash1}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput1 as IAttributeInput);
       expect(res1.status).toStrictEqual(201);
 
       const resGet = await request(server)
         .get(
-          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}`
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${did}`
         )
-        .set("Authorization", `Bearer ${userToken}`);
+        .set("Authorization", `Bearer ${token}`);
       expect(resGet.status).toStrictEqual(200);
       expect(resGet.body).toMatchObject(expectedResult);
     });
 
     it("should return a two element formatted result: only DID passed", async () => {
       expect.assertions(4);
-      const { userToken, userDid } = await initSetupForTesting();
+      const { token, did } = await initSetupForTesting();
       const expectedResult: PaginateResult = {
         items: mockedAttributes.slice(2, 4),
         total: 2,
         pageSize: 10,
         links: {
-          first: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
-          last: `/identity-hub/v1/attributes?did=${userDid}&page[after]=2&page[size]=10`,
-          next: `/identity-hub/v1/attributes?did=${userDid}&page[after]=2&page[size]=10`,
-          prev: `/identity-hub/v1/attributes?did=${userDid}&page[after]=0&page[size]=10`,
+          first: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
+          last: `/identity-hub/v1/attributes?did=${did}&page[after]=2&page[size]=10`,
+          next: `/identity-hub/v1/attributes?did=${did}&page[after]=2&page[size]=10`,
+          prev: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
         },
       };
-      expectedResult.items[0].did = userDid;
-      expectedResult.items[1].did = userDid;
+      expectedResult.items[0].did = did;
+      expectedResult.items[1].did = did;
       const attributeInput1 = { ...mockedAttributes[2] };
       const attributeHash1 = attributeInput1.hash;
       delete attributeInput1.did;
@@ -851,7 +851,7 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash1}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput1 as IAttributeInput);
       expect(res1.status).toStrictEqual(201);
 
@@ -859,22 +859,22 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash2}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput2 as IAttributeInput);
       expect(res2.status).toStrictEqual(201);
 
       const resGet = await request(server)
         .get(
-          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}`
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${did}`
         )
-        .set("Authorization", `Bearer ${userToken}`);
+        .set("Authorization", `Bearer ${token}`);
       expect(resGet.status).toStrictEqual(200);
       expect(resGet.body).toMatchObject(expectedResult);
     });
 
     it("should return one element filtered with type 'attributeType2'", async () => {
       expect.assertions(4);
-      const { userToken, userDid } = await initSetupForTesting();
+      const { token, did } = await initSetupForTesting();
       const type = ["attributeType2"];
       const encodedType = encodeURIComponent(JSON.stringify(type));
       const expectedResult: PaginateResult = {
@@ -882,13 +882,13 @@ describe("identity hub router API calls", () => {
         total: 1,
         pageSize: 10,
         links: {
-          first: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
-          last: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=1&page[size]=10`,
-          next: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=1&page[size]=10`,
-          prev: `/identity-hub/v1/attributes?did=${userDid}&type=${encodedType}&page[after]=0&page[size]=10`,
+          first: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=0&page[size]=10`,
+          last: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=1&page[size]=10`,
+          next: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=1&page[size]=10`,
+          prev: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=0&page[size]=10`,
         },
       };
-      expectedResult.items[0].did = userDid;
+      expectedResult.items[0].did = did;
       const attributeInput1 = { ...mockedAttributes[6] };
       const attributeHash1 = attributeInput1.hash;
       delete attributeInput1.did;
@@ -902,7 +902,7 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash1}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput1 as IAttributeInput);
       expect(res1.status).toStrictEqual(201);
 
@@ -910,15 +910,15 @@ describe("identity hub router API calls", () => {
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash2}`
         )
-        .set("Authorization", `Bearer ${userToken}`)
+        .set("Authorization", `Bearer ${token}`)
         .send(attributeInput2 as IAttributeInput);
       expect(res2.status).toStrictEqual(201);
 
       const resGet = await request(server)
         .get(
-          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${userDid}&type=${encodedType}`
+          `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${did}&type=${encodedType}`
         )
-        .set("Authorization", `Bearer ${userToken}`);
+        .set("Authorization", `Bearer ${token}`);
       expect(resGet.status).toStrictEqual(200);
       expect(resGet.body).toMatchObject(expectedResult);
     });

@@ -24,6 +24,7 @@
     "format": "prettier --write 'src/**/*.{js,ts,tsx}' 'tests/**/*.{js,ts,tsx}'",
     "test": "jest --clearCache && jest --runInBand --verbose false",
     "test:unit": "jest --clearCache && jest --runInBand --verbose false --testPathPattern=unit",
+    "test:integration": "jest --clearCache && jest --runInBand --verbose false --testPathPattern=integration",
     "test:e2e": "jest --clearCache && jest --runInBand --verbose false --testPathPattern=e2e"
   },
   "devDependencies": {
