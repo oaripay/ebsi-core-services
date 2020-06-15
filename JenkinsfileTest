@@ -3,7 +3,7 @@ pipeline {
     environment {
         EBSI_ENV='test'
         DEBUG_LEVEL='silly'
-        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY_HUB')
         DID_REGISTRY_SC_ADDRESS=credentials('DID_REGISTRY_SC_ADDRESS')
     }
     stages {
