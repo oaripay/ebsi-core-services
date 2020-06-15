@@ -5,27 +5,17 @@ import EBSI_JWT from "@cef-ebsi/app-jwt";
 import { EventEmitter } from "events";
 import * as auth from "../../src/middleware/auth";
 import * as config from "../../src/config";
-import { InvalidTokenError } from "../../src/errors";
-import {
-  AUTHORIZATION_TYPE,
-  CONTENT_TYPE,
-  TOKEN_TYPE,
-  EBSI_ACCESS_TOKEN_SCOPE,
-} from "../../src/libs/authManager/secureEnclave/jwt";
-import { getSessionRequestBody } from "../../src/utils";
+import { TOKEN_TYPE } from "../../src/libs/authManager/secureEnclave/jwt";
 
 describe("auth middleware unit testing suite", () => {
   it("should return a signed component session", async () => {
     expect.assertions(1);
-    const payload = await getSessionRequestBody(config.API_NAME);
+    const agent = new EBSI_JWT.Agent(config.API_NAME, config.API_PRIVATE_KEY);
+    const payload = agent.createRequestPayload(config.API_NAME);
     const next = () => {};
     const req = httpMocks.createRequest({
       method: "POST",
       baseUrl: "/sessions",
-      headers: {
-        "Content-Type": CONTENT_TYPE.urlencoded,
-        Authorization: AUTHORIZATION_TYPE.DID_CCG_TAR_V1,
-      },
       body: payload as any,
     });
     const res = httpMocks.createResponse({
@@ -36,7 +26,6 @@ describe("auth middleware unit testing suite", () => {
       tokenType: TOKEN_TYPE.bearer,
       expiresIn: Date.now() + 900,
       issuedAt: Date.now(),
-      scope: EBSI_ACCESS_TOKEN_SCOPE.OPENID,
     };
     res.on("end", () => {
       // eslint-disable-next-line no-underscore-dangle
@@ -55,10 +44,6 @@ describe("auth middleware unit testing suite", () => {
     const req = httpMocks.createRequest({
       method: "POST",
       baseUrl: "/sessions",
-      headers: {
-        "Content-Type": CONTENT_TYPE.urlencoded,
-        Authorization: AUTHORIZATION_TYPE.DID_CCG_TAR_V1,
-      },
       body: {},
     });
     const res = httpMocks.createResponse();
@@ -129,29 +114,6 @@ describe("auth middleware unit testing suite", () => {
       jest.resetAllMocks();
     });
 
-    it("should throw an invalidtoken when no aud correct is set", async () => {
-      expect.assertions(3);
-      const req = httpMocks.createRequest({
-        method: "POST",
-        baseUrl: "/a-simple-call",
-        headers: { Authorization: `Bearer ${"aaaaaaTOKEN"}` },
-      });
-      const res = httpMocks.createResponse();
-      const tokenDecoded = {
-        aud: "another audience",
-      };
-      jest.spyOn(JWT, "decode").mockReturnValue(tokenDecoded as any);
-      const next = (error?: any) => {
-        expect(error).toBeDefined();
-        expect(error).toBeInstanceOf(InvalidTokenError);
-        expect((error as InvalidTokenError).Detail).toStrictEqual(
-          "Token with incorrect audience. Please create a new session with 'ebsi-idhub'"
-        );
-      };
-      await auth.handleToken(req, res, next);
-      jest.resetAllMocks();
-    });
-
     it("should throw an error while retrieving the public key", async () => {
       expect.assertions(2);
       const req = httpMocks.createRequest({
@@ -177,7 +139,7 @@ describe("auth middleware unit testing suite", () => {
     });
 
     it("should throw a InvalidTokenError on verify token", async () => {
-      expect.assertions(3);
+      expect.assertions(1);
       const req = httpMocks.createRequest({
         method: "POST",
         baseUrl: "/a-simple-call",
@@ -199,11 +161,7 @@ describe("auth middleware unit testing suite", () => {
         },
       });
       const next = (error?: any) => {
-        expect(error).toBeDefined();
-        expect(error).toBeInstanceOf(InvalidTokenError);
-        expect((error as InvalidTokenError).Detail).toStrictEqual(
-          "Error verifying token: error on verify"
-        );
+        expect(error.detail).toStrictEqual("error on verify");
       };
       await auth.handleToken(req, res, next);
       jest.resetAllMocks();

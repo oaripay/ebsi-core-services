@@ -1,13 +1,7 @@
-import jose from "jose";
 import express from "express";
-import { InvalidTokenError } from "../errors";
+import EBSI_JWT from "@cef-ebsi/app-jwt";
 import * as config from "../config";
-import { util, getSession } from "../utils";
-import { JWTClaims } from "../libs/authManager/secureEnclave/jwt";
-
-/*
- * Functions for the Router
- */
+import { util } from "../utils";
 
 /*
  * Get the token from the headers
@@ -39,42 +33,17 @@ async function handleToken(
     next();
     return;
   }
-
-  const payload = jose.JWT.decode(token) as JWTClaims;
-  if (
-    payload.aud !== config.API_NAME &&
-    payload.aud !== config.EBSI_APPS.WALLET // supports AuthZ tokens from wallet
-  ) {
-    next(
-      new InvalidTokenError(
-        `Token with incorrect audience. Please create a new session with '${config.API_NAME}'`
-      )
+  try {
+    const tar = new EBSI_JWT.TrustedAppRegistry(
+      config.EBSI_SERVICE.URL.TRUSTED_APPS_REGISTRY
     );
-    return;
-  }
-  const session = await getSession();
-  let publicKeyPEM: string;
-  try {
-    const b64PubKeyPEM = await session.getPublicKey(payload.aud);
-    publicKeyPEM = b64PubKeyPEM.includes("BEGIN PUBLIC KEY")
-      ? b64PubKeyPEM
-      : Buffer.from(b64PubKeyPEM, "base64").toString();
+    await tar.verify(token);
+    Object.assign(req.params, { authenticated: true });
+    next();
   } catch (error) {
+    Object.assign(req.params, { authenticated: false });
     next(error);
-    return;
   }
-
-  try {
-    jose.JWT.verify(token, publicKeyPEM);
-  } catch (error) {
-    util.PRINT_ERROR(error);
-    next(new InvalidTokenError(`Error verifying token: ${error.message}`));
-    return;
-  }
-
-  util.PRINT_DEBUG(`token: Valid token`);
-  Object.assign(req.params, { authenticated: true });
-  next();
 }
 
 async function callNewSession(
@@ -84,7 +53,11 @@ async function callNewSession(
 ) {
   try {
     const { body } = req;
-    const session = await getSession();
+    const session = new EBSI_JWT.Session(
+      config.API_NAME,
+      config.API_PRIVATE_KEY,
+      config.EBSI_SERVICE.URL.TRUSTED_APPS_REGISTRY
+    );
     const result = await session.newSession(body);
     res.send(result);
   } catch (error) {

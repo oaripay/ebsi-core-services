@@ -107,7 +107,6 @@ export interface AccessTokenResponseBody {
   tokenType: TOKEN_TYPE.bearer;
   expiresIn: number; // 15 minutes
   issuedAt: number;
-  scope: EBSI_ACCESS_TOKEN_SCOPE.OPENID;
 }
 
 export enum CONTENT_TYPE {

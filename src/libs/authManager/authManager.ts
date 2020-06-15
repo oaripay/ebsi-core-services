@@ -1,4 +1,5 @@
 import moment from "moment";
+import EBSI_JWT from "@cef-ebsi/app-jwt";
 import { ICASFile } from "../../daos/casFile";
 import { ICASStorageOut } from "../../dtos/dataStorage";
 import { IEbsiApiAuthConnection, ILoginReturn } from "../../dtos/ebsiApi";
@@ -6,15 +7,8 @@ import * as config from "../../config";
 import * as api from "../../utils/api";
 import { InternalError, API_ERROR_MESSAGES } from "../../errors";
 import { isTokenExpired } from "../../utils/util";
-import {
-  AccessTokenResponseBody,
-  TOKEN_TYPE,
-  AccessTokenRequestHeaders,
-  CONTENT_TYPE,
-  AUTHORIZATION_TYPE,
-} from "./secureEnclave/jwt";
+import { AccessTokenResponseBody, TOKEN_TYPE } from "./secureEnclave/jwt";
 import ComponentSecureEnclave from "./secureEnclave/componentSecureEnclave";
-import { getSessionRequestBody } from "../../utils/session";
 
 /**
  * Class to a SingleTon Class AuthManager
@@ -178,19 +172,12 @@ export default class AuthManager {
     if (!appInfo)
       throw new InternalError(API_ERROR_MESSAGES.NO_TARGET_APP_INFO);
 
-    const payload = await getSessionRequestBody(targetApp);
-
-    const configHeaders = {
-      headers: {
-        "Content-Type": CONTENT_TYPE.urlencoded,
-        Authorization: AUTHORIZATION_TYPE.DID_CCG_TAR_V1,
-      } as AccessTokenRequestHeaders,
-    };
+    const agent = new EBSI_JWT.Agent(config.API_NAME, config.API_PRIVATE_KEY);
+    const payload = agent.createRequestPayload(targetApp);
 
     const resp: AccessTokenResponseBody = await api.doPostCallWithoutToken(
       payload,
-      appInfo.url + config.EBSI_SERVICE.CALL.EBSI_LOGIN,
-      configHeaders
+      appInfo.url + config.EBSI_SERVICE.CALL.EBSI_LOGIN
     );
 
     if (
