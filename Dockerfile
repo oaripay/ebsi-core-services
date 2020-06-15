@@ -5,7 +5,7 @@ RUN npm ci --quiet --no-progress
 COPY . .
 RUN npm run build && npm prune --production
 
-FROM node:12-alpine
+FROM node:12.16.1-alpine
 WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app/node_modules /usr/src/app/node_modules
 COPY --from=builder /usr/src/app/dist /usr/src/app/dist
