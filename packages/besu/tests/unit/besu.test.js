@@ -3,13 +3,13 @@ const axios = require("axios");
 const jose = require("jose");
 const ethers = require("ethers");
 
-const config = require("../src/config");
-const utils = require("../src/utils");
-const Server = require("../src/server");
+const config = require("../../src/config");
+const utils = require("../../src/utils");
+const Server = require("../../src/server");
 
-const { InternalError } = require("../src/errors");
+const { InternalError } = require("../../src/errors");
 
-const server = new Server().start(config.port);
+const server = new Server().getServer();
 const request = supertest(server);
 
 const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);

@@ -2,17 +2,17 @@ const supertest = require("supertest");
 const ethers = require("ethers");
 const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 
-const config = require("../src/config");
-const { url, TEST_APP_NAME, privKey } = require("./config");
-const utils = require("../src/utils");
-const Server = require("../src/server");
+const config = require("../../src/config");
+const { url, TEST_APP_NAME, privKey } = require("../config");
+const utils = require("../../src/utils");
+const Server = require("../../src/server");
 
 let request;
 let server = null;
 if (url) {
   request = supertest(url);
 } else {
-  server = new Server().start(config.port);
+  server = new Server().getServer();
   request = supertest(server);
 }
 
@@ -77,10 +77,6 @@ async function getDeployTransaction() {
 
 /* eslint jest/no-hooks: "off" */
 describe("hyperledger Besu integration test", () => {
-  afterAll(() => {
-    if (server) server.close();
-  });
-
   it("create a new session with ledger api", async () => {
     expect.assertions(1);
     const agent = new ebsiAppJwt.Agent(TEST_APP_NAME, privKey);

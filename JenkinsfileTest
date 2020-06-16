@@ -3,7 +3,6 @@ pipeline {
     environment {
         EBSI_ENV="local"
         BESU_ADDRESS_NOTARY="0x21b38942aA9BC992482627f63814Ffa06DA7e500"
-        PORT="8180"
         TEST_APP_NAME="ebsi-wallet"
         API_PRIVATE_KEY=credentials('API_LEDGER_PRIVATE_KEY')
         TEST_APP_PRIVATE_KEY=credentials('TEST_APP_PRIVATE_KEY')

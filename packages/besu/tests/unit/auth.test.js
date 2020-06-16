@@ -2,10 +2,10 @@ const supertest = require("supertest");
 const jose = require("jose");
 const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 
-const config = require("../src/config");
-const Server = require("../src/server");
+const config = require("../../src/config");
+const Server = require("../../src/server");
 
-const server = new Server().start(config.port);
+const server = new Server().getServer();
 const request = supertest(server);
 
 let token;
