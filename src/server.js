@@ -141,6 +141,10 @@ class App {
     this.httpServer.use(errors.handler);
   }
 
+  getServer() {
+    return this.httpServer;
+  }
+
   start(port) {
     return this.httpServer.listen(port, () => {
       logger.info(`Storage API started at port ${port}`);

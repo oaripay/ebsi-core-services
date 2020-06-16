@@ -7,7 +7,7 @@ const Server = require("../../src/server");
 
 jest.mock("cassandra-driver");
 
-const server = new Server().start(config.port);
+const server = new Server().getServer();
 const request = supertest(server);
 
 const randomKey = () => jose.JWK.generateSync("EC", "secp256k1");

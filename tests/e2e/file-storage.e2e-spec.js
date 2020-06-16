@@ -4,7 +4,6 @@ const crypto = require("crypto");
 const ethers = require("ethers");
 const fs = require("fs");
 
-const config = require("../../src/config");
 const Server = require("../../src/server");
 const cassandra = require("../../src/cassandraClient");
 const { url, TEST_APP_NAME, privKey } = require("../config");
@@ -20,7 +19,7 @@ let callApi;
 if (url) {
   request = supertest(url);
 } else {
-  server = new Server().start(config.port);
+  server = new Server().getServer();
   request = supertest(server);
 }
 
@@ -64,10 +63,7 @@ expect.extend({
 /* eslint jest/no-hooks: "off" */
 describe("file storage tests", () => {
   afterAll(async () => {
-    if (server) {
-      server.close();
-      await cassandra.shutdown();
-    }
+    await cassandra.shutdown();
   });
 
   it("create new session", async () => {
