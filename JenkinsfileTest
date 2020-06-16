@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
         EBSI_ENV="local"
+        PORT="8180"
         API_PRIVATE_KEY=credentials('API_STORAGE_PRIVATE_KEY')
     }
     stages {
