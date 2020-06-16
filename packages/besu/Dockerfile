@@ -1,5 +1,5 @@
 # Stage 0: prepare node alpine image
-FROM node:12-alpine AS base
+FROM node:12.16.1-alpine AS base
 RUN apk add --update --no-cache \
   python \
   make \
@@ -13,7 +13,7 @@ RUN npm ci --quiet --no-progress
 COPY . /usr/src/api/
 
 # Stage 3: run light api
-FROM node:12-alpine
+FROM node:12.16.1-alpine
 WORKDIR /usr/src/api
 COPY --from=besu-api /usr/src/api/node_modules /usr/src/api/node_modules
 COPY --from=besu-api /usr/src/api/src /usr/src/api/src
