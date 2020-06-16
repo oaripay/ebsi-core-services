@@ -103,7 +103,7 @@ docker-compose up --build
 Create the keyspace in Cassandra. First enter to the container
 
 ```
-docker exec -it cassandradb bash
+docker exec -it cassandradb_test bash
 ```
 
 Enter to the cassandra command line
