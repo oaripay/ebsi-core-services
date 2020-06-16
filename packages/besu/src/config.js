@@ -1,4 +1,4 @@
-const utils = require("./utils");
+const { privateKeyAsJWK } = require("@cef-ebsi/app-jwt").default;
 const { abi } = require("./sc-notary");
 require("dotenv").config();
 
@@ -39,8 +39,8 @@ const { url } = finalConfig;
 if (!process.env.BESU_ADDRESS_NOTARY)
   throw new Error("BESU_ADDRESS_NOTARY is not defined");
 
-if (!process.env.API_LEDGER_PRIVATE_KEY)
-  throw new Error("API_LEDGER_PRIVATE_KEY is not defined");
+if (!process.env.API_PRIVATE_KEY)
+  throw new Error("API_PRIVATE_KEY is not defined");
 
 const sharedConfig = {
   trustedAppsRegistry: `${url}/trusted-apps-registry/v1`,
@@ -48,8 +48,7 @@ const sharedConfig = {
     address: process.env.BESU_ADDRESS_NOTARY,
     abi,
   },
-  privKey: process.env.API_LEDGER_PRIVATE_KEY,
-  privKeyJWK: utils.getJWKfromHex(process.env.API_LEDGER_PRIVATE_KEY),
+  privKey: privateKeyAsJWK(process.env.API_PRIVATE_KEY),
 };
 
 module.exports = {

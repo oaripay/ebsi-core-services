@@ -3,14 +3,13 @@ const jose = require("jose");
 const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 
 const config = require("../src/config");
-const { TEST_APP_NAME, privKey, privKeyJWK } = require("./config");
 const Server = require("../src/server");
-const { BadRequestError } = require("../src/errors");
 
 const server = new Server().start(config.port);
 const request = supertest(server);
 
-let token = jose.JWT.sign({ aud: "ebsi-ledger" }, config.privKeyJWK);
+let token;
+const randomKey = () => jose.JWK.generateSync("EC", "secp256k1");
 
 /* eslint jest/no-hooks: "off" */
 describe("authentication in ledger api", () => {
@@ -20,26 +19,19 @@ describe("authentication in ledger api", () => {
 
   it("create a new session with ledger api", async () => {
     expect.assertions(1);
-    const agent = new ebsiAppJwt.Agent(
-      TEST_APP_NAME,
-      privKey,
-      config.trustedAppsRegistry
-    );
-    const requestToken = agent.newRequest("ebsi-ledger");
 
-    const spy = jest.spyOn(ebsiAppJwt.Session.prototype, "newSession");
-    spy.mockImplementation(() => {
-      return {
-        accessToken: token,
-        tokenType: "Bearer",
-        expiresIn: 900,
-        issuedAt: Date.now(),
-      };
-    });
+    const agent = new ebsiAppJwt.Agent();
+    const requestToken = agent.createRequestPayload("ebsi-ledger");
+
+    const mock1 = jest
+      .spyOn(ebsiAppJwt.TrustedAppRegistry.prototype, "verify")
+      .mockResolvedValue(true);
+    const mock2 = jest
+      .spyOn(ebsiAppJwt.TrustedAppRegistry.prototype, "checkAuthorization")
+      .mockResolvedValue(true);
 
     await request
       .post("/ledger/v1/sessions")
-      .set("Content-Type", "application/x-www-form-urlencoded")
       .send(requestToken)
       .expect(200)
       .then((response) => {
@@ -54,30 +46,17 @@ describe("authentication in ledger api", () => {
         token = response.body.accessToken;
       });
 
-    spy.mockRestore();
+    mock1.mockRestore();
+    mock2.mockRestore();
   });
 
   it("reject bad login", async () => {
     expect.assertions(0);
-    const agent = new ebsiAppJwt.Agent(
-      "unknown-app",
-      privKey,
-      config.trustedAppsRegistry
-    );
-    const requestToken = agent.newRequest("ebsi-storage");
-
-    const spy = jest.spyOn(ebsiAppJwt.Session.prototype, "newSession");
-    spy.mockImplementation(() => {
-      throw new BadRequestError("Invalid app");
-    });
 
     await request
       .post("/ledger/v1/sessions")
-      .set("Content-Type", "application/x-www-form-urlencoded")
-      .send(requestToken)
+      .send({ randomBody: "bad assertion" })
       .expect(400);
-
-    spy.mockRestore();
   });
 
   it("handle token in the headers", async () => {
@@ -109,8 +88,7 @@ describe("authentication in ledger api", () => {
 
   it("error token with invalid signature", async () => {
     expect.assertions(0);
-    const clientPrivKey = privKeyJWK;
-    const badToken = jose.JWT.sign({ aud: config.API_NAME }, clientPrivKey);
+    const badToken = jose.JWT.sign({ aud: config.API_NAME }, randomKey());
     await request
       .post("/ledger/v1/blockchains/besu")
       .set("Authorization", `Bearer ${badToken}`)
@@ -125,8 +103,7 @@ describe("authentication in ledger api", () => {
 
   it("error token with bad audience", async () => {
     expect.assertions(0);
-    const apiPrivKey = config.privKeyJWK;
-    const badToken = jose.JWT.sign({ aud: "other app" }, apiPrivKey);
+    const badToken = jose.JWT.sign({ aud: "other app" }, config.privKey);
     await request
       .post("/ledger/v1/blockchains/besu")
       .set("Authorization", `Bearer ${badToken}`)

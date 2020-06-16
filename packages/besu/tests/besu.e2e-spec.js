@@ -3,14 +3,14 @@ const ethers = require("ethers");
 const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 
 const config = require("../src/config");
-const configTest = require("./config");
+const { url, TEST_APP_NAME, privKey } = require("./config");
 const utils = require("../src/utils");
 const Server = require("../src/server");
 
 let request;
 let server = null;
-if (configTest.url) {
-  request = supertest(configTest.url);
+if (url) {
+  request = supertest(url);
 } else {
   server = new Server().start(config.port);
   request = supertest(server);
@@ -83,16 +83,11 @@ describe("hyperledger Besu integration test", () => {
 
   it("create a new session with ledger api", async () => {
     expect.assertions(1);
-    const agent = new ebsiAppJwt.Agent(
-      configTest.TEST_APP_NAME,
-      configTest.privKey,
-      config.trustedAppsRegistry
-    );
-    const requestToken = agent.newRequest("ebsi-ledger");
+    const agent = new ebsiAppJwt.Agent(TEST_APP_NAME, privKey);
+    const requestToken = agent.createRequestPayload("ebsi-ledger");
 
     await request
       .post("/ledger/v1/sessions")
-      .set("Content-Type", "application/x-www-form-urlencoded")
       .send(requestToken)
       .expect(200)
       .then((response) => {

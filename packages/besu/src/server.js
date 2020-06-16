@@ -13,8 +13,6 @@ class App {
 
     this.httpServer.use("*", cors());
 
-    this.httpServer.use(bodyParser.urlencoded({ extended: false }));
-
     this.httpServer.use(
       bodyParser.json({ limit: "10mb", extended: true, type: "*/*" })
     );

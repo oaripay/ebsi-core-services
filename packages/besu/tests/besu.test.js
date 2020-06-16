@@ -78,7 +78,7 @@ describe("hyperledger Besu integration test", () => {
   });
 
   beforeAll(async () => {
-    const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKeyJWK);
+    const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKey);
     callBesuAuth = (method, params) => {
       return request
         .post("/ledger/v1/blockchains/besu")
