@@ -1,91 +1,87 @@
-const axios = require("axios");
+const supertest = require("supertest");
 const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 const crypto = require("crypto");
 const ethers = require("ethers");
 const fs = require("fs");
-const FormData = require("form-data");
-require("dotenv").config();
 
-const configTest = require("./config");
+const config = require("../src/config");
+const Server = require("../src/server");
+const cassandra = require("../src/cassandraClient");
+const { url, TEST_APP_NAME, privKey } = require("./config");
 
-const { url, TEST_APP_NAME, privKey } = configTest;
-const apiFiles = `${url}/storage/v1/stores/distributed/files`;
+const { BadRequestError, TooLargeError } = require("../src/errors");
 
 jest.setTimeout(30000);
 
-// axios: don't throw error for status >= 400
-axios.defaults.validateStatus = () => {
-  return true;
-};
+let request;
+let server = null;
+let callApi;
 
-const filename1k = "random-bytes.bin";
-const data1k = crypto.randomBytes(1024);
-const hash1k = ethers.utils.keccak256(data1k);
-
-const filename1mb = "random-bytes.bin";
-const data1mb = crypto.randomBytes(1024 * 1024);
-const hash1mb = ethers.utils.keccak256(data1mb);
-
-const filenameBig = "random-bytes.bin";
-const dataBig = crypto.randomBytes(16 * 1024 * 1024);
-
-const randomData = crypto.randomBytes(128);
-const randomHash = ethers.utils.keccak256(randomData);
-
-let axiosAuth;
-
-/*
- * Functions
- */
-
-function storeFile(buffer, filename) {
-  const form = new FormData();
-  form.append("my_file", buffer, filename);
-  const opts = {
-    headers: { post: form.getHeaders() },
-    maxContentLength: Infinity,
-    maxBodyLength: Infinity,
-  };
-  return axiosAuth.post(apiFiles, form, opts);
+if (url) {
+  request = supertest(url);
+} else {
+  server = new Server().start(config.port);
+  request = supertest(server);
 }
 
-function readFile(hash) {
-  const opts = {
-    responseType: "stream",
-  };
-  return axiosAuth.get(`${apiFiles}/${hash}`, opts);
+function createRandomFile(name, size = 1024, writeFile = true) {
+  const data = crypto.randomBytes(size);
+  const hash = ethers.utils.keccak256(data);
+  if (writeFile) fs.writeFileSync(name, data);
+  return { data, hash };
 }
 
-function pipeFile(response) {
-  const contentDisposition = response.headers["content-disposition"];
-  const fname = contentDisposition.split("filename=")[1];
-  const tempName = Math.random().toString(36).substring(2) + fname;
-  const stream = fs.createWriteStream(tempName);
+expect.extend({
+  toBeHTTPError(received, ErrorClass) {
+    if (!received.title || !received.status)
+      return {
+        message: () =>
+          `received does not contain title and status. received: ${received}`,
+        pass: false,
+      };
+    const error = new ErrorClass();
+    if (received.title !== error.title) {
+      return {
+        message: () =>
+          `expected title: ${error.title}. received: ${received.title}`,
+        pass: false,
+      };
+    }
+    if (received.status !== error.status) {
+      return {
+        message: () =>
+          `expected title: ${error.title}. received: ${received.title}`,
+        pass: false,
+      };
+    }
+    return {
+      message: () => `not expected: ${error.print()}. received: ${received}`,
+      pass: true,
+    };
+  },
+});
 
-  return new Promise((resolve, reject) => {
-    response.data
-      .pipe(stream)
-      .on("finish", () => resolve(tempName))
-      .on("error", (error) => reject(error));
-  });
-}
-
-/*
- * Tests
- */
-
+/* eslint jest/no-hooks: "off" */
 describe("file storage tests", () => {
-  it("create a new session with storage API", async () => {
+  afterAll(async () => {
+    if (server) {
+      server.close();
+      await cassandra.shutdown();
+    }
+  });
+
+  it("create new session", async () => {
     expect.assertions(2);
     const agent = new ebsiAppJwt.Agent(TEST_APP_NAME, privKey);
     const requestToken = agent.createRequestPayload("ebsi-storage");
 
-    const response = await axios.post(
-      `${url}/storage/v1/sessions`,
-      requestToken
-    );
+    const response = await request
+      .post("/storage/v1/sessions")
+      .set("Accept", "application/json")
+      .send(requestToken);
+
     expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(
+    expect(response.body).toStrictEqual(
       expect.objectContaining({
         accessToken: expect.any(String),
         tokenType: "Bearer",
@@ -93,141 +89,194 @@ describe("file storage tests", () => {
         issuedAt: expect.any(Number),
       })
     );
-    const token = response.data.accessToken;
-    axiosAuth = axios.create({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+
+    const token = response.body.accessToken;
+
+    const fn = (type) => {
+      return (path) => {
+        let fullPath;
+        if (path.startsWith("/storage/v1")) fullPath = path;
+        else fullPath = `/storage/v1/stores/distributed/files${path}`;
+
+        return request[type](fullPath)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`);
+      };
+    };
+    callApi = {
+      get: fn("get"),
+      post: fn("post"),
+      put: fn("put"),
+      patch: fn("patch"),
+      delete: fn("delete"),
+    };
   });
 
-  it("store file without auth is not allowed", async () => {
+  it("upload, get and delete file", async () => {
+    expect.assertions(2);
+
+    const { data, hash } = createRandomFile("test-file.bin");
+
+    await callApi
+      .post("/")
+      .attach("file", "test-file.bin")
+      .expect(201)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          hash,
+          function: "keccak256",
+        });
+      });
+
+    fs.unlinkSync("test-file.bin");
+
+    await callApi
+      .get(`/${hash}`)
+      .expect(200)
+      .expect("Content-Length", `${data.length}`)
+      .expect("Content-Disposition", "attachment; filename=test-file.bin")
+      .responseType("blob")
+      .then((response) => {
+        expect(response.body).toStrictEqual(data);
+      });
+
+    await callApi.delete(`/${hash}`).expect(204);
+  });
+
+  it("get list files", async () => {
     expect.assertions(1);
-    const response = await axios.post(`${url}/storage/v1/sessions`);
-    expect(response.status).toBe(400);
+
+    await callApi
+      .get("/")
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.objectContaining({
+            items: expect.arrayContaining([]),
+            total: expect.any(Number),
+          })
+        );
+      });
   });
 
-  it("store file", async () => {
-    expect.assertions(2);
-    const response = await storeFile(data1k, filename1k);
-    expect(response.status).toBe(201);
-    expect(response.data).toStrictEqual(
-      expect.objectContaining({
-        hash: hash1k,
-        function: "keccak256",
-      })
-    );
-  });
-
-  it("read file without auth is not allowed", async () => {
+  it("get list files and custom page size and page after", async () => {
     expect.assertions(1);
-    const response = await axios.get(`${apiFiles}/${hash1k}`);
-    expect(response.status).toBe(401);
-  });
 
-  it("read file", async () => {
-    expect.assertions(2);
-    const response = await readFile(hash1k);
-    expect(response.status).toBe(200);
-
-    const tempFilename = await pipeFile(response);
-    const data = fs.readFileSync(tempFilename);
-    fs.unlinkSync(tempFilename);
-    expect(data).toStrictEqual(data1k);
-  });
-
-  it("file not found using a random hash", async () => {
-    expect.assertions(2);
-    const response = await axiosAuth.get(`${apiFiles}/${randomHash}`);
-    expect(response.status).toBe(404);
-    expect(response.data).toStrictEqual(
-      expect.objectContaining({
-        status: 404,
-      })
-    );
-  });
-
-  it("trying to delete a file that do not exist", async () => {
-    expect.assertions(2);
-    const response = await axiosAuth.delete(`${apiFiles}/${randomHash}`);
-    expect(response.status).toBe(404);
-    expect(response.data).toStrictEqual(
-      expect.objectContaining({
-        status: 404,
-      })
-    );
-  });
-
-  it("delete file and verify", async () => {
-    expect.assertions(2);
-    const response = await axiosAuth.delete(`${apiFiles}/${hash1k}`);
-    expect(response.status).toBe(204);
-
-    const responseRead = await axiosAuth.get(`${apiFiles}/${hash1k}`);
-    expect(responseRead.status).toBe(404);
-  });
-
-  it("store, read and delete a file of 1 MB", async () => {
-    expect.assertions(5);
-    const response = await storeFile(data1mb, filename1mb);
-    expect(response.status).toBe(201);
-    expect(response.data).toStrictEqual(
-      expect.objectContaining({
-        hash: hash1mb,
-        function: "keccak256",
-      })
-    );
-
-    const responseRead = await readFile(hash1mb);
-    expect(responseRead.status).toBe(200);
-
-    const tempFilename = await pipeFile(responseRead);
-    const data = fs.readFileSync(tempFilename);
-    fs.unlinkSync(tempFilename);
-    expect(data).toStrictEqual(data1mb);
-
-    const responseDelete = await axiosAuth.delete(`${apiFiles}/${hash1mb}`);
-    expect(responseDelete.status).toBe(204);
-  });
-
-  it("can not store files greater than 16 MB", async () => {
-    expect.assertions(1);
-    const response = await storeFile(dataBig, filenameBig);
-    expect(response.status).toBe(413);
-  });
-
-  it("get files using pagination", async () => {
-    expect.assertions(15);
-
-    // several notifications sent to the same receiver
-    const promises = [];
-    for (let i = 0; i < 12; i += 1) {
-      const data = crypto.randomBytes(64);
-      promises.push(storeFile(data, `my-file${i}.bin`));
+    // uploading several files
+    const uploads = [];
+    for (let i = 0; i < 20; i += 1) {
+      createRandomFile(`test-file${i}.bin`);
+      uploads.push(callApi.post("/").attach("file", `test-file${i}.bin`));
     }
-    const responses = await Promise.all(promises);
-    for (let i = 0; i < responses.length; i += 1) {
-      expect(responses[i].status).toBe(201);
-    }
+    await Promise.all(uploads);
 
-    // call the first page of results (10)
-    const response = await axiosAuth.get(apiFiles);
-    expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(
-      expect.objectContaining({
-        total: 10,
-        links: {
-          first: "/storage/v1/stores/distributed/files?",
-          next: expect.stringContaining(
-            "/storage/v1/stores/distributed/files?page%5Bafter%5D="
-          ),
-        },
-      })
-    );
+    let urlNext;
+    await callApi
+      .get("/?page[size]=5")
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.objectContaining({
+            items: expect.arrayContaining([]),
+            total: 5,
+            links: {
+              first: "/storage/v1/stores/distributed/files?page%5Bsize%5D=5",
+              next: expect.stringContaining(
+                "/storage/v1/stores/distributed/files?page%5Bsize%5D=5&page%5Bafter%5D="
+              ),
+            },
+          })
+        );
+        urlNext = response.body.links.next;
+      });
 
-    // call the next page of results
-    const { next } = response.data.links;
-    const responseNext = await axiosAuth.get(url + next);
-    expect(responseNext.status).toBe(200);
+    // call next page
+    await callApi.get(urlNext).expect(200);
+
+    for (let i = 0; i < 20; i += 1) fs.unlinkSync(`test-file${i}.bin`);
+  });
+
+  /* Test Errors */
+
+  it("error file already exist", async () => {
+    expect.assertions(1);
+
+    const { hash } = createRandomFile("test-file.bin");
+
+    await callApi
+      .post("/")
+      .attach("file", "test-file.bin")
+      .expect(201)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          hash,
+          function: "keccak256",
+        });
+      });
+
+    await callApi.post("/").attach("file", "test-file.bin").expect(400);
+
+    fs.unlinkSync("test-file.bin");
+  });
+
+  it("file not found error", async () => {
+    expect.assertions(0);
+    const { hash } = createRandomFile("test-file.bin");
+    await callApi.get(`/${hash}`).expect(404);
+    fs.unlinkSync("test-file.bin");
+  });
+
+  it("file not found error when deleting", async () => {
+    expect.assertions(0);
+    const { hash } = createRandomFile("test-file.bin");
+    await callApi.delete(`/${hash}`).expect(404);
+    fs.unlinkSync("test-file.bin");
+  });
+
+  it("error too large file", async () => {
+    expect.assertions(1);
+
+    createRandomFile("big-file.bin", 16 * 1024 * 1024);
+
+    await callApi
+      .post("/")
+      .attach("file", "big-file.bin")
+      .expect(413)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.toBeHTTPError(TooLargeError)
+        );
+      });
+
+    fs.unlinkSync("big-file.bin");
+  });
+
+  it("bad request error for bad file", async () => {
+    expect.assertions(1);
+
+    await callApi
+      .post("/")
+      .set("Content-Type", "application/json")
+      .send("This is not a file")
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.toBeHTTPError(BadRequestError)
+        );
+      });
+  });
+
+  it("bad request error when there is no file to store", async () => {
+    expect.assertions(1);
+
+    await callApi
+      .post("/")
+      .field("my-field", "no file attached")
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.toBeHTTPError(BadRequestError)
+        );
+      });
   });
 });

@@ -38,7 +38,7 @@ const sharedConfig = {
   trustedAppsRegistry: `${url}/trusted-apps-registry/v1`,
   cassandra: {
     connection: {
-      contactPoints: ["cassandradb"],
+      contactPoints: ["cassandradb", "localhost"],
       localDataCenter: "datacenter1",
       keyspace: finalConfig.keyspace,
     },

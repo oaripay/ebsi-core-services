@@ -1,52 +1,80 @@
-const axios = require("axios");
-const crypto = require("crypto");
+const supertest = require("supertest");
 const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 
-const configTest = require("./config");
+const config = require("../src/config");
+const Server = require("../src/server");
+const cassandra = require("../src/cassandraClient");
+const { url, TEST_APP_NAME, privKey } = require("./config");
 
-const { url, TEST_APP_NAME, privKey } = configTest;
-const apiKeyValue = `${url}/storage/v1/stores/distributed/key-values`;
+const {
+  BadRequestError,
+  NotFoundError,
+  KeyTooLargeError,
+  ValueTooLargeError,
+} = require("../src/errors");
 
-const key = `test-${Date.now()}`;
-const value = { data: "This is a test", list: [] };
-const valueText = "This is a simple value";
-const patch = [
-  {
-    op: "add",
-    path: "/list/-",
-    value: {
-      id: "cred-new-credential",
-      type: "Verifiable ID",
-      hash:
-        "0x4f76b6a20aa300c6975ae3121c4cc859465378460da2500e4ba5d2d41b428728",
-      name: "Verifiable ID",
-      issuer: "did:ebsi:0x79475f0ffB15eD8c27D7Fe9A0Ceb1585Cc3fB1B3",
-    },
+let request;
+let server = null;
+let callApi;
+
+if (url) {
+  request = supertest(url);
+} else {
+  server = new Server().start(config.port);
+  request = supertest(server);
+}
+
+expect.extend({
+  toBeHTTPError(received, ErrorClass) {
+    if (!received.title || !received.status)
+      return {
+        message: () =>
+          `received does not contain title and status. received: ${received}`,
+        pass: false,
+      };
+    const error = new ErrorClass();
+    if (received.title !== error.title) {
+      return {
+        message: () =>
+          `expected title: ${error.title}. received: ${received.title}`,
+        pass: false,
+      };
+    }
+    if (received.status !== error.status) {
+      return {
+        message: () =>
+          `expected title: ${error.title}. received: ${received.title}`,
+        pass: false,
+      };
+    }
+    return {
+      message: () => `not expected: ${error.print()}. received: ${received}`,
+      pass: true,
+    };
   },
-];
+});
 
-// axios: don't throw error for status >= 400
-axios.defaults.validateStatus = () => {
-  return true;
-};
-let axiosAuth;
-
-/*
- * Tests
- */
-
+/* eslint jest/no-hooks: "off" */
 describe("key value storage tests", () => {
-  it("create a new session with storage API", async () => {
+  afterAll(async () => {
+    if (server) {
+      server.close();
+      await cassandra.shutdown();
+    }
+  });
+
+  it("create new session", async () => {
     expect.assertions(2);
     const agent = new ebsiAppJwt.Agent(TEST_APP_NAME, privKey);
     const requestToken = agent.createRequestPayload("ebsi-storage");
 
-    const response = await axios.post(
-      `${url}/storage/v1/sessions`,
-      requestToken
-    );
+    const response = await request
+      .post("/storage/v1/sessions")
+      .set("Accept", "application/json")
+      .send(requestToken);
+
     expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(
+    expect(response.body).toStrictEqual(
       expect.objectContaining({
         accessToken: expect.any(String),
         tokenType: "Bearer",
@@ -54,87 +82,275 @@ describe("key value storage tests", () => {
         issuedAt: expect.any(Number),
       })
     );
-    const token = response.data.accessToken;
-    axiosAuth = axios.create({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+
+    const token = response.body.accessToken;
+
+    const fn = (type) => {
+      return (path) => {
+        let fullPath;
+        if (path.startsWith("/storage/v1")) fullPath = path;
+        else fullPath = `/storage/v1/stores/distributed/key-values${path}`;
+
+        return request[type](fullPath)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`);
+      };
+    };
+    callApi = {
+      get: fn("get"),
+      post: fn("post"),
+      put: fn("put"),
+      patch: fn("patch"),
+      delete: fn("delete"),
+    };
   });
 
-  it("create key", async () => {
-    expect.assertions(1);
-    const opts = { headers: { "Content-Type": "text/plain" } };
-    const response = await axiosAuth.put(
-      `${apiKeyValue}/${key}`,
-      valueText,
-      opts
-    );
-    expect(response.status).toBe(200);
-  });
+  it("create, update, and delete key", async () => {
+    expect.assertions(6);
 
-  it("get key", async () => {
-    expect.assertions(2);
-    const response = await axiosAuth.get(`${apiKeyValue}/${key}`);
-    expect(response.status).toBe(200);
-    expect(response.data).toBe(valueText);
-  });
+    const key = `my-key${Math.random().toString().slice(2)}`;
+    const value = { msg: "my value" };
+    const valueUpdated = { msg: "now updated" };
+    const valueString = "my value";
 
-  it("update key", async () => {
-    expect.assertions(3);
-    const response = await axiosAuth.put(`${apiKeyValue}/${key}`, value);
-    expect(response.status).toBe(201);
-    const responseRead = await axiosAuth.get(`${apiKeyValue}/${key}`);
-    expect(responseRead.status).toBe(200);
-    expect(responseRead.data).toStrictEqual(expect.objectContaining(value));
+    const expected1 = {};
+    const expected2 = {};
+    const expected3 = {};
+    expected1[key] = value;
+    expected2[key] = valueUpdated;
+    expected3[key] = valueString;
+
+    // insert new key
+    await callApi
+      .put(`/${key}`)
+      .send(value)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(expected1);
+      });
+
+    // get key
+    await callApi
+      .get(`/${key}`)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(value);
+      });
+
+    // update key
+    await callApi
+      .put(`/${key}`)
+      .send(valueUpdated)
+      .expect(201)
+      .then((response) => {
+        expect(response.body).toStrictEqual(expected2);
+      });
+
+    // get key again after the update
+    await callApi
+      .get(`/${key}`)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(valueUpdated);
+      });
+
+    // update as string
+    await callApi
+      .put(`/${key}`)
+      .set("Content-Type", "text/plain")
+      .send(valueString)
+      .expect(201)
+      .then((response) => {
+        expect(response.body).toStrictEqual(expected3);
+      });
+
+    // get key again after the update as string
+    await callApi
+      .get(`/${key}`)
+      .expect(200)
+      .then((response) => {
+        expect(response.text).toBe(valueString);
+      });
+
+    // delete key
+    await callApi.delete(`/${key}`).expect(204);
   });
 
   it("patch key", async () => {
     expect.assertions(2);
-    const response = await axiosAuth.patch(`${apiKeyValue}/${key}`, patch);
-    expect(response.status).toBe(200);
-    expect(response.data.list).toHaveLength(1);
-  });
 
-  it("delete key", async () => {
-    expect.assertions(1);
-    const response = await axiosAuth.delete(`${apiKeyValue}/${key}`);
-    expect(response.status).toBe(204);
-  });
+    const key = `my-key${Math.random().toString().slice(2)}`;
+    const value = { list: [{ a: "A" }] };
 
-  it("get keys using pagination", async () => {
-    expect.assertions(15);
+    const expected1 = {};
+    expected1[key] = value;
 
-    // several notifications sent to the same receiver
-    const promises = [];
-    for (let i = 0; i < 12; i += 1) {
-      const k = `my-key${crypto.randomBytes(10).toString("hex")}`;
-      const v = { prop: `my value ${i}` };
-      promises.push(axiosAuth.put(`${apiKeyValue}/${k}`, v));
-    }
-    const responses = await Promise.all(promises);
-    for (let i = 0; i < responses.length; i += 1) {
-      expect(responses[i].status).toBe(200);
-    }
+    // insert new key
+    await callApi
+      .put(`/${key}`)
+      .send(value)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(expected1);
+      });
 
-    // call the first page of results (10)
-    const response = await axiosAuth.get(apiKeyValue);
-    expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(
-      expect.objectContaining({
-        total: 10,
-        links: {
-          first: "/storage/v1/stores/distributed/key-values?",
-          next: expect.stringContaining(
-            "/storage/v1/stores/distributed/key-values?page%5Bafter%5D="
-          ),
+    // patch key
+    await callApi
+      .patch(`/${key}`)
+      .send([
+        {
+          op: "add",
+          path: "/list/-",
+          value: { b: "B" },
         },
-      })
-    );
+      ])
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual({ list: [{ a: "A" }, { b: "B" }] });
+      });
+  });
 
-    // call the next page of results
-    const { next } = response.data.links;
-    const responseNext = await axiosAuth.get(url + next);
-    expect(responseNext.status).toBe(200);
+  it("get list keys", async () => {
+    expect.assertions(1);
+
+    await callApi
+      .get("/")
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.objectContaining({
+            items: expect.arrayContaining([]),
+            total: expect.any(Number),
+          })
+        );
+      });
+  });
+
+  it("get list keys and custom page size and page after", async () => {
+    expect.assertions(1);
+
+    // send several keys
+    const inputs = [];
+    for (let i = 0; i < 20; i += 1) {
+      const key = `my-key${Math.random().toString().slice(2)}`;
+      const value = { msg: "my value" };
+      inputs.push(callApi.put(`/${key}`).send(value));
+    }
+    await Promise.all(inputs);
+
+    let urlNext;
+    await callApi
+      .get("/?page[size]=5")
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.objectContaining({
+            items: expect.arrayContaining([]),
+            total: 5,
+            links: {
+              first:
+                "/storage/v1/stores/distributed/key-values?page%5Bsize%5D=5",
+              next: expect.stringContaining(
+                "/storage/v1/stores/distributed/key-values?page%5Bsize%5D=5&page%5Bafter%5D="
+              ),
+            },
+          })
+        );
+        urlNext = response.body.links.next;
+      });
+
+    // call next page
+    await callApi.get(urlNext).expect(200);
+  });
+
+  /* Test Errors */
+
+  it("key not found error", async () => {
+    expect.assertions(1);
+
+    const key = `my-key${Math.random().toString().slice(2)}`;
+    await callApi
+      .get(`/${key}`)
+      .expect(404)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.toBeHTTPError(NotFoundError)
+        );
+      });
+  });
+
+  it("key not found error when deleting", async () => {
+    expect.assertions(1);
+
+    const key = `my-key${Math.random().toString().slice(2)}`;
+
+    await callApi
+      .delete(`/${key}`)
+      .expect(404)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.toBeHTTPError(NotFoundError)
+        );
+      });
+  });
+
+  it("error too large key", async () => {
+    expect.assertions(1);
+
+    const largeKey = "a".repeat(257);
+    await callApi
+      .put(`/${largeKey}`)
+      .expect(414)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.toBeHTTPError(KeyTooLargeError)
+        );
+      });
+  });
+
+  it("error too large value", async () => {
+    expect.assertions(1);
+
+    const largeValue = "a".repeat(1024 * 1024 + 1);
+    await callApi
+      .put("/my-key")
+      .set("Content-Type", "text/plain")
+      .send(largeValue)
+      .expect(413)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.toBeHTTPError(ValueTooLargeError)
+        );
+      });
+  });
+
+  it("bad request error for bad body in application/json", async () => {
+    expect.assertions(1);
+
+    await callApi
+      .put("/my-key")
+      .set("Content-Type", "application/json")
+      .send("This is a text")
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.toBeHTTPError(BadRequestError)
+        );
+      });
+  });
+
+  it("bad request error for bad content-type", async () => {
+    expect.assertions(1);
+
+    await callApi
+      .put("/my-key")
+      .set("Content-Type", "application/x-www-form-urlencoded")
+      .send("a=3")
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.toBeHTTPError(BadRequestError)
+        );
+      });
   });
 });

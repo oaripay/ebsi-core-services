@@ -1,8 +1,6 @@
 const { privateKeyAsJWK } = require("@cef-ebsi/app-jwt").default;
 require("dotenv").config();
 
-const port = process.env.PORT || 8080;
-
 const config = {
   production: {
     url: "https://api.ebsi.tech.ec.europa.eu",
@@ -14,7 +12,7 @@ const config = {
     url: "https://api.intebsi.xyz",
   },
   local: {
-    url: process.env.EBSI_API || `http://localhost:${port}`,
+    url: process.env.EBSI_API,
   },
 };
 

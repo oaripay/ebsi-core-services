@@ -1,70 +1,76 @@
-const axios = require("axios");
+const supertest = require("supertest");
 const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 const ethers = require("ethers");
 
-const configTest = require("./config");
+const config = require("../src/config");
+const Server = require("../src/server");
+const cassandra = require("../src/cassandraClient");
+const { url, TEST_APP_NAME, privKey } = require("./config");
 
-const { url, TEST_APP_NAME, privKey } = configTest;
-const apiNotif = `${url}/storage/v1/stores/distributed/notifications`;
+const { BadRequestError, NotFoundError } = require("../src/errors");
 
-const sender1 = ethers.Wallet.createRandom().address;
-const sender2 = ethers.Wallet.createRandom().address;
-const receiver1 = ethers.Wallet.createRandom().address;
-const receiver2 = ethers.Wallet.createRandom().address;
+let request;
+let server = null;
+let callApi;
 
-const message11 = { msg: "Message from 1 to 1" };
-const message12 = { msg: "Message from 1 to 2" };
-const message21 = { msg: "Message from 2 to 1" };
-const message22 = { msg: "Message from 2 to 2" };
+if (url) {
+  request = supertest(url);
+} else {
+  server = new Server().start(config.port);
+  request = supertest(server);
+}
 
-const notification11 = {
-  sender: sender1,
-  receiver: receiver1,
-  message: message11,
-};
-const notification12 = {
-  sender: sender1,
-  receiver: receiver2,
-  message: message12,
-};
-const notification21 = {
-  sender: sender2,
-  receiver: receiver1,
-  message: message21,
-};
-const notification22 = {
-  sender: sender2,
-  receiver: receiver2,
-  message: message22,
-};
+expect.extend({
+  toBeHTTPError(received, ErrorClass) {
+    if (!received.title || !received.status)
+      return {
+        message: () =>
+          `received does not contain title and status. received: ${received}`,
+        pass: false,
+      };
+    const error = new ErrorClass();
+    if (received.title !== error.title) {
+      return {
+        message: () =>
+          `expected title: ${error.title}. received: ${received.title}`,
+        pass: false,
+      };
+    }
+    if (received.status !== error.status) {
+      return {
+        message: () =>
+          `expected title: ${error.title}. received: ${received.title}`,
+        pass: false,
+      };
+    }
+    return {
+      message: () => `not expected: ${error.print()}. received: ${received}`,
+      pass: true,
+    };
+  },
+});
 
-let id11;
-let id12;
-let id21;
-let id22;
-
-// axios: don't throw error for status >= 400
-axios.defaults.validateStatus = () => {
-  return true;
-};
-let axiosAuth;
-
-/*
- * Tests
- */
-
+/* eslint jest/no-hooks: "off" */
 describe("notification storage tests", () => {
-  it("create a new session with storage API", async () => {
+  afterAll(async () => {
+    if (server) {
+      server.close();
+      await cassandra.shutdown();
+    }
+  });
+
+  it("create new session", async () => {
     expect.assertions(2);
     const agent = new ebsiAppJwt.Agent(TEST_APP_NAME, privKey);
     const requestToken = agent.createRequestPayload("ebsi-storage");
 
-    const response = await axios.post(
-      `${url}/storage/v1/sessions`,
-      requestToken
-    );
+    const response = await request
+      .post("/storage/v1/sessions")
+      .set("Accept", "application/json")
+      .send(requestToken);
+
     expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(
+    expect(response.body).toStrictEqual(
       expect.objectContaining({
         accessToken: expect.any(String),
         tokenType: "Bearer",
@@ -72,180 +78,232 @@ describe("notification storage tests", () => {
         issuedAt: expect.any(Number),
       })
     );
-    const token = response.data.accessToken;
-    axiosAuth = axios.create({
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-  });
 
-  it("create notification", async () => {
-    expect.assertions(1);
-    const response = await axiosAuth.put(apiNotif, notification11);
-    expect(response.status).toBe(200);
-    id11 = response.data.id;
-  });
+    const token = response.body.accessToken;
 
-  it("get notification", async () => {
-    expect.assertions(2);
-    const response = await axiosAuth.get(`${apiNotif}/${id11}`);
-    expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(
-      expect.objectContaining(notification11)
-    );
-  });
+    const fn = (type) => {
+      return (path) => {
+        let fullPath;
+        if (path.startsWith("/storage/v1")) fullPath = path;
+        else fullPath = `/storage/v1/stores/distributed/notifications${path}`;
 
-  it("update notification", async () => {
-    expect.assertions(3);
-    const notification = {
-      sender: sender1,
-      receiver: receiver1,
-      message: { msg: "message updated" },
+        return request[type](fullPath)
+          .set("Accept", "application/json")
+          .set("Authorization", `Bearer ${token}`);
+      };
     };
-    const response = await axiosAuth.put(`${apiNotif}/${id11}`, notification);
-    expect(response.status).toBe(201);
-    const responseRead = await axiosAuth.get(`${apiNotif}/${id11}`);
-    expect(responseRead.status).toBe(200);
-    expect(responseRead.data).toStrictEqual(
-      expect.objectContaining(notification)
-    );
+    callApi = {
+      get: fn("get"),
+      post: fn("post"),
+      put: fn("put"),
+      patch: fn("patch"),
+      delete: fn("delete"),
+    };
   });
 
-  it("delete notification", async () => {
+  it("add, update, delete notification and check history", async () => {
+    expect.assertions(5);
+
+    const notification = {
+      sender: ethers.Wallet.createRandom().address,
+      receiver: ethers.Wallet.createRandom().address,
+      message: { msg: "message" },
+    };
+
+    const notificationUpdated = {
+      sender: notification.sender,
+      receiver: notification.receiver,
+      message: { msg: "updated" },
+    };
+
+    let id;
+
+    // add notification
+    await callApi
+      .put("/")
+      .send(notification)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          id: expect.any(String),
+          ...notification,
+        });
+        id = response.body.id;
+      });
+
+    // get notification by id
+    await callApi
+      .get(`/${id}`)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          id,
+          ...notification,
+        });
+      });
+
+    // update notification
+    await callApi
+      .put(`/${id}`)
+      .send(notificationUpdated)
+      .expect(201)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          id,
+          ...notificationUpdated,
+        });
+      });
+
+    // get notification after the update
+    await callApi
+      .get(`/${id}`)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual({
+          id,
+          ...notificationUpdated,
+        });
+      });
+
+    // delete notification
+    await callApi.delete(`/${id}`).expect(204);
+
+    // check history
+    await callApi
+      .get(`/?history=true&receiver=${notification.receiver}`)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.objectContaining({
+            items: [
+              {
+                ...notificationUpdated,
+                id,
+                created: expect.any(String),
+                deleted: expect.any(String),
+              },
+            ],
+            total: 1,
+            pageSize: 10,
+            links: {
+              first: expect.stringContaining(
+                "/storage/v1/stores/distributed/notifications?history=true&receiver="
+              ),
+              last: expect.stringContaining(
+                "/storage/v1/stores/distributed/notifications?history=true&receiver="
+              ),
+            },
+          })
+        );
+      });
+  });
+
+  it("get list of notifications and custom page size with pageAfter", async () => {
     expect.assertions(1);
-    const response = await axiosAuth.delete(`${apiNotif}/${id11}`);
-    expect(response.status).toBe(204);
-  });
 
-  it("get queue for senders and receivers", async () => {
-    expect.assertions(8);
-
-    const response11 = await axiosAuth.put(apiNotif, notification11);
-    const response12 = await axiosAuth.put(apiNotif, notification12);
-    const response21 = await axiosAuth.put(apiNotif, notification21);
-    const response22 = await axiosAuth.put(apiNotif, notification22);
-
-    id11 = response11.data.id;
-    id12 = response12.data.id;
-    id21 = response21.data.id;
-    id22 = response22.data.id;
-
-    const responseQueue1 = await axiosAuth.get(
-      `${apiNotif}?receiver=${receiver1}`
-    );
-    expect(responseQueue1.status).toBe(200);
-    expect(responseQueue1.data).toStrictEqual(
-      expect.objectContaining({
-        total: 2,
-        items: expect.arrayContaining([
-          { ...notification11, id: id11 },
-          { ...notification21, id: id21 },
-        ]),
-        links: expect.objectContaining({}),
-      })
-    );
-
-    const responseQueue2 = await axiosAuth.get(
-      `${apiNotif}?receiver=${receiver2}`
-    );
-    expect(responseQueue2.status).toBe(200);
-    expect(responseQueue2.data).toStrictEqual(
-      expect.objectContaining({
-        total: 2,
-        items: expect.arrayContaining([
-          { ...notification12, id: id12 },
-          { ...notification22, id: id22 },
-        ]),
-      })
-    );
-
-    const responseDel11 = await axiosAuth.delete(`${apiNotif}/${id11}`);
-    expect(responseDel11.status).toBe(204);
-    const responseDel12 = await axiosAuth.delete(`${apiNotif}/${id12}`);
-    expect(responseDel12.status).toBe(204);
-    const responseDel21 = await axiosAuth.delete(`${apiNotif}/${id21}`);
-    expect(responseDel21.status).toBe(204);
-    const responseDel22 = await axiosAuth.delete(`${apiNotif}/${id22}`);
-    expect(responseDel22.status).toBe(204);
-  });
-
-  it("get history", async () => {
-    expect.assertions(2);
-
-    const response = await axiosAuth.get(
-      `${apiNotif}?receiver=${receiver1}&history=true`
-    );
-    expect(response.status).toBe(200);
-
-    // remove "created" and "deleted" fields in the list
-    const { data } = response;
-    /* eslint-disable no-param-reassign */
-    data.items.forEach((item) => {
-      delete item.created;
-      delete item.deleted;
-    });
-    /* eslint-enable no-param-reassign */
-
-    expect(data).toStrictEqual(
-      expect.objectContaining({
-        total: 3,
-        items: expect.arrayContaining([
-          { ...notification11, id: expect.any(String) },
-          { ...notification21, id: expect.any(String) },
-        ]),
-      })
-    );
-  });
-
-  it("get notifications using pagination", async () => {
-    expect.assertions(16);
-
-    // several notifications sent to the same receiver
+    // add several notifications to the same receiver
     const receiver = ethers.Wallet.createRandom().address;
-    const promises = [];
-    for (let i = 0; i < 12; i += 1) {
+    const inputs = [];
+    for (let i = 0; i < 20; i += 1) {
       const notification = {
         sender: ethers.Wallet.createRandom().address,
         receiver,
-        message: { msg: `message ${i}` },
+        message: { msg: "message" },
       };
-      promises.push(axiosAuth.put(apiNotif, notification));
+      inputs.push(callApi.put("/").send(notification));
     }
-    const responses = await Promise.all(promises);
-    for (let i = 0; i < responses.length; i += 1) {
-      expect(responses[i].status).toBe(200);
-    }
+    await Promise.all(inputs);
 
-    // call the first page of results (10)
-    const response = await axiosAuth.get(`${apiNotif}?receiver=${receiver}`);
-    expect(response.status).toBe(200);
-    expect(response.data).toStrictEqual(
-      expect.objectContaining({
-        total: 10,
-        links: {
-          first: `/storage/v1/stores/distributed/notifications?receiver=${receiver}`,
-          next: expect.stringContaining(
-            `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bafter%5D=`
-          ),
-        },
-      })
-    );
+    let urlNext;
 
-    // call the next page of results (2)
-    const { next } = response.data.links;
-    const responseNext = await axiosAuth.get(url + next);
-    expect(responseNext.status).toBe(200);
-    expect(responseNext.data).toStrictEqual(
-      expect.objectContaining({
-        total: 2,
-        links: {
-          first: `/storage/v1/stores/distributed/notifications?receiver=${receiver}`,
-          last: expect.stringContaining(
-            `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bafter%5D=`
-          ),
-        },
+    await callApi
+      .get(`/?page[size]=5&receiver=${receiver}`)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.objectContaining({
+            items: expect.arrayContaining([]),
+            total: 5,
+            pageSize: 5,
+            links: {
+              first: `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bsize%5D=5`,
+              next: expect.stringContaining(
+                `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bsize%5D=5&page%5Bafter%5D=`
+              ),
+            },
+          })
+        );
+        urlNext = response.body.links.next;
+      });
+
+    // call next page
+    await callApi.get(urlNext).expect(200);
+  });
+
+  /* Test Errors */
+
+  it("notification not found error", async () => {
+    expect.assertions(1);
+
+    const id = Math.random().toString().slice(2);
+
+    await callApi
+      .get(`/${id}`)
+      .expect(404)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.toBeHTTPError(NotFoundError)
+        );
+      });
+  });
+
+  it("notification not found error when updating", async () => {
+    expect.assertions(1);
+
+    const id = Math.random().toString().slice(2);
+
+    await callApi
+      .put(`/${id}`)
+      .send({
+        sender: "sender",
+        receiver: "receiver",
+        message: { msg: "message" },
       })
-    );
+      .expect(404)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.toBeHTTPError(NotFoundError)
+        );
+      });
+  });
+
+  it("notification not found error when deleting", async () => {
+    expect.assertions(1);
+
+    const id = Math.random().toString().slice(2);
+
+    await callApi
+      .delete(`/${id}`)
+      .expect(404)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.toBeHTTPError(NotFoundError)
+        );
+      });
+  });
+
+  it("bad request error for bad body in application/json", async () => {
+    expect.assertions(1);
+
+    await callApi
+      .put("/my-key")
+      .set("Content-Type", "application/json")
+      .send("This is a text")
+      .expect(400)
+      .then((response) => {
+        expect(response.body).toStrictEqual(
+          expect.toBeHTTPError(BadRequestError)
+        );
+      });
   });
 });

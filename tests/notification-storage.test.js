@@ -181,7 +181,7 @@ const mockExecute = jest.spyOn(cassandraDriver.Client.prototype, "execute");
 
 // function to get calls of cassandra.execute in the instance notification
 function getExecuteCalls() {
-  const instanceNotification = cassandraDriver.Client.mock.instances[2];
+  const instanceNotification = cassandraDriver.Client.mock.instances[0];
   return instanceNotification.execute.mock.calls;
 }
 
@@ -243,7 +243,7 @@ describe("notification storage tests", () => {
 
   beforeEach(() => {
     // clear calls to cassandra.execute
-    const instanceNotification = cassandraDriver.Client.mock.instances[2];
+    const instanceNotification = cassandraDriver.Client.mock.instances[0];
     instanceNotification.execute.mock.calls = [];
   });
 

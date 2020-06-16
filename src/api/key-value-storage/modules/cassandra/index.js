@@ -1,8 +1,8 @@
-const cassandraDriver = require("cassandra-driver");
 const querystring = require("querystring");
 const jsonpatch = require("fast-json-patch");
 
 const config = require("../../../../config");
+const cassandra = require("../../../../cassandraClient");
 const logger = require("../../../../logger");
 const {
   BadRequestError,
@@ -14,9 +14,6 @@ const {
 const TABLE_KEY_VALUE_STORAGE = "key_value_storage";
 const MAX_SIZE_KEY = 256; // 256 bytes
 const MAX_SIZE_VALUE = 1024 * 1024; // 1 MB
-
-const cassandraConnection = config.cassandra.connection;
-const cassandra = new cassandraDriver.Client(cassandraConnection);
 
 async function getRecord(key) {
   const query = `select value from ${TABLE_KEY_VALUE_STORAGE} where key = ? allow filtering`;

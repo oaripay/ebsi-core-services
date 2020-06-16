@@ -43,7 +43,7 @@ const mockExecute = jest.spyOn(cassandraDriver.Client.prototype, "execute");
 
 // function to get calls of cassandra.execute in the instance key value
 function getExecuteCalls() {
-  const instanceKeyValue = cassandraDriver.Client.mock.instances[1];
+  const instanceKeyValue = cassandraDriver.Client.mock.instances[0];
   return instanceKeyValue.execute.mock.calls;
 }
 
@@ -105,7 +105,7 @@ describe("key value storage tests", () => {
 
   beforeEach(() => {
     // clear calls to cassandra.execute
-    const instanceKeyValue = cassandraDriver.Client.mock.instances[1];
+    const instanceKeyValue = cassandraDriver.Client.mock.instances[0];
     instanceKeyValue.execute.mock.calls = [];
   });
 

@@ -1,16 +1,13 @@
 const fs = require("fs");
 const ethers = require("ethers");
 const querystring = require("querystring");
-const cassandraDriver = require("cassandra-driver");
 
 const config = require("../../../../config");
+const cassandra = require("../../../../cassandraClient");
 const logger = require("../../../../logger");
 const { BadRequestError, NotFoundError } = require("../../../../errors");
 
 const TABLE_FILE_STORAGE = "file_storage";
-
-const cassandraConnection = config.cassandra.connection;
-const cassandra = new cassandraDriver.Client(cassandraConnection);
 
 async function getRecord(hash) {
   const query = `select * from ${TABLE_FILE_STORAGE} where hash = ? allow filtering`;

@@ -17,7 +17,7 @@ const {
 
 jest.mock("cassandra-driver");
 
-const server = new Server().start(config.port, config.testMode);
+const server = new Server().start(config.port);
 const request = supertest(server);
 
 let callApi;
