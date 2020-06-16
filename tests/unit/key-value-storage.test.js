@@ -2,8 +2,8 @@ const supertest = require("supertest");
 const cassandraDriver = require("cassandra-driver");
 const jose = require("jose");
 
-const config = require("../src/config");
-const Server = require("../src/server");
+const config = require("../../src/config");
+const Server = require("../../src/server");
 
 const {
   BadRequestError,
@@ -11,7 +11,7 @@ const {
   KeyTooLargeError,
   ValueTooLargeError,
   InternalError,
-} = require("../src/errors");
+} = require("../../src/errors");
 
 jest.mock("cassandra-driver");
 

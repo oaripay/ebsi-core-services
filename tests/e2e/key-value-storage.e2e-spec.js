@@ -1,17 +1,17 @@
 const supertest = require("supertest");
 const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
 
-const config = require("../src/config");
-const Server = require("../src/server");
-const cassandra = require("../src/cassandraClient");
-const { url, TEST_APP_NAME, privKey } = require("./config");
+const config = require("../../src/config");
+const Server = require("../../src/server");
+const cassandra = require("../../src/cassandraClient");
+const { url, TEST_APP_NAME, privKey } = require("../config");
 
 const {
   BadRequestError,
   NotFoundError,
   KeyTooLargeError,
   ValueTooLargeError,
-} = require("../src/errors");
+} = require("../../src/errors");
 
 let request;
 let server = null;

@@ -5,15 +5,15 @@ const crypto = require("crypto");
 const fs = require("fs");
 const ethers = require("ethers");
 
-const config = require("../src/config");
-const Server = require("../src/server");
+const config = require("../../src/config");
+const Server = require("../../src/server");
 
 const {
   BadRequestError,
   NotFoundError,
   TooLargeError,
   InternalError,
-} = require("../src/errors");
+} = require("../../src/errors");
 
 jest.mock("cassandra-driver");
 

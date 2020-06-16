@@ -4,12 +4,12 @@ const crypto = require("crypto");
 const ethers = require("ethers");
 const fs = require("fs");
 
-const config = require("../src/config");
-const Server = require("../src/server");
-const cassandra = require("../src/cassandraClient");
-const { url, TEST_APP_NAME, privKey } = require("./config");
+const config = require("../../src/config");
+const Server = require("../../src/server");
+const cassandra = require("../../src/cassandraClient");
+const { url, TEST_APP_NAME, privKey } = require("../config");
 
-const { BadRequestError, TooLargeError } = require("../src/errors");
+const { BadRequestError, TooLargeError } = require("../../src/errors");
 
 jest.setTimeout(30000);
 
