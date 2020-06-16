@@ -160,29 +160,30 @@ async function initSecureEnclave(): Promise<string> {
 
 const initSetupForTesting = async (): Promise<TestingSetup> => {
   const agent = new EBSI_JWT.Agent(config.API_NAME, config.API_PRIVATE_KEY);
+  const randNum: number = Math.floor(Math.random() * 1000000);
   const request = agent.createRequestPayload(
     config.EBSI_APPS.WALLET,
     EBSI_JWT.Scope.ENTITY,
     {
-      sub: "my gov",
-      enterpriseName: "my gov",
+      iss: `my gov: ${randNum}`,
+      sub: `my gov: ${randNum}`,
+      enterpriseName: `my gov: ${randNum}`,
       nonce: "123",
     }
   );
-  PRINT_DEBUG(`request: ${request.assertion}`);
+
   const resp: AccessTokenResponseBody = await api.doPostCallWithoutToken(
     request,
-    config.EBSI_SERVICE.URL.WALLET + config.EBSI_SERVICE.CALL.EBSI_LOGIN
+    `${config.EBSI_SERVICE.URL.WALLET}${config.EBSI_SERVICE.CALL.EBSI_LOGIN}`
   );
-
-  const wallet = new ethers.Wallet(config.API_PRIVATE_KEY);
-  const did = `did:ebsi:${wallet.address}`;
+  const payload: any = JWT.decode(resp.accessToken);
+  if (!payload.did) throw new Error("DID not found on AuthZ token");
   PRINT_DEBUG(`Access token: ${resp.accessToken}`);
-  PRINT_DEBUG(`DID: ${did}`);
+  PRINT_DEBUG(`DID: ${payload.did}`);
 
   return {
     token: resp.accessToken,
-    did,
+    did: payload.did,
   };
 };
 
