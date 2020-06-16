@@ -32,7 +32,7 @@ class App {
 
     this.httpServer.use(errors.handler);
   }
-  
+
   getServer() {
     return this.httpServer;
   }
