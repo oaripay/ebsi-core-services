@@ -23,24 +23,24 @@ export class EthersService {
   constructor(private configService: ConfigService) {
     this.configService = configService;
     this.ethersProvider = new ethers.providers.JsonRpcProvider(
-      this.configService.get("WEB3_PROVIDER"),
+      this.configService.get("web3Provider"),
       { name: "besu", chainId: 6971 }
     );
     this.contract = new ethers.Contract(
-      this.configService.get("CONTRACT_ADDR"),
+      this.configService.get("contractAddr"),
       EBSIApplicationRegistry.abi,
       this.ethersProvider
     );
     this.ethersWallet = new ethers.Wallet(
-      this.configService.get("API_PRIVATE_KEY"),
+      this.configService.get("apiPrivateKey"),
       this.ethersProvider
     );
     this.contractWithSigner = this.contract.connect(this.ethersWallet);
-    this.signer = this.contractWithSigner.owner();
-    this.web3 = new Web3(this.configService.get("WEB3_PROVIDER"));
+    this.web3 = new Web3(this.configService.get("web3Provider"));
   }
 
   async getSigner() {
+    if (!this.signer) this.signer = await this.contractWithSigner.owner();
     return this.signer;
   }
 

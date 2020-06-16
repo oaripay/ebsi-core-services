@@ -28,11 +28,11 @@ export async function bootstrap() {
 
   // Dynamically update the logger level based on conf (only for Console transport)
   // @ts-ignore
-  logger.logger.transports[0].level = configService.get("LOG_LEVEL");
+  logger.logger.transports[0].level = configService.get("logLevel");
 
   // Display server info on bootstrap
-  logger.debug(`Log level: ${configService.get("LOG_LEVEL")}`, "ServerInfo");
-  logger.debug(`Port: ${configService.get("API_PORT")}`, "ServerInfo");
+  logger.debug(`Log level: ${configService.get("logLevel")}`, "ServerInfo");
+  logger.debug(`Port: ${configService.get("apiPort")}`, "ServerInfo");
 
   const options = new DocumentBuilder()
     .addBearerAuth()
@@ -58,7 +58,7 @@ export async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  await app.listen(configService.get("API_PORT"));
+  await app.listen(configService.get("apiPort"));
 }
 
 export default bootstrap;
