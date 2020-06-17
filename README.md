@@ -25,7 +25,7 @@ git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/storage-api.git
 Create a .env file with the private key used in the api
 
 ```
-API_STORAGE_PRIVATE_KEY=023e3d80808...
+API_PRIVATE_KEY=023e3d80808...
 ```
 
 This private key can be generated using ethers: https://docs.ethers.io/ethers.js/html/api-wallet.html or just taking a random string of 64 characters in hex format.
@@ -78,7 +78,7 @@ Install libraries and dependencies
 npm install
 ```
 
-Edit `./src/config.js` to define the connection with cassandra. By default it is defined as the container "cassandradb".
+Edit `./src/config.js` to define the connection with cassandra. By default it will try to access the container "cassandradb" or "localhost".
 
 Start the api
 
@@ -93,10 +93,35 @@ The api will be accesible at http://localhost:8080
 Tests for File Storage, Key Value Storage, and Notification Storage and their connection with Cassandra. Create an `.env` file using `.env.example` and update the corresponding values.
 For e2e tests, TEST_APP_NAME and TEST_APP_PRIVATE_KEY need to be a valid app registered in the Trusted App Registry.
 
-Launch unit tests and e2e tests with:
+Before launching the tests run cassandra using the docker in the tests folder:
 
 ```
-EBSI_ENV=integration npm run test
+cd tests
+docker-compose up --build
+```
+
+Create the keyspace in Cassandra. First enter to the container
+
+```
+docker exec -it cassandradb_test bash
+```
+
+Enter to the cassandra command line
+
+```
+cqlsh
+```
+
+And finally define the keyspace:
+
+```
+create keyspace ebsi_integration with replication = {'class':'SimpleStrategy','replication_factor':1};
+```
+
+Now launch the unit tests and e2e tests:
+
+```
+npm run test
 ```
 
 To connect with a local api for e2e run:
@@ -105,13 +130,13 @@ To connect with a local api for e2e run:
 EBSI_ENV=local EBSI_API=http://localhost:8080 npm run test
 ```
 
-To run only unit tests:
+To run only unit tests (cassandra container is not necessary):
 
 ```
 npm run test:unit
 ```
 
-To run only integration tests:
+To run only integration tests, launch cassandra and run:
 
 ```
 npm run test:e2e

@@ -7,9 +7,9 @@
     "lint": "npm run lint:js && npm run lint:prettier",
     "lint:js": "eslint \"*/**/*.{js,ts}\"",
     "lint:prettier": "prettier --check \"**/*.{md,mdx,html,json,yml,js,jsx,ts,tsx,css,scss}\"",
-    "test": "npm run test:unit",
+    "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "jest --coverage --reporters=default --reporters=jest-sonar  --runInBand",
-    "test:e2e": "jest --config ./jest-e2e.json"
+    "test:e2e": "jest --config ./jest-e2e.json --runInBand"
   },
   "keywords": [
     "EBSI",
@@ -17,18 +17,15 @@
     "API"
   ],
   "dependencies": {
-    "@cef-ebsi/app-jwt": "0.0.2",
-    "axios": "^0.19.0",
+    "@cef-ebsi/app-jwt": "0.0.3",
     "body-parser": "^1.19.0",
     "busboy": "^0.3.1",
     "cassandra-driver": "^4.5.2",
     "cors": "^2.8.5",
     "dotenv": "^8.1.0",
-    "ethereumjs-tx": "^2.1.2",
     "ethers": "^4.0.47",
     "express": "^4.17.1",
     "fast-json-patch": "^3.0.0-1",
-    "form-data": "^3.0.0",
     "jose": "^1.27.1",
     "uuid": "^8.1.0",
     "winston": "^3.2.1"

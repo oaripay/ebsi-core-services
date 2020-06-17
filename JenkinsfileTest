@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         EBSI_ENV="local"
-        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+        API_PRIVATE_KEY=credentials('API_STORAGE_PRIVATE_KEY')
     }
     stages {
         stage('Clone repo') {
@@ -13,7 +13,7 @@ pipeline {
         stage('Unit test') {
             steps {
                 sh 'npm install'
-                sh 'npm run test'
+                sh 'npm run test:unit'
             }
         }
         stage('SonarQube Analysis') {

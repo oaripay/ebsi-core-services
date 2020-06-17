@@ -1,10 +1,9 @@
 const express = require("express");
-const cassandraDriver = require("cassandra-driver");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const config = require("./config");
-const utils = require("./utils");
+const cassandra = require("./cassandraClient");
 const logger = require("./logger");
 const auth = require("./auth");
 const errors = require("./errors");
@@ -12,12 +11,7 @@ const fileStorageAPI = require("./api/file-storage/router");
 const keyValueStorageAPI = require("./api/key-value-storage/router");
 const notificationStorageAPI = require("./api/notification-storage/router");
 
-/*
- * Initializations
- */
-const cassandraConnection = config.cassandra.connection;
 const cassandraOpts = config.cassandra.opts;
-const cassandra = new cassandraDriver.Client(cassandraConnection);
 
 async function checkTableFileStorage() {
   try {
@@ -79,13 +73,15 @@ async function checkTablesCassandra() {
   for (let i = 0; i < cassandraOpts.reconnectTries; i += 1) {
     try {
       await cassandra.connect();
-      logger.info("Connected with Cassandra");
       await checkTablesCassandra();
+      logger.info("Connected with Cassandra");
       return;
     } catch (error) {
       logger.error(`Connection with cassandra: ${error.message}`);
     }
-    await utils.sleep(cassandraOpts.reconnectInterval);
+    await new Promise((resolve) =>
+      setTimeout(resolve, cassandraOpts.reconnectInterval)
+    );
   }
   /* eslint-enable no-await-in-loop */
   logger.error("Imposible to connect with Cassandra");
@@ -113,7 +109,7 @@ class App {
 
     this.httpServer.post(
       "/storage/v1/sessions",
-      bodyParser.urlencoded({ extended: false }),
+      bodyParser.json(),
       auth.callNewSession
     );
 
@@ -145,10 +141,13 @@ class App {
     this.httpServer.use(errors.handler);
   }
 
-  start(port, testMode = false) {
+  getServer() {
+    return this.httpServer;
+  }
+
+  start(port) {
     return this.httpServer.listen(port, () => {
       logger.info(`Storage API started at port ${port}`);
-      if (testMode) logger.info("EBSI TEST MODE enabled");
     });
   }
 }

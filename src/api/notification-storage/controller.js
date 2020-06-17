@@ -1,20 +1,21 @@
-const cassandraDriver = require("cassandra-driver");
 const querystring = require("querystring");
 const { v1: uuidv1 } = require("uuid");
 const config = require("../../config");
 const logger = require("../../logger");
+const cassandra = require("../../cassandraClient");
 const { NotFoundError } = require("../../errors");
 
 const TABLE_NOTIFICATION_STORAGE = "notification_storage";
 const TABLE_NOTIFICATION_HISTORICAL_STORAGE = "notification_historical_storage";
 
-const cassandraConnection = config.cassandra.connection;
-const cassandra = new cassandraDriver.Client(cassandraConnection);
-
 async function getRecord(id) {
-  const query = `select * from ${TABLE_NOTIFICATION_STORAGE} where id = ? allow filtering`;
-  const result = await cassandra.execute(query, [id]);
-  return result.first();
+  try {
+    const query = `select * from ${TABLE_NOTIFICATION_STORAGE} where id = ? allow filtering`;
+    const result = await cassandra.execute(query, [id]);
+    return result.first();
+  } catch (error) {
+    throw new NotFoundError(`id not found: ${error.message}`);
+  }
 }
 
 async function addNotification(data) {

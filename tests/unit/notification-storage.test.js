@@ -2,18 +2,18 @@ const supertest = require("supertest");
 const cassandraDriver = require("cassandra-driver");
 const jose = require("jose");
 
-const config = require("../src/config");
-const Server = require("../src/server");
+const config = require("../../src/config");
+const Server = require("../../src/server");
 
 const {
   BadRequestError,
   NotFoundError,
   InternalError,
-} = require("../src/errors");
+} = require("../../src/errors");
 
 jest.mock("cassandra-driver");
 
-const server = new Server().start(config.port, config.testMode);
+const server = new Server().getServer();
 const request = supertest(server);
 
 let callApi;
@@ -181,7 +181,7 @@ const mockExecute = jest.spyOn(cassandraDriver.Client.prototype, "execute");
 
 // function to get calls of cassandra.execute in the instance notification
 function getExecuteCalls() {
-  const instanceNotification = cassandraDriver.Client.mock.instances[2];
+  const instanceNotification = cassandraDriver.Client.mock.instances[0];
   return instanceNotification.execute.mock.calls;
 }
 
@@ -222,7 +222,7 @@ describe("notification storage tests", () => {
   });
 
   beforeAll(async () => {
-    const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKeyJWK);
+    const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKey);
     const fn = (type) => {
       return (method) => {
         return request[type](
@@ -243,7 +243,7 @@ describe("notification storage tests", () => {
 
   beforeEach(() => {
     // clear calls to cassandra.execute
-    const instanceNotification = cassandraDriver.Client.mock.instances[2];
+    const instanceNotification = cassandraDriver.Client.mock.instances[0];
     instanceNotification.execute.mock.calls = [];
   });
 

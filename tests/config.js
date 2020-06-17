@@ -1,7 +1,5 @@
-const utils = require("../src/utils");
+const { privateKeyAsJWK } = require("@cef-ebsi/app-jwt").default;
 require("dotenv").config();
-
-const port = process.env.PORT || 8080;
 
 const config = {
   production: {
@@ -14,7 +12,7 @@ const config = {
     url: "https://api.intebsi.xyz",
   },
   local: {
-    url: process.env.EBSI_API || `http://localhost:${port}`,
+    url: process.env.EBSI_API,
   },
 };
 
@@ -26,12 +24,10 @@ if (!process.env.TEST_APP_PRIVATE_KEY)
 const environment = process.env.EBSI_ENV;
 const finalConfig = config[environment];
 const { TEST_APP_NAME } = process.env;
-const privKey = process.env.TEST_APP_PRIVATE_KEY;
-const privKeyJWK = utils.getJWKfromHex(process.env.TEST_APP_PRIVATE_KEY);
+const privKey = privateKeyAsJWK(process.env.TEST_APP_PRIVATE_KEY);
 
 module.exports = {
   ...finalConfig,
   TEST_APP_NAME,
   privKey,
-  privKeyJWK,
 };

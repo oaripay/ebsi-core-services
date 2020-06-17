@@ -2,8 +2,8 @@ const supertest = require("supertest");
 const cassandraDriver = require("cassandra-driver");
 const jose = require("jose");
 
-const config = require("../src/config");
-const Server = require("../src/server");
+const config = require("../../src/config");
+const Server = require("../../src/server");
 
 const {
   BadRequestError,
@@ -11,11 +11,11 @@ const {
   KeyTooLargeError,
   ValueTooLargeError,
   InternalError,
-} = require("../src/errors");
+} = require("../../src/errors");
 
 jest.mock("cassandra-driver");
 
-const server = new Server().start(config.port, config.testMode);
+const server = new Server().getServer();
 const request = supertest(server);
 
 let callKeyValue;
@@ -43,7 +43,7 @@ const mockExecute = jest.spyOn(cassandraDriver.Client.prototype, "execute");
 
 // function to get calls of cassandra.execute in the instance key value
 function getExecuteCalls() {
-  const instanceKeyValue = cassandraDriver.Client.mock.instances[1];
+  const instanceKeyValue = cassandraDriver.Client.mock.instances[0];
   return instanceKeyValue.execute.mock.calls;
 }
 
@@ -84,7 +84,7 @@ describe("key value storage tests", () => {
   });
 
   beforeAll(async () => {
-    const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKeyJWK);
+    const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKey);
     const fn = (type) => {
       return (method) => {
         return request[type](
@@ -105,7 +105,7 @@ describe("key value storage tests", () => {
 
   beforeEach(() => {
     // clear calls to cassandra.execute
-    const instanceKeyValue = cassandraDriver.Client.mock.instances[1];
+    const instanceKeyValue = cassandraDriver.Client.mock.instances[0];
     instanceKeyValue.execute.mock.calls = [];
   });
 
