@@ -73,10 +73,6 @@ async function getDeployTransaction() {
 
 /* eslint jest/no-hooks: "off" */
 describe("hyperledger Besu integration test", () => {
-  afterAll(async () => {
-    server.close();
-  });
-
   beforeAll(async () => {
     const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKey);
     callBesuAuth = (method, params) => {

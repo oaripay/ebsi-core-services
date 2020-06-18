@@ -14,7 +14,7 @@ const randomKey = () => jose.JWK.generateSync("EC", "secp256k1");
 /* eslint jest/no-hooks: "off" */
 describe("authentication in ledger api", () => {
   afterAll(async () => {
-    server.close();
+    await new Promise((resolve) => setTimeout(resolve, 500));
   });
 
   it("create a new session with ledger api", async () => {
