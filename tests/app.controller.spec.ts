@@ -38,6 +38,14 @@ class AppServiceMock {
     return this.emptyArray;
   }
 
+  getIssuerForGov() {
+    return this.emptyArray;
+  }
+
+  getDocumentsForGov() {
+    return this.emptyArray;
+  }
+
   insertUniversity() {
     return this.emptyArray;
   }
@@ -54,6 +62,7 @@ class AppServiceMock {
 describe("appController", () => {
   let app: INestApplication;
   let appService: AppService;
+  let controller: AppController;
 
   // eslint-disable-next-line jest/no-hooks
   beforeAll(async () => {
@@ -66,12 +75,17 @@ describe("appController", () => {
       .compile();
 
     appService = module.get<AppService>(AppService);
-
+    controller = module.get<AppController>(AppController);
     app = module.createNestApplication();
     await app.init();
   });
 
   describe("get routes", () => {
+    it("get /health returns ok", async () => {
+      expect.assertions(1);
+      const expected = "ok";
+      expect(await controller.health()).toBe(expected);
+    });
     it(`#/v1/issuers`, async () => {
       expect.assertions(2);
       jest
@@ -209,6 +223,47 @@ describe("appController", () => {
 
       const res = JSON.parse(response.text);
       expect(res).toStrictEqual([expectedRes]);
+    });
+    it(`#/v1/issuers/:did should return when issuer for gov exists`, async () => {
+      expect.assertions(2);
+      jest
+        .spyOn(appService, "doesIssuerExists")
+        .mockImplementation(() => false);
+      jest
+        .spyOn(appService, "doesIssuerForGovExists")
+        .mockImplementation(() => true);
+      jest
+        .spyOn(appService, "getIssuerForGov")
+        .mockResolvedValue(testValues.resultGov);
+      jest
+        .spyOn(appService, "getDocumentsForGov")
+        .mockImplementation(() =>
+          Promise.all(testValues.issuerResult.documents as any)
+        );
+      jest.spyOn(appService, "downloadDocument").mockResolvedValue(null);
+      jest
+        .spyOn(appService, "getAccreditations")
+        .mockResolvedValue(testValues.issuerResult.accreditations);
+      const response = await request(app.getHttpServer()).get(
+        "/trusted-issuers-registry/v1/issuers/testdid"
+      );
+      expect(response.status).toBe(200);
+      const res = JSON.parse(response.text);
+      expect(res).toStrictEqual([
+        {
+          documents: [
+            {
+              body: "",
+              dateStart: 1582265889,
+              documentType: "Demo Bachelor doc",
+              revision: "Bachelor Royal Decree 1393/2007",
+              status: "Published in B.O.E. Active",
+              title: "Bachelor en bioinformática",
+              vcCode: "4313149",
+            },
+          ],
+        },
+      ]);
     });
     it(`#/v1/issuers/:did no issuer found`, async () => {
       expect.assertions(2);

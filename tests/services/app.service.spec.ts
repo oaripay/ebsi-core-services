@@ -4,13 +4,18 @@ import { Test } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
 import ebsiAppJwt from "@cef-ebsi/app-jwt";
 import Agent from "@cef-ebsi/app-jwt/dist/agent";
+import { of } from "rxjs";
 import AppService from "../../src/services/app.service";
 import EthersService from "../../src/services/ethers.service";
 import configuration from "../../src/config/configuration";
 import AppController from "../../src/app.controller";
 import AppFormatter from "../../src/util/app.formatter";
+import GovernmentBody from "../../src/types/GovernmentBody";
+import Authorize from "../../src/types/Authorize";
+import UniversityBody from "../../src/types/UniversityBody";
+import DocumentDto from "../../src/types/Document";
+import Accreditation from "../../src/types/Accreditation";
 
-// dotenv.config();
 const result = {
   moderator: "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73",
   issuerDID: "did:ebsi:0xBDB8618DE3ecdF37a4f13caAC7d9abc097bf9FC2",
@@ -43,21 +48,64 @@ const data = {
   },
 };
 const getTrustedIssuer = jest.fn(() => result);
+const addTrustedIssuerIdentifiers = jest.fn(() => {
+  return of({
+    wait: () => "TrustedIssuerIdentifiersResult",
+  }).toPromise();
+});
+const addTrustedIssuer = jest.fn(() => {
+  return of({
+    wait: () => result,
+  }).toPromise();
+});
 const getAllDocumentIndexes = jest.fn((did) => [
   `0-${did}`,
   `1-${did}`,
   `2-${did}`,
 ]);
+const getNrOfTrustedIssuers = jest.fn(async () => ({
+  toNumber: () => 3,
+}));
+const getTrustedIssuerByIndex = jest.fn(async (id) => {
+  return {
+    issuer: id,
+  };
+});
+
+const getNrOfAccreditations = jest.fn(() => ({
+  toNumber: () => 3,
+}));
 const getDocument = jest.fn(async (did, item) => {
   return {
     did,
     item,
   };
 });
+const getAccreditation = jest.fn(async (did, item) => {
+  return {
+    did,
+    item,
+  };
+});
+const addDocument = jest.fn(() => {
+  return of({
+    wait: () => result,
+  }).toPromise();
+});
+const isTrustedIssuer = jest.fn(() => true);
+const addAccreditation = jest.fn(() => {
+  return of({
+    wait: () => result,
+  }).toPromise();
+});
 
 jest.mock("axios", () => ({
   get: jest.fn().mockImplementation(() => Promise.resolve(data)),
-  post: jest.fn().mockImplementation(() => Promise.resolve({ data: {} })),
+  post: jest
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve({ data: { accessToken: "jwttoken" } })
+    ),
 }));
 jest.mock("ethers", () => ({
   ethers: {
@@ -68,8 +116,17 @@ jest.mock("ethers", () => ({
       connect() {
         return {
           getTrustedIssuer,
+          isTrustedIssuer,
+          addTrustedIssuer,
           getAllDocumentIndexes,
+          getNrOfAccreditations,
+          addTrustedIssuerIdentifiers,
+          addDocument,
+          addAccreditation,
+          getAccreditation,
           getDocument,
+          getNrOfTrustedIssuers,
+          getTrustedIssuerByIndex,
         };
       },
     })),
@@ -100,13 +157,145 @@ describe("appService", () => {
     app = module.createNestApplication();
     await app.init();
   });
-
+  // eslint-disable-next-line jest/no-hooks
+  beforeEach(() => {
+    jest.clearAllMocks();
+    /*  getAllDocumentIndexes.mockClear();
+    getDocument.mockClear();
+    getTrustedIssuer.mockClear();
+    addTrustedIssuerIdentifiers.mockClear();
+    addTrustedIssuer.mockClear();
+    getNrOfAccreditations.mockClear();
+    getAccreditation.mockClear();
+    addDocument.mockClear();
+    isTrustedIssuer.mockClear();
+    addAccreditation.mockClear();
+    getTrustedIssuerByIndex.mockClear();
+    getNrOfTrustedIssuers.mockClear(); */
+  });
   // eslint-disable-next-line jest/no-hooks
   afterAll(async () => {
     await app.close();
   });
 
   describe("getIssuer did", () => {
+    it("should insertGovernment", async () => {
+      expect.assertions(2);
+      const aut: Authorize = {
+        cryptedMessage: "cryptedMessage",
+        signature: "signature",
+      };
+      const gov: GovernmentBody = {
+        issuerDID: "issuerDID",
+        authorize: aut,
+        name: "name",
+        country: "country",
+      };
+      expect(await sut.insertGovernment(gov)).toStrictEqual(result);
+      expect(addTrustedIssuer).toHaveBeenCalledWith(
+        "issuerDID",
+        "name",
+        "country"
+      );
+    });
+    it("should insertUniversity", async () => {
+      expect.assertions(3);
+      const aut: Authorize = {
+        cryptedMessage: "cryptedMessage",
+        signature: "signature",
+      };
+      const univ: UniversityBody = {
+        issuerDID: "issuerDID",
+        authorize: aut,
+        preferredName: "preferredName",
+        alternativeName: "alternativeName",
+        homepage: "homepage",
+        escoOrganizationType: "escoOrganizationType",
+        siteLocation: "siteLocation",
+        id: "id",
+        legalIdentifier: "legalIdentifier",
+        vatIdentifier: "vatIdentifier",
+        taxIdentifier: "taxIdentifier",
+        identifier: "identifier",
+      };
+      expect(await sut.insertUniversity(univ)).toBeUndefined();
+      expect(addTrustedIssuer).toHaveBeenCalledWith(
+        "issuerDID",
+        "preferredName",
+        "alternativeName",
+        "homepage",
+        "escoOrganizationType",
+        "siteLocation"
+      );
+      expect(addTrustedIssuerIdentifiers).toHaveBeenCalledWith(
+        "issuerDID",
+        "id",
+        "legalIdentifier",
+        "vatIdentifier",
+        "taxIdentifier",
+        "identifier"
+      );
+    });
+    it("should addDocumentToIssuer", async () => {
+      expect.assertions(2);
+      const doc: DocumentDto = {
+        vcCode: "vcCode",
+        title: "title",
+        revision: "revision",
+        status: "status",
+        type: "type",
+        dateStart: "dateStart",
+      };
+
+      expect(await sut.addDocumentToIssuer("did", doc)).toStrictEqual(result);
+      expect(addDocument).toHaveBeenCalledWith(
+        "did",
+        "vcCode",
+        "title",
+        "revision",
+        "status",
+        "type",
+        "dateStart"
+      );
+    });
+    it("should addGovDocumentToIssuer", async () => {
+      expect.assertions(2);
+      const doc: DocumentDto = {
+        vcCode: "vcCode",
+        title: "title",
+        revision: "revision",
+        status: "status",
+        type: "type",
+        dateStart: "dateStart",
+      };
+
+      expect(await sut.addGovDocumentToIssuer("did", doc)).toStrictEqual(
+        result
+      );
+      expect(addDocument).toHaveBeenCalledWith(
+        "did",
+        "vcCode",
+        "title",
+        "revision",
+        "status",
+        "dateStart"
+      );
+    });
+    it("should addAccreditationToIssuer", async () => {
+      expect.assertions(2);
+      const body: Accreditation = {
+        targetFramework: "targetFramework",
+        targetResource: "targetResource",
+      };
+      expect(await sut.addAccreditationToIssuer("did", body)).toStrictEqual(
+        result
+      );
+      expect(addAccreditation).toHaveBeenCalledWith(
+        "did",
+        "targetFramework",
+        "targetResource"
+      );
+    });
     it("should return the university issuer by did", async () => {
       expect.assertions(2);
       expect(await sut.getIssuer(result.issuerDID)).toStrictEqual(result);
@@ -136,7 +325,7 @@ describe("appService", () => {
           .replace(/\/$/, "")}/v1/stores/distributed/files/0xhash`,
         {
           headers: {
-            Authorization: `Bearer ${this.jwtToken}`,
+            Authorization: `Bearer jwttoken`,
           },
         }
       );
@@ -151,6 +340,8 @@ describe("appService", () => {
         }
       );
       expect(spyPost).toHaveBeenCalledTimes(1);
+      // spyAgent.mockClear();
+      // spyAgent.mockReset();
     });
     it("should get document for gov", async () => {
       expect.assertions(3);
@@ -164,6 +355,51 @@ describe("appService", () => {
       );
       expect(getAllDocumentIndexes).toHaveBeenCalledTimes(1);
       expect(getDocument).toHaveBeenCalledTimes(3);
+    });
+    it("should get documents", async () => {
+      expect.assertions(3);
+      const expectedRes = [
+        { did: "did:gov", item: "0-did:gov" },
+        { did: "did:gov", item: "1-did:gov" },
+        { did: "did:gov", item: "2-did:gov" },
+      ];
+      expect(await sut.getDocuments("did:gov")).toStrictEqual(expectedRes);
+      expect(getAllDocumentIndexes).toHaveBeenCalledTimes(1);
+      expect(getDocument).toHaveBeenCalledTimes(3);
+    });
+    it("should getAccreditations", async () => {
+      expect.assertions(3);
+      const expectedRes = [
+        { did: "did:gov", item: 0 },
+        { did: "did:gov", item: 1 },
+      ];
+      expect(await sut.getAccreditations("did:gov")).toStrictEqual(expectedRes);
+      expect(getNrOfAccreditations).toHaveBeenCalledWith("did:gov");
+      expect(getAccreditation).toHaveBeenCalledTimes(2);
+    });
+    it("should getIssuerForGov and verify it exist", async () => {
+      expect.assertions(5);
+      expect(await sut.getIssuerForGov("did:gov")).toStrictEqual(result);
+      expect(await sut.doesIssuerExists("did:gov")).toStrictEqual(true);
+      expect(await sut.doesIssuerForGovExists("did:gov")).toStrictEqual(true);
+      expect(isTrustedIssuer).toHaveBeenCalledTimes(2);
+      expect(getTrustedIssuer).toHaveBeenCalledWith("did:gov");
+    });
+    it("should getGovTrustedIssuers", async () => {
+      expect.assertions(3);
+      const expectedRes = [{ issuer: 0 }, { issuer: 1 }, { issuer: 2 }];
+      expect(await sut.getGovTrustedIssuers()).toStrictEqual(expectedRes);
+      expect(getNrOfTrustedIssuers).toHaveBeenCalledWith();
+      expect(getTrustedIssuerByIndex).toHaveBeenCalledTimes(3);
+    });
+    it("should getUniversityTrustedIssuers", async () => {
+      expect.assertions(3);
+      const expectedRes = [{ issuer: 0 }, { issuer: 1 }, { issuer: 2 }];
+      expect(await sut.getUniversityTrustedIssuers()).toStrictEqual(
+        expectedRes
+      );
+      expect(getNrOfTrustedIssuers).toHaveBeenCalledWith();
+      expect(getTrustedIssuerByIndex).toHaveBeenCalledTimes(3);
     });
   });
 });

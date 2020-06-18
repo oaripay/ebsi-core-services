@@ -179,13 +179,10 @@ export default class AppService {
       "trusted-issuers-registry",
       `0x${this.configService.get("API_PRIVATE_KEY")}`
     );
-
     const payload = agent.createRequestPayload("ebsi-storage");
-
     const conf: AxiosRequestConfig = {
       headers: { "Content-Type": "application/json" },
     };
-
     const response = axios.post(
       `${this.configService.get("STORAGE").replace(/\/$/, "")}/v1/sessions`,
       payload,
@@ -197,9 +194,16 @@ export default class AppService {
 
   async downloadDocument(documentHash: string): Promise<AxiosResponse<any>> {
     await this.login();
-
+    if (typeof this.jwtToken === "undefined") {
+      this.logger.warn(
+        new Error(
+          "JwtToken is still undefined after login. A problem occured during session authentication"
+        )
+      );
+      return null;
+    }
     try {
-      return axios.get(
+      const res = axios.get(
         `${this.configService
           .get("STORAGE")
           .replace(/\/$/, "")}/v1/stores/distributed/files/${documentHash}`,
@@ -209,6 +213,7 @@ export default class AppService {
           },
         }
       );
+      return res;
     } catch (Error) {
       this.logger.warn(Error);
       return null;
