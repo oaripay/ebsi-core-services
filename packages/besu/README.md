@@ -57,11 +57,12 @@ The api will be accesible at http://localhost:8080
 ## Tests
 
 Create an `.env` file using `.env.example` and update the corresponding values.
+For e2e tests, TEST_APP_NAME and TEST_APP_PRIVATE_KEY need to be a valid app registered in the Trusted App Registry.
 
 Launch unit tests and e2e tests with:
 
 ```
-EBSI_ENV=integration npm run test
+npm run test
 ```
 
 To connect with a local api for e2e run:

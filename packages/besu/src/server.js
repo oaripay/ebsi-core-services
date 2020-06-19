@@ -13,8 +13,6 @@ class App {
 
     this.httpServer.use("*", cors());
 
-    this.httpServer.use(bodyParser.urlencoded({ extended: false }));
-
     this.httpServer.use(
       bodyParser.json({ limit: "10mb", extended: true, type: "*/*" })
     );
@@ -33,6 +31,10 @@ class App {
     });
 
     this.httpServer.use(errors.handler);
+  }
+
+  getServer() {
+    return this.httpServer;
   }
 
   start(port) {
