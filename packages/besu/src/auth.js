@@ -2,12 +2,7 @@ const jose = require("jose");
 const debug = require("debug");
 const { Session } = require("@cef-ebsi/app-jwt").default;
 
-const {
-  API_NAME,
-  privKey,
-  privKeyJWK,
-  trustedAppsRegistry,
-} = require("./config");
+const { API_NAME, privKey, trustedAppsRegistry } = require("./config");
 const { InvalidTokenError } = require("./errors");
 
 const session = new Session(API_NAME, privKey, trustedAppsRegistry);
@@ -39,7 +34,7 @@ function handleToken(req, res, next) {
 
   let payload;
   try {
-    payload = jose.JWT.verify(token, privKeyJWK);
+    payload = jose.JWT.verify(token, privKey);
   } catch (error) {
     next(new InvalidTokenError(error.message));
     return;
