@@ -16,7 +16,7 @@
     "lint:prettier": "prettier --check \"**/*.{md,json,yml,yaml,js,ts}\"",
     "test": "jest --clearCache && jest --runInBand --verbose false",
     "test:watch": "jest --watch",
-    "test:unit": "jest --clearCache && jest --runInBand --verbose false --testPathPattern=unit",
+    "test:unit": "jest --clearCache && jest --runInBand --verbose false --testPathPattern=unit --collectCoverageFrom=!src/app.ts --collectCoverageFrom=!src/app.module.ts --collectCoverageFrom=!src/main.ts --collectCoverageFrom=!src/contracts/EBSIApplicationRegistry.json",
     "test:integration": "jest --clearCache && jest --runInBand --verbose false --testPathPattern=integration",
     "test:e2e": "jest --clearCache && jest --runInBand --verbose false --testPathPattern=e2e"
   },

@@ -10,11 +10,7 @@ module.exports = {
   },
   moduleFileExtensions: ["ts", "js", "json"],
   coverageDirectory: "./coverage/",
-  collectCoverageFrom: [
-    "src/**/*.{ts,tsx}",
-    "!src/**/*.d.ts",
-    "!**/node_modules/**",
-  ],
+  collectCoverageFrom: ["src/**/*.ts", "!src/**/*.d.ts", "!**/node_modules/**"],
   collectCoverage: true,
   reporters: ["default", "jest-sonar"],
   globals: {
