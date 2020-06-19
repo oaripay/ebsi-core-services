@@ -2,8 +2,8 @@ import { Test } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import utils from "web3-utils";
-import configuration from "../config/configuration";
-import { EthersService } from "./ethers.service";
+import configuration from "../../../src/config/configuration";
+import { EthersService } from "../../../src/services/ethers.service";
 
 jest.mock("web3", () =>
   jest.fn().mockImplementation(() => ({

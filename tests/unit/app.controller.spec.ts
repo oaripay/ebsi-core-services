@@ -3,11 +3,11 @@ import { Test } from "@nestjs/testing";
 import { APP_FILTER } from "@nestjs/core";
 import { INestApplication, NotFoundException } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { AppController } from "./app.controller";
-import { EthersService } from "./services/ethers.service";
-import { AppService } from "./services/app.service";
-import configuration from "./config/configuration";
-import HttpExceptionFilter from "./filters/http-exception.filter";
+import { AppController } from "../../src/app.controller";
+import { EthersService } from "../../src/services/ethers.service";
+import { AppService } from "../../src/services/app.service";
+import configuration from "../../src/config/configuration";
+import HttpExceptionFilter from "../../src/filters/http-exception.filter";
 
 jest.mock("web3", () =>
   jest.fn().mockImplementation(() => ({
