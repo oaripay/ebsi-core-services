@@ -15,11 +15,11 @@ pipeline {
                checkout scm;
             }
         }
-        stage('Unit & Integration test') {
+        stage('Unit test') {
             steps {
                 sh 'npm install'
                 sh 'npm run bootstrap'
-                sh 'npm run test'
+                sh 'npm run test:besu-unit'
             }
         }
         stage('SonarQube Analysis') {
