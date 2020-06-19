@@ -12,8 +12,8 @@ pipeline {
         stage('Unit test') {
             steps {
                 sh 'npm install'
-                withCredentials([string(credentialsId: 'TEST_APP_PRIVATE_KEY', variable: 'WALLET_PRIV_KEY')]) {
-                    sh 'npm run test'
+                withCredentials([string(credentialsId: 'TEST_APP_PRIVATE_KEY', variable: 'API_PRIVATE_KEY')]) {
+                    sh 'npm run test:unit'
                 }
             }
         }

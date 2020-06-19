@@ -22,9 +22,9 @@ describe("app (e2e)", () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toStrictEqual({
-      statusCode: 404,
-      message: "Cannot GET /",
-      error: "Not Found",
+      detail: "Cannot GET /",
+      status: 404,
+      title: "Not Found",
     });
   });
 
@@ -36,17 +36,45 @@ describe("app (e2e)", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(response.body).toStrictEqual(
-      expect.objectContaining({
+    expect(response.body).toStrictEqual({
+      pageSize: expect.any(Number),
+      total: expect.any(Number),
+      items: expect.any(Array),
+      links: {
         first: expect.any(String),
         last: expect.any(String),
-        next: expect.any(String),
-        pageSize: expect.any(Number),
         prev: expect.any(String),
-        total: expect.any(Number),
-        items: expect.any(Array),
-      })
+        next: expect.any(String),
+      },
+    });
+
+    // Every item shoud have non-empty "appName" and "pubKey" properties
+    expect(
+      response.body.items.every(
+        (o) => o.appName.length > 0 && o.pubKey.length > 0
+      )
+    ).toBe(true);
+  });
+
+  it("/trusted-apps-registry/v1/apps?page[size]=20 GET should return the list of apps with custom page size", async () => {
+    expect.assertions(3);
+
+    const response = await request(app.getHttpServer()).get(
+      "/trusted-apps-registry/v1/apps?page[size]=20"
     );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual({
+      pageSize: 20, // Number, not a String
+      total: expect.any(Number),
+      items: expect.any(Array),
+      links: {
+        first: expect.any(String),
+        last: expect.any(String),
+        prev: expect.any(String),
+        next: expect.any(String),
+      },
+    });
 
     // Every item shoud have non-empty "appName" and "pubKey" properties
     expect(
@@ -65,9 +93,9 @@ describe("app (e2e)", () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toStrictEqual({
-      error: "Not Found",
-      message: "fakeapp not found",
-      statusCode: 404,
+      detail: "fakeapp not found",
+      status: 404,
+      title: "Not Found",
     });
   });
 
@@ -96,9 +124,9 @@ describe("app (e2e)", () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toStrictEqual({
-      error: "Not Found",
-      message: "Application does not exist",
-      statusCode: 404,
+      detail: "Application does not exist",
+      status: 404,
+      title: "Not Found",
     });
   });
 
@@ -110,17 +138,43 @@ describe("app (e2e)", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(response.body).toStrictEqual(
-      expect.objectContaining({
+    expect(response.body).toStrictEqual({
+      links: {
         first: expect.any(String),
         last: expect.any(String),
         next: expect.any(String),
-        pageSize: expect.any(Number),
         prev: expect.any(String),
-        total: expect.any(Number),
-        items: expect.any(Array),
-      })
+      },
+      pageSize: expect.any(Number),
+      total: expect.any(Number),
+      items: expect.any(Array),
+    });
+
+    // Items should be an array of { "authorizedAppName": "name-of-the-app" }
+    expect(
+      response.body.items.every((o) => o.authorizedAppName.length > 0)
+    ).toBe(true);
+  });
+
+  it("/trusted-apps-registry/v1/apps/:appName/authorized-apps?page[size]=20 GET should return the authorizations for an existing app with a custom page size", async () => {
+    expect.assertions(3);
+
+    const response = await request(app.getHttpServer()).get(
+      "/trusted-apps-registry/v1/apps/ebsi-wallet/authorized-apps?page[size]=20"
     );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual({
+      links: {
+        first: expect.any(String),
+        last: expect.any(String),
+        next: expect.any(String),
+        prev: expect.any(String),
+      },
+      pageSize: 20, // Number, not String
+      total: expect.any(Number),
+      items: expect.any(Array),
+    });
 
     // Items should be an array of { "authorizedAppName": "name-of-the-app" }
     expect(
@@ -150,10 +204,9 @@ describe("app (e2e)", () => {
 
     expect(response.status).toBe(404);
     expect(response.body).toStrictEqual({
-      error: "Not Found",
-      message:
-        "fakeapp not found in the list of authorized apps of ebsi-wallet",
-      statusCode: 404,
+      detail: "fakeapp not found in the list of authorized apps of ebsi-wallet",
+      status: 404,
+      title: "Not Found",
     });
   });
 });

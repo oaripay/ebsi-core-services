@@ -4,9 +4,9 @@ import { generateKeyPairSync } from "crypto";
 import { Test } from "@nestjs/testing";
 import { ConfigModule } from "@nestjs/config";
 import NodeRSA from "node-rsa";
-import { AppService } from "./app.service";
-import { EthersService } from "./ethers.service";
-import configuration from "../config/configuration";
+import { AppService } from "../../../src/services/app.service";
+import { EthersService } from "../../../src/services/ethers.service";
+import configuration from "../../../src/config/configuration";
 
 describe("app.service", () => {
   let appService: AppService;
@@ -61,7 +61,7 @@ describe("app.service", () => {
     const key1 = appService.loadKey();
 
     expect(fsSpy).toHaveBeenCalledWith(
-      path.resolve(__dirname, "../../key/private.pem")
+      path.resolve(__dirname, "../../../key/private.pem")
     );
 
     const key2 = appService.loadKey();
@@ -72,7 +72,7 @@ describe("app.service", () => {
   it("should generate a login challenge", () => {
     expect.assertions(2);
 
-    const key = new NodeRSA({ b: 512 }, "pkcs8");
+    const key = new NodeRSA({ b: 512 }, "pkcs8", {});
 
     const loadKeySpy = jest
       .spyOn(appService, "loadKey")
@@ -81,7 +81,7 @@ describe("app.service", () => {
     const challenge = appService.generateLoginChallenge("test");
 
     expect(loadKeySpy).toHaveBeenCalledTimes(1);
-    expect(key.decrypt(challenge).toString("ascii")).toStrictEqual(
+    expect(key.decrypt(challenge, "utf8").toString("ascii")).toStrictEqual(
       expect.stringContaining("test.")
     );
   });
@@ -89,7 +89,7 @@ describe("app.service", () => {
   it("should check the login", async () => {
     expect.assertions(4);
 
-    const key = new NodeRSA({ b: 512 }, "pkcs8");
+    const key = new NodeRSA({ b: 512 }, "pkcs8", {});
 
     const loadKeySpy = jest
       .spyOn(appService, "loadKey")
@@ -115,7 +115,7 @@ describe("app.service", () => {
   it("should deny the login if the address if different from the signer", async () => {
     expect.assertions(4);
 
-    const key = new NodeRSA({ b: 512 }, "pkcs8");
+    const key = new NodeRSA({ b: 512 }, "pkcs8", {});
 
     const loadKeySpy = jest
       .spyOn(appService, "loadKey")
@@ -141,7 +141,7 @@ describe("app.service", () => {
   it("should deny the login if the challenge is expired", async () => {
     expect.assertions(4);
 
-    const key = new NodeRSA({ b: 512 }, "pkcs8");
+    const key = new NodeRSA({ b: 512 }, "pkcs8", {});
 
     const loadKeySpy = jest
       .spyOn(appService, "loadKey")

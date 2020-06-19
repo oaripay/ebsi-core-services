@@ -29,7 +29,7 @@ export class AppService {
 
   generateLoginChallenge(name: string) {
     const timestamp =
-      Date.now() + this.configService.get("AUTH_EXPIRE_TIME") * 60 * 1000;
+      Date.now() + this.configService.get("authExpireTime") * 60 * 1000;
     const challenge = `${name}.${timestamp}`;
     const key = this.loadKey();
     return key.encrypt(challenge, "base64");

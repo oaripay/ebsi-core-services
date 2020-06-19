@@ -1,11 +1,13 @@
 import request from "supertest";
 import { Test } from "@nestjs/testing";
+import { APP_FILTER } from "@nestjs/core";
 import { INestApplication, NotFoundException } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { AppController } from "./app.controller";
-import { EthersService } from "./services/ethers.service";
-import { AppService } from "./services/app.service";
-import configuration from "./config/configuration";
+import { AppController } from "../../src/app.controller";
+import { EthersService } from "../../src/services/ethers.service";
+import { AppService } from "../../src/services/app.service";
+import configuration from "../../src/config/configuration";
+import HttpExceptionFilter from "../../src/filters/http-exception.filter";
 
 jest.mock("web3", () =>
   jest.fn().mockImplementation(() => ({
@@ -62,7 +64,14 @@ describe("app.controller", () => {
         }),
       ],
       controllers: [AppController],
-      providers: [EthersService, AppService],
+      providers: [
+        EthersService,
+        AppService,
+        {
+          provide: APP_FILTER,
+          useClass: HttpExceptionFilter,
+        },
+      ],
     }).compile();
 
     ethersService = module.get<EthersService>(EthersService);
@@ -102,10 +111,12 @@ describe("app.controller", () => {
         ],
         total: 2,
         pageSize: 10,
-        first: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
-        prev: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
-        next: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
-        last: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+        links: {
+          first: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+          prev: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+          next: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+          last: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+        },
       });
 
       expect(response.status).toBe(200);
@@ -129,9 +140,9 @@ describe("app.controller", () => {
       );
 
       expect(response.body).toStrictEqual({
-        error: "Bad Request",
-        message: "invalid page number",
-        statusCode: 400,
+        detail: "invalid page number",
+        status: 400,
+        title: "Bad Request",
       });
       expect(response.status).toBe(400);
     });
@@ -155,10 +166,12 @@ describe("app.controller", () => {
         items: [],
         total: 0,
         pageSize: 10,
-        first: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
-        prev: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
-        next: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
-        last: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+        links: {
+          first: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+          prev: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+          next: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+          last: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+        },
       });
       expect(response.status).toBe(200);
     });
@@ -199,9 +212,9 @@ describe("app.controller", () => {
       );
 
       expect(response.body).toStrictEqual({
-        error: "Not Found",
-        message: `${key} not found`,
-        statusCode: 404,
+        detail: "noappkey not found",
+        status: 404,
+        title: "Not Found",
       });
       expect(response.status).toBe(404);
     });
@@ -223,10 +236,12 @@ describe("app.controller", () => {
         items: [{ authorizedAppName: "ebsi-besu" }],
         total: 1,
         pageSize: 10,
-        first: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
-        prev: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
-        next: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
-        last: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+        links: {
+          first: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+          prev: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+          next: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+          last: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=10",
+        },
       });
       expect(response.status).toBe(200);
     });
@@ -245,9 +260,9 @@ describe("app.controller", () => {
       );
 
       expect(response.body).toStrictEqual({
-        error: "Not Found",
-        message: "Application does not exist",
-        statusCode: 404,
+        detail: "Application does not exist",
+        status: 404,
+        title: "Not Found",
       });
       expect(response.status).toBe(404);
     });
@@ -266,9 +281,9 @@ describe("app.controller", () => {
       );
 
       expect(response.body).toStrictEqual({
-        error: "Not Found",
-        message: "Application does not exist",
-        statusCode: 404,
+        detail: "Application does not exist",
+        status: 404,
+        title: "Not Found",
       });
       expect(response.status).toBe(404);
     });
@@ -310,9 +325,9 @@ describe("app.controller", () => {
       );
 
       expect(response.body).toStrictEqual({
-        error: "Bad Request",
-        message: "there was a problem to process your request",
-        statusCode: 400,
+        detail: "There was a problem to process your request",
+        status: 400,
+        title: "Bad Request",
       });
       expect(response.status).toBe(400);
     });
@@ -374,9 +389,9 @@ describe("app.controller", () => {
         .send(body);
 
       expect(response.body).toStrictEqual({
-        error: "Unauthorized",
-        message: "you are not authorized to insert for this DID",
-        statusCode: 401,
+        detail: "You are not authorized to insert for this DID",
+        status: 401,
+        title: "Unauthorized",
       });
       expect(response.status).toBe(401);
     });
@@ -407,9 +422,9 @@ describe("app.controller", () => {
         .send(body);
 
       expect(response.body).toStrictEqual({
-        error: "Bad Request",
-        message: "a message from besu",
-        statusCode: 400,
+        detail: "a message from besu",
+        status: 400,
+        title: "Bad Request",
       });
       expect(response.status).toBe(400);
     });
@@ -471,9 +486,9 @@ describe("app.controller", () => {
         .send(body);
 
       expect(response.body).toStrictEqual({
-        error: "Unauthorized",
-        message: "you are not authorized to insert for this DID",
-        statusCode: 401,
+        detail: "You are not authorized to insert for this DID",
+        status: 401,
+        title: "Unauthorized",
       });
       expect(response.status).toBe(401);
     });
@@ -511,9 +526,9 @@ describe("app.controller", () => {
         .send(body);
 
       expect(response.body).toStrictEqual({
-        error: "Bad Request",
-        message: "test",
-        statusCode: 400,
+        detail: "test",
+        status: 400,
+        title: "Bad Request",
       });
       expect(response.status).toBe(400);
     });
@@ -551,9 +566,9 @@ describe("app.controller", () => {
         .send(body);
 
       expect(response.body).toStrictEqual({
-        error: "Bad Request",
-        message: "besu reverted",
-        statusCode: 400,
+        detail: "besu reverted",
+        status: 400,
+        title: "Bad Request",
       });
       expect(response.status).toBe(400);
     });
