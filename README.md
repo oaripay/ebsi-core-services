@@ -1,78 +1,135 @@
+![EBSI Logo](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
 
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo_text.svg" width="320" alt="Nest Logo" /></a>
-</p>
+# Notarisation
 
-[travis-image]: https://api.travis-ci.org/nestjs/nest.svg?branch=master
-[travis-url]: https://travis-ci.org/nestjs/nest
-[linux-image]: https://img.shields.io/travis/nestjs/nest/master.svg?label=linux
-[linux-url]: https://travis-ci.org/nestjs/nest
-  
-  <p align="center">A progressive <a href="http://nodejs.org" target="blank">Node.js</a> framework for building efficient and scalable server-side applications, heavily inspired by <a href="https://angular.io" target="blank">Angular</a>.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore"><img src="https://img.shields.io/npm/dm/@nestjs/core.svg" alt="NPM Downloads" /></a>
-<a href="https://travis-ci.org/nestjs/nest"><img src="https://api.travis-ci.org/nestjs/nest.svg?branch=master" alt="Travis" /></a>
-<a href="https://travis-ci.org/nestjs/nest"><img src="https://img.shields.io/travis/nestjs/nest/master.svg?label=linux" alt="Linux" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#5" alt="Coverage" /></a>
-<a href="https://gitter.im/nestjs/nestjs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=body_badge"><img src="https://badges.gitter.im/nestjs/nestjs.svg" alt="Gitter" /></a>
-<a href="https://opencollective.com/nest#backer"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec"><img src="https://img.shields.io/badge/Donate-PayPal-dc3d53.svg"/></a>
-  <a href="https://twitter.com/nestframework"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+This repository contains the code of EBSI trusted issuers registry.
 
-## Description
+## Table of Contents
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+1. [Getting started](#Getting-started)
+2. [Linting](#Linting)
+3. [Auditing the dependencies](#Auditing-the-dependencies)
+4. [Testing](#Testing)
 
+## Getting started
 
-## Running application in docker
- ```
-cp .env.dist .env
-docker-compose build
-docker-compose up
-``` 
+You can choose to run the project locally with your own Node.js environment, or you can use Docker Compose to run it.
 
-## Installation and running locally
+First, create an `.env` file locally. You can duplicate `.env.example` and name the new copy `.env`. Adapt the variables to your needs.
+
+Please note that you need to fill the API_PRIVATE_KEY env variable with a secp256k1 elliptic curve private key in hexadecimal.
+
+### Run the project locally
+
+Install the required libraries and packages dependencies:
+
+```sh
+npm install
+```
+
+Run the development server:
+
+```sh
+npm run start
+```
+
+This command starts the web app at http://localhost:3000
+
+You can create a production build with:
+
+```sh
+npm run build
+```
+
+### Run with Docker
+
+After creating the local `.env` file, run:
+
+```sh
+docker-compose up --build
+```
+
+You can now open http://localhost:3000/demo/notarisation
 
 ```bash
 $ npm install
 ```
 
-## Running the app
+You need to fill the API_PRIVATE_KEY env variable with a secp256k1 elliptic curve private key
 
-```bash
-# development
-$ npm run start
+## Linting
 
-# watch mode
-$ npm run start:dev
+You can lint the files (ESLint + stylelint) and run Prettier with one command:
 
-# production mode
-$ npm run start:prod
+```sh
+npm run lint
 ```
 
-## Test
+Or you can run the different linters independently:
 
-```bash
-# unit tests
-$ npm run test
+### ESLint
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```sh
+npm run lint:ts
 ```
 
-## Support
+or with npx:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```sh
+npx eslint . --ext .ts
+```
 
-## License
+run eslint and precommit rules
 
-  Nest is [MIT licensed](LICENSE).
+```sh
+.git/hooks/pre-commit
+```
+
+### Prettier
+
+```sh
+npm run lint:prettier
+```
+
+or with npx:
+
+```sh
+npx prettier --check "**/*.{md,mdx,html,json,yml,ts,tsx,css,scss}"
+```
+
+## Auditing the dependencies
+
+```sh
+npm run audit
+```
+
+## Testing
+
+Run the tests
+
+```sh
+npm run test
+```
+
+Run the end to end tests
+
+```sh
+npm run test:e2e
+```
+
+Run all the tests
+
+```sh
+npm run test:all
+```
+
+## Licensing
+
+Copyright (c) 2019 European Commission  
+Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
+You may not use this work except in compliance with the Licence.
+You may obtain a copy of the Licence at:
+
+- <https://joinup.ec.europa.eu/page/eupl-text-11-12>
+
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.

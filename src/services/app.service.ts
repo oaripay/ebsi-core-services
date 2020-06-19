@@ -1,32 +1,28 @@
-import {
-  Injectable,
-  NotImplementedException,
-  UnauthorizedException,
-  Logger
-} from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 
-import fs from "fs";
-import NodeRSA from "node-rsa";
-import jose from "jose";
-import axios from "axios";
-import config from "./config";
-import {
-  GovernmentBody,
-  UniversityBody,
-  Document,
-  Accreditation
-} from "./validation";
-import { EthersService } from "./ethers.service";
+import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
+import ebsiAppJwt from "@cef-ebsi/app-jwt";
+import { ConfigService } from "@nestjs/config";
+import EthersService from "./ethers.service";
+import GovernmentBody from "../types/GovernmentBody";
+import UniversityBody from "../types/UniversityBody";
+import DocumentDto from "../types/Document";
+import Accreditation from "../types/Accreditation";
 
 @Injectable()
-export class AppService {
+export default class AppService {
+  private readonly logger = new Logger(AppService.name);
+
   private univContract;
 
   private govContract;
 
   private jwtToken;
 
-  constructor(private ethersService: EthersService) {
+  constructor(
+    private ethersService: EthersService,
+    private configService: ConfigService
+  ) {
     this.univContract = this.ethersService.getContracts().univContract;
     this.govContract = this.ethersService.getContracts().govContract;
   }
@@ -65,7 +61,7 @@ export class AppService {
     await univTii.wait();
   }
 
-  async addDocumentToIssuer(did: string, body: Document) {
+  async addDocumentToIssuer(did: string, body: DocumentDto) {
     const univDoc = await this.univContract.addDocument(
       did,
       body.vcCode,
@@ -78,7 +74,7 @@ export class AppService {
     return univDoc.wait();
   }
 
-  async addGovDocumentToIssuer(did: string, body: Document) {
+  async addGovDocumentToIssuer(did: string, body: DocumentDto) {
     const govDoc = await this.govContract.addDocument(
       did,
       body.vcCode,
@@ -101,7 +97,7 @@ export class AppService {
 
   async getDocuments(did: string): Promise<any> {
     const documentIndexes = await this.univContract.getAllDocumentIndexes(did);
-    const documentsPromises = documentIndexes.map(item => {
+    const documentsPromises = documentIndexes.map((item) => {
       return this.univContract.getDocument(did, item);
     });
     return Promise.all(documentsPromises);
@@ -109,7 +105,7 @@ export class AppService {
 
   async getDocumentsForGov(did: string) {
     const documentIndexes = await this.govContract.getAllDocumentIndexes(did);
-    const documentsPromises = documentIndexes.map(item => {
+    const documentsPromises = documentIndexes.map((item) => {
       return this.govContract.getDocument(did, item);
     });
     return Promise.all(documentsPromises);
@@ -160,107 +156,66 @@ export class AppService {
     return Promise.all(universityTrustedIssuersPromises);
   }
 
-  async generateLoginChallenge(did: string, type: string) {
-    const timestamp = Date.now() + config.AUTH_EXPIRE_TIME * 60 * 1000;
-    const challenge = `${did}.${timestamp}.${type}`;
-    const key = this.loadKey();
-    return key.encrypt(challenge, "base64");
-  }
-
-  loadKey() {
-    const privateKey = fs
-      .readFileSync(`${__dirname}/../key/private.pem`)
-      .toString("utf-8");
-    return new NodeRSA(privateKey, "pkcs8");
-  }
-
-  async decryptChallenge(encryptedChallenge: string) {
-    const key = this.loadKey();
-    return key.decrypt(encryptedChallenge, "utf8");
-  }
-
-  async checkLogin(cryptedMessage, signature: string, type: string) {
-    // recover address from signature
-    const address = await this.ethersService.recoverAddress(
-      cryptedMessage,
-      signature
-    );
-    // check address is admin onchain
-    let signer;
-    switch (type) {
-      case "universities":
-        signer = await this.univContract.isSigner(address);
-        break;
-      case "governments":
-        signer = await this.govContract.isSigner(address);
-        break;
-      default:
-        // not implemented
-        throw new NotImplementedException("not implemented");
-    }
-    if (!signer) {
-      throw new UnauthorizedException("your ether wallet is not authorized");
-    }
-    // decrypt message
-    const messageDecrypted = await this.decryptChallenge(cryptedMessage);
-    const messageDecryptedArray = messageDecrypted.split(".");
-    // check the date
-    const currentTimestamp = Date.now();
-    if (currentTimestamp > parseInt(messageDecryptedArray[1], 10)) {
-      throw new UnauthorizedException("login expired");
-    }
-    // return DID
-    return messageDecryptedArray[0];
-  }
-
   async login() {
     if (typeof this.jwtToken === "undefined") {
       try {
         const response = await this.generateLoginJWT();
         this.jwtToken = response.data.accessToken;
       } catch (error) {
-        console.log(error.message);
+        this.logger.error(
+          `error received from ${this.configService
+            .get("STORAGE")
+            .replace(/\/$/, "")}/v1/sessions:${error.message}`
+        );
+        this.logger.log(error.message);
       }
     }
   }
 
   async generateLoginJWT() {
-    const key = this.loadKey();
-    const { JWT, JWK } = jose;
-    const privateKey = JWK.asKey(key.exportKey());
-    const payload = {
-      iss: config.APP_NAME,
-      aud: config.APP_AUTH_REQUEST_NAME
-    };
-    const token = JWT.sign(payload, privateKey, {
-      expiresIn: "15 minutes"
-    });
-    const response = axios.post(
-      `${config.STORAGE.replace(/\/$/, "")}/v1/sessions`,
-      {
-        grantType: "urn:ietf:params:oauth:grant-type:jwt-bearer",
-        assertion: token
-      }
+    // build payload for session authentication
+
+    const agent = new ebsiAppJwt.Agent(
+      "trusted-issuers-registry",
+      `0x${this.configService.get("API_PRIVATE_KEY")}`
     );
+    const payload = agent.createRequestPayload("ebsi-storage");
+    const conf: AxiosRequestConfig = {
+      headers: { "Content-Type": "application/json" },
+    };
+    const response = axios.post(
+      `${this.configService.get("STORAGE").replace(/\/$/, "")}/v1/sessions`,
+      payload,
+      conf
+    );
+
     return response;
   }
 
-  async downloadDocument(documentHash: string) {
+  async downloadDocument(documentHash: string): Promise<AxiosResponse<any>> {
     await this.login();
+    if (typeof this.jwtToken === "undefined") {
+      this.logger.warn(
+        new Error(
+          "JwtToken is still undefined after login. A problem occured during session authentication"
+        )
+      );
+      return null;
+    }
     try {
-      return axios.get(
-        `${config.STORAGE.replace(
-          /\/$/,
-          ""
-        )}/v1/stores/distributed/files/${documentHash}`,
+      const res = axios.get(
+        `${this.configService
+          .get("STORAGE")
+          .replace(/\/$/, "")}/v1/stores/distributed/files/${documentHash}`,
         {
           headers: {
-            Authorization: `Bearer ${this.jwtToken}`
-          }
+            Authorization: `Bearer ${this.jwtToken}`,
+          },
         }
       );
+      return res;
     } catch (Error) {
-      Logger.warn(Error);
+      this.logger.warn(Error);
       return null;
     }
   }

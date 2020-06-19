@@ -1,11 +1,8 @@
-key
+# compiled output
+/dist
+/key
+/node_modules
 coverage
-node_modules/
-dist/*
-!/dist/v4
-!/dist/v5
-.env
-
-/tmp
-/out-tsc
-test-report.xml
+sonar-report.xml
+.env*
+!.env.example

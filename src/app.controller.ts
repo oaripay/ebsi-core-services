@@ -5,75 +5,84 @@ import {
   Param,
   NotFoundException,
   Query,
-  Logger
+  Logger,
 } from "@nestjs/common";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
-import { AppService } from "./app.service";
-import { DIDParams } from "./validation";
-import { AppFormatter } from "./app.formatter";
+import AppService from "./services/app.service";
+import DIDParams from "./types/DIDParams";
+import AppFormatter from "./util/app.formatter";
+import TrustedIssuer from "./types/TrustedIssuer";
 
 const HTTP_401 = "The client is not allowed to access resource";
 const HTTP_404 = "Resource not found!";
 const HTTP_200 = "Fetch Resource.";
 
 @Controller("/trusted-issuers-registry")
-export class AppController {
+export default class AppController {
+  private readonly logger = new Logger(AppController.name);
+
   constructor(
     private appService: AppService,
     private appFormatter: AppFormatter
   ) {}
 
   @ApiOperation({
+    summary: "health endpoint",
+    description: `will return ok if api is up`,
+  })
+  @Get("/v1/health")
+  health() {
+    this.logger.debug("GET health/  ");
+    return "ok";
+  }
+
+  @ApiOperation({
     description:
-      "Get all universities defined as trusted issuers in BESU blockchain"
+      "Get all universities defined as trusted issuers in BESU blockchain",
   })
   @ApiResponse({ status: 200, description: HTTP_200 })
   @ApiResponse({ status: 401, description: HTTP_401 })
   @Get("/v1/issuers")
   async issuers(@Query() query) {
     try {
-      const size = query.page ? query.page.size ?? 10 : 10;
-      const after = query.page ? query.page.after ?? 0 : 0;
+      const size = parseInt(query.page ? query.page.size ?? 10 : 10, 10);
+      const after = parseInt(query.page ? query.page.after ?? 0 : 0, 10);
 
       const univ = (
         await this.appService.getUniversityTrustedIssuers()
-      ).map(tiUniv => this.appFormatter.formatUnivIssuer(tiUniv));
-      const gov = (await this.appService.getGovTrustedIssuers()).map(tiGov =>
-        this.appFormatter.formatGovIssuer(tiGov)
+      ).map((tiUniv) => AppFormatter.formatUnivIssuer(tiUniv));
+
+      const gov = (await this.appService.getGovTrustedIssuers()).map((tiGov) =>
+        AppFormatter.formatGovIssuer(tiGov)
       );
+
       let result = {};
       let counter = 0;
       let maxCounter = 0;
       const items = [];
       const itemStartingFrom = after * size;
-      for (let i = 0; i < univ.length; i += 1) {
+      univ.forEach((val, id) => {
         counter += 1;
-        if (itemStartingFrom > counter) {
-          continue;
+        if (itemStartingFrom <= counter && maxCounter < size) {
+          maxCounter += 1;
+          items.push({
+            name: univ[id].preferredName,
+            did: univ[id].issuerDID,
+          });
         }
-        if (maxCounter >= size) {
-          continue;
-        }
-        maxCounter += 1;
-        items.push({
-          name: univ[i].preferredName,
-          did: univ[i].issuerDID
-        });
-      }
-      for (let i = 0; i < gov.length; i += 1) {
+      });
+
+      gov.forEach((val, id) => {
         counter += 1;
-        if (itemStartingFrom >= counter) {
-          continue;
+        if (itemStartingFrom < counter && maxCounter < size) {
+          maxCounter += 1;
+          items.push({
+            name: gov[id].name,
+            did: gov[id].issuerDID,
+          });
         }
-        if (maxCounter >= size) {
-          continue;
-        }
-        maxCounter += 1;
-        items.push({
-          name: gov[i].name,
-          did: gov[i].issuerDID
-        });
-      }
+      });
+
       const pages = Math.ceil((counter + 1) / size);
       if (pages - 1 < after) {
         throw new BadRequestException("invalid page number");
@@ -82,15 +91,19 @@ export class AppController {
         items,
         total: counter,
         pageSize: size,
-        first: `/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=${size}`,
-        prev: `/trusted-issuers-registry/v1/issuers?page[after]=${Math.max(
-          0,
-          after - 1
-        )}&page[size]=${size}`,
-        next: `/trusted-issuers-registry/v1/issuers?page[after]=${after -
-          -1}&page[size]=${size}`,
-        last: `/trusted-issuers-registry/v1/issuers?page[after]=${pages -
-          1}&page[size]=${size}`
+        links: {
+          first: `/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=${size}`,
+          prev: `/trusted-issuers-registry/v1/issuers?page[after]=${Math.max(
+            0,
+            after - 1
+          )}&page[size]=${size}`,
+          next: `/trusted-issuers-registry/v1/issuers?page[after]=${
+            after - -1
+          }&page[size]=${size}`,
+          last: `/trusted-issuers-registry/v1/issuers?page[after]=${
+            pages - 1
+          }&page[size]=${size}`,
+        },
       };
       return result;
     } catch (error) {
@@ -106,35 +119,41 @@ export class AppController {
   @ApiResponse({ status: 404, description: HTTP_404 })
   @ApiResponse({ status: 401, description: HTTP_401 })
   @Get("/v1/issuers/:did")
-  async issuer(@Param() params: DIDParams): Promise<Array<{}>> {
+  async issuer(@Param() params: DIDParams): Promise<Array<TrustedIssuer>> {
     try {
+      this.logger.debug(`/v1/issuers/:${JSON.stringify(params)}`);
       let univTypeIssuer;
       let govTypeIssuer;
-      const result = [];
+      const result: Array<TrustedIssuer> = [];
       let documents = [];
       if (await this.appService.doesIssuerExists(params.did)) {
         univTypeIssuer = await this.appService.getIssuer(params.did);
         documents = await this.appService.getDocuments(params.did);
         const accs = await this.appService.getAccreditations(params.did);
-        for (let i = 0; i < documents.length; i += 1) {
-          documents[i].body = null;
-          try {
-            const downloadedDoc = await this.appService.downloadDocument(
-              documents[i].vcCode
-            );
-            // console.log(downloadedDoc.data);
-            documents[i].body = downloadedDoc
-              ? downloadedDoc.status === 200
-                ? downloadedDoc.data
-                : null
-              : "";
-          } catch (error) {
-            // do nothing, can't extract from besu
-            Logger.warn(
-              `Error at index ${i} hash ${documents[i].vcCode}. Cannot extract from besu, message: ${error.message}`
-            );
-          }
-        }
+        const dlDocs = documents.map((doc, id) => {
+          const f = async () => {
+            try {
+              const downloadedDoc = await this.appService.downloadDocument(
+                doc.vcCode
+              );
+
+              let dlStatus = null;
+              if (downloadedDoc) {
+                dlStatus =
+                  downloadedDoc.status === 200 ? downloadedDoc.data : null;
+              }
+              documents[id].body = downloadedDoc ? dlStatus : "";
+            } catch (error) {
+              // do nothing, can't extract from besu
+              this.logger.warn(
+                `Error at index ${id} hash ${documents[id].vcCode}. Cannot extract from besu, message: ${error.message}`
+              );
+            }
+          };
+          return f();
+        });
+        await Promise.all(dlDocs);
+
         result.push({
           moderator: univTypeIssuer.moderator,
           issuerDID: univTypeIssuer.issuerDID,
@@ -144,12 +163,10 @@ export class AppController {
           escoOrganizationType: univTypeIssuer.escoOrganizationType,
           siteLocation: univTypeIssuer.siteLocation,
           status: univTypeIssuer.status,
-          documents: documents.map(doc =>
-            this.appFormatter.formatDocument(doc)
+          documents: documents.map((doc) => AppFormatter.formatDocument(doc)),
+          accreditations: accs.map((acc) =>
+            AppFormatter.formatAccreditation(acc)
           ),
-          accreditations: accs.map(acc =>
-            this.appFormatter.formatAccreditation(acc)
-          )
         });
       }
       if (await this.appService.doesIssuerForGovExists(params.did)) {
@@ -161,9 +178,9 @@ export class AppController {
           name: govTypeIssuer.name,
           country: govTypeIssuer.country,
           status: govTypeIssuer.status,
-          documents: documents.map(document =>
-            this.appFormatter.formatDocument(document)
-          )
+          documents: documents.map((document) =>
+            AppFormatter.formatDocument(document)
+          ),
         });
       }
       if (!result.length) {
@@ -181,47 +198,4 @@ export class AppController {
       );
     }
   }
-  //
-  // @ApiOperation({ description: 'Get government by DID' })
-  // @ApiResponse({ status: 200, description: 'Government JSON'})
-  // @ApiResponse({ status: 404, description: HTTP_404})
-  // @ApiResponse({ status: 401, description: HTTP_401})
-  // @Get('/governments/:did')
-  // async issuerGov(@Param() params: DIDParams) {
-  //   if (!(await this.appService.doesIssuerForGovExists(params.did))) {
-  //     throw new NotFoundException('Government does not exist!');
-  //   }
-  //   const issuer = await this.appService.getIssuerForGov(params.did);
-  //   const documents = await this.appService.getDocumentsForGov(params.did);
-  //   return {
-  //     moderator: issuer.moderator,
-  //     issuerDID: issuer.issuerDID,
-  //     name: issuer.name,
-  //     country: issuer.country,
-  //     status: issuer.status,
-  //     documents: documents.map((document) => this.appFormatter.formatDocument(document)),
-  //   };
-  // }
-  // @ApiOperation({ description: 'Get challenge to be signed with the eth address' })
-  // @ApiResponse({ status: 200, description: 'Government JSON'})
-  // @ApiResponse({ status: 404, description: HTTP_404})
-  // @ApiResponse({ status: 401, description: HTTP_401})
-  // @Get('/challenge/:did/:type')
-  // async challenge(@Param() params: ChallengeParams) {
-  //   switch (params.type) {
-  //     case 'universities':
-  //       if ((await this.appService.doesIssuerForGovExists(params.did))) {
-  //         throw new NotFoundException('Government does exist!');
-  //       }
-  //       break;
-  //     case 'governments':
-  //       if ((await this.appService.doesIssuerExists(params.did))) {
-  //         throw new NotFoundException('University does exist!');
-  //       }
-  //       break;
-  //     default:
-  //       throw new NotImplementedException('entity not implemented');
-  //   }
-  //   return this.appService.generateLoginChallenge(params.did, params.type);
-  // }
 }

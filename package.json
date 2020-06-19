@@ -1,10 +1,12 @@
 {
-  "name": "4-besu-trusted-issuers-api",
+  "name": "trusted-issuers-registry-api",
   "version": "0.0.1",
   "description": "",
   "author": "",
-  "license": "MIT",
+  "private": true,
+  "license": "EUPL-1.2",
   "scripts": {
+    "audit": "audit-ci --moderate",
     "prebuild": "rimraf dist",
     "eslint": "eslint --ext .js,.jsx,.ts,.tsx .",
     "eslint:fix": "eslint --ext .js,.jsx,.ts,.tsx . --fix",
@@ -14,76 +16,65 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "lint": "tslint -p tsconfig.json -c tslint.json",
-    "test": "jest",
+    "lint-staged": "lint-staged",
+    "lint": "npm run lint:js && npm run lint:ts && npm run lint:prettier",
+    "lint:js": "eslint \"*/**/*.{js,ts}\"",
+    "lint:ts": "tsc --noEmit --incremental false",
+    "lint:prettier": "prettier --check \"**/*.{md,json,yml,yaml,js,ts}\"",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:unit": "jest --coverage --reporters=default --reporters=jest-sonar --testPathPattern=\"^.+\\.(spec|test)\\.ts$\"",
+    "test:e2e": "jest --clearCache && jest --config ./tests/jest-e2e.json --runInBand",
+    "test": "jest --clearCache && jest --config ./tests/jest-all.json --runInBand --verbose false",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
   },
   "dependencies": {
-    "@nestjs/common": "^6.7.2",
-    "@nestjs/core": "^6.7.2",
-    "@nestjs/platform-express": "^6.7.2",
-    "@nestjs/swagger": "^4.1.7",
+    "@cef-ebsi/app-jwt": "0.0.3",
+    "@hapi/joi": "^17.1.1",
+    "@nestjs/common": "^7.1.3",
+    "@nestjs/config": "^0.5.0",
+    "@nestjs/core": "^7.1.3",
+    "@nestjs/platform-express": "^7.1.3",
+    "@nestjs/swagger": "^4.5.9",
     "axios": "^0.19.2",
     "class-transformer": "^0.2.3",
-    "class-validator": "^0.11.0",
-    "dotenv": "^8.2.0",
-    "ethers": "^4.0.42",
-    "jose": "^1.26.0",
-    "node-rsa": "^1.0.7",
+    "class-validator": "^0.12.2",
+    "ethers": "^4.0.47",
+    "helmet": "^3.22.0",
+    "nest-winston": "^1.3.4",
     "reflect-metadata": "^0.1.13",
-    "rimraf": "^3.0.0",
-    "rxjs": "^6.5.3",
-    "swagger-ui-express": "^4.1.2",
-    "tslint-sonarts": "^1.9.0"
+    "rxjs": "^6.5.5",
+    "swagger-ui-express": "^4.1.4",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
-    "@nestjs/cli": "^6.14.2",
-    "@nestjs/schematics": "^6.7.0",
-    "@nestjs/testing": "^6.11.11",
-    "@types/express": "^4.17.1",
-    "@types/jest": "^24.0.18",
-    "@types/node": "^12.7.5",
-    "@types/supertest": "^2.0.8",
-    "@typescript-eslint/eslint-plugin": "^2.29.0",
-    "@typescript-eslint/parser": "^2.29.0",
+    "rimraf": "^3.0.2",
+    "@nestjs/cli": "^7.2.0",
+    "@nestjs/schematics": "^7.0.1",
+    "@nestjs/testing": "^7.1.3",
+    "@types/express": "^4.17.6",
+    "@types/jest": "25.2.1",
+    "@types/node": "^14.0.11",
+    "@types/supertest": "^2.0.9",
+    "@typescript-eslint/eslint-plugin": "^2.28.0",
+    "@typescript-eslint/parser": "^2.23.0",
+    "audit-ci": "^3.0.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-typescript": "^7.2.1",
-    "eslint-config-prettier": "^6.11.0",
+    "eslint-config-prettier": "^6.10.1",
     "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-jest": "^23.13.2",
     "eslint-plugin-prettier": "^3.1.3",
     "husky": "^4.2.5",
-    "jest": "^24.9.0",
-    "jest-sonar-reporter": "^2.0.0",
-    "lint-staged": "^10.1.7",
-    "prettier": "^1.19.1",
-    "stylelint": "^13.3.3",
-    "stylelint-config-prettier": "^8.0.1",
-    "stylelint-prettier": "^1.1.2",
+    "jest": "^26.0.1",
+    "jest-sonar": "^0.2.7",
+    "lint-staged": "^10.1.3",
+    "prettier": "^2.0.5",
     "supertest": "^4.0.2",
-    "ts-jest": "^24.1.0",
-    "ts-loader": "^6.1.1",
-    "ts-node": "^8.4.1",
+    "ts-jest": "^26.1.0",
+    "ts-loader": "^7.0.5",
+    "ts-node": "^8.10.2",
     "tsconfig-paths": "^3.9.0",
-    "tslint": "^5.20.0",
-    "typescript": "^3.6.3"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".spec.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node",
-    "testResultsProcessor": "jest-sonar-reporter"
+    "typescript": "^3.9.5"
   },
   "jestSonar": {
     "reportPath": "coverage",
@@ -94,10 +85,5 @@
     "hooks": {
       "pre-commit": "lint-staged"
     }
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "eslint --fix"
-    ]
   }
 }
