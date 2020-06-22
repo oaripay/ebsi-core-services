@@ -31,10 +31,11 @@ cd identity-hub-api
 
 #### Docker Build and Up
 
-Copy `.env.example.docker` to `.env` and set the following environment variables:
+Copy .env.example to .env and set the following environment variables:
 
-- `api_private_key`= <-- TYPE HERE API PRIVATE KEY IN HEX FORMAT
-- `did_registry_sc_address`= <-- TYPE HERE DID REGISTRY SC ADDRESS
+- `EBSI_ENV` : set to test, local, integration, development or production
+- `API_PRIVATE_KEY` <-- TYPE HERE API PRIVATE KEY IN HEX FORMAT
+- `DID_REGISTRY_SC_ADDRESS` <-- TYPE HERE DID REGISTRY SC ADDRESS
 
 Build and Run ebsi-identity-hub-api Docker Image
 
