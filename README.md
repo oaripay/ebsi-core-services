@@ -22,12 +22,6 @@ Required libraries:
 
 ### Installing
 
-Move to the base directory (example: `test-ebsi`)
-
-```sh
-cd test-ebsi
-```
-
 Clone the repository and move to the project directory
 
 ```sh
@@ -36,6 +30,12 @@ cd identity-hub-api
 ```
 
 #### Docker Build and Up
+
+Copy .env.example to .env and set the following environment variables:
+
+- `EBSI_ENV` : set to test, local, integration, development or production
+- `API_PRIVATE_KEY` <-- TYPE HERE API PRIVATE KEY IN HEX FORMAT
+- `DID_REGISTRY_SC_ADDRESS` <-- TYPE HERE DID REGISTRY SC ADDRESS
 
 Build and Run ebsi-identity-hub-api Docker Image
 
@@ -51,7 +51,7 @@ docker-compose down
 
 ## Building
 
-Clone the repository and move to the project directory and move to the base directory.
+Clone the repository and move to the project directory:
 
 ```sh
 git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/identity-hub-api.git
@@ -83,11 +83,10 @@ This command starts a node server exposing the EBSI Swagger API at <http://local
 Copy .env.example to .env and set the following environment variables:
 
 - `EBSI_ENV` : set to test, local, integration, development or production
-- `COMPONENT_PASSWORD` <-- TYPE HERE COMPONENT WALLET PASSWORD
-- `COMPONENT_KEYSTORE` <-- TYPE HERE COMPONENT WALLET KEYSTORE
+- `API_PRIVATE_KEY` <-- TYPE HERE API PRIVATE KEY IN HEX FORMAT
 - `DID_REGISTRY_SC_ADDRESS` <-- TYPE HERE DID REGISTRY SC ADDRESS
 
-### Unit tests
+### All tests
 
 Run
 
@@ -95,20 +94,28 @@ Run
 npm run test
 ```
 
+### Unit tests
+
+Run
+
+```sh
+npm run test:unit
+```
+
 ### Integration tests
 
 Run
 
 ```sh
-npm run test:e2e
+npm run test:integration
 ```
 
-### Unit & Integration tests
+### e2e tests
 
 Run
 
 ```sh
-npm run test:all
+npm run test:e2e
 ```
 
 ## Swagger Documentation

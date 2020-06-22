@@ -1,6 +1,5 @@
 export interface WalletOptions {
-  encryptedKey?: string; // can be validated with ethers' isSecretStorageWallet method
-  password?: string;
+  hexPrivateKey?: string;
   did?: string;
 }
 
@@ -18,16 +17,7 @@ export default interface Wallet {
     expiresIn?: number
   ): Promise<any> | any;
 
-  /**
-   * Verify the data signed
-   * @param data : The JWS signed
-   */
-
-  signTx(txJSON: any, password?: string): Promise<any>;
-
   getDid(): string;
-
-  exportEncryptedKeys(): string;
 
   // encrypt data using Component public key
   encrypt(dataToEncrypt: Buffer): Buffer;

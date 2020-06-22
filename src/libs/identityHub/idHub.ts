@@ -4,8 +4,7 @@ import {
   IAttributeInfo,
   IAttributeInput,
 } from "../../dtos/attributeInfo";
-import AttributeInfoList from "../../models/attributeInfoList";
-import CASFile from "../../models/casFile";
+import { AttributeInfoList, CASFile } from "../../models";
 import { ICASFile } from "../../daos/casFile";
 import { EBSI_DEFAULT_DATA_STORE } from "../../config";
 import { DataStoreManager } from "../dataStorages";
@@ -39,15 +38,15 @@ export default class IDHub {
   async getAttributes(did: string): Promise<IAttribute[]> {
     try {
       const attrInfoList = (await this.attributeInfoListDB.get(did)).data;
-      const attributes: IAttribute[] = [];
 
-      // eslint-disable-next-line no-restricted-syntax
-      for (const elem of attrInfoList.list) {
-        // eslint-disable-next-line no-await-in-loop
-        const base64 = await this.attributeFileDB.get(elem.hash);
-        attributes.push({ ...elem, data: { base64 } });
-      }
-
+      const attributesElem = attrInfoList.list.map((elem) => {
+        return (async () => {
+          const base64 = await this.attributeFileDB.get(elem.hash);
+          const res: IAttribute = { ...elem, data: { base64 } };
+          return res;
+        })();
+      });
+      const attributes = await Promise.all(attributesElem);
       return attributes;
     } catch (error) {
       if ((<Error>error).message !== "Request failed with status code 404") {
@@ -63,28 +62,30 @@ export default class IDHub {
     did: string,
     filterArr: string[] | string[][]
   ): Promise<IAttribute[]> {
-    const attributes: IAttribute[] = await this.getAttributes(did);
     // returns a list of attributes that contains any of the filtered attributes in as type element
     // filter Array is empty returns an empty array
     if (filterArr.length <= 0) return [];
+
+    const attributes: IAttribute[] = await this.getAttributes(did);
+
     // filter Array is an array of string arrays
     if (Array.isArray(filterArr[0])) {
       const resultAttributes = attributes.filter((attribute) =>
         attribute.type.some((typeElem) =>
-          (filterArr as string[][]).some((filterElemArr) =>
-            filterElemArr.indexOf(typeElem)
+          (filterArr as string[][]).some(
+            (filterElemArr) => filterElemArr.indexOf(typeElem) > -1
           )
         )
       );
       return resultAttributes;
     }
     // otherwiese, filter Array is an array of string
-    const resultAttributes = attributes.filter((attribute) =>
+    const resultAttributesStr = attributes.filter((attribute) =>
       attribute.type.some(
         (typeElem) => (filterArr as string[]).indexOf(typeElem) > -1
       )
     );
-    return resultAttributes;
+    return resultAttributesStr;
   }
 
   /**

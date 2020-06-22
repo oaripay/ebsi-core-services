@@ -12,14 +12,6 @@ interface IJwk {
   kid?: string;
 }
 
-const toHex = (data: string): string =>
-  Buffer.from(data, "base64").toString("hex");
-
-const getPublicKeyHexFromJWK = (jwk: IJwk): string => {
-  const publikKeyHex = `0x04${toHex(jwk.x)}${toHex(jwk.y)}`;
-  return publikKeyHex;
-};
-
 const getJWKfromHex = (
   publicKeyHex: string,
   privateKeyHex: string
@@ -48,4 +40,4 @@ const getJWKfromHex = (
   return jwkEcKey;
 };
 
-export { getJWKfromHex, getPublicKeyHexFromJWK };
+export default getJWKfromHex;

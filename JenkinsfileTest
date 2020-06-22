@@ -3,15 +3,8 @@ pipeline {
     environment {
         EBSI_ENV='test'
         DEBUG_LEVEL='silly'
-        COMPONENT_PASSWORD=credentials('COMPONENT_PASSWORD_HUB')
+        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY_HUB')
         DID_REGISTRY_SC_ADDRESS=credentials('DID_REGISTRY_SC_ADDRESS')
-        COMPONENT_KEYSTORE_iv=credentials('COMPONENT_KEYSTORE_iv')
-        COMPONENT_KEYSTORE_salt=credentials('COMPONENT_KEYSTORE_salt')
-        COMPONENT_KEYSTORE_n=credentials('COMPONENT_KEYSTORE_n')
-        COMPONENT_KEYSTORE_p=credentials('COMPONENT_KEYSTORE_p')
-        COMPONENT_KEYSTORE_r=credentials('COMPONENT_KEYSTORE_r')
-        COMPONENT_KEYSTORE_mac=credentials('COMPONENT_KEYSTORE_mac')
-        COMPONENT_KEYSTORE="""{"address":"83c58c6f114bf746648a09427140bf5cc2c1873b","id":"c794ff50-10f1-446c-ab2f-dda0f8cc9444","version":3,"Crypto":{"cipher":"aes-128-ctr","cipherparams":{"iv":"${env.COMPONENT_KEYSTORE_iv}"},"ciphertext":"a35a19e0beca2b19dfdde97e765a51b5b19c88b7b7326e861960c8bafc1f6c4b","kdf":"scrypt","kdfparams":{"salt":"${env.COMPONENT_KEYSTORE_salt}","n":"${env.COMPONENT_KEYSTORE_n}","dklen":32,"p":"${env.COMPONENT_KEYSTORE_p}","r":"${env.COMPONENT_KEYSTORE_r}"},"mac":"${env.COMPONENT_KEYSTORE_mac}"}}""";
     }
     stages {
         stage('Clone repo') {
@@ -22,7 +15,7 @@ pipeline {
         stage('Unit test') {
             steps {
                 sh 'npm install'
-                sh 'npm run test'
+                sh 'npm run test:unit'
             }
         }
         stage('SonarQube Analysis') {

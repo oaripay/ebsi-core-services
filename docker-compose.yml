@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    image: ebsi/identity-hub-api:v1.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/identity-hub-api:integration_EBSIINT-1382-chores-increase-coverage_v0.0.1
     container_name: identity-hub-api
     restart: always
     logging:
@@ -15,7 +15,6 @@ services:
     ports:
       - 8080:9000
     environment:
-      - EBSI_ENV=integration
-      - COMPONENT_PASSWORD=${component_password}
-      - COMPONENT_KEYSTORE=${component_keystore}
-      - DID_REGISTRY_SC_ADDRESS=${did_registry_sc_address}
+      - EBSI_ENV=${EBSI_ENV:?Missing EBSI_ENV variable}
+      - API_PRIVATE_KEY=${API_PRIVATE_KEY:?Missing API_PRIVATE_KEY variable}
+      - DID_REGISTRY_SC_ADDRESS=${DID_REGISTRY_SC_ADDRESS:?Missing DID_REGISTRY_SC_ADDRESS variable}

@@ -3,13 +3,13 @@ import { JWK, JWKECKey, JWT } from "jose";
 import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
 import { SimpleSigner, createJWT } from "did-jwt";
+import EBSI_JWT from "@cef-ebsi/app-jwt";
 import { ethers } from "ethers";
-import { COMPONENT_KEYSTORE, API_NAME, LOG_LEVEL } from "../../src/config";
+import { API_PRIVATE_KEY, API_NAME, LOG_LEVEL } from "../../src/config";
 import {
   LegalEntityAuthNToken,
   UserAuthNToken,
-  IUserAuthZToken,
-  IEnterpriseAuthZToken,
+  AccessTokenResponseBody,
 } from "../../src/libs/authManager/secureEnclave/jwt";
 import {
   PRINT_SILLY,
@@ -22,6 +22,20 @@ import { InitComponent } from "../../src/libs/authManager/secureEnclave";
 import ComponentSecureEnclave from "../../src/libs/authManager/secureEnclave/componentSecureEnclave";
 import AuthManager from "../../src/libs/authManager/authManager";
 import { IAttribute } from "../../src/dtos/attributeInfo";
+import { api } from "../../src/utils";
+import * as config from "../../src/config";
+
+const toHex = (data: string): string =>
+  Buffer.from(data, "base64").toString("hex");
+
+const generateKeys = (): JWK.ECKey =>
+  JWK.generateSync("EC", "secp256k1", { use: "sig" });
+
+const generateHexPrivateKey = (): string => {
+  const key = generateKeys();
+  const hexPrivateKey = toHex(<string>key.d);
+  return hexPrivateKey;
+};
 
 const mockComponentKey = JWK.asKey({
   crv: "secp256k1",
@@ -58,7 +72,7 @@ const testAuthNToken = async (): Promise<{
   token: string;
 }> => {
   const se = ComponentSecureEnclave.Instance;
-  const { did, key } = await se.init(COMPONENT_KEYSTORE);
+  const { did, key } = await se.init(API_PRIVATE_KEY);
   const token = await AuthManager.Instance.createAuthNToken(API_NAME);
   return { did, key, token };
 };
@@ -118,112 +132,58 @@ const testUserAuthNToken = async (): Promise<{
 };
 
 interface TestingSetup {
-  belgiumGovToken: string;
-  belgiumGovDid: string;
-  entityToken: string;
-  entityDid: string;
-  userToken: string;
-  userDid: string;
+  token: string;
+  did: string;
 }
 
 async function auxDoGetCallWithToken(token: string, url: string): Promise<any> {
-  const config = {
+  const configHeaders = {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   };
   if (LOG_LEVEL === "silly") {
     PRINT_SILLY(`URL: ${url}`);
-    PRINT_SILLY(config);
+    PRINT_SILLY(configHeaders);
   }
-  const response = await axios.get(url, config);
+  const response = await axios.get(url, configHeaders);
   return response.data;
 }
 
 async function initSecureEnclave(): Promise<string> {
-  const { did } = await ComponentSecureEnclave.Instance.init(
-    COMPONENT_KEYSTORE
-  );
+  const { did } = await ComponentSecureEnclave.Instance.init(API_PRIVATE_KEY);
   if (!did) throw new InternalError(API_ERROR_MESSAGES.ENCLAVE_DID_NULL);
   PRINT_DEBUG(`Secure Enclave initialized with DID:${did}`);
 
   return did;
 }
 
-async function getEnterpriseAuthZToken(
-  enterpiseName?: string
-): Promise<{
-  jwt: string;
-  did: string;
-}> {
-  const { did } = await testEntityAuthNToken(enterpiseName);
-  const payload: IEnterpriseAuthZToken = {
-    did,
-    aud: API_NAME,
-    nonce: uuidv4(),
-  };
-  // Create and sign JWT
-  const jwt = await AuthManager.Instance.createAuthorizationToken(
-    payload,
-    payload.aud
-  );
-  return { jwt, did };
-}
-
-async function getUserAuthZToken(): Promise<{
-  jwt: string;
-  did: string;
-}> {
-  const { did } = await testUserAuthNToken();
-  const payload: IUserAuthZToken = {
-    sub: mockedUserUE.uid,
-    did,
-    userName: `${mockedUserUE.firstname}&${mockedUserUE.lastname}`,
-  };
-
-  // Create and sign JWT
-  const jwt = await AuthManager.Instance.createAuthorizationToken(
-    payload,
-    mockedUserUE.uid
-  );
-
-  return { jwt, did };
-}
-
-function mockedSetupForTesting(): TestingSetup {
-  const entityToken =
-    "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwczovL2FwaS5pbnRlYnNpLnh5ei9lYnNpdHJ1c3RlZGFwcC9wdWJsaWMta2V5cy8iLCJraWQiOiJlYnNpLXdhbGxldCJ9.eyJzdWIiOiJkZW1vIHRlc3QiLCJpYXQiOjE1ODYzNTY5MzQsImV4cCI6MTU4NjM1NzgzNCwiYXVkIjoiZWJzaS13YWxsZXQiLCJkaWQiOiJkaWQ6ZWJzaToweEFiZDQwZkNjNDc1NzRGMTg2NUFGNzc4NGRCNDcxZTVlN2Q1N0UwQmEiLCJlbnRlcnByaXNlTmFtZSI6ImRlbW8gdGVzdCIsIm5vbmNlIjoiMmt0ZDJGc2JHVjBJbjAuIn0.2e-YW3c-ZYnv_HxGS94aZZeLRdUEOj6IFQZjb3yWkX4TcBRP-72tXIi0c_4mpI15Eb8VGk9ajGCQf8C1_QFlKA";
-  const entityDid = "did:ebsi:0xAbd40fCc47574F1865AF7784dB471e5e7d57E0Ba";
-  const belgiumGovToken =
-    "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwczovL2FwaS5pbnRlYnNpLnh5ei9lYnNpdHJ1c3RlZGFwcC9wdWJsaWMta2V5cy8iLCJraWQiOiJlYnNpLXdhbGxldCJ9.eyJzdWIiOiJCZWxnaXVtIEdvdmVybm1lbnQiLCJpYXQiOjE1ODYzNTczMzQsImV4cCI6MTU4NjM1ODIzNCwiYXVkIjoiZWJzaS13YWxsZXQiLCJkaWQiOiJkaWQ6ZWJzaToweGRFM2Q4ZThmMzBCNDI1QUNlNkY2NTQ5RDMxODhBZTlGMDA0N0VhMUEiLCJlbnRlcnByaXNlTmFtZSI6IkJlbGdpdW0gR292ZXJubWVudCIsIm5vbmNlIjoiMmt0ZDJGc2JHVjBJbjAuIn0.16Q_Uy7HBDrYuwTmBT2gEG4YrpMd4KFjpa2d-kCCw3t5bJL1jmn8aIEMzaDU_rYxdMhyqYw6Sm5TN1RuNqpLOQ";
-  const belgiumGovDid = "did:ebsi:0x9f99F1f7482bC56735f8Df9f3Ffb280d54395c49";
-  const userToken =
-    "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJqa3UiOiJodHRwczovL2FwaS5pbnRlYnNpLnh5ei9lYnNpdHJ1c3RlZGFwcC9wdWJsaWMta2V5cy8iLCJraWQiOiJlYnNpLXdhbGxldCJ9.eyJzdWIiOiJldmEiLCJpYXQiOjE1ODYzNTc0NjIsImV4cCI6MTU4NjM1ODM2MiwiYXVkIjoiZWJzaS13YWxsZXQiLCJkaWQiOiJkaWQ6ZWJzaToweGM5QTg5NDBBYjMxOGQ0ZDQ2MzFhODZEY0Y5RTBiOUEzNTk0MjE0RTUiLCJ1c2VyTmFtZSI6IkVCU0kmRXZhIiwidXNlcklkIjoiZXZhIn0.6KzJNNUQHEUvhhFI9D9qreMeaekFT2-Cm9VIwfquqJjIBaNdUbCj3TpzJEEd1ml76YB52k8bGSFeNrWXKilxlA";
-  const userDid = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
-
-  return {
-    belgiumGovToken,
-    belgiumGovDid,
-    entityToken,
-    entityDid,
-    userToken,
-    userDid,
-  };
-}
-
 const initSetupForTesting = async (): Promise<TestingSetup> => {
-  await initSecureEnclave();
-  const mockedData = mockedSetupForTesting();
-  const mockedEntity = await getEnterpriseAuthZToken();
-  const { jwt, did } = await getUserAuthZToken();
+  const agent = new EBSI_JWT.Agent(config.API_NAME, config.API_PRIVATE_KEY);
+  const randNum: number = Math.floor(Math.random() * 1000000);
+  const request = agent.createRequestPayload(
+    config.EBSI_APPS.WALLET,
+    EBSI_JWT.Scope.ENTITY,
+    {
+      iss: `my gov: ${randNum}`,
+      sub: `my gov: ${randNum}`,
+      enterpriseName: `my gov: ${randNum}`,
+      nonce: "123",
+    }
+  );
+
+  const resp: AccessTokenResponseBody = await api.doPostCallWithoutToken(
+    request,
+    `${config.EBSI_SERVICE.URL.WALLET}${config.EBSI_SERVICE.CALL.EBSI_LOGIN}`
+  );
+  const payload: any = JWT.decode(resp.accessToken);
+  if (!payload.did) throw new Error("DID not found on AuthZ token");
+  PRINT_DEBUG(`Access token: ${resp.accessToken}`);
+  PRINT_DEBUG(`DID: ${payload.did}`);
 
   return {
-    belgiumGovToken: mockedData.belgiumGovToken,
-    belgiumGovDid: mockedData.belgiumGovDid,
-    entityToken: mockedEntity.jwt,
-    entityDid: mockedEntity.did,
-    userToken: jwt,
-    userDid: did,
+    token: resp.accessToken,
+    did: payload.did,
   };
 };
 
@@ -232,17 +192,17 @@ async function auxDoPostCallWithToken(
   data: any,
   url: string
 ): Promise<any> {
-  const config = {
+  const confiHeaders = {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   };
   if (LOG_LEVEL === "silly") {
     PRINT_SILLY(`URL: ${url}`);
-    PRINT_SILLY(config);
+    PRINT_SILLY(confiHeaders);
     PRINT_SILLY(data);
   }
-  const response = await axios.post(url, data, config);
+  const response = await axios.post(url, data, confiHeaders);
   return response.data;
 }
 
@@ -423,21 +383,22 @@ const mockedAttributes: IAttribute[] = [
 ];
 
 export {
+  toHex,
   mockedPosts,
   mockedUserUE,
   TestingSetup,
+  generateKeys,
   testAuthNToken,
   mockedAttributes,
   mockComponentKey,
   mockComponentDid,
-  getUserAuthZToken,
   mockInitComponent,
   initSecureEnclave,
   testUserAuthNToken,
   initSetupForTesting,
   mockedEnterpriseUser,
   testEntityAuthNToken,
+  generateHexPrivateKey,
   auxDoGetCallWithToken,
-  mockedSetupForTesting,
   auxDoPostCallWithToken,
 };

@@ -1,6 +1,6 @@
 import * as express from "express";
 import cors from "cors";
-import { parseEntityJWT } from "../../middleware/jwt";
+import parseEntityJWT from "../../middleware/jwt";
 import { EBSI_SERVICE } from "../../config";
 import {
   handleError,
@@ -11,7 +11,7 @@ import {
 import * as auth from "../../middleware/auth";
 import Controller from "./controller";
 import applyPaginationFormat from "../../middleware/formatResponse";
-import { isHash } from "../../utils/util";
+import { util } from "../../utils";
 
 class Router {
   constructor(server: express.Express, swaggerDoc: any) {
@@ -39,7 +39,7 @@ class Router {
             throw new BadRequestError(
               API_ERROR_MESSAGES.ATTRIBUTES_DID_HASH_NOT_FOUND
             );
-          if (!isHash(hash))
+          if (!util.isHash(hash))
             throw new BadRequestError(
               `The hash:${hash} parameter is not valid`
             );
@@ -76,12 +76,15 @@ class Router {
               throw new BadRequestError(
                 API_ERROR_MESSAGES.ATTRIBUTES_TYPE_NOT_FOUND
               );
-            const result = await Controller.getAttributesFiltered(did, type);
+            const filteredResult = await Controller.getAttributesFiltered(
+              did,
+              type
+            );
             res.status(200);
             // adding path, did and encoded type to format link results
             const encodedType = encodeURIComponent(type);
             req.baseUrl += `${req.path}?did=${did}&type=${encodedType}`;
-            applyPaginationFormat(result, req, res, next);
+            applyPaginationFormat(filteredResult, req, res, next);
             return;
           }
           const result = await Controller.getAttributes(did);
@@ -111,7 +114,7 @@ class Router {
             throw new BadRequestError(
               API_ERROR_MESSAGES.ATTRIBUTES_DID_HASH_NOT_FOUND
             );
-          if (!isHash(hash))
+          if (!util.isHash(hash))
             throw new BadRequestError(
               `The hash:${hash} parameter is not valid`
             );

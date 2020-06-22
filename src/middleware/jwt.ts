@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { JWT } from "jose";
-import { PRINT_DEBUG, PRINT_ERROR } from "../utils/util";
+import { PRINT_ERROR } from "../utils/util";
 import {
   UnauthorizedError,
   InternalError,
@@ -9,12 +9,7 @@ import {
 import {
   IUserAuthZToken,
   IEnterpriseAuthZToken,
-  UserAuthNToken,
 } from "../libs/authManager/secureEnclave/jwt";
-
-const logRequest = (req: Request): void => {
-  PRINT_DEBUG(`Request logged:${req.method}${req.path}`);
-};
 
 const getTokenFromHeader = (req: Request): string => {
   let token =
@@ -41,55 +36,45 @@ const getTokenFromHeader = (req: Request): string => {
 const parseEntityJWT = (req: Request, res: Response, next): void => {
   try {
     const token = getTokenFromHeader(req);
-
-    let entityAuthToken: any;
-
     // check if token is a user Token or enterprise Token
-    // eslint-disable-next-line prefer-const
-    entityAuthToken = JWT.decode(token);
-
-    if (entityAuthToken.userName) {
-      const entityAuthZToken = <IUserAuthZToken>JWT.decode(token);
-      if (!entityAuthZToken.did) {
+    const userAuthZToken = <IUserAuthZToken>JWT.decode(token);
+    if (userAuthZToken.userName) {
+      if (!userAuthZToken.did) {
         next(new UnauthorizedError("Error parsing JWT: DID not found"));
+        return;
       }
 
-      Object.assign(req.params, { jwt: JSON.stringify(entityAuthZToken) });
-      Object.assign(req.params, { didJwt: entityAuthZToken.did });
+      Object.assign(req.params, { jwt: JSON.stringify(userAuthZToken) });
+      Object.assign(req.params, { didJwt: userAuthZToken.did });
+      Object.assign(req.params, { token });
+      next();
+      return;
     }
 
+    const entityAuthZToken = <IEnterpriseAuthZToken>JWT.decode(token);
     if (
-      entityAuthToken.did &&
-      entityAuthToken.sub &&
-      entityAuthToken.aud &&
-      entityAuthToken.aud.match(/^ebsi/)
+      entityAuthZToken.sub &&
+      entityAuthZToken.aud &&
+      entityAuthZToken.aud.match(/^ebsi/)
     ) {
-      const entityAuthZToken = <IEnterpriseAuthZToken>JWT.decode(token);
-
       if (!entityAuthZToken.did) {
         next(new UnauthorizedError("Error parsing JWT: DID not found"));
+        return;
       }
 
       Object.assign(req.params, { jwt: JSON.stringify(entityAuthZToken) });
       Object.assign(req.params, { didJwt: entityAuthZToken.did });
+      Object.assign(req.params, { token });
+      next();
+      return;
     }
-
-    if (entityAuthToken.ticket) {
-      const entityAuthNtoken = <UserAuthNToken>JWT.decode(token);
-
-      Object.assign(req.params, { jwt: JSON.stringify(entityAuthNtoken) });
-      Object.assign(req.params, { didJwt: entityAuthNtoken.iss });
-    }
-
-    // Save token also in params
-    Object.assign(req.params, { token });
-
-    next();
-  } catch (error) {
-    next(
-      new UnauthorizedError("You are not authorized to access the resources.")
+    // throw error if token is neither of this two types
+    throw new UnauthorizedError(
+      "token is neither a User or Legal Entity AuthZ Token"
     );
+  } catch (error) {
+    next(error);
   }
 };
 
-export { logRequest, parseEntityJWT };
+export default parseEntityJWT;

@@ -1,6 +1,6 @@
 import base64url from "base64url";
 import { ethers } from "ethers";
-import { JWT, JWK } from "jose";
+import { JWT } from "jose";
 import { v4 as uuidv4 } from "uuid";
 import * as util from "util";
 import KeyEncoder from "key-encoder";
@@ -13,12 +13,6 @@ import {
 import LOGGER from "../logger";
 import { API_ERROR_MESSAGES, InternalError, HTTPError } from "../errors";
 import { IComponentAuthZToken } from "../libs/authManager/secureEnclave/jwt";
-
-const toHex = (data: string): string =>
-  Buffer.from(data, "base64").toString("hex");
-
-const generateKeys = (): JWK.ECKey =>
-  JWK.generateSync("EC", "secp256k1", { use: "sig" });
 
 /**
  * Encodes a string in Base64 format
@@ -158,7 +152,6 @@ export {
   delay,
   setId,
   isHex,
-  toHex,
   isHash,
   strB64dec,
   PRINT_JSON,
@@ -168,7 +161,6 @@ export {
   PRINT_SILLY,
   b64EncodeUrl,
   hashFromFile,
-  generateKeys,
   isTokenExpired,
   pubkeyHexToPem,
   getStorageConfig,

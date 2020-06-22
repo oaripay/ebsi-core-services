@@ -1,4 +1,5 @@
 import httpMocks from "node-mocks-http";
+import { EventEmitter } from "events";
 import applyPaginationFormat from "../../src/middleware/formatResponse";
 import { PaginateResult } from "../../src/utils";
 import { mockedPosts } from "../utils/auxAPICalls";
@@ -8,8 +9,7 @@ describe("formatResponse middleware test suite", () => {
   it("returns the default pagination format", () => {
     expect.assertions(1);
     const res = httpMocks.createResponse({
-      // eslint-disable-next-line global-require
-      eventEmitter: require("events").EventEmitter,
+      eventEmitter: EventEmitter,
     });
 
     const req = httpMocks.createRequest({
@@ -52,8 +52,7 @@ describe("formatResponse middleware test suite", () => {
   it("returns the first 5 elements when setting page[size]=5", () => {
     expect.assertions(1);
     const res = httpMocks.createResponse({
-      // eslint-disable-next-line global-require
-      eventEmitter: require("events").EventEmitter,
+      eventEmitter: EventEmitter,
     });
 
     const req = httpMocks.createRequest({
@@ -92,8 +91,7 @@ describe("formatResponse middleware test suite", () => {
   it("returns the next 5 elements when using the next parameter", () => {
     expect.assertions(1);
     const res = httpMocks.createResponse({
-      // eslint-disable-next-line global-require
-      eventEmitter: require("events").EventEmitter,
+      eventEmitter: EventEmitter,
     });
 
     const req = httpMocks.createRequest({
@@ -132,8 +130,7 @@ describe("formatResponse middleware test suite", () => {
   it("returns the previous 5 elements when using the before parameter", () => {
     expect.assertions(1);
     const res = httpMocks.createResponse({
-      // eslint-disable-next-line global-require
-      eventEmitter: require("events").EventEmitter,
+      eventEmitter: EventEmitter,
     });
 
     const req = httpMocks.createRequest({
@@ -172,8 +169,7 @@ describe("formatResponse middleware test suite", () => {
   it("returns the first 5 elements when offset is less than 0", () => {
     expect.assertions(1);
     const res = httpMocks.createResponse({
-      // eslint-disable-next-line global-require
-      eventEmitter: require("events").EventEmitter,
+      eventEmitter: EventEmitter,
     });
 
     const req = httpMocks.createRequest({
