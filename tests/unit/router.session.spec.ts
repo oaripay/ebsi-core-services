@@ -10,7 +10,7 @@ jest.setTimeout(100000);
 
 describe("identity Hub router API calls", () => {
   let server: http.Server;
-  const testPort: number = Math.floor(Math.random() * 9988);
+  const testPort = 9900;
 
   // eslint-disable-next-line jest/no-hooks
   beforeAll(async (done) => {
