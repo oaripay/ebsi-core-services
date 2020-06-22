@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        VERSION=sh(script: 'sudo runuser -l ebsi1-robot -c "AWS_REPO=intebsi/storage bash /opt/ebsi_containers_int/auto-deploy/minor_version.sh"', returnStdout: true).trim()
+        VERSION=sh(script: 'sudo runuser -l ebsi1-robot -c "AWS_REPO=intebsi/storage-api bash /opt/ebsi_containers_int/auto-deploy/minor_version.sh"', returnStdout: true).trim()
     }
     stages {
         stage('Clone repo') {
@@ -11,13 +11,13 @@ pipeline {
         }
         stage('Build image') {
             steps {
-                sh "sudo VERSION=${VERSION}_${GIT_COMMIT} AWS_REPO=intebsi/storage bash /opt/ebsi_containers_int/auto-deploy/build.sh"
+                sh "sudo VERSION=${VERSION}_${GIT_COMMIT} AWS_REPO=intebsi/storage-api bash /opt/ebsi_containers_int/auto-deploy/build.sh"
             }
         }
         stage('Push to ECR') {
             steps {
                  sh "sudo `sudo su - ebsi1-robot -c 'aws ecr get-login --no-include-email --region eu-central-1'`"
-                 sh "sudo docker push 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/storage"
+                 sh "sudo docker push 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/storage-api"
              }
         }
         stage("Deploy on first machine") {
