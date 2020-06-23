@@ -3,13 +3,11 @@ import { JWK, JWKECKey, JWT } from "jose";
 import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
 import { SimpleSigner, createJWT } from "did-jwt";
-import EBSI_JWT from "@cef-ebsi/app-jwt";
 import { ethers } from "ethers";
 import { API_PRIVATE_KEY, API_NAME, LOG_LEVEL } from "../../src/config";
 import {
   LegalEntityAuthNToken,
   UserAuthNToken,
-  AccessTokenResponseBody,
 } from "../../src/libs/authManager/secureEnclave/jwt";
 import {
   PRINT_SILLY,
@@ -22,8 +20,8 @@ import { InitComponent } from "../../src/libs/authManager/secureEnclave";
 import ComponentSecureEnclave from "../../src/libs/authManager/secureEnclave/componentSecureEnclave";
 import AuthManager from "../../src/libs/authManager/authManager";
 import { IAttribute } from "../../src/dtos/attributeInfo";
-import { api } from "../../src/utils";
 import * as config from "../../src/config";
+import getJWKfromHex from "../../src/libs/authManager/secureEnclave/jwk";
 
 const toHex = (data: string): string =>
   Buffer.from(data, "base64").toString("hex");
@@ -158,32 +156,49 @@ async function initSecureEnclave(): Promise<string> {
   return did;
 }
 
-const initSetupForTesting = async (): Promise<TestingSetup> => {
-  const agent = new EBSI_JWT.Agent(config.API_NAME, config.API_PRIVATE_KEY);
-  const randNum: number = Math.floor(Math.random() * 1000000);
-  const request = agent.createRequestPayload(
-    config.EBSI_APPS.WALLET,
-    EBSI_JWT.Scope.ENTITY,
-    {
-      iss: `my gov: ${randNum}`,
-      sub: `my gov: ${randNum}`,
-      enterpriseName: `my gov: ${randNum}`,
-      nonce: "123",
-    }
-  );
+const generateToken = (opts?: { [key: string]: string | number }) => {
+  const payload = {
+    aud: config.API_NAME,
+    iss: config.API_NAME,
+    ...opts,
+  };
+  const wallet = new ethers.Wallet(config.API_PRIVATE_KEY);
+  const signingKey = new ethers.utils.SigningKey(wallet.privateKey);
+  const jwk = getJWKfromHex(signingKey.publicKey, signingKey.privateKey);
 
-  const resp: AccessTokenResponseBody = await api.doPostCallWithoutToken(
-    request,
-    `${config.EBSI_SERVICE.URL.WALLET}${config.EBSI_SERVICE.CALL.EBSI_LOGIN}`
-  );
-  const payload: any = JWT.decode(resp.accessToken);
-  if (!payload.did) throw new Error("DID not found on AuthZ token");
-  PRINT_DEBUG(`Access token: ${resp.accessToken}`);
-  PRINT_DEBUG(`DID: ${payload.did}`);
+  const token = JWT.sign(payload, jwk, {
+    algorithm: "ES256K",
+    header: {
+      typ: "JWT",
+    },
+    expiresIn: "900 seconds",
+  });
 
   return {
-    token: resp.accessToken,
-    did: payload.did,
+    accessToken: token,
+    tokenType: "Bearer",
+    expiresIn: 900,
+    issuedAt: Math.round(Date.now() / 1000),
+  };
+};
+
+const initSetupForTesting = async (): Promise<TestingSetup> => {
+  const randNum: number = Math.floor(Math.random() * 1000000);
+  const keyJwk = JWK.generateSync("EC", "secp256k1", { use: "sig" });
+  const hexkey = Buffer.from(<string>keyJwk.d, "base64").toString("hex");
+  const wallet = new ethers.Wallet(hexkey);
+  const did = `did:ebsi:${wallet.address}`;
+  const response = generateToken({
+    did,
+    nonce: `zizu-${randNum}`, // nonce from the request
+    sub: `TEST ENTITY-${randNum}`, // entity Name
+  });
+  PRINT_DEBUG(`Access token: ${response.accessToken}`);
+  PRINT_DEBUG(`DID: ${did}`);
+
+  return {
+    token: response.accessToken,
+    did,
   };
 };
 
