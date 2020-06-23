@@ -7,11 +7,7 @@ import { util } from "../utils";
  * Get the token from the headers
  */
 function getToken(req: express.Request) {
-  util.PRINT_DEBUG("headers");
-  util.PRINT_DEBUG(req.headers);
   const token = req.headers.authorization;
-  util.PRINT_DEBUG("token");
-  util.PRINT_DEBUG(token);
   if (token) return token.replace("Bearer ", "");
   return null;
 }
@@ -27,8 +23,7 @@ async function handleToken(
   const token = getToken(req);
 
   if (!token) {
-    // No token in the headers. Continue the call as unauthenticated user
-    util.PRINT_DEBUG(`token: Token not present in the headers`);
+    util.PRINT_DEBUG(`token: Token not present in the body`);
     Object.assign(req.params, { authenticated: false });
     next();
     return;

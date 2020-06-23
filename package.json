@@ -60,7 +60,7 @@
     "typescript": "^3.9.5"
   },
   "dependencies": {
-    "@cef-ebsi/app-jwt": "0.0.3",
+    "@cef-ebsi/app-jwt": "0.0.4",
     "axios": "^0.19.2",
     "base64url": "^3.0.1",
     "body-parser": "^1.19.0",
