@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/identity-hub-api:integration_EBSIINT-1382-chores-increase-coverage_v0.0.1
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/identity-hub-api:integration_EBSIINT-1382-fix-test_port_v0.0.1
     container_name: identity-hub-api
     restart: always
     logging:

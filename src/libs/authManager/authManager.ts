@@ -7,7 +7,11 @@ import * as config from "../../config";
 import * as api from "../../utils/api";
 import { InternalError, API_ERROR_MESSAGES } from "../../errors";
 import { isTokenExpired } from "../../utils/util";
-import { AccessTokenResponseBody, TOKEN_TYPE } from "./secureEnclave/jwt";
+import {
+  AccessTokenResponseBody,
+  TOKEN_TYPE,
+  EBSI_ACCESS_TOKEN_SCOPE,
+} from "./secureEnclave/jwt";
 import ComponentSecureEnclave from "./secureEnclave/componentSecureEnclave";
 
 /**
@@ -172,8 +176,14 @@ export default class AuthManager {
     if (!appInfo)
       throw new InternalError(API_ERROR_MESSAGES.NO_TARGET_APP_INFO);
 
-    const agent = new EBSI_JWT.Agent(config.API_NAME, config.API_PRIVATE_KEY);
-    const payload = agent.createRequestPayload(targetApp);
+    const agent = new EBSI_JWT.Agent(
+      EBSI_ACCESS_TOKEN_SCOPE.COMPONENT,
+      config.API_PRIVATE_KEY,
+      {
+        issuer: config.API_NAME,
+      }
+    );
+    const payload = await agent.createRequestPayload(targetApp);
 
     const resp: AccessTokenResponseBody = await api.doPostCallWithoutToken(
       payload,

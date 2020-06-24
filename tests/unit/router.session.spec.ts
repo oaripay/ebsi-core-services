@@ -4,13 +4,16 @@ import EBSI_JWT from "@cef-ebsi/app-jwt";
 import { startEbsiService } from "../../src/api/app";
 import { EBSI_SERVICE } from "../../src/config";
 import { EBSI_API_ERRORS_INT, BadRequestError } from "../../src/errors";
-import { AUTHORIZATION_TYPE } from "../../src/libs/authManager/secureEnclave/jwt";
+import {
+  GRANT_TYPE,
+  EBSI_ACCESS_TOKEN_SCOPE,
+} from "../../src/libs/authManager/secureEnclave/jwt";
 
 jest.setTimeout(100000);
 
 describe("identity Hub router API calls", () => {
   let server: http.Server;
-  const testPort: number = Math.floor(Math.random() * 9988);
+  const testPort = 9900;
 
   // eslint-disable-next-line jest/no-hooks
   beforeAll(async (done) => {
@@ -48,14 +51,16 @@ describe("identity Hub router API calls", () => {
 
     it("responds 200 to /sessions with a correct structured payload mocking auth library", async () => {
       expect.assertions(2);
-      const payload =
-        "grantType=client_credentials&clientAssertionType=urn%3Aietf%3Aparams%3Aoauth%3Aclient-assertion-type%3Ajwt-bearer&clientAssertion=eyJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS5pbnRlYnNpLnh5ei90cnVzdGVkLWFwcHMtcmVnaXN0cnkvdjEvYXBwcy9lYnNpLWlkaHViIiwiYWxnIjoiRVMyNTZLIn0.eyJpc3MiOiJlYnNpLWlkaHViIiwic3ViIjoiZWJzaS1pZGh1YiIsImF1ZCI6ImVic2ktaWRodWIiLCJqdGkiOiI5MDRmYmVlZC0wODk3LTQ1YWMtOGJiZS0xMTJmZTk3YmMwOTAiLCJpYXQiOjE1OTE3ODY4MTcsImV4cCI6MTU5MTc4NjgzMn0.UM8cw6wG_ozUhLyxsd7PcFWlbv9P923JrX4tnsA3KiSV47I7RTLodQt-XMwtLj_nDxZajqLLAhTLeJ9RNTIYVQ&scope=openid%20did_authn";
+      const payload = {
+        grantType: GRANT_TYPE.jwtBearer,
+        assertion: "a valid assertion token",
+        scope: EBSI_ACCESS_TOKEN_SCOPE.ENTITY,
+      };
       const returnedToken = {
         accessToken: "a valid token",
         tokenType: "Bearer",
         expiresIn: 900, // 15 minutes
         issuedAt: Date.now(),
-        scope: "openid did_authn",
       };
       jest
         .spyOn(EBSI_JWT.Session.prototype, "newSession")
@@ -64,8 +69,6 @@ describe("identity Hub router API calls", () => {
         });
       const res = await request(server)
         .post(`${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.EBSI_LOGIN}`)
-        .set("Content-Type", "application/x-www-form-urlencoded")
-        .set("Authorization", AUTHORIZATION_TYPE.DID_CCG_TAR_V1)
         .send(payload);
       expect(res.status).toBe(200);
       expect(res.body).toStrictEqual(
@@ -74,7 +77,6 @@ describe("identity Hub router API calls", () => {
           tokenType: "Bearer",
           expiresIn: 900,
           issuedAt: expect.any(Number),
-          scope: "openid did_authn",
         })
       );
       jest.resetAllMocks();

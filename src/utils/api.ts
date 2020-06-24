@@ -1,9 +1,8 @@
 import axios, { AxiosRequestConfig } from "axios";
+import FormData from "form-data";
 import { ICASFile } from "../daos/casFile";
 import { ICASStorageOut } from "../dtos/dataStorage";
 import { PRINT_SILLY, PRINT_ERROR } from "./util";
-
-import FormData = require("form-data");
 
 async function doPostCallWithoutToken(
   data: any,

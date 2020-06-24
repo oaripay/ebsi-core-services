@@ -1,6 +1,7 @@
 /* eslint-disable jest/no-hooks */
 import request from "supertest";
 import http from "http";
+import * as auth from "../../src/middleware/auth";
 import { startEbsiService } from "../../src/api/app";
 import { EBSI_SERVICE, EBSI_DEFAULT_DATA_STORE } from "../../src/config";
 import { EBSI_API_ERRORS_INT, BadRequestError } from "../../src/errors";
@@ -50,6 +51,9 @@ describe("identity hub router API calls", () => {
       delete attributeInput.hash;
       const expectedResult = { ...mockedAttributes[0] };
       expectedResult.did = did;
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
       const spy = jest
         .spyOn(IDHub.prototype, "setAttribute")
         .mockResolvedValue({ attribute: expectedResult, newAttribute: true });
@@ -66,7 +70,7 @@ describe("identity hub router API calls", () => {
         expectedResult.hash,
         attributeInput
       );
-      spy.mockRestore();
+      jest.restoreAllMocks();
     });
 
     it("should return 200 with an existing attribute", async () => {
@@ -78,6 +82,9 @@ describe("identity hub router API calls", () => {
       delete attributeInput.hash;
       const expectedResult = { ...mockedAttributes[0] };
       expectedResult.did = did;
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
       let spy = jest
         .spyOn(IDHub.prototype, "setAttribute")
         .mockResolvedValue({ attribute: expectedResult, newAttribute: true });
@@ -105,7 +112,7 @@ describe("identity hub router API calls", () => {
         expectedResult.hash,
         attributeInput
       );
-      spy.mockRestore();
+      jest.restoreAllMocks();
     });
 
     it("should returnn 500 with no token", async () => {
@@ -136,7 +143,9 @@ describe("identity hub router API calls", () => {
       const attributeHash = "0x004";
       delete attributeInput.did;
       delete attributeInput.hash;
-
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
       const expectedResult = {
         title: "Bad Request",
         status: 400,
@@ -150,6 +159,7 @@ describe("identity hub router API calls", () => {
         .send(attributeInput as IAttributeInput);
       expect(res.status).toStrictEqual(400);
       expect(res.body).toMatchObject(expectedResult);
+      jest.restoreAllMocks();
     });
 
     it("should returnn 400 with a non valid hash GET call", async () => {
@@ -159,7 +169,9 @@ describe("identity hub router API calls", () => {
       const attributeHash = "0x004";
       delete attributeInput.did;
       delete attributeInput.hash;
-
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
       const expectedResult = {
         title: "Bad Request",
         status: 400,
@@ -172,6 +184,7 @@ describe("identity hub router API calls", () => {
         .set("Authorization", `Bearer ${token}`);
       expect(res.status).toStrictEqual(400);
       expect(res.body).toMatchObject(expectedResult);
+      jest.restoreAllMocks();
     });
 
     it("should retrieve an existing attribute", async () => {
@@ -183,7 +196,10 @@ describe("identity hub router API calls", () => {
       delete attributeInput.hash;
       const expectedResult = { ...mockedAttributes[0] };
       expectedResult.did = did;
-      const spy = jest
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
+      jest
         .spyOn(IDHub.prototype, "setAttribute")
         .mockResolvedValue({ attribute: expectedResult, newAttribute: true });
       const res = await request(server)
@@ -205,8 +221,7 @@ describe("identity hub router API calls", () => {
       expect(res2.status).toStrictEqual(200);
       expect(res2.body).toMatchObject(expectedResult);
       expect(spyGet).toHaveBeenCalledWith(did, expectedResult.hash);
-      spy.mockRestore();
-      spyGet.mockRestore();
+      jest.restoreAllMocks();
     });
 
     describe("get attributes endpoint (mocked)", () => {
@@ -218,7 +233,9 @@ describe("identity hub router API calls", () => {
           status: 400,
           detail: "The format of did parameter is not valid",
         };
-
+        jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+          Object.assign(req.params, { authenticated: true });
+        });
         const res = await request(server)
           .get(
             `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}`
@@ -226,6 +243,7 @@ describe("identity hub router API calls", () => {
           .set("Authorization", `Bearer ${token}`);
         expect(res.status).toStrictEqual(400);
         expect(res.body).toMatchObject(expectedResult);
+        jest.restoreAllMocks();
       });
 
       it("should return an empty formatted result: only DID passed", async () => {
@@ -242,6 +260,9 @@ describe("identity hub router API calls", () => {
             prev: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
           },
         };
+        jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+          Object.assign(req.params, { authenticated: true });
+        });
         const spyGet = jest
           .spyOn(IDHub.prototype, "getAttributes")
           .mockResolvedValue(expectedResult.items);
@@ -254,7 +275,7 @@ describe("identity hub router API calls", () => {
         expect(res.status).toStrictEqual(200);
         expect(res.body).toMatchObject(expectedResult);
         expect(spyGet).toHaveBeenCalledWith(did);
-        spyGet.mockRestore();
+        jest.restoreAllMocks();
       });
 
       it("should return an empty formatted result: passed DID and Type", async () => {
@@ -273,6 +294,9 @@ describe("identity hub router API calls", () => {
             prev: `/identity-hub/v1/attributes?did=${did}&type=${encodedType}&page[after]=0&page[size]=10`,
           },
         };
+        jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+          Object.assign(req.params, { authenticated: true });
+        });
         const spyGet = jest
           .spyOn(IDHub.prototype, "getAttributes")
           .mockResolvedValue(expectedResult.items);
@@ -285,7 +309,7 @@ describe("identity hub router API calls", () => {
         expect(res.status).toStrictEqual(200);
         expect(res.body).toMatchObject(expectedResult);
         expect(spyGet).toHaveBeenCalledWith(did);
-        spyGet.mockRestore();
+        jest.restoreAllMocks();
       });
     });
   });
@@ -300,6 +324,9 @@ describe("identity hub router API calls", () => {
       delete attributeInput.hash;
       const expectedResult = { ...mockedAttributes[0] };
       expectedResult.did = did;
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
 
       const spy = jest
         .spyOn(CASDataStorage.prototype, "insert")
@@ -317,7 +344,7 @@ describe("identity hub router API calls", () => {
         fileName: `${attributeInput.id}.attribute`,
         database: EBSI_DEFAULT_DATA_STORE,
       } as ICASFile);
-      spy.mockRestore();
+      jest.restoreAllMocks();
     });
 
     it("should return 200 with an existing attribute", async () => {
@@ -329,6 +356,9 @@ describe("identity hub router API calls", () => {
       delete attributeInput.hash;
       const expectedResult = { ...mockedAttributes[0] };
       expectedResult.did = did;
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
       const spy = jest
         .spyOn(CASDataStorage.prototype, "insert")
         .mockResolvedValueOnce({ hash: attributeHash, function: "keccak256" })
@@ -363,8 +393,8 @@ describe("identity hub router API calls", () => {
         database: EBSI_DEFAULT_DATA_STORE,
       } as ICASFile);
       expect(spyGet).toHaveBeenCalledWith(attributeHash);
-      spy.mockRestore();
-      spyGet.mockRestore();
+      jest.restoreAllMocks();
+      jest.restoreAllMocks();
     });
 
     it("should retrieve an existing attribute", async () => {
@@ -376,6 +406,9 @@ describe("identity hub router API calls", () => {
       delete attributeInput.hash;
       const expectedResult = { ...mockedAttributes[0] };
       expectedResult.did = did;
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
       const spy = jest
         .spyOn(CASDataStorage.prototype, "insert")
         .mockResolvedValue({ hash: attributeHash, function: "keccak256" });
@@ -404,8 +437,8 @@ describe("identity hub router API calls", () => {
         database: EBSI_DEFAULT_DATA_STORE,
       } as ICASFile);
       expect(spyGet).toHaveBeenCalledWith(attributeHash);
-      spy.mockRestore();
-      spyGet.mockRestore();
+      jest.restoreAllMocks();
+      jest.restoreAllMocks();
     });
 
     it("should throw a 404 error with a not existing hash but with a DID with attributes", async () => {
@@ -422,6 +455,9 @@ describe("identity hub router API calls", () => {
         status: 404,
         detail: `Attribute Info not found with this hash: ${mockedHash}`,
       };
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
       const spy = jest
         .spyOn(CASDataStorage.prototype, "insert")
         .mockResolvedValue({ hash: attributeHash, function: "keccak256" });
@@ -450,8 +486,7 @@ describe("identity hub router API calls", () => {
         database: EBSI_DEFAULT_DATA_STORE,
       } as ICASFile);
       expect(spyGet).toHaveBeenCalledWith(attributeHash);
-      spy.mockRestore();
-      spyGet.mockRestore();
+      jest.restoreAllMocks();
     });
 
     it("should throw a 404 error with a not existing hash and a DID with no attributes", async () => {
@@ -464,6 +499,9 @@ describe("identity hub router API calls", () => {
         status: 404,
         detail: `Attribute Info not found with this hash: ${mockedHash}`,
       };
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
       // we retrieve the element
       const res2 = await request(server)
         .get(
@@ -472,6 +510,7 @@ describe("identity hub router API calls", () => {
         .set("Authorization", `Bearer ${token}`);
       expect(res2.status).toStrictEqual(404);
       expect(res2.body).toMatchObject(expectedResult);
+      jest.restoreAllMocks();
     });
 
     describe("get attributes endpoint (mocked only File Storage calls)", () => {
@@ -489,7 +528,9 @@ describe("identity hub router API calls", () => {
             prev: `/identity-hub/v1/attributes?did=${did}&page[after]=0&page[size]=10`,
           },
         };
-
+        jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+          Object.assign(req.params, { authenticated: true });
+        });
         const res = await request(server)
           .get(
             `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.GET_ATTRIBUTES}?did=${did}`
@@ -497,6 +538,7 @@ describe("identity hub router API calls", () => {
           .set("Authorization", `Bearer ${token}`);
         expect(res.status).toStrictEqual(200);
         expect(res.body).toMatchObject(expectedResult);
+        jest.restoreAllMocks();
       });
 
       it("should return one element formatted result: only DID passed", async () => {
@@ -518,14 +560,14 @@ describe("identity hub router API calls", () => {
         const attributeHash1 = attributeInput1.hash;
         delete attributeInput1.did;
         delete attributeInput1.hash;
-
-        const spy = jest
-          .spyOn(CASDataStorage.prototype, "insert")
-          .mockResolvedValueOnce({
-            hash: attributeHash1,
-            function: "keccak256",
-          });
-        const spyGet = jest
+        jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+          Object.assign(req.params, { authenticated: true });
+        });
+        jest.spyOn(CASDataStorage.prototype, "insert").mockResolvedValueOnce({
+          hash: attributeHash1,
+          function: "keccak256",
+        });
+        jest
           .spyOn(CASDataStorage.prototype, "get")
           .mockResolvedValue(attributeInput1.data.base64);
 
@@ -544,8 +586,7 @@ describe("identity hub router API calls", () => {
           .set("Authorization", `Bearer ${token}`);
         expect(resGet.status).toStrictEqual(200);
         expect(resGet.body).toMatchObject(expectedResult);
-        spy.mockRestore();
-        spyGet.mockRestore();
+        jest.restoreAllMocks();
       });
 
       it("should return a two element formatted result: only DID passed", async () => {
@@ -572,8 +613,10 @@ describe("identity hub router API calls", () => {
         const attributeHash2 = attributeInput2.hash;
         delete attributeInput2.did;
         delete attributeInput2.hash;
-
-        const spy = jest
+        jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+          Object.assign(req.params, { authenticated: true });
+        });
+        jest
           .spyOn(CASDataStorage.prototype, "insert")
           .mockResolvedValueOnce({
             hash: attributeHash1,
@@ -583,7 +626,7 @@ describe("identity hub router API calls", () => {
             hash: attributeHash2,
             function: "keccak256",
           });
-        const spyGet = jest
+        jest
           .spyOn(CASDataStorage.prototype, "get")
           .mockResolvedValueOnce(attributeInput1.data.base64)
           .mockResolvedValueOnce(attributeInput2.data.base64);
@@ -611,8 +654,7 @@ describe("identity hub router API calls", () => {
           .set("Authorization", `Bearer ${token}`);
         expect(resGet.status).toStrictEqual(200);
         expect(resGet.body).toMatchObject(expectedResult);
-        spy.mockRestore();
-        spyGet.mockRestore();
+        jest.restoreAllMocks();
       });
 
       it("should return one element filtered with type 'attributeType2'", async () => {
@@ -640,8 +682,10 @@ describe("identity hub router API calls", () => {
         const attributeHash2 = attributeInput2.hash;
         delete attributeInput2.did;
         delete attributeInput2.hash;
-
-        const spy = jest
+        jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+          Object.assign(req.params, { authenticated: true });
+        });
+        jest
           .spyOn(CASDataStorage.prototype, "insert")
           .mockResolvedValueOnce({
             hash: attributeHash1,
@@ -651,7 +695,7 @@ describe("identity hub router API calls", () => {
             hash: attributeHash2,
             function: "keccak256",
           });
-        const spyGet = jest
+        jest
           .spyOn(CASDataStorage.prototype, "get")
           .mockResolvedValueOnce(attributeInput1.data.base64)
           .mockResolvedValueOnce(attributeInput2.data.base64);
@@ -679,8 +723,7 @@ describe("identity hub router API calls", () => {
           .set("Authorization", `Bearer ${token}`);
         expect(resGet.status).toStrictEqual(200);
         expect(resGet.body).toMatchObject(expectedResult);
-        spy.mockRestore();
-        spyGet.mockRestore();
+        jest.restoreAllMocks();
       });
     });
 
@@ -713,8 +756,10 @@ describe("identity hub router API calls", () => {
       const attributeHash2 = attributeInput2.hash;
       delete attributeInput2.did;
       delete attributeInput2.hash;
-
-      const spy = jest
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
+      jest
         .spyOn(CASDataStorage.prototype, "insert")
         .mockResolvedValueOnce({
           hash: attributeHash1,
@@ -724,7 +769,7 @@ describe("identity hub router API calls", () => {
           hash: attributeHash2,
           function: "keccak256",
         });
-      const spyGet = jest
+      jest
         .spyOn(CASDataStorage.prototype, "get")
         .mockResolvedValueOnce(attributeInput1.data.base64)
         .mockResolvedValueOnce(attributeInput2.data.base64);
@@ -752,8 +797,7 @@ describe("identity hub router API calls", () => {
         .set("Authorization", `Bearer ${token}`);
       expect(resGet.status).toStrictEqual(200);
       expect(resGet.body).toMatchObject(expectedResult);
-      spy.mockRestore();
-      spyGet.mockRestore();
+      jest.restoreAllMocks();
     });
   });
 
@@ -774,7 +818,9 @@ describe("identity hub router API calls", () => {
         .set("Authorization", `Bearer ${token}`)
         .send(attributeInput as IAttributeInput);
       expect(res.status).toStrictEqual(201);
-
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
       // we retrieve the element
       const res2 = await request(server)
         .get(
@@ -783,6 +829,7 @@ describe("identity hub router API calls", () => {
         .set("Authorization", `Bearer ${token}`);
       expect(res2.status).toStrictEqual(200);
       expect(res2.body).toMatchObject(expectedResult);
+      jest.restoreAllMocks();
     });
 
     it("should return one element formatted result: only DID passed", async () => {
@@ -804,7 +851,9 @@ describe("identity hub router API calls", () => {
       const attributeHash1 = attributeInput1.hash;
       delete attributeInput1.did;
       delete attributeInput1.hash;
-
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
       const res1 = await request(server)
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash1}`
@@ -820,6 +869,7 @@ describe("identity hub router API calls", () => {
         .set("Authorization", `Bearer ${token}`);
       expect(resGet.status).toStrictEqual(200);
       expect(resGet.body).toMatchObject(expectedResult);
+      jest.restoreAllMocks();
     });
 
     it("should return a two element formatted result: only DID passed", async () => {
@@ -846,7 +896,9 @@ describe("identity hub router API calls", () => {
       const attributeHash2 = attributeInput2.hash;
       delete attributeInput2.did;
       delete attributeInput2.hash;
-
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
       const res1 = await request(server)
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash1}`
@@ -870,6 +922,7 @@ describe("identity hub router API calls", () => {
         .set("Authorization", `Bearer ${token}`);
       expect(resGet.status).toStrictEqual(200);
       expect(resGet.body).toMatchObject(expectedResult);
+      jest.restoreAllMocks();
     });
 
     it("should return one element filtered with type 'attributeType2'", async () => {
@@ -897,7 +950,9 @@ describe("identity hub router API calls", () => {
       const attributeHash2 = attributeInput2.hash;
       delete attributeInput2.did;
       delete attributeInput2.hash;
-
+      jest.spyOn(auth, "handleToken").mockImplementation(async (req: any) => {
+        Object.assign(req.params, { authenticated: true });
+      });
       const res1 = await request(server)
         .put(
           `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.SET_ATTRIBUTE}/${attributeHash1}`
@@ -921,6 +976,7 @@ describe("identity hub router API calls", () => {
         .set("Authorization", `Bearer ${token}`);
       expect(resGet.status).toStrictEqual(200);
       expect(resGet.body).toMatchObject(expectedResult);
+      jest.restoreAllMocks();
     });
   });
 });
