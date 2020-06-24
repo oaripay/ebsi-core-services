@@ -181,7 +181,6 @@ export default class AuthManager {
       config.API_PRIVATE_KEY,
       {
         issuer: config.API_NAME,
-        expiration: { requestToken: 15 },
       }
     );
     const payload = await agent.createRequestPayload(targetApp);
