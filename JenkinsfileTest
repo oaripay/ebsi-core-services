@@ -17,11 +17,6 @@ pipeline {
                 sh 'npm run test'
             }
         }
-        stage('Integration test') {
-            steps {
-                sh 'npm run test:e2e'
-            }
-        }
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('LocalSonar'){
