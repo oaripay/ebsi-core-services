@@ -199,5 +199,7 @@ module.exports = async (deployer, network) => {
     await registryInstance.addNewAuthorization('ebsi-wallet', 'TEST-EBSI-ENTITY-001');
     await registryInstance.addNewAuthorization('ebsi-idhub', 'TEST-EBSI-ENTITY-001');
     await registryInstance.addNewAuthorization('ebsi-eidas-bridge', 'TEST-EBSI-ENTITY-001');
+    await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-wallet');
+    await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-self-sovereign-identity');
 
 }
