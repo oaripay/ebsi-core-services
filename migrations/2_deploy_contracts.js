@@ -19,7 +19,7 @@ module.exports = async (deployer, network) => {
     }
 
     console.log('adding app ', app.name)
-    await registryInstance.addApplication(app.pubKey, app.name)
+    await registryInstance.registerApp(app.pubKey, app.name)
 
 
 
@@ -29,7 +29,7 @@ module.exports = async (deployer, network) => {
     }
 
     console.log('adding app ', app.name)
-    await  registryInstance.addApplication(app.pubKey, app.name)
+    await  registryInstance.registerApp(app.pubKey, app.name)
 
 
     app = {
@@ -39,7 +39,7 @@ module.exports = async (deployer, network) => {
 
     console.log('adding app ', app.name)
 
-    await registryInstance.addApplication(app.pubKey, app.name)
+    await registryInstance.registerApp(app.pubKey, app.name)
 
     app = {
         name: 'ebsi-notary',
@@ -47,7 +47,7 @@ module.exports = async (deployer, network) => {
     }
     console.log('adding app ', app.name)
 
-    await registryInstance.addApplication(app.pubKey, app.name)
+    await registryInstance.registerApp(app.pubKey, app.name)
 
    app = {
         name: 'ebsi-storage',
@@ -55,7 +55,7 @@ module.exports = async (deployer, network) => {
     }
     console.log('adding app ', app.name)
 
-    await registryInstance.addApplication(app.pubKey, app.name)
+    await registryInstance.registerApp(app.pubKey, app.name)
 
 
 
@@ -65,15 +65,7 @@ module.exports = async (deployer, network) => {
     }
     console.log('adding app ', app.name)
 
-    await registryInstance.addApplication(app.pubKey, app.name)
-
-    app = {
-        name: 'ebsi-eidas-bridge',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVMeWlydDEvOWNuWm1Nd1Y2VjczSEhtaDhPSFdjZ05CVQpmL0U0T3M4Y1QyVWYrUjNsVzloQ2lQbTM3ZjlvakNxb2VyaG9HZm9NZ2lOSklSaEsrckRVZlE9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0='
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.addApplication(app.pubKey, app.name)
+    await registryInstance.registerApp(app.pubKey, app.name)
 
     app = {
         name: 'ext-eca',
@@ -81,7 +73,20 @@ module.exports = async (deployer, network) => {
     }
     console.log('adding app ', app.name)
 
-    await registryInstance.addApplication(app.pubKey, app.name)
+    await registryInstance.registerApp(app.pubKey, app.name)
+
+
+
+
+    app = {
+        name: 'ebsi-eidas-bridge',
+        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVMeWlydDEvOWNuWm1Nd1Y2VjczSEhtaDhPSFdjZ05CVQpmL0U0T3M4Y1QyVWYrUjNsVzloQ2lQbTM3ZjlvakNxb2VyaG9HZm9NZ2lOSklSaEsrckRVZlE9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0'
+    }
+    console.log('adding app ', app.name)
+
+    await registryInstance.registerApp(app.pubKey, app.name)
+
+
     app = {
         name: 'ext-taxud',
         pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVRMkNoUlgrZzhkbDd6RzBvdEZJdkdBQzl1ai9vMW1vbwpCVkNaN1hJZmNVR1Y5M0JHdDVDeG1LWjNNcU5qaDYzdm5ENVExa2s3NkgzNFhPWGlWaTRmakE9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0='
@@ -89,7 +94,7 @@ module.exports = async (deployer, network) => {
     }
     console.log('adding app ', app.name)
 
-    await registryInstance.addApplication(app.pubKey, app.name)
+    await registryInstance.registerApp(app.pubKey, app.name)
 
 
     app = {
@@ -99,7 +104,7 @@ module.exports = async (deployer, network) => {
     }
     console.log('adding app ', app.name)
 
-    await registryInstance.addApplication(app.pubKey, app.name)
+    await registryInstance.registerApp(app.pubKey, app.name)
 
 
     app = {
@@ -109,7 +114,7 @@ module.exports = async (deployer, network) => {
     }
     console.log('adding app ', app.name)
 
-    await registryInstance.addApplication(app.pubKey, app.name)
+    await registryInstance.registerApp(app.pubKey, app.name)
 
 
     app = {
@@ -118,8 +123,14 @@ module.exports = async (deployer, network) => {
 
     }
     console.log('adding app ', app.name)
+    app = {
+        name: 'TEST-EBSI-ENTITY-001',
+        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVPeDdRRlloQko4QitIZFpxUmZsWmlFNHpKZTk5UHhqbApaM2NEQ0pLZXYzMHZPS3ZBNnVvZVhIR1ZZeVdVSVh2c2FncUlINGtTYXZaNlVTUG05MzdPNEE9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K'
 
-    await registryInstance.addApplication(app.pubKey, app.name)
+    }
+    console.log('adding app ', app.name)
+
+    await registryInstance.registerApp(app.pubKey, app.name)
 
     app = {
         name: 'ebsi-idhub',
@@ -128,7 +139,7 @@ module.exports = async (deployer, network) => {
     }
     console.log('adding app ', app.name)
 
-    await registryInstance.addApplication(app.pubKey, app.name)
+    await registryInstance.registerApp(app.pubKey, app.name)
 
     app = {
         name: 'ebsi-self-sovereign-identity',
@@ -137,7 +148,7 @@ module.exports = async (deployer, network) => {
     }
     console.log('adding app ', app.name)
 
-    await registryInstance.addApplication(app.pubKey, app.name)
+    await registryInstance.registerApp(app.pubKey, app.name)
 
 
     app = {
@@ -147,7 +158,7 @@ module.exports = async (deployer, network) => {
     }
     console.log('adding app ', app.name)
 
-    await registryInstance.addApplication(app.pubKey, app.name)
+    await registryInstance.registerApp(app.pubKey, app.name)
 
     app = {
         name: 'ebsi-diploma-master',
@@ -156,7 +167,7 @@ module.exports = async (deployer, network) => {
     }
     console.log('adding app ', app.name)
 
-    await registryInstance.addApplication(app.pubKey, app.name)
+    await registryInstance.registerApp(app.pubKey, app.name)
 
 
     console.log ('adding access from all to all')
@@ -167,18 +178,19 @@ module.exports = async (deployer, network) => {
         for(j=0; j<apps.length; j++) {
             if (i===j) continue;
             console.log('adding on ', apps[i], ' ', apps[j]);
-            await registryInstance.addNewAuthorization(apps[i], apps[j], true);
+            await registryInstance.addNewAuthorization(apps[i], apps[j]);
         }
     }
 
     console.log ('adding access of ebsi-notary to ext-eca')
-    await registryInstance.addNewAuthorization('ebsi-notary', 'ext-eca', true);
+    await registryInstance.addNewAuthorization('ebsi-notary', 'ext-eca');
+    await registryInstance.addNewAuthorization('ebsi-ledger', 'ext-eca');
 
 
     console.log ('adding access of ebsi-fabric to ext-taxud')
-    await registryInstance.addNewAuthorization('ebsi-fabric', 'ext-taxud', true);
+    await registryInstance.addNewAuthorization('ebsi-fabric', 'ext-taxud');
 
-    await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-diploma-bachelor', true);
-    await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-diploma-master', true);
+    await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-diploma-bachelor');
+    await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-diploma-master');
 
 }

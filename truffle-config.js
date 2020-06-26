@@ -18,8 +18,18 @@
  *
  */
 
+require('dotenv').config();
 const PrivateKeyProvider = require("truffle-hdwallet-provider");
-const privateKey = "8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63";
+// const privateKey = "8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63";
+// const privateKey = "19E6F61A830DEEEA8C905E5217B4E0B7C207ED9EC1501FCEB00E0956E1A8B73C";
+
+// private key for integration
+const privateKey = [
+    // primary
+    process.env.DEPLOYER_KEY,
+    // secondary
+    process.env.TESTER_KEY
+];
 
 // const HDWalletProvider = require('truffle-hdwallet-provider');
 // const infuraKey = "fj4jll3k.....";
@@ -51,14 +61,14 @@ module.exports = {
       network_id: "*",       // Any network (default: none)
     },
     ebsi: {
-      provider: () => new PrivateKeyProvider(privateKey, "https://www.ebsi.xyz/jsonrpc"),
+      provider: () => new PrivateKeyProvider(privateKey, "https://www.ebsi.xyz/jsonrpc", 0, 2),
       network_id: "*",
       gas:"0x1ffffffffffffe",
       gasPrice: 0
     },
 
     intebsi: {
-      provider: () => new PrivateKeyProvider(privateKey, "http://15.188.183.79:48745"),
+      provider: () => new PrivateKeyProvider(privateKey, "http://15.188.183.79:48745", 0, 2),
       network_id: "*",
       gas:"0x1ffffffffffffe",
       gasPrice: 0

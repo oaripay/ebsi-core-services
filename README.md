@@ -1,3 +1,48 @@
+## requirements
+
+Optionally: ganache-cli
+https://www.npmjs.com/package/ganache-cli
+
+
+## install application
+
+```
+npm install
+cp .env.dist .env
+```
+
+## Run
+
+#### Build Contract
+```
+truffle build
+```
+
+#### Deploy Contracts
+availble networks (development, intebsi, ebsi) - for the development network it is required to run a ganache-cli
+```
+truffle migrate --network <network> 
+```
+
+usage ganache-cli
+```
+ganache-cli
+```
+migrate to localhost:
+```
+truffle migrate --network development
+```
+
+#### Run Tests
+```
+ganache-cli
+truffle test
+```
+
+Note: tests can be run in a different network, command `truffle test --network <network>`
+
+## Deployment information
+
 ```2_deploy_contracts.js
 =====================
 Deploying EBSI App Registry on the network
