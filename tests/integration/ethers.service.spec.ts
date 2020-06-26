@@ -2,6 +2,7 @@ import { Test } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import utils from "web3-utils";
+import { BigNumber } from "ethers/utils";
 import { EthersService } from "../../src/services/ethers.service";
 import configuration from "../../src/config/configuration";
 
@@ -55,36 +56,14 @@ describe("ethers.service (integration)", () => {
     expect.assertions(2);
     const appKeys = await ethersService.getApplicationKeys();
     expect(Array.isArray(appKeys)).toBe(true);
-    expect(appKeys.every((key) => key.startsWith("0x"))).toBe(true);
-  });
-
-  it("getApplicationByKey should throw if the key is invalid", async () => {
-    expect.assertions(1);
-    await expect(ethersService.getApplicationByKey("key1")).rejects.toThrow(
-      'invalid input argument (arg="appKey", reason="invalid bytes32 value", value="key1", version=4.0.47)'
-    );
+    expect(appKeys.every((key) => key instanceof BigNumber)).toBe(true);
   });
 
   it("getAuthorizedApps should return an array of apps with their authorizations", async () => {
-    expect.assertions(3);
+    expect.assertions(1);
     const authApps = await ethersService.getAuthorizedApps("ebsi-wallet");
-
-    // authApps should be an array of arrays [[app names], [booleans]]
-    expect(
-      Array.isArray(authApps) &&
-        Array.isArray(authApps[0]) &&
-        Array.isArray(authApps[1])
-    ).toBe(true);
-
-    // Apps should start with "esbi"
-    expect(authApps[0].every((appName) => appName.startsWith("ebsi-"))).toBe(
-      true
-    );
-
-    // Second array should contain only booleans
-    expect(authApps[1].every((auth) => auth === true || auth === false)).toBe(
-      true
-    );
+    // authApps should be an array of [app names]
+    expect(Array.isArray(authApps)).toBe(true);
   });
 
   it("revertMessage should throw an error for an invalid hash", async () => {

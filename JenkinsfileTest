@@ -12,6 +12,7 @@ pipeline {
         stage('Unit test') {
             steps {
                 sh 'npm install'
+                sh 'cp .env.test .env'
                 withCredentials([string(credentialsId: 'TEST_APP_PRIVATE_KEY', variable: 'API_PRIVATE_KEY')]) {
                     sh 'npm run test:unit'
                 }

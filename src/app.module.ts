@@ -26,7 +26,7 @@ import HttpExceptionFilter from "./filters/http-exception.filter";
           .allow("")
           .optional(),
         WEB3_PROVIDER: Joi.string().allow("").optional(),
-        CONTRACT_ADDR: Joi.string().allow("").optional(),
+        CONTRACT_ADDR: Joi.string().required(),
         AUTH_EXPIRE_TIME: Joi.number().allow("").optional(),
       }),
     }),

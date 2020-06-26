@@ -224,7 +224,7 @@ describe("app.controller", () => {
 
       jest
         .spyOn(ethersService, "getAuthorizedApps")
-        .mockResolvedValue([["ebsi-besu"], [true]]);
+        .mockResolvedValue(["ebsi-besu"]);
 
       const appName = "ebsi-wallet-test-app-name";
 
@@ -249,11 +249,9 @@ describe("app.controller", () => {
     it(`/GET authorized apps by appname - >test malware service`, async () => {
       expect.assertions(2);
 
-      jest
-        .spyOn(ethersService, "getAuthorizedApps")
-        .mockResolvedValue({ test: "scrambled value" });
+      jest.spyOn(ethersService, "getAuthorizedApps").mockResolvedValue([]);
 
-      const appName = "ebsi-wallet-test-app-name";
+      const appName = "test-malware-service";
 
       const response = await request(app.getHttpServer()).get(
         `/trusted-apps-registry/v1/apps/${appName}/authorized-apps/`

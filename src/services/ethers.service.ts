@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import Web3 from "web3";
+import { BigNumber } from "ethers/utils";
 import * as EBSIApplicationRegistry from "../contracts/EBSIApplicationRegistry.json";
 
 @Injectable()
@@ -52,8 +53,8 @@ export class EthersService {
     return this.contractWithSigner.getApplicationKeys();
   }
 
-  async getApplicationByKey(key: string) {
-    return this.contractWithSigner.getApplicationByKey(key);
+  async getApplicationByKey(key: BigNumber) {
+    return this.contractWithSigner.getApplicationByIndex(key);
   }
 
   async getAuthorizedApps(appName: string) {

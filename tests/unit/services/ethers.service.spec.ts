@@ -106,13 +106,6 @@ describe("ethers.service", () => {
     expect(appKeys.every((key) => key.startsWith("0x"))).toBe(true);
   });
 
-  it("getApplicationByKey should throw if the key is invalid", async () => {
-    expect.assertions(1);
-    await expect(ethersService.getApplicationByKey("key1")).rejects.toThrow(
-      'invalid input argument (arg="appKey", reason="invalid bytes32 value", value="key1", version=4.0.47)'
-    );
-  });
-
   it("getAuthorizedApps should return an array of apps with their authorizations", async () => {
     expect.assertions(3);
     const authApps = await ethersService.getAuthorizedApps("ebsi-wallet");

@@ -46,19 +46,18 @@ export class AppController {
   async getAllApps(@Query() query) {
     try {
       const appKeys = await this.ethersService.getApplicationKeys();
+
       const size = parseInt(query.page ? query.page.size ?? 10 : 10, 10);
       const after = parseInt(query.page ? query.page.after ?? 0 : 0, 10);
 
       const counter = appKeys.length;
       const itemStartingFrom = after * size;
       const queue = [];
-
       for (let i = 0; i < size && i < counter; i += 1) {
         queue.push(async () => {
           const appFromBesu = await this.ethersService.getApplicationByKey(
             appKeys[itemStartingFrom + i]
           );
-
           return {
             appName: appFromBesu[0],
             pubKey: appFromBesu[1],
@@ -132,10 +131,11 @@ export class AppController {
   @Get("/v1/apps/:appName/authorized-apps")
   async getAuthApps(@Param() param: PublicKeyParam, @Query() query) {
     try {
-      const authApps = await this.ethersService.getAuthorizedApps(
-        param.appName
-      );
-      const [apps] = authApps;
+      const apps = await this.ethersService.getAuthorizedApps(param.appName);
+
+      if (apps.length === 0) {
+        throw new NotFoundException("no application found");
+      }
 
       const size = parseInt(query.page ? query.page.size ?? 10 : 10, 10);
       const after = parseInt(query.page ? query.page.after ?? 0 : 0, 10);
@@ -191,10 +191,7 @@ export class AppController {
     @Param() param: PublicKeyParamWithAuthorizedAppName
   ) {
     try {
-      const authorizedApps = await this.ethersService.getAuthorizedApps(
-        param.appName
-      );
-      const [apps] = authorizedApps;
+      const apps = await this.ethersService.getAuthorizedApps(param.appName);
 
       if (apps.includes(param.authorizedAppName)) {
         return { authorizedAppName: param.authorizedAppName };
