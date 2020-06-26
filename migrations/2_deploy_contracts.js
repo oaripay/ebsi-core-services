@@ -122,6 +122,8 @@ module.exports = async (deployer, network) => {
         pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVDYkF2aWwvZDBpS3Q1T3BGS1Bydnc1bGlPdlAzTnI0OApSUEErTGZJdnQ1THpreHBObFhQVE04cDBORE1GZGlwMU00akRRaXFHMll0eFA4a2NIcUJJUWc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0='
 
     }
+    await registryInstance.registerApp(app.pubKey, app.name)
+
     console.log('adding app ', app.name)
     app = {
         name: 'TEST-EBSI-ENTITY-001',
@@ -192,5 +194,10 @@ module.exports = async (deployer, network) => {
 
     await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-diploma-bachelor');
     await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-diploma-master');
+
+
+    await registryInstance.addNewAuthorization('ebsi-wallet', 'TEST-EBSI-ENTITY-001');
+    await registryInstance.addNewAuthorization('ebsi-idhub', 'TEST-EBSI-ENTITY-001');
+    await registryInstance.addNewAuthorization('ebsi-eidas-bridge', 'TEST-EBSI-ENTITY-001');
 
 }
