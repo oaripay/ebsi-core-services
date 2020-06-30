@@ -15,12 +15,12 @@ pipeline {
 //                 sh "cp .env.dist .env && npm run test:cov"
 //             }
 //         }
-        stage('SonarQube Analysis') {
-            steps {
-
-                sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=4-besu-trusted-issuers-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=4-besu-trusted-issuers-api -Dproject.settings=./sonar-project.properties -Dsonar.sources=. -Dsonar.projectBaseDir=/var/lib/jenkins/workspace/Autodeploy_intebsi-trusted-issuers-registry-api"
-            }
-        }
+//         stage('SonarQube Analysis') {
+//             steps {
+//
+//                 sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=4-besu-trusted-issuers-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=4-besu-trusted-issuers-api -Dproject.settings=./sonar-project.properties -Dsonar.sources=. -Dsonar.projectBaseDir=/var/lib/jenkins/workspace/Autodeploy_intebsi-trusted-issuers-registry-api"
+//             }
+//         }
         stage('Build image') {
             steps {
                 sh "rm -rf .env"
