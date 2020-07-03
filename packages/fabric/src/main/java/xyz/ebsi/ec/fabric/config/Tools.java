@@ -3,10 +3,13 @@ package xyz.ebsi.ec.fabric.config;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.util.Properties;
+import java.util.HashSet;
+import java.util.Set;
 import javax.annotation.Resource;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.hyperledger.fabric.sdk.Channel;
+import org.hyperledger.fabric.sdk.Enrollment;
 import org.hyperledger.fabric.sdk.HFClient;
 import org.hyperledger.fabric.sdk.exception.CryptoException;
 import org.hyperledger.fabric.sdk.exception.InvalidArgumentException;
@@ -15,6 +18,7 @@ import org.hyperledger.fabric.sdk.security.CryptoSuite;
 import org.hyperledger.fabric_ca.sdk.HFCAClient;
 import org.springframework.stereotype.Component;
 import xyz.ebsi.ec.fabric.dbo.HfClient;
+import xyz.ebsi.ec.fabric.user.FabricUserContext;
 
 /**
  *
@@ -27,6 +31,24 @@ public class Tools {
     
     @Resource(name = "hlfClient")
     HfClient hlfClient;
+    
+    public static FabricUserContext enrollAdmin() throws Exception {
+
+        HFCAClient hfcaClient = getHfCaClient( System.getenv("CA_URL") );
+
+        FabricUserContext adminUserContext = new FabricUserContext();
+        adminUserContext.setName(System.getenv("FABRIC_USERNAME")); // admin username
+        adminUserContext.setAffiliation(System.getenv("ORG_NAME")); // affiliation
+        Set<String> roles = new HashSet<>();
+        roles.add("member");
+        roles.add("admin");
+        adminUserContext.setRoles(roles);
+        adminUserContext.setMspId(System.getenv("CA_MSP_ID")); // org1 mspid
+        Enrollment adminEnrollment = hfcaClient.enroll(System.getenv("FABRIC_USERNAME"), System.getenv("FABRIC_PASSWORD")); //pass admin username and password, adminpw is the default for fabric
+        adminUserContext.setEnrollment(adminEnrollment);
+
+        return adminUserContext;
+    }
  
     
     /**
@@ -38,16 +60,22 @@ public class Tools {
     public static HFClient getHfClient() throws InvalidArgumentException {
         
         try{
+            FabricUserContext userContext = Tools.enrollAdmin();
             // initialize default cryptosuite
             CryptoSuite cryptoSuite = CryptoSuite.Factory.getCryptoSuite();
             // setup the Hyperledger Fabric client
             HFClient client = HFClient.createNewInstance();
             client.setCryptoSuite(cryptoSuite);
+            client.setUserContext(userContext);
             
             return client;
         }catch(ClassNotFoundException | IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException | CryptoException | InvalidArgumentException ex){
             log.warn("Couldn't instantiate a new Hyperledger Fabric client: %s", ex.getLocalizedMessage());
             throw new InvalidArgumentException(ex.getLocalizedMessage());
+        }catch(Exception ex){
+            log.warn("Exception");
+            log.warn(ex.getLocalizedMessage());
+            throw new InvalidArgumentException(ex.getLocalizedMessage());        
         }
     }
 
@@ -114,7 +142,6 @@ public class Tools {
         
         try{
             channel = this.hlfClient.getInstance().newChannel(channelName);
-            
             String peerName = System.getenv("PEER_NODE_NAME");
             String ordererName = System.getenv("ORDERER_NODE_NAME");
             
@@ -139,14 +166,14 @@ public class Tools {
             );
             
             log.debug(" Initialize the channel");
-            channel.initialize();        
+            channel.initialize();
             
             if(!Parameters.channels.contains(channelName)){
                 Parameters.channels.add(channelName);
             }
-            
         }catch(InvalidArgumentException ex){
-            log.warn(" Invalid argument exception: %s", ex.getLocalizedMessage());
+            log.warn(" Invalid argument exception");
+            log.warn(ex.getLocalizedMessage());
             throw new InvalidArgumentException(ex.getLocalizedMessage());
         } catch (TransactionException ex) {
             log.warn(" Transaction exception: %s", ex.getLocalizedMessage());
@@ -156,8 +183,4 @@ public class Tools {
         log.info("");
         return channel;
     }
-
-    
-      
-
 }

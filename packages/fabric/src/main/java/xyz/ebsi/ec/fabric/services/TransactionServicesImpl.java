@@ -57,16 +57,14 @@ public class TransactionServicesImpl implements TransactionServices{
             channel = tools.getChannel(channelName);
 
             BlockchainInfo chainInfo = channel.queryBlockchainInfo();
-            
             for (long current = chainInfo.getHeight() - 1; current > -1; --current) {
-                
                 BlockInfo blockInfo = channel.queryBlockByNumber(current);               
-                transactionDbos.addAll(this.getTransaction(blockInfo));  
-                
+                transactionDbos.addAll(this.getTransaction(blockInfo));
+
             }
             this.transactionPage.setTotal(transactionDbos.size());
-            this.links.setLinks(channelName, "transactions", pageSize, transactionDbos.size(), 1);
             
+            this.links.setLinks(channelName, "transactions", pageSize, transactionDbos.size(), 1);
             transactionDbos = transactionDbos.stream().sorted().limit(pageSize).collect(toList());
             this.transactionPage.setItems(transactionDbos);
             this.transactionPage.setLinks(this.links);
@@ -75,9 +73,11 @@ public class TransactionServicesImpl implements TransactionServices{
             return ResponseEntity.ok().body(this.transactionPage);
 
         } catch (InvalidArgumentException | ProposalException | TransactionException | InvalidProtocolBufferException ex) {
+            log.info("ERROR in getAllTransactions");
+            log.info(ex.getLocalizedMessage());
             return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body( new FabricError().getBadRequestError(channelName+" channel was not found!") );
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body( new FabricError().getInternalError("The server encountered an internal error and was unable to complete your request.") );
         }
     }
 
@@ -98,6 +98,8 @@ public class TransactionServicesImpl implements TransactionServices{
             return ResponseEntity.ok().body(transactionDbos);
 
         } catch (InvalidArgumentException | ProposalException | TransactionException | InvalidProtocolBufferException ex) {
+            log.info("ERROR in getTransactionByTxID");
+            log.info(ex.getLocalizedMessage());
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body( new FabricError().getBadRequestError("The channel or the transactionID does not exist!"));
@@ -127,26 +129,35 @@ public class TransactionServicesImpl implements TransactionServices{
         if(blockInfo.getTransactionCount()<1){
             log.info("This block has not transactions!");
             return transactions;
-        }    
+        }
         
         Iterable<BlockInfo.EnvelopeInfo> envelopeInfos = blockInfo.getEnvelopeInfos();
             
         for(BlockInfo.EnvelopeInfo envelopeInfo : envelopeInfos){
-                 
+
             
             BlockInfo
                 .TransactionEnvelopeInfo
                 .TransactionActionInfo tai = ((BlockInfo.TransactionEnvelopeInfo) envelopeInfo).getTransactionActionInfo(txIndex);
             
             TransactionInfo transactionInfo = this.channel.queryTransactionByID(envelopeInfo.getTransactionID());
-
-            ProposalResponsePayload responsePayload = ProposalResponsePayload.parseFrom(tai.getProposalResponsePayload());            
             
+            String stringResponsePayload;
+            try {
+                ProposalResponsePayload responsePayload = ProposalResponsePayload.parseFrom(tai.getProposalResponsePayload());
+                stringResponsePayload = responsePayload.getProposalHash().toStringUtf8();
+            } catch (InvalidProtocolBufferException ex) {
+                log.info("Error reading response payload in block");
+                log.info(blockInfo.getBlockNumber());
+                log.info(ex.getLocalizedMessage());
+                stringResponsePayload = "Error parsing the response payload";
+            }
+
             transactions.add(
                     new TransactionDbo(
                         envelopeInfo.getTransactionID(), 
                         transactionInfo.getValidationCode().name(), 
-                        responsePayload.getProposalHash().toStringUtf8(),
+                        stringResponsePayload,
                         envelopeInfo.getCreator().getMspid(), 
                         tai.getEndorsementInfo(0).getMspid(), 
                         tai.getChaincodeIDName(), 
@@ -155,7 +166,6 @@ public class TransactionServicesImpl implements TransactionServices{
                         envelopeInfo.getChannelId()
                                       )
                             );
-            
         }
             
         log.info("");

@@ -48,18 +48,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.headers().httpStrictTransportSecurity().disable();
-        http.authorizeRequests()
-                .antMatchers( HttpMethod.OPTIONS, "/v3/api-docs", "/swagger-ui/**", "/webjars/**", Parameters.SIGN_UP_URL)
-                .permitAll()
-                .and()
-                .authorizeRequests()
-                .antMatchers(  
-                        "/ledger/v1/blockchains/fabric/channels/**"
-                )
-                .authenticated()
-                .and()
-                .addFilter(jwtAuthFilter())
-                .addFilter(new JwtAuthorizationFilter(authenticationManagerBean()));
     }
 
 }

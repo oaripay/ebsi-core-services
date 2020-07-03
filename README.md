@@ -14,12 +14,6 @@ npm install
 npm run bootstrap
 ```
 
-## Testing
-
-```sh
-npm test
-```
-
 ## Run with Docker Compose
 
 Before starting Docker Compose, create a copy of `.env.example` and name it `.env`. Set the environment variables accordingly.
@@ -34,6 +28,21 @@ docker-compose up --build
 
 The api will be accesible at http://localhost:8080
 
+## Testing
+
+Test Besu
+
+```sh
+npm run test:besu
+```
+
+Test Fabric
+Launch the api with docker
+
+```sh
+npm run test:fabric-e2e
+```
+
 ## Licensing
 
 Copyright (c) 2019 European Commission  
@@ -44,4 +53,3 @@ You may obtain a copy of the Licence at:
 - <https://joinup.ec.europa.eu/page/eupl-text-11-12>
 
 Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.
-

@@ -2,11 +2,16 @@ openapi: 3.0.3
 info:
   title: Ledger API
   description: |
-    Ledger API is a Core Service of the EBSI platform providing access to the EBSI Ledger Protocols and Smart Contracts services of the lower layer Chain & Storage. In v1 we provide capabilities to interact with Hyperledger Besu and Fabric ledgers.
+    Ledger API is a Core Service of the EBSI platform providing access to the
+    EBSI Ledger Protocols and Smart Contracts services of the lower layer
+    Chain & Storage. In v1 we provide capabilities to interact with Hyperledger
+    Besu and Fabric ledgers.
 
-    For Besu, we are exposing a selected set of BESU RPC native APIs. Write operations require authentication.
+    For Besu, we are exposing a selected set of BESU RPC native APIs. Write
+    operations require authentication.
 
-    For Fabric, we start in v1 by providing an initial set of read REST API to interact with the ledger.
+    For Fabric, we start in v1 by providing an initial set of read REST API to
+    interact with the ledger.
   license:
     name: EUPL-1.2
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
@@ -122,8 +127,6 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      security:
-        - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channels
       parameters:
         - in: query
@@ -179,8 +182,6 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      security:
-        - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel
     parameters:
       - schema:
@@ -194,7 +195,9 @@ paths:
       tags:
         - Hyperledger Fabric
       summary: Get blocks
-      description: Returns a list of blocks of the channel {channel}. By default API returns the last 10 (or less) blocks.
+      description: |
+        Returns a list of blocks of the channel {channel}. By default API
+        returns the last 10 (or less) blocks.
       responses:
         "200":
           description: Success.
@@ -278,8 +281,6 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      security:
-        - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-blocks
       parameters:
         - in: query
@@ -326,7 +327,9 @@ paths:
                     channelName: ebsichannel
                     createdTime: "2020-03-23T15:26:16.236Z"
         "400":
-          description: "Bad request the format of {channel} or {blockNumber}  parameter is not valid"
+          description: |
+            Bad request the format of {channel} or {blockNumber}  parameter is
+            not valid
           content:
             "application/problem+json":
               schema:
@@ -363,8 +366,6 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      security:
-        - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-block-number
       summary: Get block by number
       tags:
@@ -472,8 +473,6 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      security:
-        - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-txs
       parameters:
         - in: query
@@ -524,7 +523,9 @@ paths:
                     createdAt: "2020-03-23T13:30:20.103Z"
                     channelName: ebsichannel
         "400":
-          description: "Bad request the format of {channel} or {transactionId} parameter is not valid"
+          description: |
+            Bad request the format of {channel} or {transactionId} parameter
+            is not valid
           content:
             "application/problem+json":
               schema:
@@ -561,8 +562,6 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      security:
-        - bearerAuth: []
       operationId: get-ledger-bc-fabric-v1-channel-tx-id
     parameters:
       - schema:
@@ -586,10 +585,14 @@ paths:
       description: "Exposed Besu JSON-RPC APIs. Write methods require authentication."
       requestBody:
         description: |
-          The body follows the [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification). It requires the following fields:
+          The body follows the
+          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+          It requires the following fields:
 
           - **jsonrpc**: Must be exactly '2.0'
-          - **method**: Besu RPC native method that needs to be invoked. The list of all possible methods can be found at [eth JSON RPC](https://besu.hyperledger.org/en/stable/Reference/API-Methods/).
+          - **method**: Besu RPC native method that needs to be invoked. The
+          list of all possible methods can be found at
+          [eth JSON RPC](https://besu.hyperledger.org/en/stable/Reference/API-Methods/).
           - **params**: Array of parameters
           - **id**: Identifier stablished by the client
         content:
@@ -750,7 +753,9 @@ components:
       type: object
       properties:
         grantType:
-          description: OAuth 2.0 grant type. Must be set to "urn:ietf:params:oauth:grant-type:jwt-bearer"
+          description: |
+            OAuth 2.0 grant type. Must be set to
+            urn:ietf:params:oauth:grant-type:jwt-bearer
           type: string
           example: "urn:ietf:params:oauth:grant-type:jwt-bearer"
         assertion:

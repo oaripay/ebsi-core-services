@@ -7,3 +7,4 @@ packages/besu/.env
 packages/besu/coverage
 
 packages/fabric/target
+packages/fabric/wallet

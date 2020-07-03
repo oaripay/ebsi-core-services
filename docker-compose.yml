@@ -6,7 +6,7 @@ services:
     container_name: ledger-besu-api
     image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/ledger-besu-api
     ports:
-      - "8080:8080"
+      - ${PORT_BESU}:8080
     environment:
       - EBSI_ENV=integration
       - API_PRIVATE_KEY=${API_PRIVATE_KEY}
@@ -15,10 +15,13 @@ services:
   fabric:
     build: "./packages/fabric"
     container_name: ledger-fabric-api
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/ledger-fabric-api
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/ledger-fabric-api:integration_EBSIINT-1767-coverage_v0.0.1
     ports:
-      - 8081:8081
+      - ${PORT_FABRIC}:8081
     environment:
+      - FABRIC_USERNAME=${FABRIC_USERNAME}
+      - FABRIC_PASSWORD=${FABRIC_PASSWORD}
+      - ORG_NAME=${ORG_NAME}
       - CA_URL=${CA_URL}
       - CA_MSP_ID=${CA_MSP_ID}
       - PEER_NODE_NAME=${PEER_NODE_NAME}
@@ -26,11 +29,10 @@ services:
       - ORDERER_NODE_NAME=${ORDERER_NODE_NAME}
       - ORDERER_NODE_URL=${ORDERER_NODE_URL}
     volumes:
-      - ./packages/fabric/ssl:/app/ssl/
-      - ./packages/fabric/src/main/resources/server.jks:/app/server.jks
-      - ./packages/fabric/wallet:/app/wallet/
+      - ./packages/fabric/ssl:/api/ssl/
+      - ./packages/fabric/src/main/resources/server.jks:/api/server.jks
+      - ./packages/fabric/wallet:/api/wallet/
     logging:
       options:
         max-size: "200K"
         max-file: "10"
-
