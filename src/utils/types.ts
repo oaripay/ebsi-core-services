@@ -1,5 +1,3 @@
-import { Signer } from "did-jwt";
-
 export interface CredentialSubject {
   [x: string]: any;
 }
@@ -136,11 +134,6 @@ export interface PresentationPayload {
   exp?: number;
   jti?: string;
   [x: string]: any;
-}
-
-export interface Issuer {
-  did: string;
-  signer: Signer;
 }
 
 export interface FullVP extends VP {

@@ -44,5 +44,3 @@ Thumbs.db
 
 # misc
 .env
-sonar-report.xml
-COMPONENT_WALLET_KEYSTORE.txt

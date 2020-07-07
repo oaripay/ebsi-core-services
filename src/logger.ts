@@ -1,8 +1,7 @@
 import { createLogger, format, transports } from "winston";
 import "winston-daily-rotate-file";
 import fs from "fs";
-import path from "path";
-import { LOG_LEVEL } from "./config";
+import { LOG_LEVEL, API_NAME } from "./config";
 
 const logDir = "log";
 
@@ -16,16 +15,10 @@ const dailyRotateInfoFileTransport = new transports.DailyRotateFile({
   datePattern: "YYYY-MM-DD",
   level: "info",
   format: format.combine(
-    format.label({
-      label: path.basename(
-        process.mainModule ? process.mainModule.filename : ""
-      ),
-    }),
     format.colorize(),
     format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
     format.printf(
-      (info) =>
-        `${info.timestamp} ${info.level} [${info.label}]: ${info.message}`
+      (info) => `${info.timestamp} ${info.level} [${API_NAME}]: ${info.message}`
     )
   ),
 });
@@ -38,16 +31,10 @@ const dailyRotateErrorFileTransport = new transports.DailyRotateFile({
 
 const LOGGER = createLogger({
   format: format.combine(
-    format.label({
-      label: path.basename(
-        process.mainModule ? process.mainModule.filename : ""
-      ),
-    }),
     format.colorize(),
     format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
     format.printf(
-      (info) =>
-        `${info.timestamp} ${info.level} [${info.label}]: ${info.message}`
+      (info) => `${info.timestamp} ${info.level} [${API_NAME}]: ${info.message}`
     )
   ),
   transports: [

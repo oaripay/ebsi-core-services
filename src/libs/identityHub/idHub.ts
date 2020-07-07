@@ -70,21 +70,32 @@ export default class IDHub {
 
     // filter Array is an array of string arrays
     if (Array.isArray(filterArr[0])) {
-      const resultAttributes = attributes.filter((attribute) =>
-        attribute.type.some((typeElem) =>
+      const resultAttributes = attributes.filter((attribute) => {
+        const types = attribute.type;
+        if (typeof types === "string") {
+          return (filterArr as string[][]).some(
+            (filterElemArr) => filterElemArr.indexOf(types) > -1
+          );
+        }
+
+        return types.some((typeElem) =>
           (filterArr as string[][]).some(
             (filterElemArr) => filterElemArr.indexOf(typeElem) > -1
           )
-        )
-      );
+        );
+      });
       return resultAttributes;
     }
-    // otherwiese, filter Array is an array of string
-    const resultAttributesStr = attributes.filter((attribute) =>
-      attribute.type.some(
+    // otherwise, filter Array is an array of string
+    const resultAttributesStr = attributes.filter((attribute) => {
+      const atrTypes = attribute.type;
+      if (typeof atrTypes === "string") {
+        return (filterArr as string[]).indexOf(atrTypes) > -1;
+      }
+      return atrTypes.some(
         (typeElem) => (filterArr as string[]).indexOf(typeElem) > -1
-      )
-    );
+      );
+    });
     return resultAttributesStr;
   }
 

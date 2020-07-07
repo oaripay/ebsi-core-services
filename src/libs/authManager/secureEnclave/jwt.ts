@@ -1,20 +1,3 @@
-import { Resolver, DIDDocument } from "did-resolver";
-
-export interface VerifiedJwt {
-  payload: any;
-  doc?: DIDDocument;
-  issuer?: string;
-  signer?: object;
-  jwt: string;
-}
-
-export interface JWTVerifyOptions {
-  auth?: boolean;
-  audience?: string;
-  callbackUrl?: string;
-  resolver: Resolver;
-}
-
 export interface JWTHeader {
   typ: "JWT";
   alg: string;

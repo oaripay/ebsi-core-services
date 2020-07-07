@@ -246,6 +246,123 @@ describe("identity Hub api suite", () => {
       expect(response).toStrictEqual([iAttribute, iAttribute2]);
       jest.restoreAllMocks();
     });
+
+    it("should return an array of one Attribute matching the filter as a string[][] when one has a string type", async () => {
+      expect.assertions(1);
+      const iAttributeInfo: IAttributeInfo = {
+        id: "0001",
+        type: "a string type",
+        name: "attribute name",
+        hash: "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+        did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+      };
+      const iAttributeInfo2: IAttributeInfo = {
+        id: "0001",
+        type: ["another type", "another subtype"],
+        name: "attribute name",
+        hash: "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+        did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+      };
+      const iAttribute: IAttribute = {
+        ...iAttributeInfo,
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      const iAttribute2: IAttribute = {
+        ...iAttributeInfo2,
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      jest
+        .spyOn(IDHub.prototype, "getAttributes")
+        .mockResolvedValue([iAttribute, iAttribute2]);
+      const response = await IDHub.Instance.getAttributesFiltered(
+        "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+        [["a subtype"], ["another subtype"]]
+      );
+      expect(response).toStrictEqual([iAttribute2]);
+      jest.restoreAllMocks();
+    });
+
+    it("should return an array of one Attribute matching the filter as a string[] when one has a string type", async () => {
+      expect.assertions(1);
+      const iAttributeInfo: IAttributeInfo = {
+        id: "0001",
+        type: "a string type",
+        name: "attribute name",
+        hash: "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+        did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+      };
+      const iAttributeInfo2: IAttributeInfo = {
+        id: "0001",
+        type: ["another type", "another subtype"],
+        name: "attribute name",
+        hash: "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+        did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+      };
+      const iAttribute: IAttribute = {
+        ...iAttributeInfo,
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      const iAttribute2: IAttribute = {
+        ...iAttributeInfo2,
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      jest
+        .spyOn(IDHub.prototype, "getAttributes")
+        .mockResolvedValue([iAttribute, iAttribute2]);
+      const response = await IDHub.Instance.getAttributesFiltered(
+        "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+        ["another subtype"]
+      );
+      expect(response).toStrictEqual([iAttribute2]);
+      jest.restoreAllMocks();
+    });
+
+    it("should return an array of one Attribute (with a string type) matching the filter as a string[] when one has a string type", async () => {
+      expect.assertions(1);
+      const iAttributeInfo: IAttributeInfo = {
+        id: "0001",
+        type: "a string type",
+        name: "attribute name",
+        hash: "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+        did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+      };
+      const iAttributeInfo2: IAttributeInfo = {
+        id: "0001",
+        type: ["another type", "another subtype"],
+        name: "attribute name",
+        hash: "0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+        did: "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+      };
+      const iAttribute: IAttribute = {
+        ...iAttributeInfo,
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      const iAttribute2: IAttribute = {
+        ...iAttributeInfo2,
+        data: {
+          base64: util.b64EncodeUrl("some random data"),
+        },
+      };
+      jest
+        .spyOn(IDHub.prototype, "getAttributes")
+        .mockResolvedValue([iAttribute, iAttribute2]);
+      const response = await IDHub.Instance.getAttributesFiltered(
+        "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5",
+        ["a string type"]
+      );
+      expect(response).toStrictEqual([iAttribute]);
+      jest.restoreAllMocks();
+    });
   });
 
   describe("getAttribute tests", () => {

@@ -7,14 +7,14 @@ export interface IAttributeData {
 
 export interface IAttributeInput {
   id: string;
-  type: string[];
+  type: string[] | string;
   name: string;
   data: IAttributeData;
 }
 
 export interface IAttributeInfo {
   id: string;
-  type: string[];
+  type: string[] | string;
   name: string;
   hash: string;
   did: string;

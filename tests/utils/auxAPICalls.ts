@@ -2,13 +2,9 @@ import axios from "axios";
 import { JWK, JWKECKey, JWT } from "jose";
 import moment from "moment";
 import { v4 as uuidv4 } from "uuid";
-import { SimpleSigner, createJWT } from "did-jwt";
 import { ethers } from "ethers";
 import { API_PRIVATE_KEY, API_NAME, LOG_LEVEL } from "../../src/config";
-import {
-  LegalEntityAuthNToken,
-  UserAuthNToken,
-} from "../../src/libs/authManager/secureEnclave/jwt";
+import { LegalEntityAuthNToken } from "../../src/libs/authManager/secureEnclave/jwt";
 import {
   PRINT_SILLY,
   PRINT_DEBUG,
@@ -99,34 +95,6 @@ const testEntityAuthNToken = async (
     },
   });
   return { jwt, jwk, did };
-};
-
-const testUserAuthNToken = async (): Promise<{
-  did: string;
-  token: string;
-  ticket: string;
-}> => {
-  // generate a new keypair
-  const jwk = JWK.generateSync("EC", "secp256k1", { use: "sig" });
-  const privKeyString = Buffer.from(<string>jwk.d, "base64").toString("hex");
-  const wallet: ethers.Wallet = new ethers.Wallet(privKeyString);
-  const did = `did:ebsi:${wallet.address}`;
-
-  const payload: UserAuthNToken = {
-    iss: did,
-    aud: API_NAME,
-    iat: moment().unix(),
-    exp: moment().add(15, "minutes").unix(),
-    ticket: "ST-12585-Sample-ticket",
-    publicKey: new ethers.utils.SigningKey(wallet.privateKey).publicKey,
-  };
-  const signer = SimpleSigner(wallet.privateKey.replace("0x", "")); // Removing 0x from wallet private key as input of SimpleSigner
-  const token = await createJWT(payload, {
-    issuer: `${did}`,
-    alg: "ES256K-R",
-    signer,
-  });
-  return { did, token, ticket: payload.ticket };
 };
 
 interface TestingSetup {
@@ -409,7 +377,6 @@ export {
   mockComponentDid,
   mockInitComponent,
   initSecureEnclave,
-  testUserAuthNToken,
   initSetupForTesting,
   mockedEnterpriseUser,
   testEntityAuthNToken,
