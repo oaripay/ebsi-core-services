@@ -4,7 +4,6 @@ const HTTPError = require("./HTTPError");
 const BadRequestError = require("./BadRequestError");
 const ForbiddenError = require("./ForbiddenError");
 const InternalError = require("./InternalError");
-const InvalidTokenError = require("./InvalidTokenError");
 const UnauthorizedError = require("./UnauthorizedError");
 
 function handler(_error, req, res, next) {
@@ -34,5 +33,4 @@ module.exports = {
   UnauthorizedError,
   ForbiddenError,
   InternalError,
-  InvalidTokenError,
 };

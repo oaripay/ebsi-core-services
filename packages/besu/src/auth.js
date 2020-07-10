@@ -1,9 +1,6 @@
-const jose = require("jose");
-const debug = require("debug");
-const { Session } = require("@cef-ebsi/app-jwt").default;
+const { Session } = require("@cef-ebsi/app-jwt");
 
 const { API_NAME, privKey, trustedAppsRegistry } = require("./config");
-const { InvalidTokenError } = require("./errors");
 
 const session = new Session(API_NAME, privKey, trustedAppsRegistry);
 
@@ -11,9 +8,7 @@ const session = new Session(API_NAME, privKey, trustedAppsRegistry);
  * Get the token from the headers
  */
 function getToken(req) {
-  debug("headers")(req.headers);
-  const token = req.headers.authorization;
-  debug("token")(token);
+  const token = req.get("authorization");
   if (token) return token.replace("Bearer ", "");
   return null;
 }
@@ -26,30 +21,18 @@ function handleToken(req, res, next) {
 
   if (!token) {
     // No token in the headers. Continue the call as unauthenticated user
-    debug("token")("Token not present in the headers");
     req.authenticated = false;
     next();
     return;
   }
 
-  let payload;
   try {
-    payload = jose.JWT.verify(token, privKey);
+    session.verify(token);
   } catch (error) {
-    next(new InvalidTokenError(error.message));
+    next(error);
     return;
   }
 
-  if (payload.aud !== API_NAME) {
-    next(
-      new InvalidTokenError(
-        `Token with incorrect audience. Please create a new session with '${API_NAME}'`
-      )
-    );
-    return;
-  }
-
-  debug("token")("Valid token");
   req.authenticated = true;
   next();
 }

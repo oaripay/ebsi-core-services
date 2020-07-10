@@ -1,4 +1,4 @@
-const { privateKeyAsJWK } = require("@cef-ebsi/app-jwt").default;
+const { utils } = require("@cef-ebsi/app-jwt");
 const { abi } = require("./sc-notary");
 require("dotenv").config();
 
@@ -48,7 +48,7 @@ const sharedConfig = {
     address: process.env.BESU_ADDRESS_NOTARY,
     abi,
   },
-  privKey: privateKeyAsJWK(process.env.API_PRIVATE_KEY),
+  privKey: utils.privateKeyAsJWK(process.env.API_PRIVATE_KEY),
 };
 
 module.exports = {

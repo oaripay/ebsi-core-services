@@ -17,16 +17,15 @@
     "API"
   ],
   "dependencies": {
-    "@cef-ebsi/app-jwt": "0.0.3",
+    "@cef-ebsi/app-jwt": "0.0.6",
     "axios": "^0.19.0",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
-    "debug": "^4.1.1",
     "dotenv": "^8.1.0",
+    "ethereumjs-common": "^1.5.1",
     "ethereumjs-tx": "^2.1.2",
     "ethers": "^4.0.40",
     "express": "^4.17.1",
-    "jose": "^1.17.1",
     "winston": "^3.2.1"
   },
   "devDependencies": {
@@ -37,10 +36,13 @@
     "eslint-plugin-jest": "^23.8.2",
     "eslint-plugin-prettier": "^3.1.3",
     "jest": "^25.1.0",
+    "jest-express": "^1.12.0",
     "jest-sonar": "^0.2.5",
+    "jose": "^1.27.2",
     "lint-staged": "^10.1.3",
     "prettier": "^2.0.4",
-    "supertest": "^4.0.2"
+    "supertest": "^4.0.2",
+    "web3": "^1.2.9"
   },
   "jest": {
     "coverageDirectory": "./coverage/",

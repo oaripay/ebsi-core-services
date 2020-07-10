@@ -113,7 +113,7 @@ public class Tools {
 
         Properties peerProperties = new Properties();
 
-        peerProperties.setProperty("pemFile", "ssl/tlsca.pem");
+        peerProperties.setProperty("pemFile", "fabric/tlsca.pem");
         peerProperties.setProperty("trustServerCertificate", "true");
         peerProperties.setProperty("hostnameOverride", nodeName);
         peerProperties.setProperty("sslProvider", "openSSL");

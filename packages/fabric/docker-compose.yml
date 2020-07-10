@@ -5,7 +5,7 @@ services:
     build: .
     container_name: fabric-api
     ports:
-      - ${PORT_FABRIC}:8080
+      - ${PORT_FABRIC}:8081
     environment:
       - FABRIC_USERNAME=${FABRIC_USERNAME}
       - FABRIC_PASSWORD=${FABRIC_PASSWORD}
@@ -16,7 +16,3 @@ services:
       - PEER_NODE_URL=${PEER_NODE_URL}
       - ORDERER_NODE_NAME=${ORDERER_NODE_NAME}
       - ORDERER_NODE_URL=${ORDERER_NODE_URL}
-    volumes:
-      - ./ssl:/api/ssl/
-      - ./src/main/resources/server.jks:/api/server.jks
-      - ./wallet:/api/wallet/

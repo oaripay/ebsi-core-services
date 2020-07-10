@@ -8,8 +8,8 @@ const besuAPI = require("./router");
 const errors = require("./errors");
 
 class App {
-  constructor() {
-    this.httpServer = express();
+  constructor(app = express()) {
+    this.httpServer = app;
 
     this.httpServer.use("*", cors());
 

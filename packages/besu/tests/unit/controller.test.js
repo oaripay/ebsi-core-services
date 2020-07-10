@@ -1,24 +1,17 @@
 const ethers = require("ethers");
+const Web3 = require("web3");
+const EthereumJsTx = require("ethereumjs-tx").Transaction;
+const Common = require("ethereumjs-common").default;
 const axios = require("axios");
 require("dotenv").config();
 
 const config = require("../../src/config");
-const {
-  BadRequestError,
-  UnauthorizedError,
-  ForbiddenError,
-} = require("../../src/errors");
 const utils = require("../../src/utils");
 const controller = require("../../src/controller");
 
-const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
-const wallet = ethers.Wallet.createRandom();
-const r = Math.random().toString(36);
-const randomHash = ethers.utils.keccak256(Buffer.from(r, "utf8"));
-
 const ANONYMOUS = false;
-
-let txId;
+const { notary } = config;
+let chainId;
 
 /*
  * Functions
@@ -42,21 +35,94 @@ function callAPI(method, params, authenticated = true) {
   return controller.besuRPC(data, authenticated);
 }
 
-async function getNotarizeTransaction(hash) {
-  const iface = new ethers.utils.Interface(config.notary.abi);
+async function buildTxNotaryWithEthers(hash) {
+  const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
+  const wallet = ethers.Wallet.createRandom();
+  const iface = new ethers.utils.Interface(notary.abi);
+
   const transaction = {
     nonce: await provider.getTransactionCount(wallet.address),
     gasLimit: 221000,
     gasPrice: 0,
-    to: config.notary.address,
+    to: notary.address,
+    value: 0,
+    data: iface.functions.addRecord.encode([hash]),
+    chainId,
+  };
+  return wallet.sign(transaction);
+}
+
+async function buildTxNotaryWithWeb3(hash) {
+  const provider = new Web3.providers.HttpProvider(config.besuRPCNode);
+  const web3 = new Web3(provider);
+  const privKey = Web3.utils.randomHex(32);
+  const from = web3.eth.accounts.privateKeyToAccount(privKey).address;
+  const contract = new web3.eth.Contract(notary.abi, notary.address);
+
+  const transaction = {
+    nonce: await web3.eth.getTransactionCount(from, "pending"),
+    gasLimit: web3.utils.numberToHex(221000),
+    gasPrice: "0x0",
+    to: notary.address,
+    value: "0x0",
+    data: contract.methods.addRecord(hash).encodeABI(),
+    chainId,
+  };
+  const signed = await web3.eth.accounts.signTransaction(transaction, privKey);
+  return signed.rawTransaction;
+}
+
+async function buildTxNotaryWithEthereumJsTx(hash) {
+  const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
+  const wallet = ethers.Wallet.createRandom();
+  const iface = new ethers.utils.Interface(notary.abi);
+
+  const transaction = {
+    nonce: await provider.getTransactionCount(wallet.address),
+    gasLimit: 221000,
+    gasPrice: 0,
+    to: notary.address,
     value: 0,
     data: iface.functions.addRecord.encode([hash]),
   };
 
-  return wallet.sign(transaction);
+  const optsChain = {
+    common: Common.forCustomChain(
+      "mainnet",
+      {
+        name: "ebsi-network",
+        networkId: chainId,
+        chainId,
+      },
+      "petersburg"
+    ),
+  };
+  const tx = new EthereumJsTx(transaction, optsChain);
+  const privateKey = Buffer.from(wallet.privateKey.slice(2), "hex");
+  tx.sign(privateKey);
+  return tx.serialize().toString("hex");
+}
+
+async function buildTxNotary(library = "ethers") {
+  const r = Math.random().toString(36);
+  const hash = ethers.utils.keccak256(Buffer.from(r, "utf8"));
+
+  if (library === "ethers") {
+    return buildTxNotaryWithEthers(hash);
+  }
+  if (library === "web3") {
+    return buildTxNotaryWithWeb3(hash);
+  }
+  if (library === "ethereumjs-tx") {
+    return buildTxNotaryWithEthereumJsTx(hash);
+  }
+  return null;
 }
 
 async function getDeployTransaction() {
+  const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
+  const wallet = ethers.Wallet.createRandom();
+
   const transaction = {
     nonce: await provider.getTransactionCount(wallet.address),
     gasLimit: 221000,
@@ -74,8 +140,34 @@ async function getDeployTransaction() {
  */
 
 describe("hyperledger Besu Test", () => {
+  it("throws internal error when the chainId can not be read", async () => {
+    expect.assertions(1);
+
+    jest.mock("axios");
+    jest.spyOn(axios, "post").mockImplementation(() => {
+      throw new Error("error with connection");
+    });
+
+    const check = async () => {
+      await callAPI("eth_sendRawTransaction", [""]);
+    };
+
+    await expect(check()).rejects.toThrow("Error getting ebsi chainId");
+
+    axios.post.mockRestore();
+    jest.unmock("axios");
+  });
+
+  it("getChainId", async () => {
+    expect.assertions(1);
+    const result = await callAPI("eth_chainId", [], ANONYMOUS);
+    expect(result).toStrictEqual(respBesu(expect.any(String)));
+    chainId = result.result;
+  });
+
   it("getBalance", async () => {
     expect.assertions(1);
+    const wallet = ethers.Wallet.createRandom();
     const params = [wallet.address, "latest"];
     const result = await callAPI("eth_getBalance", params, ANONYMOUS);
     expect(result).toStrictEqual(respBesu("0x0"));
@@ -107,7 +199,7 @@ describe("hyperledger Besu Test", () => {
     const check = async () => {
       await callAPI("incorrect_method", [], ANONYMOUS);
     };
-    await expect(check()).rejects.toThrow(BadRequestError);
+    await expect(check()).rejects.toThrow("'incorrect_method' does not exist");
   });
 
   it("sendRawTransaction without authentication not allowed", async () => {
@@ -115,22 +207,20 @@ describe("hyperledger Besu Test", () => {
     const check = async () => {
       await callAPI("eth_sendRawTransaction", ["0x000"], ANONYMOUS);
     };
-    await expect(check()).rejects.toThrow(UnauthorizedError);
+    await expect(check()).rejects.toThrow("not available for anonymous access");
   });
 
-  it("notarize a hash (sendRawTransaction + auth)", async () => {
-    expect.assertions(1);
-    const sgnTx = await getNotarizeTransaction(randomHash);
+  it("notarize a hash using ethers library", async () => {
+    expect.assertions(2);
+    const sgnTx = await buildTxNotary();
     const result = await callAPI("eth_sendRawTransaction", [sgnTx]);
     expect(result).toStrictEqual(respBesu(expect.any(String)));
-    txId = result.result;
-  });
+    const txId = result.result;
 
-  it("check good receipt after 2 seconds", async () => {
-    expect.assertions(2);
     await utils.sleep(2000);
-    const result = await callAPI("eth_getTransactionReceipt", [txId]);
-    expect(result).toStrictEqual(
+    const receipt = await callAPI("eth_getTransactionReceipt", [txId]);
+
+    expect(receipt).toStrictEqual(
       respBesu(
         expect.objectContaining({
           blockHash: expect.any(String),
@@ -139,8 +229,87 @@ describe("hyperledger Besu Test", () => {
         })
       )
     );
-    const from = result.result.from.toLowerCase();
-    expect(from).toBe(wallet.address.toLowerCase());
+  });
+
+  it("notarize a hash using web3 library", async () => {
+    expect.assertions(2);
+    const sgnTx = await buildTxNotary("web3");
+    const result = await callAPI("eth_sendRawTransaction", [sgnTx]);
+    expect(result).toStrictEqual(respBesu(expect.any(String)));
+    const txId = result.result;
+
+    await utils.sleep(2000);
+    const receipt = await callAPI("eth_getTransactionReceipt", [txId]);
+
+    expect(receipt).toStrictEqual(
+      respBesu(
+        expect.objectContaining({
+          blockHash: expect.any(String),
+          blockNumber: expect.any(String),
+          from: expect.any(String),
+        })
+      )
+    );
+  });
+
+  it("notarize a hash using ethereumjs-tx library", async () => {
+    expect.assertions(2);
+    const sgnTx = await buildTxNotary("ethereumjs-tx");
+    const result = await callAPI("eth_sendRawTransaction", [sgnTx]);
+    expect(result).toStrictEqual(respBesu(expect.any(String)));
+    const txId = result.result;
+
+    await utils.sleep(2000);
+    const receipt = await callAPI("eth_getTransactionReceipt", [txId]);
+
+    expect(receipt).toStrictEqual(
+      respBesu(
+        expect.objectContaining({
+          blockHash: expect.any(String),
+          blockNumber: expect.any(String),
+          from: expect.any(String),
+        })
+      )
+    );
+  });
+
+  it("throws an error for a different chain id", async () => {
+    expect.assertions(1);
+
+    const provider = new Web3.providers.HttpProvider(config.besuRPCNode);
+    const web3 = new Web3(provider);
+    const privKey = Web3.utils.randomHex(32);
+    const hash =
+      "0x1e2ff5cb7ab5c7e3f5737dd1f0d2f2d0b3222d75327d70411e7645eef0aefd04";
+    const from = web3.eth.accounts.privateKeyToAccount(privKey).address;
+    const contract = new web3.eth.Contract(notary.abi, notary.address);
+
+    const transaction = {
+      nonce: await web3.eth.getTransactionCount(from, "pending"),
+      gasLimit: web3.utils.numberToHex(221000),
+      gasPrice: "0x0",
+      to: notary.address,
+      value: "0x0",
+      data: contract.methods.addRecord(hash).encodeABI(),
+      chainId: 9999, // unknown chain id
+    };
+    const signed = await web3.eth.accounts.signTransaction(
+      transaction,
+      privKey
+    );
+
+    const check = async () => {
+      await callAPI("eth_sendRawTransaction", [signed.rawTransaction]);
+    };
+    await expect(check()).rejects.toThrow("Invalid chain id");
+  });
+
+  it("throws bad request when a transaction can not be parsed", async () => {
+    expect.assertions(1);
+    const check = async () => {
+      await callAPI("eth_sendRawTransaction", ["0xf884808083035f48943"]);
+    };
+    await expect(check()).rejects.toThrow("Error parsing the transaction:");
   });
 
   it("reject the deployment of a new smart contract", async () => {
@@ -149,7 +318,9 @@ describe("hyperledger Besu Test", () => {
     const check = async () => {
       await callAPI("eth_sendRawTransaction", [sgnTx]);
     };
-    await expect(check()).rejects.toThrow(ForbiddenError);
+    await expect(check()).rejects.toThrow(
+      "Deployment of new smart contracts is not allowed"
+    );
   });
 
   it("reject call without query", async () => {
@@ -157,7 +328,7 @@ describe("hyperledger Besu Test", () => {
     const check = async () => {
       await controller.besuRPC();
     };
-    await expect(check()).rejects.toThrow(BadRequestError);
+    await expect(check()).rejects.toThrow("Not method or params defined");
   });
 
   it("reject disabled method", async () => {
@@ -165,16 +336,16 @@ describe("hyperledger Besu Test", () => {
     const check = async () => {
       await callAPI("eth_sendTransaction", ["0x000"]);
     };
-    await expect(check()).rejects.toThrow(BadRequestError);
+    await expect(check()).rejects.toThrow("is currently disabled");
   });
 
   it("reject bad request", async () => {
     expect.assertions(1);
-    const params = [wallet.address];
+    const params = ["0xb0Eb80e1ab11190b20cB4204744e00a9F03789d8"];
     const check = async () => {
       await callAPI("eth_getBalance", params, ANONYMOUS);
     };
-    await expect(check()).rejects.toThrow(BadRequestError);
+    await expect(check()).rejects.toThrow("Besu RPC Error:");
   });
 
   it("internal error when the rpc is not working", async () => {
@@ -185,7 +356,7 @@ describe("hyperledger Besu Test", () => {
       throw new Error("error with connection");
     });
 
-    const params = [wallet.address, "latest"];
+    const params = ["0xb0Eb80e1ab11190b20cB4204744e00a9F03789d8", "latest"];
     const check = async () => {
       await callAPI("eth_getBalance", params, ANONYMOUS);
     };

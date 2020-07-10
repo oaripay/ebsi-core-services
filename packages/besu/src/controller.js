@@ -100,7 +100,18 @@ async function besuRPC(query, authenticated) {
       `The method '${query.method}' is not available for anonymous access`
     );
 
-  if (utils.isDeployingSmartContract(query))
+  let isDeployingSC = false;
+  try {
+    isDeployingSC = await utils.isDeployingSmartContract(query);
+  } catch (error) {
+    if (error.message.includes("Error getting ebsi chainId")) throw error;
+    else
+      throw new BadRequestError(
+        `Error parsing the transaction: ${error.message}`
+      );
+  }
+
+  if (isDeployingSC)
     throw new ForbiddenError(
       "Deployment of new smart contracts is not allowed"
     );
