@@ -2,7 +2,10 @@ openapi: 3.0.3
 info:
   title: Timestamp API
   description: |
-    Timestamp API is a Core Service of the EBSI platform providing the capability of checking the authenticity of a digital document by verifying the presence and the timestamp of the document's hash in a specific smart contract.
+    Timestamp API is a Core Service of the EBSI platform providing the
+    capability of checking the authenticity of a digital document by
+    verifying the presence and the timestamp of the document's hash
+    in a specific smart contract.
   version: 1.0.0
   termsOfService: "/docs/terms"
   contact:
@@ -91,7 +94,11 @@ paths:
       tags:
         - Timestamp
       summary: Get a record by its hash
-      description: Retrieve notarization record from the smart contract by the hash of the notarized document. If the hash exists in the smart contract, it will return the timestamp (epoch time) and the address that performed the notarization.
+      description: |
+        Retrieve notarization record from the smart contract by the
+        hash of the notarized document. If the hash exists in the smart
+        contract, it will return the timestamp (epoch time) and the
+        address that performed the notarization.
       parameters:
         - name: hash
           in: path

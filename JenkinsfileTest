@@ -3,7 +3,6 @@ pipeline {
     environment {
         EBSI_ENV='integration'
         BESU_ADDRESS_NOTARY='0x21b38942aA9BC992482627f63814Ffa06DA7e500'
-        PORT='8180'
     }
     stages {
         stage('Clone repo') {
@@ -14,7 +13,7 @@ pipeline {
         stage('Unit test') {
             steps {
                 sh 'npm install'
-                sh 'npm run test'
+                sh 'npm run test:unit'
             }
         }
         stage('SonarQube Analysis') {

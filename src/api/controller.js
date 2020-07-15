@@ -2,7 +2,7 @@ const ethers = require("ethers");
 const querystring = require("querystring");
 
 const config = require("../config");
-const { BadRequestError, NotFoundError, InternalError } = require("../errors");
+const { BadRequestError, NotFoundError } = require("../errors");
 
 const URL = "/timestamp/v1/hashes";
 const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
@@ -39,33 +39,51 @@ function buildLink(before, after, pageSize) {
 }
 
 /*
- * Get a list of records
+ * Function to walk around all the records in the contract
+ * starting from the last one. On each iteration a
+ * callback function is executed.
+ * The loop stops if the callback returns true.
  */
-async function getListRecords(query) {
-  let pageSize = config.DEFAULT_PAGE_SIZE;
-  if (query && query["page[size]"]) {
-    if (Number.isNaN(Number(query["page[size]"])))
-      throw new BadRequestError("page[size] must be an integer");
-    pageSize = query["page[size]"];
-  }
-
-  const items = [];
-
+async function iterateContract(callback) {
   let lastBlockREC = Number(await contract.lastBlockREC());
   const filter = contract.filters.REC();
+  let logRec;
+
   /* eslint-disable no-await-in-loop */
-  for (let i = 0; i < pageSize && lastBlockREC !== 0; i += 1) {
+  for (let i = 0; lastBlockREC !== 0; i += 1) {
     filter.fromBlock = lastBlockREC;
     filter.toBlock = lastBlockREC;
 
     const logs = await provider.getLogs(filter);
-    const logRec = logs[0];
-    const record = await buildRecord(logRec);
-    items.push(record);
+    [logRec] = logs;
+    const finished = await callback(logRec, i);
+    if (finished) break;
 
     lastBlockREC = Number(logRec.topics[3]);
   }
   /* eslint-enable no-await-in-loop */
+
+  return { lastBlockREC, logRec };
+}
+
+/*
+ * Get a list of records
+ */
+async function getListRecords(q) {
+  let pageSize = config.DEFAULT_PAGE_SIZE;
+  if (q && q.page) {
+    const { page } = q;
+    if (page.size) pageSize = parseInt(page.size, 10);
+  }
+
+  const items = [];
+
+  const { lastBlockREC } = await iterateContract(async (log, i) => {
+    const record = await buildRecord(log);
+    items.push(record);
+    if (i < pageSize - 1) return false; // continue
+    return true;
+  });
 
   const links = {
     first: buildLink(null, null, pageSize),
@@ -86,8 +104,8 @@ async function getListRecords(query) {
  * Get record by the document hash
  */
 async function getRecord(_hash) {
-  let hash = _hash;
-  if (!_hash.startsWith("0x")) hash = `0x${_hash}`;
+  let hash = _hash.toLowerCase();
+  if (!hash.startsWith("0x")) hash = `0x${hash}`;
 
   let registeredBy;
   try {
@@ -99,26 +117,13 @@ async function getRecord(_hash) {
   if (registeredBy === ADDRESS_ZERO)
     throw new NotFoundError(`Document hash '${_hash}' not found`);
 
-  let lastBlockREC = Number(await contract.lastBlockREC());
-  const filter = contract.filters.REC();
-  let logRec;
-  /* eslint-disable no-await-in-loop */
-  while (lastBlockREC !== 0) {
-    filter.fromBlock = lastBlockREC;
-    filter.toBlock = lastBlockREC;
-
-    const logs = await provider.getLogs(filter);
-    [logRec] = logs;
-
-    // check if the hash is in the logs
-    if (hash === logRec.topics[1]) break;
-
-    lastBlockREC = Number(logRec.topics[3]);
-  }
-  /* eslint-enable no-await-in-loop */
+  const { logRec, lastBlockREC } = await iterateContract((log) => {
+    if (hash === log.topics[1].toLowerCase()) return true;
+    return false; // continue searching
+  });
 
   if (lastBlockREC === 0)
-    throw new InternalError(
+    throw new Error(
       `Document hash '${hash}' not found, however the NotFoundError was not fired`
     );
 

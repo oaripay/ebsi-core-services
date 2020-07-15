@@ -1,6 +1,6 @@
 const ethers = require("ethers");
-const { BadRequestError, NotFoundError } = require("../src/errors");
-const controller = require("../src/api/controller");
+const { BadRequestError, NotFoundError } = require("../../src/errors");
+const controller = require("../../src/api/controller");
 
 /*
  * Tests
@@ -19,7 +19,7 @@ describe("timestamp API Test", () => {
   });
 
   it("get list of recent records", async () => {
-    expect.hasAssertions();
+    expect.assertions(1);
     const result = await controller.getListRecords();
     const total = result.items.length;
     expect(result).toStrictEqual(
@@ -32,13 +32,13 @@ describe("timestamp API Test", () => {
   });
 
   it("get a record", async () => {
-    expect.hasAssertions();
+    expect.assertions(1);
     const result = await controller.getRecord(hash);
     expect(result).toStrictEqual(expectedRecord);
   });
 
   it("malformed hash is rejected", async () => {
-    expect.hasAssertions();
+    expect.assertions(1);
     const check = async () => {
       await controller.getRecord("this is not a hash");
     };
@@ -46,7 +46,7 @@ describe("timestamp API Test", () => {
   });
 
   it("random hash is not found", async () => {
-    expect.hasAssertions();
+    expect.assertions(1);
     const r = Math.random().toString(36);
     const randomHash = ethers.utils.keccak256(Buffer.from(r, "utf8"));
     const check = async () => {

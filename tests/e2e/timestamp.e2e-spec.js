@@ -1,7 +1,7 @@
 const ethers = require("ethers");
 const supertest = require("supertest");
 
-const { url } = require("./config");
+const { url } = require("../config");
 
 const request = supertest(url);
 
@@ -22,39 +22,36 @@ describe("timestamp api router tests", () => {
   });
 
   it("get list of recent records", async () => {
-    expect.assertions(1);
-    await callTimestamp("/")
-      .expect(200)
-      .then((response) => {
-        const total = response.body.items.length;
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: expect.arrayContaining([expectedRecord]),
-            total,
-          })
-        );
-        hash = response.body.items[0].hash;
-      });
+    expect.assertions(2);
+    const response = await callTimestamp("/");
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: expect.arrayContaining([expectedRecord]),
+        total: expect.any(Number),
+      })
+    );
+    hash = response.body.items[0].hash;
   });
 
   it("get a record", async () => {
-    expect.assertions(1);
-    await callTimestamp(`/${hash}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(expectedRecord);
-      });
+    expect.assertions(2);
+    const response = await callTimestamp(`/${hash}`);
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(expectedRecord);
   });
 
   it("malformed hash is rejected", async () => {
-    expect.assertions(0);
-    await callTimestamp("/this-is-not-a-hash").expect(400);
+    expect.assertions(1);
+    const response = await callTimestamp("/this-is-not-a-hash");
+    expect(response.status).toBe(400);
   });
 
   it("random hash is not found", async () => {
-    expect.assertions(0);
+    expect.assertions(1);
     const r = Math.random().toString(36);
     const randomHash = ethers.utils.keccak256(Buffer.from(r, "utf8"));
-    await callTimestamp(`/${randomHash}`).expect(404);
+    const response = await callTimestamp(`/${randomHash}`);
+    expect(response.status).toBe(404);
   });
 });
