@@ -13,8 +13,8 @@ pipeline {
         }
         stage('Unit test') {
             steps {
-                sh 'npm install'
-                sh 'npm run test'
+                sh 'yarn install --frozen-lockfile'
+                sh 'yarn run test'
             }
         }
         stage('Build image') {

@@ -3,7 +3,6 @@ const logger = require("../logger");
 const HTTPError = require("./HTTPError");
 const BadRequestError = require("./BadRequestError");
 const InternalError = require("./InternalError");
-const InvalidTokenError = require("./InvalidTokenError");
 const KeyTooLargeError = require("./KeyTooLargeError");
 const NotFoundError = require("./NotFoundError");
 const TooLargeError = require("./TooLargeError");
@@ -35,7 +34,6 @@ module.exports = {
   HTTPError,
   BadRequestError,
   InternalError,
-  InvalidTokenError,
   KeyTooLargeError,
   NotFoundError,
   TooLargeError,

@@ -1,5 +1,5 @@
 const supertest = require("supertest");
-const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
+const { Agent, Scope } = require("@cef-ebsi/app-jwt");
 const crypto = require("crypto");
 const ethers = require("ethers");
 const fs = require("fs");
@@ -68,8 +68,10 @@ describe("file storage tests", () => {
 
   it("create new session", async () => {
     expect.assertions(2);
-    const agent = new ebsiAppJwt.Agent(TEST_APP_NAME, privKey);
-    const requestToken = agent.createRequestPayload("ebsi-storage");
+    const agent = new Agent(Scope.COMPONENT, privKey, {
+      issuer: TEST_APP_NAME,
+    });
+    const requestToken = await agent.createRequestPayload("ebsi-storage");
 
     const response = await request
       .post("/storage/v1/sessions")

@@ -1,4 +1,4 @@
-const { privateKeyAsJWK } = require("@cef-ebsi/app-jwt").default;
+const { utils } = require("@cef-ebsi/app-jwt");
 require("dotenv").config();
 
 const config = {
@@ -24,7 +24,7 @@ if (!process.env.TEST_APP_PRIVATE_KEY)
 const environment = process.env.EBSI_ENV;
 const finalConfig = config[environment];
 const { TEST_APP_NAME } = process.env;
-const privKey = privateKeyAsJWK(process.env.TEST_APP_PRIVATE_KEY);
+const privKey = utils.privateKeyAsJWK(process.env.TEST_APP_PRIVATE_KEY);
 
 module.exports = {
   ...finalConfig,

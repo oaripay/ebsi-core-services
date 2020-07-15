@@ -75,7 +75,7 @@ The api will be accesible at http://localhost:8080
 Install libraries and dependencies
 
 ```
-npm install
+yarn install
 ```
 
 Edit `./src/config.js` to define the connection with cassandra. By default it will try to access the container "cassandradb" or "localhost".
@@ -83,7 +83,7 @@ Edit `./src/config.js` to define the connection with cassandra. By default it wi
 Start the api
 
 ```
-npm run start
+yarn run start
 ```
 
 The api will be accesible at http://localhost:8080
@@ -121,25 +121,25 @@ create keyspace ebsi_integration with replication = {'class':'SimpleStrategy','r
 Now launch the unit tests and e2e tests:
 
 ```
-npm run test
+yarn run test
 ```
 
 To connect with a local api for e2e run:
 
 ```
-EBSI_ENV=local EBSI_API=http://localhost:8080 npm run test
+EBSI_ENV=local EBSI_API=http://localhost:8080 yarn run test
 ```
 
 To run only unit tests (cassandra container is not necessary):
 
 ```
-npm run test:unit
+yarn run test:unit
 ```
 
 To run only integration tests, launch cassandra and run:
 
 ```
-npm run test:e2e
+yarn run test:e2e
 ```
 
 ## OpenAPI documentation

@@ -1,6 +1,6 @@
 const supertest = require("supertest");
 const jose = require("jose");
-const ebsiAppJwt = require("@cef-ebsi/app-jwt").default;
+const { Agent, TrustedAppRegistry } = require("@cef-ebsi/app-jwt");
 
 const config = require("../../src/config");
 const Server = require("../../src/server");
@@ -22,14 +22,14 @@ describe("authentication in storage api", () => {
 
   it("create a new session with storage api", async () => {
     expect.assertions(1);
-    const agent = new ebsiAppJwt.Agent();
-    const requestToken = agent.createRequestPayload("ebsi-storage");
+    const agent = new Agent();
+    const requestToken = await agent.createRequestPayload("ebsi-storage");
 
     const mock1 = jest
-      .spyOn(ebsiAppJwt.TrustedAppRegistry.prototype, "verify")
+      .spyOn(TrustedAppRegistry.prototype, "verify")
       .mockResolvedValue(true);
     const mock2 = jest
-      .spyOn(ebsiAppJwt.TrustedAppRegistry.prototype, "checkAuthorization")
+      .spyOn(TrustedAppRegistry.prototype, "checkAuthorization")
       .mockResolvedValue(true);
 
     await request

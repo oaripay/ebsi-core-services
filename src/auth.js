@@ -1,8 +1,7 @@
-const jose = require("jose");
-const { Session } = require("@cef-ebsi/app-jwt").default;
+const { Session } = require("@cef-ebsi/app-jwt");
 
 const { API_NAME, privKey, trustedAppsRegistry } = require("./config");
-const { InvalidTokenError, UnauthorizedError } = require("./errors");
+const { UnauthorizedError } = require("./errors");
 
 const session = new Session(API_NAME, privKey, trustedAppsRegistry);
 
@@ -10,7 +9,7 @@ const session = new Session(API_NAME, privKey, trustedAppsRegistry);
  * Get the token from the headers
  */
 function getToken(req) {
-  const token = req.headers.authorization;
+  const token = req.get("authorization");
   if (token) return token.replace("Bearer ", "");
   return null;
 }
@@ -27,20 +26,10 @@ function handleToken(req, res, next) {
     return;
   }
 
-  let payload;
   try {
-    payload = jose.JWT.verify(token, privKey);
+    session.verify(token);
   } catch (error) {
-    next(new InvalidTokenError(error.message));
-    return;
-  }
-
-  if (payload.aud !== API_NAME) {
-    next(
-      new InvalidTokenError(
-        `Token with incorrect audience. Please create a new session with '${API_NAME}'`
-      )
-    );
+    next(error);
     return;
   }
 
