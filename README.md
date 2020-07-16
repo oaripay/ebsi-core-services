@@ -10,8 +10,8 @@ In development, you can run both project separately. Refer to their own document
 ## Installing
 
 ```sh
-npm install
-npm run bootstrap
+yarn install
+yarn run bootstrap
 ```
 
 ## Run with Docker Compose
@@ -33,14 +33,14 @@ The api will be accesible at http://localhost:8080
 Test Besu
 
 ```sh
-npm run test:besu
+yarn run test:besu
 ```
 
 Test Fabric
 Launch the api with docker
 
 ```sh
-npm run test:fabric-e2e
+yarn run test:fabric-e2e
 ```
 
 ## Licensing

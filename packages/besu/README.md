@@ -43,13 +43,13 @@ The api will be accesible at http://localhost:8080
 Install libraries and dependencies
 
 ```
-npm install
+yarn install
 ```
 
 Start the api
 
 ```
-npm run start
+yarn run start
 ```
 
 The api will be accesible at http://localhost:8080
@@ -62,25 +62,25 @@ For e2e tests, TEST_APP_NAME and TEST_APP_PRIVATE_KEY need to be a valid app reg
 Launch unit tests and e2e tests with:
 
 ```
-npm run test
+yarn run test
 ```
 
 To connect with a local api for e2e run:
 
 ```
-EBSI_ENV=local EBSI_API=http://localhost:8080 npm run test
+EBSI_ENV=local EBSI_API=http://localhost:8080 yarn run test
 ```
 
 To run only unit tests:
 
 ```
-npm run test:unit
+yarn run test:unit
 ```
 
 To run only integration tests:
 
 ```
-npm run test:e2e
+yarn run test:e2e
 ```
 
 ## Swagger documentation

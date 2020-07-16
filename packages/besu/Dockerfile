@@ -8,8 +8,8 @@ RUN apk add --update --no-cache \
 # Stage 1: Besu api
 FROM base AS besu-api
 WORKDIR /usr/src/api
-COPY ./package*.json /usr/src/api/
-RUN npm ci --quiet --no-progress
+COPY ./package.json ./yarn.lock /usr/src/api/
+RUN yarn install --frozen-lockfile --production
 COPY . /usr/src/api/
 
 # Stage 3: run light api
@@ -18,7 +18,6 @@ WORKDIR /usr/src/api
 COPY --from=besu-api /usr/src/api/node_modules /usr/src/api/node_modules
 COPY --from=besu-api /usr/src/api/src /usr/src/api/src
 COPY ./package*.json /usr/src/api/
-RUN npm prune --production
 RUN chown -R node:node /usr/src/api
 USER node
-CMD npm run start
+CMD yarn run start

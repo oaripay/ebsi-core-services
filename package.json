@@ -2,16 +2,16 @@
   "private": true,
   "scripts": {
     "bootstrap": "run-s bootstrap:*",
-    "bootstrap:besu": "cd packages/besu && npm install",
-    "bootstrap:fabric-test": "cd packages/fabric/tests && npm install",
+    "bootstrap:besu": "cd packages/besu && yarn install",
+    "bootstrap:fabric-test": "cd packages/fabric/tests && yarn install",
     "lint": "run-s lint:*",
-    "lint:backend": "cd packages/besu && npm run lint ",
+    "lint:backend": "cd packages/besu && yarn run lint ",
     "pre-commit": "run-s pre-commit:*",
-    "pre-commit:backend": "cd packages/besu && npm run lint-staged ",
+    "pre-commit:backend": "cd packages/besu && yarn run lint-staged ",
     "test": "run-s test:*",
-    "test:besu": "cd packages/besu && npm test",
-    "test:besu-unit": "cd packages/besu && npm run test:unit",
-    "test:fabric-e2e": "cd packages/fabric/tests && npm run test"
+    "test:besu": "cd packages/besu && yarn test",
+    "test:besu-unit": "cd packages/besu && yarn run test:unit",
+    "test:fabric-e2e": "cd packages/fabric/tests && yarn run test"
   },
   "devDependencies": {
     "audit-ci": "^2.5.1",
@@ -20,7 +20,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run pre-commit"
+      "pre-commit": "yarn run pre-commit"
     }
   }
 }

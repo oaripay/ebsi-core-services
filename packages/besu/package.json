@@ -3,11 +3,11 @@
   "scripts": {
     "prettier-format": "prettier --write 'src/**/*.{js,ts,tsx}'",
     "start": "node src/start.js",
-    "test": "npm run test:unit && npm run test:e2e",
+    "test": "yarn run test:unit && yarn run test:e2e",
     "test:unit": "jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar",
     "test:e2e": "jest --config ./tests/jest-e2e.json",
     "lint-staged": "lint-staged",
-    "lint": "npm run lint:js && npm run lint:prettier",
+    "lint": "yarn run lint:js && yarn run lint:prettier",
     "lint:js": "eslint \"*/**/*.{js,ts}\"",
     "lint:prettier": "prettier --check \"**/*.{md,mdx,html,json,yml,js,jsx,ts,tsx,css,scss}\""
   },

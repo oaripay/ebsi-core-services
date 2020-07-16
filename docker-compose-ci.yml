@@ -2,6 +2,6 @@ version: "3.7"
 
 services:
   ledger-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/ledger-besu-api:integration_ebsiint-1806_v0.0.1
-    build: "./packages/besu"
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/ledger-besu-api:integration_ebsiint-1833-yarn_v0.0.1
+    build: .
     container_name: ledger-besu-api

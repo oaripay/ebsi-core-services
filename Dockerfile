@@ -1,24 +1,12 @@
-# Stage 1: Install Besu API
-FROM node:12.16.1-alpine AS besu-api
-RUN apk add --update --no-cache \
-  python \
-  make \
-  g++
-WORKDIR /usr/src/api
-COPY ./packages/besu/package*.json /usr/src/api/
-RUN npm ci --quiet --no-progress --production
-COPY ./packages/besu /usr/src/api/
-
-# Stage 2: Build Fabric API
+# Stage 1: Build Fabric API
 FROM maven:3.5-jdk-8-alpine as builder-fabric-api
 WORKDIR /api
 COPY ./packages/fabric /api
 RUN mvn install
 
-# Stage 3: RUN Besu and Fabric APIs
+# Stage 2: RUN Besu and Fabric APIs
 FROM node:12.16.1-alpine
 WORKDIR /usr/src/api
-
 RUN apk add --update --no-cache \
   openjdk8-jre-base \
   libc6-compat && \
@@ -26,9 +14,9 @@ RUN apk add --update --no-cache \
   mkdir /usr/src/api/fabric
 
 # Besu Files
-COPY --from=besu-api /usr/src/api/node_modules /usr/src/api/besu/node_modules
-COPY --from=besu-api /usr/src/api/src /usr/src/api/besu/src
-COPY packages/besu/package*.json /usr/src/api/besu/
+COPY ./packages/besu/package.json ./packages/besu/yarn.lock /usr/src/api/besu/
+RUN cd /usr/src/api/besu/ && yarn install --frozen-lockfile --production && yarn cache clean
+COPY ./packages/besu /usr/src/api/besu/
 
 # Fabric Files
 COPY --from=builder-fabric-api /api/target/fabric-0.0.1-SNAPSHOT.jar /usr/src/api/fabric

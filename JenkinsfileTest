@@ -16,9 +16,9 @@ pipeline {
         }
         stage('Unit test') {
             steps {
-                sh 'npm install'
-                sh 'npm run bootstrap'
-                sh 'npm run test:besu-unit'
+                sh 'yarn install --frozen-lockfile'
+                sh 'yarn run bootstrap'
+                sh 'yarn run test:besu-unit'
             }
         }
         stage('SonarQube Analysis') {
