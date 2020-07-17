@@ -3,15 +3,14 @@ import { ethers } from "ethers";
 import { JWT } from "jose";
 import { v4 as uuidv4 } from "uuid";
 import * as util from "util";
-import KeyEncoder from "key-encoder";
 import fs from "fs";
 import {
-  WALLET_DATA_STORE_TYPE_MAP,
+  WalletDataStoreTypeMap,
   WALLET_DATA_STORE_CONFIG_MAP,
   ENVIRONMENT,
 } from "../config";
 import LOGGER from "../logger";
-import { API_ERROR_MESSAGES, InternalError, HTTPError } from "../errors";
+import { ApiErrorMessages, InternalError, HTTPError } from "../errors";
 import { IComponentAuthZToken } from "../libs/authManager/secureEnclave/jwt";
 
 /**
@@ -58,13 +57,13 @@ const isHash = (data: string): boolean => {
 };
 
 const getStorageConfig = (walletStorageType: number): [string, string] => {
-  const storageType = WALLET_DATA_STORE_TYPE_MAP.get(walletStorageType);
+  const storageType = WalletDataStoreTypeMap.get(walletStorageType);
   if (typeof storageType === "undefined")
-    throw new InternalError(API_ERROR_MESSAGES.INVALID_WALLET_STORAGE_TYPE);
+    throw new InternalError(ApiErrorMessages.INVALID_WALLET_STORAGE_TYPE);
 
   const storageConfig = WALLET_DATA_STORE_CONFIG_MAP.get(storageType);
   if (typeof storageConfig === "undefined")
-    throw new InternalError(API_ERROR_MESSAGES.INVALID_DATA_STORE_CONFIG_TYPE);
+    throw new InternalError(ApiErrorMessages.INVALID_DATA_STORE_CONFIG_TYPE);
 
   return storageConfig;
 };
@@ -135,14 +134,6 @@ const PRINT_JSON = (data: any): void => {
   PRINT_DEBUG(`\n${toPrint}`);
 };
 
-const pubkeyHexToPem = (pubkeyHex: string): string => {
-  const keyEncoder = new KeyEncoder("secp256k1");
-  // removes the initial 0x
-  const rawPubKey = pubkeyHex.includes("0x") ? pubkeyHex.slice(2) : pubkeyHex;
-
-  return keyEncoder.encodePublic(rawPubKey, "raw", "pem");
-};
-
 async function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -162,6 +153,5 @@ export {
   b64EncodeUrl,
   hashFromFile,
   isTokenExpired,
-  pubkeyHexToPem,
   getStorageConfig,
 };

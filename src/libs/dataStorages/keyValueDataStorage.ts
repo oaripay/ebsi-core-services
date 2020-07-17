@@ -1,6 +1,6 @@
 import AuthManager from "../authManager/authManager";
 import { getStorageConfig } from "../../utils/util";
-import { WALLET_DATASTORE_CONFIG } from "../../config";
+import { WalletDataStoreConfig } from "../../config";
 
 /**
  * Class to a Key Value Data Storage using EBSI API
@@ -18,11 +18,9 @@ export default class KeyValueDataStorage {
     private walletDataStoreType: number,
     private iAuthManager: AuthManager = AuthManager.Instance
   ) {
-    this.uri = getStorageConfig(walletDataStoreType)[
-      WALLET_DATASTORE_CONFIG.URI
-    ];
+    this.uri = getStorageConfig(walletDataStoreType)[WalletDataStoreConfig.URI];
     this.targetApp = getStorageConfig(walletDataStoreType)[
-      WALLET_DATASTORE_CONFIG.EBSI_APP_NAME
+      WalletDataStoreConfig.EBSI_APP_NAME
     ];
   }
 

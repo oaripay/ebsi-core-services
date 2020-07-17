@@ -1,6 +1,6 @@
 import AuthManager from "../authManager/authManager";
 import { getStorageConfig } from "../../utils/util";
-import { WALLET_DATASTORE_CONFIG } from "../../config";
+import { WalletDataStoreConfig } from "../../config";
 import { ICASFile } from "../../daos/casFile";
 import { ICASStorageOut } from "../../dtos/dataStorage";
 
@@ -21,11 +21,9 @@ export default class CASDataStorage {
     private walletDataStoreType: number,
     private database?: string
   ) {
-    this.uri = getStorageConfig(walletDataStoreType)[
-      WALLET_DATASTORE_CONFIG.URI
-    ];
+    this.uri = getStorageConfig(walletDataStoreType)[WalletDataStoreConfig.URI];
     this.targetApp = getStorageConfig(walletDataStoreType)[
-      WALLET_DATASTORE_CONFIG.EBSI_APP_NAME
+      WalletDataStoreConfig.EBSI_APP_NAME
     ];
   }
 

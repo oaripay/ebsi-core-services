@@ -1,11 +1,7 @@
 import { Request, Response } from "express";
 import { JWT } from "jose";
 import { PRINT_ERROR } from "../utils/util";
-import {
-  UnauthorizedError,
-  InternalError,
-  API_ERROR_MESSAGES,
-} from "../errors";
+import { UnauthorizedError, InternalError, ApiErrorMessages } from "../errors";
 import {
   IUserAuthZToken,
   IEnterpriseAuthZToken,
@@ -19,8 +15,8 @@ const getTokenFromHeader = (req: Request): string => {
     token = token.slice(7, token.length);
     return token;
   }
-  PRINT_ERROR(API_ERROR_MESSAGES.NO_BEARER_TOKEN, "getTokenFromHeader");
-  throw new InternalError(API_ERROR_MESSAGES.NO_BEARER_TOKEN);
+  PRINT_ERROR(ApiErrorMessages.NO_BEARER_TOKEN, "getTokenFromHeader");
+  throw new InternalError(ApiErrorMessages.NO_BEARER_TOKEN);
 };
 
 /**

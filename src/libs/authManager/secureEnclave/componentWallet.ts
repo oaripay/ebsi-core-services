@@ -2,7 +2,7 @@ import { JWT, JWK, JWKECKey } from "jose";
 import { encrypt, decrypt } from "eciesjs";
 import { ethers } from "ethers";
 import Wallet, { WalletOptions } from "./wallet";
-import { InternalError, API_ERROR_MESSAGES } from "../../../errors";
+import { InternalError, ApiErrorMessages } from "../../../errors";
 import getJWKfromHex from "./jwk";
 
 export default class ComponentWallet implements Wallet {
@@ -10,10 +10,10 @@ export default class ComponentWallet implements Wallet {
     options?: WalletOptions
   ): Promise<ComponentWallet> {
     if (!options)
-      throw new InternalError(API_ERROR_MESSAGES.WALLET_OPTIONS_NOT_PROVIDED);
+      throw new InternalError(ApiErrorMessages.WALLET_OPTIONS_NOT_PROVIDED);
     const wallet = new ComponentWallet();
     if (!options.hexPrivateKey)
-      throw new InternalError(API_ERROR_MESSAGES.COMPONENT_KEY_NOT_PROVIDED);
+      throw new InternalError(ApiErrorMessages.COMPONENT_KEY_NOT_PROVIDED);
     await wallet.loadFromPrivateKey(options.hexPrivateKey);
 
     return wallet;

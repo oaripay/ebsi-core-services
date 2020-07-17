@@ -2,11 +2,7 @@ version: "3.7"
 
 services:
   identity-hub-api:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/identity-hub-api:integration_ebsiint-1191-fix-filtered-attributes_v0.0.1
-    container_name: identity-hub-api
+    build: .
     restart: always
     logging:
       options:
@@ -17,4 +13,3 @@ services:
     environment:
       - EBSI_ENV=${EBSI_ENV:?Missing EBSI_ENV variable}
       - API_PRIVATE_KEY=${API_PRIVATE_KEY:?Missing API_PRIVATE_KEY variable}
-      - DID_REGISTRY_SC_ADDRESS=${DID_REGISTRY_SC_ADDRESS:?Missing DID_REGISTRY_SC_ADDRESS variable}

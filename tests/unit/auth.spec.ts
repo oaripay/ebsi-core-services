@@ -5,7 +5,7 @@ import EBSI_JWT from "@cef-ebsi/app-jwt";
 import { EventEmitter } from "events";
 import * as auth from "../../src/middleware/auth";
 import * as config from "../../src/config";
-import { TOKEN_TYPE } from "../../src/libs/authManager/secureEnclave/jwt";
+import { TokenType } from "../../src/libs/authManager/secureEnclave/jwt";
 
 describe("auth middleware unit testing suite", () => {
   it("should return a signed component session", async () => {
@@ -23,7 +23,7 @@ describe("auth middleware unit testing suite", () => {
     });
     const expectedResult = {
       accessToken: "a sample token",
-      tokenType: TOKEN_TYPE.bearer,
+      tokenType: TokenType.bearer,
       expiresIn: Date.now() + 900,
       issuedAt: Date.now(),
     };
@@ -69,7 +69,7 @@ describe("auth middleware unit testing suite", () => {
       });
       const res = httpMocks.createResponse();
       const tokenDecoded = {
-        aud: config.EBSI_APPS.WALLET,
+        aud: config.EbsiApps.WALLET,
       };
       jest.spyOn(JWT, "decode").mockReturnValue(tokenDecoded as any);
       jest.spyOn(JWT, "verify").mockReturnValue({} as any);
@@ -123,7 +123,7 @@ describe("auth middleware unit testing suite", () => {
       });
       const res = httpMocks.createResponse();
       const tokenDecoded = {
-        aud: config.EBSI_APPS.WALLET,
+        aud: config.EbsiApps.WALLET,
       };
       jest.spyOn(JWT, "decode").mockReturnValue(tokenDecoded as any);
       jest.spyOn(JWT, "verify").mockReturnValue({} as any);
@@ -147,7 +147,7 @@ describe("auth middleware unit testing suite", () => {
       });
       const res = httpMocks.createResponse();
       const tokenDecoded = {
-        aud: config.EBSI_APPS.WALLET,
+        aud: config.EbsiApps.WALLET,
       };
       jest.spyOn(JWT, "decode").mockReturnValue(tokenDecoded as any);
       jest.spyOn(JWT, "verify").mockImplementation(() => {

@@ -142,7 +142,7 @@ const EBSI_SERVICE = {
   SWAGGER_EXTERNAL_URL: EBSI_SERVICE_EXTERNAL_SWAGGER_FULL_URL,
 };
 
-enum EBSI_APPS {
+enum EbsiApps {
   BESU = "ebsi-ledger",
   IDHUB = "ebsi-idhub",
   EIDAS = "ebsi-eidas",
@@ -154,62 +154,56 @@ enum EBSI_APPS {
 }
 
 const EBSI_API_MAP = new Map<string, string>([
-  [EBSI_APPS.BESU, EBSI_SERVICE.URL.LEDGER],
-  [EBSI_APPS.IDHUB, EBSI_SERVICE.URL.IDHUB],
-  [EBSI_APPS.EIDAS, EBSI_SERVICE.URL.EIDAS],
-  [EBSI_APPS.WALLET, EBSI_SERVICE.URL.WALLET],
-  [EBSI_APPS.STORAGE, EBSI_SERVICE.URL.STORAGE],
+  [EbsiApps.BESU, EBSI_SERVICE.URL.LEDGER],
+  [EbsiApps.IDHUB, EBSI_SERVICE.URL.IDHUB],
+  [EbsiApps.EIDAS, EBSI_SERVICE.URL.EIDAS],
+  [EbsiApps.WALLET, EBSI_SERVICE.URL.WALLET],
+  [EbsiApps.STORAGE, EBSI_SERVICE.URL.STORAGE],
 ]);
 
-export enum EBSI_DATA_STORE_TYPE {
+export enum EbsiDataStoreType {
   FILE_STORAGE,
   KEY_VALUE_STORAGE,
 }
 
-export enum WALLET_DATA_STORE_TYPE {
+export enum WalletDataStoreType {
   ATTRIBUTES_INFO_LIST_STORAGE,
   ATTRIBUTES_FILE_STORAGE,
 }
 
-const WALLET_DATA_STORE_TYPE_MAP = new Map<number, number>([
-  [
-    WALLET_DATA_STORE_TYPE.ATTRIBUTES_FILE_STORAGE,
-    EBSI_DATA_STORE_TYPE.FILE_STORAGE,
-  ],
+const WalletDataStoreTypeMap = new Map<number, number>([
+  [WalletDataStoreType.ATTRIBUTES_FILE_STORAGE, EbsiDataStoreType.FILE_STORAGE],
 
   [
-    WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE,
-    EBSI_DATA_STORE_TYPE.KEY_VALUE_STORAGE,
+    WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE,
+    EbsiDataStoreType.KEY_VALUE_STORAGE,
   ],
 ]);
 
 const WALLET_DATA_STORE_CONFIG_MAP = new Map<number, [string, string]>([
   [
-    EBSI_DATA_STORE_TYPE.FILE_STORAGE,
-    [EBSI_SERVICE.URL.FILE_STORAGE, EBSI_APPS.FILE_STORAGE],
+    EbsiDataStoreType.FILE_STORAGE,
+    [EBSI_SERVICE.URL.FILE_STORAGE, EbsiApps.FILE_STORAGE],
   ],
   [
-    EBSI_DATA_STORE_TYPE.KEY_VALUE_STORAGE,
-    [EBSI_SERVICE.URL.KEY_VALUE_STORAGE, EBSI_APPS.KEY_VALUE_STORAGE],
+    EbsiDataStoreType.KEY_VALUE_STORAGE,
+    [EBSI_SERVICE.URL.KEY_VALUE_STORAGE, EbsiApps.KEY_VALUE_STORAGE],
   ],
 ]);
 
-enum WALLET_DATASTORE_CONFIG {
+enum WalletDataStoreConfig {
   URI,
   EBSI_APP_NAME,
 }
 
 const LEDGER_BESU = {
   provider: EBSI_SERVICE.URL.BESU,
-  didRegistry: process.env.DID_REGISTRY_SC_ADDRESS?.includes("0x")
-    ? process.env.DID_REGISTRY_SC_ADDRESS
-    : `0x${process.env.DID_REGISTRY_SC_ADDRESS}`,
 };
 
 const throwError = (varName: string) => {
   throw new Error(`${varName} not provided as ENV variable`);
 };
-const API_NAME = EBSI_APPS.IDHUB;
+const API_NAME = EbsiApps.IDHUB;
 const trustedAppsRegistry = EBSI_SERVICE.URL.TRUSTED_APPS_REGISTRY;
 const API_PRIVATE_KEY = process.env.API_PRIVATE_KEY
   ? process.env.API_PRIVATE_KEY
@@ -218,7 +212,7 @@ const API_PRIVATE_KEY = process.env.API_PRIVATE_KEY
 export {
   API_NAME,
   LOG_LEVEL,
-  EBSI_APPS,
+  EbsiApps,
   LEDGER_BESU,
   ENVIRONMENT,
   EBSI_API_MAP,
@@ -227,7 +221,7 @@ export {
   API_PRIVATE_KEY,
   trustedAppsRegistry,
   EBSI_DEFAULT_DATA_STORE,
-  WALLET_DATASTORE_CONFIG,
-  WALLET_DATA_STORE_TYPE_MAP,
+  WalletDataStoreConfig,
+  WalletDataStoreTypeMap,
   WALLET_DATA_STORE_CONFIG_MAP,
 };

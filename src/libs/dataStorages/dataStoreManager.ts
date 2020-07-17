@@ -1,4 +1,4 @@
-import { WALLET_DATA_STORE_TYPE } from "../../config";
+import { WalletDataStoreType } from "../../config";
 import { AttributeInfoList, CASFile } from "../../models";
 
 export default class DataStoreManager {
@@ -22,7 +22,7 @@ export default class DataStoreManager {
   public get attributeInfoListDB(): AttributeInfoList {
     if (!this.privAttributeInfoListDB) {
       this.privAttributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
     }
     return this.privAttributeInfoListDB;
@@ -35,7 +35,7 @@ export default class DataStoreManager {
   public get attributeFileDB(): CASFile {
     if (!this.privAtttributeFileDB) {
       this.privAtttributeFileDB = CASFile.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_FILE_STORAGE,
+        WalletDataStoreType.ATTRIBUTES_FILE_STORAGE,
         this.privAttributeDBType
       );
     }

@@ -1,6 +1,6 @@
 import { AttributeInfoList } from "../../src/models";
 import { IAttributeInfo } from "../../src/dtos/attributeInfo";
-import { WALLET_DATA_STORE_TYPE } from "../../src/config";
+import { WalletDataStoreType } from "../../src/config";
 import KeyValueDataStorage from "../../src/libs/dataStorages/keyValueDataStorage";
 import { BadRequestError } from "../../src/errors";
 
@@ -8,7 +8,7 @@ describe("iAttributeInfoList model", () => {
   it("should return a AttributeInfoList empty object", () => {
     expect.assertions(1);
     const attributeInfoListDB = AttributeInfoList.getInstance(
-      WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+      WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
     );
     expect(attributeInfoListDB).toBeInstanceOf(AttributeInfoList);
   });
@@ -17,7 +17,7 @@ describe("iAttributeInfoList model", () => {
     it("should insert a value", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash =
@@ -50,7 +50,7 @@ describe("iAttributeInfoList model", () => {
     it("should update a value", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash =
@@ -83,7 +83,7 @@ describe("iAttributeInfoList model", () => {
     it("should delete a value", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       jest.spyOn(KeyValueDataStorage.prototype, "delete").mockResolvedValue();
@@ -94,7 +94,7 @@ describe("iAttributeInfoList model", () => {
     it("should get a value", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash =
@@ -125,7 +125,7 @@ describe("iAttributeInfoList model", () => {
     it("should get an element", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash =
@@ -158,7 +158,7 @@ describe("iAttributeInfoList model", () => {
     it("should throw BadRequestError when list is null", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const attributeDAO = {
@@ -179,7 +179,7 @@ describe("iAttributeInfoList model", () => {
     it("should throw BadRequestError when not found", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash =
@@ -209,7 +209,7 @@ describe("iAttributeInfoList model", () => {
     it("should insert an element when no list exists", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash =
@@ -245,7 +245,7 @@ describe("iAttributeInfoList model", () => {
     it("should thorw an error when getting an element and there is an error", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash =
@@ -269,7 +269,7 @@ describe("iAttributeInfoList model", () => {
     it("should insert an element when a list exists but not the same AttributeInfo", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash =
@@ -328,7 +328,7 @@ describe("iAttributeInfoList model", () => {
     it("should throw an element when a list exists but getting the AttributeInfo raises an error", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash =
@@ -372,7 +372,7 @@ describe("iAttributeInfoList model", () => {
     it("should throw an element when a list exists but getting the AttributeInfo raises an HTTPError with another message", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash =
@@ -416,7 +416,7 @@ describe("iAttributeInfoList model", () => {
     it("should update an element when a list exists and AttributeInfo is the same", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash =
@@ -471,7 +471,7 @@ describe("iAttributeInfoList model", () => {
     it("should update an element", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash =
@@ -526,7 +526,7 @@ describe("iAttributeInfoList model", () => {
     it("should delete an element", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
-        WALLET_DATA_STORE_TYPE.ATTRIBUTES_INFO_LIST_STORAGE
+        WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
       );
       const did = "did:ebsi:0xc9A8940Ab318d4d4631a86DcF9E0b9A3594214E5";
       const hash =

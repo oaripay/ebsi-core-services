@@ -11,8 +11,8 @@ import { DataStoreManager } from "../dataStorages";
 import { ICASStorageOut } from "../../dtos/dataStorage";
 import {
   InternalError,
-  API_ERROR_MESSAGES,
-  EBSI_API_ERRORS,
+  ApiErrorMessages,
+  EbsiApiErrors,
   BadRequestError,
   NotFoundError,
 } from "../../errors";
@@ -139,7 +139,7 @@ export default class IDHub {
       const tmpAttribute = { ...attributeInfo };
       delete tmpAttribute.id;
       if (!equal(tmpAttribute, await this.getAttributeInfo(did, hash)))
-        throw new InternalError(API_ERROR_MESSAGES.ATTRIBUTES_MISMATCH);
+        throw new InternalError(ApiErrorMessages.ATTRIBUTES_MISMATCH);
     }
     // we add attribute info only when it is a new attribute
     if (newAttribute) await this.addAttributeInfo(did, attributeInfo);
@@ -173,14 +173,14 @@ export default class IDHub {
     try {
       const response: ICASStorageOut = await this.attributeFileDB.insert(file);
       if (!response || !response.hash)
-        throw new InternalError(API_ERROR_MESSAGES.ERROR_STORING_FILE);
+        throw new InternalError(ApiErrorMessages.ERROR_STORING_FILE);
       if (response.hash !== inHash)
-        throw new InternalError(API_ERROR_MESSAGES.HASH_MISMATCH);
+        throw new InternalError(ApiErrorMessages.HASH_MISMATCH);
       const newAttribute = true;
       return { hash: response.hash, newAttribute };
     } catch (error) {
       if (
-        (error as Error).message.includes(EBSI_API_ERRORS.BAD_REQUEST) ||
+        (error as Error).message.includes(EbsiApiErrors.BAD_REQUEST) ||
         ((error as BadRequestError).Detail &&
           (error as BadRequestError).Detail.includes(
             "This file is already stored with name"

@@ -1,9 +1,10 @@
-# In .dockerignore
 # Exclude everything:
 *
+
 # Only add what is necessary
-!package*.json
+!package.json
 !tsconfig-build.json
 !tsconfig.json
+!yarn.lock
 !src
 !api

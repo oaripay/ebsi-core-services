@@ -11,7 +11,7 @@ import {
   b64EncodeUrl,
   hash,
 } from "../../src/utils/util";
-import { InternalError, API_ERROR_MESSAGES } from "../../src/errors";
+import { InternalError, ApiErrorMessages } from "../../src/errors";
 import { InitComponent } from "../../src/libs/authManager/secureEnclave";
 import ComponentSecureEnclave from "../../src/libs/authManager/secureEnclave/componentSecureEnclave";
 import AuthManager from "../../src/libs/authManager/authManager";
@@ -118,7 +118,7 @@ async function auxDoGetCallWithToken(token: string, url: string): Promise<any> {
 
 async function initSecureEnclave(): Promise<string> {
   const { did } = await ComponentSecureEnclave.Instance.init(API_PRIVATE_KEY);
-  if (!did) throw new InternalError(API_ERROR_MESSAGES.ENCLAVE_DID_NULL);
+  if (!did) throw new InternalError(ApiErrorMessages.ENCLAVE_DID_NULL);
   PRINT_DEBUG(`Secure Enclave initialized with DID:${did}`);
 
   return did;
@@ -189,13 +189,13 @@ async function auxDoPostCallWithToken(
   return response.data;
 }
 
-interface mockedElement {
+interface MockedElement {
   id: number;
   title: string;
   author: string;
 }
 
-const mockedPosts: mockedElement[] = [
+const mockedPosts: MockedElement[] = [
   {
     id: 1,
     title: "One",

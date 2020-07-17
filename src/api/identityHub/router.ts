@@ -5,7 +5,7 @@ import { EBSI_SERVICE } from "../../config";
 import {
   handleError,
   BadRequestError,
-  API_ERROR_MESSAGES,
+  ApiErrorMessages,
   UnauthorizedError,
 } from "../../errors";
 import * as auth from "../../middleware/auth";
@@ -37,7 +37,7 @@ class Router {
           const { didJwt, hash } = req.params;
           if (!didJwt || !hash)
             throw new BadRequestError(
-              API_ERROR_MESSAGES.ATTRIBUTES_DID_HASH_NOT_FOUND
+              ApiErrorMessages.ATTRIBUTES_DID_HASH_NOT_FOUND
             );
           if (!util.isHash(hash))
             throw new BadRequestError(
@@ -68,13 +68,13 @@ class Router {
             );
           if (!did || typeof did !== "string")
             throw new BadRequestError(
-              API_ERROR_MESSAGES.ATTRIBUTES_DID_NOT_FOUND
+              ApiErrorMessages.ATTRIBUTES_DID_NOT_FOUND
             );
           // when type query param is set, we call the filtered function
           if (type) {
             if (typeof type !== "string")
               throw new BadRequestError(
-                API_ERROR_MESSAGES.ATTRIBUTES_TYPE_NOT_FOUND
+                ApiErrorMessages.ATTRIBUTES_TYPE_NOT_FOUND
               );
             const filteredResult = await Controller.getAttributesFiltered(
               did,
@@ -112,7 +112,7 @@ class Router {
             );
           if (!hash || !didJwt)
             throw new BadRequestError(
-              API_ERROR_MESSAGES.ATTRIBUTES_DID_HASH_NOT_FOUND
+              ApiErrorMessages.ATTRIBUTES_DID_HASH_NOT_FOUND
             );
           if (!util.isHash(hash))
             throw new BadRequestError(

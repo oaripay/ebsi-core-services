@@ -4,7 +4,6 @@ pipeline {
         EBSI_ENV='test'
         DEBUG_LEVEL='silly'
         API_PRIVATE_KEY=credentials('API_PRIVATE_KEY_HUB')
-        DID_REGISTRY_SC_ADDRESS=credentials('DID_REGISTRY_SC_ADDRESS')
     }
     stages {
         stage('Clone repo') {
@@ -14,8 +13,8 @@ pipeline {
         }
         stage('Unit test') {
             steps {
-                sh 'npm install'
-                sh 'npm run test:unit'
+                sh 'yarn install --frozen-lockfile'
+                sh 'yarn run test:unit'
             }
         }
         stage('SonarQube Analysis') {

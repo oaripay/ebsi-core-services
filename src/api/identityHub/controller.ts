@@ -1,5 +1,5 @@
 import { IAttribute, IAttributeInput } from "../../dtos/attributeInfo";
-import { BadRequestError, API_ERROR_MESSAGES } from "../../errors";
+import { BadRequestError, ApiErrorMessages } from "../../errors";
 import IDHub from "../../libs/identityHub/idHub";
 
 export default class Controller {
@@ -14,7 +14,7 @@ export default class Controller {
     try {
       JSON.parse(decodeURIComponent(type));
     } catch (error) {
-      throw new BadRequestError(API_ERROR_MESSAGES.ATTRIBUTE_TYPE_MALFORMED);
+      throw new BadRequestError(ApiErrorMessages.ATTRIBUTE_TYPE_MALFORMED);
     }
     const types = JSON.parse(decodeURIComponent(type));
     return IDHub.Instance.getAttributesFiltered(did, types);
@@ -36,7 +36,7 @@ export default class Controller {
       !iAttributeInput.data ||
       !iAttributeInput.data.base64
     )
-      throw new BadRequestError(API_ERROR_MESSAGES.ATTRIBUTE_INPUT_MALFORMED);
+      throw new BadRequestError(ApiErrorMessages.ATTRIBUTE_INPUT_MALFORMED);
     return IDHub.Instance.setAttribute(did, hash, iAttributeInput);
   }
 }

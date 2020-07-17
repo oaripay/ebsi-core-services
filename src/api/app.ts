@@ -10,7 +10,7 @@ import IdentityHubRouter from "./identityHub/router";
 import { PRINT_INFO, PRINT_ERROR } from "../utils/util";
 import { EBSI_SERVICE, OPENAPI_PATH, API_PRIVATE_KEY } from "../config";
 import ComponentSecureEnclave from "../libs/authManager/secureEnclave/componentSecureEnclave";
-import { API_ERROR_MESSAGES, handleError } from "../errors";
+import { ApiErrorMessages, handleError } from "../errors";
 
 class App {
   private connection!: http.Server;
@@ -29,7 +29,7 @@ class App {
     const yamlFilePath = path.join(__dirname, OPENAPI_PATH);
 
     if (ebsiService !== EBSI_SERVICE.NAME.IDHUB)
-      throw Error(API_ERROR_MESSAGES.NO_EBSI_SERVICE_AVAILABLE);
+      throw Error(ApiErrorMessages.NO_EBSI_SERVICE_AVAILABLE);
 
     this.router = new IdentityHubRouter(
       this.httpServer,
@@ -44,7 +44,7 @@ class App {
 
   public Start = async (port: number): Promise<http.Server> => {
     const { did } = await ComponentSecureEnclave.Instance.init(API_PRIVATE_KEY);
-    if (!did) throw Error(API_ERROR_MESSAGES.ENCLAVE_DID_NULL);
+    if (!did) throw Error(ApiErrorMessages.ENCLAVE_DID_NULL);
     PRINT_INFO(`Component Secure Enclave initialized with DID:${did}`);
 
     return new Promise((resolve, reject) => {

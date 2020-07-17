@@ -3,10 +3,10 @@ import http from "http";
 import EBSI_JWT from "@cef-ebsi/app-jwt";
 import { startEbsiService } from "../../src/api/app";
 import { EBSI_SERVICE } from "../../src/config";
-import { EBSI_API_ERRORS_INT, BadRequestError } from "../../src/errors";
+import { EbsiApiErrorsInt, BadRequestError } from "../../src/errors";
 import {
-  GRANT_TYPE,
-  EBSI_ACCESS_TOKEN_SCOPE,
+  GrantType,
+  EbsiAccessTokenScope,
 } from "../../src/libs/authManager/secureEnclave/jwt";
 
 jest.setTimeout(100000);
@@ -45,16 +45,16 @@ describe("identity Hub router API calls", () => {
       const res = await request(server).post(
         `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.EBSI_LOGIN}`
       );
-      expect(res.status).toBe(EBSI_API_ERRORS_INT.BAD_REQUEST_400);
+      expect(res.status).toBe(EbsiApiErrorsInt.BAD_REQUEST_400);
       jest.resetAllMocks();
     });
 
     it("responds 200 to /sessions with a correct structured payload mocking auth library", async () => {
       expect.assertions(2);
       const payload = {
-        grantType: GRANT_TYPE.jwtBearer,
+        grantType: GrantType.jwtBearer,
         assertion: "a valid assertion token",
-        scope: EBSI_ACCESS_TOKEN_SCOPE.ENTITY,
+        scope: EbsiAccessTokenScope.ENTITY,
       };
       const returnedToken = {
         accessToken: "a valid token",

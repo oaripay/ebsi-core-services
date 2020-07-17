@@ -10,10 +10,10 @@ import TrustedAppNotFoundError from "./TrustedAppNotFoundError";
 import LOGGER from "../logger";
 import {
   EbsiError,
-  WALLET_MESSAGES,
-  API_ERROR_MESSAGES,
-  EBSI_API_ERRORS_INT,
-  EBSI_API_ERRORS,
+  WalletMessages,
+  ApiErrorMessages,
+  EbsiApiErrorsInt,
+  EbsiApiErrors,
 } from "./errorCodes";
 
 const handleError = (err, req, res, next) => {
@@ -44,12 +44,12 @@ export {
   NotFoundError,
   InternalError,
   InvalidAppError,
-  EBSI_API_ERRORS,
-  WALLET_MESSAGES,
+  EbsiApiErrors,
+  WalletMessages,
   BadRequestError,
   InvalidTokenError,
   UnauthorizedError,
-  API_ERROR_MESSAGES,
-  EBSI_API_ERRORS_INT,
+  ApiErrorMessages,
+  EbsiApiErrorsInt,
   TrustedAppNotFoundError,
 };

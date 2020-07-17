@@ -5,12 +5,12 @@ import { ICASStorageOut } from "../../dtos/dataStorage";
 import { IEbsiApiAuthConnection, ILoginReturn } from "../../dtos/ebsiApi";
 import * as config from "../../config";
 import * as api from "../../utils/api";
-import { InternalError, API_ERROR_MESSAGES } from "../../errors";
+import { InternalError, ApiErrorMessages } from "../../errors";
 import { isTokenExpired } from "../../utils/util";
 import {
   AccessTokenResponseBody,
-  TOKEN_TYPE,
-  EBSI_ACCESS_TOKEN_SCOPE,
+  TokenType,
+  EbsiAccessTokenScope,
 } from "./secureEnclave/jwt";
 import ComponentSecureEnclave from "./secureEnclave/componentSecureEnclave";
 
@@ -117,8 +117,7 @@ export default class AuthManager {
    */
   async getAuthZToken(targetApp: string): Promise<string> {
     const appInfo = this.ebsiApiAuthZTokenMap.get(targetApp);
-    if (!appInfo)
-      throw new InternalError(API_ERROR_MESSAGES.NO_TARGET_APP_INFO);
+    if (!appInfo) throw new InternalError(ApiErrorMessages.NO_TARGET_APP_INFO);
 
     if (appInfo.token === "" || isTokenExpired(appInfo.token)) {
       const authZToken = await this.doLogin(targetApp);
@@ -173,11 +172,10 @@ export default class AuthManager {
   private async doLogin(targetApp: string): Promise<ILoginReturn> {
     // send to remote /sessions endpoint
     const appInfo = this.ebsiApiAuthZTokenMap.get(targetApp);
-    if (!appInfo)
-      throw new InternalError(API_ERROR_MESSAGES.NO_TARGET_APP_INFO);
+    if (!appInfo) throw new InternalError(ApiErrorMessages.NO_TARGET_APP_INFO);
 
     const agent = new EBSI_JWT.Agent(
-      EBSI_ACCESS_TOKEN_SCOPE.COMPONENT,
+      EbsiAccessTokenScope.COMPONENT,
       config.API_PRIVATE_KEY,
       {
         issuer: config.API_NAME,
@@ -194,9 +192,9 @@ export default class AuthManager {
       !resp ||
       !resp.accessToken ||
       !resp.tokenType ||
-      resp.tokenType !== TOKEN_TYPE.bearer
+      resp.tokenType !== TokenType.bearer
     )
-      throw new InternalError(API_ERROR_MESSAGES.NO_AUTHZ_TOKEN);
+      throw new InternalError(ApiErrorMessages.NO_AUTHZ_TOKEN);
 
     return { token: resp.accessToken };
   }

@@ -64,11 +64,11 @@ export interface IEnterpriseAuthZToken extends JWTClaims {
   nonce: string;
 }
 
-export enum GRANT_TYPE {
+export enum GrantType {
   jwtBearer = "urn:ietf:params:oauth:grant-type:jwt-bearer",
 }
 
-export enum EBSI_ACCESS_TOKEN_SCOPE {
+export enum EbsiAccessTokenScope {
   USER = "ebsi profile user",
   ENTITY = "ebsi profile entity",
   COMPONENT = "ebsi profile component",
@@ -76,33 +76,33 @@ export enum EBSI_ACCESS_TOKEN_SCOPE {
 }
 
 export interface AccessTokenRequestBody {
-  grantType: GRANT_TYPE.jwtBearer;
+  grantType: GrantType.jwtBearer;
   assertion: string;
-  scope?: EBSI_ACCESS_TOKEN_SCOPE;
+  scope?: EbsiAccessTokenScope;
 }
 
-export enum TOKEN_TYPE {
+export enum TokenType {
   bearer = "Bearer",
 }
 
 export interface AccessTokenResponseBody {
   accessToken: string;
-  tokenType: TOKEN_TYPE.bearer;
+  tokenType: TokenType.bearer;
   expiresIn: number; // 15 minutes
   issuedAt: number;
 }
 
-export enum CONTENT_TYPE {
+export enum ContentType {
   urlencoded = "application/x-www-form-urlencoded",
 }
 
-export enum AUTHORIZATION_TYPE {
+export enum AuthorizationType {
   DID_CCG_TAR_V1 = "DID_CCG_TAR-V1",
 }
 
 export interface AccessTokenRequestHeaders {
-  "Content-Type": CONTENT_TYPE.urlencoded;
-  Authorization: AUTHORIZATION_TYPE.DID_CCG_TAR_V1;
+  "Content-Type": ContentType.urlencoded;
+  Authorization: AuthorizationType.DID_CCG_TAR_V1;
 }
 
 export enum SignatureTypes {

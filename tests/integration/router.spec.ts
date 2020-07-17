@@ -4,7 +4,7 @@ import http from "http";
 import * as auth from "../../src/middleware/auth";
 import { startEbsiService } from "../../src/api/app";
 import { EBSI_SERVICE, EBSI_DEFAULT_DATA_STORE } from "../../src/config";
-import { EBSI_API_ERRORS_INT, BadRequestError } from "../../src/errors";
+import { EbsiApiErrorsInt, BadRequestError } from "../../src/errors";
 import { initSetupForTesting, mockedAttributes } from "../utils/auxAPICalls";
 import { IAttributeInput } from "../../src/dtos/attributeInfo";
 import IDHub from "../../src/libs/identityHub/idHub";
@@ -38,7 +38,7 @@ describe("identity hub router API calls", () => {
   it("responds 404 to /", async () => {
     expect.assertions(1);
     const res = await request(server).get("/");
-    expect(res.status).toStrictEqual(EBSI_API_ERRORS_INT.NOT_FOUND_404);
+    expect(res.status).toStrictEqual(EbsiApiErrorsInt.NOT_FOUND_404);
   });
 
   describe("identity hub endpoints (mocking IDHub class calls)", () => {

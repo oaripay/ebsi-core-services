@@ -3,7 +3,7 @@ import { JWT, JWK } from "jose";
 import parseEntityJWT from "../../src/middleware/jwt";
 import {
   InternalError,
-  API_ERROR_MESSAGES,
+  ApiErrorMessages,
   UnauthorizedError,
 } from "../../src/errors";
 
@@ -19,7 +19,7 @@ describe("jwt test suite", () => {
     const next = (error?: any) => {
       expect(error).toBeInstanceOf(InternalError);
       expect((error as InternalError).Detail).toStrictEqual(
-        API_ERROR_MESSAGES.NO_BEARER_TOKEN
+        ApiErrorMessages.NO_BEARER_TOKEN
       );
     };
     parseEntityJWT(req, res, next);

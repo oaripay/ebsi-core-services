@@ -1,7 +1,7 @@
 import http from "http";
 import net from "net";
 import App, { startEbsiService } from "../../src/api/app";
-import { API_ERROR_MESSAGES } from "../../src/errors";
+import { ApiErrorMessages } from "../../src/errors";
 import { EBSI_SERVICE } from "../../src/config";
 
 describe("app test suite", () => {
@@ -11,7 +11,7 @@ describe("app test suite", () => {
     expect(() => {
       // eslint-disable-next-line no-new
       new App("");
-    }).toThrow(API_ERROR_MESSAGES.NO_EBSI_SERVICE_AVAILABLE);
+    }).toThrow(ApiErrorMessages.NO_EBSI_SERVICE_AVAILABLE);
   });
 
   test.each`

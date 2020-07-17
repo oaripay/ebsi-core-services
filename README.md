@@ -16,9 +16,10 @@
 
 ### Prerequisites
 
-Required libraries:
+You need:
 
-- typescript
+- Node.js >= 12
+- Yarn >= 1.22.0
 
 ### Installing
 
@@ -35,7 +36,6 @@ Copy .env.example to .env and set the following environment variables:
 
 - `EBSI_ENV` : set to test, local, integration, development or production
 - `API_PRIVATE_KEY` <-- TYPE HERE API PRIVATE KEY IN HEX FORMAT
-- `DID_REGISTRY_SC_ADDRESS` <-- TYPE HERE DID REGISTRY SC ADDRESS
 
 Build and Run ebsi-identity-hub-api Docker Image
 
@@ -58,22 +58,22 @@ git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/identity-hub-api.git
 cd identity-hub-api
 ```
 
-Install the required libraries and packages dependencies
+Install the required libraries and packages dependencies:
 
 ```sh
-npm i
+yarn install
 ```
 
-Build project
+Build project:
 
 ```sh
-npm run build
+yarn build
 ```
 
-Start the swagger service API
+Start the swagger service API:
 
 ```sh
-npm run start
+yarn start
 ```
 
 This command starts a node server exposing the EBSI Swagger API at <http://localhost:9000/identity-hub/v1/api-docs/> where you can play with the EBSI API.
@@ -84,50 +84,50 @@ Copy .env.example to .env and set the following environment variables:
 
 - `EBSI_ENV` : set to test, local, integration, development or production
 - `API_PRIVATE_KEY` <-- TYPE HERE API PRIVATE KEY IN HEX FORMAT
-- `DID_REGISTRY_SC_ADDRESS` <-- TYPE HERE DID REGISTRY SC ADDRESS
 
 ### All tests
 
-Run
+Run:
 
 ```sh
-npm run test
+yarn test
 ```
 
 ### Unit tests
 
-Run
+Run:
 
 ```sh
-npm run test:unit
+yarn test:unit
 ```
 
 ### Integration tests
 
-Run
+Run:
 
 ```sh
-npm run test:integration
+yarn test:integration
 ```
 
 ### e2e tests
 
-Run
+Run:
 
 ```sh
-npm run test:e2e
+yarn test:e2e
 ```
 
 ## Swagger Documentation
 
-This projects contains the Identity Hub API EBSI Service:
+This project contains the Identity Hub API EBSI Service:
 
 Identity Hub API is a Core Service of the EBSI platform providing the capability of securely storing W3C Verifiable Credentials/Attestations.
+
 You can read the documentation at <https://api.ebsi.xyz/identity-hub/v1/api-docs>.
 
 ## Licensing
 
-Copyright (c) 2019 European Commission  
+Copyright (c) 2019 European Commission
 Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
 You may not use this work except in compliance with the Licence.
 You may obtain a copy of the Licence at:

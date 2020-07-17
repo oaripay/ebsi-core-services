@@ -4,7 +4,7 @@ interface EbsiError {
   detail: string;
 }
 
-enum EBSI_API_ERRORS {
+enum EbsiApiErrors {
   BAD_REQUEST = "Request failed with status code 400",
   NOT_AUTENTICATED_USER = "Request failed with status code 401",
   UNAUTHORIZED_ACCESS = "Request failed with status code 403",
@@ -13,7 +13,7 @@ enum EBSI_API_ERRORS {
   NOT_IMPLEMENTED = "Request failed with status code 501",
 }
 
-enum EBSI_API_ERRORS_INT {
+enum EbsiApiErrorsInt {
   BAD_REQUEST_400 = 400,
   NOT_AUTENTICATED_USER_401 = 401,
   UNAUTHORIZED_ACCESS_403 = 403,
@@ -22,7 +22,7 @@ enum EBSI_API_ERRORS_INT {
   NOT_IMPLEMENTED_501 = 501,
 }
 
-enum API_ERROR_MESSAGES {
+enum ApiErrorMessages {
   CONNECTION_NOT_OPEN = "Server connection is not set.",
   NO_COMPONENT_PASSWORD = "No Component Wallet provided",
   AUTHMANAGER_ERROR = "Auth Manager not initizalized",
@@ -101,7 +101,7 @@ enum API_ERROR_MESSAGES {
   ATTRIBUTES_FILE_DATA_ERROR = "File data could not be all retrieved.",
 }
 
-enum WALLET_MESSAGES {
+enum WalletMessages {
   ELEMENT_DELETED = "Message deleted",
   ELEMENT_ADDED = "Message inserted",
   KEY_ADDED = "key inserted",
@@ -116,8 +116,8 @@ enum WALLET_MESSAGES {
 
 export {
   EbsiError,
-  WALLET_MESSAGES,
-  API_ERROR_MESSAGES,
-  EBSI_API_ERRORS_INT,
-  EBSI_API_ERRORS,
+  WalletMessages,
+  ApiErrorMessages,
+  EbsiApiErrorsInt,
+  EbsiApiErrors,
 };

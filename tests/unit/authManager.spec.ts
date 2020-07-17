@@ -1,8 +1,8 @@
 import AuthManager from "../../src/libs/authManager/authManager";
-import { EBSI_APPS } from "../../src/config";
+import { EbsiApps } from "../../src/config";
 import ComponentSecureEnclave from "../../src/libs/authManager/secureEnclave/componentSecureEnclave";
 import { api, util } from "../../src/utils";
-import { TOKEN_TYPE } from "../../src/libs/authManager/secureEnclave/jwt";
+import { TokenType } from "../../src/libs/authManager/secureEnclave/jwt";
 
 describe("authManager tests", () => {
   describe("create authZ token", () => {
@@ -37,7 +37,7 @@ describe("authManager tests", () => {
       );
       const token = await AuthManager.Instance.createAuthorizationToken(
         payload,
-        EBSI_APPS.WALLET
+        EbsiApps.WALLET
       );
       expect(token).toBeDefined();
       jest.restoreAllMocks();
@@ -56,7 +56,7 @@ describe("authManager tests", () => {
           } as any)
       );
       const jwt = await AuthManager.Instance.createAuthNToken(
-        EBSI_APPS.FILE_STORAGE
+        EbsiApps.FILE_STORAGE
       );
       expect(jwt).toMatch("tokenJwt");
       jest.resetAllMocks();
@@ -78,10 +78,10 @@ describe("authManager tests", () => {
         .mockResolvedValue("a token");
       jest.spyOn(api, "doPostCallWithoutToken").mockResolvedValue({
         accessToken: "an access token",
-        tokenType: TOKEN_TYPE.bearer,
+        tokenType: TokenType.bearer,
       });
       const token = await AuthManager.Instance.getAuthZToken(
-        EBSI_APPS.FILE_STORAGE
+        EbsiApps.FILE_STORAGE
       );
       expect(token).toBeDefined();
       jest.resetAllMocks();
@@ -94,15 +94,15 @@ describe("authManager tests", () => {
         .mockResolvedValue("a token");
       jest.spyOn(api, "doPostCallWithoutToken").mockResolvedValue({
         accessToken: "an access token",
-        tokenType: TOKEN_TYPE.bearer,
+        tokenType: TokenType.bearer,
       });
       jest.spyOn(util, "isTokenExpired").mockReturnValue(false);
       const token = await AuthManager.Instance.getAuthZToken(
-        EBSI_APPS.FILE_STORAGE
+        EbsiApps.FILE_STORAGE
       );
 
       const receivedToken = await AuthManager.Instance.getAuthZToken(
-        EBSI_APPS.FILE_STORAGE
+        EbsiApps.FILE_STORAGE
       );
       expect(receivedToken).toMatch(token);
       jest.resetAllMocks();
@@ -117,19 +117,19 @@ describe("authManager tests", () => {
         .spyOn(api, "doPostCallWithoutToken")
         .mockResolvedValueOnce({
           accessToken: "an access token",
-          tokenType: TOKEN_TYPE.bearer,
+          tokenType: TokenType.bearer,
         })
         .mockResolvedValueOnce({
           accessToken: "a new access token",
-          tokenType: TOKEN_TYPE.bearer,
+          tokenType: TokenType.bearer,
         });
       jest.spyOn(util, "isTokenExpired").mockReturnValue(true);
       const token = await AuthManager.Instance.getAuthZToken(
-        EBSI_APPS.FILE_STORAGE
+        EbsiApps.FILE_STORAGE
       );
 
       const receivedToken = await AuthManager.Instance.getAuthZToken(
-        EBSI_APPS.FILE_STORAGE
+        EbsiApps.FILE_STORAGE
       );
       expect(receivedToken).not.toMatch(token);
       jest.resetAllMocks();
@@ -145,7 +145,7 @@ describe("authManager tests", () => {
         .mockResolvedValue(undefined as any);
       jest.spyOn(util, "isTokenExpired").mockReturnValue(true);
       await expect(
-        AuthManager.Instance.getAuthZToken(EBSI_APPS.FILE_STORAGE)
+        AuthManager.Instance.getAuthZToken(EbsiApps.FILE_STORAGE)
       ).rejects.toThrow("Internal Server Error");
       jest.resetAllMocks();
     });
@@ -158,7 +158,7 @@ describe("authManager tests", () => {
       jest.spyOn(api, "doPostCallWithoutToken").mockResolvedValue({} as any);
       jest.spyOn(util, "isTokenExpired").mockReturnValue(true);
       await expect(
-        AuthManager.Instance.getAuthZToken(EBSI_APPS.FILE_STORAGE)
+        AuthManager.Instance.getAuthZToken(EbsiApps.FILE_STORAGE)
       ).rejects.toThrow("Internal Server Error");
       jest.resetAllMocks();
     });
@@ -173,7 +173,7 @@ describe("authManager tests", () => {
       });
       jest.spyOn(util, "isTokenExpired").mockReturnValue(true);
       await expect(
-        AuthManager.Instance.getAuthZToken(EBSI_APPS.FILE_STORAGE)
+        AuthManager.Instance.getAuthZToken(EbsiApps.FILE_STORAGE)
       ).rejects.toThrow("Internal Server Error");
       jest.resetAllMocks();
     });
@@ -189,7 +189,7 @@ describe("authManager tests", () => {
       });
       jest.spyOn(util, "isTokenExpired").mockReturnValue(true);
       await expect(
-        AuthManager.Instance.getAuthZToken(EBSI_APPS.FILE_STORAGE)
+        AuthManager.Instance.getAuthZToken(EbsiApps.FILE_STORAGE)
       ).rejects.toThrow("Internal Server Error");
       jest.resetAllMocks();
     });
