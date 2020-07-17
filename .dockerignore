@@ -2,9 +2,10 @@
 *
 
 # Only add what is necessary
-!package*.json
+!package.json
 !nest-cli.json
 !tsconfig.build.json
 !tsconfig.json
+!yarn.lock
 !scripts
 !src

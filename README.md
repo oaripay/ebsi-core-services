@@ -17,13 +17,13 @@ This repository contains the code of the Trusted Apps Registry API.
 First of all, make sure to correctly configure your environment. Create a copy of `.env.example` and name it `.env`. Set the variables. Make sure the private key is correctly defined.
 
 ```sh
-npm install
+yarn install
 ```
 
 Then, start the server:
 
 ```sh
-npm start
+yarn start
 ```
 
 You should be able to open http://localhost:9000/trusted-apps-registry/v1/api-docs/.
@@ -31,13 +31,13 @@ You should be able to open http://localhost:9000/trusted-apps-registry/v1/api-do
 ## Linting
 
 ```sh
-npm run lint
+yarn lint
 ```
 
 ## Auditing
 
 ```sh
-npm audit
+yarn audit
 ```
 
 ## Testing
@@ -45,20 +45,20 @@ npm audit
 Now you can run the following command to run all the tests:
 
 ```sh
-npm test
+yarn test
 ```
 
 You can also target the tests specifically:
 
 ```sh
 # unit tests
-npm run test:unit
+yarn test:unit
 
 # integration tests
-npm run test:integration
+yarn test:integration
 
 # e2e test
-npm run test:e2e
+yarn test:e2e
 ```
 
 ## Run with Docker Compose

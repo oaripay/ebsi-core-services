@@ -11,10 +11,10 @@ pipeline {
         }
         stage('Unit test') {
             steps {
-                sh 'npm install'
+                sh 'yarn install --frozen-lockfile'
                 sh 'cp .env.test .env'
                 withCredentials([string(credentialsId: 'API_PRIVATE_KEY', variable: 'API_PRIVATE_KEY')]) {
-                    sh 'npm run test:unit'
+                    sh 'yarn run test:unit'
                 }
             }
         }
