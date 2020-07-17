@@ -1,13 +1,10 @@
 FROM node:12.16.1-alpine
-
-RUN mkdir -p /api
 WORKDIR /api
+COPY package.json yarn.lock /api/
+RUN yarn install --frozen-lockfile --production && yarn cache clean
 COPY . /api
-
 RUN chown node:node /api
 USER node
-
-RUN npm install
-
 EXPOSE 8080
-CMD npm run start
+ENV NODE_ENV production
+CMD [ "node", "src/start.js" ]

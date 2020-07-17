@@ -1,6 +1,6 @@
 class HTTPError extends Error {
   constructor(title, status, detail) {
-    super(title);
+    super(detail);
     this.name = "HTTPError";
     this.title = title;
     this.status = status;

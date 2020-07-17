@@ -1,9 +1,8 @@
 version: "3.7"
 
 services:
-  besu:
+  timestamp-api:
     build: .
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/timestamp-api:integration_fix-ebsiint-1805_lowercase_v0.0.1
     container_name: timestamp-api
     ports:
       - "8080:8080"

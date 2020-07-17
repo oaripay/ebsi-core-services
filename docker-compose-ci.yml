@@ -1,0 +1,6 @@
+version: "3.7"
+
+services:
+  timestamp-api:
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/timestamp-api:integration_chores-ebsiint-1836_yarn_v0.0.1
+    build: .

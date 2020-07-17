@@ -31,13 +31,13 @@ The api will be accesible at http://localhost:8080
 Install libraries and dependencies
 
 ```
-npm install
+yarn install
 ```
 
 Start the api
 
 ```
-npm run start
+yarn run start
 ```
 
 The api will be accesible at http://localhost:8080
@@ -45,7 +45,7 @@ The api will be accesible at http://localhost:8080
 ## Unit Tests
 
 ```
-npm run test
+yarn run test:unit
 ```
 
 ## Integration tests
@@ -53,7 +53,7 @@ npm run test
 Define `EBSI_ENV` to select the location of the timestamp api to test. Run:
 
 ```
-npm run test:e2e
+yarn run test:e2e
 ```
 
 ## OpenAPI documentation
