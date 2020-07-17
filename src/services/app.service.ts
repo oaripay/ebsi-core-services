@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 
 import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
-import ebsiAppJwt from "@cef-ebsi/app-jwt";
+import { Agent, Scope } from "@cef-ebsi/app-jwt";
 import { ConfigService } from "@nestjs/config";
 import EthersService from "./ethers.service";
 import GovernmentBody from "../types/GovernmentBody";
@@ -165,7 +165,7 @@ export default class AppService {
         this.logger.error(
           `error received from ${this.configService
             .get("STORAGE")
-            .replace(/\/$/, "")}/v1/sessions:${error.message}`
+            .replace(/\/$/, "")}/v1/sessions: ${error.message}`
         );
         this.logger.log(error.message);
       }
@@ -174,22 +174,24 @@ export default class AppService {
 
   async generateLoginJWT() {
     // build payload for session authentication
-
-    const agent = new ebsiAppJwt.Agent(
-      "trusted-issuers-registry",
-      `0x${this.configService.get("API_PRIVATE_KEY")}`
+    const agent = new Agent(
+      Scope.COMPONENT,
+      `0x${this.configService.get("API_PRIVATE_KEY")}`,
+      {
+        issuer: "trusted-issuers-registry",
+      }
     );
-    const payload = agent.createRequestPayload("ebsi-storage");
+    const payload = await agent.createRequestPayload("ebsi-storage");
+
     const conf: AxiosRequestConfig = {
       headers: { "Content-Type": "application/json" },
     };
-    const response = axios.post(
+
+    return axios.post(
       `${this.configService.get("STORAGE").replace(/\/$/, "")}/v1/sessions`,
       payload,
       conf
     );
-
-    return response;
   }
 
   async downloadDocument(documentHash: string): Promise<AxiosResponse<any>> {
@@ -202,6 +204,7 @@ export default class AppService {
       );
       return null;
     }
+
     try {
       const res = axios.get(
         `${this.configService

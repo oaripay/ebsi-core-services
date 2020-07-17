@@ -80,12 +80,18 @@ describe("appController", () => {
     await app.init();
   });
 
+  // eslint-disable-next-line jest/no-hooks
+  afterAll(async () => {
+    await app.close();
+  });
+
   describe("get routes", () => {
     it("get /health returns ok", async () => {
       expect.assertions(1);
       const expected = "ok";
       expect(await controller.health()).toBe(expected);
     });
+
     it(`#/v1/issuers`, async () => {
       expect.assertions(2);
       jest
@@ -154,6 +160,7 @@ describe("appController", () => {
         },
       });
     });
+
     it(`#/v1/issuers invalid page number`, async () => {
       expect.assertions(1);
       jest
@@ -224,6 +231,7 @@ describe("appController", () => {
       const res = JSON.parse(response.text);
       expect(res).toStrictEqual([expectedRes]);
     });
+
     it(`#/v1/issuers/:did should return when issuer for gov exists`, async () => {
       expect.assertions(2);
       jest
@@ -265,6 +273,7 @@ describe("appController", () => {
         },
       ]);
     });
+
     it(`#/v1/issuers/:did no issuer found`, async () => {
       expect.assertions(2);
       jest
@@ -284,6 +293,7 @@ describe("appController", () => {
         `The format of ${did} parameter is not valid or entity not found`
       );
     });
+
     it(`#/v1/issuers will fail not found`, async () => {
       expect.assertions(2);
       jest
@@ -302,10 +312,5 @@ describe("appController", () => {
         "Cannot GET /trusted-issuers/universities"
       );
     });
-  });
-
-  // eslint-disable-next-line jest/no-hooks
-  afterAll(async () => {
-    await app.close();
   });
 });

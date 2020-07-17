@@ -1,8 +1,7 @@
-# compiled output
-/dist
-/key
-/node_modules
 coverage
-sonar-report.xml
+dist
+node_modules
 .env*
 !.env.example
+!.env.development
+!.env.integration

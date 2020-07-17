@@ -2,8 +2,7 @@ import axios from "axios";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { Test } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
-import ebsiAppJwt from "@cef-ebsi/app-jwt";
-import Agent from "@cef-ebsi/app-jwt/dist/agent";
+import { Agent } from "@cef-ebsi/app-jwt";
 import { of } from "rxjs";
 import AppService from "../../src/services/app.service";
 import EthersService from "../../src/services/ethers.service";
@@ -15,6 +14,22 @@ import Authorize from "../../src/types/Authorize";
 import UniversityBody from "../../src/types/UniversityBody";
 import DocumentDto from "../../src/types/Document";
 import Accreditation from "../../src/types/Accreditation";
+
+jest.mock("@cef-ebsi/app-jwt", () => ({
+  Agent: jest.fn().mockImplementation((name, privateKey) => {
+    return ({
+      createRequestPayload: (appName) =>
+        `${appName}-grantType=client_credentials&clientAssertionType=`,
+      name,
+      privateKey,
+    } as unknown) as Agent;
+  }),
+  Scope: {
+    COMPONENT: "",
+    ENTITY: "",
+    USER: "",
+  },
+}));
 
 const result = {
   moderator: "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73",
@@ -107,6 +122,7 @@ jest.mock("axios", () => ({
       Promise.resolve({ data: { accessToken: "jwttoken" } })
     ),
 }));
+
 jest.mock("ethers", () => ({
   ethers: {
     providers: {
@@ -133,6 +149,7 @@ jest.mock("ethers", () => ({
     Wallet: jest.fn().mockImplementation(() => ({})),
   },
 }));
+
 describe("appService", () => {
   let app: INestApplication;
   let cfSvc: ConfigService;
@@ -157,22 +174,12 @@ describe("appService", () => {
     app = module.createNestApplication();
     await app.init();
   });
+
   // eslint-disable-next-line jest/no-hooks
   beforeEach(() => {
     jest.clearAllMocks();
-    /*  getAllDocumentIndexes.mockClear();
-    getDocument.mockClear();
-    getTrustedIssuer.mockClear();
-    addTrustedIssuerIdentifiers.mockClear();
-    addTrustedIssuer.mockClear();
-    getNrOfAccreditations.mockClear();
-    getAccreditation.mockClear();
-    addDocument.mockClear();
-    isTrustedIssuer.mockClear();
-    addAccreditation.mockClear();
-    getTrustedIssuerByIndex.mockClear();
-    getNrOfTrustedIssuers.mockClear(); */
   });
+
   // eslint-disable-next-line jest/no-hooks
   afterAll(async () => {
     await app.close();
@@ -198,6 +205,7 @@ describe("appService", () => {
         "country"
       );
     });
+
     it("should insertUniversity", async () => {
       expect.assertions(3);
       const aut: Authorize = {
@@ -236,6 +244,7 @@ describe("appService", () => {
         "identifier"
       );
     });
+
     it("should addDocumentToIssuer", async () => {
       expect.assertions(2);
       const doc: DocumentDto = {
@@ -258,6 +267,7 @@ describe("appService", () => {
         "dateStart"
       );
     });
+
     it("should addGovDocumentToIssuer", async () => {
       expect.assertions(2);
       const doc: DocumentDto = {
@@ -281,6 +291,7 @@ describe("appService", () => {
         "dateStart"
       );
     });
+
     it("should addAccreditationToIssuer", async () => {
       expect.assertions(2);
       const body: Accreditation = {
@@ -296,28 +307,20 @@ describe("appService", () => {
         "targetResource"
       );
     });
+
     it("should return the university issuer by did", async () => {
       expect.assertions(2);
       expect(await sut.getIssuer(result.issuerDID)).toStrictEqual(result);
       expect(getTrustedIssuer).toHaveBeenCalledTimes(1);
     });
+
     it("should download document", async () => {
       expect.assertions(6);
       const spyGet = jest.spyOn(axios, "get");
       const spyPost = jest.spyOn(axios, "post");
 
-      const spyAgent = jest
-        .spyOn(ebsiAppJwt, "Agent")
-        .mockImplementationOnce((name, privateKey) => {
-          return ({
-            createRequestPayload: (appName) =>
-              `${appName}-grantType=client_credentials&clientAssertionType=`,
-            name,
-            privateKey,
-          } as unknown) as Agent;
-        });
       expect(await sut.downloadDocument("0xhash")).toStrictEqual(data);
-      expect(spyAgent).toHaveBeenCalledTimes(1);
+      expect(Agent).toHaveBeenCalledTimes(1);
 
       expect(spyGet).toHaveBeenCalledWith(
         `${cfSvc
@@ -340,9 +343,8 @@ describe("appService", () => {
         }
       );
       expect(spyPost).toHaveBeenCalledTimes(1);
-      // spyAgent.mockClear();
-      // spyAgent.mockReset();
     });
+
     it("should get document for gov", async () => {
       expect.assertions(3);
       const expectedRes = [
@@ -356,6 +358,7 @@ describe("appService", () => {
       expect(getAllDocumentIndexes).toHaveBeenCalledTimes(1);
       expect(getDocument).toHaveBeenCalledTimes(3);
     });
+
     it("should get documents", async () => {
       expect.assertions(3);
       const expectedRes = [
@@ -367,6 +370,7 @@ describe("appService", () => {
       expect(getAllDocumentIndexes).toHaveBeenCalledTimes(1);
       expect(getDocument).toHaveBeenCalledTimes(3);
     });
+
     it("should getAccreditations", async () => {
       expect.assertions(3);
       const expectedRes = [
@@ -377,6 +381,7 @@ describe("appService", () => {
       expect(getNrOfAccreditations).toHaveBeenCalledWith("did:gov");
       expect(getAccreditation).toHaveBeenCalledTimes(2);
     });
+
     it("should getIssuerForGov and verify it exist", async () => {
       expect.assertions(5);
       expect(await sut.getIssuerForGov("did:gov")).toStrictEqual(result);
@@ -385,6 +390,7 @@ describe("appService", () => {
       expect(isTrustedIssuer).toHaveBeenCalledTimes(2);
       expect(getTrustedIssuer).toHaveBeenCalledWith("did:gov");
     });
+
     it("should getGovTrustedIssuers", async () => {
       expect.assertions(3);
       const expectedRes = [{ issuer: 0 }, { issuer: 1 }, { issuer: 2 }];
@@ -392,6 +398,7 @@ describe("appService", () => {
       expect(getNrOfTrustedIssuers).toHaveBeenCalledWith();
       expect(getTrustedIssuerByIndex).toHaveBeenCalledTimes(3);
     });
+
     it("should getUniversityTrustedIssuers", async () => {
       expect.assertions(3);
       const expectedRes = [{ issuer: 0 }, { issuer: 1 }, { issuer: 2 }];

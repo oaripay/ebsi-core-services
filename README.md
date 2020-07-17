@@ -1,8 +1,8 @@
 ![EBSI Logo](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
 
-# Notarisation
+# Trusted Issuers Registry
 
-This repository contains the code of EBSI trusted issuers registry.
+This repository contains the code of EBSI Trusted Issuers Registry.
 
 ## Table of Contents
 
@@ -24,13 +24,13 @@ Please note that you need to fill the API_PRIVATE_KEY env variable with a secp25
 Install the required libraries and packages dependencies:
 
 ```sh
-npm install
+yarn install
 ```
 
 Run the development server:
 
 ```sh
-npm run start
+yarn start
 ```
 
 This command starts the web app at http://localhost:3000
@@ -38,7 +38,7 @@ This command starts the web app at http://localhost:3000
 You can create a production build with:
 
 ```sh
-npm run build
+yarn build
 ```
 
 ### Run with Docker
@@ -49,20 +49,14 @@ After creating the local `.env` file, run:
 docker-compose up --build
 ```
 
-You can now open http://localhost:3000/demo/notarisation
-
-```bash
-$ npm install
-```
-
-You need to fill the API_PRIVATE_KEY env variable with a secp256k1 elliptic curve private key
+You can now open http://localhost:3000/trusted-issuers-registry/v1/health. If everything's working correctly, then you should see "ok".
 
 ## Linting
 
 You can lint the files (ESLint + stylelint) and run Prettier with one command:
 
 ```sh
-npm run lint
+yarn lint
 ```
 
 Or you can run the different linters independently:
@@ -70,16 +64,16 @@ Or you can run the different linters independently:
 ### ESLint
 
 ```sh
-npm run lint:ts
+yarn lint:ts
 ```
 
-or with npx:
+or with yarn:
 
 ```sh
-npx eslint . --ext .ts
+yarn eslint . --ext .ts
 ```
 
-run eslint and precommit rules
+Run eslint and precommit rules:
 
 ```sh
 .git/hooks/pre-commit
@@ -88,44 +82,50 @@ run eslint and precommit rules
 ### Prettier
 
 ```sh
-npm run lint:prettier
+yarn lint:prettier
 ```
 
-or with npx:
+or with yarn:
 
 ```sh
-npx prettier --check "**/*.{md,mdx,html,json,yml,ts,tsx,css,scss}"
+yarn prettier --check "**/*.{md,mdx,html,json,yml,ts,tsx,css,scss}"
+```
+
+### tsc
+
+```sh
+yarn lint:tsc
 ```
 
 ## Auditing the dependencies
 
 ```sh
-npm run audit
+yarn run audit
 ```
 
 ## Testing
 
-Run the tests
+Run all the tests:
 
 ```sh
-npm run test
+yarn test
 ```
 
-Run the end to end tests
+Run the unit tests only:
 
 ```sh
-npm run test:e2e
+yarn test:unit
 ```
 
-Run all the tests
+Run the end-to-end tests only:
 
 ```sh
-npm run test:all
+yarn test:e2e
 ```
 
 ## Licensing
 
-Copyright (c) 2019 European Commission  
+Copyright (c) 2019 European Commission
 Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
 You may not use this work except in compliance with the Licence.
 You may obtain a copy of the Licence at:

@@ -33,7 +33,7 @@ describe("appController (e2e)", () => {
     await app.init();
   });
 
-  it(`(GET)  trusted-issuers-registry/${version}/health`, async () => {
+  it(`(GET) trusted-issuers-registry/${version}/health`, async () => {
     expect.assertions(2);
     const response = await request(app.getHttpServer()).get(
       `/trusted-issuers-registry/${version}/health`
@@ -42,7 +42,7 @@ describe("appController (e2e)", () => {
     expect(response.text).toStrictEqual("ok");
   });
 
-  it(`(GET)  trusted-issuers-registry/${version}/issuers`, async () => {
+  it(`(GET) trusted-issuers-registry/${version}/issuers`, async () => {
     expect.assertions(2);
     const response = await request(app.getHttpServer()).get(
       `/trusted-issuers-registry/${version}/issuers`

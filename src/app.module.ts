@@ -20,7 +20,7 @@ import configuration from "./config/configuration";
           .valid("development", "production", "test")
           .default("development"),
         API_PRIVATE_KEY: Joi.string().required(),
-        APP_PORT: Joi.number().default(9000),
+        APP_PORT: Joi.number().default(3000),
         LOG_LEVEL: Joi.string().valid(
           "error",
           "warn",

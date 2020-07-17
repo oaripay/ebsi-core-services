@@ -13,7 +13,7 @@ import helmet from "helmet";
 import AppModule from "./app.module";
 
 Logger.log(
-  `API start, URL: ${process.env.PUBLIC_URL} NODE_ENV: ${process.env.NODE_ENV} port:${process.env.APP_PORT}`,
+  `API start, NODE_ENV: ${process.env.NODE_ENV} port:${process.env.APP_PORT}`,
   "main"
 );
 Logger.debug(`Log level: ${process.env.LOG_LEVEL}`, "main");
@@ -55,7 +55,7 @@ async function bootstrap() {
   };
   const app = await NestFactory.create<NestExpressApplication>(AppModule, opt);
   const document = SwaggerModule.createDocument(app, options);
-  SwaggerModule.setup("trusted-issuers-registry/api-docs", app, document);
+  SwaggerModule.setup("trusted-issuers-registry/v1/api-docs", app, document);
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe());
   await app.listen(process.env.APP_PORT || 3000);
