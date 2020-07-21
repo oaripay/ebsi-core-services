@@ -1,0 +1,16 @@
+version: "3.7"
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        REACT_APP_PROVIDER: ${REACT_APP_PROVIDER}
+        REACT_APP_REGISTRY_ADDRESS: ${REACT_APP_REGISTRY_ADDRESS}
+        REACT_APP_TAW_TX_URI: ${REACT_APP_TAW_TX_URI}
+        REACT_APP_REDIRECT_URL: ${REACT_APP_REDIRECT_URL}
+        REACT_APP_WALLET_WEB_CLIENT_URL: ${REACT_APP_WALLET_WEB_CLIENT_URL}
+        REACT_APP_WALLET_API: ${REACT_APP_WALLET_API}
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/trusted-apps-registry-web-client
+    ports:
+      - "8080:8080"
