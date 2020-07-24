@@ -1,6 +1,6 @@
 version: "3.7"
 
 services:
-  trusted-issuers-registry-api:
+  trusted-issuers-registry:
     build: .
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/trusted-issuers-registry-api:integration_ebsiint-1881-fix_v0.0.1
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/trusted-issuers-registry:integration_ebsiint-1881-fix_v0.0.2
