@@ -1,4 +1,4 @@
-export default class DocumentInfo {
+export default interface DocumentInfo {
   title: string;
 
   documentType: string;

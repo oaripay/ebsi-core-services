@@ -27,8 +27,12 @@ export default class AppService {
     this.govContract = this.ethersService.getContracts().govContract;
   }
 
-  getIssuer(did: string) {
+  getUniversity(did: string) {
     return this.univContract.getTrustedIssuer(did);
+  }
+
+  getGovernment(did: string) {
+    return this.govContract.getTrustedIssuer(did);
   }
 
   async insertGovernment(body: GovernmentBody) {
@@ -61,7 +65,7 @@ export default class AppService {
     await univTii.wait();
   }
 
-  async addDocumentToIssuer(did: string, body: DocumentDto) {
+  async addDocumentToUniversity(did: string, body: DocumentDto) {
     const univDoc = await this.univContract.addDocument(
       did,
       body.vcCode,
@@ -74,7 +78,7 @@ export default class AppService {
     return univDoc.wait();
   }
 
-  async addGovDocumentToIssuer(did: string, body: DocumentDto) {
+  async addDocumentToGovernment(did: string, body: DocumentDto) {
     const govDoc = await this.govContract.addDocument(
       did,
       body.vcCode,
@@ -86,7 +90,7 @@ export default class AppService {
     return govDoc.wait();
   }
 
-  async addAccreditationToIssuer(did: string, body: Accreditation) {
+  async addAccreditationToUniversity(did: string, body: Accreditation) {
     const accUniv = await this.univContract.addAccreditation(
       did,
       body.targetFramework,
@@ -95,7 +99,7 @@ export default class AppService {
     return accUniv.wait();
   }
 
-  async getDocuments(did: string): Promise<any> {
+  async getDocumentsByUniversity(did: string): Promise<any> {
     const documentIndexes = await this.univContract.getAllDocumentIndexes(did);
     const documentsPromises = documentIndexes.map((item) => {
       return this.univContract.getDocument(did, item);
@@ -103,7 +107,7 @@ export default class AppService {
     return Promise.all(documentsPromises);
   }
 
-  async getDocumentsForGov(did: string) {
+  async getDocumentsByGovernment(did: string) {
     const documentIndexes = await this.govContract.getAllDocumentIndexes(did);
     const documentsPromises = documentIndexes.map((item) => {
       return this.govContract.getDocument(did, item);
@@ -111,7 +115,7 @@ export default class AppService {
     return Promise.all(documentsPromises);
   }
 
-  async getAccreditations(did: string) {
+  async getAccreditationsUniversity(did: string) {
     const nrOfAccreditations = await this.univContract.getNrOfAccreditations(
       did
     );
@@ -122,19 +126,15 @@ export default class AppService {
     return Promise.all(accreditationsPromises);
   }
 
-  getIssuerForGov(did: string) {
-    return this.govContract.getTrustedIssuer(did);
-  }
-
-  doesIssuerExists(did: string) {
+  doesUniversityExists(did: string) {
     return this.univContract.isTrustedIssuer(did);
   }
 
-  doesIssuerForGovExists(did: string) {
+  doesGovernmentExists(did: string) {
     return this.govContract.isTrustedIssuer(did);
   }
 
-  async getGovTrustedIssuers() {
+  async getGovernments() {
     const nrOfTrustedIssuers = await this.govContract.getNrOfTrustedIssuers();
     const universityTrustedIssuersPromises = [];
     for (let i = 0; i < nrOfTrustedIssuers.toNumber(); i += 1) {
@@ -145,7 +145,7 @@ export default class AppService {
     return Promise.all(universityTrustedIssuersPromises);
   }
 
-  async getUniversityTrustedIssuers() {
+  async getUniversities() {
     const nrOfTrustedIssuers = await this.univContract.getNrOfTrustedIssuers();
     const universityTrustedIssuersPromises = [];
     for (let i = 0; i < nrOfTrustedIssuers.toNumber(); i += 1) {
@@ -162,12 +162,18 @@ export default class AppService {
         const response = await this.generateLoginJWT();
         this.jwtToken = response.data.accessToken;
       } catch (error) {
+        let { message } = error;
+        if (error.response && error.response.data) {
+          if (typeof error.response.data === "object")
+            message = `${message}: ${JSON.stringify(error.response.data)}`;
+          else message = `${message}: ${error.response.data}`;
+        }
         this.logger.error(
           `error received from ${this.configService
             .get("STORAGE")
-            .replace(/\/$/, "")}/v1/sessions: ${error.message}`
+            .replace(/\/$/, "")}/v1/sessions: ${message}`
         );
-        this.logger.log(error.message);
+        this.logger.log(message);
       }
     }
   }
@@ -176,7 +182,7 @@ export default class AppService {
     // build payload for session authentication
     const agent = new Agent(
       Scope.COMPONENT,
-      `0x${this.configService.get("API_PRIVATE_KEY")}`,
+      this.configService.get("API_PRIVATE_KEY"),
       {
         issuer: "trusted-issuers-registry",
       }
@@ -214,6 +220,7 @@ export default class AppService {
           headers: {
             Authorization: `Bearer ${this.jwtToken}`,
           },
+          validateStatus: () => true,
         }
       );
       return res;

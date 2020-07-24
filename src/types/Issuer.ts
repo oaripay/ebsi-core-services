@@ -1,4 +1,4 @@
-export default class Issuer {
+export default interface Issuer {
   moderator: string;
 
   issuerDID: string;

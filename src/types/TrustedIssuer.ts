@@ -1,23 +1,8 @@
-import Issuer from "./Issuer";
-import DocumentInfo from "./DocumentInfo";
-import Accreditation from "./Accreditation";
+import University from "./University";
+import Government from "./Government";
 
-export default class TrustedIssuer extends Issuer {
-  preferredName?: string;
+export default interface TrustedIssuer {
+  issuerDID: string;
 
-  alternativeName?: string;
-
-  homepage?: string;
-
-  escoOrganizationType?: string;
-
-  siteLocation?: string;
-
-  name?: string;
-
-  country?: string;
-
-  documents: DocumentInfo[];
-
-  accreditations?: Accreditation[];
+  entities: (University | Government)[];
 }

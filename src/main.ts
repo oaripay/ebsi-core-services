@@ -11,6 +11,7 @@ import winston from "winston";
 import { CorsOptions } from "@nestjs/common/interfaces/external/cors-options.interface";
 import helmet from "helmet";
 import AppModule from "./app.module";
+import AllExceptionsFilter from "./http-exception.filter";
 
 Logger.log(
   `API start, NODE_ENV: ${process.env.NODE_ENV} port:${process.env.APP_PORT}`,
@@ -54,6 +55,7 @@ async function bootstrap() {
     }),
   };
   const app = await NestFactory.create<NestExpressApplication>(AppModule, opt);
+  app.useGlobalFilters(new AllExceptionsFilter());
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup("trusted-issuers-registry/v1/api-docs", app, document);
   app.use(helmet());

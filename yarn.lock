@@ -340,6 +340,11 @@
     tweetnacl-ts "^1.0.3"
     utf8 "^3.0.0"
 
+"@cef-ebsi/problem-details-errors@0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/problem-details-errors/-/problem-details-errors-0.0.1.tgz#296b13819553493f69841f505149f5d11067ffe5"
+  integrity sha512-WKszRspdNDCIIkV/Aeq3rxHD/T+O45a3QQP7FuLQp2ySuowqRBSG4RwxNIp4/QCyVuMEbvgcZF0z0hq/glADgQ==
+
 "@cnakazawa/watch@^1.0.3":
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/@cnakazawa/watch/-/watch-1.0.4.tgz#f864ae85004d0fcab6f50be9141c4da368d1656a"

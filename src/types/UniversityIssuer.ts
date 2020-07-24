@@ -1,6 +1,6 @@
 import Issuer from "./Issuer";
 
-export default class UniversityIssuer extends Issuer {
+export default interface UniversityIssuer extends Issuer {
   preferredName: string;
 
   alternativeName: string;

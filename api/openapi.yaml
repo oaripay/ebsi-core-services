@@ -110,7 +110,27 @@ paths:
               examples:
                 Success:
                   value:
-                    name: TrustedIssuer
+                    issuerDID: "did:ebsi:0x464190367BE948210608a46847bed183607f685A"
+                    entities:
+                      - type: "university"
+                        moderator: "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73"
+                        preferredName: "Diploma Sample App: Issue Master's Diploma"
+                        alternativeName: "Diploma Sample App: Issue Master's Diploma"
+                        homepage: "http://www.urv.cat/"
+                        escoOrganizationType: "Educational Institution"
+                        siteLocation: "Tarragona"
+                        status: true
+                        documents:
+                          - title: "Sample University - Master's Programme"
+                            documentType: "Demo Master doc"
+                            status: "Published in B.O.E. Active"
+                            revision: "Master Royal Decree 1393/2007"
+                            vcCode: "0x15f5e9d610c3027072dd5566629d121c183f213bd34a610af69452fea3870e11"
+                            dateStart: 1588161276291
+                            body: null
+                        accreditations:
+                          - targetFramework: "Europass Accreditation Database"
+                            targetResource: "https://accreditation.europass.eu/12341455"
         "400":
           description: Bad Request
           content:

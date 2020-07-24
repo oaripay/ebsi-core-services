@@ -7,6 +7,8 @@ services:
       - "3000:3000"
     environment:
       API_PRIVATE_KEY: ${API_PRIVATE_KEY:?Missing API_PRIVATE_KEY variable}
+      UNIV_CONTRACT_ADDR: ${UNIV_CONTRACT_ADDR:?Missing UNIV_CONTRACT_ADDR variable}
+      GOV_CONTRACT_ADDR: ${GOV_CONTRACT_ADDR?Missing GOV_CONTRACT_ADDR variable}
       APP_PORT: ${APP_PORT:-3000}
       LOG_LEVEL: ${LOG_LEVEL:-debug}
       EBSI_ENV: ${EBSI_ENV:-development}

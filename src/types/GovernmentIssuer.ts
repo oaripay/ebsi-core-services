@@ -1,6 +1,6 @@
 import Issuer from "./Issuer";
 
-export default class GovernmentIssuer extends Issuer {
+export default interface GovernmentIssuer extends Issuer {
   name: string;
 
   country: string;

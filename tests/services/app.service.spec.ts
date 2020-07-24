@@ -2,8 +2,9 @@ import axios from "axios";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { Test } from "@nestjs/testing";
 import { INestApplication } from "@nestjs/common";
-import { Agent } from "@cef-ebsi/app-jwt";
+import { Scope } from "@cef-ebsi/app-jwt";
 import { of } from "rxjs";
+import { ethers } from "ethers";
 import AppService from "../../src/services/app.service";
 import EthersService from "../../src/services/ethers.service";
 import configuration from "../../src/config/configuration";
@@ -15,53 +16,43 @@ import UniversityBody from "../../src/types/UniversityBody";
 import DocumentDto from "../../src/types/Document";
 import Accreditation from "../../src/types/Accreditation";
 
-jest.mock("@cef-ebsi/app-jwt", () => ({
-  Agent: jest.fn().mockImplementation((name, privateKey) => {
-    return ({
-      createRequestPayload: (appName) =>
-        `${appName}-grantType=client_credentials&clientAssertionType=`,
-      name,
-      privateKey,
-    } as unknown) as Agent;
-  }),
-  Scope: {
-    COMPONENT: "",
-    ENTITY: "",
-    USER: "",
-  },
-}));
-
 const result = {
-  moderator: "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73",
   issuerDID: "did:ebsi:0xBDB8618DE3ecdF37a4f13caAC7d9abc097bf9FC2",
-  preferredName: "Katholieke Universiteit Leuven",
-  alternativeName: "KU Leuven",
-  homepage: "https://www.keuleuven.be",
-  escoOrganizationType: "Educational Institution",
-  siteLocation: "Leuven",
-  status: true,
-  documents: [
+  entities: [
     {
-      title: "Bachelor en bioinformática",
-      documentType: "Demo Bachelor doc",
-      status: "Published in B.O.E. Active",
-      revision: "Bachelor Royal Decree 1393/2007",
-      vcCode: "4313149",
-      dateStart: 1582265889,
-    },
-  ],
-  accreditations: [
-    {
-      targetFramework: "Europass Accreditation Database",
-      targetResource: "https://accreditation.europass.eu/12341455",
+      moderator: "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73",
+      preferredName: "Katholieke Universiteit Leuven",
+      alternativeName: "KU Leuven",
+      homepage: "https://www.keuleuven.be",
+      escoOrganizationType: "Educational Institution",
+      siteLocation: "Leuven",
+      status: true,
+      documents: [
+        {
+          title: "Bachelor en bioinformática",
+          documentType: "Demo Bachelor doc",
+          status: "Published in B.O.E. Active",
+          revision: "Bachelor Royal Decree 1393/2007",
+          vcCode: "4313149",
+          dateStart: 1582265889,
+        },
+      ],
+      accreditations: [
+        {
+          targetFramework: "Europass Accreditation Database",
+          targetResource: "https://accreditation.europass.eu/12341455",
+        },
+      ],
     },
   ],
 };
+
 const data = {
   document: {
     body: "body",
   },
 };
+
 const getTrustedIssuer = jest.fn(() => result);
 const addTrustedIssuerIdentifiers = jest.fn(() => {
   return of({
@@ -115,7 +106,7 @@ const addAccreditation = jest.fn(() => {
 });
 
 jest.mock("axios", () => ({
-  get: jest.fn().mockImplementation(() => Promise.resolve(data)),
+  get: jest.fn().mockImplementation(() => Promise.resolve({ data })),
   post: jest
     .fn()
     .mockImplementation(() =>
@@ -123,32 +114,26 @@ jest.mock("axios", () => ({
     ),
 }));
 
-jest.mock("ethers", () => ({
-  ethers: {
-    providers: {
-      JsonRpcProvider: jest.fn(),
+jest.spyOn(ethers, "Contract").mockImplementation(() => {
+  return ({
+    connect() {
+      return {
+        getTrustedIssuer,
+        isTrustedIssuer,
+        addTrustedIssuer,
+        getAllDocumentIndexes,
+        getNrOfAccreditations,
+        addTrustedIssuerIdentifiers,
+        addDocument,
+        addAccreditation,
+        getAccreditation,
+        getDocument,
+        getNrOfTrustedIssuers,
+        getTrustedIssuerByIndex,
+      };
     },
-    Contract: jest.fn().mockImplementation(() => ({
-      connect() {
-        return {
-          getTrustedIssuer,
-          isTrustedIssuer,
-          addTrustedIssuer,
-          getAllDocumentIndexes,
-          getNrOfAccreditations,
-          addTrustedIssuerIdentifiers,
-          addDocument,
-          addAccreditation,
-          getAccreditation,
-          getDocument,
-          getNrOfTrustedIssuers,
-          getTrustedIssuerByIndex,
-        };
-      },
-    })),
-    Wallet: jest.fn().mockImplementation(() => ({})),
-  },
-}));
+  } as unknown) as ethers.Contract;
+});
 
 describe("appService", () => {
   let app: INestApplication;
@@ -256,7 +241,9 @@ describe("appService", () => {
         dateStart: "dateStart",
       };
 
-      expect(await sut.addDocumentToIssuer("did", doc)).toStrictEqual(result);
+      expect(await sut.addDocumentToUniversity("did", doc)).toStrictEqual(
+        result
+      );
       expect(addDocument).toHaveBeenCalledWith(
         "did",
         "vcCode",
@@ -279,7 +266,7 @@ describe("appService", () => {
         dateStart: "dateStart",
       };
 
-      expect(await sut.addGovDocumentToIssuer("did", doc)).toStrictEqual(
+      expect(await sut.addDocumentToGovernment("did", doc)).toStrictEqual(
         result
       );
       expect(addDocument).toHaveBeenCalledWith(
@@ -298,7 +285,7 @@ describe("appService", () => {
         targetFramework: "targetFramework",
         targetResource: "targetResource",
       };
-      expect(await sut.addAccreditationToIssuer("did", body)).toStrictEqual(
+      expect(await sut.addAccreditationToUniversity("did", body)).toStrictEqual(
         result
       );
       expect(addAccreditation).toHaveBeenCalledWith(
@@ -310,34 +297,35 @@ describe("appService", () => {
 
     it("should return the university issuer by did", async () => {
       expect.assertions(2);
-      expect(await sut.getIssuer(result.issuerDID)).toStrictEqual(result);
+      expect(await sut.getUniversity(result.issuerDID)).toStrictEqual(result);
       expect(getTrustedIssuer).toHaveBeenCalledTimes(1);
     });
 
     it("should download document", async () => {
-      expect.assertions(6);
+      expect.assertions(5);
       const spyGet = jest.spyOn(axios, "get");
       const spyPost = jest.spyOn(axios, "post");
 
-      expect(await sut.downloadDocument("0xhash")).toStrictEqual(data);
-      expect(Agent).toHaveBeenCalledTimes(1);
+      expect(await sut.downloadDocument("0xhash")).toStrictEqual({ data });
 
       expect(spyGet).toHaveBeenCalledWith(
         `${cfSvc
           .get("STORAGE")
           .replace(/\/$/, "")}/v1/stores/distributed/files/0xhash`,
-        {
+        expect.objectContaining({
           headers: {
             Authorization: `Bearer jwttoken`,
           },
-        }
+        })
       );
       expect(spyGet).toHaveBeenCalledTimes(1);
       expect(spyPost).toHaveBeenCalledWith(
         `${cfSvc.get("STORAGE").replace(/\/$/, "")}/v1/sessions`,
-        expect.stringContaining(
-          "grantType=client_credentials&clientAssertionType="
-        ),
+        expect.objectContaining({
+          grantType: expect.any(String),
+          assertion: expect.any(String),
+          scope: Scope.COMPONENT,
+        }),
         {
           headers: { "Content-Type": "application/json" },
         }
@@ -352,7 +340,7 @@ describe("appService", () => {
         { did: "did:gov", item: "1-did:gov" },
         { did: "did:gov", item: "2-did:gov" },
       ];
-      expect(await sut.getDocumentsForGov("did:gov")).toStrictEqual(
+      expect(await sut.getDocumentsByGovernment("did:gov")).toStrictEqual(
         expectedRes
       );
       expect(getAllDocumentIndexes).toHaveBeenCalledTimes(1);
@@ -362,11 +350,13 @@ describe("appService", () => {
     it("should get documents", async () => {
       expect.assertions(3);
       const expectedRes = [
-        { did: "did:gov", item: "0-did:gov" },
-        { did: "did:gov", item: "1-did:gov" },
-        { did: "did:gov", item: "2-did:gov" },
+        { did: "did:uni", item: "0-did:uni" },
+        { did: "did:uni", item: "1-did:uni" },
+        { did: "did:uni", item: "2-did:uni" },
       ];
-      expect(await sut.getDocuments("did:gov")).toStrictEqual(expectedRes);
+      expect(await sut.getDocumentsByUniversity("did:uni")).toStrictEqual(
+        expectedRes
+      );
       expect(getAllDocumentIndexes).toHaveBeenCalledTimes(1);
       expect(getDocument).toHaveBeenCalledTimes(3);
     });
@@ -374,37 +364,37 @@ describe("appService", () => {
     it("should getAccreditations", async () => {
       expect.assertions(3);
       const expectedRes = [
-        { did: "did:gov", item: 0 },
-        { did: "did:gov", item: 1 },
+        { did: "did:uni", item: 0 },
+        { did: "did:uni", item: 1 },
       ];
-      expect(await sut.getAccreditations("did:gov")).toStrictEqual(expectedRes);
-      expect(getNrOfAccreditations).toHaveBeenCalledWith("did:gov");
+      expect(await sut.getAccreditationsUniversity("did:uni")).toStrictEqual(
+        expectedRes
+      );
+      expect(getNrOfAccreditations).toHaveBeenCalledWith("did:uni");
       expect(getAccreditation).toHaveBeenCalledTimes(2);
     });
 
-    it("should getIssuerForGov and verify it exist", async () => {
+    it("should getGovernment and verify it exist", async () => {
       expect.assertions(5);
-      expect(await sut.getIssuerForGov("did:gov")).toStrictEqual(result);
-      expect(await sut.doesIssuerExists("did:gov")).toStrictEqual(true);
-      expect(await sut.doesIssuerForGovExists("did:gov")).toStrictEqual(true);
+      expect(await sut.getGovernment("did:gov")).toStrictEqual(result);
+      expect(await sut.doesUniversityExists("did:gov")).toStrictEqual(true);
+      expect(await sut.doesGovernmentExists("did:gov")).toStrictEqual(true);
       expect(isTrustedIssuer).toHaveBeenCalledTimes(2);
       expect(getTrustedIssuer).toHaveBeenCalledWith("did:gov");
     });
 
-    it("should getGovTrustedIssuers", async () => {
+    it("should getGovernments", async () => {
       expect.assertions(3);
       const expectedRes = [{ issuer: 0 }, { issuer: 1 }, { issuer: 2 }];
-      expect(await sut.getGovTrustedIssuers()).toStrictEqual(expectedRes);
+      expect(await sut.getGovernments()).toStrictEqual(expectedRes);
       expect(getNrOfTrustedIssuers).toHaveBeenCalledWith();
       expect(getTrustedIssuerByIndex).toHaveBeenCalledTimes(3);
     });
 
-    it("should getUniversityTrustedIssuers", async () => {
+    it("should getUniversities", async () => {
       expect.assertions(3);
       const expectedRes = [{ issuer: 0 }, { issuer: 1 }, { issuer: 2 }];
-      expect(await sut.getUniversityTrustedIssuers()).toStrictEqual(
-        expectedRes
-      );
+      expect(await sut.getUniversities()).toStrictEqual(expectedRes);
       expect(getNrOfTrustedIssuers).toHaveBeenCalledWith();
       expect(getTrustedIssuerByIndex).toHaveBeenCalledTimes(3);
     });

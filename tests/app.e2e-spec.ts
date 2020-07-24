@@ -9,6 +9,7 @@ import AppModule from "../src/app.module";
 import AppService from "../src/services/app.service";
 import AppFormatter from "../src/util/app.formatter";
 import EthersService from "../src/services/ethers.service";
+import AllExceptionsFilter from "../src/http-exception.filter";
 
 jest.setTimeout(10000);
 describe("appController (e2e)", () => {
@@ -29,7 +30,7 @@ describe("appController (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestExpressApplication>();
-
+    app.useGlobalFilters(new AllExceptionsFilter());
     await app.init();
   });
 
@@ -49,7 +50,7 @@ describe("appController (e2e)", () => {
     );
     expect(response.status).toBe(200);
 
-    expect(JSON.parse(response.text)).toStrictEqual(
+    expect(response.body).toStrictEqual(
       expect.objectContaining({
         total: expect.any(Number),
         pageSize: expect.any(Number),
@@ -78,34 +79,38 @@ describe("appController (e2e)", () => {
   });
 
   it(`(GET) trusted-issuers-registry/${version}/issuers/{did}`, async () => {
-    expect.assertions(3);
+    expect.assertions(5);
     const issuers = await request(app.getHttpServer()).get(
       `/trusted-issuers-registry/${version}/issuers`
     );
-    const typedIssuers: Array<{ did: string; name: string }> = JSON.parse(
-      issuers.text
-    ).items;
+    const typedIssuers: Array<{ did: string; name: string }> =
+      issuers.body.items;
     expect(typedIssuers.length).toBeGreaterThanOrEqual(1);
 
     const response = await request(app.getHttpServer()).get(
       `/trusted-issuers-registry/${version}/issuers/${typedIssuers[0].did}`
     );
     expect(response.status).toBe(200);
-
-    expect(JSON.parse(response.text)).toStrictEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          alternativeName: expect.any(String),
-          escoOrganizationType: expect.any(String),
-          homepage: expect.any(String),
-          issuerDID: expect.stringMatching(typedIssuers[0].did),
-          moderator: expect.any(String),
-          preferredName: expect.stringMatching(typedIssuers[0].name),
-          siteLocation: expect.any(String),
-          accreditations: expect.any(Array),
-          documents: expect.any(Array),
-        }),
-      ])
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        issuerDID: expect.stringMatching(typedIssuers[0].did),
+        entities: expect.arrayContaining([
+          expect.objectContaining({
+            alternativeName: expect.any(String),
+            escoOrganizationType: expect.any(String),
+            homepage: expect.any(String),
+            moderator: expect.any(String),
+            preferredName: expect.stringMatching(typedIssuers[0].name),
+            siteLocation: expect.any(String),
+            accreditations: expect.any(Array),
+            documents: expect.any(Array),
+          }),
+        ]),
+      })
     );
+
+    // check connection with storage api
+    expect(response.body.entities[0].documents.length).toBeGreaterThan(0);
+    expect(response.body.entities[0].documents[0].body).not.toBeNull();
   });
 });

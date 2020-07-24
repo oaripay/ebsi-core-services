@@ -16,6 +16,7 @@
     "lint:ts": "eslint \"*/**/*.{js,ts}\"",
     "lint:tsc": "tsc --noEmit --incremental false",
     "lint:prettier": "prettier --check \"**/*.{md,json,yml,yaml,js,ts}\"",
+    "full-lint": "eslint --fix \"*/**/*.{js,ts}\" && prettier --write \"**/*.{md,mdx,html,json,yml,js,jsx,ts,tsx,css,scss}\"",
     "test:watch": "jest --watch",
     "test:unit": "jest --coverage --reporters=default --reporters=jest-sonar --testPathPattern=\"^.+\\.(spec|test)\\.ts$\"",
     "test:e2e": "jest --clearCache && jest --config ./tests/jest-e2e.json --runInBand",
@@ -24,6 +25,7 @@
   },
   "dependencies": {
     "@cef-ebsi/app-jwt": "0.0.6",
+    "@cef-ebsi/problem-details-errors": "0.0.1",
     "@hapi/joi": "^17.1.1",
     "@nestjs/common": "^7.1.3",
     "@nestjs/config": "^0.5.0",
