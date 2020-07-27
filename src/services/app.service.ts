@@ -1,5 +1,4 @@
 import { Injectable, Logger } from "@nestjs/common";
-
 import axios, { AxiosResponse, AxiosRequestConfig } from "axios";
 import { Agent, Scope } from "@cef-ebsi/app-jwt";
 import { ConfigService } from "@nestjs/config";
@@ -18,6 +17,8 @@ export default class AppService {
   private govContract;
 
   private jwtToken;
+
+  private expJwt;
 
   constructor(
     private ethersService: EthersService,
@@ -156,25 +157,34 @@ export default class AppService {
     return Promise.all(universityTrustedIssuersPromises);
   }
 
+  isStorageJwtExpired() {
+    return !this.jwtToken || !this.expJwt || Date.now() > this.expJwt * 1000;
+  }
+
   async login() {
-    if (typeof this.jwtToken === "undefined") {
-      try {
-        const response = await this.generateLoginJWT();
-        this.jwtToken = response.data.accessToken;
-      } catch (error) {
-        let { message } = error;
-        if (error.response && error.response.data) {
-          if (typeof error.response.data === "object")
-            message = `${message}: ${JSON.stringify(error.response.data)}`;
-          else message = `${message}: ${error.response.data}`;
-        }
-        this.logger.error(
-          `error received from ${this.configService
-            .get("STORAGE")
-            .replace(/\/$/, "")}/v1/sessions: ${message}`
-        );
-        this.logger.log(message);
+    try {
+      const response = await this.generateLoginJWT();
+      this.jwtToken = response.data.accessToken;
+      this.expJwt =
+        Number(response.data.issuedAt) + Number(response.data.expiresIn);
+      this.logger.warn(
+        `New session with storage api. expiration: ${this.expJwt}`
+      );
+      return true;
+    } catch (error) {
+      let { message } = error;
+      if (error.response && error.response.data) {
+        if (typeof error.response.data === "object")
+          message = `${message}: ${JSON.stringify(error.response.data)}`;
+        else message = `${message}: ${error.response.data}`;
       }
+      this.logger.error(
+        `error received from ${this.configService
+          .get("STORAGE")
+          .replace(/\/$/, "")}/v1/sessions: ${message}`
+      );
+      this.logger.log(message);
+      return false;
     }
   }
 
@@ -201,14 +211,9 @@ export default class AppService {
   }
 
   async downloadDocument(documentHash: string): Promise<AxiosResponse<any>> {
-    await this.login();
-    if (typeof this.jwtToken === "undefined") {
-      this.logger.warn(
-        new Error(
-          "JwtToken is still undefined after login. A problem occured during session authentication"
-        )
-      );
-      return null;
+    if (this.isStorageJwtExpired()) {
+      const logged = await this.login();
+      if (!logged) return null;
     }
 
     try {
