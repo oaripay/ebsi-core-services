@@ -2,5 +2,6 @@
   "moduleFileExtensions": ["js"],
   "rootDir": ".",
   "testEnvironment": "node",
-  "testRegex": ".e2e-spec.js$"
+  "testRegex": ".e2e-spec.js$",
+  "setupFilesAfterEnv": ["./tests/jest.setup.js"]
 }

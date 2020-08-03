@@ -69,7 +69,10 @@ async function setKey(key, value, skipReadThenUpdate = false) {
 
 async function getKey(key) {
   const record = await getRecord(key);
-  if (!record) throw new NotFoundError("key not found");
+  if (!record)
+    throw new NotFoundError(NotFoundError.defaultTitle, {
+      detail: "key not found",
+    });
   const stringValue = record.value;
 
   // convert to JSON if it is the case
@@ -84,7 +87,10 @@ async function getKey(key) {
 
 async function deleteKey(key) {
   const record = await getRecord(key);
-  if (!record) throw new NotFoundError("key not found");
+  if (!record)
+    throw new NotFoundError(NotFoundError.defaultTitle, {
+      detail: "key not found",
+    });
   const query = `delete from ${TABLE_KEY_VALUE_STORAGE} where key = ? if exists`;
 
   const result = await cassandra.execute(query, [key]);
@@ -98,15 +104,17 @@ async function deleteKey(key) {
 async function patchKey(key, patch) {
   const value = await getKey(key);
   if (typeof value !== "object")
-    throw new BadRequestError(
-      `The key to be patched is not a JSON but a ${typeof value}`
-    );
+    throw new BadRequestError(BadRequestError.defaultTitle, {
+      detail: `The key to be patched is not a JSON but a ${typeof value}`,
+    });
 
   let newValue;
   try {
     newValue = jsonpatch.applyPatch(value, patch).newDocument;
   } catch (error) {
-    throw new BadRequestError(`Impossible to apply patch: ${error.message}`);
+    throw new BadRequestError(BadRequestError.defaultTitle, {
+      detail: `Impossible to apply patch: ${error.message}`,
+    });
   }
 
   const { result } = await setKey(key, newValue, true);

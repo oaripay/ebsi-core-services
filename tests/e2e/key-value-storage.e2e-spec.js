@@ -1,10 +1,8 @@
 const supertest = require("supertest");
 const { Agent, Scope } = require("@cef-ebsi/app-jwt");
-
 const Server = require("../../src/server");
 const cassandra = require("../../src/cassandraClient");
 const { url, TEST_APP_NAME, privKey } = require("../config");
-
 const {
   BadRequestError,
   NotFoundError,
@@ -23,65 +21,22 @@ if (url) {
   request = supertest(server);
 }
 
-expect.extend({
-  toBeHTTPError(received, ErrorClass) {
-    if (!received.title || !received.status)
-      return {
-        message: () =>
-          `received does not contain title and status. received: ${received}`,
-        pass: false,
-      };
-    const error = new ErrorClass();
-    if (received.title !== error.title) {
-      return {
-        message: () =>
-          `expected title: ${error.title}. received: ${received.title}`,
-        pass: false,
-      };
-    }
-    if (received.status !== error.status) {
-      return {
-        message: () =>
-          `expected title: ${error.title}. received: ${received.title}`,
-        pass: false,
-      };
-    }
-    return {
-      message: () => `not expected: ${error.print()}. received: ${received}`,
-      pass: true,
-    };
-  },
-});
-
-/* eslint jest/no-hooks: "off" */
 describe("key value storage tests", () => {
-  afterAll(async () => {
-    await cassandra.shutdown();
-  });
+  let sessionResponse;
 
-  it("create new session", async () => {
-    expect.assertions(2);
+  // eslint-disable-next-line jest/no-hooks
+  beforeAll(async () => {
     const agent = new Agent(Scope.COMPONENT, privKey, {
       issuer: TEST_APP_NAME,
     });
     const requestToken = await agent.createRequestPayload("ebsi-storage");
 
-    const response = await request
+    sessionResponse = await request
       .post("/storage/v1/sessions")
       .set("Accept", "application/json")
       .send(requestToken);
 
-    expect(response.status).toBe(200);
-    expect(response.body).toStrictEqual(
-      expect.objectContaining({
-        accessToken: expect.any(String),
-        tokenType: "Bearer",
-        expiresIn: 900, // 15 minutes
-        issuedAt: expect.any(Number),
-      })
-    );
-
-    const token = response.body.accessToken;
+    const token = sessionResponse.body.accessToken;
 
     const fn = (type) => {
       return (path) => {
@@ -103,8 +58,27 @@ describe("key value storage tests", () => {
     };
   });
 
+  // eslint-disable-next-line jest/no-hooks
+  afterAll(async () => {
+    await cassandra.shutdown();
+  });
+
+  it("create new session", () => {
+    expect.assertions(2);
+
+    expect(sessionResponse.status).toBe(200);
+    expect(sessionResponse.body).toStrictEqual(
+      expect.objectContaining({
+        accessToken: expect.any(String),
+        tokenType: "Bearer",
+        expiresIn: 900, // 15 minutes
+        issuedAt: expect.any(Number),
+      })
+    );
+  });
+
   it("create, update, and delete key", async () => {
-    expect.assertions(6);
+    expect.assertions(13);
 
     const key = `my-key${Math.random().toString().slice(2)}`;
     const value = { msg: "my value" };
@@ -119,63 +93,45 @@ describe("key value storage tests", () => {
     expected3[key] = valueString;
 
     // insert new key
-    await callApi
-      .put(`/${key}`)
-      .send(value)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(expected1);
-      });
+    const insertResponse = await callApi.put(`/${key}`).send(value);
+    expect(insertResponse.status).toBe(200);
+    expect(insertResponse.body).toStrictEqual(expected1);
 
     // get key
-    await callApi
-      .get(`/${key}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(value);
-      });
+    const firstGetResponse = await callApi.get(`/${key}`);
+    expect(firstGetResponse.status).toBe(200);
+    expect(firstGetResponse.body).toStrictEqual(value);
 
     // update key
-    await callApi
-      .put(`/${key}`)
-      .send(valueUpdated)
-      .expect(201)
-      .then((response) => {
-        expect(response.body).toStrictEqual(expected2);
-      });
+    const updateResponse = await callApi.put(`/${key}`).send(valueUpdated);
+    expect(updateResponse.status).toBe(201);
+    expect(updateResponse.body).toStrictEqual(expected2);
 
     // get key again after the update
-    await callApi
-      .get(`/${key}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(valueUpdated);
-      });
+    const secondGetResponse = await callApi.get(`/${key}`);
+    expect(secondGetResponse.status).toBe(200);
+    expect(secondGetResponse.body).toStrictEqual(valueUpdated);
 
     // update as string
-    await callApi
+    const updateAsStringResponse = await callApi
       .put(`/${key}`)
       .set("Content-Type", "text/plain")
-      .send(valueString)
-      .expect(201)
-      .then((response) => {
-        expect(response.body).toStrictEqual(expected3);
-      });
+      .send(valueString);
+    expect(updateAsStringResponse.status).toBe(201);
+    expect(updateAsStringResponse.body).toStrictEqual(expected3);
 
     // get key again after the update as string
-    await callApi
-      .get(`/${key}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.text).toBe(valueString);
-      });
+    const thirdGetResponse = await callApi.get(`/${key}`);
+    expect(thirdGetResponse.status).toBe(200);
+    expect(thirdGetResponse.text).toStrictEqual(valueString);
 
     // delete key
-    await callApi.delete(`/${key}`).expect(204);
+    const deleteResponse = await callApi.delete(`/${key}`);
+    expect(deleteResponse.status).toBe(204);
   });
 
   it("patch key", async () => {
-    expect.assertions(2);
+    expect.assertions(4);
 
     const key = `my-key${Math.random().toString().slice(2)}`;
     const value = { list: [{ a: "A" }] };
@@ -184,48 +140,40 @@ describe("key value storage tests", () => {
     expected1[key] = value;
 
     // insert new key
-    await callApi
-      .put(`/${key}`)
-      .send(value)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(expected1);
-      });
+    const insertResponse = await callApi.put(`/${key}`).send(value);
+    expect(insertResponse.status).toBe(200);
+    expect(insertResponse.body).toStrictEqual(expected1);
 
     // patch key
-    await callApi
-      .patch(`/${key}`)
-      .send([
-        {
-          op: "add",
-          path: "/list/-",
-          value: { b: "B" },
-        },
-      ])
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual({ list: [{ a: "A" }, { b: "B" }] });
-      });
+    const patchResponse = await callApi.patch(`/${key}`).send([
+      {
+        op: "add",
+        path: "/list/-",
+        value: { b: "B" },
+      },
+    ]);
+    expect(patchResponse.status).toBe(200);
+    expect(patchResponse.body).toStrictEqual({
+      list: [{ a: "A" }, { b: "B" }],
+    });
   });
 
   it("get list keys", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
-    await callApi
-      .get("/")
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: expect.arrayContaining([]),
-            total: expect.any(Number),
-          })
-        );
-      });
+    const response = await callApi.get("/");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: expect.arrayContaining([]),
+        total: expect.any(Number),
+      })
+    );
   });
 
   it("get list keys and custom page size and page after", async () => {
-    expect.assertions(1);
+    expect.assertions(3);
 
     // send several keys
     const inputs = [];
@@ -236,119 +184,96 @@ describe("key value storage tests", () => {
     }
     await Promise.all(inputs);
 
-    let urlNext;
-    await callApi
-      .get("/?page[size]=5")
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: expect.arrayContaining([]),
-            total: 5,
-            links: {
-              first:
-                "/storage/v1/stores/distributed/key-values?page%5Bsize%5D=5",
-              next: expect.stringContaining(
-                "/storage/v1/stores/distributed/key-values?page%5Bsize%5D=5&page%5Bafter%5D="
-              ),
-            },
-          })
-        );
-        urlNext = response.body.links.next;
-      });
+    const response = await callApi.get("/?page[size]=5");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: expect.arrayContaining([]),
+        total: 5,
+        links: {
+          first: "/storage/v1/stores/distributed/key-values?page%5Bsize%5D=5",
+          next: expect.stringContaining(
+            "/storage/v1/stores/distributed/key-values?page%5Bsize%5D=5&page%5Bafter%5D="
+          ),
+        },
+      })
+    );
+
+    const urlNext = response.body.links.next;
 
     // call next page
-    await callApi.get(urlNext).expect(200);
+    const nextResponse = await callApi.get(urlNext);
+    expect(nextResponse.status).toBe(200);
   });
 
   /* Test Errors */
 
   it("key not found error", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     const key = `my-key${Math.random().toString().slice(2)}`;
-    await callApi
-      .get(`/${key}`)
-      .expect(404)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(NotFoundError)
-        );
-      });
+    const response = await callApi.get(`/${key}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toBeHTTPError(NotFoundError);
   });
 
   it("key not found error when deleting", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     const key = `my-key${Math.random().toString().slice(2)}`;
 
-    await callApi
-      .delete(`/${key}`)
-      .expect(404)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(NotFoundError)
-        );
-      });
+    const response = await callApi.delete(`/${key}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toBeHTTPError(NotFoundError);
   });
 
   it("error too large key", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     const largeKey = "a".repeat(257);
-    await callApi
-      .put(`/${largeKey}`)
-      .expect(414)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(KeyTooLargeError)
-        );
-      });
+    const response = await callApi.put(`/${largeKey}`);
+
+    expect(response.status).toBe(414);
+    expect(response.body).toBeHTTPError(KeyTooLargeError);
   });
 
   it("error too large value", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     const largeValue = "a".repeat(1024 * 1024 + 1);
-    await callApi
+    const response = await callApi
       .put("/my-key")
       .set("Content-Type", "text/plain")
-      .send(largeValue)
-      .expect(413)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(ValueTooLargeError)
-        );
-      });
+      .send(largeValue);
+
+    expect(response.status).toBe(413);
+    expect(response.body).toBeHTTPError(ValueTooLargeError);
   });
 
   it("bad request error for bad body in application/json", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
-    await callApi
+    const response = await callApi
       .put("/my-key")
       .set("Content-Type", "application/json")
-      .send("This is a text")
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(BadRequestError)
-        );
-      });
+      .send("This is a text");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toBeHTTPError(BadRequestError);
   });
 
   it("bad request error for bad content-type", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
-    await callApi
+    const response = await callApi
       .put("/my-key")
       .set("Content-Type", "application/x-www-form-urlencoded")
-      .send("a=3")
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(BadRequestError)
-        );
-      });
+      .send("a=3");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toBeHTTPError(BadRequestError);
   });
 });

@@ -1,11 +1,9 @@
 const supertest = require("supertest");
 const { Agent, Scope } = require("@cef-ebsi/app-jwt").default;
 const ethers = require("ethers");
-
 const Server = require("../../src/server");
 const cassandra = require("../../src/cassandraClient");
 const { url, TEST_APP_NAME, privKey } = require("../config");
-
 const { BadRequestError, NotFoundError } = require("../../src/errors");
 
 let request;
@@ -19,38 +17,8 @@ if (url) {
   request = supertest(server);
 }
 
-expect.extend({
-  toBeHTTPError(received, ErrorClass) {
-    if (!received.title || !received.status)
-      return {
-        message: () =>
-          `received does not contain title and status. received: ${received}`,
-        pass: false,
-      };
-    const error = new ErrorClass();
-    if (received.title !== error.title) {
-      return {
-        message: () =>
-          `expected title: ${error.title}. received: ${received.title}`,
-        pass: false,
-      };
-    }
-    if (received.status !== error.status) {
-      return {
-        message: () =>
-          `expected title: ${error.title}. received: ${received.title}`,
-        pass: false,
-      };
-    }
-    return {
-      message: () => `not expected: ${error.print()}. received: ${received}`,
-      pass: true,
-    };
-  },
-});
-
-/* eslint jest/no-hooks: "off" */
 describe("notification storage tests", () => {
+  // eslint-disable-next-line jest/no-hooks
   afterAll(async () => {
     await cassandra.shutdown();
   });
@@ -100,7 +68,7 @@ describe("notification storage tests", () => {
   });
 
   it("add, update, delete notification and check history", async () => {
-    expect.assertions(5);
+    expect.assertions(11);
 
     const notification = {
       sender: ethers.Wallet.createRandom().address,
@@ -114,90 +82,79 @@ describe("notification storage tests", () => {
       message: { msg: "updated" },
     };
 
-    let id;
-
     // add notification
-    await callApi
-      .put("/")
-      .send(notification)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          id: expect.any(String),
-          ...notification,
-        });
-        id = response.body.id;
-      });
+    const insertResponse = await callApi.put("/").send(notification);
+
+    expect(insertResponse.status).toBe(200);
+    expect(insertResponse.body).toStrictEqual({
+      id: expect.any(String),
+      ...notification,
+    });
+
+    const { id } = insertResponse.body;
 
     // get notification by id
-    await callApi
-      .get(`/${id}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          id,
-          ...notification,
-        });
-      });
+    const getResponse = await callApi.get(`/${id}`);
+    expect(getResponse.status).toBe(200);
+    expect(getResponse.body).toStrictEqual({
+      id,
+      ...notification,
+    });
 
     // update notification
-    await callApi
+    const updateResponse = await callApi
       .put(`/${id}`)
-      .send(notificationUpdated)
-      .expect(201)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          id,
-          ...notificationUpdated,
-        });
-      });
+      .send(notificationUpdated);
+    expect(updateResponse.status).toBe(201);
+    expect(updateResponse.body).toStrictEqual({
+      id,
+      ...notificationUpdated,
+    });
 
     // get notification after the update
-    await callApi
-      .get(`/${id}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          id,
-          ...notificationUpdated,
-        });
-      });
+    const secondGetResponse = await callApi.get(`/${id}`);
+    expect(secondGetResponse.status).toBe(200);
+    expect(secondGetResponse.body).toStrictEqual({
+      id,
+      ...notificationUpdated,
+    });
 
     // delete notification
-    await callApi.delete(`/${id}`).expect(204);
+    const deleteResponse = await callApi.delete(`/${id}`);
+    expect(deleteResponse.status).toBe(204);
 
     // check history
-    await callApi
-      .get(`/?history=true&receiver=${notification.receiver}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: [
-              {
-                ...notificationUpdated,
-                id,
-                created: expect.any(String),
-                deleted: expect.any(String),
-              },
-            ],
-            total: 1,
-            pageSize: 10,
-            links: {
-              first: expect.stringContaining(
-                "/storage/v1/stores/distributed/notifications?history=true&receiver="
-              ),
-              last: expect.stringContaining(
-                "/storage/v1/stores/distributed/notifications?history=true&receiver="
-              ),
-            },
-          })
-        );
-      });
+    const checkHistoryResponse = await callApi.get(
+      `/?history=true&receiver=${notification.receiver}`
+    );
+
+    expect(checkHistoryResponse.status).toBe(200);
+    expect(checkHistoryResponse.body).toStrictEqual(
+      expect.objectContaining({
+        items: [
+          {
+            ...notificationUpdated,
+            id,
+            created: expect.any(String),
+            deleted: expect.any(String),
+          },
+        ],
+        total: 1,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/storage/v1/stores/distributed/notifications?history=true&receiver="
+          ),
+          last: expect.stringContaining(
+            "/storage/v1/stores/distributed/notifications?history=true&receiver="
+          ),
+        },
+      })
+    );
   });
 
   it("get list of notifications and custom page size with pageAfter", async () => {
-    expect.assertions(1);
+    expect.assertions(3);
 
     // add several notifications to the same receiver
     const receiver = ethers.Wallet.createRandom().address;
@@ -212,96 +169,78 @@ describe("notification storage tests", () => {
     }
     await Promise.all(inputs);
 
-    let urlNext;
+    const response = await callApi.get(`/?page[size]=5&receiver=${receiver}`);
 
-    await callApi
-      .get(`/?page[size]=5&receiver=${receiver}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: expect.arrayContaining([]),
-            total: 5,
-            pageSize: 5,
-            links: {
-              first: `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bsize%5D=5`,
-              next: expect.stringContaining(
-                `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bsize%5D=5&page%5Bafter%5D=`
-              ),
-            },
-          })
-        );
-        urlNext = response.body.links.next;
-      });
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: expect.arrayContaining([]),
+        total: 5,
+        pageSize: 5,
+        links: {
+          first: `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bsize%5D=5`,
+          next: expect.stringContaining(
+            `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bsize%5D=5&page%5Bafter%5D=`
+          ),
+        },
+      })
+    );
+
+    const urlNext = response.body.links.next;
 
     // call next page
-    await callApi.get(urlNext).expect(200);
+    const nextResponse = await callApi.get(urlNext);
+    expect(nextResponse.status).toBe(200);
   });
 
   /* Test Errors */
 
   it("notification not found error", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     const id = Math.random().toString().slice(2);
 
-    await callApi
-      .get(`/${id}`)
-      .expect(404)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(NotFoundError)
-        );
-      });
+    const response = await callApi.get(`/${id}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toBeHTTPError(NotFoundError);
   });
 
   it("notification not found error when updating", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     const id = Math.random().toString().slice(2);
 
-    await callApi
-      .put(`/${id}`)
-      .send({
-        sender: "sender",
-        receiver: "receiver",
-        message: { msg: "message" },
-      })
-      .expect(404)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(NotFoundError)
-        );
-      });
+    const response = await callApi.put(`/${id}`).send({
+      sender: "sender",
+      receiver: "receiver",
+      message: { msg: "message" },
+    });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toBeHTTPError(NotFoundError);
   });
 
   it("notification not found error when deleting", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     const id = Math.random().toString().slice(2);
 
-    await callApi
-      .delete(`/${id}`)
-      .expect(404)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(NotFoundError)
-        );
-      });
+    const response = await callApi.delete(`/${id}`);
+
+    expect(response.status).toBe(404);
+    expect(response.body).toBeHTTPError(NotFoundError);
   });
 
   it("bad request error for bad body in application/json", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
-    await callApi
+    const response = await callApi
       .put("/my-key")
       .set("Content-Type", "application/json")
-      .send("This is a text")
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(BadRequestError)
-        );
-      });
+      .send("This is a text");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toBeHTTPError(BadRequestError);
   });
 });

@@ -14,7 +14,9 @@ async function getRecord(id) {
     const result = await cassandra.execute(query, [id]);
     return result.first();
   } catch (error) {
-    throw new NotFoundError(`id not found: ${error.message}`);
+    throw new NotFoundError(NotFoundError.defaultTitle, {
+      detail: `id not found: ${error.message}`,
+    });
   }
 }
 
@@ -35,7 +37,10 @@ async function addNotification(data) {
 
 async function updateNotification(id, data) {
   const record = await getRecord(id);
-  if (!record) throw new NotFoundError("Notification not found");
+  if (!record)
+    throw new NotFoundError(NotFoundError.defaultTitle, {
+      detail: "Notification not found",
+    });
 
   const { sender, receiver, message } = data;
   const messageString = JSON.stringify(message);
@@ -52,7 +57,10 @@ async function updateNotification(id, data) {
 
 async function getNotification(id) {
   const record = await getRecord(id);
-  if (!record) throw new NotFoundError("Notification not found");
+  if (!record)
+    throw new NotFoundError(NotFoundError.defaultTitle, {
+      detail: "Notification not found",
+    });
   const { sender, receiver } = record;
   let { message } = record;
   message = JSON.parse(message);
@@ -61,7 +69,10 @@ async function getNotification(id) {
 
 async function deleteNotification(id) {
   const r = await getRecord(id);
-  if (!r) throw new NotFoundError("Notification not found");
+  if (!r)
+    throw new NotFoundError(NotFoundError.defaultTitle, {
+      detail: "Notification not found",
+    });
 
   // save in history
   const queryHistory = `insert into ${TABLE_NOTIFICATION_HISTORICAL_STORAGE} (id, created, deleted, sender, receiver, message) values (?, ?, toTimestamp(now()), ?, ?, ?)`;

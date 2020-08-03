@@ -5,7 +5,7 @@ const Busboy = require("busboy");
 const { v4: uuidv4 } = require("uuid");
 
 const logger = require("../../logger");
-const { BadRequestError, TooLargeError } = require("../../errors");
+const { BadRequestError, PayloadTooLargeError } = require("../../errors");
 const controller = require("./controller");
 
 const router = express.Router({ mergeParams: true });
@@ -19,7 +19,9 @@ function saveInTempFile(req) {
     try {
       busboy = new Busboy({ headers: req.headers });
     } catch (error) {
-      throw new BadRequestError(error.message);
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: error.message,
+      });
     }
     const tempFile = `${uuidv4()}.tmp`;
     let filename = null;
@@ -28,13 +30,18 @@ function saveInTempFile(req) {
     const timer = setTimeout(() => {
       clearTimeout(timer);
       reject(
-        new TooLargeError(`Timeout of ${TIMEOUT_UPLOAD_MS} during the upload`)
+        new PayloadTooLargeError(PayloadTooLargeError.defaultTitle, {
+          detail: `Timeout of ${TIMEOUT_UPLOAD_MS} during the upload`,
+        })
       );
     }, TIMEOUT_UPLOAD_MS);
 
     busboy.on("file", (fieldname, file, _filename) => {
       receivingFile = true;
-      if (!_filename) throw new BadRequestError("No filename defined");
+      if (!_filename)
+        throw new BadRequestError(BadRequestError.defaultTitle, {
+          detail: "No filename defined",
+        });
       filename = path.basename(_filename);
       logger.info(`Uploading file ${filename} in temp file ${tempFile}`);
 
@@ -49,7 +56,11 @@ function saveInTempFile(req) {
 
     busboy.on("finish", () => {
       if (!receivingFile) {
-        reject(new BadRequestError("No file received in the body"));
+        reject(
+          new BadRequestError(BadRequestError.defaultTitle, {
+            detail: "No file received in the body",
+          })
+        );
         clearTimeout(timer);
       }
     });
@@ -79,9 +90,9 @@ router.post("/", async (req, res, next) => {
 
     const { size } = fs.statSync(tempFile);
     if (size > MAX_SIZE)
-      throw new TooLargeError(
-        `Payload too large. Max size allowed ${MAX_SIZE} bytes`
-      );
+      throw new PayloadTooLargeError(PayloadTooLargeError.defaultTitle, {
+        detail: `Payload too large. Max size allowed ${MAX_SIZE} bytes`,
+      });
 
     const result = await controller.storeFile(req.store, filename, tempFile);
     res.status(201).send(result);

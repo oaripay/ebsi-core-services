@@ -1,8 +1,8 @@
-const HTTPError = require("./HTTPError");
+const { UriTooLongError } = require("@cef-ebsi/problem-details-errors");
 
-class KeyTooLargeError extends HTTPError {
+class KeyTooLargeError extends UriTooLongError {
   constructor(detail) {
-    super("Key Too large", 414, detail);
+    super("Key Too large", { detail });
   }
 }
 

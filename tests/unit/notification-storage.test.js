@@ -1,14 +1,12 @@
 const supertest = require("supertest");
 const cassandraDriver = require("cassandra-driver");
 const jose = require("jose");
-
 const config = require("../../src/config");
 const Server = require("../../src/server");
-
 const {
   BadRequestError,
   NotFoundError,
-  InternalError,
+  InternalServerError,
 } = require("../../src/errors");
 
 jest.mock("cassandra-driver");
@@ -185,42 +183,8 @@ function getExecuteCalls() {
   return instanceNotification.execute.mock.calls;
 }
 
-expect.extend({
-  toBeHTTPError(received, ErrorClass) {
-    if (!received.title || !received.status)
-      return {
-        message: () =>
-          `received does not contain title and status. received: ${received}`,
-        pass: false,
-      };
-    const error = new ErrorClass();
-    if (received.title !== error.title) {
-      return {
-        message: () =>
-          `expected title: ${error.title}. received: ${received.title}`,
-        pass: false,
-      };
-    }
-    if (received.status !== error.status) {
-      return {
-        message: () =>
-          `expected title: ${error.title}. received: ${received.title}`,
-        pass: false,
-      };
-    }
-    return {
-      message: () => `not expected: ${error.print()}. received: ${received}`,
-      pass: true,
-    };
-  },
-});
-
-/* eslint jest/no-hooks: "off" */
 describe("notification storage tests", () => {
-  afterAll(async () => {
-    server.close();
-  });
-
+  // eslint-disable-next-line jest/no-hooks
   beforeAll(async () => {
     const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKey);
     const fn = (type) => {
@@ -241,6 +205,7 @@ describe("notification storage tests", () => {
     };
   });
 
+  // eslint-disable-next-line jest/no-hooks
   beforeEach(() => {
     // clear calls to cassandra.execute
     const instanceNotification = cassandraDriver.Client.mock.instances[0];
@@ -248,106 +213,104 @@ describe("notification storage tests", () => {
   });
 
   it("get list notifications all users", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse(dummyData);
     });
 
-    await callApi
-      .get("/")
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: dummyDataParsed,
-            total: 2,
-          })
-        );
-      });
+    const response = await callApi.get("/");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: dummyDataParsed,
+        total: 2,
+      })
+    );
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, false, false);
     const opts = { prepare: true, fetchSize: 10 };
+
     expect(callSearch).toStrictEqual(expect.arrayContaining([query, [], opts]));
   });
 
   it("get list notifications for receiver", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse(dummyData);
     });
 
-    await callApi
-      .get(`/?receiver=${dummyData[0].receiver}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: dummyDataParsed,
-            total: 2,
-          })
-        );
-      });
+    const response = await callApi.get(`/?receiver=${dummyData[0].receiver}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: dummyDataParsed,
+        total: 2,
+      })
+    );
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, false);
     const opts = { prepare: true, fetchSize: 10 };
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([query, [dummyData[0].receiver], opts])
     );
   });
 
   it("get list notifications for sender", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([dummyData[0]]);
     });
 
-    await callApi
-      .get(`/?sender=${dummyData[0].sender}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: [dummyDataParsed[0]],
-            total: 1,
-          })
-        );
-      });
+    const response = await callApi.get(`/?sender=${dummyData[0].sender}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: [dummyDataParsed[0]],
+        total: 1,
+      })
+    );
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(true, false, false);
     const opts = { prepare: true, fetchSize: 10 };
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([query, [dummyData[0].sender], opts])
     );
   });
 
   it("get list notifications for sender and receiver", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([dummyData[0]]);
     });
 
-    await callApi
-      .get(`/?sender=${dummyData[0].sender}&receiver=${dummyData[0].receiver}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: [dummyDataParsed[0]],
-            total: 1,
-          })
-        );
-      });
+    const response = await callApi.get(
+      `/?sender=${dummyData[0].sender}&receiver=${dummyData[0].receiver}`
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: [dummyDataParsed[0]],
+        total: 1,
+      })
+    );
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(true, true, false);
     const opts = { prepare: true, fetchSize: 10 };
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([
         query,
@@ -358,7 +321,7 @@ describe("notification storage tests", () => {
   });
 
   it("get list notifications for history", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       const data = {
@@ -368,61 +331,63 @@ describe("notification storage tests", () => {
       return cassandraResponse([data]);
     });
 
-    await callApi
-      .get(`/?history=true&receiver=${dummyData[0].receiver}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: [
-              {
-                ...dummyDataParsed[0],
-                created: "2020-01-01T00:00:00Z",
-                deleted: "2020-06-01T00:00:00Z",
-              },
-            ],
-            total: 1,
-          })
-        );
-      });
+    const response = await callApi.get(
+      `/?history=true&receiver=${dummyData[0].receiver}`
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: [
+          {
+            ...dummyDataParsed[0],
+            created: "2020-01-01T00:00:00Z",
+            deleted: "2020-06-01T00:00:00Z",
+          },
+        ],
+        total: 1,
+      })
+    );
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, true);
     const opts = { prepare: true, fetchSize: 10 };
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([query, [dummyData[0].receiver], opts])
     );
   });
 
   it("get list notifications and custom page size", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse(dummyData);
     });
 
-    await callApi
-      .get(`/?page[size]=11&receiver=${dummyData[0].receiver}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: dummyDataParsed,
-            total: 2,
-          })
-        );
-      });
+    const response = await callApi.get(
+      `/?page[size]=11&receiver=${dummyData[0].receiver}`
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: dummyDataParsed,
+        total: 2,
+      })
+    );
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, false);
     const opts = { prepare: true, fetchSize: 11 };
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([query, [dummyData[0].receiver], opts])
     );
   });
 
   it("get list of notifications and custom page size with pageAfter", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse(extensiveDummyData.slice(6), "efgh");
@@ -432,28 +397,27 @@ describe("notification storage tests", () => {
     const pageAfter = "id12345";
     const { receiver } = extensiveDummyDataParsed[0];
 
-    await callApi
-      .get(
-        `/?page[size]=${pageSize}&page[after]=${pageAfter}&receiver=${receiver}`
-      )
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: extensiveDummyDataParsed.slice(6),
-            total: extensiveDummyData.slice(6).length,
-            pageSize,
-            links: {
-              first: `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bsize%5D=6`,
-              next: `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bsize%5D=6&page%5Bafter%5D=efgh`,
-            },
-          })
-        );
-      });
+    const response = await callApi.get(
+      `/?page[size]=${pageSize}&page[after]=${pageAfter}&receiver=${receiver}`
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: extensiveDummyDataParsed.slice(6),
+        total: extensiveDummyData.slice(6).length,
+        pageSize,
+        links: {
+          first: `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bsize%5D=6`,
+          next: `/storage/v1/stores/distributed/notifications?receiver=${receiver}&page%5Bsize%5D=6&page%5Bafter%5D=efgh`,
+        },
+      })
+    );
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, false);
     const opts = { prepare: true, fetchSize: pageSize, pageState: pageAfter };
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([
         query,
@@ -464,57 +428,56 @@ describe("notification storage tests", () => {
   });
 
   it("get list notifications and different page", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse(dummyData);
     });
 
-    await callApi
-      .get(`/?page[x]=11&receiver=${dummyData[0].receiver}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: dummyDataParsed,
-            total: 2,
-          })
-        );
-      });
+    const response = await callApi.get(
+      `/?page[x]=11&receiver=${dummyData[0].receiver}`
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: dummyDataParsed,
+        total: 2,
+      })
+    );
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, false);
     const opts = { prepare: true, fetchSize: 10 };
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([query, [dummyData[0].receiver], opts])
     );
   });
 
   it("add notification", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([]);
     });
 
-    await callApi
-      .put("/")
-      .send({
-        sender: "sender",
-        receiver: "receiver",
-        message: { msg: "message" },
-      })
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          id: expect.any(String),
-          sender: "sender",
-          receiver: "receiver",
-          message: { msg: "message" },
-        });
-      });
+    const response = await callApi.put("/").send({
+      sender: "sender",
+      receiver: "receiver",
+      message: { msg: "message" },
+    });
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual({
+      id: expect.any(String),
+      sender: "sender",
+      receiver: "receiver",
+      message: { msg: "message" },
+    });
 
     const [callInsert] = getExecuteCalls();
+
     expect(callInsert).toStrictEqual(
       expect.arrayContaining([
         queries.insertNotification,
@@ -524,27 +487,26 @@ describe("notification storage tests", () => {
   });
 
   it("get notification by id", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([dummyData[0]]);
     });
 
-    await callApi
-      .get(`/${dummyData[0].id}`)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(dummyDataParsed[0]);
-      });
+    const response = await callApi.get(`/${dummyData[0].id}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(dummyDataParsed[0]);
 
     const [call] = getExecuteCalls();
+
     expect(call).toStrictEqual(
       expect.arrayContaining([queries.getNotification, [dummyData[0].id]])
     );
   });
 
   it("update notification", async () => {
-    expect.assertions(3);
+    expect.assertions(4);
 
     mockExecute.mockImplementation((query) => {
       switch (query) {
@@ -557,24 +519,22 @@ describe("notification storage tests", () => {
       }
     });
 
-    await callApi
-      .put(`/${dummyData[0].id}`)
-      .send({
-        sender: "new sender",
-        receiver: "new receiver",
-        message: { msg: "now updated" },
-      })
-      .expect(201)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          id: dummyData[0].id,
-          sender: "new sender",
-          receiver: "new receiver",
-          message: { msg: "now updated" },
-        });
-      });
+    const response = await callApi.put(`/${dummyData[0].id}`).send({
+      sender: "new sender",
+      receiver: "new receiver",
+      message: { msg: "now updated" },
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body).toStrictEqual({
+      id: dummyData[0].id,
+      sender: "new sender",
+      receiver: "new receiver",
+      message: { msg: "now updated" },
+    });
 
     const [callSearch, callUpdate] = getExecuteCalls();
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([queries.getNotification, [dummyData[0].id]])
     );
@@ -592,7 +552,7 @@ describe("notification storage tests", () => {
   });
 
   it("delete notification", async () => {
-    expect.assertions(3);
+    expect.assertions(4);
 
     mockExecute.mockImplementation((query) => {
       switch (query) {
@@ -606,13 +566,15 @@ describe("notification storage tests", () => {
       }
     });
 
-    await callApi.delete(`/${dummyData[0].id}`).expect(204);
+    const response = await callApi.delete(`/${dummyData[0].id}`);
+    expect(response.status).toBe(204);
 
     // when a notification is deleted there are 3 calls to cassandra:
     // 1- get the notification
     // 2- save the notification in the history table
     // 3- delete the notification
     const [callSearch, callInsertHistory, callDelete] = getExecuteCalls();
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([queries.getNotification, [dummyData[0].id]])
     );
@@ -636,155 +598,121 @@ describe("notification storage tests", () => {
   /* Test Errors */
 
   it("notification not found error", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([]);
     });
 
-    await callApi
-      .get("/my-id")
-      .expect(404)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(NotFoundError)
-        );
-      });
+    const response = await callApi.get("/my-id");
+
+    expect(response.status).toBe(404);
+    expect(response.body).toBeHTTPError(NotFoundError);
   });
 
   it("notification not found error when updating", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([]);
     });
 
-    await callApi
-      .put("/my-id")
-      .send({
-        sender: "sender",
-        receiver: "receiver",
-        message: { msg: "message" },
-      })
-      .expect(404)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(NotFoundError)
-        );
-      });
+    const response = await callApi.put("/my-id").send({
+      sender: "sender",
+      receiver: "receiver",
+      message: { msg: "message" },
+    });
+
+    expect(response.status).toBe(404);
+    expect(response.body).toBeHTTPError(NotFoundError);
   });
 
   it("notification not found error when deleting", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([]);
     });
 
-    await callApi
-      .delete("/my-id")
-      .expect(404)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(NotFoundError)
-        );
-      });
+    const response = await callApi.delete("/my-id");
+
+    expect(response.status).toBe(404);
+    expect(response.body).toBeHTTPError(NotFoundError);
   });
 
   it("bad request error for bad body in application/json", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
-    await callApi
+    const response = await callApi
       .put("/my-key")
       .set("Content-Type", "application/json")
-      .send("This is a text")
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(BadRequestError)
-        );
-      });
+      .send("This is a text");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toBeHTTPError(BadRequestError);
   });
 
   it("internal error in cassandra for insert", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     mockExecute.mockImplementation((query) => {
       if (query === queries.insertNotification) return "Cassandra error";
       return cassandraResponse([]);
     });
 
-    await callApi
-      .put("/")
-      .send({
-        sender: "sender",
-        receiver: "receiver",
-        message: { msg: "message" },
-      })
-      .expect(500)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(InternalError)
-        );
-      });
+    const response = await callApi.put("/").send({
+      sender: "sender",
+      receiver: "receiver",
+      message: { msg: "message" },
+    });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toBeHTTPError(InternalServerError);
   });
 
   it("internal error in cassandra for update", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     mockExecute.mockImplementation((query) => {
       if (query === queries.updateNotification) return "Cassandra error";
       return cassandraResponse([dummyData[0]]);
     });
 
-    await callApi
-      .put("/my-id")
-      .send({
-        sender: "sender",
-        receiver: "receiver",
-        message: { msg: "message" },
-      })
-      .expect(500)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(InternalError)
-        );
-      });
+    const response = await callApi.put("/my-id").send({
+      sender: "sender",
+      receiver: "receiver",
+      message: { msg: "message" },
+    });
+
+    expect(response.status).toBe(500);
+    expect(response.body).toBeHTTPError(InternalServerError);
   });
 
   it("internal error in cassandra for delete", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     mockExecute.mockImplementation((query) => {
       if (query === queries.deleteNotification) return "Cassandra error";
       return cassandraResponse([dummyData[0]]);
     });
 
-    await callApi
-      .delete("/my-id")
-      .expect(500)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(InternalError)
-        );
-      });
+    const response = await callApi.delete("/my-id");
+
+    expect(response.status).toBe(500);
+    expect(response.body).toBeHTTPError(InternalServerError);
   });
 
   it("internal error in cassandra for insert in history (delete)", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     mockExecute.mockImplementation((query) => {
       if (query === queries.saveNotification) return "Cassandra error";
       return cassandraResponse([dummyData[0]]);
     });
 
-    await callApi
-      .delete("/my-id")
-      .expect(500)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(InternalError)
-        );
-      });
+    const response = await callApi.delete("/my-id");
+
+    expect(response.status).toBe(500);
+    expect(response.body).toBeHTTPError(InternalServerError);
   });
 });

@@ -3,12 +3,10 @@ const { Agent, Scope } = require("@cef-ebsi/app-jwt");
 const crypto = require("crypto");
 const ethers = require("ethers");
 const fs = require("fs");
-
 const Server = require("../../src/server");
 const cassandra = require("../../src/cassandraClient");
 const { url, TEST_APP_NAME, privKey } = require("../config");
-
-const { BadRequestError, TooLargeError } = require("../../src/errors");
+const { BadRequestError, PayloadTooLargeError } = require("../../src/errors");
 
 jest.setTimeout(30000);
 
@@ -30,65 +28,22 @@ function createRandomFile(name, size = 1024, writeFile = true) {
   return { data, hash };
 }
 
-expect.extend({
-  toBeHTTPError(received, ErrorClass) {
-    if (!received.title || !received.status)
-      return {
-        message: () =>
-          `received does not contain title and status. received: ${received}`,
-        pass: false,
-      };
-    const error = new ErrorClass();
-    if (received.title !== error.title) {
-      return {
-        message: () =>
-          `expected title: ${error.title}. received: ${received.title}`,
-        pass: false,
-      };
-    }
-    if (received.status !== error.status) {
-      return {
-        message: () =>
-          `expected title: ${error.title}. received: ${received.title}`,
-        pass: false,
-      };
-    }
-    return {
-      message: () => `not expected: ${error.print()}. received: ${received}`,
-      pass: true,
-    };
-  },
-});
-
-/* eslint jest/no-hooks: "off" */
 describe("file storage tests", () => {
-  afterAll(async () => {
-    await cassandra.shutdown();
-  });
+  let sessionResponse;
 
-  it("create new session", async () => {
-    expect.assertions(2);
+  // eslint-disable-next-line jest/no-hooks
+  beforeAll(async () => {
     const agent = new Agent(Scope.COMPONENT, privKey, {
       issuer: TEST_APP_NAME,
     });
     const requestToken = await agent.createRequestPayload("ebsi-storage");
 
-    const response = await request
+    sessionResponse = await request
       .post("/storage/v1/sessions")
       .set("Accept", "application/json")
       .send(requestToken);
 
-    expect(response.status).toBe(200);
-    expect(response.body).toStrictEqual(
-      expect.objectContaining({
-        accessToken: expect.any(String),
-        tokenType: "Bearer",
-        expiresIn: 900, // 15 minutes
-        issuedAt: expect.any(Number),
-      })
-    );
-
-    const token = response.body.accessToken;
+    const token = sessionResponse.body.accessToken;
 
     const fn = (type) => {
       return (path) => {
@@ -110,55 +65,74 @@ describe("file storage tests", () => {
     };
   });
 
-  it("upload, get and delete file", async () => {
+  // eslint-disable-next-line jest/no-hooks
+  afterAll(async () => {
+    await cassandra.shutdown();
+  });
+
+  it("create new session", () => {
     expect.assertions(2);
+
+    expect(sessionResponse.status).toBe(200);
+    expect(sessionResponse.body).toStrictEqual(
+      expect.objectContaining({
+        accessToken: expect.any(String),
+        tokenType: "Bearer",
+        expiresIn: 900, // 15 minutes
+        issuedAt: expect.any(Number),
+      })
+    );
+  });
+
+  it("upload, get and delete file", async () => {
+    expect.assertions(6);
 
     const { data, hash } = createRandomFile("test-file.bin");
 
-    await callApi
+    const uploadFileResponse = await callApi
       .post("/")
-      .attach("file", "test-file.bin")
-      .expect(201)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          hash,
-          function: "keccak256",
-        });
-      });
+      .attach("file", "test-file.bin");
+
+    expect(uploadFileResponse.status).toBe(201);
+    expect(uploadFileResponse.body).toStrictEqual({
+      hash,
+      function: "keccak256",
+    });
 
     fs.unlinkSync("test-file.bin");
 
-    await callApi
-      .get(`/${hash}`)
-      .expect(200)
-      .expect("Content-Length", `${data.length}`)
-      .expect("Content-Disposition", "attachment; filename=test-file.bin")
-      .responseType("blob")
-      .then((response) => {
-        expect(response.body).toStrictEqual(data);
-      });
+    const getFileResponse = await callApi.get(`/${hash}`).responseType("blob");
 
-    await callApi.delete(`/${hash}`).expect(204);
+    expect(getFileResponse.status).toBe(200);
+    expect(getFileResponse.body).toStrictEqual(data);
+    expect(getFileResponse.headers).toStrictEqual(
+      expect.objectContaining({
+        "content-length": `${data.length}`,
+        "content-disposition": "attachment; filename=test-file.bin",
+      })
+    );
+
+    const deleteFileResponse = await callApi.delete(`/${hash}`);
+
+    expect(deleteFileResponse.status).toBe(204);
   });
 
   it("get list files", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
-    await callApi
-      .get("/")
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: expect.arrayContaining([]),
-            total: expect.any(Number),
-          })
-        );
-      });
+    const response = await callApi.get("/");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: expect.arrayContaining([]),
+        total: expect.any(Number),
+      })
+    );
   });
 
   it("get list files and custom page size and page after", async () => {
-    expect.assertions(1);
+    expect.assertions(3);
 
     // uploading several files
     const uploads = [];
@@ -166,30 +140,31 @@ describe("file storage tests", () => {
       createRandomFile(`test-file${i}.bin`);
       uploads.push(callApi.post("/").attach("file", `test-file${i}.bin`));
     }
+
     await Promise.all(uploads);
 
-    let urlNext;
-    await callApi
-      .get("/?page[size]=5")
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: expect.arrayContaining([]),
-            total: 5,
-            links: {
-              first: "/storage/v1/stores/distributed/files?page%5Bsize%5D=5",
-              next: expect.stringContaining(
-                "/storage/v1/stores/distributed/files?page%5Bsize%5D=5&page%5Bafter%5D="
-              ),
-            },
-          })
-        );
-        urlNext = response.body.links.next;
-      });
+    const response = await callApi.get("/?page[size]=5");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: expect.arrayContaining([]),
+        total: 5,
+        links: {
+          first: "/storage/v1/stores/distributed/files?page%5Bsize%5D=5",
+          next: expect.stringContaining(
+            "/storage/v1/stores/distributed/files?page%5Bsize%5D=5&page%5Bafter%5D="
+          ),
+        },
+      })
+    );
+
+    const urlNext = response.body.links.next;
 
     // call next page
-    await callApi.get(urlNext).expect(200);
+    const nextResponse = await callApi.get(urlNext);
+
+    expect(nextResponse.status).toBe(200);
 
     for (let i = 0; i < 20; i += 1) fs.unlinkSync(`test-file${i}.bin`);
   });
@@ -197,84 +172,82 @@ describe("file storage tests", () => {
   /* Test Errors */
 
   it("error file already exist", async () => {
-    expect.assertions(1);
+    expect.assertions(3);
 
     const { hash } = createRandomFile("test-file.bin");
 
-    await callApi
+    const uploadResponse = await callApi
       .post("/")
-      .attach("file", "test-file.bin")
-      .expect(201)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          hash,
-          function: "keccak256",
-        });
-      });
+      .attach("file", "test-file.bin");
 
-    await callApi.post("/").attach("file", "test-file.bin").expect(400);
+    expect(uploadResponse.status).toBe(201);
+    expect(uploadResponse.body).toStrictEqual({
+      hash,
+      function: "keccak256",
+    });
+
+    const secondUploadResponse = await callApi
+      .post("/")
+      .attach("file", "test-file.bin");
+
+    expect(secondUploadResponse.status).toBe(400);
 
     fs.unlinkSync("test-file.bin");
   });
 
   it("file not found error", async () => {
-    expect.assertions(0);
+    expect.assertions(1);
     const { hash } = createRandomFile("test-file.bin");
-    await callApi.get(`/${hash}`).expect(404);
+    const response = await callApi.get(`/${hash}`);
+
+    expect(response.status).toBe(404);
+
     fs.unlinkSync("test-file.bin");
   });
 
   it("file not found error when deleting", async () => {
-    expect.assertions(0);
+    expect.assertions(1);
     const { hash } = createRandomFile("test-file.bin");
-    await callApi.delete(`/${hash}`).expect(404);
+    const response = await callApi.delete(`/${hash}`);
+
+    expect(response.status).toBe(404);
+
     fs.unlinkSync("test-file.bin");
   });
 
   it("error too large file", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     createRandomFile("big-file.bin", 16 * 1024 * 1024);
 
-    await callApi
-      .post("/")
-      .attach("file", "big-file.bin")
-      .expect(413)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(TooLargeError)
-        );
-      });
+    const response = await callApi.post("/").attach("file", "big-file.bin");
+
+    expect(response.status).toBe(413);
+    expect(response.body).toBeHTTPError(PayloadTooLargeError);
 
     fs.unlinkSync("big-file.bin");
   });
 
   it("bad request error for bad file", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
-    await callApi
+    const response = await callApi
       .post("/")
       .set("Content-Type", "application/json")
-      .send("This is not a file")
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(BadRequestError)
-        );
-      });
+      .send("This is not a file");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toBeHTTPError(BadRequestError);
   });
 
   it("bad request error when there is no file to store", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
-    await callApi
+    const response = await callApi
       .post("/")
-      .field("my-field", "no file attached")
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(BadRequestError)
-        );
-      });
+      .field("my-field", "no file attached");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toBeHTTPError(BadRequestError);
   });
 });

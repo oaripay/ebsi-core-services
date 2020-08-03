@@ -20,9 +20,9 @@ async function storeFile(filename, file) {
   const hash = ethers.utils.keccak256(data);
   const record = await getRecord(hash);
   if (record)
-    throw new BadRequestError(
-      `This file is already stored with name '${record.filename}'`
-    );
+    throw new BadRequestError(BadRequestError.defaultTitle, {
+      detail: `This file is already stored with name '${record.filename}'`,
+    });
 
   const query = `insert into ${TABLE_FILE_STORAGE} (id, filename, hash, data) VALUES (now(), ?, ?, ?)`;
   const params = [filename, hash, data];
@@ -38,14 +38,20 @@ async function storeFile(filename, file) {
 
 async function readFile(hash) {
   const record = await getRecord(hash);
-  if (!record) throw new NotFoundError("File not found");
+  if (!record)
+    throw new NotFoundError(NotFoundError.defaultTitle, {
+      detail: "File not found",
+    });
 
   return record;
 }
 
 async function deleteFile(hash) {
   const record = await getRecord(hash);
-  if (!record) throw new NotFoundError("File not found");
+  if (!record)
+    throw new NotFoundError(NotFoundError.defaultTitle, {
+      detail: "File not found",
+    });
 
   const query = `delete from ${TABLE_FILE_STORAGE} where id = ? and hash = ? if exists`;
   const result = await cassandra.execute(query, [record.id, hash]);

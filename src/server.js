@@ -1,12 +1,15 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-
 const config = require("./config");
 const cassandra = require("./cassandraClient");
 const logger = require("./logger");
 const auth = require("./auth");
-const errors = require("./errors");
+const {
+  BadRequestError,
+  NotFoundError,
+  handler: errorHandler,
+} = require("./errors");
 const fileStorageAPI = require("./api/file-storage/router");
 const keyValueStorageAPI = require("./api/key-value-storage/router");
 const notificationStorageAPI = require("./api/notification-storage/router");
@@ -100,7 +103,11 @@ class App {
 
     this.httpServer.param("store", (req, res, next, store) => {
       if (store !== "distributed") {
-        next(new errors.NotFoundError(`Store '${store}' not found`));
+        next(
+          new NotFoundError(NotFoundError.defaultTitle, {
+            detail: `Store '${store}' not found`,
+          })
+        );
         return;
       }
       req.store = store;
@@ -134,11 +141,13 @@ class App {
 
     this.httpServer.use((req, res, next) => {
       next(
-        new errors.BadRequestError(`Invalid service '${req.method} ${req.url}'`)
+        new BadRequestError(BadRequestError.defaultTitle, {
+          detail: `Invalid service '${req.method} ${req.url}'`,
+        })
       );
     });
 
-    this.httpServer.use(errors.handler);
+    this.httpServer.use(errorHandler);
   }
 
   getServer() {

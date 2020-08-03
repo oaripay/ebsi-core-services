@@ -4,15 +4,14 @@ const jose = require("jose");
 const crypto = require("crypto");
 const fs = require("fs");
 const ethers = require("ethers");
-
 const config = require("../../src/config");
 const Server = require("../../src/server");
 
 const {
   BadRequestError,
   NotFoundError,
-  TooLargeError,
-  InternalError,
+  PayloadTooLargeError,
+  InternalServerError,
 } = require("../../src/errors");
 
 jest.mock("cassandra-driver");
@@ -56,42 +55,8 @@ function getExecuteCalls() {
   return instanceFile.execute.mock.calls;
 }
 
-expect.extend({
-  toBeHTTPError(received, ErrorClass) {
-    if (!received.title || !received.status)
-      return {
-        message: () =>
-          `received does not contain title and status. received: ${received}`,
-        pass: false,
-      };
-    const error = new ErrorClass();
-    if (received.title !== error.title) {
-      return {
-        message: () =>
-          `expected title: ${error.title}. received: ${received.title}`,
-        pass: false,
-      };
-    }
-    if (received.status !== error.status) {
-      return {
-        message: () =>
-          `expected title: ${error.title}. received: ${received.title}`,
-        pass: false,
-      };
-    }
-    return {
-      message: () => `not expected: ${error.print()}. received: ${received}`,
-      pass: true,
-    };
-  },
-});
-
-/* eslint jest/no-hooks: "off" */
 describe("file storage tests", () => {
-  afterAll(async () => {
-    server.close();
-  });
-
+  // eslint-disable-next-line jest/no-hooks
   beforeAll(async () => {
     const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKey);
     const fn = (type) => {
@@ -110,6 +75,7 @@ describe("file storage tests", () => {
     };
   });
 
+  // eslint-disable-next-line jest/no-hooks
   beforeEach(() => {
     // clear calls to cassandra.execute
     const instanceFile = cassandraDriver.Client.mock.instances[0];
@@ -117,116 +83,112 @@ describe("file storage tests", () => {
   });
 
   it("get list files", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([{ hash: "hash1" }, { hash: "hash2" }]);
     });
 
-    await callApi
-      .get("/")
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: ["hash1", "hash2"],
-            total: 2,
-          })
-        );
-      });
+    const response = await callApi.get("/");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: ["hash1", "hash2"],
+        total: 2,
+      })
+    );
 
     const [callSearch] = getExecuteCalls();
     const opts = { prepare: true, fetchSize: 10 };
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([queries.getListFiles, [], opts])
     );
   });
 
   it("get list files and custom page size", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([{ hash: "hash1" }, { hash: "hash2" }]);
     });
 
-    await callApi
-      .get("/?page[size]=11")
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: ["hash1", "hash2"],
-            total: 2,
-          })
-        );
-      });
+    const response = await callApi.get("/?page[size]=11");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: ["hash1", "hash2"],
+        total: 2,
+      })
+    );
 
     const [callSearch] = getExecuteCalls();
     const opts = { prepare: true, fetchSize: 11 };
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([queries.getListFiles, [], opts])
     );
   });
 
   it("get list files and custom page size and page after", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([{ hash: "hash1" }, { hash: "hash2" }], "efgh");
     });
 
-    await callApi
-      .get("/?page[size]=11&page[after]=abcd")
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: ["hash1", "hash2"],
-            total: 2,
-            links: {
-              first: "/storage/v1/stores/distributed/files?page%5Bsize%5D=11",
-              next:
-                "/storage/v1/stores/distributed/files?page%5Bsize%5D=11&page%5Bafter%5D=efgh",
-            },
-          })
-        );
-      });
+    const response = await callApi.get("/?page[size]=11&page[after]=abcd");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: ["hash1", "hash2"],
+        total: 2,
+        links: {
+          first: "/storage/v1/stores/distributed/files?page%5Bsize%5D=11",
+          next:
+            "/storage/v1/stores/distributed/files?page%5Bsize%5D=11&page%5Bafter%5D=efgh",
+        },
+      })
+    );
 
     const [callSearch] = getExecuteCalls();
     const opts = { prepare: true, fetchSize: 11, pageState: "abcd" };
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([queries.getListFiles, [], opts])
     );
   });
 
   it("get list files and different query", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([{ hash: "hash1" }, { hash: "hash2" }]);
     });
 
-    await callApi
-      .get("/?page[xxx]=11")
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            items: ["hash1", "hash2"],
-            total: 2,
-          })
-        );
-      });
+    const response = await callApi.get("/?page[xxx]=11");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        items: ["hash1", "hash2"],
+        total: 2,
+      })
+    );
 
     const [callSearch] = getExecuteCalls();
     const opts = { prepare: true, fetchSize: 10 };
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([queries.getListFiles, [], opts])
     );
   });
 
   it("upload file", async () => {
-    expect.assertions(3);
+    expect.assertions(4);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([]);
@@ -234,20 +196,18 @@ describe("file storage tests", () => {
 
     const { data, hash } = createRandomFile("test-file.bin");
 
-    await callApi
-      .post("/")
-      .attach("file", "test-file.bin")
-      .expect(201)
-      .then((response) => {
-        expect(response.body).toStrictEqual({
-          hash,
-          function: "keccak256",
-        });
-      });
+    const response = await callApi.post("/").attach("file", "test-file.bin");
+
+    expect(response.status).toBe(201);
+    expect(response.body).toStrictEqual({
+      hash,
+      function: "keccak256",
+    });
 
     fs.unlinkSync("test-file.bin");
 
     const [callSearch, callInsert] = getExecuteCalls();
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([queries.getFile, [hash]])
     );
@@ -260,7 +220,7 @@ describe("file storage tests", () => {
   });
 
   it("get file", async () => {
-    expect.assertions(2);
+    expect.assertions(4);
 
     const { data, hash } = createRandomFile("test.bin", 20, false);
     const length = `${data.length}`;
@@ -275,24 +235,26 @@ describe("file storage tests", () => {
       ]);
     });
 
-    await callApi
-      .get(`/${hash}`)
-      .expect(200)
-      .expect("Content-Length", length)
-      .expect("Content-Disposition", "attachment; filename=test.bin")
-      .responseType("blob")
-      .then((response) => {
-        expect(response.body).toStrictEqual(data);
-      });
+    const response = await callApi.get(`/${hash}`).responseType("blob");
+
+    expect(response.status).toBe(200);
+    expect(response.headers).toStrictEqual(
+      expect.objectContaining({
+        "content-length": `${length}`,
+        "content-disposition": "attachment; filename=test.bin",
+      })
+    );
+    expect(response.body).toStrictEqual(data);
 
     const [call] = getExecuteCalls();
+
     expect(call).toStrictEqual(
       expect.arrayContaining([queries.getFile, [hash]])
     );
   });
 
   it("delete file", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     const { data, hash } = createRandomFile("test.bin", 20, false);
     const id = "e406c4d3-a184-44f4-8f9d-407e87081dff";
@@ -314,9 +276,12 @@ describe("file storage tests", () => {
       }
     });
 
-    await callApi.delete(`/${hash}`).expect(204);
+    const response = await callApi.delete(`/${hash}`);
+
+    expect(response.status).toBe(204);
 
     const [callSearch, callDelete] = getExecuteCalls();
+
     expect(callSearch).toStrictEqual(
       expect.arrayContaining([queries.getFile, [hash]])
     );
@@ -328,7 +293,7 @@ describe("file storage tests", () => {
   /* Test Errors */
 
   it("error file already exist", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     const { data, hash } = createRandomFile("test-file.bin");
 
@@ -342,67 +307,49 @@ describe("file storage tests", () => {
       ]);
     });
 
-    await callApi
-      .post("/")
-      .attach("file", "test-file.bin")
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(BadRequestError)
-        );
-      });
+    const response = await callApi.post("/").attach("file", "test-file.bin");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toBeHTTPError(BadRequestError);
 
     fs.unlinkSync("test-file.bin");
   });
 
   it("file not found error", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([]);
     });
 
-    await callApi
-      .get("/my-hash")
-      .expect(404)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(NotFoundError)
-        );
-      });
+    const response = await callApi.get("/my-hash");
+
+    expect(response.status).toBe(404);
+    expect(response.body).toBeHTTPError(NotFoundError);
   });
 
   it("file not found error when deleting", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     mockExecute.mockImplementation(() => {
       return cassandraResponse([]);
     });
 
-    await callApi
-      .delete("/my-hash")
-      .expect(404)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(NotFoundError)
-        );
-      });
+    const response = await callApi.delete("/my-hash");
+
+    expect(response.status).toBe(404);
+    expect(response.body).toBeHTTPError(NotFoundError);
   });
 
   it("error too large file", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     createRandomFile("big-file.bin", 16 * 1024 * 1024);
 
-    await callApi
-      .post("/")
-      .attach("file", "big-file.bin")
-      .expect(413)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(TooLargeError)
-        );
-      });
+    const response = await callApi.post("/").attach("file", "big-file.bin");
+
+    expect(response.status).toBe(413);
+    expect(response.body).toBeHTTPError(PayloadTooLargeError);
 
     fs.unlinkSync("big-file.bin");
 
@@ -411,54 +358,44 @@ describe("file storage tests", () => {
   });
 
   it("bad request error for bad file", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
-    await callApi
+    const response = await callApi
       .post("/")
       .set("Content-Type", "application/json")
-      .send("This is not a file")
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(BadRequestError)
-        );
-      });
+      .send("This is not a file");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toBeHTTPError(BadRequestError);
   });
 
   it("bad request error when there is no file to store", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
-    await callApi
+    const response = await callApi
       .post("/")
-      .field("my-field", "no file attached")
-      .expect(400)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(BadRequestError)
-        );
-      });
+      .field("my-field", "no file attached");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toBeHTTPError(BadRequestError);
   });
 
   it("internal error in cassandra for search", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     mockExecute.mockImplementation((query) => {
       if (query === queries.getListFiles) return "Cassandra error";
       return cassandraResponse([]);
     });
 
-    await callApi
-      .get("/")
-      .expect(500)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(InternalError)
-        );
-      });
+    const response = await callApi.get("/");
+
+    expect(response.status).toBe(500);
+    expect(response.body).toBeHTTPError(InternalServerError);
   });
 
   it("internal error in cassandra for insert", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     mockExecute.mockImplementation((query) => {
       if (query === queries.insertFile) return "Cassandra error";
@@ -466,21 +403,16 @@ describe("file storage tests", () => {
     });
 
     createRandomFile("test-file.bin");
-    await callApi
-      .post("/")
-      .attach("file", "test-file.bin")
-      .expect(500)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(InternalError)
-        );
-      });
+    const response = await callApi.post("/").attach("file", "test-file.bin");
+
+    expect(response.status).toBe(500);
+    expect(response.body).toBeHTTPError(InternalServerError);
 
     fs.unlinkSync("test-file.bin");
   });
 
   it("internal error in cassandra for delete", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     const { data, hash } = createRandomFile("test-file.bin", 20, false);
     const id = "932729b0-dcb0-4304-a376-5dba15148864";
@@ -496,13 +428,9 @@ describe("file storage tests", () => {
       ]);
     });
 
-    await callApi
-      .delete(`/${hash}`)
-      .expect(500)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.toBeHTTPError(InternalError)
-        );
-      });
+    const response = await callApi.delete(`/${hash}`);
+
+    expect(response.status).toBe(500);
+    expect(response.body).toBeHTTPError(InternalServerError);
   });
 });

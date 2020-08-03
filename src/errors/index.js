@@ -1,42 +1,42 @@
+const {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+  PayloadTooLargeError,
+  InternalServerError,
+} = require("@cef-ebsi/problem-details-errors");
+const { errorHandler } = require("@cef-ebsi/express-problem-details");
+const KeyTooLargeError = require("./KeyTooLargeError");
+const ValueTooLargeError = require("./ValueTooLargeError");
 const logger = require("../logger");
 
-const HTTPError = require("./HTTPError");
-const BadRequestError = require("./BadRequestError");
-const InternalError = require("./InternalError");
-const KeyTooLargeError = require("./KeyTooLargeError");
-const NotFoundError = require("./NotFoundError");
-const TooLargeError = require("./TooLargeError");
-const UnauthorizedError = require("./UnauthorizedError");
-const ValueTooLargeError = require("./ValueTooLargeError");
+const handler = errorHandler((normalizedError, originalError) => {
+  if (originalError) {
+    // Axios error
+    if (originalError.response)
+      logger.error(JSON.stringify(originalError.response.data));
 
-function handler(_error, req, res, next) {
-  let error;
-  if (_error.name === "HTTPError") error = _error;
-  else {
-    error = new InternalError(_error.message);
-    error.stack = _error.stack;
+    logger.error(originalError.stack);
   }
 
-  if (error.status >= 500) {
-    logger.error(error.stack);
-  }
-
-  logger.info(`Error ${error.status}: ${error.detail}`);
-  res.setHeader("Content-Type", "application/problem+json");
-  res.status(error.status);
-  res.send(error.print());
-
-  next();
-}
+  logger.info(
+    `Error ${normalizedError.status} ${normalizedError.title}: ${normalizedError.detail}`
+  );
+});
 
 module.exports = {
   handler,
-  HTTPError,
   BadRequestError,
-  InternalError,
+  NotFoundError,
+};
+
+module.exports = {
+  handler,
+  BadRequestError,
   KeyTooLargeError,
   NotFoundError,
-  TooLargeError,
+  PayloadTooLargeError,
   UnauthorizedError,
   ValueTooLargeError,
+  InternalServerError,
 };

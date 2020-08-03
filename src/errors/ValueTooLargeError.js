@@ -1,8 +1,8 @@
-const HTTPError = require("./HTTPError");
+const { PayloadTooLargeError } = require("@cef-ebsi/problem-details-errors");
 
-class ValueTooLargeError extends HTTPError {
+class ValueTooLargeError extends PayloadTooLargeError {
   constructor(detail) {
-    super("Payload Too large", 413, detail);
+    super(PayloadTooLargeError.defaultTitle, { detail });
   }
 }
 

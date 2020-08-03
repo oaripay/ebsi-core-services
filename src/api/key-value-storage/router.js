@@ -23,9 +23,9 @@ router.use((req, res, next) => {
     !req.is("application/*+json")
   ) {
     next(
-      new BadRequestError(
-        `The content type ${req.get("content-type")} is not supported`
-      )
+      new BadRequestError(BadRequestError.defaultTitle, {
+        detail: `The content type ${req.get("content-type")} is not supported`,
+      })
     );
     return;
   }
@@ -37,9 +37,10 @@ router.use(bodyParser.json({ type: "application/*json", ...opts }));
 router.use(bodyParser.json({ type: "application/*+json", ...opts }));
 router.use((error, req, res, next) => {
   next(
-    new BadRequestError(
-      "The body is defined for 'application/*json' but it cannot be parsed as JSON. Try it defining body as 'text/plain'"
-    )
+    new BadRequestError(BadRequestError.defaultTitle, {
+      detail:
+        "The body is defined for 'application/*json' but it cannot be parsed as JSON. Try it defining body as 'text/plain'",
+    })
   );
 });
 

@@ -1,7 +1,6 @@
 const supertest = require("supertest");
 const jose = require("jose");
 const { Agent, TrustedAppRegistry } = require("@cef-ebsi/app-jwt");
-
 const config = require("../../src/config");
 const Server = require("../../src/server");
 
@@ -14,14 +13,9 @@ const randomKey = () => jose.JWK.generateSync("EC", "secp256k1");
 
 const token = jose.JWT.sign({ aud: "ebsi-storage" }, config.privKey);
 
-/* eslint jest/no-hooks: "off" */
 describe("authentication in storage api", () => {
-  afterAll(async () => {
-    server.close();
-  });
-
   it("create a new session with storage api", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
     const agent = new Agent();
     const requestToken = await agent.createRequestPayload("ebsi-storage");
 
@@ -32,62 +26,71 @@ describe("authentication in storage api", () => {
       .spyOn(TrustedAppRegistry.prototype, "checkAuthorization")
       .mockResolvedValue(true);
 
-    await request
+    const response = await request
       .post("/storage/v1/sessions")
-      .send(requestToken)
-      .expect(200)
-      .then((response) => {
-        expect(response.body).toStrictEqual(
-          expect.objectContaining({
-            accessToken: expect.any(String),
-            tokenType: "Bearer",
-            expiresIn: 900,
-            issuedAt: expect.any(Number),
-          })
-        );
-      });
+      .send(requestToken);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(
+      expect.objectContaining({
+        accessToken: expect.any(String),
+        tokenType: "Bearer",
+        expiresIn: 900,
+        issuedAt: expect.any(Number),
+      })
+    );
 
     mock1.mockRestore();
     mock2.mockRestore();
   });
 
   it("reject bad login", async () => {
-    expect.assertions(0);
+    expect.assertions(1);
 
-    await request
+    const response = await request
       .post("/storage/v1/sessions")
-      .send({ randomBody: "bad assertion" })
-      .expect(400);
+      .send({ randomBody: "bad assertion" });
+
+    expect(response.status).toBe(400);
   });
 
   it("handle token in the headers", async () => {
-    expect.assertions(0);
-    await request
+    expect.assertions(1);
+
+    const response = await request
       .get("/storage/v1/stores")
-      .set("Authorization", `Bearer ${token}`)
-      .expect(200);
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
   });
 
   it("error no token present in headers", async () => {
-    expect.assertions(0);
-    await request.get("/storage/v1/stores").expect(401);
+    expect.assertions(1);
+
+    const response = await request.get("/storage/v1/stores");
+
+    expect(response.status).toBe(401);
   });
 
   it("error token with invalid signature", async () => {
-    expect.assertions(0);
+    expect.assertions(1);
+
     const badToken = jose.JWT.sign({ aud: config.API_NAME }, randomKey());
-    await request
+    const response = await request
       .get("/storage/v1/stores")
-      .set("Authorization", `Bearer ${badToken}`)
-      .expect(400);
+      .set("Authorization", `Bearer ${badToken}`);
+
+    expect(response.status).toBe(400);
   });
 
   it("error token with bad audience", async () => {
-    expect.assertions(0);
+    expect.assertions(1);
+
     const badToken = jose.JWT.sign({ aud: "other app" }, config.privKey);
-    await request
+    const response = await request
       .get("/storage/v1/stores")
-      .set("Authorization", `Bearer ${badToken}`)
-      .expect(400);
+      .set("Authorization", `Bearer ${badToken}`);
+
+    expect(response.status).toBe(400);
   });
 });

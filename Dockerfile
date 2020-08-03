@@ -7,4 +7,4 @@ RUN chown node:node /api
 USER node
 EXPOSE 8080
 ENV NODE_ENV production
-CMD yarn run start
+CMD [ "node", "src/start.js" ]

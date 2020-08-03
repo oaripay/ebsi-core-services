@@ -8,7 +8,11 @@ const router = express.Router();
 
 router.use(bodyParser.json({ type: "*/*" }));
 router.use((error, req, res, next) => {
-  next(new BadRequestError("The body can not be parsed as application/json"));
+  next(
+    new BadRequestError(BadRequestError.defaultTitle, {
+      detail: "The body can not be parsed as application/json",
+    })
+  );
 });
 
 // List of notifications
