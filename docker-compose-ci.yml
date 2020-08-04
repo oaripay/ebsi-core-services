@@ -3,4 +3,4 @@ version: "3.7"
 services:
   trusted-apps-registry-api:
     build: .
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/integration/trusted-apps-registry-api:integration_ebsiint-1923-libs_v0.0.1
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/trusted-apps-registry-api:integration_ebsiint-1923-libs_v0.0.2
