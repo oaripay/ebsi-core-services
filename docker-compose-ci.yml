@@ -3,4 +3,4 @@ version: "3.7"
 services:
   identity-hub-api:
     build: .
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/identity-hub-api:integration_ebsiint-1899-jenkinsfile_v0.0.1
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/identity-hub-api:integration_ebsiint-1919-libs_v0.0.1

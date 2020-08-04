@@ -3,7 +3,7 @@ import http from "http";
 import EBSI_JWT from "@cef-ebsi/app-jwt";
 import { startEbsiService } from "../../src/api/app";
 import { EBSI_SERVICE } from "../../src/config";
-import { EbsiApiErrorsInt, BadRequestError } from "../../src/errors";
+import { BadRequestError } from "../../src/errors";
 import {
   GrantType,
   EbsiAccessTokenScope,
@@ -45,7 +45,7 @@ describe("identity Hub router API calls", () => {
       const res = await request(server).post(
         `${EBSI_SERVICE.BASE_PATH.IDHUB}${EBSI_SERVICE.CALL.EBSI_LOGIN}`
       );
-      expect(res.status).toBe(EbsiApiErrorsInt.BAD_REQUEST_400);
+      expect(res.status).toBe(400);
       jest.resetAllMocks();
     });
 

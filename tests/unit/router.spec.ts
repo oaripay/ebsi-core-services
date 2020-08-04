@@ -2,7 +2,6 @@ import request from "supertest";
 import http from "http";
 import { startEbsiService } from "../../src/api/app";
 import { EBSI_SERVICE } from "../../src/config";
-import { EbsiApiErrorsInt } from "../../src/errors";
 import * as auth from "../../src/middleware/auth";
 import * as authJwt from "../../src/middleware/jwt";
 import Controller from "../../src/api/identityHub/controller";
@@ -37,7 +36,7 @@ describe("identity Hub router API calls", () => {
   it("responds 404 to /", async () => {
     expect.assertions(1);
     const res = await request(server).get("/");
-    expect(res.status).toStrictEqual(EbsiApiErrorsInt.NOT_FOUND_404);
+    expect(res.status).toStrictEqual(404);
   });
 
   it("responds 200 to /openapi.json", async () => {

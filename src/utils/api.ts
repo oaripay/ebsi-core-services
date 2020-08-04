@@ -133,19 +133,6 @@ async function doPostFormCallWithToken(
   }
 }
 
-async function doGetCallWithoutToken(url: string): Promise<any> {
-  PRINT_SILLY(`GET: ${url}`);
-  try {
-    const response = await axios.get(url);
-    PRINT_SILLY("AXIOS GET RESPONSE: ");
-    PRINT_SILLY(response.data);
-    return response.data;
-  } catch (error) {
-    PRINT_ERROR(error);
-    throw error;
-  }
-}
-
 async function doGetCallWithToken(token: string, url: string): Promise<any> {
   const config = { headers: { Authorization: `Bearer ${token}` } };
   PRINT_SILLY(`GET: ${url}`);
@@ -164,7 +151,6 @@ async function doGetCallWithToken(token: string, url: string): Promise<any> {
 export {
   doPostFormCallWithToken,
   doPostCallWithoutToken,
-  doGetCallWithoutToken,
   doDeleteCallWithToken,
   doPatchCallWithToken,
   doPostCallWithToken,

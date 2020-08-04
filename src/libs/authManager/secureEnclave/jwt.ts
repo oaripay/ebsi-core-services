@@ -17,29 +17,12 @@ export interface JWTClaims {
   jti?: string; // (JWT ID) Claim
 }
 
-export interface UserAuthNToken extends JWTClaims {
-  iss: string; // DID of the User
-  aud: string; // RP Application Name as registered in the Trusted Apps Registry.
-  iat: number; // The date at a time when the Assertion Token was issued.
-  exp: number; // Expiration time on or after which the token MUST NOT be accepted for processin
-  ticket: string; // EU Login Ticket
-  publicKey: string; // MUST be user's public key from which the `iss` DID is derived.
-}
-
 export interface LegalEntityAuthNToken extends JWTClaims {
   iss: string;
   aud: string;
   iat: number;
   exp: number;
   nonce: string;
-}
-
-export interface ComponentAuthNToken extends JWTClaims {
-  sub: string;
-  iss: string;
-  aud: string;
-  iat: number;
-  exp: number;
 }
 
 export interface IComponentAuthZToken extends JWTClaims {
@@ -103,8 +86,4 @@ export enum AuthorizationType {
 export interface AccessTokenRequestHeaders {
   "Content-Type": ContentType.urlencoded;
   Authorization: AuthorizationType.DID_CCG_TAR_V1;
-}
-
-export enum SignatureTypes {
-  EcdsaSecp256k1Signature2019 = "EcdsaSecp256k1Signature2019",
 }

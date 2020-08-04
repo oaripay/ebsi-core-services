@@ -1,55 +1,39 @@
-import InternalError from "./InternalError";
-import HTTPError from "./HTTPError";
-import BadRequestError from "./BadRequestError";
-import InvalidAppError from "./InvalidAppError";
-import NotFoundError from "./NotFoundError";
-import InvalidTokenError from "./InvalidTokenError";
-import UnauthorizedError from "./UnauthorizedError";
-import TrustedAppNotFoundError from "./TrustedAppNotFoundError";
-
-import LOGGER from "../logger";
 import {
-  EbsiError,
-  WalletMessages,
-  ApiErrorMessages,
-  EbsiApiErrorsInt,
-  EbsiApiErrors,
-} from "./errorCodes";
+  BadRequestError,
+  InternalServerError,
+  NotFoundError,
+  ProblemDetailsError,
+  UnauthorizedError,
+} from "@cef-ebsi/problem-details-errors";
+import { errorHandler } from "@cef-ebsi/express-problem-details";
+import InvalidAppError from "./InvalidAppError";
+import InvalidTokenError from "./InvalidTokenError";
+import TrustedAppNotFoundError from "./TrustedAppNotFoundError";
+import LOGGER from "../logger";
+import { ApiErrorMessages } from "./errorCodes";
 
-const handleError = (err, req, res, next) => {
-  if (res.headersSent) next(err);
-  let error: HTTPError;
-  if (err.Name === "HTTPError") error = err;
-  else if (err.message && err.message.includes("400"))
-    error = new BadRequestError(err.message);
-  else error = new InternalError(err.message);
+const handleError = errorHandler(
+  (normalizedError: ProblemDetailsError, originalError?: Error) => {
+    if (process.env.EBSI_ENV === "test") LOGGER.silent = true;
+    if (originalError) {
+      LOGGER.error(originalError);
+    }
 
-  if (process.env.EBSI_ENV === "test") LOGGER.silent = true;
-  if (error.Status >= 500) {
-    LOGGER.error(error.Detail);
-    LOGGER.error(error);
+    LOGGER.error(
+      `Error ${normalizedError.status} ${normalizedError.title}: ${normalizedError.detail}`
+    );
   }
-
-  LOGGER.error(`Error ${error.Status}: ${error.Detail}`);
-  res.setHeader("Content-Type", "application/json");
-  res.status(error.Status);
-  res.json(error.print());
-  next();
-};
+);
 
 export {
-  HTTPError,
-  EbsiError,
+  ProblemDetailsError,
   handleError,
   NotFoundError,
-  InternalError,
+  InternalServerError,
   InvalidAppError,
-  EbsiApiErrors,
-  WalletMessages,
   BadRequestError,
   InvalidTokenError,
   UnauthorizedError,
   ApiErrorMessages,
-  EbsiApiErrorsInt,
   TrustedAppNotFoundError,
 };

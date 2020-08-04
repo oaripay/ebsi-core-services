@@ -1,29 +1,11 @@
 import httpMocks from "node-mocks-http";
 import { EventEmitter } from "events";
-import { handleError, HTTPError } from "../../src/errors";
+import { handleError } from "../../src/errors";
+import LOGGER from "../../src/logger";
 
 describe("handleError middleware", () => {
-  it("should call next when headerSent are true", () => {
+  it("should call res.json with a 500 Error", () => {
     expect.assertions(2);
-    const req = httpMocks.createRequest();
-    const res = httpMocks.createResponse({
-      eventEmitter: EventEmitter,
-    });
-
-    const err = new HTTPError("Test Error", 505, "this is an error");
-
-    const next = jest.fn();
-    next.mockImplementation((input) => {
-      return input;
-    });
-    res.send("OK");
-    handleError(err, req, res, next);
-    expect(next).toHaveBeenCalledWith(err);
-    expect(next).toHaveBeenCalledTimes(2);
-  });
-
-  it("should call next when headerSent are false with a 400 Error", () => {
-    expect.assertions(1);
     const req = httpMocks.createRequest();
     const res = httpMocks.createResponse({
       eventEmitter: EventEmitter,
@@ -32,28 +14,15 @@ describe("handleError middleware", () => {
     const err = new Error("Text error: 400");
 
     const next = jest.fn();
-    next.mockImplementation((input) => {
-      return input;
-    });
+    jest.spyOn(res, "json").mockImplementation();
     handleError(err, req, res, next);
-    expect(next).toHaveBeenCalledTimes(1);
-  });
-
-  it("should call next when headerSent are false: Internal Error", () => {
-    expect.assertions(1);
-    const req = httpMocks.createRequest();
-    const res = httpMocks.createResponse({
-      eventEmitter: EventEmitter,
+    expect(res.json).toHaveBeenCalledTimes(1);
+    expect(res.json).toHaveBeenCalledWith({
+      detail: "Text error: 400",
+      status: 500,
+      title: "Internal Server Error",
+      type: "about:blank",
     });
-
-    const err = new Error("Text error: another Error");
-
-    const next = jest.fn();
-    next.mockImplementation((input) => {
-      return input;
-    });
-    handleError(err, req, res, next);
-    expect(next).toHaveBeenCalledTimes(1);
   });
 
   it("should print values with EBSI_ENV set to local", () => {
@@ -64,15 +33,14 @@ describe("handleError middleware", () => {
     });
 
     const err = new Error("Sample");
-
     const next = jest.fn();
-    next.mockImplementation((input) => {
-      return input;
-    });
+    jest.spyOn(LOGGER, "error").mockImplementation();
+
     process.env.EBSI_ENV = "local";
     handleError(err, req, res, next);
     process.env.EBSI_ENV = "test";
-    expect(next).toHaveBeenCalledTimes(1);
+
+    expect(LOGGER.error).toHaveBeenCalledTimes(2);
   });
 
   it("should NOT print values with EBSI_ENV set to test", () => {
@@ -84,12 +52,11 @@ describe("handleError middleware", () => {
     });
 
     const err = new Error("Sample");
-
     const next = jest.fn();
-    next.mockImplementation((input) => {
-      return input;
-    });
+    jest.spyOn(LOGGER, "error").mockImplementation();
+
     handleError(err, req, res, next);
-    expect(next).toHaveBeenCalledTimes(1);
+
+    expect(LOGGER.error).toHaveBeenCalledTimes(4);
   });
 });

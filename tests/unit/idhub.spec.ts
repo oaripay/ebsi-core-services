@@ -500,11 +500,11 @@ describe("identity Hub api suite", () => {
         attribute,
         newAttribute: false,
       };
-      jest
-        .spyOn(CASFile.prototype, "insert")
-        .mockRejectedValue(
-          new BadRequestError("This file is already stored with name")
-        );
+      jest.spyOn(CASFile.prototype, "insert").mockRejectedValue(
+        new BadRequestError(BadRequestError.defaultTitle, {
+          detail: "This file is already stored with name",
+        })
+      );
       jest.spyOn(IDHub.Instance, "getAttribute").mockResolvedValue(attribute);
       const response = await IDHub.Instance.setAttribute(
         did,
@@ -625,11 +625,11 @@ describe("identity Hub api suite", () => {
           base64: util.b64EncodeUrl("some random data"),
         },
       };
-      jest
-        .spyOn(CASFile.prototype, "insert")
-        .mockRejectedValue(
-          new BadRequestError("This file is already stored with name")
-        );
+      jest.spyOn(CASFile.prototype, "insert").mockRejectedValue(
+        new BadRequestError(BadRequestError.defaultTitle, {
+          detail: "This file is already stored with name",
+        })
+      );
       jest.spyOn(IDHub.Instance, "getAttribute").mockResolvedValue(attribute);
       await expect(
         IDHub.Instance.setAttribute(did, hash, attributeInput)

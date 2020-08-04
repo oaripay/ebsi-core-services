@@ -2,7 +2,7 @@ import { ComponentSecureEnclave } from "../../src/libs/authManager/secureEnclave
 import { API_PRIVATE_KEY } from "../../src/config";
 
 describe("componentSecureEnclave test suite", () => {
-  it("should throw InternalError with no encryptedKeystore", async () => {
+  it("should throw InternalServerError with no encryptedKeystore", async () => {
     expect.assertions(1);
     const se = ComponentSecureEnclave.Instance;
     se.enclaveDid = "";
@@ -12,7 +12,7 @@ describe("componentSecureEnclave test suite", () => {
     );
   });
 
-  it("should throw InternalError with no did: getPublicKey", () => {
+  it("should throw InternalServerError with no did: getPublicKey", () => {
     expect.assertions(1);
     const se = ComponentSecureEnclave.Instance;
     se.enclaveDid = "";
@@ -20,7 +20,7 @@ describe("componentSecureEnclave test suite", () => {
     expect(() => se.getPublicKey("")).toThrow("Internal Server Error");
   });
 
-  it("should throw InternalError with no did: signJwt", async () => {
+  it("should throw InternalServerError with no did: signJwt", async () => {
     expect.assertions(1);
     const se = ComponentSecureEnclave.Instance;
     se.enclaveDid = "";
@@ -30,7 +30,7 @@ describe("componentSecureEnclave test suite", () => {
     );
   });
 
-  it("should throw InternalError with no did: encrypt", () => {
+  it("should throw InternalServerError with no did: encrypt", () => {
     expect.assertions(1);
     const se = ComponentSecureEnclave.Instance;
     se.enclaveDid = "";
@@ -38,7 +38,7 @@ describe("componentSecureEnclave test suite", () => {
     expect(() => se.encrypt("" as any)).toThrow("Internal Server Error");
   });
 
-  it("should throw InternalError with no did: decrypt", () => {
+  it("should throw InternalServerError with no did: decrypt", () => {
     expect.assertions(1);
     const se = ComponentSecureEnclave.Instance;
     se.enclaveDid = "";

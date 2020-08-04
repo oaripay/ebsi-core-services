@@ -1,8 +1,8 @@
-import HTTPError from "./HTTPError";
+import { BadRequestError } from "@cef-ebsi/problem-details-errors";
 
-class InvalidAppError extends HTTPError {
+class InvalidAppError extends BadRequestError {
   constructor(detail: string) {
-    super("Invalid App", 400, detail);
+    super("Invalid App", { detail });
   }
 }
 

@@ -10,9 +10,8 @@ import { EBSI_DEFAULT_DATA_STORE } from "../../config";
 import { DataStoreManager } from "../dataStorages";
 import { ICASStorageOut } from "../../dtos/dataStorage";
 import {
-  InternalError,
+  InternalServerError,
   ApiErrorMessages,
-  EbsiApiErrors,
   BadRequestError,
   NotFoundError,
 } from "../../errors";
@@ -139,7 +138,9 @@ export default class IDHub {
       const tmpAttribute = { ...attributeInfo };
       delete tmpAttribute.id;
       if (!equal(tmpAttribute, await this.getAttributeInfo(did, hash)))
-        throw new InternalError(ApiErrorMessages.ATTRIBUTES_MISMATCH);
+        throw new InternalServerError(InternalServerError.defaultTitle, {
+          detail: ApiErrorMessages.ATTRIBUTES_MISMATCH,
+        });
     }
     // we add attribute info only when it is a new attribute
     if (newAttribute) await this.addAttributeInfo(did, attributeInfo);
@@ -173,16 +174,22 @@ export default class IDHub {
     try {
       const response: ICASStorageOut = await this.attributeFileDB.insert(file);
       if (!response || !response.hash)
-        throw new InternalError(ApiErrorMessages.ERROR_STORING_FILE);
+        throw new InternalServerError(InternalServerError.defaultTitle, {
+          detail: ApiErrorMessages.ERROR_STORING_FILE,
+        });
       if (response.hash !== inHash)
-        throw new InternalError(ApiErrorMessages.HASH_MISMATCH);
+        throw new InternalServerError(InternalServerError.defaultTitle, {
+          detail: ApiErrorMessages.HASH_MISMATCH,
+        });
       const newAttribute = true;
       return { hash: response.hash, newAttribute };
     } catch (error) {
       if (
-        (error as Error).message.includes(EbsiApiErrors.BAD_REQUEST) ||
-        ((error as BadRequestError).Detail &&
-          (error as BadRequestError).Detail.includes(
+        (error as Error).message.includes(
+          "Request failed with status code 400"
+        ) ||
+        ((error as BadRequestError).detail &&
+          (error as BadRequestError).detail!.includes(
             "This file is already stored with name"
           ))
       ) {
@@ -212,16 +219,16 @@ export default class IDHub {
   ): IAttribute {
     // checks if list has elements
     if (!attributes.length)
-      throw new NotFoundError(
-        `Attribute Info not found with this hash: ${hash}`
-      );
+      throw new NotFoundError(NotFoundError.defaultTitle, {
+        detail: `Attribute Info not found with this hash: ${hash}`,
+      });
     // finds the index of the element
     const index: number = attributes.findIndex((x) => x.hash === hash);
     // throws error if not found
     if (index === -1)
-      throw new NotFoundError(
-        `Attribute Info not found with this hash: ${hash}`
-      );
+      throw new NotFoundError(NotFoundError.defaultTitle, {
+        detail: `Attribute Info not found with this hash: ${hash}`,
+      });
     // returns the element
     return attributes[index];
   }

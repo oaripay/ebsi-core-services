@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
 import { JWT } from "jose";
 import { PRINT_ERROR } from "../utils/util";
-import { UnauthorizedError, InternalError, ApiErrorMessages } from "../errors";
+import {
+  UnauthorizedError,
+  InternalServerError,
+  ApiErrorMessages,
+} from "../errors";
 import {
   IUserAuthZToken,
   IEnterpriseAuthZToken,
@@ -15,8 +19,13 @@ const getTokenFromHeader = (req: Request): string => {
     token = token.slice(7, token.length);
     return token;
   }
-  PRINT_ERROR(ApiErrorMessages.NO_BEARER_TOKEN, "getTokenFromHeader");
-  throw new InternalError(ApiErrorMessages.NO_BEARER_TOKEN);
+  PRINT_ERROR(
+    new Error(ApiErrorMessages.NO_BEARER_TOKEN),
+    "getTokenFromHeader"
+  );
+  throw new InternalServerError(InternalServerError.defaultTitle, {
+    detail: ApiErrorMessages.NO_BEARER_TOKEN,
+  });
 };
 
 /**
@@ -36,7 +45,11 @@ const parseEntityJWT = (req: Request, res: Response, next): void => {
     const userAuthZToken = <IUserAuthZToken>JWT.decode(token);
     if (userAuthZToken.userName) {
       if (!userAuthZToken.did) {
-        next(new UnauthorizedError("Error parsing JWT: DID not found"));
+        next(
+          new UnauthorizedError(UnauthorizedError.defaultTitle, {
+            detail: "Error parsing JWT: DID not found",
+          })
+        );
         return;
       }
 
@@ -54,7 +67,11 @@ const parseEntityJWT = (req: Request, res: Response, next): void => {
       entityAuthZToken.aud.match(/^ebsi/)
     ) {
       if (!entityAuthZToken.did) {
-        next(new UnauthorizedError("Error parsing JWT: DID not found"));
+        next(
+          new UnauthorizedError(UnauthorizedError.defaultTitle, {
+            detail: "Error parsing JWT: DID not found",
+          })
+        );
         return;
       }
 
@@ -65,9 +82,9 @@ const parseEntityJWT = (req: Request, res: Response, next): void => {
       return;
     }
     // throw error if token is neither of this two types
-    throw new UnauthorizedError(
-      "token is neither a User or Legal Entity AuthZ Token"
-    );
+    throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
+      detail: "token is neither a User or Legal Entity AuthZ Token",
+    });
   } catch (error) {
     next(error);
   }

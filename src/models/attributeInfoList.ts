@@ -1,7 +1,7 @@
 import { IAttributeInfo, IAttributeInfoList } from "../dtos/attributeInfo";
 import { AttributeDAO } from "../daos/attribute";
 import KeyValueDataStorage from "../libs/dataStorages/keyValueDataStorage";
-import { BadRequestError, HTTPError } from "../errors";
+import { ProblemDetailsError, BadRequestError } from "../errors";
 
 /**
  * Class to a Credential Data
@@ -37,9 +37,9 @@ export default class AttributeInfoList extends KeyValueDataStorage {
         iAttributeList.list[index] = value;
       } catch (error) {
         // value does not exist
-        if (!error.Detail) throw error;
+        if (!error.detail) throw error;
         if (
-          !(error as HTTPError).Detail.includes(
+          !(error as ProblemDetailsError).detail!.includes(
             `Attribute Info not found with this id: ${value.id}`
           )
         )
@@ -160,12 +160,16 @@ export default class AttributeInfoList extends KeyValueDataStorage {
     const iAttributeList: IAttributeInfoList = (await this.get(key)).data;
     // checks if list has elements
     if (iAttributeList.list[0] === undefined)
-      throw new BadRequestError(`Attribute Info not found with this id: ${id}`);
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: `Attribute Info not found with this id: ${id}`,
+      });
     // finds the index of the element
     const index: number = iAttributeList.list.findIndex((x) => x.id === id);
     // throws error if not found
     if (index === -1)
-      throw new BadRequestError(`Attribute Info not found with this id: ${id}`);
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: `Attribute Info not found with this id: ${id}`,
+      });
     // returns the element
     const attributeInfo = iAttributeList.list[index];
     // return the elem index and its value

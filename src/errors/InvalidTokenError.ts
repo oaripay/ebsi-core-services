@@ -1,8 +1,8 @@
-import HTTPError from "./HTTPError";
+import { BadRequestError } from "@cef-ebsi/problem-details-errors";
 
-class InvalidTokenError extends HTTPError {
+class InvalidTokenError extends BadRequestError {
   constructor(detail: string) {
-    super("Invalid Token", 400, detail);
+    super("Invalid Token", { detail });
   }
 }
 

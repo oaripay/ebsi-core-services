@@ -1,8 +1,8 @@
-import HTTPError from "./HTTPError";
+import { BadRequestError } from "@cef-ebsi/problem-details-errors";
 
-class TrustedAppNotFoundError extends HTTPError {
+class TrustedAppNotFoundError extends BadRequestError {
   constructor(detail: string) {
-    super("Trusted App Not Found", 400, detail);
+    super("Trusted App Not Found", { detail });
   }
 }
 

@@ -5,7 +5,7 @@ import { ICASStorageOut } from "../../dtos/dataStorage";
 import { IEbsiApiAuthConnection, ILoginReturn } from "../../dtos/ebsiApi";
 import * as config from "../../config";
 import * as api from "../../utils/api";
-import { InternalError, ApiErrorMessages } from "../../errors";
+import { InternalServerError, ApiErrorMessages } from "../../errors";
 import { isTokenExpired } from "../../utils/util";
 import {
   AccessTokenResponseBody,
@@ -117,7 +117,10 @@ export default class AuthManager {
    */
   async getAuthZToken(targetApp: string): Promise<string> {
     const appInfo = this.ebsiApiAuthZTokenMap.get(targetApp);
-    if (!appInfo) throw new InternalError(ApiErrorMessages.NO_TARGET_APP_INFO);
+    if (!appInfo)
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: ApiErrorMessages.NO_TARGET_APP_INFO,
+      });
 
     if (appInfo.token === "" || isTokenExpired(appInfo.token)) {
       const authZToken = await this.doLogin(targetApp);
@@ -144,35 +147,16 @@ export default class AuthManager {
     return jwt;
   }
 
-  async createAuthorizationToken(
-    payload: any,
-    subject?: string
-  ): Promise<string> {
-    const ebsiPayload = {
-      ...payload,
-      ...{
-        sub: subject, // Should be the id of the app that is requesting the token
-        iat: moment().unix(),
-        exp: moment().add(15, "minutes").unix(),
-        aud: config.API_NAME,
-      },
-    };
-
-    const buffer = Buffer.from(JSON.stringify(ebsiPayload));
-
-    const se = this.secureEnclave;
-
-    const jwt = await se.signJwt(se.enclaveDid, buffer);
-    return jwt;
-  }
-
   /**
    * call EBSI API /sessions
    */
   private async doLogin(targetApp: string): Promise<ILoginReturn> {
     // send to remote /sessions endpoint
     const appInfo = this.ebsiApiAuthZTokenMap.get(targetApp);
-    if (!appInfo) throw new InternalError(ApiErrorMessages.NO_TARGET_APP_INFO);
+    if (!appInfo)
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: ApiErrorMessages.NO_TARGET_APP_INFO,
+      });
 
     const agent = new EBSI_JWT.Agent(
       EbsiAccessTokenScope.COMPONENT,
@@ -194,7 +178,9 @@ export default class AuthManager {
       !resp.tokenType ||
       resp.tokenType !== TokenType.bearer
     )
-      throw new InternalError(ApiErrorMessages.NO_AUTHZ_TOKEN);
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: ApiErrorMessages.NO_AUTHZ_TOKEN,
+      });
 
     return { token: resp.accessToken };
   }

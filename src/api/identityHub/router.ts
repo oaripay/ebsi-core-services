@@ -31,18 +31,18 @@ class Router {
       async (req: express.Request, res: express.Response, next) => {
         try {
           if (!req.params.authenticated)
-            throw new UnauthorizedError(
-              `The method '${req.method} ${req.path}' is not available for anonymous access`
-            );
+            throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
+              detail: `The method '${req.method} ${req.path}' is not available for anonymous access`,
+            });
           const { didJwt, hash } = req.params;
           if (!didJwt || !hash)
-            throw new BadRequestError(
-              ApiErrorMessages.ATTRIBUTES_DID_HASH_NOT_FOUND
-            );
+            throw new BadRequestError(BadRequestError.defaultTitle, {
+              detail: ApiErrorMessages.ATTRIBUTES_DID_HASH_NOT_FOUND,
+            });
           if (!util.isHash(hash))
-            throw new BadRequestError(
-              `The hash:${hash} parameter is not valid`
-            );
+            throw new BadRequestError(BadRequestError.defaultTitle, {
+              detail: `The hash:${hash} parameter is not valid`,
+            });
 
           const result = await Controller.setAttribute(didJwt, hash, req.body);
           res.status(result.newAttribute ? 201 : 200).json(result.attribute);
@@ -63,19 +63,19 @@ class Router {
         const { did, type } = req.query;
         try {
           if (!req.params.authenticated)
-            throw new UnauthorizedError(
-              `The method '${req.method} ${req.path}' is not available for anonymous access`
-            );
+            throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
+              detail: `The method '${req.method} ${req.path}' is not available for anonymous access`,
+            });
           if (!did || typeof did !== "string")
-            throw new BadRequestError(
-              ApiErrorMessages.ATTRIBUTES_DID_NOT_FOUND
-            );
+            throw new BadRequestError(BadRequestError.defaultTitle, {
+              detail: ApiErrorMessages.ATTRIBUTES_DID_NOT_FOUND,
+            });
           // when type query param is set, we call the filtered function
           if (type) {
             if (typeof type !== "string")
-              throw new BadRequestError(
-                ApiErrorMessages.ATTRIBUTES_TYPE_NOT_FOUND
-              );
+              throw new BadRequestError(BadRequestError.defaultTitle, {
+                detail: ApiErrorMessages.ATTRIBUTES_TYPE_NOT_FOUND,
+              });
             const filteredResult = await Controller.getAttributesFiltered(
               did,
               type
@@ -111,13 +111,13 @@ class Router {
               `The method '${req.method} ${req.path}' is not available for anonymous access`
             );
           if (!hash || !didJwt)
-            throw new BadRequestError(
-              ApiErrorMessages.ATTRIBUTES_DID_HASH_NOT_FOUND
-            );
+            throw new BadRequestError(BadRequestError.defaultTitle, {
+              detail: ApiErrorMessages.ATTRIBUTES_DID_HASH_NOT_FOUND,
+            });
           if (!util.isHash(hash))
-            throw new BadRequestError(
-              `The hash:${hash} parameter is not valid`
-            );
+            throw new BadRequestError(BadRequestError.defaultTitle, {
+              detail: `The hash:${hash} parameter is not valid`,
+            });
 
           const result = await Controller.getAttribute(didJwt, hash);
           res.status(200).json(result);

@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { JWT } from "jose";
 import * as util from "util";
+import { ProblemDetailsError } from "../../src/errors";
 import LOGGER from "../../src/logger";
 import {
   b64EncodeUrl,
@@ -156,14 +157,12 @@ describe("utils Test Suite", () => {
       mockLog.mockRestore();
     });
 
-    it("should call LOGGER.log with an HTTPError", () => {
+    it("should call LOGGER.log with an ProblemDetailsError", () => {
       expect.assertions(1);
-      const error = {
-        name: "HTTPError",
-        Title: "error title",
-        Status: 500,
-        Detail: "error detail",
-      };
+      const error = new ProblemDetailsError(500, "error title", {
+        detail: "error detail",
+      });
+
       const operation = "test operation";
       const mockError = jest.spyOn(LOGGER, "error").mockImplementation();
       PRINT_ERROR(error, operation);
@@ -171,7 +170,7 @@ describe("utils Test Suite", () => {
       mockError.mockRestore();
     });
 
-    it("should call LOGGER.log with a non HTTPError", () => {
+    it("should call LOGGER.log with a non ProblemDetailsError", () => {
       expect.assertions(1);
       const error = {
         name: "other error",
@@ -184,7 +183,7 @@ describe("utils Test Suite", () => {
       mockError.mockRestore();
     });
 
-    it("should call LOGGER.log with a non HTTPError with stack and response", () => {
+    it("should call LOGGER.log with a non ProblemDetailsError with stack and response", () => {
       expect.assertions(1);
       const error = {
         name: "other error",

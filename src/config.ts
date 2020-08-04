@@ -196,15 +196,10 @@ enum WalletDataStoreConfig {
   EBSI_APP_NAME,
 }
 
-const LEDGER_BESU = {
-  provider: EBSI_SERVICE.URL.BESU,
-};
-
 const throwError = (varName: string) => {
   throw new Error(`${varName} not provided as ENV variable`);
 };
 const API_NAME = EbsiApps.IDHUB;
-const trustedAppsRegistry = EBSI_SERVICE.URL.TRUSTED_APPS_REGISTRY;
 const API_PRIVATE_KEY = process.env.API_PRIVATE_KEY
   ? process.env.API_PRIVATE_KEY
   : throwError("API_PRIVATE_KEY");
@@ -213,13 +208,11 @@ export {
   API_NAME,
   LOG_LEVEL,
   EbsiApps,
-  LEDGER_BESU,
   ENVIRONMENT,
   EBSI_API_MAP,
   EBSI_SERVICE,
   OPENAPI_PATH,
   API_PRIVATE_KEY,
-  trustedAppsRegistry,
   EBSI_DEFAULT_DATA_STORE,
   WalletDataStoreConfig,
   WalletDataStoreTypeMap,

@@ -2,7 +2,7 @@ import httpMocks from "node-mocks-http";
 import { JWT, JWK } from "jose";
 import parseEntityJWT from "../../src/middleware/jwt";
 import {
-  InternalError,
+  InternalServerError,
   ApiErrorMessages,
   UnauthorizedError,
 } from "../../src/errors";
@@ -17,8 +17,8 @@ describe("jwt test suite", () => {
     });
     const res = httpMocks.createResponse();
     const next = (error?: any) => {
-      expect(error).toBeInstanceOf(InternalError);
-      expect((error as InternalError).Detail).toStrictEqual(
+      expect(error).toBeInstanceOf(InternalServerError);
+      expect((error as InternalServerError).detail).toStrictEqual(
         ApiErrorMessages.NO_BEARER_TOKEN
       );
     };
@@ -42,7 +42,7 @@ describe("jwt test suite", () => {
     const res = httpMocks.createResponse();
     const next = (error?: any) => {
       expect(error).toBeInstanceOf(UnauthorizedError);
-      expect((error as UnauthorizedError).Detail).toStrictEqual(
+      expect((error as UnauthorizedError).detail).toStrictEqual(
         "Error parsing JWT: DID not found"
       );
     };
@@ -66,7 +66,7 @@ describe("jwt test suite", () => {
     const res = httpMocks.createResponse();
     const next = (error?: any) => {
       expect(error).toBeInstanceOf(UnauthorizedError);
-      expect((error as UnauthorizedError).Detail).toStrictEqual(
+      expect((error as UnauthorizedError).detail).toStrictEqual(
         "token is neither a User or Legal Entity AuthZ Token"
       );
     };
@@ -117,7 +117,7 @@ describe("jwt test suite", () => {
     const res = httpMocks.createResponse();
     const next = (error?: any) => {
       expect(error).toBeInstanceOf(UnauthorizedError);
-      expect((error as UnauthorizedError).Detail).toStrictEqual(
+      expect((error as UnauthorizedError).detail).toStrictEqual(
         "Error parsing JWT: DID not found"
       );
     };

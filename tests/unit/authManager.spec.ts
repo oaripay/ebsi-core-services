@@ -5,45 +5,6 @@ import { api, util } from "../../src/utils";
 import { TokenType } from "../../src/libs/authManager/secureEnclave/jwt";
 
 describe("authManager tests", () => {
-  describe("create authZ token", () => {
-    it("should create an authorization token", async () => {
-      expect.assertions(1);
-      const payload = { data: "test sample data" };
-      const mockedSignJwt = jest.fn().mockResolvedValue("tokenJwt");
-      jest.spyOn(ComponentSecureEnclave, "Instance", "get").mockImplementation(
-        () =>
-          ({
-            enclaveDid: "did:ebsi:0x00",
-            signJwt: mockedSignJwt,
-          } as any)
-      );
-      const token = await AuthManager.Instance.createAuthorizationToken(
-        payload
-      );
-      expect(token).toBeDefined();
-      jest.restoreAllMocks();
-    });
-
-    it("should create an authorization token with subject", async () => {
-      expect.assertions(1);
-      const payload = { data: "test sample data" };
-      const mockedSignJwt = jest.fn().mockResolvedValue("tokenJwt");
-      jest.spyOn(ComponentSecureEnclave, "Instance", "get").mockImplementation(
-        () =>
-          ({
-            enclaveDid: "did:ebsi:0x00",
-            signJwt: mockedSignJwt,
-          } as any)
-      );
-      const token = await AuthManager.Instance.createAuthorizationToken(
-        payload,
-        EbsiApps.WALLET
-      );
-      expect(token).toBeDefined();
-      jest.restoreAllMocks();
-    });
-  });
-
   describe("createAuthNToken test suite", () => {
     it("should create an authN token", async () => {
       expect.assertions(1);

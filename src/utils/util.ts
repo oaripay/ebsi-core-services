@@ -1,4 +1,5 @@
 import base64url from "base64url";
+import { AxiosError } from "axios";
 import { ethers } from "ethers";
 import { JWT } from "jose";
 import { v4 as uuidv4 } from "uuid";
@@ -10,7 +11,11 @@ import {
   ENVIRONMENT,
 } from "../config";
 import LOGGER from "../logger";
-import { ApiErrorMessages, InternalError, HTTPError } from "../errors";
+import {
+  ApiErrorMessages,
+  InternalServerError,
+  ProblemDetailsError,
+} from "../errors";
 import { IComponentAuthZToken } from "../libs/authManager/secureEnclave/jwt";
 
 /**
@@ -59,11 +64,15 @@ const isHash = (data: string): boolean => {
 const getStorageConfig = (walletStorageType: number): [string, string] => {
   const storageType = WalletDataStoreTypeMap.get(walletStorageType);
   if (typeof storageType === "undefined")
-    throw new InternalError(ApiErrorMessages.INVALID_WALLET_STORAGE_TYPE);
+    throw new InternalServerError(InternalServerError.defaultTitle, {
+      detail: ApiErrorMessages.INVALID_WALLET_STORAGE_TYPE,
+    });
 
   const storageConfig = WALLET_DATA_STORE_CONFIG_MAP.get(storageType);
   if (typeof storageConfig === "undefined")
-    throw new InternalError(ApiErrorMessages.INVALID_DATA_STORE_CONFIG_TYPE);
+    throw new InternalServerError(InternalServerError.defaultTitle, {
+      detail: ApiErrorMessages.INVALID_DATA_STORE_CONFIG_TYPE,
+    });
 
   return storageConfig;
 };
@@ -100,24 +109,22 @@ const PRINT_DEBUG = (data: any, operation?: string): void => {
   PRINT(util.inspect(data), "debug", operation);
 };
 
-const PRINT_ERROR = (error: any, operation?: string): void => {
+const PRINT_ERROR = (error: Error, operation?: string): void => {
   if (ENVIRONMENT === "test") {
     LOGGER.silent = true;
   }
   // check if it is an EBSI error
-  if ((error as Error).name === "HTTPError") {
-    const ebsiError = error as HTTPError;
-    LOGGER.error(ebsiError.Title, "error", operation);
-    LOGGER.error(ebsiError.Status.toString(), "error", operation);
-    LOGGER.error(ebsiError.Detail, "error", operation);
+  if (error instanceof ProblemDetailsError) {
+    LOGGER.error(error.title, "error", operation);
+    LOGGER.error(error.status.toString(), "error", operation);
+    LOGGER.error(error.detail || "", "error", operation);
   } else {
-    const ebsiError = error as Error;
-    LOGGER.error(ebsiError.message, "error", operation);
-    LOGGER.error(ebsiError.name, "error", operation);
-    if (ebsiError.stack) LOGGER.error(ebsiError.stack, "error", operation);
+    LOGGER.error(error.message, "error", operation);
+    LOGGER.error(error.name, "error", operation);
+    if (error.stack) LOGGER.error(error.stack, "error", operation);
   }
-  if (error.response) {
-    LOGGER.error(util.inspect(error.response.data));
+  if ((error as AxiosError).response) {
+    LOGGER.error(util.inspect((error as AxiosError).response!.data));
   }
 };
 
@@ -127,25 +134,12 @@ const PRINT_SILLY = (data: any, operation?: string): void => {
   PRINT(`\n${toPrint}`, "silly", operation);
 };
 
-const PRINT_JSON = (data: any): void => {
-  // it assumes DEBUG level
-  let toPrint = data;
-  if (typeof toPrint !== "string") toPrint = util.inspect(data);
-  PRINT_DEBUG(`\n${toPrint}`);
-};
-
-async function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 export {
   hash,
-  delay,
   setId,
   isHex,
   isHash,
   strB64dec,
-  PRINT_JSON,
   PRINT_INFO,
   PRINT_DEBUG,
   PRINT_ERROR,

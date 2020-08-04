@@ -14,7 +14,9 @@ export default class Controller {
     try {
       JSON.parse(decodeURIComponent(type));
     } catch (error) {
-      throw new BadRequestError(ApiErrorMessages.ATTRIBUTE_TYPE_MALFORMED);
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: ApiErrorMessages.ATTRIBUTE_TYPE_MALFORMED,
+      });
     }
     const types = JSON.parse(decodeURIComponent(type));
     return IDHub.Instance.getAttributesFiltered(did, types);
@@ -36,7 +38,9 @@ export default class Controller {
       !iAttributeInput.data ||
       !iAttributeInput.data.base64
     )
-      throw new BadRequestError(ApiErrorMessages.ATTRIBUTE_INPUT_MALFORMED);
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: ApiErrorMessages.ATTRIBUTE_INPUT_MALFORMED,
+      });
     return IDHub.Instance.setAttribute(did, hash, iAttributeInput);
   }
 }

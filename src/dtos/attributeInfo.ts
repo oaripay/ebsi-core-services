@@ -23,7 +23,3 @@ export interface IAttributeInfo {
 export interface IAttribute extends IAttributeInfo {
   data: IAttributeData;
 }
-
-export interface Filters {
-  types: string[];
-}

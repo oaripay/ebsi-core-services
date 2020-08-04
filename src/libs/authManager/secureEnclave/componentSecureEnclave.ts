@@ -1,7 +1,7 @@
 import { JWKECKey } from "jose";
 import Wallet, { WalletOptions } from "./wallet";
 import ComponentWallet from "./componentWallet";
-import { ApiErrorMessages, InternalError } from "../../../errors";
+import { ApiErrorMessages, InternalServerError } from "../../../errors";
 import { PRINT_DEBUG } from "../../../utils/util";
 
 export interface InitComponent {
@@ -64,7 +64,9 @@ export default class ComponentSecureEnclave {
     }
 
     if (!hexPrivateKey)
-      throw new InternalError(ApiErrorMessages.ERROR_ON_COMPONENT_WALLET_INIT);
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: ApiErrorMessages.ERROR_ON_COMPONENT_WALLET_INIT,
+      });
     const did = await this.addNewWallet({
       hexPrivateKey,
     });
@@ -85,14 +87,20 @@ export default class ComponentSecureEnclave {
 
   getPublicKey(did: string): string {
     const wallet = this.wallets.get(did);
-    if (!wallet) throw new InternalError(ApiErrorMessages.WALLET_NOT_FOUND);
+    if (!wallet)
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: ApiErrorMessages.WALLET_NOT_FOUND,
+      });
 
     return wallet.publicKey;
   }
 
   async signJwt(did: string, data: Buffer): Promise<any> {
     const wallet = this.wallets.get(did);
-    if (!wallet) throw new InternalError(ApiErrorMessages.WALLET_NOT_FOUND);
+    if (!wallet)
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: ApiErrorMessages.WALLET_NOT_FOUND,
+      });
 
     const response = await wallet.signJwt(data);
     return response;
@@ -102,7 +110,10 @@ export default class ComponentSecureEnclave {
   encrypt(dataToEncrypt: Buffer): Buffer {
     PRINT_DEBUG(this.enclaveDid);
     const wallet = this.getWallet(this.enclaveDid);
-    if (!wallet) throw new InternalError(ApiErrorMessages.WALLET_NOT_FOUND);
+    if (!wallet)
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: ApiErrorMessages.WALLET_NOT_FOUND,
+      });
 
     return wallet.encrypt(dataToEncrypt);
   }
@@ -111,7 +122,10 @@ export default class ComponentSecureEnclave {
   decrypt(dataToDecrypt: Buffer): Buffer {
     PRINT_DEBUG(this.enclaveDid);
     const wallet = this.getWallet(this.enclaveDid);
-    if (!wallet) throw new InternalError(ApiErrorMessages.WALLET_NOT_FOUND);
+    if (!wallet)
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: ApiErrorMessages.WALLET_NOT_FOUND,
+      });
 
     return wallet.decrypt(dataToDecrypt);
   }

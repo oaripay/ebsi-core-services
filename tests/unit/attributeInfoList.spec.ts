@@ -307,13 +307,11 @@ describe("iAttributeInfoList model", () => {
       jest
         .spyOn(AttributeInfoList.prototype, "get")
         .mockResolvedValue(attributeList);
-      jest
-        .spyOn(AttributeInfoList.prototype, "getElem")
-        .mockRejectedValue(
-          new BadRequestError(
-            `Attribute Info not found with this id: ${attributeInfo2.id}`
-          )
-        );
+      jest.spyOn(AttributeInfoList.prototype, "getElem").mockRejectedValue(
+        new BadRequestError(BadRequestError.defaultTitle, {
+          detail: `Attribute Info not found with this id: ${attributeInfo2.id}`,
+        })
+      );
       jest
         .spyOn(AttributeInfoList.prototype, "insertValue")
         .mockResolvedValue(returnedAttr);
@@ -369,7 +367,7 @@ describe("iAttributeInfoList model", () => {
       jest.resetAllMocks();
     });
 
-    it("should throw an element when a list exists but getting the AttributeInfo raises an HTTPError with another message", async () => {
+    it("should throw an element when a list exists but getting the AttributeInfo raises an ProblemDetailsError with another message", async () => {
       expect.assertions(1);
       const attributeInfoListDB = AttributeInfoList.getInstance(
         WalletDataStoreType.ATTRIBUTES_INFO_LIST_STORAGE
@@ -404,9 +402,11 @@ describe("iAttributeInfoList model", () => {
       jest
         .spyOn(AttributeInfoList.prototype, "get")
         .mockResolvedValue(attributeList);
-      jest
-        .spyOn(AttributeInfoList.prototype, "getElem")
-        .mockRejectedValue(new BadRequestError(`Bad parameters`));
+      jest.spyOn(AttributeInfoList.prototype, "getElem").mockRejectedValue(
+        new BadRequestError(BadRequestError.defaultTitle, {
+          detail: "Bad parameters",
+        })
+      );
       await expect(
         attributeInfoListDB.insertElem(did, attributeInfo2)
       ).rejects.toThrow("Bad Request");

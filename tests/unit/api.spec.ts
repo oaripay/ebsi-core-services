@@ -54,27 +54,6 @@ describe("api test suite", () => {
     mockedPost.mockRestore();
   });
 
-  it("should call a get without token and return", async () => {
-    expect.assertions(1);
-    const data = "Response OK";
-    const mockedPost = jest.spyOn(axios, "get").mockResolvedValue({ data });
-    const response = await api.doGetCallWithoutToken("http://localhost");
-    expect(response).toBe(data);
-    mockedPost.mockRestore();
-  });
-
-  it("should throw an error when calling get without a token", async () => {
-    expect.assertions(1);
-    const error = "Response ERROR";
-    const mockedPost = jest
-      .spyOn(axios, "get")
-      .mockRejectedValue(new Error(error));
-    await expect(api.doGetCallWithoutToken("http://localhost")).rejects.toThrow(
-      error
-    );
-    mockedPost.mockRestore();
-  });
-
   it("should call a get with token and return", async () => {
     expect.assertions(1);
     const data = "Response OK";
