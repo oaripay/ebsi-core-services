@@ -183,7 +183,7 @@ describe("appController", () => {
     });
 
     it(`#/v1/issuers invalid page number`, async () => {
-      expect.assertions(2);
+      expect.assertions(3);
       jest
         .spyOn(appService, "getUniversities")
         .mockImplementation(() => Promise.all(testValues.resultUniversities));
@@ -198,8 +198,14 @@ describe("appController", () => {
         status: 400,
         title: "Invalid page number",
         detail: expect.any(String),
+        type: "about:blank",
       });
       expect(response.status).toBe(400);
+      expect(response.header).toStrictEqual(
+        expect.objectContaining({
+          "content-type": "application/problem+json; charset=utf-8",
+        })
+      );
     });
 
     it(`#/v1/issuers/:did`, async () => {
@@ -303,7 +309,7 @@ describe("appController", () => {
     });
 
     it(`#/v1/issuers/:did no issuer found`, async () => {
-      expect.assertions(2);
+      expect.assertions(3);
       jest
         .spyOn(appService, "doesUniversityExists")
         .mockImplementation(() => false);
@@ -320,8 +326,14 @@ describe("appController", () => {
         status: 404,
         title: "Issuer not found",
         detail: `The format of ${did} parameter is not valid or entity not found`,
+        type: "about:blank",
       });
       expect(response.status).toBe(404);
+      expect(response.header).toStrictEqual(
+        expect.objectContaining({
+          "content-type": "application/problem+json; charset=utf-8",
+        })
+      );
     });
 
     it(`#/v1/issuers/:did document is not downloaded`, async () => {
@@ -406,7 +418,7 @@ describe("appController", () => {
     });
 
     it(`#/v1/issuers will fail not found`, async () => {
-      expect.assertions(2);
+      expect.assertions(3);
       jest.spyOn(appService, "getUniversities").mockImplementation(() => {
         throw new Error("test");
       });
@@ -418,8 +430,14 @@ describe("appController", () => {
         status: 404,
         title: "Invalid service",
         detail: "Cannot GET /trusted-issuers/universities",
+        type: "about:blank",
       });
       expect(response.status).toBe(404);
+      expect(response.header).toStrictEqual(
+        expect.objectContaining({
+          "content-type": "application/problem+json; charset=utf-8",
+        })
+      );
     });
   });
 });

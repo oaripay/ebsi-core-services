@@ -35,6 +35,10 @@ export default class AllExceptionsFilter implements ExceptionFilter {
     }
 
     this.logger.debug(problemError.toString());
-    response.status(problemError.status).json(problemError.toJSON());
+
+    response
+      .status(problemError.status)
+      .set("Content-Type", "application/problem+json")
+      .json(problemError.toJSON());
   }
 }
