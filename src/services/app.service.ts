@@ -1,5 +1,6 @@
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import fs from "fs";
 import path from "path";
 import NodeRSA from "node-rsa";
@@ -42,7 +43,9 @@ export class AppService {
     // Check if address is admin onchain
     const signer = await this.ethersService.getSigner();
     if (!signer || signer !== address) {
-      throw new UnauthorizedException("your ether wallet is not authorized");
+      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
+        detail: "your ether wallet is not authorized",
+      });
     }
 
     // Decrypt message
@@ -53,7 +56,9 @@ export class AppService {
     // Check the date
     const currentTimestamp = Date.now();
     if (currentTimestamp > parseInt(messageDecryptedArray[1], 10)) {
-      throw new UnauthorizedException("login expired");
+      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
+        detail: "login expired",
+      });
     }
 
     // Return DID

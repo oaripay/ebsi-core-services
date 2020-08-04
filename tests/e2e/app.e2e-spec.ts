@@ -16,16 +16,22 @@ describe("app (e2e)", () => {
   });
 
   it("/ GET should return 404", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     const response = await request(app.getHttpServer()).get("/");
 
-    expect(response.status).toBe(404);
     expect(response.body).toStrictEqual({
       detail: "Cannot GET /",
       status: 404,
       title: "Not Found",
+      type: "about:blank",
     });
+    expect(response.status).toBe(404);
+    expect(response.header).toStrictEqual(
+      expect.objectContaining({
+        "content-type": "application/problem+json; charset=utf-8",
+      })
+    );
   });
 
   it("/trusted-apps-registry/v1/apps GET should return the list of apps", async () => {
@@ -96,6 +102,7 @@ describe("app (e2e)", () => {
       detail: "fakeapp not found",
       status: 404,
       title: "Not Found",
+      type: "about:blank",
     });
   });
 
@@ -127,6 +134,7 @@ describe("app (e2e)", () => {
       detail: "Application does not exist",
       status: 404,
       title: "Not Found",
+      type: "about:blank",
     });
   });
 
@@ -207,6 +215,7 @@ describe("app (e2e)", () => {
       detail: "fakeapp not found in the list of authorized apps of ebsi-wallet",
       status: 404,
       title: "Not Found",
+      type: "about:blank",
     });
   });
 });

@@ -4,15 +4,16 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Param,
   Post,
   Query,
   Res,
-  BadRequestException,
-  UnauthorizedException,
-  InternalServerErrorException,
 } from "@nestjs/common";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from "@cef-ebsi/problem-details-errors";
 import { Response } from "express";
 import { ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { EthersService } from "./services/ethers.service";
@@ -44,61 +45,56 @@ export class AppController {
   @ApiResponse({ status: 404, description: HTTP_404 })
   @Get("/v1/apps")
   async getAllApps(@Query() query) {
-    try {
-      const appKeys = await this.ethersService.getApplicationKeys();
+    const appKeys = await this.ethersService.getApplicationKeys();
 
-      const size = parseInt(query.page ? query.page.size ?? 10 : 10, 10);
-      const after = parseInt(query.page ? query.page.after ?? 0 : 0, 10);
+    const size = parseInt(query.page ? query.page.size ?? 10 : 10, 10);
+    const after = parseInt(query.page ? query.page.after ?? 0 : 0, 10);
 
-      const counter = appKeys.length;
-      const itemStartingFrom = after * size;
-      const queue = [];
-      for (let i = 0; i < size && i < counter; i += 1) {
-        queue.push(async () => {
-          const appFromBesu = await this.ethersService.getApplicationByKey(
-            appKeys[itemStartingFrom + i]
-          );
-          return {
-            appName: appFromBesu[0],
-            pubKey: appFromBesu[1],
-          };
-        });
-      }
-
-      const items = await Promise.all(queue.map(async (task) => task()));
-      const pages = Math.ceil((counter + 1) / size);
-
-      if (pages - 1 < after) {
-        throw new BadRequestException("invalid page number");
-      }
-
-      const result = {
-        items,
-        total: counter,
-        pageSize: size,
-        links: {
-          first: `/trusted-apps-registry/v1/apps?page[after]=0&page[size]=${size}`,
-          prev: `/trusted-apps-registry/v1/apps?page[after]=${Math.max(
-            0,
-            after - 1
-          )}&page[size]=${size}`,
-          next: `/trusted-apps-registry/v1/apps?page[after]=${Math.min(
-            pages - 1,
-            after - -1
-          )}&page[size]=${size}`,
-          last: `/trusted-apps-registry/v1/apps?page[after]=${
-            pages - 1
-          }&page[size]=${size}`,
-        },
-      };
-
-      return result;
-    } catch (ex) {
-      if (ex instanceof BadRequestException) {
-        throw ex;
-      }
-      throw new NotFoundException("Application does not exist");
+    const counter = appKeys.length;
+    const itemStartingFrom = after * size;
+    const queue = [];
+    for (let i = 0; i < size && i < counter; i += 1) {
+      queue.push(async () => {
+        const appFromBesu = await this.ethersService.getApplicationByKey(
+          appKeys[itemStartingFrom + i]
+        );
+        return {
+          appName: appFromBesu[0],
+          pubKey: appFromBesu[1],
+        };
+      });
     }
+
+    const items = await Promise.all(queue.map(async (task) => task()));
+    const pages = Math.ceil((counter + 1) / size);
+
+    if (pages - 1 < after) {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "invalid page number",
+      });
+    }
+
+    const result = {
+      items,
+      total: counter,
+      pageSize: size,
+      links: {
+        first: `/trusted-apps-registry/v1/apps?page[after]=0&page[size]=${size}`,
+        prev: `/trusted-apps-registry/v1/apps?page[after]=${Math.max(
+          0,
+          after - 1
+        )}&page[size]=${size}`,
+        next: `/trusted-apps-registry/v1/apps?page[after]=${Math.min(
+          pages - 1,
+          after - -1
+        )}&page[size]=${size}`,
+        last: `/trusted-apps-registry/v1/apps?page[after]=${
+          pages - 1
+        }&page[size]=${size}`,
+      },
+    };
+
+    return result;
   }
 
   @ApiOperation({
@@ -115,10 +111,9 @@ export class AppController {
       );
       return { appName: param.appName, pubKey: appPublicKey };
     } catch (ex) {
-      if (ex instanceof InternalServerErrorException) {
-        throw ex;
-      }
-      throw new NotFoundException(`${param.appName} not found`);
+      throw new NotFoundError(NotFoundError.defaultTitle, {
+        detail: `${param.appName} not found`,
+      });
     }
   }
 
@@ -134,7 +129,9 @@ export class AppController {
       const apps = await this.ethersService.getAuthorizedApps(param.appName);
 
       if (apps.length === 0) {
-        throw new NotFoundException("no application found");
+        throw new NotFoundError(NotFoundError.defaultTitle, {
+          detail: "no application found",
+        });
       }
 
       const size = parseInt(query.page ? query.page.size ?? 10 : 10, 10);
@@ -153,7 +150,9 @@ export class AppController {
 
       const pages = Math.ceil((counter + 1) / size);
       if (pages - 1 < after) {
-        throw new BadRequestException("invalid page number");
+        throw new BadRequestError(BadRequestError.defaultTitle, {
+          detail: "invalid page number",
+        });
       }
       result = {
         items,
@@ -176,7 +175,11 @@ export class AppController {
       };
       return result;
     } catch (ex) {
-      throw new NotFoundException("Application does not exist");
+      if (ex instanceof BadRequestError) throw ex;
+
+      throw new NotFoundError(NotFoundError.defaultTitle, {
+        detail: "Application does not exist",
+      });
     }
   }
 
@@ -196,12 +199,12 @@ export class AppController {
       if (apps.includes(param.authorizedAppName)) {
         return { authorizedAppName: param.authorizedAppName };
       }
-      throw new UnauthorizedException();
+      throw new UnauthorizedError();
     } catch (error) {
       if (error instanceof Error) {
-        throw new NotFoundException(
-          `${param.authorizedAppName} not found in the list of authorized apps of ${param.appName}`
-        );
+        throw new NotFoundError(NotFoundError.defaultTitle, {
+          detail: `${param.authorizedAppName} not found in the list of authorized apps of ${param.appName}`,
+        });
       }
       throw error;
     }
@@ -230,13 +233,15 @@ export class AppController {
         authAppBody.authorize.signature
       );
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: err.message,
+      });
     }
 
     if (name !== authAppBody.name) {
-      throw new UnauthorizedException(
-        "You are not authorized to insert for this DID"
-      );
+      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
+        detail: "You are not authorized to insert for this DID",
+      });
     }
 
     try {
@@ -245,7 +250,9 @@ export class AppController {
         authAppBody.name
       );
     } catch (err) {
-      throw new BadRequestException(err.message);
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: err.message,
+      });
     }
   }
 
@@ -273,13 +280,15 @@ export class AppController {
         authBody.authorize.signature
       );
     } catch (error) {
-      throw new BadRequestException(error.message);
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: error.message,
+      });
     }
 
     if (name !== authBody.appName) {
-      throw new UnauthorizedException(
-        "You are not authorized to insert for this DID"
-      );
+      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
+        detail: "You are not authorized to insert for this DID",
+      });
     }
 
     try {
@@ -294,10 +303,14 @@ export class AppController {
           error.transactionHash
         );
 
-        throw new BadRequestException(revertMessage);
+        throw new BadRequestError(BadRequestError.defaultTitle, {
+          detail: revertMessage,
+        });
       }
 
-      throw new BadRequestException(error.message);
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: error.message,
+      });
     }
   }
 
@@ -313,9 +326,9 @@ export class AppController {
       const res = this.appService.generateLoginChallenge(params.name);
       return response.status(200).send(res);
     } catch (e) {
-      throw new BadRequestException(
-        "There was a problem to process your request"
-      );
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "There was a problem to process your request",
+      });
     }
   }
 }

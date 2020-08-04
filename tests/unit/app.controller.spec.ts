@@ -1,7 +1,7 @@
 import request from "supertest";
 import { Test } from "@nestjs/testing";
 import { APP_FILTER } from "@nestjs/core";
-import { INestApplication, NotFoundException } from "@nestjs/common";
+import { INestApplication } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { AppController } from "../../src/app.controller";
 import { EthersService } from "../../src/services/ethers.service";
@@ -143,6 +143,7 @@ describe("app.controller", () => {
         detail: "invalid page number",
         status: 400,
         title: "Bad Request",
+        type: "about:blank",
       });
       expect(response.status).toBe(400);
     });
@@ -176,6 +177,27 @@ describe("app.controller", () => {
       expect(response.status).toBe(200);
     });
 
+    it(`/GET all apps with unexpected error`, async () => {
+      expect.assertions(2);
+
+      jest.spyOn(ethersService, "getApplicationKeys").mockImplementation(() => {
+        throw new Error("unexpected");
+      });
+
+      const response = await request(app.getHttpServer()).get(
+        "/trusted-apps-registry/v1/apps"
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          "The server encountered an internal error and was unable to complete your request",
+        status: 500,
+        title: "Internal Server Error",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(500);
+    });
+
     it(`/GET app public key`, async () => {
       expect.assertions(2);
 
@@ -202,7 +224,7 @@ describe("app.controller", () => {
       jest
         .spyOn(ethersService, "getApplicationPublicKey")
         .mockImplementation(() => {
-          throw new NotFoundException();
+          throw new Error();
         });
 
       const key = "noappkey";
@@ -215,6 +237,7 @@ describe("app.controller", () => {
         detail: "noappkey not found",
         status: 404,
         title: "Not Found",
+        type: "about:blank",
       });
       expect(response.status).toBe(404);
     });
@@ -246,7 +269,7 @@ describe("app.controller", () => {
       expect(response.status).toBe(200);
     });
 
-    it(`/GET authorized apps by appname - >test malware service`, async () => {
+    it(`/GET authorized apps by appname -> test malware service`, async () => {
       expect.assertions(2);
 
       jest.spyOn(ethersService, "getAuthorizedApps").mockResolvedValue([]);
@@ -261,15 +284,16 @@ describe("app.controller", () => {
         detail: "Application does not exist",
         status: 404,
         title: "Not Found",
+        type: "about:blank",
       });
       expect(response.status).toBe(404);
     });
 
-    it(`/GET authorized apps by appname - >test service throws if besu doesnt have app`, async () => {
+    it(`/GET authorized apps by appname -> test service throws if besu doesnt have app`, async () => {
       expect.assertions(2);
 
       jest.spyOn(ethersService, "getAuthorizedApps").mockImplementation(() => {
-        throw new NotFoundException();
+        throw new Error();
       });
 
       const appName = "ebsi-wallet-test-app-name";
@@ -282,8 +306,50 @@ describe("app.controller", () => {
         detail: "Application does not exist",
         status: 404,
         title: "Not Found",
+        type: "about:blank",
       });
       expect(response.status).toBe(404);
+    });
+
+    it(`/GET authorized apps by appname -> test with page after too high`, async () => {
+      expect.assertions(2);
+
+      jest
+        .spyOn(ethersService, "getAuthorizedApps")
+        .mockResolvedValue(["ebsi-besu"]);
+
+      const appName = "ebsi-wallet-test-app-name";
+
+      const response = await request(app.getHttpServer()).get(
+        `/trusted-apps-registry/v1/apps/${appName}/authorized-apps?page[after]=2000`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: "invalid page number",
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("/wrong-route GET should return 404", async () => {
+      expect.assertions(3);
+
+      const response = await request(app.getHttpServer()).get("/wrong-route");
+
+      expect(response.body).toStrictEqual({
+        detail: "Cannot GET /wrong-route",
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(response.header).toStrictEqual(
+        expect.objectContaining({
+          "content-type": "application/problem+json; charset=utf-8",
+        })
+      );
     });
   });
 
@@ -313,7 +379,7 @@ describe("app.controller", () => {
       jest
         .spyOn(appService, "generateLoginChallenge")
         .mockImplementation(() => {
-          throw new NotFoundException();
+          throw new Error();
         });
 
       const appName = "the_name";
@@ -326,6 +392,7 @@ describe("app.controller", () => {
         detail: "There was a problem to process your request",
         status: 400,
         title: "Bad Request",
+        type: "about:blank",
       });
       expect(response.status).toBe(400);
     });
@@ -390,6 +457,7 @@ describe("app.controller", () => {
         detail: "You are not authorized to insert for this DID",
         status: 401,
         title: "Unauthorized",
+        type: "about:blank",
       });
       expect(response.status).toBe(401);
     });
@@ -403,7 +471,7 @@ describe("app.controller", () => {
         .mockResolvedValue("ebsi-wallet-jest-test");
 
       jest.spyOn(ethersService, "addApplication").mockImplementation(() => {
-        throw new NotFoundException("a message from besu");
+        throw new Error("a message from besu");
       });
 
       const body = {
@@ -423,6 +491,7 @@ describe("app.controller", () => {
         detail: "a message from besu",
         status: 400,
         title: "Bad Request",
+        type: "about:blank",
       });
       expect(response.status).toBe(400);
     });
@@ -487,6 +556,7 @@ describe("app.controller", () => {
         detail: "You are not authorized to insert for this DID",
         status: 401,
         title: "Unauthorized",
+        type: "about:blank",
       });
       expect(response.status).toBe(401);
     });
@@ -502,7 +572,7 @@ describe("app.controller", () => {
       jest
         .spyOn(ethersService, "addNewAuthorization")
         .mockImplementation(() => {
-          throw new NotFoundException("test");
+          throw new Error("test");
         });
 
       jest
@@ -527,6 +597,7 @@ describe("app.controller", () => {
         detail: "test",
         status: 400,
         title: "Bad Request",
+        type: "about:blank",
       });
       expect(response.status).toBe(400);
     });
@@ -567,6 +638,7 @@ describe("app.controller", () => {
         detail: "besu reverted",
         status: 400,
         title: "Bad Request",
+        type: "about:blank",
       });
       expect(response.status).toBe(400);
     });

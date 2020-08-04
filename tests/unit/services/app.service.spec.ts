@@ -4,6 +4,7 @@ import { generateKeyPairSync } from "crypto";
 import { Test } from "@nestjs/testing";
 import { ConfigModule } from "@nestjs/config";
 import NodeRSA from "node-rsa";
+import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { AppService } from "../../../src/services/app.service";
 import { EthersService } from "../../../src/services/ethers.service";
 import configuration from "../../../src/config/configuration";
@@ -132,7 +133,11 @@ describe("app.service", () => {
     const cryptedMessage = appService.generateLoginChallenge("test");
     const check = async () => appService.checkLogin(cryptedMessage, "");
 
-    await expect(check).rejects.toThrow("your ether wallet is not authorized");
+    await expect(check).rejects.toThrow(
+      new UnauthorizedError(UnauthorizedError.defaultTitle, {
+        detail: "your ether wallet is not authorized",
+      })
+    );
     expect(loadKeySpy).toHaveBeenCalledTimes(1);
     expect(recoverAddressSpy).toHaveBeenCalledTimes(1);
     expect(getSignerSpy).toHaveBeenCalledTimes(1);
@@ -161,7 +166,11 @@ describe("app.service", () => {
 
     const check = async () => appService.checkLogin(cryptedMessage, "");
 
-    await expect(check).rejects.toThrow("login expired");
+    await expect(check).rejects.toThrow(
+      new UnauthorizedError(UnauthorizedError.defaultTitle, {
+        detail: "login expired",
+      })
+    );
     expect(loadKeySpy).toHaveBeenCalledTimes(2);
     expect(recoverAddressSpy).toHaveBeenCalledTimes(1);
     expect(getSignerSpy).toHaveBeenCalledTimes(1);

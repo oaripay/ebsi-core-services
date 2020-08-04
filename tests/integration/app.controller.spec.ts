@@ -1,7 +1,7 @@
 import request from "supertest";
 import { Test } from "@nestjs/testing";
 import { APP_FILTER } from "@nestjs/core";
-import { INestApplication, NotFoundException } from "@nestjs/common";
+import { INestApplication } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { AppController } from "../../src/app.controller";
 import { EthersService } from "../../src/services/ethers.service";
@@ -115,6 +115,7 @@ describe("app.controller (integration)", () => {
         detail: "invalid page number",
         status: 400,
         title: "Bad Request",
+        type: "about:blank",
       });
       expect(response.status).toBe(400);
     });
@@ -174,7 +175,7 @@ describe("app.controller (integration)", () => {
       jest
         .spyOn(etherService, "getApplicationPublicKey")
         .mockImplementation(() => {
-          throw new NotFoundException();
+          throw new Error();
         });
 
       const key = "noappkey";
@@ -187,6 +188,7 @@ describe("app.controller (integration)", () => {
         detail: "noappkey not found",
         status: 404,
         title: "Not Found",
+        type: "about:blank",
       });
       expect(response.status).toBe(404);
     });
@@ -233,6 +235,7 @@ describe("app.controller (integration)", () => {
         detail: "Application does not exist",
         status: 404,
         title: "Not Found",
+        type: "about:blank",
       });
       expect(response.status).toBe(404);
     });
@@ -241,7 +244,7 @@ describe("app.controller (integration)", () => {
       expect.assertions(2);
 
       jest.spyOn(etherService, "getAuthorizedApps").mockImplementation(() => {
-        throw new NotFoundException();
+        throw new Error();
       });
 
       const appName = "ebsi-wallet-test-app-name";
@@ -254,6 +257,7 @@ describe("app.controller (integration)", () => {
         detail: "Application does not exist",
         status: 404,
         title: "Not Found",
+        type: "about:blank",
       });
       expect(response.status).toBe(404);
     });
@@ -285,7 +289,7 @@ describe("app.controller (integration)", () => {
       jest
         .spyOn(appService, "generateLoginChallenge")
         .mockImplementation(() => {
-          throw new NotFoundException();
+          throw new Error();
         });
 
       const appName = "the_name";
@@ -298,6 +302,7 @@ describe("app.controller (integration)", () => {
         detail: "There was a problem to process your request",
         status: 400,
         title: "Bad Request",
+        type: "about:blank",
       });
       expect(response.status).toBe(400);
     });
@@ -362,6 +367,7 @@ describe("app.controller (integration)", () => {
         detail: "You are not authorized to insert for this DID",
         status: 401,
         title: "Unauthorized",
+        type: "about:blank",
       });
       expect(response.status).toBe(401);
     });
@@ -375,7 +381,7 @@ describe("app.controller (integration)", () => {
         .mockResolvedValue("ebsi-wallet-jest-test");
 
       jest.spyOn(etherService, "addApplication").mockImplementation(() => {
-        throw new NotFoundException("a message from besu");
+        throw new Error("a message from besu");
       });
 
       const body = {
@@ -395,6 +401,7 @@ describe("app.controller (integration)", () => {
         detail: "a message from besu",
         status: 400,
         title: "Bad Request",
+        type: "about:blank",
       });
       expect(response.status).toBe(400);
     });
@@ -459,6 +466,7 @@ describe("app.controller (integration)", () => {
         detail: "You are not authorized to insert for this DID",
         status: 401,
         title: "Unauthorized",
+        type: "about:blank",
       });
       expect(response.status).toBe(401);
     });
@@ -472,7 +480,7 @@ describe("app.controller (integration)", () => {
         .mockResolvedValue("ebsi-wallet-jest-test");
 
       jest.spyOn(etherService, "addNewAuthorization").mockImplementation(() => {
-        throw new NotFoundException("test");
+        throw new Error("test");
       });
 
       jest
@@ -497,6 +505,7 @@ describe("app.controller (integration)", () => {
         detail: "test",
         status: 400,
         title: "Bad Request",
+        type: "about:blank",
       });
       expect(response.status).toBe(400);
     });
@@ -535,6 +544,7 @@ describe("app.controller (integration)", () => {
         detail: "besu reverted",
         status: 400,
         title: "Bad Request",
+        type: "about:blank",
       });
       expect(response.status).toBe(400);
     });
