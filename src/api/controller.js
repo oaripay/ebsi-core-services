@@ -1,6 +1,5 @@
 const ethers = require("ethers");
 const querystring = require("querystring");
-
 const config = require("../config");
 const { BadRequestError, NotFoundError } = require("../errors");
 
@@ -111,11 +110,15 @@ async function getRecord(_hash) {
   try {
     registeredBy = await contract.record(hash);
   } catch (error) {
-    throw new BadRequestError(error.message);
+    throw new BadRequestError(BadRequestError.defaultTitle, {
+      detail: error.message,
+    });
   }
 
   if (registeredBy === ADDRESS_ZERO)
-    throw new NotFoundError(`Document hash '${_hash}' not found`);
+    throw new NotFoundError(NotFoundError.defaultTitle, {
+      detail: `Document hash '${_hash}' not found`,
+    });
 
   const { logRec, lastBlockREC } = await iterateContract((log) => {
     if (hash === log.topics[1].toLowerCase()) return true;

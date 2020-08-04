@@ -3,7 +3,6 @@ version: "3.7"
 services:
   timestamp-api:
     build: .
-    container_name: timestamp-api
     ports:
       - "8080:8080"
     environment:

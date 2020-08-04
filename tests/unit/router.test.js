@@ -1,12 +1,9 @@
 const ethers = require("ethers");
 const supertest = require("supertest");
-
 const Server = require("../../src/server");
 
 const server = new Server().getServer();
 const request = supertest(server);
-
-jest.setTimeout(10000);
 
 const callTimestamp = (method) => {
   return request

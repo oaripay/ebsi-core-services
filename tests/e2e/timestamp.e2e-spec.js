@@ -1,6 +1,5 @@
 const ethers = require("ethers");
 const supertest = require("supertest");
-
 const { url } = require("../config");
 
 const request = supertest(url);
