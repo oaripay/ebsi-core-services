@@ -30,14 +30,15 @@ The api will be accesible at http://localhost:8080
 
 ## Testing
 
-Test Besu
+### Test Besu
 
 ```sh
 yarn run test:besu
 ```
 
-Test Fabric
-Launch the api with docker
+### Test Fabric
+
+Launch the API with Docker, then:
 
 ```sh
 yarn run test:fabric-e2e
@@ -45,7 +46,7 @@ yarn run test:fabric-e2e
 
 ## Licensing
 
-Copyright (c) 2019 European Commission  
+Copyright (c) 2019 European Commission
 Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
 You may not use this work except in compliance with the Licence.
 You may obtain a copy of the Licence at:

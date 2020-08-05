@@ -23,3 +23,5 @@ services:
       options:
         max-size: "200K"
         max-file: "10"
+    volumes:
+      - ./packages/fabric/ssl/tlsca.pem:/usr/src/api/fabric/tlsca.pem

@@ -21,7 +21,6 @@ COPY ./packages/besu /usr/src/api/besu/
 # Fabric Files
 COPY --from=builder-fabric-api /api/target/fabric-0.0.1-SNAPSHOT.jar /usr/src/api/fabric
 COPY packages/fabric/src/main/resources/server.jks /usr/src/api/fabric/server.jks
-COPY packages/fabric/ssl/tlsca.pem /usr/src/api/fabric/tlsca.pem
 
 COPY ./start.sh /usr/src/api
 
