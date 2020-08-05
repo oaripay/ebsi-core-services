@@ -3,6 +3,12 @@ const Web3 = require("web3");
 const EthereumJsTx = require("ethereumjs-tx").Transaction;
 const Common = require("ethereumjs-common").default;
 const axios = require("axios");
+const {
+  BadRequestError,
+  ForbiddenError,
+  UnauthorizedError,
+  InternalServerError,
+} = require("@cef-ebsi/problem-details-errors");
 require("dotenv").config();
 
 const config = require("../../src/config");
@@ -152,7 +158,12 @@ describe("hyperledger Besu Test", () => {
       await callAPI("eth_sendRawTransaction", [""]);
     };
 
-    await expect(check()).rejects.toThrow("Error getting ebsi chainId");
+    await expect(check()).rejects.toThrow(
+      new InternalServerError(InternalServerError.defaultTitle, {
+        detail:
+          "The server encountered an internal error and was unable to complete your request.",
+      })
+    );
 
     axios.post.mockRestore();
     jest.unmock("axios");
@@ -199,7 +210,11 @@ describe("hyperledger Besu Test", () => {
     const check = async () => {
       await callAPI("incorrect_method", [], ANONYMOUS);
     };
-    await expect(check()).rejects.toThrow("'incorrect_method' does not exist");
+    await expect(check()).rejects.toThrow(
+      new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "'incorrect_method' does not exist",
+      })
+    );
   });
 
   it("sendRawTransaction without authentication not allowed", async () => {
@@ -207,7 +222,11 @@ describe("hyperledger Besu Test", () => {
     const check = async () => {
       await callAPI("eth_sendRawTransaction", ["0x000"], ANONYMOUS);
     };
-    await expect(check()).rejects.toThrow("not available for anonymous access");
+    await expect(check()).rejects.toThrow(
+      new UnauthorizedError(UnauthorizedError.defaultTitle, {
+        detail: "not available for anonymous access",
+      })
+    );
   });
 
   it("notarize a hash using ethers library", async () => {
@@ -301,7 +320,11 @@ describe("hyperledger Besu Test", () => {
     const check = async () => {
       await callAPI("eth_sendRawTransaction", [signed.rawTransaction]);
     };
-    await expect(check()).rejects.toThrow("Invalid chain id");
+    await expect(check()).rejects.toThrow(
+      new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "Invalid chain id",
+      })
+    );
   });
 
   it("throws bad request when a transaction can not be parsed", async () => {
@@ -309,7 +332,11 @@ describe("hyperledger Besu Test", () => {
     const check = async () => {
       await callAPI("eth_sendRawTransaction", ["0xf884808083035f48943"]);
     };
-    await expect(check()).rejects.toThrow("Error parsing the transaction:");
+    await expect(check()).rejects.toThrow(
+      new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "Error parsing the transaction:",
+      })
+    );
   });
 
   it("reject the deployment of a new smart contract", async () => {
@@ -319,7 +346,9 @@ describe("hyperledger Besu Test", () => {
       await callAPI("eth_sendRawTransaction", [sgnTx]);
     };
     await expect(check()).rejects.toThrow(
-      "Deployment of new smart contracts is not allowed"
+      new ForbiddenError(ForbiddenError.defaultTitle, {
+        detail: "Deployment of new smart contracts is not allowed",
+      })
     );
   });
 
@@ -328,7 +357,11 @@ describe("hyperledger Besu Test", () => {
     const check = async () => {
       await controller.besuRPC();
     };
-    await expect(check()).rejects.toThrow("Not method or params defined");
+    await expect(check()).rejects.toThrow(
+      new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "Not method or params defined",
+      })
+    );
   });
 
   it("reject disabled method", async () => {
@@ -336,7 +369,11 @@ describe("hyperledger Besu Test", () => {
     const check = async () => {
       await callAPI("eth_sendTransaction", ["0x000"]);
     };
-    await expect(check()).rejects.toThrow("is currently disabled");
+    await expect(check()).rejects.toThrow(
+      new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "is currently disabled",
+      })
+    );
   });
 
   it("reject bad request", async () => {
@@ -345,7 +382,11 @@ describe("hyperledger Besu Test", () => {
     const check = async () => {
       await callAPI("eth_getBalance", params, ANONYMOUS);
     };
-    await expect(check()).rejects.toThrow("Besu RPC Error:");
+    await expect(check()).rejects.toThrow(
+      new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "Besu RPC Error:",
+      })
+    );
   });
 
   it("internal error when the rpc is not working", async () => {

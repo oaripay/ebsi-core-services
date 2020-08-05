@@ -1,11 +1,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-
 const logger = require("./logger");
 const auth = require("./auth");
 const besuAPI = require("./router");
-const errors = require("./errors");
+const { BadRequestError, handler: errorHandler } = require("./errors");
 
 class App {
   constructor(app = express()) {
@@ -27,10 +26,14 @@ class App {
     this.httpServer.use("/ledger/v1/blockchains/besu", besuAPI);
 
     this.httpServer.use((req, res, next) => {
-      next(new errors.BadRequestError(`Invalid service '${req.url}'`));
+      next(
+        new BadRequestError(BadRequestError.defaultTitle, {
+          detail: `Invalid service '${req.url}'`,
+        })
+      );
     });
 
-    this.httpServer.use(errors.handler);
+    this.httpServer.use(errorHandler);
   }
 
   getServer() {

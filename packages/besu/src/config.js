@@ -44,6 +44,7 @@ if (!process.env.API_PRIVATE_KEY)
 
 const sharedConfig = {
   trustedAppsRegistry: `${url}/trusted-apps-registry/v1`,
+  didResolver: `${url}/did/v1/identifiers`,
   notary: {
     address: process.env.BESU_ADDRESS_NOTARY,
     abi,

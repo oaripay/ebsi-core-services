@@ -8,7 +8,7 @@ API to interact with Besu RPC.
 
 Clone the repository and move to the project directory
 
-```
+```sh
 git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/ledger-api.git
 ```
 
@@ -30,9 +30,9 @@ For building you can choose to build with docker or to build from source directl
 
 ### Build with docker
 
-run
+Run:
 
-```
+```sh
 docker-compose up --build
 ```
 
@@ -40,15 +40,15 @@ The api will be accesible at http://localhost:8080
 
 ### Build from source
 
-Install libraries and dependencies
+Install libraries and dependencies:
 
-```
+```sh
 yarn install
 ```
 
-Start the api
+Start the API:
 
-```
+```sh
 yarn run start
 ```
 
@@ -61,25 +61,25 @@ For e2e tests, TEST_APP_NAME and TEST_APP_PRIVATE_KEY need to be a valid app reg
 
 Launch unit tests and e2e tests with:
 
-```
+```sh
 yarn run test
 ```
 
 To connect with a local api for e2e run:
 
-```
+```sh
 EBSI_ENV=local EBSI_API=http://localhost:8080 yarn run test
 ```
 
 To run only unit tests:
 
-```
+```sh
 yarn run test:unit
 ```
 
 To run only integration tests:
 
-```
+```sh
 yarn run test:e2e
 ```
 
@@ -89,7 +89,7 @@ You can read the documentation at https://api.intebsi.xyz/docs/?urls.primaryName
 
 ## Licensing
 
-Copyright (c) 2019 European Commission  
+Copyright (c) 2019 European Commission
 Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
 You may not use this work except in compliance with the Licence.
 You may obtain a copy of the Licence at:

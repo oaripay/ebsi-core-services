@@ -164,6 +164,7 @@ describe("hyperledger Besu integration test", () => {
       title: "Bad Request",
       status: 400,
       detail: expect.stringContaining("'incorrect_method' does not exist"),
+      type: "about:blank",
     });
     expect(response.status).toBe(400);
   });
@@ -175,6 +176,7 @@ describe("hyperledger Besu integration test", () => {
       title: "Unauthorized",
       status: 401,
       detail: expect.stringContaining("not available for anonymous access"),
+      type: "about:blank",
     });
     expect(response.status).toBe(401);
   });
@@ -237,6 +239,7 @@ describe("hyperledger Besu integration test", () => {
       title: "Bad Request",
       status: 400,
       detail: expect.stringContaining("Invalid chain id"),
+      type: "about:blank",
     });
     expect(response.status).toBe(400);
   });
@@ -249,6 +252,7 @@ describe("hyperledger Besu integration test", () => {
       title: "Forbidden",
       status: 403,
       detail: "Deployment of new smart contracts is not allowed",
+      type: "about:blank",
     });
     expect(response.status).toBe(403);
   });
@@ -260,6 +264,7 @@ describe("hyperledger Besu integration test", () => {
       title: "Bad Request",
       status: 400,
       detail: "Invalid service '/ledger/v1/bad-url'",
+      type: "about:blank",
     });
     expect(response.status).toBe(400);
   });

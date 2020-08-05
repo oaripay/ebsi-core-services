@@ -1,6 +1,7 @@
 {
   "private": true,
   "scripts": {
+    "audit": "audit-ci --moderate",
     "bootstrap": "run-s bootstrap:*",
     "bootstrap:besu": "cd packages/besu && yarn install",
     "bootstrap:fabric-test": "cd packages/fabric/tests && yarn install",
@@ -14,7 +15,7 @@
     "test:fabric-e2e": "cd packages/fabric/tests && yarn run test"
   },
   "devDependencies": {
-    "audit-ci": "^2.5.1",
+    "audit-ci": "^3.1.1",
     "husky": "^4.2.5",
     "npm-run-all": "^4.1.5"
   },

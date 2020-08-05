@@ -6,7 +6,10 @@ const {
   BadRequestError,
   UnauthorizedError,
   ForbiddenError,
+  InternalServerError,
+  ProblemDetailsError,
 } = require("./errors");
+const logger = require("./logger");
 
 const anonymousAccess = { enabled: true, requireAuth: false };
 const authAccess = { enabled: true, requireAuth: true };
@@ -82,58 +85,87 @@ const methods = {
 
 async function besuRPC(query, authenticated) {
   if (!query || !query.method || !query.params) {
-    throw new BadRequestError("Not method or params defined");
+    throw new BadRequestError(BadRequestError.defaultTitle, {
+      detail: "Not method or params defined",
+    });
   }
 
   const method = methods[query.method];
 
   if (!method)
-    throw new BadRequestError(`The method '${query.method}' does not exist`);
+    throw new BadRequestError(BadRequestError.defaultTitle, {
+      detail: `The method '${query.method}' does not exist`,
+    });
 
   if (!method.enabled)
-    throw new BadRequestError(
-      `The method '${query.method}' is currently disabled`
-    );
+    throw new BadRequestError(BadRequestError.defaultTitle, {
+      detail: `The method '${query.method}' is currently disabled`,
+    });
 
   if (!authenticated && method.requireAuth)
-    throw new UnauthorizedError(
-      `The method '${query.method}' is not available for anonymous access`
-    );
+    throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
+      detail: `The method '${query.method}' is not available for anonymous access`,
+    });
 
   let isDeployingSC = false;
   try {
     isDeployingSC = await utils.isDeployingSmartContract(query);
   } catch (error) {
-    if (error.message.includes("Error getting ebsi chainId")) throw error;
-    else
-      throw new BadRequestError(
-        `Error parsing the transaction: ${error.message}`
-      );
+    if (error.message.includes("Error getting ebsi chainId")) {
+      logger.error(error.stack);
+
+      if (error instanceof ProblemDetailsError) throw error;
+
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail:
+          "The server encountered an internal error and was unable to complete your request.",
+      });
+    } else {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: `Error parsing the transaction: ${error.message}`,
+      });
+    }
   }
 
   if (isDeployingSC)
-    throw new ForbiddenError(
-      "Deployment of new smart contracts is not allowed"
-    );
+    throw new ForbiddenError(ForbiddenError.defaultTitle, {
+      detail: "Deployment of new smart contracts is not allowed",
+    });
 
   try {
     const response = await axios.post(config.besuRPCNode, query);
     return response.data;
   } catch (error) {
-    if (!error.response)
-      throw new Error(
+    if (!error.response) {
+      logger.error(
         `Error from Besu RPC ${config.besuRPCNode}. ${error.message}`
       );
+      logger.error(error.stack);
+
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail:
+          "The server encountered an internal error and was unable to complete your request.",
+      });
+    }
     const { status, data } = error.response;
     let message;
     if (typeof data === "object") message = JSON.stringify(data);
     else message = data;
 
-    if (status >= 500)
-      throw new Error(
+    if (status >= 500) {
+      logger.error(
         `Internal error from Besu RPC ${config.besuRPCNode}. ${message}`
       );
-    else throw new BadRequestError(`Besu RPC Error: ${message}`);
+
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail:
+          "The server encountered an internal error and was unable to complete your request.",
+      });
+    } else {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: `Besu RPC Error: ${message}`,
+      });
+    }
   }
 }
 

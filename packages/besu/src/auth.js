@@ -1,8 +1,18 @@
 const { Session } = require("@cef-ebsi/app-jwt");
 
-const { API_NAME, privKey, trustedAppsRegistry } = require("./config");
+const {
+  API_NAME,
+  privKey,
+  trustedAppsRegistry,
+  didResolver,
+} = require("./config");
 
-const session = new Session(API_NAME, privKey, trustedAppsRegistry);
+const session = new Session(
+  API_NAME,
+  privKey,
+  trustedAppsRegistry,
+  didResolver
+);
 
 /*
  * Get the token from the headers

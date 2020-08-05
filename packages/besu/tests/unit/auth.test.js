@@ -11,8 +11,8 @@ const request = supertest(server);
 let token;
 const randomKey = () => jose.JWK.generateSync("EC", "secp256k1");
 
-/* eslint jest/no-hooks: "off" */
 describe("authentication in ledger api", () => {
+  // eslint-disable-next-line jest/no-hooks
   afterAll(async () => {
     await new Promise((resolve) => setTimeout(resolve, 500));
   });
@@ -54,10 +54,12 @@ describe("authentication in ledger api", () => {
     const response = await request
       .post("/ledger/v1/sessions")
       .send({ randomBody: "bad assertion" });
+
     expect(response.body).toStrictEqual({
       title: "Bad Request",
       status: 400,
       detail: expect.stringContaining("grantType must be"),
+      type: "about:blank",
     });
     expect(response.status).toBe(400);
   });
@@ -113,6 +115,7 @@ describe("authentication in ledger api", () => {
       title: "Invalid Token",
       status: 400,
       detail: "signature verification failed",
+      type: "about:blank",
     });
     expect(response.status).toBe(400);
   });
@@ -133,6 +136,7 @@ describe("authentication in ledger api", () => {
       title: "Invalid Token",
       status: 400,
       detail: expect.stringContaining("incorrect audience"),
+      type: "about:blank",
     });
     expect(response.status).toBe(400);
   });

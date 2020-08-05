@@ -8,7 +8,7 @@ const config = require("../../src/config");
 const utils = require("../../src/utils");
 const Server = require("../../src/server");
 
-const { InternalError } = require("../../src/errors");
+const { InternalServerError } = require("../../src/errors");
 
 const server = new Server().getServer();
 const request = supertest(server);
@@ -75,8 +75,8 @@ async function getDeployTransaction() {
   return wallet.sign(transaction);
 }
 
-/* eslint jest/no-hooks: "off" */
 describe("hyperledger Besu integration test", () => {
+  // eslint-disable-next-line jest/no-hooks
   beforeAll(async () => {
     const token = jose.JWT.sign({ aud: config.API_NAME }, config.privKey);
     callBesuAuth = (method, params) => {
@@ -91,6 +91,11 @@ describe("hyperledger Besu integration test", () => {
           id: 1,
         });
     };
+  });
+
+  // eslint-disable-next-line jest/no-hooks
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   it("throws internal error when the chainId can not be read", async () => {
@@ -112,6 +117,7 @@ describe("hyperledger Besu integration test", () => {
       title: "Internal Server Error",
       status: 500,
       detail: expect.stringContaining("internal error"),
+      type: "about:blank",
     });
     expect(response.status).toBe(500);
 
@@ -166,6 +172,7 @@ describe("hyperledger Besu integration test", () => {
       title: "Bad Request",
       status: 400,
       detail: expect.stringContaining("'incorrect_method' does not exist"),
+      type: "about:blank",
     });
     expect(response.status).toBe(400);
   });
@@ -177,6 +184,7 @@ describe("hyperledger Besu integration test", () => {
       title: "Unauthorized",
       status: 401,
       detail: expect.stringContaining("not available for anonymous access"),
+      type: "about:blank",
     });
     expect(response.status).toBe(401);
   });
@@ -239,6 +247,7 @@ describe("hyperledger Besu integration test", () => {
       title: "Bad Request",
       status: 400,
       detail: expect.stringContaining("Invalid chain id"),
+      type: "about:blank",
     });
     expect(response.status).toBe(400);
   });
@@ -251,6 +260,7 @@ describe("hyperledger Besu integration test", () => {
       title: "Forbidden",
       status: 403,
       detail: "Deployment of new smart contracts is not allowed",
+      type: "about:blank",
     });
     expect(response.status).toBe(403);
   });
@@ -262,6 +272,7 @@ describe("hyperledger Besu integration test", () => {
       title: "Bad Request",
       status: 400,
       detail: "Invalid service '/ledger/v1/bad-url'",
+      type: "about:blank",
     });
     expect(response.status).toBe(400);
   });
@@ -279,11 +290,12 @@ describe("hyperledger Besu integration test", () => {
       title: "Internal Server Error",
       status: 500,
       detail: expect.stringContaining("internal error"),
+      type: "about:blank",
     });
     expect(response1.status).toBe(500);
 
     jest.spyOn(axios, "post").mockImplementation(() => {
-      throw new InternalError("internal error");
+      throw new InternalServerError("internal error");
     });
 
     const response2 = await callBesu("net_version", []);
@@ -291,6 +303,7 @@ describe("hyperledger Besu integration test", () => {
       title: "Internal Server Error",
       status: 500,
       detail: expect.stringContaining("internal error"),
+      type: "about:blank",
     });
     expect(response2.status).toBe(500);
 
