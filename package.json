@@ -18,18 +18,18 @@
     "API"
   ],
   "dependencies": {
-    "@cef-ebsi/app-jwt": "0.0.10",
-    "@cef-ebsi/express-problem-details": "0.0.1",
-    "@cef-ebsi/problem-details-errors": "0.0.2",
+    "@cef-ebsi/app-jwt": "0.0.11",
+    "@cef-ebsi/express-problem-details": "0.0.2",
+    "@cef-ebsi/problem-details-errors": "0.0.3",
     "body-parser": "^1.19.0",
     "busboy": "^0.3.1",
     "cassandra-driver": "^4.5.2",
     "cors": "^2.8.5",
     "dotenv": "^8.1.0",
-    "ethers": "^4.0.47",
+    "ethers": "^5.0.8",
     "express": "^4.17.1",
     "fast-json-patch": "^3.0.0-1",
-    "jose": "^1.27.2",
+    "jose": "^1.27.3",
     "uuid": "^8.3.0",
     "winston": "^3.2.1"
   },
