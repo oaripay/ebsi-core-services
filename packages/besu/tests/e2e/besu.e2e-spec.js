@@ -50,17 +50,18 @@ async function buildTxNotaryWithEthers(hash) {
   const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
   const wallet = ethers.Wallet.createRandom();
   const iface = new ethers.utils.Interface(notary.abi);
-
+  const ethersChainId = ethers.BigNumber.from(chainId).toNumber();
   const transaction = {
     nonce: await provider.getTransactionCount(wallet.address),
     gasLimit: 221000,
     gasPrice: 0,
+    from: wallet.address,
     to: notary.address,
     value: 0,
-    data: iface.functions.addRecord.encode([hash]),
-    chainId,
+    data: iface.encodeFunctionData("addRecord", [hash]),
+    chainId: ethersChainId,
   };
-  return wallet.sign(transaction);
+  return wallet.signTransaction(transaction);
 }
 
 async function getDeployTransaction() {
@@ -71,12 +72,13 @@ async function getDeployTransaction() {
     nonce: await provider.getTransactionCount(wallet.address),
     gasLimit: 221000,
     gasPrice: 0,
+    from: wallet.address,
     to: "0x0000000000000000000000000000000000000000",
     value: 0,
     data: "0x12345678901234567890",
   };
 
-  return wallet.sign(transaction);
+  return wallet.signTransaction(transaction);
 }
 
 /* eslint jest/no-hooks: "off" */
@@ -87,7 +89,6 @@ describe("hyperledger Besu integration test", () => {
       issuer: TEST_APP_NAME,
     });
     const requestToken = await agent.createRequestPayload("ebsi-ledger");
-
     await request
       .post("/ledger/v1/sessions")
       .send(requestToken)

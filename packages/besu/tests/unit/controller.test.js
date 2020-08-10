@@ -17,7 +17,8 @@ const controller = require("../../src/controller");
 
 const ANONYMOUS = false;
 const { notary } = config;
-let chainId;
+let chainId = 0; // The chain ID this transaction is authorized on, as specified by EIP-155.
+jest.setTimeout(10000);
 
 /*
  * Functions
@@ -45,17 +46,19 @@ async function buildTxNotaryWithEthers(hash) {
   const provider = new ethers.providers.JsonRpcProvider(config.besuRPCNode);
   const wallet = ethers.Wallet.createRandom();
   const iface = new ethers.utils.Interface(notary.abi);
-
+  const ethersChainId = ethers.BigNumber.from(chainId).toNumber();
   const transaction = {
     nonce: await provider.getTransactionCount(wallet.address),
     gasLimit: 221000,
     gasPrice: 0,
     to: notary.address,
     value: 0,
-    data: iface.functions.addRecord.encode([hash]),
-    chainId,
+    data: iface.encodeFunctionData("addRecord", [hash]),
+    chainId: ethersChainId,
+    from: wallet.address,
   };
-  return wallet.sign(transaction);
+
+  return wallet.signTransaction(transaction);
 }
 
 async function buildTxNotaryWithWeb3(hash) {
@@ -89,7 +92,7 @@ async function buildTxNotaryWithEthereumJsTx(hash) {
     gasPrice: 0,
     to: notary.address,
     value: 0,
-    data: iface.functions.addRecord.encode([hash]),
+    data: iface.encodeFunctionData("addRecord", [hash]),
   };
 
   const optsChain = {
@@ -136,9 +139,10 @@ async function getDeployTransaction() {
     to: "0x0000000000000000000000000000000000000000",
     value: 0,
     data: "0x12345678901234567890",
+    from: wallet.address,
   };
 
-  return wallet.sign(transaction);
+  return wallet.signTransaction(transaction);
 }
 
 /*
@@ -169,11 +173,16 @@ describe("hyperledger Besu Test", () => {
     jest.unmock("axios");
   });
 
-  it("getChainId", async () => {
-    expect.assertions(1);
+  it("getChainId should resolve and match net_version", async () => {
+    expect.assertions(3);
     const result = await callAPI("eth_chainId", [], ANONYMOUS);
     expect(result).toStrictEqual(respBesu(expect.any(String)));
     chainId = result.result;
+    const netVersion = await callAPI("net_version", [], ANONYMOUS);
+    expect(netVersion).toStrictEqual(respBesu(expect.any(String)));
+    const chainNum = ethers.BigNumber.from(chainId).toNumber();
+    const networkId = Number(netVersion.result);
+    expect(chainNum).toStrictEqual(networkId);
   });
 
   it("getBalance", async () => {
