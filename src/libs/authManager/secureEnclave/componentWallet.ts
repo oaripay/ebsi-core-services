@@ -3,6 +3,7 @@ import { encrypt, decrypt } from "eciesjs";
 import { ethers } from "ethers";
 import Wallet, { WalletOptions } from "./wallet";
 import { InternalServerError, ApiErrorMessages } from "../../../errors";
+import { prefixWith0x } from "../../../utils/util";
 import getJWKfromHex from "./jwk";
 
 export default class ComponentWallet implements Wallet {
@@ -30,7 +31,7 @@ export default class ComponentWallet implements Wallet {
   protected wallet!: ethers.Wallet;
 
   async loadFromPrivateKey(hexPrivateKey: string): Promise<ethers.Wallet> {
-    const wallet = new ethers.Wallet(hexPrivateKey);
+    const wallet = new ethers.Wallet(prefixWith0x(hexPrivateKey));
     this.wallet = wallet;
     this.ethAddress = wallet.address;
     const signingKey = new ethers.utils.SigningKey(wallet.privateKey);

@@ -5,6 +5,7 @@ import {
   jwk,
 } from "../../src/libs/authManager/secureEnclave";
 import { generateHexPrivateKey } from "../utils/auxAPICalls";
+import { prefixWith0x } from "../../src/utils/util";
 
 describe("component wallet test suite", () => {
   describe("wallet builder test suite", () => {
@@ -62,7 +63,7 @@ describe("component wallet test suite", () => {
       const wallet = new ComponentWallet();
       await wallet.loadFromPrivateKey(hexPrivateKey);
       const pubKey = wallet.publicKey;
-      const ethWallet = new ethers.Wallet(hexPrivateKey);
+      const ethWallet = new ethers.Wallet(prefixWith0x(hexPrivateKey));
       expect(pubKey).toMatch(
         new ethers.utils.SigningKey(ethWallet.privateKey).publicKey
       );
@@ -74,7 +75,7 @@ describe("component wallet test suite", () => {
       const wallet = new ComponentWallet();
       await wallet.loadFromPrivateKey(hexPrivateKey);
       const { privateKey } = wallet;
-      const ethWallet = new ethers.Wallet(hexPrivateKey);
+      const ethWallet = new ethers.Wallet(prefixWith0x(hexPrivateKey));
       expect(privateKey).toMatch(ethWallet.privateKey);
     });
 
@@ -101,7 +102,7 @@ describe("component wallet test suite", () => {
       const hexPrivateKey = generateHexPrivateKey();
       const wallet = new ComponentWallet();
       await wallet.loadFromPrivateKey(hexPrivateKey);
-      const ethWallet = new ethers.Wallet(hexPrivateKey);
+      const ethWallet = new ethers.Wallet(prefixWith0x(hexPrivateKey));
       expect(wallet.getDid()).toMatch(`did:ebsi:${ethWallet.address}`);
     });
 

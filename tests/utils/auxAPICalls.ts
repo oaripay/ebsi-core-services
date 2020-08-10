@@ -2,7 +2,12 @@ import { JWK, JWT } from "jose";
 import { v4 as uuidv4 } from "uuid";
 import { ethers } from "ethers";
 import { API_PRIVATE_KEY } from "../../src/config";
-import { PRINT_DEBUG, b64EncodeUrl, hash } from "../../src/utils/util";
+import {
+  PRINT_DEBUG,
+  b64EncodeUrl,
+  hash,
+  prefixWith0x,
+} from "../../src/utils/util";
 import { InternalServerError, ApiErrorMessages } from "../../src/errors";
 import ComponentSecureEnclave from "../../src/libs/authManager/secureEnclave/componentSecureEnclave";
 import { IAttribute } from "../../src/dtos/attributeInfo";
@@ -43,7 +48,7 @@ const generateToken = (opts?: { [key: string]: string | number }) => {
     iss: config.API_NAME,
     ...opts,
   };
-  const wallet = new ethers.Wallet(config.API_PRIVATE_KEY);
+  const wallet = new ethers.Wallet(prefixWith0x(config.API_PRIVATE_KEY));
   const signingKey = new ethers.utils.SigningKey(wallet.privateKey);
   const jwk = getJWKfromHex(signingKey.publicKey, signingKey.privateKey);
 
@@ -67,7 +72,7 @@ const initSetupForTesting = async (): Promise<TestingSetup> => {
   const randNum: number = Math.floor(Math.random() * 1000000);
   const keyJwk = JWK.generateSync("EC", "secp256k1", { use: "sig" });
   const hexkey = Buffer.from(<string>keyJwk.d, "base64").toString("hex");
-  const wallet = new ethers.Wallet(hexkey);
+  const wallet = new ethers.Wallet(prefixWith0x(hexkey));
   const did = `did:ebsi:${wallet.address}`;
   const response = generateToken({
     did,

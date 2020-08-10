@@ -1,4 +1,3 @@
-import moment from "moment";
 import EBSI_JWT from "@cef-ebsi/app-jwt";
 import { ICASFile } from "../../daos/casFile";
 import { ICASStorageOut } from "../../dtos/dataStorage";
@@ -131,20 +130,6 @@ export default class AuthManager {
     }
 
     return appInfo.token;
-  }
-
-  async createAuthNToken(targetApp: string): Promise<string> {
-    const payload = {
-      iss: config.API_NAME,
-      aud: targetApp,
-      iat: moment().unix(),
-      exp: moment().add(15, "minutes").unix(),
-    };
-    const buffer = Buffer.from(JSON.stringify(payload));
-    const se = this.secureEnclave;
-
-    const jwt = await se.signJwt(se.enclaveDid, buffer);
-    return jwt;
   }
 
   /**

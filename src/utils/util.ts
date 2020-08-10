@@ -90,6 +90,9 @@ const isTokenExpired = (token: string): boolean => {
   return true;
 };
 
+const prefixWith0x = (key: string): string =>
+  key.startsWith("0x") ? key : `0x${key}`;
+
 const PRINT = (data: any, level: string, operation?: string): void => {
   if (ENVIRONMENT === "test") {
     LOGGER.silent = true;
@@ -140,6 +143,7 @@ export {
   isHex,
   isHash,
   strB64dec,
+  prefixWith0x,
   PRINT_INFO,
   PRINT_DEBUG,
   PRINT_ERROR,

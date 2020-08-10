@@ -1,29 +1,9 @@
 import AuthManager from "../../src/libs/authManager/authManager";
 import { EbsiApps } from "../../src/config";
-import ComponentSecureEnclave from "../../src/libs/authManager/secureEnclave/componentSecureEnclave";
 import { api, util } from "../../src/utils";
 import { TokenType } from "../../src/libs/authManager/secureEnclave/jwt";
 
 describe("authManager tests", () => {
-  describe("createAuthNToken test suite", () => {
-    it("should create an authN token", async () => {
-      expect.assertions(1);
-      const mockedSignJwt = jest.fn().mockResolvedValue("tokenJwt");
-      jest.spyOn(ComponentSecureEnclave, "Instance", "get").mockImplementation(
-        () =>
-          ({
-            enclaveDid: "did:ebsi:0x00",
-            signJwt: mockedSignJwt,
-          } as any)
-      );
-      const jwt = await AuthManager.Instance.createAuthNToken(
-        EbsiApps.FILE_STORAGE
-      );
-      expect(jwt).toMatch("tokenJwt");
-      jest.resetAllMocks();
-    });
-  });
-
   describe("getAuthZToken test suite", () => {
     it("should throw an Internal Error", async () => {
       expect.assertions(1);
@@ -34,9 +14,7 @@ describe("authManager tests", () => {
 
     it("should return a token registered to the map", async () => {
       expect.assertions(1);
-      jest
-        .spyOn(AuthManager.Instance, "createAuthNToken")
-        .mockResolvedValue("a token");
+
       jest.spyOn(api, "doPostCallWithoutToken").mockResolvedValue({
         accessToken: "an access token",
         tokenType: TokenType.bearer,
@@ -44,15 +22,15 @@ describe("authManager tests", () => {
       const token = await AuthManager.Instance.getAuthZToken(
         EbsiApps.FILE_STORAGE
       );
+
       expect(token).toBeDefined();
+
       jest.resetAllMocks();
     });
 
     it("should return the registered token", async () => {
       expect.assertions(1);
-      jest
-        .spyOn(AuthManager.Instance, "createAuthNToken")
-        .mockResolvedValue("a token");
+
       jest.spyOn(api, "doPostCallWithoutToken").mockResolvedValue({
         accessToken: "an access token",
         tokenType: TokenType.bearer,
@@ -65,15 +43,15 @@ describe("authManager tests", () => {
       const receivedToken = await AuthManager.Instance.getAuthZToken(
         EbsiApps.FILE_STORAGE
       );
+
       expect(receivedToken).toMatch(token);
+
       jest.resetAllMocks();
     });
 
     it("should create a new token with token expired", async () => {
       expect.assertions(1);
-      jest
-        .spyOn(AuthManager.Instance, "createAuthNToken")
-        .mockResolvedValue("a token");
+
       jest
         .spyOn(api, "doPostCallWithoutToken")
         .mockResolvedValueOnce({
@@ -92,43 +70,43 @@ describe("authManager tests", () => {
       const receivedToken = await AuthManager.Instance.getAuthZToken(
         EbsiApps.FILE_STORAGE
       );
+
       expect(receivedToken).not.toMatch(token);
+
       jest.resetAllMocks();
     });
 
     it("should throw an error on receiving the access token: undefined", async () => {
       expect.assertions(1);
-      jest
-        .spyOn(AuthManager.Instance, "createAuthNToken")
-        .mockResolvedValue("a token");
+
       jest
         .spyOn(api, "doPostCallWithoutToken")
         .mockResolvedValue(undefined as any);
       jest.spyOn(util, "isTokenExpired").mockReturnValue(true);
+
       await expect(
         AuthManager.Instance.getAuthZToken(EbsiApps.FILE_STORAGE)
       ).rejects.toThrow("Internal Server Error");
+
       jest.resetAllMocks();
     });
 
     it("should throw an error on receiving the access token: no access token", async () => {
       expect.assertions(1);
-      jest
-        .spyOn(AuthManager.Instance, "createAuthNToken")
-        .mockResolvedValue("a token");
+
       jest.spyOn(api, "doPostCallWithoutToken").mockResolvedValue({} as any);
       jest.spyOn(util, "isTokenExpired").mockReturnValue(true);
+
       await expect(
         AuthManager.Instance.getAuthZToken(EbsiApps.FILE_STORAGE)
       ).rejects.toThrow("Internal Server Error");
+
       jest.resetAllMocks();
     });
 
     it("should throw an error on receiving the access token: no token type", async () => {
       expect.assertions(1);
-      jest
-        .spyOn(AuthManager.Instance, "createAuthNToken")
-        .mockResolvedValue("a token");
+
       jest.spyOn(api, "doPostCallWithoutToken").mockResolvedValue({
         accessToken: "an access token",
       });
@@ -141,9 +119,7 @@ describe("authManager tests", () => {
 
     it("should throw an error on receiving the access token: bad token type", async () => {
       expect.assertions(1);
-      jest
-        .spyOn(AuthManager.Instance, "createAuthNToken")
-        .mockResolvedValue("a token");
+
       jest.spyOn(api, "doPostCallWithoutToken").mockResolvedValue({
         accessToken: "an access token",
         tokenType: "a type",
