@@ -102,8 +102,10 @@ export default class AppService {
 
   async getDocumentsByUniversity(did: string): Promise<any> {
     const documentIndexes = await this.univContract.getAllDocumentIndexes(did);
-    const documentsPromises = documentIndexes.map((item) => {
-      return this.univContract.getDocument(did, item);
+    const documentsPromises = documentIndexes.map(async (item) => {
+      const res = await this.univContract.getDocument(did, item);
+      // Transform Array into object
+      return { ...res };
     });
     return Promise.all(documentsPromises);
   }
@@ -217,7 +219,7 @@ export default class AppService {
     }
 
     try {
-      const res = axios.get(
+      return axios.get(
         `${this.configService
           .get("STORAGE")
           .replace(/\/$/, "")}/v1/stores/distributed/files/${documentHash}`,
@@ -228,7 +230,6 @@ export default class AppService {
           validateStatus: () => true,
         }
       );
-      return res;
     } catch (Error) {
       this.logger.warn(Error);
       return null;

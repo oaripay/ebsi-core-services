@@ -133,10 +133,13 @@ export default class AppController {
               return;
             }
 
-            if (downloadedDoc.status === 200)
+            if (downloadedDoc.status === 200) {
               documents[id].body = downloadedDoc.data;
-            else if (downloadedDoc.status === 404) documents[id].body = "";
-            else documents[id].body = null;
+            } else if (downloadedDoc.status === 404) {
+              documents[id].body = "";
+            } else {
+              documents[id].body = null;
+            }
           } catch (error) {
             // do nothing, can't extract from besu
             this.logger.warn(
@@ -168,9 +171,7 @@ export default class AppController {
       result.entities.push({
         type: "government",
         moderator: govTypeIssuer.moderator,
-        documents: documents.map((document) =>
-          AppFormatter.formatDocument(document)
-        ),
+        documents: documents.map(AppFormatter.formatDocument),
         status: govTypeIssuer.status,
         name: govTypeIssuer.name,
         country: govTypeIssuer.country,

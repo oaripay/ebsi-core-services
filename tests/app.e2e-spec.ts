@@ -79,38 +79,86 @@ describe("appController (e2e)", () => {
   });
 
   it(`(GET) trusted-issuers-registry/${version}/issuers/{did}`, async () => {
-    expect.assertions(5);
+    expect.assertions(8);
     const issuers = await request(app.getHttpServer()).get(
       `/trusted-issuers-registry/${version}/issuers`
     );
     const typedIssuers: Array<{ did: string; name: string }> =
       issuers.body.items;
+
     expect(typedIssuers.length).toBeGreaterThanOrEqual(1);
 
-    const response = await request(app.getHttpServer()).get(
-      `/trusted-issuers-registry/${version}/issuers/${typedIssuers[0].did}`
+    // Fetch all issuers upfront
+    const allIssuersResponses: any = await Promise.all(
+      typedIssuers.map(async (iss) => {
+        const res = await request(app.getHttpServer()).get(
+          `/trusted-issuers-registry/${version}/issuers/${iss.did}`
+        );
+        return { body: res.body, status: res.status, originalIssuer: iss };
+      })
     );
-    expect(response.status).toBe(200);
-    expect(response.body).toStrictEqual(
+
+    // Check a "university" issuer
+    const universityResponse = allIssuersResponses.find(
+      (issResponse) => issResponse.body.entities[0].type === "university"
+    );
+
+    expect(universityResponse.status).toBe(200);
+    expect(universityResponse.body).toStrictEqual(
       expect.objectContaining({
-        issuerDID: expect.stringMatching(typedIssuers[0].did),
+        issuerDID: expect.stringMatching(universityResponse.originalIssuer.did),
         entities: expect.arrayContaining([
           expect.objectContaining({
+            accreditations: expect.any(Array),
             alternativeName: expect.any(String),
+            documents: expect.any(Array),
             escoOrganizationType: expect.any(String),
             homepage: expect.any(String),
             moderator: expect.any(String),
-            preferredName: expect.stringMatching(typedIssuers[0].name),
+            preferredName: expect.stringMatching(
+              universityResponse.originalIssuer.name
+            ),
             siteLocation: expect.any(String),
-            accreditations: expect.any(Array),
-            documents: expect.any(Array),
+            status: expect.any(Boolean),
+            type: "university",
           }),
         ]),
       })
     );
 
+    expect(
+      universityResponse.body.entities[0].documents.length
+    ).toBeGreaterThan(0);
+
     // check connection with storage api
-    expect(response.body.entities[0].documents.length).toBeGreaterThan(0);
-    expect(response.body.entities[0].documents[0].body).not.toBeNull();
+    expect(
+      universityResponse.body.entities[0].documents[0].body
+    ).not.toBeNull();
+
+    // Check a "government" issuer
+    const governmentResponse = allIssuersResponses.find(
+      (issResponse) => issResponse.body.entities[0].type === "government"
+    );
+
+    expect(governmentResponse.status).toBe(200);
+    expect(governmentResponse.body).toStrictEqual(
+      expect.objectContaining({
+        issuerDID: expect.stringMatching(governmentResponse.originalIssuer.did),
+        entities: expect.arrayContaining([
+          expect.objectContaining({
+            type: "government",
+            moderator: expect.any(String),
+            documents: expect.any(Array),
+            status: expect.any(Boolean),
+            name: expect.any(String),
+            country: expect.any(String),
+          }),
+        ]),
+      })
+    );
+
+    expect(
+      governmentResponse.body.entities[0].documents.length
+    ).toBeGreaterThan(0);
   });
 });

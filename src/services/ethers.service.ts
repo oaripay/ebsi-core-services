@@ -4,6 +4,9 @@ import { ConfigService } from "@nestjs/config";
 import * as UniversitiesTrustedIssuers from "../contracts/UniversitiesTrustedIssuers.json";
 import * as GovernmentsTrustedIssuers from "../contracts/GovernmentsTrustedIssuers.json";
 
+const prefixWith0x = (key: string): string =>
+  key.startsWith("0x") ? key : `0x${key}`;
+
 @Injectable()
 export default class EthersService {
   private ethersWallet: string | ethers.Signer | ethers.providers.Provider;
@@ -22,7 +25,7 @@ export default class EthersService {
       this.configService.get("PROVIDER")
     );
     this.ethersWallet = new ethers.Wallet(
-      this.configService.get("API_PRIVATE_KEY"),
+      prefixWith0x(this.configService.get("API_PRIVATE_KEY")),
       this.ethersProvider
     );
     const univContractWithoutWallet = new ethers.Contract(
@@ -49,12 +52,5 @@ export default class EthersService {
       univContract: this.univTrustedIssuersContract,
       govContract: this.govTrustedIssuersContract,
     };
-  }
-
-  static recoverAddress(
-    cryptedChallenge: ethers.utils.Arrayish,
-    signature: string | ethers.utils.Signature
-  ) {
-    return ethers.utils.verifyMessage(cryptedChallenge, signature);
   }
 }
