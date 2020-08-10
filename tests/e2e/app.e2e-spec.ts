@@ -26,12 +26,12 @@ describe("app (e2e)", () => {
       title: "Not Found",
       type: "about:blank",
     });
-    expect(response.status).toBe(404);
     expect(response.header).toStrictEqual(
       expect.objectContaining({
         "content-type": "application/problem+json; charset=utf-8",
       })
     );
+    expect(response.status).toBe(404);
   });
 
   it("/trusted-apps-registry/v1/apps GET should return the list of apps", async () => {
@@ -41,7 +41,6 @@ describe("app (e2e)", () => {
       "/trusted-apps-registry/v1/apps"
     );
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual({
       pageSize: expect.any(Number),
       total: expect.any(Number),
@@ -53,6 +52,7 @@ describe("app (e2e)", () => {
         next: expect.any(String),
       },
     });
+    expect(response.status).toBe(200);
 
     // Every item shoud have non-empty "appName" and "pubKey" properties
     expect(
@@ -69,7 +69,6 @@ describe("app (e2e)", () => {
       "/trusted-apps-registry/v1/apps?page[size]=20"
     );
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual({
       pageSize: 20, // Number, not a String
       total: expect.any(Number),
@@ -81,6 +80,7 @@ describe("app (e2e)", () => {
         next: expect.any(String),
       },
     });
+    expect(response.status).toBe(200);
 
     // Every item shoud have non-empty "appName" and "pubKey" properties
     expect(
@@ -97,13 +97,13 @@ describe("app (e2e)", () => {
       "/trusted-apps-registry/v1/apps/fakeapp"
     );
 
-    expect(response.status).toBe(404);
     expect(response.body).toStrictEqual({
       detail: "fakeapp not found",
       status: 404,
       title: "Not Found",
       type: "about:blank",
     });
+    expect(response.status).toBe(404);
   });
 
   it("/trusted-apps-registry/v1/apps/:appName GET should return an existing app", async () => {
@@ -113,13 +113,13 @@ describe("app (e2e)", () => {
       "/trusted-apps-registry/v1/apps/ebsi-wallet"
     );
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         appName: "ebsi-wallet",
         pubKey: expect.any(String),
       })
     );
+    expect(response.status).toBe(200);
   });
 
   it("/trusted-apps-registry/v1/apps/:appName/authorized-apps GET should return 404 for a non-existing app", async () => {
@@ -129,13 +129,13 @@ describe("app (e2e)", () => {
       "/trusted-apps-registry/v1/apps/fakeapp/authorized-apps"
     );
 
-    expect(response.status).toBe(404);
     expect(response.body).toStrictEqual({
       detail: "Application does not exist",
       status: 404,
       title: "Not Found",
       type: "about:blank",
     });
+    expect(response.status).toBe(404);
   });
 
   it("/trusted-apps-registry/v1/apps/:appName/authorized-apps GET should return the authorizations for an existing app", async () => {
@@ -145,7 +145,6 @@ describe("app (e2e)", () => {
       "/trusted-apps-registry/v1/apps/ebsi-wallet/authorized-apps"
     );
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual({
       links: {
         first: expect.any(String),
@@ -157,6 +156,7 @@ describe("app (e2e)", () => {
       total: expect.any(Number),
       items: expect.any(Array),
     });
+    expect(response.status).toBe(200);
 
     // Items should be an array of { "authorizedAppName": "name-of-the-app" }
     expect(
@@ -171,7 +171,6 @@ describe("app (e2e)", () => {
       "/trusted-apps-registry/v1/apps/ebsi-wallet/authorized-apps?page[size]=20"
     );
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual({
       links: {
         first: expect.any(String),
@@ -183,6 +182,7 @@ describe("app (e2e)", () => {
       total: expect.any(Number),
       items: expect.any(Array),
     });
+    expect(response.status).toBe(200);
 
     // Items should be an array of { "authorizedAppName": "name-of-the-app" }
     expect(
@@ -197,10 +197,10 @@ describe("app (e2e)", () => {
       "/trusted-apps-registry/v1/apps/ebsi-wallet/authorized-apps/ebsi-storage"
     );
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual({
       authorizedAppName: "ebsi-storage",
     });
+    expect(response.status).toBe(200);
   });
 
   it("/trusted-apps-registry/v1/apps/:appName/authorized-apps/:authorizedAppName GET should return 404 if the app is not authorized", async () => {
@@ -210,12 +210,12 @@ describe("app (e2e)", () => {
       "/trusted-apps-registry/v1/apps/ebsi-wallet/authorized-apps/fakeapp"
     );
 
-    expect(response.status).toBe(404);
     expect(response.body).toStrictEqual({
       detail: "fakeapp not found in the list of authorized apps of ebsi-wallet",
       status: 404,
       title: "Not Found",
       type: "about:blank",
     });
+    expect(response.status).toBe(404);
   });
 });

@@ -2,7 +2,7 @@ import { Test } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import utils from "web3-utils";
-import { BigNumber } from "ethers/utils";
+import { BigNumber } from "ethers";
 import { EthersService } from "../../src/services/ethers.service";
 import configuration from "../../src/config/configuration";
 

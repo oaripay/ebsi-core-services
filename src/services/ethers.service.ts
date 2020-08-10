@@ -1,9 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { ethers } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import Web3 from "web3";
-import { BigNumber } from "ethers/utils";
 import * as EBSIApplicationRegistry from "../contracts/EBSIApplicationRegistry.json";
+
+const prefixWith0x = (key: string): string =>
+  key.startsWith("0x") ? key : `0x${key}`;
 
 @Injectable()
 export class EthersService {
@@ -27,13 +29,14 @@ export class EthersService {
       this.configService.get("web3Provider"),
       { name: "besu", chainId: 6971 }
     );
+
     this.contract = new ethers.Contract(
       this.configService.get("contractAddr"),
       EBSIApplicationRegistry.abi,
       this.ethersProvider
     );
     this.ethersWallet = new ethers.Wallet(
-      this.configService.get("apiPrivateKey"),
+      prefixWith0x(this.configService.get("apiPrivateKey")),
       this.ethersProvider
     );
     this.contractWithSigner = this.contract.connect(this.ethersWallet);
@@ -54,7 +57,10 @@ export class EthersService {
   }
 
   async getApplicationByKey(key: BigNumber) {
-    return this.contractWithSigner.getApplicationByIndex(key);
+    return this.contractWithSigner.interface.encodeFunctionData(
+      "getApplicationByIndex",
+      [key]
+    );
   }
 
   async getAuthorizedApps(appName: string) {
