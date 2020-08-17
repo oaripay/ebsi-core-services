@@ -19,7 +19,7 @@ const handler = errorHandler((normalizedError, originalError) => {
     logger.error(originalError.stack);
   }
 
-  logger.info(
+  logger.error(
     `Error ${normalizedError.status} ${normalizedError.title}: ${normalizedError.detail}`
   );
 });

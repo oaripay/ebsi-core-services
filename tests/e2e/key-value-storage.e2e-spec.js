@@ -10,6 +10,8 @@ const {
   ValueTooLargeError,
 } = require("../../src/errors");
 
+jest.setTimeout(30000);
+
 let request;
 let server = null;
 let callApi;
@@ -56,6 +58,8 @@ describe("key value storage tests", () => {
       patch: fn("patch"),
       delete: fn("delete"),
     };
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
   });
 
   // eslint-disable-next-line jest/no-hooks

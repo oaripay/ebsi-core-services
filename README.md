@@ -30,11 +30,32 @@ API_PRIVATE_KEY=023e3d80808...
 
 This private key can be generated using ethers: https://docs.ethers.io/ethers.js/html/api-wallet.html or just taking a random string of 64 characters in hex format.
 
-Also, define the enviroment (local, integration, development, production):
+Define the enviroment (local, integration, development, production):
 
 ```
 EBSI_ENV=integration
 ```
+
+Define consistency and serial consistency desired for read/write operations in cassandra.
+
+```
+CONSISTENCY=localQuorum
+SERIAL_CONSISTENCY=localSerial
+```
+
+There are 10 possible values for consistency and serial consistency.
+
+- **any**. Writing: A write must be written to at least one node. If all replica nodes for the given row key are down, the write can still succeed after a hinted handoff has been written. If all replica nodes are down at write time, an ANY write is not readable until the replica nodes for that row have recovered.
+- **one**. Returns a response from the closest replica, as determined by the snitch.
+- **two**. Returns the most recent data from two of the closest replicas.
+- **three**. Returns the most recent data from three of the closest replicas.
+- **quorum**. Reading: Returns the record with the most recent timestamp after a quorum of replicas has responded regardless of data center. Writing: A write must be written to the commit log and memory table on a quorum of replica nodes.
+- **all**. Reading: Returns the record with the most recent timestamp after all replicas have responded. The read operation will fail if a replica does not respond. Writing: A write must be written to the commit log and memory table on all replica nodes in the cluster for that row.
+- **localQuorum**. Reading: Returns the record with the most recent timestamp once a quorum of replicas in the current data center as the coordinator node has reported. Writing: A write must be written to the commit log and memory table on a quorum of replica nodes in the same data center as the coordinator node. Avoids latency of inter-data center communication.
+- **eachQuorum**. Reading: Returns the record once a quorum of replicas in each data center of the cluster has responded. Writing: Strong consistency. A write must be written to the commit log and memtable on a quorum of replica nodes in all data centers.
+- **serial**. Achieves linearizable consistency for lightweight transactions by preventing unconditional updates.
+- **localSerial**. Same as serial but confined to the data center. A write must be written conditionally to the commit log and memtable on a quorum of replica nodes in the same data center.
+- **localOne**. Similar to One but only within the DC the coordinator is in.
 
 For building, you can choose to build with Docker (recommended) or to build from source directly.
 
@@ -64,7 +85,11 @@ And finally define the keyspace:
 create keyspace ebsi_integration with replication = {'class':'SimpleStrategy','replication_factor':1};
 ```
 
-For testing purposes, set `replication_factor` to 1, because there is only 1 node. For production, set a bigger number depending on the nodes in the network.
+For testing purposes, set `replication_factor` to 1, because there is only 1 node. For production, it is recommended to use `NetworkTopologyStrategy` with a `replication_factor` of 3.
+
+```sh
+create keyspace ebsi_integration with replication = { 'class':'NetworkTopologyStrategy', 'datacenter1' : 3, 'datacenter2': 3};
+```
 
 The API connects with this keyspace and create the tables automatically.
 
@@ -142,6 +167,49 @@ To run only integration tests, launch cassandra and run:
 ```sh
 yarn run test:e2e
 ```
+
+### Test consistency level in a network
+
+Consistency refers to the level of replication we want to achieve for each write/read in cassandra. Start the network defined in `tests/docker-compose-network.yml`.
+
+```sh
+docker-compose -f tests/docker-compose-network.yml up --build
+```
+
+This compose will start 3 nodes in cassandra with the following topology: One node in the datacenter `datacenter1` and two nodes in the datacenter `datacenter2`, and all of them in the cluster `c1`.
+
+Enter to the first node and define the network strategy:
+
+```
+docker exec -it cassandra-node1 bash
+cqlsh
+create keyspace ebsi_integration with replication = { 'class':'NetworkTopologyStrategy', 'datacenter1' : 1, 'datacenter2' : 2};
+```
+
+The setup is ready to test the network. Run the e2e tests defining quorum consistency:
+
+```
+EBSI_ENV=local CONSISTENCY=quorum SERIAL_CONSISTENCY=serial yarn test:e2e
+```
+
+If you stop 2 nodes in the network and run again the tests it will fail.
+
+Now use local consistency
+
+```
+EBSI_ENV=local CONSITENCY=localQuorum SERIAL_CONSITENCY=localSerial yarn test:e2e
+```
+
+Using this consistency the API will only accept the confirmation of the datacenter `datacenter1`, which is the local datacenter defined in the api.
+
+### Troubleshooting
+
+If a node crashes try to restart it again. If you see the error `Not marking nodes down due to local pause` this is probably related to limitations in the hardware. Create a network with only 2 nodes and try again.
+
+Refs:
+
+- https://support.datastax.com/hc/en-us/articles/360002677617-FAQ-What-does-FailureDetector-Not-marking-nodes-down-due-to-local-pause-mean-
+- https://docs.datastax.com/en/dse-planning/doc/planning/capacityPlanning.html
 
 ## OpenAPI documentation
 

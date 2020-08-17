@@ -6,6 +6,8 @@ const cassandra = require("../../src/cassandraClient");
 const { url, TEST_APP_NAME, privKey } = require("../config");
 const { BadRequestError, NotFoundError } = require("../../src/errors");
 
+jest.setTimeout(30000);
+
 let request;
 let server = null;
 let callApi;
@@ -65,6 +67,8 @@ describe("notification storage tests", () => {
       patch: fn("patch"),
       delete: fn("delete"),
     };
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
   });
 
   it("add, update, delete notification and check history", async () => {

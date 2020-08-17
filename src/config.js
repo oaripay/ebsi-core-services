@@ -1,3 +1,4 @@
+const cassandraDriver = require("cassandra-driver");
 const { utils } = require("@cef-ebsi/app-jwt");
 require("dotenv").config();
 
@@ -34,6 +35,9 @@ const environment = process.env.EBSI_ENV;
 const finalConfig = config[environment];
 const { url } = finalConfig;
 
+const consistency = process.env.CONSISTENCY || "localOne";
+const serialConsistency = process.env.SERIAL_CONSISTENCY || "serial";
+
 const sharedConfig = {
   trustedAppsRegistry: `${url}/trusted-apps-registry/v1`,
   cassandra: {
@@ -41,6 +45,11 @@ const sharedConfig = {
       contactPoints: ["cassandradb", "localhost"],
       localDataCenter: "datacenter1",
       keyspace: finalConfig.keyspace,
+      queryOptions: {
+        consistency: cassandraDriver.types.consistencies[consistency],
+        serialConsistency:
+          cassandraDriver.types.consistencies[serialConsistency],
+      },
     },
     opts: {
       reconnectTries: Number.MAX_VALUE,

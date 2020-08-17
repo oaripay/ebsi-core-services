@@ -63,6 +63,8 @@ describe("file storage tests", () => {
       patch: fn("patch"),
       delete: fn("delete"),
     };
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
   });
 
   // eslint-disable-next-line jest/no-hooks
