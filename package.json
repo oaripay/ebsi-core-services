@@ -12,5 +12,8 @@
     "chai": "^4.2.0",
     "openzeppelin-test-helpers": "^0.5.1",
     "truffle-hdwallet-provider": "^1.0.17"
+  },
+  "devDependencies": {
+    "ganache-cli": "^6.9.0"
   }
 }
