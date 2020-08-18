@@ -57,10 +57,7 @@ export class EthersService {
   }
 
   async getApplicationByKey(key: BigNumber) {
-    return this.contractWithSigner.interface.encodeFunctionData(
-      "getApplicationByIndex",
-      [key]
-    );
+    return this.contractWithSigner.getApplicationByIndex(key);
   }
 
   async getAuthorizedApps(appName: string) {
