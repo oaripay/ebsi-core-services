@@ -12,9 +12,7 @@ pipeline {
         }
         stage('Pre Checks') {
             steps {
-                sh "if [[ -f .env.integration ]]; then { cp .env.integration .env; }; fi"
                 sh "/usr/local/bin/auto_container_validate.sh ${CONTAINER_NAME}"
-                sh "/usr/local/bin/docker-compose -f docker-compose-ci.yml build"
             }
         }
         stage('Build image') {
