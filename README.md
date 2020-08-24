@@ -2,25 +2,29 @@
 
 # Ledger API
 
-API to interact with Besu API and Hyperledger Fabric API. In the `packages/` folder, you will find both apis.
-Besu API is based on NodeJS. Fabric API is based on Java.
+Ledger API is a Core Service of the EBSI platform providing access to the EBSI Ledger Protocols and Smart Contracts services of the lower layer Chain & Storage. In v1 we provide capabilities to interact with Hyperledger Besu and Fabric ledgers.
 
-In development, you can run both project separately. Refer to their own documentation for more information.
+For Besu, we are exposing a selected set of BESU RPC native APIs. Write operations require authentication.
 
-## Installing
+For Fabric, we start in v1 by providing an initial set of read REST API to interact with the ledger.
+
+## Installation
+
+Clone the repository and move to the project directory
 
 ```sh
-yarn install
-yarn run bootstrap
+git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/ledger-api.git
 ```
+
+Create a copy of `.env.example` and name it `.env`. Set the environment variables accordingly.
+
+Fabric requires certificates to connect with the different peers, copy the `peerOrganizations` folder in the root of the project.
+
+For building you can choose to build with docker or to build from source directly.
 
 ## Run with Docker Compose
 
-Before starting Docker Compose, create a copy of `.env.example` and name it `.env`. Set the environment variables accordingly.
-
-Copy into `packages/fabric/ssl/tlsca.pem` the corresponding certificate to connect with Hyperledger Fabric.
-
-Now, run:
+Run:
 
 ```sh
 docker-compose up --build
@@ -28,20 +32,44 @@ docker-compose up --build
 
 The api will be accesible at http://localhost:8080
 
-## Testing
+### Build from source
 
-### Test Besu
+Install libraries and dependencies:
 
 ```sh
-yarn run test:besu
+yarn install
 ```
 
-### Test Fabric
-
-Launch the API with Docker, then:
+Start the API:
 
 ```sh
-yarn run test:fabric-e2e
+yarn run start
+```
+
+The API will be accesible at http://localhost:8080
+
+## Testing
+
+### Unit Tests
+
+```sh
+yarn run test:unit
+```
+
+### e2e Tests
+
+For e2e tests, TEST_APP_NAME and TEST_APP_PRIVATE_KEY need to be a valid app registered in the Trusted App Registry.
+
+Launch the API with Docker, then set the environment to local and the url to access it:
+
+```sh
+EBSI_ENV=local EBSI_API=http://localhost:8080 yarn test:e2e
+```
+
+To test the integration environment run:
+
+```sh
+EBSI_ENV=integration yarn test:e2e
 ```
 
 ## Licensing

@@ -18,8 +18,7 @@ pipeline {
         stage('Unit test') {
             steps {
                 sh 'yarn install --frozen-lockfile'
-                sh 'yarn run bootstrap'
-                sh 'yarn run test:besu-unit'
+                sh 'yarn run test:unit'
             }
         }
         stage('Build image') {

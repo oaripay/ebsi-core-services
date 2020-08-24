@@ -2,8 +2,6 @@
 *
 
 # Only add what is necessary
-!start.sh
-!packages/besu/package.json
-!packages/besu/yarn.lock
-!packages/besu/src
-!packages/fabric
+!package.json
+!yarn.lock
+!src

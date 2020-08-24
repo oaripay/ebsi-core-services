@@ -1,27 +1,64 @@
 {
   "private": true,
   "scripts": {
-    "audit": "audit-ci --moderate",
-    "bootstrap": "run-s bootstrap:*",
-    "bootstrap:besu": "cd packages/besu && yarn install",
-    "bootstrap:fabric-test": "cd packages/fabric/tests && yarn install",
-    "lint": "run-s lint:*",
-    "lint:backend": "cd packages/besu && yarn run lint ",
-    "pre-commit": "run-s pre-commit:*",
-    "pre-commit:backend": "cd packages/besu && yarn run lint-staged ",
-    "test": "run-s test:*",
-    "test:besu": "cd packages/besu && yarn test",
-    "test:besu-unit": "cd packages/besu && yarn run test:unit",
-    "test:fabric-e2e": "cd packages/fabric/tests && yarn run test"
+    "prettier-format": "prettier --write 'src/**/*.{js,ts,tsx}'",
+    "start": "node src/start.js",
+    "lint-staged": "lint-staged",
+    "lint": "yarn run lint:js && yarn run lint:prettier",
+    "lint:js": "eslint \"*/**/*.{js,ts}\"",
+    "lint:prettier": "prettier --check \"**/*.{md,mdx,html,json,yml,js,jsx,ts,tsx,css,scss}\"",
+    "full-lint": "eslint \"*/**/*.{js,ts}\" --quiet --fix && prettier --write \"**/*.{md,mdx,html,json,yml,js,jsx,ts,tsx,css,scss}\"",
+    "test": "yarn run test:unit && yarn run test:e2e",
+    "test:unit": "jest --runInBand --detectOpenHandles --coverage --reporters=default --reporters=jest-sonar",
+    "test:e2e": "jest --config ./tests/jest-e2e.json"
+  },
+  "dependencies": {
+    "@cef-ebsi/app-jwt": "0.0.11",
+    "@cef-ebsi/express-problem-details": "0.0.2",
+    "@cef-ebsi/problem-details-errors": "0.0.3",
+    "axios": "^0.19.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.1.0",
+    "ethereumjs-common": "^1.5.2",
+    "ethereumjs-tx": "^2.1.2",
+    "ethers": "^5.0.8",
+    "express": "^4.17.1",
+    "fabric-client": "^1.4.10",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
-    "audit-ci": "^3.1.1",
+    "eslint": "^7.6.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-config-prettier": "^6.10.1",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-jest": "^23.20.0",
+    "eslint-plugin-prettier": "^3.1.3",
     "husky": "^4.2.5",
-    "npm-run-all": "^4.1.5"
+    "jest": "^26.2.2",
+    "jest-express": "^1.12.0",
+    "jest-sonar": "^0.2.10",
+    "jose": "^1.27.2",
+    "lint-staged": "^10.1.3",
+    "prettier": "^2.0.4",
+    "supertest": "^4.0.2",
+    "web3": "^1.2.11"
+  },
+  "jest": {
+    "coverageDirectory": "./coverage/",
+    "testEnvironment": "node"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "yarn run pre-commit"
+      "pre-commit": "lint-staged"
     }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix"
+    ],
+    "*.{md,mdx,html,json,yml,yaml}": [
+      "prettier --write"
+    ]
   }
 }

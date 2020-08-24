@@ -1,0 +1,182 @@
+{
+  "header": {
+    "number": "1000",
+    "previous_hash": "7a808d6cf8041862432783cbbe8c4d62146c9842fa918527076916cd012660bc",
+    "data_hash": "2c2e8192486f512ed5c6b89c80a3726097ba71d0be7ca5f882eb274fa0c5cff8"
+  },
+  "data": {
+    "data": [
+      {
+        "signature": {
+          "type": "Buffer",
+          "data": [1, 2, 3]
+        },
+        "payload": {
+          "header": {
+            "channel_header": {
+              "type": 3,
+              "version": 1,
+              "timestamp": "2020-05-14T08:26:08.434Z",
+              "channel_id": "ebsichannel",
+              "tx_id": "ef034d2c04cb0bb55e7152ee88267fe89a4b66a5e0d87ef3c3c3da95edb2ccd4",
+              "epoch": "0",
+              "extension": {
+                "type": "Buffer",
+                "data": [1, 2, 3]
+              },
+              "typeString": "ENDORSER_TRANSACTION"
+            },
+            "signature_header": {
+              "creator": {
+                "Mspid": "EbsiNode1MSP",
+                "IdBytes": "-----BEGIN CERTIFICATE-----\n..."
+              },
+              "nonce": {
+                "type": "Buffer",
+                "data": [1, 2, 3]
+              }
+            }
+          },
+          "data": {
+            "actions": [
+              {
+                "header": {
+                  "creator": {
+                    "Mspid": "EbsiNode1MSP",
+                    "IdBytes": "-----BEGIN CERTIFICATE-----\n..."
+                  },
+                  "nonce": {
+                    "type": "Buffer",
+                    "data": [1, 2, 3]
+                  }
+                },
+                "payload": {
+                  "chaincode_proposal_payload": {
+                    "input": {
+                      "chaincode_spec": {
+                        "type": 1,
+                        "typeString": "GOLANG",
+                        "input": {
+                          "args": [
+                            {
+                              "type": "Buffer",
+                              "data": [1, 2, 3]
+                            },
+                            {
+                              "type": "Buffer",
+                              "data": [1, 2, 3]
+                            }
+                          ],
+                          "decorations": {}
+                        },
+                        "chaincode_id": {
+                          "path": "",
+                          "name": "taxudchaincode",
+                          "version": ""
+                        },
+                        "timeout": 0
+                      }
+                    }
+                  },
+                  "action": {
+                    "proposal_response_payload": {
+                      "proposal_hash": "df8c95538878ac77fd928bab81f7859d566e5d71ec9d12cf15a952e746a4ae8b",
+                      "extension": {
+                        "results": {
+                          "data_model": 0,
+                          "ns_rwset": [
+                            {
+                              "namespace": "lscc",
+                              "rwset": {
+                                "reads": [
+                                  {
+                                    "key": "taxudchaincode",
+                                    "version": {
+                                      "block_num": "1",
+                                      "tx_num": "0"
+                                    }
+                                  }
+                                ],
+                                "range_queries_info": [],
+                                "writes": [],
+                                "metadata_writes": []
+                              },
+                              "collection_hashed_rwset": []
+                            }
+                          ]
+                        },
+                        "events": {
+                          "chaincode_id": "",
+                          "tx_id": "",
+                          "event_name": "",
+                          "payload": {
+                            "type": "Buffer",
+                            "data": []
+                          }
+                        },
+                        "response": {
+                          "status": 200,
+                          "message": "",
+                          "payload": "[]"
+                        },
+                        "chaincode_id": {
+                          "path": "",
+                          "name": "taxudchaincode",
+                          "version": "1.0"
+                        }
+                      }
+                    },
+                    "endorsements": [
+                      {
+                        "endorser": {
+                          "Mspid": "EbsiNode2MSP",
+                          "IdBytes": "-----BEGIN CERTIFICATE-----\n..."
+                        },
+                        "signature": {
+                          "type": "Buffer",
+                          "data": [1, 2, 3]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "metadata": {
+    "metadata": [
+      {
+        "value": "\n\u0000\u0012\u000b\n\t\n\u0003\u0001\u0002\u0003\u0010\u0004\u0018h",
+        "signatures": [
+          {
+            "signature_header": {
+              "creator": {
+                "Mspid": "EbsiNode1MSP",
+                "IdBytes": "-----BEGIN CERTIFICATE-----\n..."
+              },
+              "nonce": {
+                "type": "Buffer",
+                "data": [1, 2, 3]
+              }
+            },
+            "signature": {
+              "type": "Buffer",
+              "data": [1, 2, 3]
+            }
+          }
+        ]
+      },
+      {
+        "value": {
+          "index": "0"
+        },
+        "signatures": []
+      },
+      [0]
+    ]
+  }
+}

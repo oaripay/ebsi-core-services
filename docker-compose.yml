@@ -4,24 +4,12 @@ services:
   ledger-api:
     build: .
     ports:
-      - ${PORT_BESU}:8080
-      - ${PORT_FABRIC}:8081
+      - "${PORT}:${PORT}"
     environment:
-      - EBSI_ENV=integration
+      - EBSI_ENV=${EBSI_ENV}
       - API_PRIVATE_KEY=${API_PRIVATE_KEY}
       - BESU_ADDRESS_NOTARY=${BESU_ADDRESS_NOTARY}
       - FABRIC_USERNAME=${FABRIC_USERNAME}
       - FABRIC_PASSWORD=${FABRIC_PASSWORD}
-      - ORG_NAME=${ORG_NAME}
-      - CA_URL=${CA_URL}
-      - CA_MSP_ID=${CA_MSP_ID}
-      - PEER_NODE_NAME=${PEER_NODE_NAME}
-      - PEER_NODE_URL=${PEER_NODE_URL}
-      - ORDERER_NODE_NAME=${ORDERER_NODE_NAME}
-      - ORDERER_NODE_URL=${ORDERER_NODE_URL}
-    logging:
-      options:
-        max-size: "200K"
-        max-file: "10"
     volumes:
-      - ./packages/fabric/ssl/tlsca.pem:/usr/src/api/fabric/tlsca.pem
+      - ./peerOrganizations:/api/peerOrganizations
