@@ -13,6 +13,11 @@ pipeline {
                checkout scm;
             }
         }
+        stage('Pre Checks') {
+            steps {
+                sh "/usr/local/bin/auto_container_validate.sh ${CONTAINER_NAME}"
+            }
+        }
         stage('Unit test') {
             steps {
                 sh 'yarn install --frozen-lockfile'
