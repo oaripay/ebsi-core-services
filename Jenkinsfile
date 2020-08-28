@@ -3,11 +3,21 @@ pipeline {
     environment {
         CONTAINER_NAME= "`grep -A1 services docker-compose-ci.yml | tail -1 | sed -e s'/ //'g -e s'/://'g`"
         TAG = "`grep image docker-compose-ci.yml | cut -d':' -f3`"
+        EBSI_ENV='integration'
     }
     stages {
         stage('Clone repo') {
             steps {
                checkout scm;
+            }
+        }
+        stage('Unit test') {
+            steps {
+                sh 'yarn install --frozen-lockfile'
+                sh 'cp .env.test .env'
+                withCredentials([string(credentialsId: 'API_PRIVATE_KEY', variable: 'API_PRIVATE_KEY')]) {
+                    sh 'yarn run test:unit'
+                }
             }
         }
         stage('Build image') {
