@@ -26,8 +26,7 @@ export class EthersService {
   constructor(private configService: ConfigService) {
     this.configService = configService;
     this.ethersProvider = new ethers.providers.JsonRpcProvider(
-      this.configService.get("web3Provider"),
-      { name: "besu", chainId: 6971 }
+      this.configService.get("web3Provider")
     );
 
     this.contract = new ethers.Contract(
