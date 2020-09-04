@@ -13,6 +13,8 @@ if (urlApi) {
 
 const url = "/ledger/v1/blockchains/fabric/channels";
 
+jest.setTimeout(10000);
+
 describe("integration tests Hyperledger Fabric api", () => {
   it("gets a channel", async () => {
     expect.assertions(2);
