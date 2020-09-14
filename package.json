@@ -1,19 +1,35 @@
 {
   "name": "5-besu-trusted-issuers",
-  "version": "1.0.0",
-  "description": "",
+  "version": "2.0.0",
+  "description": "Trusted Issuers Registry",
   "main": "truffle-config.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prettier-format": "prettier --write 'src/**/*.{js,ts,tsx}'",
+    "ganache": "ganache-cli --gasLimit=8000000 --allowUnlimitedContractSize -i 5042 >/dev/null 2>&1 &",
+    "compile": "truffle compile contracts",
+    "build": "truffle build --compile-all",
+    "postTest": "kill $(lsof -t -i:8545)",
+    "test": "yarn run ganache && truffle test --show-events --network development --compile-all && yarn run postTest"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "chai": "^4.2.0",
-    "openzeppelin-test-helpers": "^0.5.1",
-    "truffle-hdwallet-provider": "^1.0.17"
+    "@openzeppelin/contracts": "^3.1.0",
+    "@openzeppelin/upgrades": "^2.8.0",
+    "@truffle/hdwallet-provider": "^1.0.42",
+    "eth-json-rpc-filters": "^4.1.1",
+    "fs": "0.0.1-security"
   },
   "devDependencies": {
-    "ganache-cli": "^6.9.0"
+    "@openzeppelin/test-helpers": "^0.5.5",
+    "@openzeppelin/test-environment": "^0.1.4",
+    "chai": "4.2.0",
+    "prettier": "^2.0.5",
+    "prettier-plugin-solidity": "^1.0.0-alpha.49",
+    "solidity-coverage": "^0.7.10",
+    "truffle": "^5.1.39",
+    "ganache-cli": "^6.10.1",
+    "truffle-flattener": "^1.4.4",
+    "truffle-typings": "^1.0.8"
   }
 }

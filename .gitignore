@@ -1,6 +1,10 @@
 .idea
 node_modules
+coverage
+coverage.json
+build
 *.log
 .env
 *log
 *.sw?
+all.sol

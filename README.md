@@ -1,7 +1,8 @@
 ![Logo of the project](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
 
-# Diploma Smart Contract
-> Smart Contract for the Diploma Use Case
+# Trusted Issuers Registry Smart Contract
+
+> Smart Contract to store the trusted Issuers
 
 ## Table of Contents
 
@@ -9,162 +10,112 @@
 2. [Building](#Building)
 3. [Deploying](#Deploying)
 4. [Testing](#Testing)
-5. [Licensing](#Licensing)
-
+5. [Design](#Design)
+6. [Licensing](#Licensing)
+7. [Version](#Version)
 
 ## Getting started
 
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/en/download/)
-- Truffle 
-```npm install -g truffle```
-- Ganache
-```npm install -g ganache-cli```
 
 ### Installing
-1. Install dependencies:
+
+Install dependencies:
+
 ```sh
-npm install
-```
-2. Then start ganache in a separate terminal:
-```sh
-ganache-cli
+yarn install
 ```
 
 ## Building
+
 Build the smart contracts:
+
 ```sh
-truffle build
+yarn run build
 ```
 
 ## Deploying
-Deploy the smart contracts
+
+Deploy the smart contracts on the ebsi network
+
 ```sh
-truffle migrate --network ebsi --reset
+npx truffle migrate --network ebsi --reset
 ```
 
 ## Testing
 
 ### Requirements:
- - node 12 (use nvm)
- - ganache-cli
-Run
+
+- node 12 (use nvm)
+  Run
+
+### Launch all tests
+
 ```sh
-ganache-cli --gasLimit=8000000 --allowUnlimitedContractSize
-truffle test
+yarn run test
 ```
 
+testing in intesbi
 
+```
+npx truffle test  --show-events --network intebsi --compile-all
+```
 
+if you experience some timeout issues try running tests one by one
+
+### test coverage
+
+```sh
+npx truffle run coverage --files="tests/**/*.js"
+```
+
+## Design
+
+We are using an proxy contract to be able to deploy new version at the same address.
+The address will remain the proxy address whereas the implementation address where the call that are not made by the proxy admin are delegate will be stored in the proxy storage along with proxy admin address.
+We use a new solidity features since [0.6.4](https://github.com/ethereum/solidity/releases/tag/v0.6.4) that makes possible to set storage slots for storage reference variables from inline assembly. This novelty is at the heart of the [diamond storage](https://dev.to/mudgen/what-is-diamond-storage-3n7c).
+We also leverage OpenZeppelin base class updated to solidity v0.6.12 to take care of the base functionalities like
+
+- admin
+- initialize
+- owner
+- role
+- pause
+
+We added a storage contract (see IssuerStorage.sol) that leverage the storage reference variables from inline assembly. We can then use this contract to get all the informations about Issuer. This will be store at the proxy contract storage slot and can be retrieve by any smart contract that the will be proxied without the need to take extra cautious steps like required with the unstructured storage
+
+### Attributes versioning
+
+For issuer and administrators we can have attributes wich are only bytes. We can't decode them although we should provide versioning for these attributes.
+We decided to take the hash of the attribute as the unique identifier for the attribute. So the hash of initial version of the attribute will be used as an indentifer for the attribute. When we want to update the version of this attribute we will provide the last version hash and the new data.
+
+Let's take an example and add new issuer. We will have to provide an attribute. We will store that first attribute hash in the Smart Contract.
+
+Now we want to update that issuer attribute so we will call the `updateIssuer()` method wich take three parameters the DID, the new version attribute's data, and the last version hash of this attribute known to the smart contract. In that case the last version will be the first version hash.
+
+If we want to add a third version of that attribute, we will provide the second version hash as the last version hash parameter.
+
+To add a new attribute to the issuer we will call the `updateIssuer()` method but with only two parameters the DID and the new attribute's data. The Smart Contract will check if this attribute is new and throw an error if it is already known to the Smart Contract.
+
+The `insertIssuer()` method will make sure that the issuer DID and attribute is not known by the Smart Contract otherwise it will throw an error.
 
 ## Licensing
 
 Copyright (c) 2019 European Commission  
-Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence"); 
-You may not use this work except in compliance with the Licence. 
-You may obtain a copy of the Licence at: 
-* https://joinup.ec.europa.eu/page/eupl-text-11-12  
+Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
+You may not use this work except in compliance with the Licence.
+You may obtain a copy of the Licence at:
+
+- https://joinup.ec.europa.eu/page/eupl-text-11-12
 
 Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.
 
+## Version
 
-#Migration intebsi info:
-
-```
-Compiling your contracts...
-===========================
-> Everything is up to date, there is nothing to compile.
-
-
-Starting migrations...
-======================
-> Network name:    'intebsi'
-> Network id:      6971
-> Block gas limit: 0x1fffffffffffff
-
-
-1_initial_migration.js
-======================
-
-   Replacing 'Migrations'
-   ----------------------
-   > transaction hash:    0x39f86b4d9385b9ac928984cc67d84adc19058b8d3dbbfc951552d64d4a2ca96f
-   > Blocks: 0            Seconds: 0
-   > contract address:    0x2E6499993037Bfd9F81f4C3e5a815e2Ce8FB0fb7
-   > block number:        1641298
-   > block timestamp:     1588161258
-   > account:             0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73
-   > balance:             0
-   > gas used:            263741
-   > gas price:           0 gwei
-   > value sent:          0 ETH
-   > total cost:          0 ETH
-
-
-   > Saving migration to chain.
-   > Saving artifacts
-   -------------------------------------
-   > Total cost:                   0 ETH
-
-
-2_deploy_contracts.js
-=====================
-Deploying Universities Trusted Issuers smart contract on network:  intebsi
-
-   Replacing 'UniversitiesTrustedIssuers'
-   --------------------------------------
-   > transaction hash:    0x1dd23a46de62d1876fdb9d24f713c6965acd568ba1a46cf1ba47fb3601e5dcd7
-   > Blocks: 0            Seconds: 0
-   > contract address:    0xcb29a1C8bf556047e164A51EB011B5b3047348f7
-   > block number:        1641301
-   > block timestamp:     1588161264
-   > account:             0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73
-   > balance:             0
-   > gas used:            7054160
-   > gas price:           0 gwei
-   > value sent:          0 ETH
-   > total cost:          0 ETH
-
-Contract deployed at address 0xcb29a1C8bf556047e164A51EB011B5b3047348f7
-Deploying Governments Trusted Issuers smart contract on network:  intebsi
-
-   Replacing 'GovernmentsTrustedIssuers'
-   -------------------------------------
-   > transaction hash:    0x4e0bb7f092ae66e0ebd732cb13a9c1ca6083afaf135d6a4037089043b74dd30d
-   > Blocks: 2            Seconds: 4
-   > contract address:    0xCa5D58D19775dE8e14CF8a1aEeC880f7cC31f902
-   > block number:        1641304
-   > block timestamp:     1588161270
-   > account:             0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73
-   > balance:             0
-   > gas used:            3454563
-   > gas price:           0 gwei
-   > value sent:          0 ETH
-   > total cost:          0 ETH
-
-Contract deployed at address 0xCa5D58D19775dE8e14CF8a1aEeC880f7cC31f902
-Adding university Diploma Sample App: Issue Master's Diploma code did:ebsi:0x464190367BE948210608a46847bed183607f685A
-Adding diploma Sample University - Master's Programme to the university Diploma Sample App: Issue Master's Diploma
-Adding accreditation Europass Accreditation Database to the university Diploma Sample App: Issue Master's Diploma
-Adding Government Sample Verifiable ID Issuer code did:ebsi:0x9f99F1f7482bC56735f8Df9f3Ffb280d54395c49
-Adding Government Sample Verifiable ID Issuer document
-Adding Flamish GOV Univ Sample Verifiable ID Issuer code did:ebsi:0x9f99F1f7482bC56735f8Df9f3Ffb280d54395c49
-Adding diploma Diploma Sample App: Issue Bachelor's Diploma to the Universities Sample Verifiable ID Issuer
-Adding accreditation Europass Accreditation Database to the government Sample Verifiable ID Issuer
-
-   > Saving migration to chain.
-   > Saving artifacts
-   -------------------------------------
-   > Total cost:                   0 ETH
-
-
-Summary
-=======
-> Total deployments:   3
-> Final cost:          0 ETH
-
-
-
-```
-
+`npx truffle version`
+Truffle v5.1.41 (core: 5.1.41)
+Solidity - ^0.6.12 (solc-js)
+Node v12.16.3
+Web3.js v1.2.1
