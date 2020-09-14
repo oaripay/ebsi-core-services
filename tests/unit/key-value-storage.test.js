@@ -97,13 +97,13 @@ describe("key value storage tests", () => {
 
     const response = await callKeyValue.get("/");
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: ["my-key1", "my-key2"],
         total: 2,
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const opts = { prepare: true, fetchSize: 10 };
@@ -136,13 +136,13 @@ describe("key value storage tests", () => {
 
     const response = await callKeyValue.get("/?page[size]=11");
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: ["my-key1", "my-key2"],
         total: 2,
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const opts = { prepare: true, fetchSize: 11 };
@@ -178,7 +178,6 @@ describe("key value storage tests", () => {
 
     const response = await callKeyValue.get("/?page[size]=11&page[after]=abcd");
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: ["my-key1", "my-key2"],
@@ -190,6 +189,7 @@ describe("key value storage tests", () => {
         },
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const opts = { prepare: true, fetchSize: 11, pageState: "abcd" };
@@ -222,13 +222,13 @@ describe("key value storage tests", () => {
 
     const response = await callKeyValue.get("/?page[xxx]=yyy");
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: ["my-key1", "my-key2"],
         total: 2,
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const opts = { prepare: true, fetchSize: 10 };
@@ -265,10 +265,10 @@ describe("key value storage tests", () => {
       .put("/my-key")
       .send({ msg: "my value" });
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual({
       "my-key": { msg: "my value" },
     });
+    expect(response.status).toBe(200);
 
     const [callSearch, callInsert] = getExecuteCalls();
 
@@ -311,10 +311,10 @@ describe("key value storage tests", () => {
       .set("Content-Type", "text/plain")
       .send("my value");
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual({
       "my-key": "my value",
     });
+    expect(response.status).toBe(200);
 
     const [callSearch, callInsert] = getExecuteCalls();
 
@@ -345,8 +345,8 @@ describe("key value storage tests", () => {
 
     const response = await callKeyValue.get("/my-key");
 
-    expect(response.status).toBe(200);
     expect(response.text).toBe("my value");
+    expect(response.status).toBe(200);
 
     const [call] = getExecuteCalls();
 
@@ -374,8 +374,8 @@ describe("key value storage tests", () => {
 
     const response = await callKeyValue.get("/my-key");
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual({ msg: "message" });
+    expect(response.status).toBe(200);
 
     const [call] = getExecuteCalls();
 
@@ -416,10 +416,10 @@ describe("key value storage tests", () => {
       .put("/my-key")
       .send({ msg: "now updated" });
 
-    expect(response.status).toBe(201);
     expect(response.body).toStrictEqual({
       "my-key": { msg: "now updated" },
     });
+    expect(response.status).toBe(201);
 
     const [callSearch, callUpdate] = getExecuteCalls();
 
@@ -470,8 +470,8 @@ describe("key value storage tests", () => {
       },
     ]);
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual({ list: [{ a: "A" }, { b: "B" }] });
+    expect(response.status).toBe(200);
 
     const [callSearch, callUpdate] = getExecuteCalls();
 
@@ -533,8 +533,8 @@ describe("key value storage tests", () => {
 
     const response = await callKeyValue.get("/my-key");
 
-    expect(response.status).toBe(404);
     expect(response.body).toBeHTTPError(NotFoundError);
+    expect(response.status).toBe(404);
   });
 
   it("key not found error when deleting", async () => {
@@ -546,8 +546,8 @@ describe("key value storage tests", () => {
 
     const response = await callKeyValue.delete("/my-key");
 
-    expect(response.status).toBe(404);
     expect(response.body).toBeHTTPError(NotFoundError);
+    expect(response.status).toBe(404);
   });
 
   it("error too large key", async () => {
@@ -556,8 +556,8 @@ describe("key value storage tests", () => {
     const largeKey = "a".repeat(257);
     const response = await callKeyValue.put(`/${largeKey}`);
 
-    expect(response.status).toBe(414);
     expect(response.body).toBeHTTPError(KeyTooLargeError);
+    expect(response.status).toBe(414);
 
     const calls = getExecuteCalls();
     expect(calls).toHaveLength(0);
@@ -572,8 +572,8 @@ describe("key value storage tests", () => {
       .set("Content-Type", "text/plain")
       .send(largeValue);
 
-    expect(response.status).toBe(413);
     expect(response.body).toBeHTTPError(ValueTooLargeError);
+    expect(response.status).toBe(413);
 
     const calls = getExecuteCalls();
     expect(calls).toHaveLength(0);
@@ -599,8 +599,8 @@ describe("key value storage tests", () => {
       },
     ]);
 
-    expect(response.status).toBe(400);
     expect(response.body).toBeHTTPError(BadRequestError);
+    expect(response.status).toBe(400);
   });
 
   it("bad request error for bad patch", async () => {
@@ -621,8 +621,8 @@ describe("key value storage tests", () => {
       },
     ]);
 
-    expect(response.status).toBe(400);
     expect(response.body).toBeHTTPError(BadRequestError);
+    expect(response.status).toBe(400);
   });
 
   it("bad request error for bad body in application/json", async () => {
@@ -633,8 +633,8 @@ describe("key value storage tests", () => {
       .set("Content-Type", "application/json")
       .send("This is a text");
 
-    expect(response.status).toBe(400);
     expect(response.body).toBeHTTPError(BadRequestError);
+    expect(response.status).toBe(400);
   });
 
   it("bad request error for bad content-type", async () => {
@@ -645,8 +645,8 @@ describe("key value storage tests", () => {
       .set("Content-Type", "application/x-www-form-urlencoded")
       .send("a=3");
 
-    expect(response.status).toBe(400);
     expect(response.body).toBeHTTPError(BadRequestError);
+    expect(response.status).toBe(400);
   });
 
   it("internal error in cassandra for search", async () => {
@@ -659,8 +659,8 @@ describe("key value storage tests", () => {
 
     const response = await callKeyValue.put("/my-key").send({ a: "A" });
 
-    expect(response.status).toBe(500);
     expect(response.body).toBeHTTPError(InternalServerError);
+    expect(response.status).toBe(500);
   });
 
   it("internal error in cassandra for insert", async () => {
@@ -673,8 +673,8 @@ describe("key value storage tests", () => {
 
     const response = await callKeyValue.put("/my-key").send({ a: "A" });
 
-    expect(response.status).toBe(500);
     expect(response.body).toBeHTTPError(InternalServerError);
+    expect(response.status).toBe(500);
   });
 
   it("internal error in cassandra for delete", async () => {
@@ -692,7 +692,7 @@ describe("key value storage tests", () => {
 
     const response = await callKeyValue.delete("/my-key");
 
-    expect(response.status).toBe(500);
     expect(response.body).toBeHTTPError(InternalServerError);
+    expect(response.status).toBe(500);
   });
 });

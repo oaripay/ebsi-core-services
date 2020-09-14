@@ -30,7 +30,6 @@ describe("authentication in storage api", () => {
       .post("/storage/v1/sessions")
       .send(requestToken);
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         accessToken: expect.any(String),
@@ -39,6 +38,7 @@ describe("authentication in storage api", () => {
         issuedAt: expect.any(Number),
       })
     );
+    expect(response.status).toBe(200);
 
     mock1.mockRestore();
     mock2.mockRestore();

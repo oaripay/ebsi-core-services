@@ -91,13 +91,13 @@ describe("file storage tests", () => {
 
     const response = await callApi.get("/");
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: ["hash1", "hash2"],
         total: 2,
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const opts = { prepare: true, fetchSize: 10 };
@@ -116,13 +116,13 @@ describe("file storage tests", () => {
 
     const response = await callApi.get("/?page[size]=11");
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: ["hash1", "hash2"],
         total: 2,
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const opts = { prepare: true, fetchSize: 11 };
@@ -141,7 +141,6 @@ describe("file storage tests", () => {
 
     const response = await callApi.get("/?page[size]=11&page[after]=abcd");
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: ["hash1", "hash2"],
@@ -153,6 +152,7 @@ describe("file storage tests", () => {
         },
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const opts = { prepare: true, fetchSize: 11, pageState: "abcd" };
@@ -171,13 +171,13 @@ describe("file storage tests", () => {
 
     const response = await callApi.get("/?page[xxx]=11");
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: ["hash1", "hash2"],
         total: 2,
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const opts = { prepare: true, fetchSize: 10 };
@@ -198,11 +198,11 @@ describe("file storage tests", () => {
 
     const response = await callApi.post("/").attach("file", "test-file.bin");
 
-    expect(response.status).toBe(201);
     expect(response.body).toStrictEqual({
       hash,
       function: "keccak256",
     });
+    expect(response.status).toBe(201);
 
     fs.unlinkSync("test-file.bin");
 
@@ -237,14 +237,14 @@ describe("file storage tests", () => {
 
     const response = await callApi.get(`/${hash}`).responseType("blob");
 
-    expect(response.status).toBe(200);
+    expect(response.body).toStrictEqual(data);
     expect(response.headers).toStrictEqual(
       expect.objectContaining({
         "content-length": `${length}`,
         "content-disposition": "attachment; filename=test.bin",
       })
     );
-    expect(response.body).toStrictEqual(data);
+    expect(response.status).toBe(200);
 
     const [call] = getExecuteCalls();
 
@@ -309,8 +309,8 @@ describe("file storage tests", () => {
 
     const response = await callApi.post("/").attach("file", "test-file.bin");
 
-    expect(response.status).toBe(400);
     expect(response.body).toBeHTTPError(BadRequestError);
+    expect(response.status).toBe(400);
 
     fs.unlinkSync("test-file.bin");
   });
@@ -324,8 +324,8 @@ describe("file storage tests", () => {
 
     const response = await callApi.get("/my-hash");
 
-    expect(response.status).toBe(404);
     expect(response.body).toBeHTTPError(NotFoundError);
+    expect(response.status).toBe(404);
   });
 
   it("file not found error when deleting", async () => {
@@ -337,8 +337,8 @@ describe("file storage tests", () => {
 
     const response = await callApi.delete("/my-hash");
 
-    expect(response.status).toBe(404);
     expect(response.body).toBeHTTPError(NotFoundError);
+    expect(response.status).toBe(404);
   });
 
   it("error too large file", async () => {
@@ -348,8 +348,8 @@ describe("file storage tests", () => {
 
     const response = await callApi.post("/").attach("file", "big-file.bin");
 
-    expect(response.status).toBe(413);
     expect(response.body).toBeHTTPError(PayloadTooLargeError);
+    expect(response.status).toBe(413);
 
     fs.unlinkSync("big-file.bin");
 
@@ -365,8 +365,8 @@ describe("file storage tests", () => {
       .set("Content-Type", "application/json")
       .send("This is not a file");
 
-    expect(response.status).toBe(400);
     expect(response.body).toBeHTTPError(BadRequestError);
+    expect(response.status).toBe(400);
   });
 
   it("bad request error when there is no file to store", async () => {
@@ -376,8 +376,8 @@ describe("file storage tests", () => {
       .post("/")
       .field("my-field", "no file attached");
 
-    expect(response.status).toBe(400);
     expect(response.body).toBeHTTPError(BadRequestError);
+    expect(response.status).toBe(400);
   });
 
   it("internal error in cassandra for search", async () => {
@@ -390,8 +390,8 @@ describe("file storage tests", () => {
 
     const response = await callApi.get("/");
 
-    expect(response.status).toBe(500);
     expect(response.body).toBeHTTPError(InternalServerError);
+    expect(response.status).toBe(500);
   });
 
   it("internal error in cassandra for insert", async () => {
@@ -405,8 +405,8 @@ describe("file storage tests", () => {
     createRandomFile("test-file.bin");
     const response = await callApi.post("/").attach("file", "test-file.bin");
 
-    expect(response.status).toBe(500);
     expect(response.body).toBeHTTPError(InternalServerError);
+    expect(response.status).toBe(500);
 
     fs.unlinkSync("test-file.bin");
   });
@@ -430,7 +430,7 @@ describe("file storage tests", () => {
 
     const response = await callApi.delete(`/${hash}`);
 
-    expect(response.status).toBe(500);
     expect(response.body).toBeHTTPError(InternalServerError);
+    expect(response.status).toBe(500);
   });
 });

@@ -37,7 +37,6 @@ describe("notification storage tests", () => {
       .set("Accept", "application/json")
       .send(requestToken);
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         accessToken: expect.any(String),
@@ -46,6 +45,7 @@ describe("notification storage tests", () => {
         issuedAt: expect.any(Number),
       })
     );
+    expect(response.status).toBe(200);
 
     const token = response.body.accessToken;
 
@@ -89,39 +89,39 @@ describe("notification storage tests", () => {
     // add notification
     const insertResponse = await callApi.put("/").send(notification);
 
-    expect(insertResponse.status).toBe(200);
     expect(insertResponse.body).toStrictEqual({
       id: expect.any(String),
       ...notification,
     });
+    expect(insertResponse.status).toBe(200);
 
     const { id } = insertResponse.body;
 
     // get notification by id
     const getResponse = await callApi.get(`/${id}`);
-    expect(getResponse.status).toBe(200);
     expect(getResponse.body).toStrictEqual({
       id,
       ...notification,
     });
+    expect(getResponse.status).toBe(200);
 
     // update notification
     const updateResponse = await callApi
       .put(`/${id}`)
       .send(notificationUpdated);
-    expect(updateResponse.status).toBe(201);
     expect(updateResponse.body).toStrictEqual({
       id,
       ...notificationUpdated,
     });
+    expect(updateResponse.status).toBe(201);
 
     // get notification after the update
     const secondGetResponse = await callApi.get(`/${id}`);
-    expect(secondGetResponse.status).toBe(200);
     expect(secondGetResponse.body).toStrictEqual({
       id,
       ...notificationUpdated,
     });
+    expect(secondGetResponse.status).toBe(200);
 
     // delete notification
     const deleteResponse = await callApi.delete(`/${id}`);
@@ -132,7 +132,6 @@ describe("notification storage tests", () => {
       `/?history=true&receiver=${notification.receiver}`
     );
 
-    expect(checkHistoryResponse.status).toBe(200);
     expect(checkHistoryResponse.body).toStrictEqual(
       expect.objectContaining({
         items: [
@@ -155,6 +154,7 @@ describe("notification storage tests", () => {
         },
       })
     );
+    expect(checkHistoryResponse.status).toBe(200);
   });
 
   it("get list of notifications and custom page size with pageAfter", async () => {
@@ -175,7 +175,6 @@ describe("notification storage tests", () => {
 
     const response = await callApi.get(`/?page[size]=5&receiver=${receiver}`);
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: expect.arrayContaining([]),
@@ -189,6 +188,7 @@ describe("notification storage tests", () => {
         },
       })
     );
+    expect(response.status).toBe(200);
 
     const urlNext = response.body.links.next;
 
@@ -206,8 +206,8 @@ describe("notification storage tests", () => {
 
     const response = await callApi.get(`/${id}`);
 
-    expect(response.status).toBe(404);
     expect(response.body).toBeHTTPError(NotFoundError);
+    expect(response.status).toBe(404);
   });
 
   it("notification not found error when updating", async () => {
@@ -221,8 +221,8 @@ describe("notification storage tests", () => {
       message: { msg: "message" },
     });
 
-    expect(response.status).toBe(404);
     expect(response.body).toBeHTTPError(NotFoundError);
+    expect(response.status).toBe(404);
   });
 
   it("notification not found error when deleting", async () => {
@@ -232,8 +232,8 @@ describe("notification storage tests", () => {
 
     const response = await callApi.delete(`/${id}`);
 
-    expect(response.status).toBe(404);
     expect(response.body).toBeHTTPError(NotFoundError);
+    expect(response.status).toBe(404);
   });
 
   it("bad request error for bad body in application/json", async () => {
@@ -244,7 +244,7 @@ describe("notification storage tests", () => {
       .set("Content-Type", "application/json")
       .send("This is a text");
 
-    expect(response.status).toBe(400);
     expect(response.body).toBeHTTPError(BadRequestError);
+    expect(response.status).toBe(400);
   });
 });

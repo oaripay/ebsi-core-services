@@ -221,13 +221,13 @@ describe("notification storage tests", () => {
 
     const response = await callApi.get("/");
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: dummyDataParsed,
         total: 2,
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, false, false);
@@ -245,13 +245,13 @@ describe("notification storage tests", () => {
 
     const response = await callApi.get(`/?receiver=${dummyData[0].receiver}`);
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: dummyDataParsed,
         total: 2,
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, false);
@@ -271,13 +271,13 @@ describe("notification storage tests", () => {
 
     const response = await callApi.get(`/?sender=${dummyData[0].sender}`);
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: [dummyDataParsed[0]],
         total: 1,
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(true, false, false);
@@ -299,13 +299,13 @@ describe("notification storage tests", () => {
       `/?sender=${dummyData[0].sender}&receiver=${dummyData[0].receiver}`
     );
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: [dummyDataParsed[0]],
         total: 1,
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(true, true, false);
@@ -335,7 +335,6 @@ describe("notification storage tests", () => {
       `/?history=true&receiver=${dummyData[0].receiver}`
     );
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: [
@@ -348,6 +347,7 @@ describe("notification storage tests", () => {
         total: 1,
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, true);
@@ -369,13 +369,13 @@ describe("notification storage tests", () => {
       `/?page[size]=11&receiver=${dummyData[0].receiver}`
     );
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: dummyDataParsed,
         total: 2,
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, false);
@@ -401,7 +401,6 @@ describe("notification storage tests", () => {
       `/?page[size]=${pageSize}&page[after]=${pageAfter}&receiver=${receiver}`
     );
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: extensiveDummyDataParsed.slice(6),
@@ -413,6 +412,7 @@ describe("notification storage tests", () => {
         },
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, false);
@@ -438,13 +438,13 @@ describe("notification storage tests", () => {
       `/?page[x]=11&receiver=${dummyData[0].receiver}`
     );
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(
       expect.objectContaining({
         items: dummyDataParsed,
         total: 2,
       })
     );
+    expect(response.status).toBe(200);
 
     const [callSearch] = getExecuteCalls();
     const query = queries.getListNotifications(false, true, false);
@@ -468,13 +468,13 @@ describe("notification storage tests", () => {
       message: { msg: "message" },
     });
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual({
       id: expect.any(String),
       sender: "sender",
       receiver: "receiver",
       message: { msg: "message" },
     });
+    expect(response.status).toBe(200);
 
     const [callInsert] = getExecuteCalls();
 
@@ -495,8 +495,8 @@ describe("notification storage tests", () => {
 
     const response = await callApi.get(`/${dummyData[0].id}`);
 
-    expect(response.status).toBe(200);
     expect(response.body).toStrictEqual(dummyDataParsed[0]);
+    expect(response.status).toBe(200);
 
     const [call] = getExecuteCalls();
 
@@ -525,13 +525,13 @@ describe("notification storage tests", () => {
       message: { msg: "now updated" },
     });
 
-    expect(response.status).toBe(201);
     expect(response.body).toStrictEqual({
       id: dummyData[0].id,
       sender: "new sender",
       receiver: "new receiver",
       message: { msg: "now updated" },
     });
+    expect(response.status).toBe(201);
 
     const [callSearch, callUpdate] = getExecuteCalls();
 
@@ -606,8 +606,8 @@ describe("notification storage tests", () => {
 
     const response = await callApi.get("/my-id");
 
-    expect(response.status).toBe(404);
     expect(response.body).toBeHTTPError(NotFoundError);
+    expect(response.status).toBe(404);
   });
 
   it("notification not found error when updating", async () => {
@@ -623,8 +623,8 @@ describe("notification storage tests", () => {
       message: { msg: "message" },
     });
 
-    expect(response.status).toBe(404);
     expect(response.body).toBeHTTPError(NotFoundError);
+    expect(response.status).toBe(404);
   });
 
   it("notification not found error when deleting", async () => {
@@ -636,8 +636,8 @@ describe("notification storage tests", () => {
 
     const response = await callApi.delete("/my-id");
 
-    expect(response.status).toBe(404);
     expect(response.body).toBeHTTPError(NotFoundError);
+    expect(response.status).toBe(404);
   });
 
   it("bad request error for bad body in application/json", async () => {
@@ -648,8 +648,8 @@ describe("notification storage tests", () => {
       .set("Content-Type", "application/json")
       .send("This is a text");
 
-    expect(response.status).toBe(400);
     expect(response.body).toBeHTTPError(BadRequestError);
+    expect(response.status).toBe(400);
   });
 
   it("internal error in cassandra for insert", async () => {
@@ -666,8 +666,8 @@ describe("notification storage tests", () => {
       message: { msg: "message" },
     });
 
-    expect(response.status).toBe(500);
     expect(response.body).toBeHTTPError(InternalServerError);
+    expect(response.status).toBe(500);
   });
 
   it("internal error in cassandra for update", async () => {
@@ -684,8 +684,8 @@ describe("notification storage tests", () => {
       message: { msg: "message" },
     });
 
-    expect(response.status).toBe(500);
     expect(response.body).toBeHTTPError(InternalServerError);
+    expect(response.status).toBe(500);
   });
 
   it("internal error in cassandra for delete", async () => {
@@ -698,8 +698,8 @@ describe("notification storage tests", () => {
 
     const response = await callApi.delete("/my-id");
 
-    expect(response.status).toBe(500);
     expect(response.body).toBeHTTPError(InternalServerError);
+    expect(response.status).toBe(500);
   });
 
   it("internal error in cassandra for insert in history (delete)", async () => {
@@ -712,7 +712,7 @@ describe("notification storage tests", () => {
 
     const response = await callApi.delete("/my-id");
 
-    expect(response.status).toBe(500);
     expect(response.body).toBeHTTPError(InternalServerError);
+    expect(response.status).toBe(500);
   });
 });
