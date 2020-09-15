@@ -1,0 +1,6 @@
+version: "3.7"
+
+services:
+  trusted-apps-registry:
+    build: ../..
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry:development_ebsiint-2080-merge_int_to_dev_v0.0.1
