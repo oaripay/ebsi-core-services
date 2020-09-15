@@ -1,6 +1,0 @@
-version: "3.7"
-
-services:
-  ledger-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/ledger-api:integration_ebsiint-2001-fabric-nodejs_v0.0.1
-    build: .
