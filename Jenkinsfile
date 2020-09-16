@@ -23,12 +23,11 @@ pipeline {
     stages {
         stage('Clone repo') {
             steps {
-               checkout scm;
+                checkout scm;
             }
         }
         stage('Unit test') {
             environment {
-                EBSI_ENV = "integration"
                 API_PRIVATE_KEY = credentials('API_STORAGE_PRIVATE_KEY')
             }
             steps {
@@ -38,24 +37,24 @@ pipeline {
         }
         stage('Pre Checks') {
             steps {
-                sh "/usr/local/bin/auto_container_validate.sh ${CONTAINER_NAME}"
+                sh "/usr/local/bin/auto_container_validate.sh ${CONTAINER_NAME} ${MCO_TARGET} app lux"
             }
         }
         stage('Build image') {
             steps {
-                sh '/usr/local/bin/docker-compose -f .ci/${EBSI_ENV}/docker-compose.yml --env-file=.ci/${EBSI_ENV}/.env build'
+                sh "cd .ci/${EBSI_ENV}; /usr/local/bin/docker-compose build"
             }
         }
         stage('Push to ECR') {
             steps {
                 sh '`/usr/local/bin/aws ecr get-login --no-include-email --region eu-central-1`'
-                sh "/usr/local/bin/docker-compose -f .ci/${EBSI_ENV}/docker-compose.yml push"
+                sh "cd .ci/${EBSI_ENV}; /usr/local/bin/docker-compose push"
             }
         }
         stage('Modify YAML & Commit') {
             steps {
                 sh "sudo su - ebsi1-robot -c 'cd /etc/puppetlabs/code/environments/${EBSI_ENV} ; git pull'"
-                sh "sudo -u ebsi1-robot /usr/local/bin/ebsi_add_update_service_version_tag.rb ${EBSI_ENV} dev/lux/app.yaml ${CONTAINER_NAME} ${TAG}"
+                sh "sudo -u ebsi1-robot /usr/local/bin/ebsi_add_update_service_version_tag.rb ${EBSI_ENV} ${MCO_TARGET}/lux/app.yaml ${CONTAINER_NAME} ${TAG}"
                 sh "sudo su - ebsi1-robot -c 'cd /etc/puppetlabs/code/environments/${EBSI_ENV} ; git add .; git commit -am auto; git push'"
             }
         }
