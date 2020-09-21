@@ -18,7 +18,7 @@
 
 You need:
 
-- Node.js >= 12
+- Node.js >= 12.18.4
 - Yarn >= 1.22.0
 
 ### Installing

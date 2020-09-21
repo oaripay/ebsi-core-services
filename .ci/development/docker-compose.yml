@@ -3,4 +3,4 @@ version: "3.7"
 services:
   identity-hub-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/identity-hub-api:development_ebsiint-2080-ci_v0.0.1
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/identity-hub-api:development_ebsiint-2115-deps_v0.0.2
