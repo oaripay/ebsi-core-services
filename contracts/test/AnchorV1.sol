@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.7.0;
 
 import "./Anchor.sol";
@@ -6,7 +7,7 @@ import "./Anchor.sol";
  * @title Anchor with an added functionality.
  *
  */
-contract Anchor_V1 is Anchor {
+contract AnchorV1 is Anchor {
     struct Role {
         bytes32[] bearer;
     }

@@ -3,20 +3,20 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 import "../utils/upgradeability/Initializable.sol";
-import "./IssuerStorage.sol";
+import "./AdministratorStorage.sol";
 import "../utils/math/SafeMath.sol";
 
-abstract contract IssuerDetailed is IssuerStorage {
+abstract contract AdministratorDetailed is AdministratorStorage {
     using SafeMath for uint256;
 
-    event addIssuerAttribute(
+    event addAdministratorAttribute(
         bytes32 indexed didHash,
         bytes32 indexed firstAttrHash,
         string did,
         uint256 attributeVersionCount,
         uint256 attributesCount
     );
-    event updateIssuerAttribute(
+    event updateAdministratorAttribute(
         bytes32 indexed didHash,
         bytes32 indexed newAttrHash,
         bytes32 indexed previousAttrHash,
@@ -27,17 +27,18 @@ abstract contract IssuerDetailed is IssuerStorage {
     );
 
     /**
-     * @dev insert an Issuer
+     * @dev insert an Administrator
      */
-    function insertIssuer(string calldata did, bytes calldata attributeData)
-        external
-    {
+    function insertAdministrator(
+        string calldata did,
+        bytes calldata attributeData
+    ) external {
         bytes32 firstAttrHash = keccak256(attributeData);
-        IssuerModel storage ds = issuerStorage();
-        Issuer storage iss = ds.issuers[did];
+        AdministratorModel storage ds = administratorStorage();
+        Administrator storage iss = ds.administrators[did];
         require(
             iss.attributes.length == 0,
-            "issuer already exist use updateIssuer to add or update an attribute"
+            "administrator already exist use updateAdministrator to add or update an attribute"
         );
         require(
             keccak256(bytes(ds.attributeInfos[firstAttrHash].did)) ==
@@ -58,14 +59,14 @@ abstract contract IssuerDetailed is IssuerStorage {
         atr.versionData[firstAttrHash] = attributeData;
 
         /*
-         Push the firstAttrHash of the attribute to uniquely identify an issuer attribute
+         Push the firstAttrHash of the attribute to uniquely identify an administrator attribute
          Methods .push() and .push(value) can be used to append a new element at the end of the array,
          where .push() appends a zero-initialized element and returns a reference to it.
         */
         iss.attributes.push(firstAttrHash);
         uint256 attributescount = iss.attributes.length;
         ds.dids.push(did);
-        emit addIssuerAttribute(
+        emit addAdministratorAttribute(
             keccak256(bytes(did)),
             firstAttrHash,
             did,
@@ -75,12 +76,13 @@ abstract contract IssuerDetailed is IssuerStorage {
     }
 
     /**
-     * @dev add a new issuer's attribute
+     * @dev add a new administrator's attribute
      */
-    function updateIssuer(string calldata did, bytes calldata attributeData)
-        external
-    {
-        IssuerModel storage ds = issuerStorage();
+    function updateAdministrator(
+        string calldata did,
+        bytes calldata attributeData
+    ) external {
+        AdministratorModel storage ds = administratorStorage();
         bytes32 newAttrHash = keccak256(attributeData);
         require(
             keccak256(bytes(ds.attributeInfos[newAttrHash].did)) ==
@@ -88,10 +90,10 @@ abstract contract IssuerDetailed is IssuerStorage {
             "attribute is already stored"
         );
 
-        Issuer storage iss = ds.issuers[did];
+        Administrator storage iss = ds.administrators[did];
         require(
             iss.attributes.length > 0,
-            "issuer does not exist use insertIssuer to add an issuer"
+            "administrator does not exist use insertAdministrator to add an administrator"
         );
 
         assert(iss.attributesDetail[newAttrHash].versionHashes.length == 0);
@@ -107,34 +109,34 @@ abstract contract IssuerDetailed is IssuerStorage {
         atr.versionData[newAttrHash] = attributeData;
 
         /*
-         Push the firstAttrHash of the attribute to uniquely identify an issuer attribute
+         Push the firstAttrHash of the attribute to uniquely identify an administrator attribute
          Methods .push() and .push(value) can be used to append a new element at the end of the array,
          where .push() appends a zero-initialized element and returns a reference to it.
         */
         iss.attributes.push(newAttrHash);
 
-        emitUpdateIssuer(did, newAttrHash, newAttrHash, newAttrHash);
+        emitUpdateAdministrator(did, newAttrHash, newAttrHash, newAttrHash);
     }
 
     /**
-     * @dev add a new version to a issuer's attribute
+     * @dev add a new version to a administrator's attribute
      */
-    function updateIssuer(
+    function updateAdministrator(
         string calldata did,
         bytes calldata attributeData,
         bytes32 lastVersHash
     ) external {
-        IssuerModel storage ds = issuerStorage();
+        AdministratorModel storage ds = administratorStorage();
         require(
             keccak256(bytes(ds.attributeInfos[lastVersHash].did)) ==
                 keccak256(bytes(did)),
             "lastVersHash does not refer to the specified DID"
         );
 
-        Issuer storage iss = ds.issuers[did];
+        Administrator storage iss = ds.administrators[did];
         require(
             iss.attributes.length >= 0,
-            "issuer does not exist use insertIssuer to add an issuer"
+            "administrator does not exist use insertAdministrator to add an administrator"
         );
         // based on the last version hash we can retrive the first version hash for this attribute along with the did
         bytes32 firstAttrHash = ds.attributeInfos[lastVersHash].attrId;
@@ -153,21 +155,21 @@ abstract contract IssuerDetailed is IssuerStorage {
         atr.versionHashes.push(newAttrHash);
         // push the new version data for this attribute
         atr.versionData[newAttrHash] = attributeData;
-        emitUpdateIssuer(did, newAttrHash, lastVersHash, firstAttrHash);
+        emitUpdateAdministrator(did, newAttrHash, lastVersHash, firstAttrHash);
     }
 
-    function emitUpdateIssuer(
+    function emitUpdateAdministrator(
         string memory did,
         bytes32 newAttrHash,
         bytes32 lastVersHash,
         bytes32 firstAttrHash
     ) internal {
-        IssuerModel storage ds = issuerStorage();
-        Issuer storage iss = ds.issuers[did];
+        AdministratorModel storage ds = administratorStorage();
+        Administrator storage iss = ds.administrators[did];
         AttributeDetail storage atr = iss.attributesDetail[firstAttrHash];
         uint256 attributeVersionCount = atr.versionHashes.length;
         uint256 attributesCount = iss.attributes.length;
-        emit updateIssuerAttribute(
+        emit updateAdministratorAttribute(
             keccak256(bytes(did)),
             newAttrHash,
             lastVersHash,
@@ -178,22 +180,23 @@ abstract contract IssuerDetailed is IssuerStorage {
         );
     }
 
-    function getIssuerAttributesFirstHash(string memory did)
+    function getAdministratorAttributesFirstHash(string memory did)
         public
         view
         returns (bytes32[] memory)
     {
-        IssuerModel storage ds = issuerStorage();
-        return ds.issuers[did].attributes;
+        AdministratorModel storage ds = administratorStorage();
+        return ds.administrators[did].attributes;
     }
 
-    function getIssuer(string memory did)
+    function getAdministrator(string memory did)
         public
         view
         returns (bytes32[] memory)
     {
-        IssuerModel storage ds = issuerStorage();
-        bytes32[] memory attributesFirstHash = ds.issuers[did].attributes;
+        AdministratorModel storage ds = administratorStorage();
+        bytes32[] memory attributesFirstHash = ds.administrators[did]
+            .attributes;
 
         bytes32[] memory attributesLastHash = new bytes32[](
             attributesFirstHash.length
@@ -201,7 +204,7 @@ abstract contract IssuerDetailed is IssuerStorage {
         //list all the attributes
         for (uint256 index = 0; index < attributesFirstHash.length; index++) {
             // get all the versions for the current attribute
-            bytes32[] memory versions = ds.issuers[did]
+            bytes32[] memory versions = ds.administrators[did]
                 .attributesDetail[attributesFirstHash[index]]
                 .versionHashes;
 
@@ -212,13 +215,13 @@ abstract contract IssuerDetailed is IssuerStorage {
     }
 
     /* {
-      "items": [issuerA, issuerB],
+      "items": [administratorA, administratorB],
       "total": 30,
       "pageSize": 2,
       "prev": 3,
       "next": 5
     } */
-    function getIssuers(uint256 page, uint256 howMany)
+    function getAdministrators(uint256 page, uint256 howMany)
         public
         view
         returns (
@@ -231,7 +234,7 @@ abstract contract IssuerDetailed is IssuerStorage {
     {
         require(howMany <= 50, "PageSize should not be greater than 50");
         require(howMany > 0, "PageSize should be greater than 0");
-        IssuerModel storage ds = issuerStorage();
+        AdministratorModel storage ds = administratorStorage();
         total = ds.dids.length;
         pageSize = howMany;
         uint256 length = howMany;
@@ -279,40 +282,40 @@ abstract contract IssuerDetailed is IssuerStorage {
         return (items, total, pageSize, prev, next);
     }
 
-    function getIssuerAttributeHistory(bytes32 anyAttrVersHash)
+    function getAdministratorAttributeHistory(bytes32 anyAttrVersHash)
         public
         view
         returns (bytes32[] memory)
     {
-        IssuerModel storage ds = issuerStorage();
+        AdministratorModel storage ds = administratorStorage();
         // retrieve first the did and attrId (firstHash of attribute)
         AttributeInfo memory i = ds.attributeInfos[anyAttrVersHash];
-        // retrieve the issuer and the attribute detail
-        Issuer storage iss = ds.issuers[i.did];
+        // retrieve the administrator and the attribute detail
+        Administrator storage iss = ds.administrators[i.did];
         return iss.attributesDetail[i.attrId].versionHashes;
     }
 
-    function getIssuerAttributebyHash(bytes32 anyAttrVersHash)
+    function getAdministratorAttributebyHash(bytes32 anyAttrVersHash)
         public
         view
         returns (string memory did, bytes memory attribData)
     {
-        IssuerModel storage ds = issuerStorage();
+        AdministratorModel storage ds = administratorStorage();
         // retrieve first the did and attrId (firstHash of attribute)
         AttributeInfo memory i = ds.attributeInfos[anyAttrVersHash];
         did = i.did;
-        // retrieve the issuer and the attribute detail
-        Issuer storage iss = ds.issuers[i.did];
+        // retrieve the administrator and the attribute detail
+        Administrator storage iss = ds.administrators[i.did];
         attribData = iss.attributesDetail[i.attrId]
             .versionData[anyAttrVersHash];
     }
 
-    function getIssuerDid(bytes32 attributeHash)
+    function getAdministratorDid(bytes32 attributeHash)
         public
         view
         returns (string memory)
     {
-        IssuerModel storage ds = issuerStorage();
+        AdministratorModel storage ds = administratorStorage();
         return ds.attributeInfos[attributeHash].did;
     }
 

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.7.0;
 
 import "./InitializableUpgradeabilityProxy.sol";
@@ -41,6 +42,10 @@ contract OwnedUpgradeabilityProxy is
      */
     // prettier-ignore
     function _willFallback() override internal {
+        require(
+          _admin() != address(0),
+          "Can't fallback if admin is not set"
+        );
         require(
             msg.sender != _admin(),
             "Cannot call fallback function from the proxy admin"

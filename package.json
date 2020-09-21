@@ -8,27 +8,36 @@
     "ganache": "ganache-cli --gasLimit=8000000 --allowUnlimitedContractSize -i 5042 >/dev/null 2>&1 &",
     "compile": "truffle compile contracts",
     "build": "truffle build --compile-all",
-    "postTest": "kill $(lsof -t -i:8545)",
-    "test": "yarn run ganache && truffle test --show-events --network development --compile-all && yarn run postTest"
+    "lint": "yarn run lint:prettier && yarn run lint:js",
+    "lint:prettier": "prettier . --check",
+    "lint:js": "eslint --ext .js tests --fix --ignore-pattern '*.json'",
+    "test": "truffle compile && jest --coverage --verbose"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@openzeppelin/contracts": "^3.1.0",
-    "@openzeppelin/upgrades": "^2.8.0",
     "@truffle/hdwallet-provider": "^1.0.42",
     "eth-json-rpc-filters": "^4.1.1",
     "fs": "0.0.1-security"
   },
+  "jest": {
+    "testEnvironment": "node"
+  },
   "devDependencies": {
-    "@openzeppelin/test-helpers": "^0.5.5",
     "@openzeppelin/test-environment": "^0.1.4",
-    "chai": "4.2.0",
-    "prettier": "^2.0.5",
-    "prettier-plugin-solidity": "^1.0.0-alpha.49",
-    "solidity-coverage": "^0.7.10",
-    "truffle": "^5.1.39",
+    "@openzeppelin/test-helpers": "^0.5.6",
+    "eslint": "^7.8.1",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jest": "^23.18.0",
+    "eslint-plugin-prettier": "^3.1.4",
     "ganache-cli": "^6.10.1",
+    "jest": "^26.4.2",
+    "prettier": "^2.1.1",
+    "prettier-plugin-solidity": "^1.0.0-alpha.56",
+    "solidity-coverage": "^0.7.10",
+    "truffle": "^5.1.42",
     "truffle-flattener": "^1.4.4",
     "truffle-typings": "^1.0.8"
   }

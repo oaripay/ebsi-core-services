@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.7.0;
 
 import "./Proxy.sol";
@@ -68,6 +69,10 @@ abstract contract BaseUpgradeabilityProxy is Proxy {
       "Cannot set a proxy implementation to a non-contract address"
     );
     DiamondStorage storage ms = diamondStorage();
+    require(
+      newImplementation != ms.implementation,
+      "Proxy implementation is already set to this address"
+    );
     ms.implementation = newImplementation;
   }
 }
