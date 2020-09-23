@@ -46,19 +46,25 @@ function buildLink(before, after, pageSize) {
 async function iterateContract(callback) {
   let lastBlockREC = Number(await contract.lastBlockREC());
   const filter = contract.filters.REC();
-  let logRec;
+  let logRec = null;
 
   /* eslint-disable no-await-in-loop */
-  for (let i = 0; lastBlockREC !== 0; i += 1) {
+  while (lastBlockREC !== 0) {
     filter.fromBlock = lastBlockREC;
     filter.toBlock = lastBlockREC;
 
     const logs = await provider.getLogs(filter);
-    [logRec] = logs;
-    const finished = await callback(logRec, i);
-    if (finished) break;
+    let exitLoop = false;
+    for (let i = 0; i < logs.length && !exitLoop; i += 1) {
+      const finished = await callback(logs[i]);
+      if (finished) {
+        exitLoop = true;
+        logRec = logs[i];
+      }
+    }
+    if (exitLoop) break;
 
-    lastBlockREC = Number(logRec.topics[3]);
+    lastBlockREC = Number(logs[0].topics[3]);
   }
   /* eslint-enable no-await-in-loop */
 
@@ -77,10 +83,10 @@ async function getListRecords(q) {
 
   const items = [];
 
-  const { lastBlockREC } = await iterateContract(async (log, i) => {
+  const { lastBlockREC } = await iterateContract(async (log) => {
     const record = await buildRecord(log);
     items.push(record);
-    if (i < pageSize - 1) return false; // continue
+    if (items.length < pageSize) return false; // continue
     return true;
   });
 
