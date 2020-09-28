@@ -65,6 +65,31 @@ npx truffle test  --show-events --network intebsi --compile-all
 
 if you experience some timeout issues try running tests one by one
 
+### test change proxy ownership
+
+- launch ganache with the seed you have specified in the .secret file
+
+```sh
+npx ganache-cli -m "myth like bonus scare over problem client lizard pioneer submit female collect"
+```
+
+- deploy the smart contracts
+
+```sh
+npx truffle migrate  --compile-all  --reset
+```
+
+Note at the end of the migration script the `ProxyAddress` this will be needed in the next step
+
+- change the proxy admin
+
+```sh
+node migrations/helpers/changeProxyOwnership.js {proxy SC address} {new proxy admin address}
+...
+--Transfer Ownership from 0x9bba2ad7178e0e2731db6caf45f80dd4efbdfcd1 to 0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b
+...
+```
+
 ### test coverage
 
 ```sh

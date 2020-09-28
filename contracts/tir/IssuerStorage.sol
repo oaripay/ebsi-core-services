@@ -14,8 +14,6 @@ contract IssuerStorage is AttributeStorage {
   }
 
   struct IssuerModel {
-    address _operator;
-    uint256 _version;
     string[] dids; // list of all dids
     mapping(string => Issuer) issuers; // DID -> [Issuer]
     mapping(bytes32 => AttributeInfo) attributeInfos; // Attr(n)v(n)Hash -> DID, firsthash  // a convenient way to retrieve a did and firsthash based on any attributeHash

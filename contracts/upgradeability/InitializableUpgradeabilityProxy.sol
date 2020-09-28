@@ -27,7 +27,6 @@ abstract contract InitializableUpgradeabilityProxy is BaseUpgradeabilityProxy {
             DIAMOND_STORAGE_POSITION ==
                 keccak256("diamond.standard.diamond.storage.proxy")
         );
-
         _setImplementation(_logic);
         if (_data.length > 0) {
             (bool success, ) = _logic.delegatecall(_data);
