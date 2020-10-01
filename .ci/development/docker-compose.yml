@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   timestamp-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api:development_ebsiint-2125-fix-txs_v0.0.1
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api:development_ebsiint-2132-timeout-for-old-hash_v0.0.1
     build: ../..

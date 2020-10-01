@@ -2,6 +2,7 @@ const { abi } = require("./sc-notary");
 require("dotenv").config();
 
 const port = process.env.PORT || 8080;
+const maxBlockToParse = process.env.MAXIMUM_PAST_BLOCK_TO_PARSE || 20;
 const DEFAULT_PAGE_SIZE = 10;
 
 const config = {
@@ -42,4 +43,5 @@ module.exports = {
   ...finalConfig,
   port,
   DEFAULT_PAGE_SIZE,
+  maxBlockToParse,
 };

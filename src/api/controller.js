@@ -41,15 +41,15 @@ function buildLink(before, after, pageSize) {
  * Function to walk around all the records in the contract
  * starting from the last one. On each iteration a
  * callback function is executed.
- * The loop stops if the callback returns true.
+ * The loop stops if the callback returns true or if the callback count reach the MAXIMUM_PAST_BLOCK_TO_PARSE
  */
-async function iterateContract(callback) {
+async function iterateContract(nolimit, callback) {
   let lastBlockREC = Number(await contract.lastBlockREC());
   const filter = contract.filters.REC();
   let logRec = null;
-
+  let counter = nolimit ? Number.MAX_SAFE_INTEGER : config.maxBlockToParse;
   /* eslint-disable no-await-in-loop */
-  while (lastBlockREC !== 0) {
+  while (lastBlockREC !== 0 && counter > 0) {
     filter.fromBlock = lastBlockREC;
     filter.toBlock = lastBlockREC;
 
@@ -65,6 +65,7 @@ async function iterateContract(callback) {
     if (exitLoop) break;
 
     lastBlockREC = Number(logs[0].topics[3]);
+    counter -= 1;
   }
   /* eslint-enable no-await-in-loop */
 
@@ -83,7 +84,7 @@ async function getListRecords(q) {
 
   const items = [];
 
-  const { lastBlockREC } = await iterateContract(async (log) => {
+  const { lastBlockREC } = await iterateContract(true, async (log) => {
     const record = await buildRecord(log);
     items.push(record);
     if (items.length < pageSize) return false; // continue
@@ -126,7 +127,7 @@ async function getRecord(_hash) {
       detail: `Document hash '${_hash}' not found`,
     });
 
-  const { logRec, lastBlockREC } = await iterateContract((log) => {
+  const { logRec, lastBlockREC } = await iterateContract(false, (log) => {
     if (hash === log.topics[1].toLowerCase()) return true;
     return false; // continue searching
   });
@@ -136,9 +137,17 @@ async function getRecord(_hash) {
       `Document hash '${hash}' not found, however the NotFoundError was not fired`
     );
 
-  const record = await buildRecord(logRec);
-
-  return record;
+  if (logRec) {
+    return buildRecord(logRec);
+  }
+  // if we haven't found a logRec at this point it means that it is too old to answer in time
+  return Promise.resolve({
+    hash: hash.replace("0x", ""),
+    txHash: "",
+    blockNumber: 0,
+    timestamp: "",
+    registeredBy,
+  });
 }
 
 module.exports = {

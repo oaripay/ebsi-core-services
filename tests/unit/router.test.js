@@ -83,5 +83,7 @@ describe("timestamp api router tests", () => {
     expect.assertions(1);
     const response = await request.get("/timestamp/v1/bad-method");
     expect(response.status).toBe(400);
+    // avoid TCPSERVERWRAP error
+    await new Promise((resolve) => setTimeout(() => resolve(), 500));
   });
 });

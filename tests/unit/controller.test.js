@@ -1,6 +1,9 @@
 const ethers = require("ethers");
 const { BadRequestError, NotFoundError } = require("../../src/errors");
 const controller = require("../../src/api/controller");
+const { maxBlockToParse } = require("../../src/config");
+
+jest.setTimeout(500000);
 
 /*
  * Tests
@@ -35,6 +38,34 @@ describe("timestamp API Test", () => {
     expect(result).toStrictEqual(expectedRecord);
   });
 
+  it("get a too old record", async () => {
+    expect.assertions(4);
+    // make sure to get an old enough hash
+    let size = 0;
+    let blockNumbers = [];
+    let response = null;
+    while (maxBlockToParse >= blockNumbers.length - 1) {
+      size += 50;
+      // eslint-disable-next-line no-await-in-loop
+      response = await controller.getListRecords({ page: { size } });
+      blockNumbers = response.items
+        .filter((v, i, arr) => {
+          if (i === 0) return true;
+          return v.blockNumber !== arr[i - 1].blockNumber;
+        })
+        .map((r) => r.blockNumber);
+    }
+    const oldHash = response.items.reduce((accumulator, currentValue) => {
+      if (accumulator.blockNumber > currentValue.blockNumber)
+        return currentValue;
+      return accumulator;
+    }).hash;
+    response = await controller.getRecord(oldHash);
+    expect(response).toStrictEqual(expectedRecord);
+    expect(response.txHash).toStrictEqual("");
+    expect(response.blockNumber).toStrictEqual(0);
+    expect(response.timestamp).toStrictEqual("");
+  });
   it("malformed hash is rejected", async () => {
     expect.assertions(1);
     const check = async () => {
