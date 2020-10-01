@@ -15,7 +15,7 @@ This repository contains the code of EBSI Trusted Issuers Registry.
 
 You can choose to run the project locally with your own Node.js environment, or you can use Docker Compose to run it.
 
-First, create an `.env` file locally. You can duplicate `.env.example` and name the new copy `.env`. Adapt the variables to your needs.
+Adapt the variables in `.env` file to your needs, or update the variables in a copy named `.env.local`.
 
 Please note that you need to fill the API_PRIVATE_KEY env variable with a secp256k1 elliptic curve private key in hexadecimal.
 
@@ -49,7 +49,7 @@ After creating the local `.env` file, run:
 docker-compose up --build
 ```
 
-You can now open http://localhost:3000/trusted-issuers-registry/v1/health. If everything's working correctly, then you should see "ok".
+You can now open http://localhost:3000/trusted-issuers-registry/v2/health. If everything's working correctly, then you should see "ok".
 
 ## Linting
 

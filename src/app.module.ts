@@ -1,46 +1,12 @@
-import { Module } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
-import { WinstonModule } from "nest-winston";
-import * as Joi from "@hapi/joi";
+import { Module, Logger } from "@nestjs/common";
+import { ApiConfigModule } from "./config/configuration";
 import AppController from "./app.controller";
-import AppService from "./services/app.service";
-import EthersService from "./services/ethers.service";
-import AppFormatter from "./util/app.formatter";
-import configuration from "./config/configuration";
+import IssuersModule from "./modules/issuers/issuers.module";
+import JsonRpcModule from "./modules/jsonrpc/jsonrpc.module";
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      load: [configuration],
-      validationSchema: Joi.object({
-        EBSI_ENV: Joi.string()
-          .valid("local", "integration", "development", "production")
-          .required(),
-        NODE_ENV: Joi.string()
-          .valid("development", "production", "test")
-          .default("development"),
-        API_PRIVATE_KEY: Joi.string().required(),
-        APP_PORT: Joi.number().default(3000),
-        LOG_LEVEL: Joi.string().valid(
-          "error",
-          "warn",
-          "info",
-          "http",
-          "verbose",
-          "debug",
-          "silly"
-        ),
-      }),
-    }),
-    WinstonModule.forRoot({
-      transports: [
-        // other transports...
-      ],
-      // other options
-      level: process.env.LOG_LEVEL,
-    }),
-  ],
+  imports: [ApiConfigModule, IssuersModule, JsonRpcModule],
   controllers: [AppController],
-  providers: [AppFormatter, EthersService, AppService],
+  providers: [Logger],
 })
 export default class AppModule {}

@@ -1,0 +1,404 @@
+{
+  "dids": [
+    "did:ebsi:0x00",
+    "did:ebsi:0x01",
+    "did:ebsi:0x02",
+    "did:ebsi:0x03",
+    "did:ebsi:0x04",
+    "did:ebsi:0x05",
+    "did:ebsi:0x06",
+    "did:ebsi:0x07",
+    "did:ebsi:0x08",
+    "did:ebsi:0x09",
+    "did:ebsi:0x10",
+    "did:ebsi:0x11",
+    "did:ebsi:0x12",
+    "did:ebsi:0x13",
+    "did:ebsi:0x14",
+    "did:ebsi:0x15",
+    "did:ebsi:0x16",
+    "did:ebsi:0x17",
+    "did:ebsi:0x18",
+    "did:ebsi:0x61dc3a5d45d81179406312ad3d7412d2eed65e61"
+  ],
+  "issuers": {
+    "did:ebsi:0x00": {
+      "attributes": [
+        "0x84101d893e2eabe93ea713e0f89bf0948d1774f5f3edf95ecc23a328beb820a6"
+      ],
+      "attributesDetail": {
+        "0x84101d893e2eabe93ea713e0f89bf0948d1774f5f3edf95ecc23a328beb820a6": {
+          "versionHashes": [
+            "0x84101d893e2eabe93ea713e0f89bf0948d1774f5f3edf95ecc23a328beb820a6"
+          ],
+          "versionData": {
+            "0x84101d893e2eabe93ea713e0f89bf0948d1774f5f3edf95ecc23a328beb820a6": "0x7b226e616d65223a22616c696365227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x01": {
+      "attributes": [
+        "0x693a225f41c925908dc3e4de54384adea34b581d3e67759577d03b8763be403d"
+      ],
+      "attributesDetail": {
+        "0x693a225f41c925908dc3e4de54384adea34b581d3e67759577d03b8763be403d": {
+          "versionHashes": [
+            "0x693a225f41c925908dc3e4de54384adea34b581d3e67759577d03b8763be403d"
+          ],
+          "versionData": {
+            "0x693a225f41c925908dc3e4de54384adea34b581d3e67759577d03b8763be403d": "0x7b226e616d65223a22626f62227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x02": {
+      "attributes": [
+        "0x17b310e46bc5e0add62f6c1a6855105bb35967449d8c04ef443c82c09d975b23"
+      ],
+      "attributesDetail": {
+        "0x17b310e46bc5e0add62f6c1a6855105bb35967449d8c04ef443c82c09d975b23": {
+          "versionHashes": [
+            "0x17b310e46bc5e0add62f6c1a6855105bb35967449d8c04ef443c82c09d975b23"
+          ],
+          "versionData": {
+            "0x17b310e46bc5e0add62f6c1a6855105bb35967449d8c04ef443c82c09d975b23": "0x7b226e616d65223a226361726c227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x03": {
+      "attributes": [
+        "0x1a01b9f4182517e24aa1086cebfb4bf947919b8110154dd984baa8b5c0455051"
+      ],
+      "attributesDetail": {
+        "0x1a01b9f4182517e24aa1086cebfb4bf947919b8110154dd984baa8b5c0455051": {
+          "versionHashes": [
+            "0x1a01b9f4182517e24aa1086cebfb4bf947919b8110154dd984baa8b5c0455051"
+          ],
+          "versionData": {
+            "0x1a01b9f4182517e24aa1086cebfb4bf947919b8110154dd984baa8b5c0455051": "0x7b226e616d65223a2264616e79227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x04": {
+      "attributes": [
+        "0x00c1e707bca84c56200fa1d21268022ce35f45d75351fd1185336e4f915a60ab"
+      ],
+      "attributesDetail": {
+        "0x00c1e707bca84c56200fa1d21268022ce35f45d75351fd1185336e4f915a60ab": {
+          "versionHashes": [
+            "0x00c1e707bca84c56200fa1d21268022ce35f45d75351fd1185336e4f915a60ab"
+          ],
+          "versionData": {
+            "0x00c1e707bca84c56200fa1d21268022ce35f45d75351fd1185336e4f915a60ab": "0x7b226e616d65223a226a61636f62227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x05": {
+      "attributes": [
+        "0x222de6b4b09ff423a034693391bfc5eb9eeb6b8d0f27a76a7eaddffc333592f1"
+      ],
+      "attributesDetail": {
+        "0x222de6b4b09ff423a034693391bfc5eb9eeb6b8d0f27a76a7eaddffc333592f1": {
+          "versionHashes": [
+            "0x222de6b4b09ff423a034693391bfc5eb9eeb6b8d0f27a76a7eaddffc333592f1"
+          ],
+          "versionData": {
+            "0x222de6b4b09ff423a034693391bfc5eb9eeb6b8d0f27a76a7eaddffc333592f1": "0x7b226e616d65223a22736d697468227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x06": {
+      "attributes": [
+        "0xd3156927ecc52f26405bb8a3cbe0096278dfdf4b8bc0a2899ac07101c4a380f5"
+      ],
+      "attributesDetail": {
+        "0xd3156927ecc52f26405bb8a3cbe0096278dfdf4b8bc0a2899ac07101c4a380f5": {
+          "versionHashes": [
+            "0xd3156927ecc52f26405bb8a3cbe0096278dfdf4b8bc0a2899ac07101c4a380f5"
+          ],
+          "versionData": {
+            "0xd3156927ecc52f26405bb8a3cbe0096278dfdf4b8bc0a2899ac07101c4a380f5": "0x7b226e616d65223a226c656f227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x07": {
+      "attributes": [
+        "0x489893e848e8daf0fabd3673b85c0d3503a6daf1bcbe03a0505ffedf466abaee"
+      ],
+      "attributesDetail": {
+        "0x489893e848e8daf0fabd3673b85c0d3503a6daf1bcbe03a0505ffedf466abaee": {
+          "versionHashes": [
+            "0x489893e848e8daf0fabd3673b85c0d3503a6daf1bcbe03a0505ffedf466abaee"
+          ],
+          "versionData": {
+            "0x489893e848e8daf0fabd3673b85c0d3503a6daf1bcbe03a0505ffedf466abaee": "0x7b226e616d65223a226368726973227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x08": {
+      "attributes": [
+        "0x49b4fa83329db118d8e851bcea064111593fc0ee5a13d57ab20c4176841563d8"
+      ],
+      "attributesDetail": {
+        "0x49b4fa83329db118d8e851bcea064111593fc0ee5a13d57ab20c4176841563d8": {
+          "versionHashes": [
+            "0x49b4fa83329db118d8e851bcea064111593fc0ee5a13d57ab20c4176841563d8"
+          ],
+          "versionData": {
+            "0x49b4fa83329db118d8e851bcea064111593fc0ee5a13d57ab20c4176841563d8": "0x7b226e616d65223a2276697669227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x09": {
+      "attributes": [
+        "0x9b309b1a1d86f3e95b70a3c0934a4d61b43b2fbc7f528bd93772a150c538a40b"
+      ],
+      "attributesDetail": {
+        "0x9b309b1a1d86f3e95b70a3c0934a4d61b43b2fbc7f528bd93772a150c538a40b": {
+          "versionHashes": [
+            "0x9b309b1a1d86f3e95b70a3c0934a4d61b43b2fbc7f528bd93772a150c538a40b"
+          ],
+          "versionData": {
+            "0x9b309b1a1d86f3e95b70a3c0934a4d61b43b2fbc7f528bd93772a150c538a40b": "0x7b226e616d65223a22616c62657274227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x10": {
+      "attributes": [
+        "0x969aea1552829c72dd7e8b9d697f4981388c7e3a3fe131e1c37a8e7f826c4544"
+      ],
+      "attributesDetail": {
+        "0x969aea1552829c72dd7e8b9d697f4981388c7e3a3fe131e1c37a8e7f826c4544": {
+          "versionHashes": [
+            "0x969aea1552829c72dd7e8b9d697f4981388c7e3a3fe131e1c37a8e7f826c4544"
+          ],
+          "versionData": {
+            "0x969aea1552829c72dd7e8b9d697f4981388c7e3a3fe131e1c37a8e7f826c4544": "0x7b226e616d65223a226c697361227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x11": {
+      "attributes": [
+        "0xfb40437d9d77078c095122b6e3866fbf90e63f1421b6b6653bf1baaf90a57529"
+      ],
+      "attributesDetail": {
+        "0xfb40437d9d77078c095122b6e3866fbf90e63f1421b6b6653bf1baaf90a57529": {
+          "versionHashes": [
+            "0xfb40437d9d77078c095122b6e3866fbf90e63f1421b6b6653bf1baaf90a57529"
+          ],
+          "versionData": {
+            "0xfb40437d9d77078c095122b6e3866fbf90e63f1421b6b6653bf1baaf90a57529": "0x7b226e616d65223a226d617279227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x12": {
+      "attributes": [
+        "0xb77d5d257224aa442968647560edb015b092eae11f7acbef916bbde26c1886ec"
+      ],
+      "attributesDetail": {
+        "0xb77d5d257224aa442968647560edb015b092eae11f7acbef916bbde26c1886ec": {
+          "versionHashes": [
+            "0xb77d5d257224aa442968647560edb015b092eae11f7acbef916bbde26c1886ec"
+          ],
+          "versionData": {
+            "0xb77d5d257224aa442968647560edb015b092eae11f7acbef916bbde26c1886ec": "0x7b226e616d65223a226e617468616c6965227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x13": {
+      "attributes": [
+        "0x3f546c8016fcce95cb69f756d9276f9e705be42e7853ec8d3adac1b222c256ba"
+      ],
+      "attributesDetail": {
+        "0x3f546c8016fcce95cb69f756d9276f9e705be42e7853ec8d3adac1b222c256ba": {
+          "versionHashes": [
+            "0x3f546c8016fcce95cb69f756d9276f9e705be42e7853ec8d3adac1b222c256ba"
+          ],
+          "versionData": {
+            "0x3f546c8016fcce95cb69f756d9276f9e705be42e7853ec8d3adac1b222c256ba": "0x7b226e616d65223a2267696e79227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x14": {
+      "attributes": [
+        "0x9e61172b8f101f263d8590a3296348e3ac282b50e70a46e580320ad81cf95531"
+      ],
+      "attributesDetail": {
+        "0x9e61172b8f101f263d8590a3296348e3ac282b50e70a46e580320ad81cf95531": {
+          "versionHashes": [
+            "0x9e61172b8f101f263d8590a3296348e3ac282b50e70a46e580320ad81cf95531"
+          ],
+          "versionData": {
+            "0x9e61172b8f101f263d8590a3296348e3ac282b50e70a46e580320ad81cf95531": "0x7b226e616d65223a226361726f6c227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x15": {
+      "attributes": [
+        "0x146ce4e269baa5ef21097bcc95e5426e8f04bfc7d567ed9d065e3f25d8b5d0dc"
+      ],
+      "attributesDetail": {
+        "0x146ce4e269baa5ef21097bcc95e5426e8f04bfc7d567ed9d065e3f25d8b5d0dc": {
+          "versionHashes": [
+            "0x146ce4e269baa5ef21097bcc95e5426e8f04bfc7d567ed9d065e3f25d8b5d0dc"
+          ],
+          "versionData": {
+            "0x146ce4e269baa5ef21097bcc95e5426e8f04bfc7d567ed9d065e3f25d8b5d0dc": "0x7b226e616d65223a22636c6f62227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x16": {
+      "attributes": [
+        "0x7469bc580c9be77b638ce76aaa371e4775448caec8d9274df8d9042282fe3845"
+      ],
+      "attributesDetail": {
+        "0x7469bc580c9be77b638ce76aaa371e4775448caec8d9274df8d9042282fe3845": {
+          "versionHashes": [
+            "0x7469bc580c9be77b638ce76aaa371e4775448caec8d9274df8d9042282fe3845"
+          ],
+          "versionData": {
+            "0x7469bc580c9be77b638ce76aaa371e4775448caec8d9274df8d9042282fe3845": "0x7b226e616d65223a226c696e61227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x17": {
+      "attributes": [
+        "0x693a225f41c925908dc3e4de54384adea34b581d3e67759577d03b8763be403d"
+      ],
+      "attributesDetail": {
+        "0x693a225f41c925908dc3e4de54384adea34b581d3e67759577d03b8763be403d": {
+          "versionHashes": [
+            "0x693a225f41c925908dc3e4de54384adea34b581d3e67759577d03b8763be403d"
+          ],
+          "versionData": {
+            "0x693a225f41c925908dc3e4de54384adea34b581d3e67759577d03b8763be403d": "0x7b226e616d65223a22626f62227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x18": {
+      "attributes": [
+        "0x3653579010ac2bddc00c2551863cfdd0cb14bb60a17a86f8a2f1ab542ed30f6b"
+      ],
+      "attributesDetail": {
+        "0x3653579010ac2bddc00c2551863cfdd0cb14bb60a17a86f8a2f1ab542ed30f6b": {
+          "versionHashes": [
+            "0x3653579010ac2bddc00c2551863cfdd0cb14bb60a17a86f8a2f1ab542ed30f6b"
+          ],
+          "versionData": {
+            "0x3653579010ac2bddc00c2551863cfdd0cb14bb60a17a86f8a2f1ab542ed30f6b": "0x7b226e616d65223a226a616e65227d"
+          }
+        }
+      }
+    },
+    "did:ebsi:0x61dc3a5d45d81179406312ad3d7412d2eed65e61": {
+      "attributes": [
+        "0x828cabb117ad29e6dee8d05204873d504cdb99990dc62be17831abc1ee6da1db"
+      ],
+      "attributesDetail": {
+        "0x828cabb117ad29e6dee8d05204873d504cdb99990dc62be17831abc1ee6da1db": {
+          "versionHashes": [
+            "0x828cabb117ad29e6dee8d05204873d504cdb99990dc62be17831abc1ee6da1db"
+          ],
+          "versionData": {
+            "0x828cabb117ad29e6dee8d05204873d504cdb99990dc62be17831abc1ee6da1db": "0x7b226e616d65223a2261646d696e222c226465736372697074696f6e223a227468697320697320616e2061646d696e206163636f756e7420776974682072696768747320746f20637265617465206d6f72652069737375657273227d"
+          }
+        }
+      }
+    }
+  },
+  "attributesInfos": {
+    "0x84101d893e2eabe93ea713e0f89bf0948d1774f5f3edf95ecc23a328beb820a6": {
+      "did": "did:ebsi:0x00",
+      "attrId": "0x84101d893e2eabe93ea713e0f89bf0948d1774f5f3edf95ecc23a328beb820a6"
+    },
+    "0x693a225f41c925908dc3e4de54384adea34b581d3e67759577d03b8763be403d": {
+      "did": "did:ebsi:0x17",
+      "attrId": "0x693a225f41c925908dc3e4de54384adea34b581d3e67759577d03b8763be403d"
+    },
+    "0x17b310e46bc5e0add62f6c1a6855105bb35967449d8c04ef443c82c09d975b23": {
+      "did": "did:ebsi:0x02",
+      "attrId": "0x17b310e46bc5e0add62f6c1a6855105bb35967449d8c04ef443c82c09d975b23"
+    },
+    "0x1a01b9f4182517e24aa1086cebfb4bf947919b8110154dd984baa8b5c0455051": {
+      "did": "did:ebsi:0x03",
+      "attrId": "0x1a01b9f4182517e24aa1086cebfb4bf947919b8110154dd984baa8b5c0455051"
+    },
+    "0x00c1e707bca84c56200fa1d21268022ce35f45d75351fd1185336e4f915a60ab": {
+      "did": "did:ebsi:0x04",
+      "attrId": "0x00c1e707bca84c56200fa1d21268022ce35f45d75351fd1185336e4f915a60ab"
+    },
+    "0x222de6b4b09ff423a034693391bfc5eb9eeb6b8d0f27a76a7eaddffc333592f1": {
+      "did": "did:ebsi:0x05",
+      "attrId": "0x222de6b4b09ff423a034693391bfc5eb9eeb6b8d0f27a76a7eaddffc333592f1"
+    },
+    "0xd3156927ecc52f26405bb8a3cbe0096278dfdf4b8bc0a2899ac07101c4a380f5": {
+      "did": "did:ebsi:0x06",
+      "attrId": "0xd3156927ecc52f26405bb8a3cbe0096278dfdf4b8bc0a2899ac07101c4a380f5"
+    },
+    "0x489893e848e8daf0fabd3673b85c0d3503a6daf1bcbe03a0505ffedf466abaee": {
+      "did": "did:ebsi:0x07",
+      "attrId": "0x489893e848e8daf0fabd3673b85c0d3503a6daf1bcbe03a0505ffedf466abaee"
+    },
+    "0x49b4fa83329db118d8e851bcea064111593fc0ee5a13d57ab20c4176841563d8": {
+      "did": "did:ebsi:0x08",
+      "attrId": "0x49b4fa83329db118d8e851bcea064111593fc0ee5a13d57ab20c4176841563d8"
+    },
+    "0x9b309b1a1d86f3e95b70a3c0934a4d61b43b2fbc7f528bd93772a150c538a40b": {
+      "did": "did:ebsi:0x09",
+      "attrId": "0x9b309b1a1d86f3e95b70a3c0934a4d61b43b2fbc7f528bd93772a150c538a40b"
+    },
+    "0x969aea1552829c72dd7e8b9d697f4981388c7e3a3fe131e1c37a8e7f826c4544": {
+      "did": "did:ebsi:0x10",
+      "attrId": "0x969aea1552829c72dd7e8b9d697f4981388c7e3a3fe131e1c37a8e7f826c4544"
+    },
+    "0xfb40437d9d77078c095122b6e3866fbf90e63f1421b6b6653bf1baaf90a57529": {
+      "did": "did:ebsi:0x11",
+      "attrId": "0xfb40437d9d77078c095122b6e3866fbf90e63f1421b6b6653bf1baaf90a57529"
+    },
+    "0xb77d5d257224aa442968647560edb015b092eae11f7acbef916bbde26c1886ec": {
+      "did": "did:ebsi:0x12",
+      "attrId": "0xb77d5d257224aa442968647560edb015b092eae11f7acbef916bbde26c1886ec"
+    },
+    "0x3f546c8016fcce95cb69f756d9276f9e705be42e7853ec8d3adac1b222c256ba": {
+      "did": "did:ebsi:0x13",
+      "attrId": "0x3f546c8016fcce95cb69f756d9276f9e705be42e7853ec8d3adac1b222c256ba"
+    },
+    "0x9e61172b8f101f263d8590a3296348e3ac282b50e70a46e580320ad81cf95531": {
+      "did": "did:ebsi:0x14",
+      "attrId": "0x9e61172b8f101f263d8590a3296348e3ac282b50e70a46e580320ad81cf95531"
+    },
+    "0x146ce4e269baa5ef21097bcc95e5426e8f04bfc7d567ed9d065e3f25d8b5d0dc": {
+      "did": "did:ebsi:0x15",
+      "attrId": "0x146ce4e269baa5ef21097bcc95e5426e8f04bfc7d567ed9d065e3f25d8b5d0dc"
+    },
+    "0x7469bc580c9be77b638ce76aaa371e4775448caec8d9274df8d9042282fe3845": {
+      "did": "did:ebsi:0x16",
+      "attrId": "0x7469bc580c9be77b638ce76aaa371e4775448caec8d9274df8d9042282fe3845"
+    },
+    "0x3653579010ac2bddc00c2551863cfdd0cb14bb60a17a86f8a2f1ab542ed30f6b": {
+      "did": "did:ebsi:0x18",
+      "attrId": "0x3653579010ac2bddc00c2551863cfdd0cb14bb60a17a86f8a2f1ab542ed30f6b"
+    },
+    "0x828cabb117ad29e6dee8d05204873d504cdb99990dc62be17831abc1ee6da1db": {
+      "did": "did:ebsi:0x61dc3a5d45d81179406312ad3d7412d2eed65e61",
+      "attrId": "0x828cabb117ad29e6dee8d05204873d504cdb99990dc62be17831abc1ee6da1db"
+    }
+  }
+}

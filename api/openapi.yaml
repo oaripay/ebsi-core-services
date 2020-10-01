@@ -19,7 +19,7 @@ tags:
   - name: Trusted Issuers Registry
     description: List and verify trusted issuers
 paths:
-  /trusted-issuers-registry/v1/issuers:
+  /trusted-issuers-registry/v2/issuers:
     get:
       tags:
         - Trusted Issuers Registry
@@ -33,11 +33,14 @@ paths:
               schema:
                 type: object
                 properties:
+                  self:
+                    type: string
+                    description: URI to issuers
                   items:
                     type: array
                     description: list of issuers whith their decentralized identifier
                     items:
-                      $ref: "#/components/schemas/issuer"
+                      type: string
                   total:
                     type: integer
                     description: " total number of pages in a collection"
@@ -49,18 +52,30 @@ paths:
               examples:
                 Success:
                   value:
+                    self: "https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers"
                     items:
-                      - name: TrustedIssuer
-                        did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                      - name: TrustedIssuer
-                        did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                      - did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                      - did:ebsi:0x454253492d52554c45532d4d414c494e41524148
                     total: 2
                     pageSize: 10
                     links:
-                      first: "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=2"
-                      prev: "/trusted-issuers-registry/v1/issuers?page[after]=2&page[size]=2"
-                      next: "/trusted-issuers-registry/v1/issuers?page[after]=4&page[size]=2"
-                      last: "/trusted-issuers-registry/v1/issuers?page[after]=13&page[size]=2"
+                      first: "/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=10"
+                      prev: "/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=10"
+                      next: "/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=10"
+                      last: "/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=10"
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+
         "500":
           description: Internal Server Error
           content:
@@ -87,7 +102,7 @@ paths:
           in: query
           name: "page[size]"
           description: Defines the maximum number of objects that may be returned.
-  "/trusted-issuers-registry/v1/issuers/{did}":
+  "/trusted-issuers-registry/v2/issuers/{did}":
     get:
       tags:
         - Trusted Issuers Registry
@@ -98,7 +113,7 @@ paths:
           in: path
           schema:
             type: string
-          example: "did:example:123456789abcdefghi"
+          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
           required: true
       responses:
         "200":
@@ -106,12 +121,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/issuerName"
+                $ref: "#/components/schemas/issuer"
               examples:
                 Success:
                   value:
-                    issuerDID: "did:ebsi:0x464190367BE948210608a46847bed183607f685A"
-                    entities:
+                    did: "did:ebsi:0x464190367BE948210608a46847bed183607f685A"
+                    attributes:
                       - type: "university"
                         moderator: "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73"
                         preferredName: "Diploma Sample App: Issue Master's Diploma"
@@ -151,10 +166,7 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 DID Not Found:
-                  value:
-                    title: Not found
-                    status: 404
-                    detail: "{did} not found"
+                  $ref: "#/components/examples/NotFound"
         "500":
           description: Internal Server Error
           content:
@@ -165,6 +177,118 @@ paths:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
       operationId: get-trusted-issuer
+  "/trusted-issuers-registry/v2/jsonrpc":
+    post:
+      operationId: post-ledger-v1-blockchains-besu
+      tags:
+        - Trusted Issuers Registry
+      summary: Helper APIs
+      description: "Helper APIs that assist the construction of blockchain transactions for TIR SC operations, and interaction with the ledger (Write operation on ledger)"
+      requestBody:
+        description: |
+          The body follows the
+          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+          It requires the following fields:
+
+          - **jsonrpc**: Must be exactly '2.0'
+          - **method**: Method that to be invoked. Possible values: insertIssuer, signedTransaction.
+          - **params**: Array of parameters
+          - **id**: Identifier stablished by the client
+        content:
+          application/json:
+            schema:
+              required:
+                - jsonrpc
+                - id
+                - method
+                - params
+              type: object
+              properties:
+                jsonrpc:
+                  description: Must be exactly '2.0'
+                  type: string
+                method:
+                  description: Method that needs to be invoked
+                  type: string
+                params:
+                  description: Array of parameters
+                  type: array
+                  items:
+                    type: object
+                id:
+                  description: Identifier stablished by the client
+                  type: integer
+                  example: 1
+            examples:
+              Build tx to insert issuer:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertIssuer
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      issuer:
+                        - did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                          attributeData:
+                            { any: "attributes following JSON-LD structure" }
+                  id: 1
+              Send Transaction:
+                value:
+                  jsonrpc: "2.0"
+                  method: signedTransaction
+                  params:
+                    - protocol: "eth"
+                      unsignedTransaction:
+                        from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                        data: "0x0000..."
+                        nonce: "0x00"
+                        chainId: "0x1b3b"
+                        gasLimit: "0x10000"
+                        gasPrice: "0x00"
+                        value: "0x00"
+                      r: "0x..."
+                      s: "0x..."
+                      v: "0x..."
+                      signedRawTransaction: "--- signed raw transaction ---"
+                  id: 1
+        required: true
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonRpcResponse"
+              examples:
+                Build tx to insert issuer:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                      data: "0x0000..."
+                      nonce: "0x00"
+                      chainId: "0x1b3b"
+                      gasLimit: "0x10000"
+                      gasPrice: "0x00"
+                      value: "0x00"
+                Send Transaction:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
+        "400":
+          description: Bad request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Request:
+                  $ref: "#/components/examples/BadRequest"
+                Invalid Token:
+                  $ref: "#/components/examples/InvalidToken"
 components:
   schemas:
     Problem:
@@ -228,41 +352,38 @@ components:
       description: links model used for pagination
       x-examples:
         Links:
-          first: "/trusted-issuers-registry/v1/issuers?page[after]=0&page[size]=2"
-          prev: "/trusted-issuers-registry/v1/issuers?page[after]=2&page[size]=2"
-          next: "/trusted-issuers-registry/v1/issuers?page[after]=4&page[size]=2"
-          last: "/trusted-issuers-registry/v1/issuers?page[after]=13&page[size]=2"
-    issuer:
+          first: "/trusted-issuers-registry/issuers?page[after]=0&page[size]=2"
+          prev: "/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=2"
+          next: "/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=2"
+          last: "/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=2"
+    JsonRpcResponse:
+      title: Json Rpc Response
       type: object
-      description: app model
-      title: "Issuer"
-      x-examples:
-        App Model:
-          did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
-          name: TrustedIssuer
       properties:
-        name:
+        jsonrpc:
+          description: Must be exactly '2.0'
           type: string
-          description: Name of the issuer
-        did:
-          type: string
-          description: A URI or an object containing an id property corresponding to the issuer.
-      required:
-        - name
-        - did
-    issuerName:
-      title: Issuer Name
+        id:
+          description: Same identifier established by the client in the call
+          type: integer
+        result:
+          description: Result of the call
+          oneOf:
+            - type: object
+            - type: string
+    issuer:
+      title: Issuer
       type: object
-      x-examples:
-        Issuer name example:
-          name: TrustedIssuer
       description: Name of the issuer
       properties:
-        name:
+        did:
           type: string
-          description: name of the issuer
-      required:
-        - name
+          description: did of the issuer
+        attributes:
+          type: array
+          description: Array of attributes
+          items:
+            type: object
   examples:
     BadRequest:
       value:
@@ -279,34 +400,11 @@ components:
         title: Not found
         status: 404
         detail: Not found
-    TooLarge:
-      value:
-        title: Payload too large
-        status: 413
-        detail: Payload too large
     InternalError:
       value:
         title: Internal error
         status: 500
         detail: Internal error
-    ListFiles:
-      value:
-        items:
-          - hash1
-          - hash2
-        total: 2
-    ListFilesPagination:
-      value:
-        items:
-          - hash1
-          - hash2
-        total: 2
-        pageSize: 3
-        links:
-          first: "/trusted-issuers-registry/v1/issuers/distributed?page[after]=fff&page[size]=2"
-          prev: "/trusted-issuers-registry/v1/issuers/distributed?page[after]=ppp&page[size]=2"
-          next: "/trusted-issuers-registry/v1/issuers/distributed?page[after]=nnn&page[size]=2"
-          last: "/trusted-issuers-registry/v1/issuers/distributed?page[after]=lll&page[size]=2"
 servers:
   - url: "http://localhost"
     description: Local Computer Environment

@@ -1,4 +1,4 @@
-FROM node:12.16.1-alpine as base
+FROM node:12.18.4-alpine3.11@sha256:757574c5a2102627de54971a0083d4ecd24eb48fdf06b234d063f19f7bbc22fb as base
 WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile --silent --production && yarn cache clean
