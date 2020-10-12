@@ -53,7 +53,7 @@ async function deleteFile(hash) {
       detail: "File not found",
     });
 
-  const query = `delete from ${TABLE_FILE_STORAGE} where id = ? and hash = ? if exists`;
+  const query = `delete from ${TABLE_FILE_STORAGE} where id = ? and hash = ?`;
   const result = await cassandra.execute(query, [record.id, hash]);
 
   if (!result.info || !result.info.isSchemaInAgreement) {

@@ -36,11 +36,10 @@ Define the enviroment (local, integration, development, production):
 EBSI_ENV=integration
 ```
 
-Define consistency and serial consistency desired for read/write operations in cassandra.
+Define consistency desired for read/write operations in cassandra (this api is not using lightweight transactions).
 
 ```
-CONSISTENCY=localQuorum
-SERIAL_CONSISTENCY=localSerial
+CONSISTENCY=one
 ```
 
 There are 10 possible values for consistency and serial consistency.
@@ -53,8 +52,6 @@ There are 10 possible values for consistency and serial consistency.
 - **all**. Reading: Returns the record with the most recent timestamp after all replicas have responded. The read operation will fail if a replica does not respond. Writing: A write must be written to the commit log and memory table on all replica nodes in the cluster for that row.
 - **localQuorum**. Reading: Returns the record with the most recent timestamp once a quorum of replicas in the current data center as the coordinator node has reported. Writing: A write must be written to the commit log and memory table on a quorum of replica nodes in the same data center as the coordinator node. Avoids latency of inter-data center communication.
 - **eachQuorum**. Reading: Returns the record once a quorum of replicas in each data center of the cluster has responded. Writing: Strong consistency. A write must be written to the commit log and memtable on a quorum of replica nodes in all data centers.
-- **serial**. Achieves linearizable consistency for lightweight transactions by preventing unconditional updates.
-- **localSerial**. Same as serial but confined to the data center. A write must be written conditionally to the commit log and memtable on a quorum of replica nodes in the same data center.
 - **localOne**. Similar to One but only within the DC the coordinator is in.
 
 For building, you can choose to build with Docker (recommended) or to build from source directly.
@@ -189,7 +186,7 @@ create keyspace ebsi_integration with replication = { 'class':'NetworkTopologySt
 The setup is ready to test the network. Run the e2e tests defining quorum consistency:
 
 ```
-EBSI_ENV=local CONSISTENCY=quorum SERIAL_CONSISTENCY=serial yarn test:e2e
+EBSI_ENV=local CONSISTENCY=quorum yarn test:e2e
 ```
 
 If you stop 2 nodes in the network and run again the tests it will fail.
@@ -197,7 +194,7 @@ If you stop 2 nodes in the network and run again the tests it will fail.
 Now use local consistency
 
 ```
-EBSI_ENV=local CONSITENCY=localQuorum SERIAL_CONSITENCY=localSerial yarn test:e2e
+EBSI_ENV=local CONSITENCY=localQuorum yarn test:e2e
 ```
 
 Using this consistency the API will only accept the confirmation of the datacenter `datacenter1`, which is the local datacenter defined in the api.

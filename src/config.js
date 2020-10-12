@@ -35,8 +35,7 @@ const environment = process.env.EBSI_ENV;
 const finalConfig = config[environment];
 const { url } = finalConfig;
 
-const consistency = process.env.CONSISTENCY || "localOne";
-const serialConsistency = process.env.SERIAL_CONSISTENCY || "serial";
+const consistency = process.env.CONSISTENCY || "one";
 
 const sharedConfig = {
   trustedAppsRegistry: `${url}/trusted-apps-registry/v1`,
@@ -47,8 +46,6 @@ const sharedConfig = {
       keyspace: finalConfig.keyspace,
       queryOptions: {
         consistency: cassandraDriver.types.consistencies[consistency],
-        serialConsistency:
-          cassandraDriver.types.consistencies[serialConsistency],
       },
     },
     opts: {

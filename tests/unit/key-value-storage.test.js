@@ -21,9 +21,9 @@ let callKeyValue;
 const queries = {
   getListKeys: "select key from key_value_storage",
   getKey: "select value from key_value_storage where key = ? allow filtering",
-  updateKey: "update key_value_storage set value = ? where key = ? if exists",
+  updateKey: "update key_value_storage set value = ? where key = ?",
   insertKey: "insert into key_value_storage (key, value) values (?, ?)",
-  deleteKey: "delete from key_value_storage where key = ? if exists",
+  deleteKey: "delete from key_value_storage where key = ?",
 };
 
 function cassandraResponse(rows, pageState = null) {

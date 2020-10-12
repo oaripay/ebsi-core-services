@@ -45,7 +45,7 @@ async function setKey(key, value, skipReadThenUpdate = false) {
   if (exist || skipReadThenUpdate) {
     // update key
     type = "update";
-    query = `update ${TABLE_KEY_VALUE_STORAGE} set value = ? where key = ? if exists`;
+    query = `update ${TABLE_KEY_VALUE_STORAGE} set value = ? where key = ?`;
     params = [stringValue, key];
   } else {
     // insert key
@@ -91,7 +91,7 @@ async function deleteKey(key) {
     throw new NotFoundError(NotFoundError.defaultTitle, {
       detail: "key not found",
     });
-  const query = `delete from ${TABLE_KEY_VALUE_STORAGE} where key = ? if exists`;
+  const query = `delete from ${TABLE_KEY_VALUE_STORAGE} where key = ?`;
 
   const result = await cassandra.execute(query, [key]);
 

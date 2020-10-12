@@ -44,7 +44,7 @@ async function updateNotification(id, data) {
 
   const { sender, receiver, message } = data;
   const messageString = JSON.stringify(message);
-  const query = `update ${TABLE_NOTIFICATION_STORAGE} set sender = ?, receiver = ?, message = ? where id = ? if exists`;
+  const query = `update ${TABLE_NOTIFICATION_STORAGE} set sender = ?, receiver = ?, message = ? where id = ?`;
   const params = [sender, receiver, messageString, id];
   const result = await cassandra.execute(query, params);
 
@@ -87,7 +87,7 @@ async function deleteNotification(id) {
     );
   }
 
-  const query = `delete from ${TABLE_NOTIFICATION_STORAGE} where id = ? if exists`;
+  const query = `delete from ${TABLE_NOTIFICATION_STORAGE} where id = ?`;
 
   const result = await cassandra.execute(query, [id]);
 

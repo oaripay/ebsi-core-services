@@ -26,7 +26,7 @@ const queries = {
   getFile: "select * from file_storage where hash = ? allow filtering",
   insertFile:
     "insert into file_storage (id, filename, hash, data) VALUES (now(), ?, ?, ?)",
-  deleteFile: "delete from file_storage where id = ? and hash = ? if exists",
+  deleteFile: "delete from file_storage where id = ? and hash = ?",
 };
 
 function cassandraResponse(rows, pageState = null) {

@@ -20,12 +20,12 @@ const queries = {
   getNotification:
     "select * from notification_storage where id = ? allow filtering",
   updateNotification:
-    "update notification_storage set sender = ?, receiver = ?, message = ? where id = ? if exists",
+    "update notification_storage set sender = ?, receiver = ?, message = ? where id = ?",
   insertNotification:
     "insert into notification_storage (id, created, sender, receiver, message) values (?, toTimestamp(now()), ?, ?, ?)",
   saveNotification:
     "insert into notification_historical_storage (id, created, deleted, sender, receiver, message) values (?, ?, toTimestamp(now()), ?, ?, ?)",
-  deleteNotification: "delete from notification_storage where id = ? if exists",
+  deleteNotification: "delete from notification_storage where id = ?",
   getListNotifications: (sender, receiver, history) => {
     let query = "select * from ";
     if (history) query += "notification_historical_storage";

@@ -15,6 +15,5 @@ services:
       - EBSI_ENV=${EBSI_ENV}
       - API_PRIVATE_KEY=${API_PRIVATE_KEY}
       - CONSISTENCY=${CONSISTENCY}
-      - SERIAL_CONSISTENCY=${SERIAL_CONSISTENCY}
     depends_on:
       - "cassandradb"
