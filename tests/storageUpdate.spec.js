@@ -64,7 +64,7 @@ const setupProxy = async (initializeDataString, proxyOwner, proxyAdmin) => {
 
 describe("upgrade and call new version struct", () => {
   it("works when new parameters has been added at the end of the struct", async () => {
-    expect.assertions(13);
+    expect.assertions(8);
     const [
       proxyOwner,
       issuerOperator,
@@ -109,23 +109,14 @@ describe("upgrade and call new version struct", () => {
       attributeVersionCount: new BN(1),
       attributesCount: new BN(1),
     });
-    const didAttributes = await issuerV1.getIssuerAttributesFirstHash(did, {
-      from: anotherAccount,
-    });
-    expect(didAttributes[0]).toStrictEqual(firstAttrHash);
 
-    const attributeVersions = await issuerV1.getIssuerAttributeHistory(
+    const attributeVersions = await issuerV1.getIssuerAttributeRevisions(
       firstAttrHash,
       {
         from: anotherAccount,
       }
     );
     expect(attributeVersions[0]).toStrictEqual(firstAttrHash);
-
-    const didFromAttrHash = await issuerV1.getIssuerDid(firstAttrHash, {
-      from: anotherAccount,
-    });
-    expect(didFromAttrHash).toStrictEqual(did);
 
     await proxy.upgradeTo(implV2.address, {from: proxyAdmin});
     await tirV2.setMessage("1", {
@@ -177,23 +168,16 @@ describe("upgrade and call new version struct", () => {
 
     expect(didAttributes2[0]).toStrictEqual(firstAttrHash);
     expect(count2.toString()).toStrictEqual("7");
-    const didAttributes0 = await tirV2.getIssuerAttributesFirstHash(did, {
-      from: anotherAccount,
-    });
-    expect(didAttributes0[0]).toStrictEqual(firstAttrHash);
     const did2firstAttrHash = web3.utils.sha3("inputdata2");
-    const did2Attributes0 = await tirV2.getIssuerAttributesFirstHash("did2", {
-      from: anotherAccount,
-    });
     const did2Attributes0v2 = await tirV2.getIssuerAttributesFirstHash2(
       "did2",
       {
         from: anotherAccount,
       }
     );
-    expect(did2Attributes0[0]).toStrictEqual(did2firstAttrHash);
+
     expect(did2Attributes0v2[0]).toStrictEqual(did2firstAttrHash);
-    const attributeVersions0 = await tirV2.getIssuerAttributeHistory(
+    const attributeVersions0 = await tirV2.getIssuerAttributeRevisions(
       firstAttrHash,
       {
         from: anotherAccount,
@@ -201,13 +185,9 @@ describe("upgrade and call new version struct", () => {
     );
 
     expect(attributeVersions0[0]).toStrictEqual(firstAttrHash);
-    const didFromAttrHash0 = await tirV2.getIssuerDid(firstAttrHash, {
-      from: anotherAccount,
-    });
-    expect(didFromAttrHash0).toStrictEqual(did);
   });
   it("fails when new parameters has been added in the middle of the struct", async () => {
-    expect.assertions(5);
+    expect.assertions(4);
     const [
       proxyOwner,
       issuerOperator,
@@ -259,11 +239,6 @@ describe("upgrade and call new version struct", () => {
       attributeVersionCount: new BN(1),
       attributesCount: new BN(1),
     });
-    const didAttributes = await issuerV1.getIssuerAttributesFirstHash(did, {
-      from: anotherAccount,
-    });
-
-    expect(didAttributes[0]).toStrictEqual(firstAttrHash);
 
     await proxy.upgradeTo(implV2Breaking.address, {from: proxyAdmin});
     const message = `incredibillylongmesagmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesagges`;

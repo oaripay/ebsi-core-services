@@ -111,6 +111,7 @@ describe("trusted policy registry", () => {
         const policyIdEvent = web3.utils.keccak256(policyId);
         expectEvent(receipt, "addNewPolicy", {
           policyId: policyIdEvent,
+          policyHash: web3.utils.sha3(data),
           policy: data,
         });
         const res1 = await implV0.getPolicy.call(policyId, {
@@ -136,6 +137,7 @@ describe("trusted policy registry", () => {
         const policyIdEvent = web3.utils.keccak256(policyId);
         expectEvent(receipt, "addNewPolicy", {
           policyId: policyIdEvent,
+          policyHash: web3.utils.sha3(data),
           policy: data,
         });
 
@@ -152,7 +154,7 @@ describe("trusted policy registry", () => {
           implV0.insertPolicy(policyId, inputdata2, {
             from: acc1,
           }),
-          "policy is already stored"
+          "policy already exist use updatePolicy to update a policy"
         );
       });
       it("for two policyId", async () => {
@@ -172,6 +174,7 @@ describe("trusted policy registry", () => {
         const policyIdEvent = web3.utils.keccak256(policyId);
         expectEvent(receipt, "addNewPolicy", {
           policyId: policyIdEvent,
+          policyHash: web3.utils.sha3(attribute1v0),
           policy: attribute1v0,
         });
         const policyId2 = "policyId:ebsi:2";
@@ -186,6 +189,7 @@ describe("trusted policy registry", () => {
         const policyIdEvent2 = web3.utils.keccak256(policyId2);
         expectEvent(receipt2, "addNewPolicy", {
           policyId: policyIdEvent2,
+          policyHash: web3.utils.sha3(attr2Data),
           policy: attr2Data,
         });
         // the latest Attribute hash should be attr1v1Hash and attr2Hash
@@ -574,6 +578,168 @@ describe("trusted policy registry", () => {
         expect(r7.prev.toString()).toStrictEqual("0");
         expect(r7.next.toString()).toStrictEqual("0");
       });
+      it("by hash should work or revert if not found", async () => {
+        expect.assertions(19);
+        const [acc1] = accounts;
+
+        const implV0 = await Tir.new({from: acc1});
+
+        for (let i = 0; i < 11; i += 1) {
+          const did = `${i}`;
+          const data = `data${i}`;
+          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          // INSERT SHOULD BE DONE IN ORDER !!!
+          // eslint-disable-next-line no-await-in-loop
+          await implV0.insertPolicy(did, inputdata, {
+            from: acc1,
+          });
+        }
+        // update so that we have several revision fo some policies
+        for (let i = 0; i < 4; i += 1) {
+          const did = `${i}`;
+          const data = `modifieddata${i}`;
+          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          // INSERT SHOULD BE DONE IN ORDER !!!
+          // eslint-disable-next-line no-await-in-loop
+          await implV0.updatePolicy(did, inputdata, {
+            from: acc1,
+          });
+          const dataV2 = `modifieddata${i}V2`;
+          const inputdataV2 = web3.utils.hexToBytes(web3.utils.toHex(dataV2));
+          // INSERT SHOULD BE DONE IN ORDER !!!
+          // eslint-disable-next-line no-await-in-loop
+          await implV0.updatePolicy(did, inputdataV2, {
+            from: acc1,
+          });
+        }
+
+        for (let i = 0; i < 11; i += 1) {
+          const data = `data${i}`;
+          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          // INSERT SHOULD BE DONE IN ORDER !!!
+          // eslint-disable-next-line no-await-in-loop
+          const policyData = await implV0.getPolicyByHash(
+            web3.utils.sha3(inputdata),
+            {
+              from: acc1,
+            }
+          );
+          expect(policyData).toStrictEqual(web3.utils.toHex(data));
+        }
+
+        for (let i = 0; i < 4; i += 1) {
+          const data = `modifieddata${i}`;
+          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          // INSERT SHOULD BE DONE IN ORDER !!!
+          // eslint-disable-next-line no-await-in-loop
+          const policyData = await implV0.getPolicyByHash(
+            web3.utils.sha3(inputdata),
+            {
+              from: acc1,
+            }
+          );
+          expect(policyData).toStrictEqual(web3.utils.toHex(data));
+          const dataV2 = `modifieddata${i}V2`;
+          const inputdataV2 = web3.utils.hexToBytes(web3.utils.toHex(dataV2));
+          // INSERT SHOULD BE DONE IN ORDER !!!
+          // eslint-disable-next-line no-await-in-loop
+          const policyDataV2 = await implV0.getPolicyByHash(
+            web3.utils.sha3(inputdataV2),
+            {
+              from: acc1,
+            }
+          );
+          expect(policyDataV2).toStrictEqual(web3.utils.toHex(dataV2));
+        }
+
+        // eslint-disable-next-line no-await-in-loop
+        await expectRevert(
+          implV0.getPolicyByHash(
+            web3.utils.sha3(
+              web3.utils.hexToBytes(web3.utils.toHex("modifieddata4"))
+            ),
+            {
+              from: acc1,
+            }
+          ),
+          "policy data does not exist"
+        );
+      });
+      it("Revisions should work or revert if not found", async () => {
+        expect.assertions(11);
+        const [acc1] = accounts;
+
+        const implV0 = await Tir.new({from: acc1});
+
+        for (let i = 0; i < 11; i += 1) {
+          const did = `${i}`;
+          const data = `data${i}`;
+          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          // INSERT SHOULD BE DONE IN ORDER !!!
+          // eslint-disable-next-line no-await-in-loop
+          await implV0.insertPolicy(did, inputdata, {
+            from: acc1,
+          });
+        }
+        // update so that we have several revision fo some policies
+        for (let i = 0; i < 4; i += 1) {
+          const did = `${i}`;
+          const data = `modifieddata${i}`;
+          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          // INSERT SHOULD BE DONE IN ORDER !!!
+          // eslint-disable-next-line no-await-in-loop
+          await implV0.updatePolicy(did, inputdata, {
+            from: acc1,
+          });
+          const dataV2 = `modifieddata${i}V2`;
+          const inputdataV2 = web3.utils.hexToBytes(web3.utils.toHex(dataV2));
+          // INSERT SHOULD BE DONE IN ORDER !!!
+          // eslint-disable-next-line no-await-in-loop
+          await implV0.updatePolicy(did, inputdataV2, {
+            from: acc1,
+          });
+        }
+
+        for (let i = 0; i < 4; i += 1) {
+          const did = `${i}`;
+          const data = `data${i}`;
+          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+
+          const dataV1 = `modifieddata${i}`;
+          const inputdataV1 = web3.utils.hexToBytes(web3.utils.toHex(dataV1));
+
+          const dataV2 = `modifieddata${i}V2`;
+          const inputdataV2 = web3.utils.hexToBytes(web3.utils.toHex(dataV2));
+          // INSERT SHOULD BE DONE IN ORDER !!!
+          // eslint-disable-next-line no-await-in-loop
+          const policyRevs = await implV0.getPolicyRevisions(did, {
+            from: acc1,
+          });
+          expect(policyRevs).toStrictEqual([
+            web3.utils.sha3(inputdata),
+            web3.utils.sha3(inputdataV1),
+            web3.utils.sha3(inputdataV2),
+          ]);
+        }
+        await expectRevert(
+          implV0.getPolicyRevisions(`12`, {
+            from: acc1,
+          }),
+          "policyId does not exist"
+        );
+        for (let i = 4; i < 11; i += 1) {
+          const did = `${i}`;
+          const data = `data${i}`;
+          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          // INSERT SHOULD BE DONE IN ORDER !!!
+          // eslint-disable-next-line no-await-in-loop
+          const policyRevs = await implV0.getPolicyRevisions(did, {
+            from: acc1,
+          });
+
+          expect(policyRevs).toStrictEqual([web3.utils.sha3(inputdata)]);
+        }
+      });
     });
     describe("update", () => {
       it("should work", async () => {
@@ -592,6 +758,7 @@ describe("trusted policy registry", () => {
         const policyIdEvent = web3.utils.keccak256(policyId);
         expectEvent(receipt, "addNewPolicy", {
           policyId: policyIdEvent,
+          policyHash: web3.utils.sha3(attribute1v0),
           policy: attribute1v0,
         });
 
@@ -611,6 +778,7 @@ describe("trusted policy registry", () => {
 
         expectEvent(receipt2, "updateExistingPolicy", {
           policyId: policyIdEvent,
+          policyHash: web3.utils.sha3(attribute1v1),
           policy: attribute1v1,
         });
         // get all policies
@@ -637,7 +805,7 @@ describe("trusted policy registry", () => {
         expect(res1V1).toStrictEqual(attribute1v1);
       });
       it("should fail if policy does not exists", async () => {
-        expect.assertions(1);
+        expect.assertions(0);
         const [acc1] = accounts;
         const implV0 = await Tir.new({from: acc1});
         const policyId = "policyId:ebsi:1";
@@ -645,18 +813,18 @@ describe("trusted policy registry", () => {
           ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798"
         );
         const inputdata = web3.utils.hexToBytes(attribute1v0);
-
         await expectRevert(
           implV0.updatePolicy(policyId, inputdata, {
             from: acc1,
           }),
-          "policy is new call insertPolicy instead"
+          "policy does not exist"
         );
-        const res1 = await implV0.getPolicy.call(policyId, {
-          from: acc1,
-        });
-
-        expect(res1).toBeNull();
+        await expectRevert(
+          implV0.getPolicy.call(policyId, {
+            from: acc1,
+          }),
+          "policy does not exist"
+        );
       });
     });
   });

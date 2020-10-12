@@ -8,8 +8,8 @@ contract IssuerStorageV1Breaking is IssuerStorage {
   struct IssuerModel2 {
     string[] dids; // list of all dids
     string message;
-    mapping(string => Issuer) issuers; // DID -> [Issuer]
-    mapping(bytes32 => AttributeInfo) attributeInfos; // Attr(n)v(n)Hash -> DID, firsthash  // a convenient way to retrieve a did and firsthash based on any attributeHash
+    mapping(string => Entity) issuers; // DID -> [Issuer]
+    mapping(bytes32 => AttributeMetadata) AttributeMetadatas; // Attr(n)v(n)Hash -> DID, firsthash  // a convenient way to retrieve a did and firsthash based on any attributeHash
 
   }
 

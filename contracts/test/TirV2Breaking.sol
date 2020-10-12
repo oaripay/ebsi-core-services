@@ -34,8 +34,8 @@ contract TirV2Breaking is TirV1, IssuerStorageV1Breaking {
         for (uint256 index = 0; index < attributesFirstHash.length; index++) {
             // get all the versions for the current attribute
             bytes32[] memory versions = ds.issuers[did]
-                .attributesDetail[attributesFirstHash[index]]
-                .versionHashes;
+                .attributesStore[attributesFirstHash[index]]
+                .revisionHashes;
 
             //get the last version hash for this attribute
             attributesLastHash[index] = versions[versions.length - 1];

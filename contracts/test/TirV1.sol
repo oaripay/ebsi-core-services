@@ -19,8 +19,10 @@ contract TirV1 is Tir {
         view
         returns (bytes32)
     {
-        IssuerModel storage ds = issuerStorage();
+        Issuers storage ds = issuerStorage();
         return
-            ds.issuers[did].attributes[ds.issuers[did].attributes.length - 1];
+            ds.issuerStore[did].attributes[ds.issuerStore[did]
+                .attributes
+                .length - 1];
     }
 }

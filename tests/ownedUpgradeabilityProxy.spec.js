@@ -356,7 +356,7 @@ describe("upgrade and call", () => {
   describe("when the new implementation is not the zero address", () => {
     describe("when the sender is the proxy owner", () => {
       it("upgrades to the given implementation", async () => {
-        expect.assertions(5);
+        expect.assertions(3);
         const [
           proxyOwner,
           issuerOperator,
@@ -401,13 +401,8 @@ describe("upgrade and call", () => {
           attributeVersionCount: new BN(1),
           attributesCount: new BN(1),
         });
-        const didAttributes = await issuerV1.getIssuerAttributesFirstHash(did, {
-          from: anotherAccount,
-        });
 
-        expect(didAttributes[0]).toStrictEqual(firstAttrHash);
-
-        const attributeVersions = await issuerV1.getIssuerAttributeHistory(
+        const attributeVersions = await issuerV1.getIssuerAttributeRevisions(
           firstAttrHash,
           {
             from: anotherAccount,
@@ -415,11 +410,6 @@ describe("upgrade and call", () => {
         );
 
         expect(attributeVersions[0]).toStrictEqual(firstAttrHash);
-
-        const didFromAttrHash = await issuerV1.getIssuerDid(firstAttrHash, {
-          from: anotherAccount,
-        });
-        expect(didFromAttrHash).toStrictEqual(did);
       });
 
       it("calls the implementation using the given data as msg.data", async () => {
@@ -528,7 +518,7 @@ describe("delegatecall", () => {
   describe("when an initial implementation was given", () => {
     describe("when there were no further upgrades", () => {
       it("delegates calls to the initial implementation", async () => {
-        expect.assertions(3);
+        expect.assertions(1);
         const [
           proxyOwner,
           issuerOperator,
@@ -561,24 +551,14 @@ describe("delegatecall", () => {
           attributeVersionCount: new BN(1),
           attributesCount: new BN(1),
         });
-        const didAttributes = await issuerV1.getIssuerAttributesFirstHash(did, {
-          from: anotherAccount,
-        });
-        expect(didAttributes[0]).toStrictEqual(firstAttrHash);
 
-        const attributeVersions = await issuerV1.getIssuerAttributeHistory(
+        const attributeVersions = await issuerV1.getIssuerAttributeRevisions(
           firstAttrHash,
           {
             from: anotherAccount,
           }
         );
         expect(attributeVersions[0]).toStrictEqual(firstAttrHash);
-
-        const didFromAttrHash = await issuerV1.getIssuerDid(firstAttrHash, {
-          from: anotherAccount,
-        });
-
-        expect(didFromAttrHash).toStrictEqual(did);
       });
 
       it("fails when trying to call an unknown function of the current implementation", async () => {
@@ -605,7 +585,7 @@ describe("delegatecall", () => {
     });
     describe("when there was another upgrade", () => {
       it("delegates calls to the last upgraded implementation", async () => {
-        expect.assertions(4);
+        expect.assertions(2);
         const [
           proxyOwner,
           issuerOperator,
@@ -639,12 +619,8 @@ describe("delegatecall", () => {
           attributeVersionCount: new BN(1),
           attributesCount: new BN(1),
         });
-        const didAttributes = await issuerV1.getIssuerAttributesFirstHash(did, {
-          from: anotherAccount,
-        });
-        expect(didAttributes[0]).toStrictEqual(firstAttrHash);
 
-        const attributeVersions = await issuerV1.getIssuerAttributeHistory(
+        const attributeVersions = await issuerV1.getIssuerAttributeRevisions(
           firstAttrHash,
           {
             from: anotherAccount,
@@ -652,11 +628,6 @@ describe("delegatecall", () => {
         );
         expect(attributeVersions[0]).toStrictEqual(firstAttrHash);
 
-        const didFromAttrHash = await issuerV1.getIssuerDid(firstAttrHash, {
-          from: anotherAccount,
-        });
-
-        expect(didFromAttrHash).toStrictEqual(did);
         const lastAttribute = await issuerV1.getDidLastAttribute(did, {
           from: issuerOperator,
         });

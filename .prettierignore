@@ -1,6 +1,8 @@
 coverage
 node_modules
 build
+IssuerStorageV1.sol
+IssuerStorageV1Breaking.sol
 IssuerStorage.sol
 AdministratorStorage.sol
 TirStorage.sol

@@ -10,6 +10,27 @@ const Tir = contract.fromArtifact("Tir");
 describe("trusted administrator registry", () => {
   describe("administrator CRUD", () => {
     describe("get administrator", () => {
+      it("should revert for an unknown did", async () => {
+        expect.assertions(0);
+        const [acc1] = accounts;
+        const implV0 = await Tir.new({from: acc1});
+        const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
+        // insert did and attribute1v0
+        const attribute1v0 =
+          ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
+        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(attribute1v0));
+        await implV0.insertAdministrator(did, inputdata, {
+          from: acc1,
+        });
+
+        // calling getAttributeHistory with attr1v0Hash, attr1v1Hash or attr1v2Hash should return the same array
+        await expectRevert(
+          implV0.getAdministrator.call("notexistingdid", {
+            from: acc1,
+          }),
+          "administrator does not exist"
+        );
+      });
       it("should return all the latest hashes", async () => {
         expect.assertions(4);
         const [acc1] = accounts;
@@ -207,19 +228,19 @@ describe("trusted administrator registry", () => {
         const attr3v0Hash = web3.utils.sha3(attr3v0Data);
 
         // calling getAttributeHistory with attr1v0Hash, attr1v1Hash or attr1v2Hash should return the same array
-        const resAttr1 = await implV0.getAdministratorAttributeHistory.call(
+        const resAttr1 = await implV0.getAdministratorAttributeRevisions.call(
           attr1v0Hash,
           {
             from: acc1,
           }
         );
-        const res2Attr1 = await implV0.getAdministratorAttributeHistory.call(
+        const res2Attr1 = await implV0.getAdministratorAttributeRevisions.call(
           attr1v1Hash,
           {
             from: acc1,
           }
         );
-        const res3Attr1 = await implV0.getAdministratorAttributeHistory.call(
+        const res3Attr1 = await implV0.getAdministratorAttributeRevisions.call(
           attr1v2Hash,
           {
             from: acc1,
@@ -237,13 +258,13 @@ describe("trusted administrator registry", () => {
           attr1v2Hash,
         ]);
         // calling getAttributeHistory with attr2v0Hash or attr2v1Hash should return the same array
-        const resAttr2 = await implV0.getAdministratorAttributeHistory.call(
+        const resAttr2 = await implV0.getAdministratorAttributeRevisions.call(
           attr2v0Hash,
           {
             from: acc1,
           }
         );
-        const res2Attr2 = await implV0.getAdministratorAttributeHistory.call(
+        const res2Attr2 = await implV0.getAdministratorAttributeRevisions.call(
           attr2v1Hash,
           {
             from: acc1,
@@ -252,13 +273,61 @@ describe("trusted administrator registry", () => {
         expect(resAttr2).toStrictEqual([attr2v0Hash, attr2v1Hash]);
         expect(res2Attr2).toStrictEqual([attr2v0Hash, attr2v1Hash]);
         // calling getAttributeHistory with attr3v0Hash should return attr3v0Hash
-        const resAttr3 = await implV0.getAdministratorAttributeHistory.call(
+        const resAttr3 = await implV0.getAdministratorAttributeRevisions.call(
           attr3v0Hash,
           {
             from: acc1,
           }
         );
         expect(resAttr3).toStrictEqual([attr3v0Hash]);
+      });
+      it("attributeRevisions should revert for an unknown hash", async () => {
+        expect.assertions(0);
+        const [acc1] = accounts;
+        const implV0 = await Tir.new({from: acc1});
+        const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
+        // insert did and attribute1v0
+        const attribute1v0 =
+          ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
+        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(attribute1v0));
+        await implV0.insertAdministrator(did, inputdata, {
+          from: acc1,
+        });
+
+        // calling getAttributeHistory with attr1v0Hash, attr1v1Hash or attr1v2Hash should return the same array
+        await expectRevert(
+          implV0.getAdministratorAttributeRevisions.call(
+            web3.utils.hexToBytes(web3.utils.toHex("notexistinghash")),
+            {
+              from: acc1,
+            }
+          ),
+          "attribute has not been found"
+        );
+      });
+      it("attributebyHash should revert for an unknown hash", async () => {
+        expect.assertions(0);
+        const [acc1] = accounts;
+        const implV0 = await Tir.new({from: acc1});
+        const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
+        // insert did and attribute1v0
+        const attribute1v0 =
+          ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
+        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(attribute1v0));
+        await implV0.insertAdministrator(did, inputdata, {
+          from: acc1,
+        });
+
+        // calling getAttributeHistory with attr1v0Hash, attr1v1Hash or attr1v2Hash should return the same array
+        await expectRevert(
+          implV0.getAdministratorAttributeByHash.call(
+            web3.utils.hexToBytes(web3.utils.toHex("notexistinghash")),
+            {
+              from: acc1,
+            }
+          ),
+          "attribute has not been found"
+        );
       });
       it("attributebyHash should return the attribute data and the did", async () => {
         expect.assertions(5);
@@ -334,19 +403,19 @@ describe("trusted administrator registry", () => {
           }
         );
         // calling getAttributebyHash with attr1v0Hash, attr1v1Hash or attr1v2Hash should did and correct data
-        const resAttr1 = await implV0.getAdministratorAttributebyHash.call(
+        const resAttr1 = await implV0.getAdministratorAttributeByHash.call(
           attr1v0Hash,
           {
             from: acc1,
           }
         );
-        const res2Attr1 = await implV0.getAdministratorAttributebyHash.call(
+        const res2Attr1 = await implV0.getAdministratorAttributeByHash.call(
           attr1v1Hash,
           {
             from: acc1,
           }
         );
-        const res3Attr1 = await implV0.getAdministratorAttributebyHash.call(
+        const res3Attr1 = await implV0.getAdministratorAttributeByHash.call(
           attr1v2Hash,
           {
             from: acc1,
@@ -372,13 +441,13 @@ describe("trusted administrator registry", () => {
         );
 
         // calling getAttributebyHash with did2Attr1v0Hash or did2Attr1v1Hash
-        const resDid2Attr1v0Hash = await implV0.getAdministratorAttributebyHash.call(
+        const resDid2Attr1v0Hash = await implV0.getAdministratorAttributeByHash.call(
           did2Attr1v0Hash,
           {
             from: acc1,
           }
         );
-        const resDid2Attr1v1Hash = await implV0.getAdministratorAttributebyHash.call(
+        const resDid2Attr1v1Hash = await implV0.getAdministratorAttributeByHash.call(
           did2Attr1v1Hash,
           {
             from: acc1,
@@ -400,7 +469,7 @@ describe("trusted administrator registry", () => {
     });
     describe("insert", () => {
       it("should work", async () => {
-        expect.assertions(3);
+        expect.assertions(1);
         const [acc1] = accounts;
         const implV0 = await Tir.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
@@ -422,34 +491,18 @@ describe("trusted administrator registry", () => {
           attributeVersionCount: new BN(1),
           attributesCount: new BN(1),
         });
-        const didAttributes = await implV0.getAdministratorAttributesFirstHash(
-          did,
-          {
-            from: acc1,
-          }
-        );
-        expect(didAttributes[0]).toStrictEqual(firstAttrHash);
 
-        const attributeVersions = await implV0.getAdministratorAttributeHistory(
+        const attributeVersions = await implV0.getAdministratorAttributeRevisions(
           firstAttrHash,
           {
             from: acc1,
           }
         );
         expect(attributeVersions[0]).toStrictEqual(firstAttrHash);
-
-        const didFromAttrHash = await implV0.getAdministratorDid(
-          firstAttrHash,
-          {
-            from: acc1,
-          }
-        );
-
-        expect(didFromAttrHash).toStrictEqual(did);
       });
 
       it("for two did should fail if it is the same attribute for both", async () => {
-        expect.assertions(3);
+        expect.assertions(1);
         const [acc1] = accounts;
         const implV0 = await Tir.new({from: acc1});
         const did1 = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
@@ -472,30 +525,14 @@ describe("trusted administrator registry", () => {
           attributeVersionCount: new BN(1),
           attributesCount: new BN(1),
         });
-        const didAttributes = await implV0.getAdministratorAttributesFirstHash(
-          did1,
-          {
-            from: acc1,
-          }
-        );
-        expect(didAttributes[0]).toStrictEqual(firstAttrHash);
 
-        const attributeVersions = await implV0.getAdministratorAttributeHistory(
+        const attributeVersions = await implV0.getAdministratorAttributeRevisions(
           firstAttrHash,
           {
             from: acc1,
           }
         );
         expect(attributeVersions[0]).toStrictEqual(firstAttrHash);
-
-        const didFromAttrHash = await implV0.getAdministratorDid(
-          firstAttrHash,
-          {
-            from: acc1,
-          }
-        );
-
-        expect(didFromAttrHash).toStrictEqual(did1);
 
         const did2 = "did:ebsi:0x9f42426F4C145c47C47022565D79E4df50bE90cb";
         // add did2 with the same inputdata
@@ -507,7 +544,7 @@ describe("trusted administrator registry", () => {
         );
       });
       it("for two did", async () => {
-        expect.assertions(6);
+        expect.assertions(2);
         const [acc1] = accounts;
         const implV0 = await Tir.new({from: acc1});
         const did1 = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
@@ -529,30 +566,14 @@ describe("trusted administrator registry", () => {
           attributeVersionCount: new BN(1),
           attributesCount: new BN(1),
         });
-        const didAttributes = await implV0.getAdministratorAttributesFirstHash(
-          did1,
-          {
-            from: acc1,
-          }
-        );
-        expect(didAttributes[0]).toStrictEqual(firstAttrHash);
 
-        const attributeVersions = await implV0.getAdministratorAttributeHistory(
+        const attributeVersions = await implV0.getAdministratorAttributeRevisions(
           firstAttrHash,
           {
             from: acc1,
           }
         );
         expect(attributeVersions[0]).toStrictEqual(firstAttrHash);
-
-        const didFromAttrHash = await implV0.getAdministratorDid(
-          firstAttrHash,
-          {
-            from: acc1,
-          }
-        );
-
-        expect(didFromAttrHash).toStrictEqual(did1);
 
         const did2 = "did:ebsi:0x9f42426F4C145c47C47022565D79E4df50bE90cb";
         const did2Hash = web3.utils.sha3(did2);
@@ -573,30 +594,14 @@ describe("trusted administrator registry", () => {
           attributeVersionCount: new BN(1),
           attributesCount: new BN(1),
         });
-        const didAttributes2 = await implV0.getAdministratorAttributesFirstHash(
-          did2,
-          {
-            from: acc1,
-          }
-        );
-        expect(didAttributes2[0]).toStrictEqual(firstAttrHash2);
 
-        const attributeVersions2 = await implV0.getAdministratorAttributeHistory(
+        const attributeVersions2 = await implV0.getAdministratorAttributeRevisions(
           firstAttrHash2,
           {
             from: acc1,
           }
         );
         expect(attributeVersions2[0]).toStrictEqual(firstAttrHash2);
-
-        const didFromAttrHash2 = await implV0.getAdministratorDid(
-          firstAttrHash2,
-          {
-            from: acc1,
-          }
-        );
-
-        expect(didFromAttrHash2).toStrictEqual(did2);
       });
       it("should fail if attribute exists", async () => {
         expect.assertions(0);
@@ -1282,7 +1287,7 @@ describe("trusted administrator registry", () => {
         );
       });
       it("two different attributes", async () => {
-        expect.assertions(4);
+        expect.assertions(3);
         const [acc1] = accounts;
         const implV0 = await Tir.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
@@ -1395,33 +1400,26 @@ describe("trusted administrator registry", () => {
         });
 
         // check that we retrieve the versions hashes
-        const didAttributes = await implV0.getAdministratorAttributesFirstHash(
-          did,
-          {
-            from: acc1,
-          }
-        );
-        expect(didAttributes).toStrictEqual([firstAttr1Hash, firstAttr2Hash]);
         const attr2Versions = [
           firstAttr2Hash,
           attr2NewAttrHash,
           attr2NewAttrHashV3,
         ];
-        const attributeVersionsWithFirstHash = await implV0.getAdministratorAttributeHistory(
+        const attributeVersionsWithFirstHash = await implV0.getAdministratorAttributeRevisions(
           attr2Versions[0],
           {
             from: acc1,
           }
         );
         expect(attributeVersionsWithFirstHash).toStrictEqual(attr2Versions);
-        const attributeVersionsWithSecondHash = await implV0.getAdministratorAttributeHistory(
+        const attributeVersionsWithSecondHash = await implV0.getAdministratorAttributeRevisions(
           attr2Versions[1],
           {
             from: acc1,
           }
         );
         expect(attributeVersionsWithSecondHash).toStrictEqual(attr2Versions);
-        const attributeVersionsWithThirdHash = await implV0.getAdministratorAttributeHistory(
+        const attributeVersionsWithThirdHash = await implV0.getAdministratorAttributeRevisions(
           attr2Versions[2],
           {
             from: acc1,
@@ -1430,7 +1428,7 @@ describe("trusted administrator registry", () => {
         expect(attributeVersionsWithThirdHash).toStrictEqual(attr2Versions);
       });
       it("two different attributes for two did", async () => {
-        expect.assertions(7);
+        expect.assertions(4);
         const [acc1] = accounts;
         const implV0 = await Tir.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
@@ -1543,30 +1541,14 @@ describe("trusted administrator registry", () => {
           attributeVersionCount: new BN(1),
           attributesCount: new BN(1),
         });
-        const didAttributes2 = await implV0.getAdministratorAttributesFirstHash(
-          did2,
-          {
-            from: acc1,
-          }
-        );
-        expect(didAttributes2[0]).toStrictEqual(firstAttrHash2);
 
-        const attributeVersions2 = await implV0.getAdministratorAttributeHistory(
+        const attributeVersions2 = await implV0.getAdministratorAttributeRevisions(
           firstAttrHash2,
           {
             from: acc1,
           }
         );
         expect(attributeVersions2[0]).toStrictEqual(firstAttrHash2);
-
-        const didFromAttrHash2 = await implV0.getAdministratorDid(
-          firstAttrHash2,
-          {
-            from: acc1,
-          }
-        );
-
-        expect(didFromAttrHash2).toStrictEqual(did2);
 
         const did2AttributNewData = "VeryNewjhkhjyoloyouuuu";
         const did2AttributNewDataHash = web3.utils.sha3(did2AttributNewData);
@@ -1590,24 +1572,16 @@ describe("trusted administrator registry", () => {
         });
 
         // check that we retrieve the did attribute
-        const didAttributes = await implV0.getAdministratorAttributesFirstHash(
-          did2,
-          {
-            from: acc1,
-          }
-        );
-        // we should have only one attribute for did2
-        expect(didAttributes).toStrictEqual([firstAttrHash2]);
         // we should have two attribute version for did2's attribute
         const constDid2Attrib = [firstAttrHash2, did2AttributNewDataHash];
-        const attributeVersionsWithFirstHash = await implV0.getAdministratorAttributeHistory(
+        const attributeVersionsWithFirstHash = await implV0.getAdministratorAttributeRevisions(
           constDid2Attrib[0],
           {
             from: acc1,
           }
         );
         expect(attributeVersionsWithFirstHash).toStrictEqual(constDid2Attrib);
-        const attributeVersionsWithSecondHash = await implV0.getAdministratorAttributeHistory(
+        const attributeVersionsWithSecondHash = await implV0.getAdministratorAttributeRevisions(
           constDid2Attrib[1],
           {
             from: acc1,
@@ -1615,7 +1589,7 @@ describe("trusted administrator registry", () => {
         );
         expect(attributeVersionsWithSecondHash).toStrictEqual(constDid2Attrib);
         // check with on attribut version from did1
-        const attributeVersionsForDid1Attribute = await implV0.getAdministratorAttributeHistory(
+        const attributeVersionsForDid1Attribute = await implV0.getAdministratorAttributeRevisions(
           attr2NewAttrHash,
           {
             from: acc1,

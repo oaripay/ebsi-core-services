@@ -8,19 +8,14 @@ contract IssuerStorage is AttributeStorage {
     "diamond.standard.tir.issuer.storage"
   );
 
-  struct Issuer {
-    bytes32[] attributes; // [Attr1firstHash, Attr2firstHash, Attr3firstHash ...]
-    mapping(bytes32 => AttributeDetail) attributesDetail; // firstAttrHash ->  {versionHashes:[firstAttrHash, v2Hash, v3Hash ...], versionData:Attr(n)v(n)Hash -> data}
-  }
-
-  struct IssuerModel {
-    string[] dids; // list of all dids
-    mapping(string => Issuer) issuers; // DID -> [Issuer]
-    mapping(bytes32 => AttributeInfo) attributeInfos; // Attr(n)v(n)Hash -> DID, firsthash  // a convenient way to retrieve a did and firsthash based on any attributeHash
+  struct Issuers {
+    string[] didStore; // list of all dids
+    mapping(string => Entity) issuerStore; // DID -> [Issuer]
+    mapping(bytes32 => AttributeMetadata) attributeMetadataStore; // Attr(n)v(n)Hash -> DID, firsthash  // a convenient way to retrieve a did and firsthash based on any attributeHash
   }
 
   // Creates and returns the storage pointer to the struct.
-  function issuerStorage() internal pure returns (IssuerModel storage ms) {
+  function issuerStorage() internal pure returns (Issuers storage ms) {
     bytes32 position = ISSUER_DIAMOND_STORAGE_POSITION;
     assembly {
       ms.slot := position

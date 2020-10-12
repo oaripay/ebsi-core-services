@@ -33,29 +33,32 @@ abstract contract IssuerDetailed is IssuerStorage {
         external
     {
         bytes32 firstAttrHash = keccak256(attributeData);
-        IssuerModel storage ds = issuerStorage();
-        Issuer storage iss = ds.issuers[did];
+        Issuers storage ds = issuerStorage();
+        Entity storage iss = ds.issuerStore[did];
         require(
             iss.attributes.length == 0,
             "issuer already exist use updateIssuer to add or update an attribute"
         );
         require(
-            keccak256(bytes(ds.attributeInfos[firstAttrHash].did)) ==
+            keccak256(bytes(ds.attributeMetadataStore[firstAttrHash].did)) ==
                 keccak256(bytes("")),
             "attribute is already stored"
         );
 
-        assert(iss.attributesDetail[firstAttrHash].versionHashes.length == 0);
+        assert(iss.attributesStore[firstAttrHash].revisionHashes.length == 0);
 
         // store a link between this hash to the did to easily retrieve it
-        ds.attributeInfos[firstAttrHash] = AttributeInfo(did, firstAttrHash);
+        ds.attributeMetadataStore[firstAttrHash] = AttributeMetadata(
+            did,
+            firstAttrHash
+        );
         // store the version hash and data for this attribute
-        AttributeDetail storage atr = iss.attributesDetail[firstAttrHash];
+        AttributeDetails storage atr = iss.attributesStore[firstAttrHash];
 
         // push the new version hash for this attribute
-        atr.versionHashes.push(firstAttrHash);
+        atr.revisionHashes.push(firstAttrHash);
         // push the new version data for this attribute
-        atr.versionData[firstAttrHash] = attributeData;
+        iss.revisions[firstAttrHash] = attributeData;
 
         /*
          Push the firstAttrHash of the attribute to uniquely identify an issuer attribute
@@ -63,14 +66,14 @@ abstract contract IssuerDetailed is IssuerStorage {
          where .push() appends a zero-initialized element and returns a reference to it.
         */
         iss.attributes.push(firstAttrHash);
-        uint256 attributescount = iss.attributes.length;
-        ds.dids.push(did);
+        uint256 attributesCount = iss.attributes.length;
+        ds.didStore.push(did);
         emit addIssuerAttribute(
             keccak256(bytes(did)),
             firstAttrHash,
             did,
             1,
-            attributescount
+            attributesCount
         );
     }
 
@@ -80,31 +83,34 @@ abstract contract IssuerDetailed is IssuerStorage {
     function updateIssuer(string calldata did, bytes calldata attributeData)
         external
     {
-        IssuerModel storage ds = issuerStorage();
+        Issuers storage ds = issuerStorage();
         bytes32 newAttrHash = keccak256(attributeData);
         require(
-            keccak256(bytes(ds.attributeInfos[newAttrHash].did)) ==
+            keccak256(bytes(ds.attributeMetadataStore[newAttrHash].did)) ==
                 keccak256(bytes("")),
             "attribute is already stored"
         );
 
-        Issuer storage iss = ds.issuers[did];
+        Entity storage iss = ds.issuerStore[did];
         require(
             iss.attributes.length > 0,
             "issuer does not exist use insertIssuer to add an issuer"
         );
 
-        assert(iss.attributesDetail[newAttrHash].versionHashes.length == 0);
+        assert(iss.attributesStore[newAttrHash].revisionHashes.length == 0);
 
         // store a link between this hash to the did to easily retrieve it
-        ds.attributeInfos[newAttrHash] = AttributeInfo(did, newAttrHash);
+        ds.attributeMetadataStore[newAttrHash] = AttributeMetadata(
+            did,
+            newAttrHash
+        );
         // store the version hash and data for this attribute
-        AttributeDetail storage atr = iss.attributesDetail[newAttrHash];
+        AttributeDetails storage atr = iss.attributesStore[newAttrHash];
 
         // push the new version hash for this attribute
-        atr.versionHashes.push(newAttrHash);
+        atr.revisionHashes.push(newAttrHash);
         // push the new version data for this attribute
-        atr.versionData[newAttrHash] = attributeData;
+        iss.revisions[newAttrHash] = attributeData;
 
         /*
          Push the firstAttrHash of the attribute to uniquely identify an issuer attribute
@@ -124,35 +130,39 @@ abstract contract IssuerDetailed is IssuerStorage {
         bytes calldata attributeData,
         bytes32 lastVersHash
     ) external {
-        IssuerModel storage ds = issuerStorage();
+        Issuers storage ds = issuerStorage();
         require(
-            keccak256(bytes(ds.attributeInfos[lastVersHash].did)) ==
+            keccak256(bytes(ds.attributeMetadataStore[lastVersHash].did)) ==
                 keccak256(bytes(did)),
             "lastVersHash does not refer to the specified DID"
         );
 
-        Issuer storage iss = ds.issuers[did];
+        Entity storage iss = ds.issuerStore[did];
         require(
-            iss.attributes.length >= 0,
+            iss.attributes.length > 0,
             "issuer does not exist use insertIssuer to add an issuer"
         );
         // based on the last version hash we can retrive the first version hash for this attribute along with the did
-        bytes32 firstAttrHash = ds.attributeInfos[lastVersHash].attrId;
-        assert(iss.attributesDetail[firstAttrHash].versionHashes.length > 0);
+        bytes32 firstAttrHash = ds.attributeMetadataStore[lastVersHash]
+            .attributeId;
+        assert(iss.attributesStore[firstAttrHash].revisionHashes.length > 0);
         bytes32 newAttrHash = keccak256(attributeData);
         require(
-            keccak256(bytes(ds.attributeInfos[newAttrHash].did)) ==
+            keccak256(bytes(ds.attributeMetadataStore[newAttrHash].did)) ==
                 keccak256(bytes("")),
             "attribute is already stored"
         );
         // store a link between this hash, the first hash and the did to easily retrieve it
-        ds.attributeInfos[newAttrHash] = AttributeInfo(did, firstAttrHash);
+        ds.attributeMetadataStore[newAttrHash] = AttributeMetadata(
+            did,
+            firstAttrHash
+        );
         // retrieve the detail info for this attribute
-        AttributeDetail storage atr = iss.attributesDetail[firstAttrHash];
+        AttributeDetails storage atr = iss.attributesStore[firstAttrHash];
         // push the new version hash for this attribute
-        atr.versionHashes.push(newAttrHash);
+        atr.revisionHashes.push(newAttrHash);
         // push the new version data for this attribute
-        atr.versionData[newAttrHash] = attributeData;
+        iss.revisions[newAttrHash] = attributeData;
         emitUpdateIssuer(did, newAttrHash, lastVersHash, firstAttrHash);
     }
 
@@ -162,10 +172,10 @@ abstract contract IssuerDetailed is IssuerStorage {
         bytes32 lastVersHash,
         bytes32 firstAttrHash
     ) internal {
-        IssuerModel storage ds = issuerStorage();
-        Issuer storage iss = ds.issuers[did];
-        AttributeDetail storage atr = iss.attributesDetail[firstAttrHash];
-        uint256 attributeVersionCount = atr.versionHashes.length;
+        Issuers storage ds = issuerStorage();
+        Entity storage iss = ds.issuerStore[did];
+        AttributeDetails storage atr = iss.attributesStore[firstAttrHash];
+        uint256 attributeVersionCount = atr.revisionHashes.length;
         uint256 attributesCount = iss.attributes.length;
         emit updateIssuerAttribute(
             keccak256(bytes(did)),
@@ -178,32 +188,23 @@ abstract contract IssuerDetailed is IssuerStorage {
         );
     }
 
-    function getIssuerAttributesFirstHash(string memory did)
-        public
-        view
-        returns (bytes32[] memory)
-    {
-        IssuerModel storage ds = issuerStorage();
-        return ds.issuers[did].attributes;
-    }
-
     function getIssuer(string memory did)
         public
         view
         returns (bytes32[] memory)
     {
-        IssuerModel storage ds = issuerStorage();
-        bytes32[] memory attributesFirstHash = ds.issuers[did].attributes;
-
+        Issuers storage ds = issuerStorage();
+        bytes32[] memory attributesFirstHash = ds.issuerStore[did].attributes;
+        require(attributesFirstHash.length > 0, "issuer does not exist");
         bytes32[] memory attributesLastHash = new bytes32[](
             attributesFirstHash.length
         );
         //list all the attributes
         for (uint256 index = 0; index < attributesFirstHash.length; index++) {
             // get all the versions for the current attribute
-            bytes32[] memory versions = ds.issuers[did]
-                .attributesDetail[attributesFirstHash[index]]
-                .versionHashes;
+            bytes32[] memory versions = ds.issuerStore[did]
+                .attributesStore[attributesFirstHash[index]]
+                .revisionHashes;
 
             //get the last version hash for this attribute
             attributesLastHash[index] = versions[versions.length - 1];
@@ -211,13 +212,6 @@ abstract contract IssuerDetailed is IssuerStorage {
         return attributesLastHash;
     }
 
-    /* {
-      "items": [issuerA, issuerB],
-      "total": 30,
-      "pageSize": 2,
-      "prev": 3,
-      "next": 5
-    } */
     function getIssuers(uint256 page, uint256 howMany)
         public
         view
@@ -231,8 +225,8 @@ abstract contract IssuerDetailed is IssuerStorage {
     {
         require(howMany <= 50, "PageSize should not be greater than 50");
         require(howMany > 0, "PageSize should be greater than 0");
-        IssuerModel storage ds = issuerStorage();
-        total = ds.dids.length;
+        Issuers storage ds = issuerStorage();
+        total = ds.didStore.length;
         pageSize = howMany;
         uint256 length = howMany;
         uint256 cursor = page;
@@ -273,47 +267,47 @@ abstract contract IssuerDetailed is IssuerStorage {
 
         items = new string[](length);
         for (uint256 i = 0; i < length; i++) {
-            items[i] = ds.dids[cursor.add(i)];
+            items[i] = ds.didStore[cursor.add(i)];
         }
 
         return (items, total, pageSize, prev, next);
     }
 
-    function getIssuerAttributeHistory(bytes32 anyAttrVersHash)
+    function getIssuerAttributeRevisions(bytes32 anyAttrVersHash)
         public
         view
         returns (bytes32[] memory)
     {
-        IssuerModel storage ds = issuerStorage();
+        Issuers storage ds = issuerStorage();
         // retrieve first the did and attrId (firstHash of attribute)
-        AttributeInfo memory i = ds.attributeInfos[anyAttrVersHash];
+        AttributeMetadata memory i = ds.attributeMetadataStore[anyAttrVersHash];
+
+        require(
+            keccak256(bytes(i.did)) != keccak256(bytes("")),
+            "attribute has not been found"
+        );
+
         // retrieve the issuer and the attribute detail
-        Issuer storage iss = ds.issuers[i.did];
-        return iss.attributesDetail[i.attrId].versionHashes;
+        Entity storage iss = ds.issuerStore[i.did];
+        return iss.attributesStore[i.attributeId].revisionHashes;
     }
 
-    function getIssuerAttributebyHash(bytes32 anyAttrVersHash)
+    function getIssuerAttributeByHash(bytes32 anyAttrVersHash)
         public
         view
         returns (string memory did, bytes memory attribData)
     {
-        IssuerModel storage ds = issuerStorage();
+        Issuers storage ds = issuerStorage();
         // retrieve first the did and attrId (firstHash of attribute)
-        AttributeInfo memory i = ds.attributeInfos[anyAttrVersHash];
+        AttributeMetadata memory i = ds.attributeMetadataStore[anyAttrVersHash];
+        require(
+            keccak256(bytes(i.did)) != keccak256(bytes("")),
+            "attribute has not been found"
+        );
         did = i.did;
         // retrieve the issuer and the attribute detail
-        Issuer storage iss = ds.issuers[i.did];
-        attribData = iss.attributesDetail[i.attrId]
-            .versionData[anyAttrVersHash];
-    }
-
-    function getIssuerDid(bytes32 attributeHash)
-        public
-        view
-        returns (string memory)
-    {
-        IssuerModel storage ds = issuerStorage();
-        return ds.attributeInfos[attributeHash].did;
+        Entity storage iss = ds.issuerStore[i.did];
+        attribData = iss.revisions[anyAttrVersHash];
     }
 
     uint256[50] private ______gap;

@@ -34,29 +34,32 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         bytes calldata attributeData
     ) external {
         bytes32 firstAttrHash = keccak256(attributeData);
-        AdministratorModel storage ds = administratorStorage();
-        Administrator storage iss = ds.administrators[did];
+        Administrators storage ds = administratorStorage();
+        Entity storage iss = ds.administratorStore[did];
         require(
             iss.attributes.length == 0,
             "administrator already exist use updateAdministrator to add or update an attribute"
         );
         require(
-            keccak256(bytes(ds.attributeInfos[firstAttrHash].did)) ==
+            keccak256(bytes(ds.attributeMetadataStore[firstAttrHash].did)) ==
                 keccak256(bytes("")),
             "attribute is already stored"
         );
 
-        assert(iss.attributesDetail[firstAttrHash].versionHashes.length == 0);
+        assert(iss.attributesStore[firstAttrHash].revisionHashes.length == 0);
 
         // store a link between this hash to the did to easily retrieve it
-        ds.attributeInfos[firstAttrHash] = AttributeInfo(did, firstAttrHash);
+        ds.attributeMetadataStore[firstAttrHash] = AttributeMetadata(
+            did,
+            firstAttrHash
+        );
         // store the version hash and data for this attribute
-        AttributeDetail storage atr = iss.attributesDetail[firstAttrHash];
+        AttributeDetails storage atr = iss.attributesStore[firstAttrHash];
 
         // push the new version hash for this attribute
-        atr.versionHashes.push(firstAttrHash);
+        atr.revisionHashes.push(firstAttrHash);
         // push the new version data for this attribute
-        atr.versionData[firstAttrHash] = attributeData;
+        iss.revisions[firstAttrHash] = attributeData;
 
         /*
          Push the firstAttrHash of the attribute to uniquely identify an administrator attribute
@@ -64,14 +67,14 @@ abstract contract AdministratorDetailed is AdministratorStorage {
          where .push() appends a zero-initialized element and returns a reference to it.
         */
         iss.attributes.push(firstAttrHash);
-        uint256 attributescount = iss.attributes.length;
-        ds.dids.push(did);
+        uint256 attributesCount = iss.attributes.length;
+        ds.didStore.push(did);
         emit addAdministratorAttribute(
             keccak256(bytes(did)),
             firstAttrHash,
             did,
             1,
-            attributescount
+            attributesCount
         );
     }
 
@@ -82,31 +85,34 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         string calldata did,
         bytes calldata attributeData
     ) external {
-        AdministratorModel storage ds = administratorStorage();
+        Administrators storage ds = administratorStorage();
         bytes32 newAttrHash = keccak256(attributeData);
         require(
-            keccak256(bytes(ds.attributeInfos[newAttrHash].did)) ==
+            keccak256(bytes(ds.attributeMetadataStore[newAttrHash].did)) ==
                 keccak256(bytes("")),
             "attribute is already stored"
         );
 
-        Administrator storage iss = ds.administrators[did];
+        Entity storage iss = ds.administratorStore[did];
         require(
             iss.attributes.length > 0,
             "administrator does not exist use insertAdministrator to add an administrator"
         );
 
-        assert(iss.attributesDetail[newAttrHash].versionHashes.length == 0);
+        assert(iss.attributesStore[newAttrHash].revisionHashes.length == 0);
 
         // store a link between this hash to the did to easily retrieve it
-        ds.attributeInfos[newAttrHash] = AttributeInfo(did, newAttrHash);
+        ds.attributeMetadataStore[newAttrHash] = AttributeMetadata(
+            did,
+            newAttrHash
+        );
         // store the version hash and data for this attribute
-        AttributeDetail storage atr = iss.attributesDetail[newAttrHash];
+        AttributeDetails storage atr = iss.attributesStore[newAttrHash];
 
         // push the new version hash for this attribute
-        atr.versionHashes.push(newAttrHash);
+        atr.revisionHashes.push(newAttrHash);
         // push the new version data for this attribute
-        atr.versionData[newAttrHash] = attributeData;
+        iss.revisions[newAttrHash] = attributeData;
 
         /*
          Push the firstAttrHash of the attribute to uniquely identify an administrator attribute
@@ -126,35 +132,39 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         bytes calldata attributeData,
         bytes32 lastVersHash
     ) external {
-        AdministratorModel storage ds = administratorStorage();
+        Administrators storage ds = administratorStorage();
         require(
-            keccak256(bytes(ds.attributeInfos[lastVersHash].did)) ==
+            keccak256(bytes(ds.attributeMetadataStore[lastVersHash].did)) ==
                 keccak256(bytes(did)),
             "lastVersHash does not refer to the specified DID"
         );
 
-        Administrator storage iss = ds.administrators[did];
+        Entity storage iss = ds.administratorStore[did];
         require(
             iss.attributes.length >= 0,
             "administrator does not exist use insertAdministrator to add an administrator"
         );
         // based on the last version hash we can retrive the first version hash for this attribute along with the did
-        bytes32 firstAttrHash = ds.attributeInfos[lastVersHash].attrId;
-        assert(iss.attributesDetail[firstAttrHash].versionHashes.length > 0);
+        bytes32 firstAttrHash = ds.attributeMetadataStore[lastVersHash]
+            .attributeId;
+        assert(iss.attributesStore[firstAttrHash].revisionHashes.length > 0);
         bytes32 newAttrHash = keccak256(attributeData);
         require(
-            keccak256(bytes(ds.attributeInfos[newAttrHash].did)) ==
+            keccak256(bytes(ds.attributeMetadataStore[newAttrHash].did)) ==
                 keccak256(bytes("")),
             "attribute is already stored"
         );
         // store a link between this hash, the first hash and the did to easily retrieve it
-        ds.attributeInfos[newAttrHash] = AttributeInfo(did, firstAttrHash);
+        ds.attributeMetadataStore[newAttrHash] = AttributeMetadata(
+            did,
+            firstAttrHash
+        );
         // retrieve the detail info for this attribute
-        AttributeDetail storage atr = iss.attributesDetail[firstAttrHash];
+        AttributeDetails storage atr = iss.attributesStore[firstAttrHash];
         // push the new version hash for this attribute
-        atr.versionHashes.push(newAttrHash);
+        atr.revisionHashes.push(newAttrHash);
         // push the new version data for this attribute
-        atr.versionData[newAttrHash] = attributeData;
+        iss.revisions[newAttrHash] = attributeData;
         emitUpdateAdministrator(did, newAttrHash, lastVersHash, firstAttrHash);
     }
 
@@ -164,10 +174,10 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         bytes32 lastVersHash,
         bytes32 firstAttrHash
     ) internal {
-        AdministratorModel storage ds = administratorStorage();
-        Administrator storage iss = ds.administrators[did];
-        AttributeDetail storage atr = iss.attributesDetail[firstAttrHash];
-        uint256 attributeVersionCount = atr.versionHashes.length;
+        Administrators storage ds = administratorStorage();
+        Entity storage iss = ds.administratorStore[did];
+        AttributeDetails storage atr = iss.attributesStore[firstAttrHash];
+        uint256 attributeVersionCount = atr.revisionHashes.length;
         uint256 attributesCount = iss.attributes.length;
         emit updateAdministratorAttribute(
             keccak256(bytes(did)),
@@ -180,33 +190,24 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         );
     }
 
-    function getAdministratorAttributesFirstHash(string memory did)
-        public
-        view
-        returns (bytes32[] memory)
-    {
-        AdministratorModel storage ds = administratorStorage();
-        return ds.administrators[did].attributes;
-    }
-
     function getAdministrator(string memory did)
         public
         view
         returns (bytes32[] memory)
     {
-        AdministratorModel storage ds = administratorStorage();
-        bytes32[] memory attributesFirstHash = ds.administrators[did]
+        Administrators storage ds = administratorStorage();
+        bytes32[] memory attributesFirstHash = ds.administratorStore[did]
             .attributes;
-
+        require(attributesFirstHash.length > 0, "administrator does not exist");
         bytes32[] memory attributesLastHash = new bytes32[](
             attributesFirstHash.length
         );
         //list all the attributes
         for (uint256 index = 0; index < attributesFirstHash.length; index++) {
             // get all the versions for the current attribute
-            bytes32[] memory versions = ds.administrators[did]
-                .attributesDetail[attributesFirstHash[index]]
-                .versionHashes;
+            bytes32[] memory versions = ds.administratorStore[did]
+                .attributesStore[attributesFirstHash[index]]
+                .revisionHashes;
 
             //get the last version hash for this attribute
             attributesLastHash[index] = versions[versions.length - 1];
@@ -234,8 +235,8 @@ abstract contract AdministratorDetailed is AdministratorStorage {
     {
         require(howMany <= 50, "PageSize should not be greater than 50");
         require(howMany > 0, "PageSize should be greater than 0");
-        AdministratorModel storage ds = administratorStorage();
-        total = ds.dids.length;
+        Administrators storage ds = administratorStorage();
+        total = ds.didStore.length;
         pageSize = howMany;
         uint256 length = howMany;
         uint256 cursor = page;
@@ -276,47 +277,45 @@ abstract contract AdministratorDetailed is AdministratorStorage {
 
         items = new string[](length);
         for (uint256 i = 0; i < length; i++) {
-            items[i] = ds.dids[cursor.add(i)];
+            items[i] = ds.didStore[cursor.add(i)];
         }
 
         return (items, total, pageSize, prev, next);
     }
 
-    function getAdministratorAttributeHistory(bytes32 anyAttrVersHash)
+    function getAdministratorAttributeRevisions(bytes32 anyAttrVersHash)
         public
         view
         returns (bytes32[] memory)
     {
-        AdministratorModel storage ds = administratorStorage();
+        Administrators storage ds = administratorStorage();
         // retrieve first the did and attrId (firstHash of attribute)
-        AttributeInfo memory i = ds.attributeInfos[anyAttrVersHash];
+        AttributeMetadata memory i = ds.attributeMetadataStore[anyAttrVersHash];
+        require(
+            keccak256(bytes(i.did)) != keccak256(bytes("")),
+            "attribute has not been found"
+        );
         // retrieve the administrator and the attribute detail
-        Administrator storage iss = ds.administrators[i.did];
-        return iss.attributesDetail[i.attrId].versionHashes;
+        Entity storage iss = ds.administratorStore[i.did];
+        return iss.attributesStore[i.attributeId].revisionHashes;
     }
 
-    function getAdministratorAttributebyHash(bytes32 anyAttrVersHash)
+    function getAdministratorAttributeByHash(bytes32 anyAttrVersHash)
         public
         view
         returns (string memory did, bytes memory attribData)
     {
-        AdministratorModel storage ds = administratorStorage();
+        Administrators storage ds = administratorStorage();
         // retrieve first the did and attrId (firstHash of attribute)
-        AttributeInfo memory i = ds.attributeInfos[anyAttrVersHash];
+        AttributeMetadata memory i = ds.attributeMetadataStore[anyAttrVersHash];
+        require(
+            keccak256(bytes(i.did)) != keccak256(bytes("")),
+            "attribute has not been found"
+        );
         did = i.did;
         // retrieve the administrator and the attribute detail
-        Administrator storage iss = ds.administrators[i.did];
-        attribData = iss.attributesDetail[i.attrId]
-            .versionData[anyAttrVersHash];
-    }
-
-    function getAdministratorDid(bytes32 attributeHash)
-        public
-        view
-        returns (string memory)
-    {
-        AdministratorModel storage ds = administratorStorage();
-        return ds.attributeInfos[attributeHash].did;
+        Entity storage iss = ds.administratorStore[i.did];
+        attribData = iss.revisions[anyAttrVersHash];
     }
 
     uint256[50] private ______gap;

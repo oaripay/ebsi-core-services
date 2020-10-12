@@ -9,8 +9,16 @@ import "../utils/math/SafeMath.sol";
 abstract contract PolicyDetailed is PolicyStorage {
     using SafeMath for uint256;
 
-    event addNewPolicy(string indexed policyId, bytes policy);
-    event updateExistingPolicy(string indexed policyId, bytes policy);
+    event addNewPolicy(
+        string indexed policyId,
+        bytes32 indexed policyHash,
+        bytes policy
+    );
+    event updateExistingPolicy(
+        string indexed policyId,
+        bytes32 indexed policyHash,
+        bytes policy
+    );
 
     /**
      * @dev insert an Policy
@@ -18,14 +26,25 @@ abstract contract PolicyDetailed is PolicyStorage {
     function insertPolicy(string calldata policyId, bytes calldata policyData)
         external
     {
-        PolicyModel storage ds = policyStorage();
-        require(ds.policies[policyId].length == 0, "policy is already stored");
-        ds.policies[policyId] = policyData;
+        bytes32 firstPolicyHash = keccak256(policyData);
 
+        Policies storage ds = policyStorage();
+        PolicyDetails storage p = ds.policyStore[policyId];
+        require(
+            p.revisionHashes.length == 0,
+            "policy already exist use updatePolicy to update a policy"
+        );
+
+        assert(ds.revisions[firstPolicyHash].length == 0);
+
+        // store a link between this policyId to the policy to easily retrieve it
+        // store the version hash and data for this policy
+        p.revisionHashes.push(firstPolicyHash);
+        ds.revisions[firstPolicyHash] = policyData;
         // push the policy ID
-        ds.policyIDs.push(policyId);
+        ds.policyIdStore.push(policyId);
 
-        emit addNewPolicy(policyId, policyData);
+        emit addNewPolicy(policyId, firstPolicyHash, policyData);
     }
 
     /**
@@ -34,23 +53,73 @@ abstract contract PolicyDetailed is PolicyStorage {
     function updatePolicy(string calldata policyId, bytes calldata policyData)
         external
     {
-        PolicyModel storage ds = policyStorage();
+        Policies storage ds = policyStorage();
+        PolicyDetails storage p = ds.policyStore[policyId];
+        require(p.revisionHashes.length > 0, "policy does not exist");
+        bytes32 newPolicyHash = keccak256(policyData);
 
         require(
-            ds.policies[policyId].length > 0,
-            "policy is new call insertPolicy instead"
+            keccak256(bytes(ds.revisions[newPolicyHash])) ==
+                keccak256(bytes("")),
+            "policy data is already stored"
         );
-        ds.policies[policyId] = policyData;
-        emit updateExistingPolicy(policyId, policyData);
+
+        // store a link between this policyId to the policy to easily retrieve it
+        // store the version hash and data for this attribute
+
+        p.revisionHashes.push(newPolicyHash);
+        ds.revisions[newPolicyHash] = policyData;
+        emit updateExistingPolicy(policyId, newPolicyHash, policyData);
     }
 
+    /**
+    Returns the data of the last revision
+     */
     function getPolicy(string memory policyId)
         public
         view
         returns (bytes memory)
     {
-        PolicyModel storage ds = policyStorage();
-        return ds.policies[policyId];
+        Policies storage ds = policyStorage();
+        bytes32[] memory policyRevisionHashes = ds.policyStore[policyId]
+            .revisionHashes;
+        require(policyRevisionHashes.length > 0, "policy does not exist");
+        bytes32 lastHash = policyRevisionHashes[policyRevisionHashes.length -
+            1];
+        return ds.revisions[lastHash];
+    }
+
+    /**
+    Returns the data of the provided revision
+     */
+    function getPolicyByHash(bytes32 revisionHash)
+        public
+        view
+        returns (bytes memory)
+    {
+        Policies storage ds = policyStorage();
+        require(
+            keccak256(bytes(ds.revisions[revisionHash])) !=
+                keccak256(bytes("")),
+            "policy data does not exist"
+        );
+
+        return ds.revisions[revisionHash];
+    }
+
+    /**
+    Returns all the revision hashes
+     */
+    function getPolicyRevisions(string calldata policyId)
+        public
+        view
+        returns (bytes32[] memory)
+    {
+        Policies storage ds = policyStorage();
+        PolicyDetails memory p = ds.policyStore[policyId];
+        require(p.revisionHashes.length > 0, "policyId does not exist");
+
+        return p.revisionHashes;
     }
 
     /* {
@@ -73,8 +142,8 @@ abstract contract PolicyDetailed is PolicyStorage {
     {
         require(howMany <= 50, "PageSize should not be greater than 50");
         require(howMany > 0, "PageSize should be greater than 0");
-        PolicyModel storage ds = policyStorage();
-        total = ds.policyIDs.length;
+        Policies storage ds = policyStorage();
+        total = ds.policyIdStore.length;
         pageSize = howMany;
         uint256 length = howMany;
         uint256 cursor = page;
@@ -115,7 +184,7 @@ abstract contract PolicyDetailed is PolicyStorage {
 
         items = new string[](length);
         for (uint256 i = 0; i < length; i++) {
-            items[i] = ds.policyIDs[cursor.add(i)];
+            items[i] = ds.policyIdStore[cursor.add(i)];
         }
 
         return (items, total, pageSize, prev, next);

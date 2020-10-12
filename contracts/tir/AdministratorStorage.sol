@@ -8,20 +8,14 @@ contract AdministratorStorage is AttributeStorage {
     "diamond.standard.tir.administrator.storage"
   );
 
-
-  struct Administrator {
-    bytes32[] attributes; // [Attr1firstHash, Attr2firstHash, Attr3firstHash ...]
-    mapping(bytes32 => AttributeDetail) attributesDetail; // firstAttrHash ->  {versionHashes:[firstAttrHash, v2Hash, v3Hash ...], versionData:Attr(n)v(n)Hash -> data}
-  }
-
-  struct AdministratorModel {
-    string[] dids; // list of all dids
-    mapping(string => Administrator) administrators; // DID -> [Administrator]
-    mapping(bytes32 => AttributeInfo) attributeInfos; // Attr(n)v(n)Hash -> DID, firsthash  // a convenient way to retrieve a did and firsthash based on any attributeHash
+  struct Administrators {
+    string[] didStore; // This is a a list of all Domain Administrators/Owners registered DIDs. (This property has been added because on Ethereum SC you can not loop over map)
+    mapping(string => Entity) administratorStore; // This is a Collection object storing all Domain Administrators/Owners DID and their corresponding administration attributes, named Entity Objects.
+    mapping(bytes32 => AttributeMetadata) attributeMetadataStore; // This is a Collection object storing all the attributes versions hashes of all administrators and their associated AttributeMetadata objects.
   }
 
   // Creates and returns the storage pointer to the struct.
-  function administratorStorage() internal pure returns (AdministratorModel storage ms) {
+  function administratorStorage() internal pure returns (Administrators storage ms) {
     bytes32 position = TIR_ADMINISTRATOR_DIAMOND_STORAGE_POSITION;
     assembly {
       ms.slot := position
