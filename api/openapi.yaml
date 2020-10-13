@@ -127,25 +127,8 @@ paths:
                   value:
                     did: "did:ebsi:0x464190367BE948210608a46847bed183607f685A"
                     attributes:
-                      - type: "university"
-                        moderator: "0xFE3B557E8Fb62b89F4916B721be55cEb828dBd73"
-                        preferredName: "Diploma Sample App: Issue Master's Diploma"
-                        alternativeName: "Diploma Sample App: Issue Master's Diploma"
-                        homepage: "http://www.urv.cat/"
-                        escoOrganizationType: "Educational Institution"
-                        siteLocation: "Tarragona"
-                        status: true
-                        documents:
-                          - title: "Sample University - Master's Programme"
-                            documentType: "Demo Master doc"
-                            status: "Published in B.O.E. Active"
-                            revision: "Master Royal Decree 1393/2007"
-                            vcCode: "0x15f5e9d610c3027072dd5566629d121c183f213bd34a610af69452fea3870e11"
-                            dateStart: 1588161276291
-                            body: null
-                        accreditations:
-                          - targetFramework: "Europass Accreditation Database"
-                            targetResource: "https://accreditation.europass.eu/12341455"
+                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                        body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9"
         "400":
           description: Bad Request
           content:
@@ -226,10 +209,12 @@ paths:
                   method: insertIssuer
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      issuer:
-                        - did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
-                          attributeData:
-                            { any: "attributes following JSON-LD structure" }
+                      did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      attribute:
+                        {
+                          body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9",
+                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+                        }
                   id: 1
               Send Transaction:
                 value:
@@ -384,6 +369,13 @@ components:
           description: Array of attributes
           items:
             type: object
+            properties:
+              hash:
+                description: Attribute Id
+                type: string
+              body:
+                description: Attribute content in base64
+                type: string
   examples:
     BadRequest:
       value:

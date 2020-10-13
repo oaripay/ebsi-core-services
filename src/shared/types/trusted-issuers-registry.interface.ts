@@ -10,8 +10,8 @@ export default interface TrustedIssuersRegistryContract {
 
   getIssuerAttributebyHash: (
     hash: string
-  ) => {
+  ) => Promise<{
     did: string;
     attribData: string;
-  };
+  }>;
 }

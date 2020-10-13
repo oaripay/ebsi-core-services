@@ -5,7 +5,7 @@ import { Agent, Scope } from "@cef-ebsi/app-jwt";
 import { ConfigService } from "@nestjs/config";
 import LedgerService from "../../shared/services/ledger.service";
 import RequestInsertIssuerDto from "./dto/insertIssuer/request-insert-issuer.dto";
-import RequestSignedTransaction from "./dto/signedTransaction/request-signed-transaction.dto";
+import RequestSignedTransactionDto from "./dto/signedTransaction/request-signed-transaction.dto";
 import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
 import JsonRpcResponseObject from "./types/jsonrpc.interface";
 import { validate, InvalidRequestJsonRpcError } from "./errors";
@@ -253,11 +253,14 @@ export default class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       await validate(RequestInsertIssuerDto, body);
-      const { from, issuer } = body.params[0];
-      const data = [
-        issuer.did.toLowerCase(),
-        Buffer.from(JSON.stringify(issuer.attributeData), "utf8"),
-      ];
+      const { from, did, attribute } = body.params[0];
+      const bufferAttribute = Buffer.from(attribute.body, "base64");
+      const expectedHash = ethers.utils.keccak256(bufferAttribute);
+      if (attribute.hash !== expectedHash)
+        throw new Error(
+          `Invalid issuer.attribute.hash. Received: ${attribute.hash}. Expected: ${expectedHash}`
+        );
+      const data = [did.toLowerCase(), bufferAttribute];
       return await this.buildTransaction(from, "insertIssuer", data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
@@ -267,11 +270,11 @@ export default class JsonRpcService {
   }
 
   async sendTransaction(
-    body: RequestSignedTransaction,
+    body: RequestSignedTransactionDto,
     id?: number | string
   ): Promise<string> {
     try {
-      await validate(RequestSignedTransaction, body);
+      await validate(RequestSignedTransactionDto, body);
       const request = body.params[0];
       const signer = await this.verifyTransaction(request);
       await this.checkWritePermission(signer);

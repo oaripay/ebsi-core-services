@@ -47,8 +47,24 @@ const callLedger = (method: string, params: unknown[]) => {
   });
 };
 
-jest.setTimeout(10000);
-describe("appController (e2e)", () => {
+const waitToBeMined = async (txId: string): Promise<{ status: string }> => {
+  let mined = false;
+  let receipt = null;
+  /* eslint-disable no-await-in-loop */
+  while (!mined) {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    const responseReceipt: SupertestJsonRpcResponse = await callLedger(
+      "eth_getTransactionReceipt",
+      [txId]
+    );
+    receipt = responseReceipt.body.result;
+    mined = !!receipt;
+  }
+  return receipt as { status: string };
+};
+
+jest.setTimeout(30000);
+describe("App Module (e2e)", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -107,7 +123,7 @@ describe("appController (e2e)", () => {
     expect(response.status).toBe(200);
   });
 
-  it(`gets a specific issuer`, async () => {
+  it(`Gets a specific issuer`, async () => {
     expect.assertions(3);
     const issuers: SupertestIssuersResponse = await request(
       app.getHttpServer()
@@ -125,16 +141,23 @@ describe("appController (e2e)", () => {
     expect(response.status).toBe(200);
   });
 
-  it(`inserts and gets a new issuer`, async () => {
+  it(`Inserts and gets a new issuer`, async () => {
     expect.assertions(7);
     const wallet = new ethers.Wallet(prefixWith0x(adminTestPrivateKey));
 
     const did = `did:ebsi:test-${new Date().toISOString()}`;
-    const attributeData = {
+    const json = {
       // any object here
       any: "Any attribute here",
       type: "credential",
       data: crypto.randomBytes(16).toString("hex"),
+    };
+    const data = Buffer.from(JSON.stringify(json));
+    const dataBase64 = data.toString("base64");
+    const dataHash = ethers.utils.keccak256(data);
+    const attribute = {
+      body: dataBase64,
+      hash: dataHash,
     };
 
     const responseBuild: SupertestJsonRpcResponse = await request(
@@ -147,7 +170,8 @@ describe("appController (e2e)", () => {
         params: [
           {
             from: wallet.address,
-            issuer: { did, attributeData },
+            did,
+            attribute,
           },
         ],
         id: 231,
@@ -204,18 +228,8 @@ describe("appController (e2e)", () => {
     expect(responseSend.status).toBe(200);
 
     // wait to be mined
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    const responseReceipt: SupertestJsonRpcResponse = await callLedger(
-      "eth_getTransactionReceipt",
-      [responseSend.body.result]
-    );
-    expect(responseReceipt.body).toStrictEqual(
-      expect.objectContaining({
-        result: expect.objectContaining({
-          status: "0x1",
-        }) as { status: string },
-      })
-    );
+    const receipt = await waitToBeMined(responseSend.body.result as string);
+    expect(receipt.status).toBe("0x1");
 
     // get issuer
     const responseIssuer = await request(app.getHttpServer()).get(
@@ -224,12 +238,12 @@ describe("appController (e2e)", () => {
 
     expect(responseIssuer.body).toStrictEqual({
       did: did.toLowerCase(),
-      attributes: [attributeData],
+      attributes: [attribute],
     });
     expect(responseIssuer.status).toBe(200);
   });
 
-  it(`throws error for issuer not found`, async () => {
+  it(`Throws error for issuer not found`, async () => {
     expect.assertions(2);
     const response = await request(app.getHttpServer()).get(
       `/trusted-issuers-registry/v2/issuers/unknown-issuer`

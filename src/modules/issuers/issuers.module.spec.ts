@@ -11,14 +11,14 @@ import {
 import { FastifyInstance } from "fastify";
 import IssuersModule from "./issuers.module";
 import AllExceptionsFilter from "../../filters/http-exception.filter";
-import mockTirContract from "../../../tests/mockTirContract";
+import { mockTirContract, jsonlds } from "../../../tests/mockTirContract";
 import { ledgerWorking } from "../../../tests/mockAxios";
 
 jest.setTimeout(20000);
 jest.spyOn(axios, "post").mockImplementation(ledgerWorking);
 jest.spyOn(ethers, "Contract").mockImplementation(mockTirContract);
 
-describe("appController", () => {
+describe("Issuers Module", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -39,7 +39,7 @@ describe("appController", () => {
     await app.close();
   });
 
-  it(`get /issuers`, async () => {
+  it(`Get /issuers`, async () => {
     expect.assertions(3);
     const response = await request(app.getHttpServer()).get(
       "/trusted-issuers-registry/v2/issuers"
@@ -62,7 +62,7 @@ describe("appController", () => {
     expect(response.status).toBe(200);
   });
 
-  it(`get /issuers different pagination`, async () => {
+  it(`Get /issuers different pagination`, async () => {
     expect.assertions(12);
     const response1 = await request(app.getHttpServer()).get(
       "/trusted-issuers-registry/v2/issuers?page[size]=3"
@@ -148,7 +148,7 @@ describe("appController", () => {
     expect(response4.status).toBe(200);
   });
 
-  it(`throws bad request for bad pagination in get /issuers`, async () => {
+  it(`Throws bad request for bad pagination in get /issuers`, async () => {
     expect.assertions(4);
     const response1 = await request(app.getHttpServer()).get(
       "/trusted-issuers-registry/v2/issuers?page[size]=100"
@@ -173,20 +173,28 @@ describe("appController", () => {
     expect(response1.status).toBe(400);
   });
 
-  it(`gets a specific issuer`, async () => {
+  it(`Gets a specific issuer`, async () => {
     expect.assertions(2);
     const response = await request(app.getHttpServer()).get(
       `/trusted-issuers-registry/v2/issuers/did:ebsi:0x00`
     );
+    const data = Buffer.from(JSON.stringify(jsonlds[0]));
+    const dataBase64 = data.toString("base64");
+    const dataHash = ethers.utils.keccak256(data);
 
     expect(response.body).toStrictEqual({
       did: "did:ebsi:0x00",
-      attributes: [{ name: "alice" }],
+      attributes: [
+        {
+          body: dataBase64,
+          hash: dataHash,
+        },
+      ],
     });
     expect(response.status).toBe(200);
   });
 
-  it(`throws error for issuer not found`, async () => {
+  it(`Throws error for issuer not found`, async () => {
     expect.assertions(2);
     const response = await request(app.getHttpServer()).get(
       `/trusted-issuers-registry/v2/issuers/no-issuer`

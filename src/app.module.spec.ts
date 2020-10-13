@@ -10,7 +10,7 @@ import { FastifyInstance } from "fastify";
 import AppModule from "./app.module";
 import AllExceptionsFilter from "./filters/http-exception.filter";
 
-describe("appController", () => {
+describe("App Module", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -31,7 +31,7 @@ describe("appController", () => {
     await app.close();
   });
 
-  it("get /health returns ok", async () => {
+  it("Get /health returns ok", async () => {
     expect.assertions(2);
     const response = await request(app.getHttpServer()).get(
       "/trusted-issuers-registry/v2/health"

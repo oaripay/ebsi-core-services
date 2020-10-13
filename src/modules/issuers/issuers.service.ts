@@ -52,18 +52,18 @@ export default class IssuersService {
       });
     }
 
-    const issuerAttributesData = await Promise.all(
-      attributesLastHash.map((hash) => {
-        return this.tirContract.getIssuerAttributebyHash(hash);
-      })
-    );
+    const formatIssuer = async (hash: string) => {
+      const { attribData } = await this.tirContract.getIssuerAttributebyHash(
+        hash
+      );
+      const bufferAttribute = Buffer.from(attribData.slice(2), "hex");
+      return {
+        hash,
+        body: bufferAttribute.toString("base64"),
+      };
+    };
 
-    const attributes: unknown[] = issuerAttributesData.map(
-      (data: { attribData: string }) => {
-        const bytes = Buffer.from(data.attribData.slice(2), "hex");
-        return JSON.parse(bytes.toString("utf8")) as unknown;
-      }
-    );
+    const attributes = await Promise.all(attributesLastHash.map(formatIssuer));
 
     return { did, attributes };
   }
