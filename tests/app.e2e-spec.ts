@@ -12,6 +12,7 @@ import { config } from "../src/config/configuration";
 import AppModule from "../src/app.module";
 import AllExceptionsFilter from "../src/filters/http-exception.filter";
 import {
+  AttributeObject,
   IssuersListResponseObject,
   IssuerResponseObject,
 } from "../src/modules/issuers/types/issuers.interface";
@@ -31,6 +32,16 @@ interface SupertestIssuersResponse {
 interface SupertestIssuerResponse {
   status: number;
   body: IssuerResponseObject;
+}
+
+interface SupertestAttributesResponse {
+  status: number;
+  body: AttributeObject[];
+}
+
+interface SupertestAttributeResponse {
+  status: number;
+  body: AttributeObject;
 }
 
 const prefixWith0x = (key: string): string =>
@@ -131,9 +142,9 @@ describe("App Module (e2e)", () => {
     expect(issuers.status).toBe(200);
     const did: string = issuers.body.items[issuers.body.items.length - 1];
 
-    const response = await request(app.getHttpServer()).get(
-      `/trusted-issuers-registry/v2/issuers/${did}`
-    );
+    const response: SupertestIssuerResponse = await request(
+      app.getHttpServer()
+    ).get(`/trusted-issuers-registry/v2/issuers/${did}`);
     expect(response.body).toStrictEqual({
       did: did.toLowerCase(),
       attributes: expect.arrayContaining([]) as unknown[],
@@ -232,9 +243,9 @@ describe("App Module (e2e)", () => {
     expect(receipt.status).toBe("0x1");
 
     // get issuer
-    const responseIssuer = await request(app.getHttpServer()).get(
-      `/trusted-issuers-registry/v2/issuers/${did}`
-    );
+    const responseIssuer: SupertestIssuerResponse = await request(
+      app.getHttpServer()
+    ).get(`/trusted-issuers-registry/v2/issuers/${did}`);
 
     expect(responseIssuer.body).toStrictEqual({
       did: did.toLowerCase(),
@@ -255,5 +266,119 @@ describe("App Module (e2e)", () => {
       type: "about:blank",
     });
     expect(response.status).toBe(404);
+  });
+
+  it(`Gets attributes from a specific issuer`, async () => {
+    expect.assertions(3);
+    const issuers: SupertestIssuersResponse = await request(
+      app.getHttpServer()
+    ).get(`/trusted-issuers-registry/v2/issuers`);
+    expect(issuers.status).toBe(200);
+    const did: string = issuers.body.items[issuers.body.items.length - 1];
+
+    const response: SupertestAttributesResponse = await request(
+      app.getHttpServer()
+    ).get(`/trusted-issuers-registry/v2/issuers/${did}/attributes`);
+    expect(response.body).toStrictEqual([
+      {
+        body: expect.any(String) as string,
+        hash: expect.any(String) as string,
+      },
+    ]);
+    expect(response.status).toBe(200);
+  });
+
+  it(`Gets a specific attribute`, async () => {
+    expect.assertions(4);
+    const issuers: SupertestIssuersResponse = await request(
+      app.getHttpServer()
+    ).get(`/trusted-issuers-registry/v2/issuers`);
+    expect(issuers.status).toBe(200);
+    const did: string = issuers.body.items[issuers.body.items.length - 1];
+
+    const responseAttributes: SupertestAttributesResponse = await request(
+      app.getHttpServer()
+    ).get(`/trusted-issuers-registry/v2/issuers/${did}/attributes`);
+    expect(responseAttributes.status).toBe(200);
+
+    const attributeId = responseAttributes.body[0].hash;
+
+    const response: SupertestAttributeResponse = await request(
+      app.getHttpServer()
+    ).get(
+      `/trusted-issuers-registry/v2/issuers/${did}/attributes/${attributeId}`
+    );
+    expect(response.body).toStrictEqual({
+      body: expect.any(String) as string,
+      hash: expect.any(String) as string,
+    });
+    expect(response.status).toBe(200);
+  });
+
+  it(`Throws error when attribute is not found`, async () => {
+    expect.assertions(8);
+    const issuers: SupertestIssuersResponse = await request(
+      app.getHttpServer()
+    ).get(`/trusted-issuers-registry/v2/issuers`);
+    expect(issuers.status).toBe(200);
+
+    const did: string = issuers.body.items[issuers.body.items.length - 1];
+
+    // consult a random attribute
+    const attributeId =
+      "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
+
+    const response: SupertestAttributeResponse = await request(
+      app.getHttpServer()
+    ).get(
+      `/trusted-issuers-registry/v2/issuers/${did}/attributes/${attributeId}`
+    );
+    expect(response.body).toStrictEqual({
+      detail: expect.stringContaining(
+        `Attribute ${attributeId} not found`
+      ) as string,
+      status: 404,
+      title: "Attribute Not Found",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(404);
+
+    // consult an attribute from a random did
+    const response2 = await request(app.getHttpServer()).get(
+      `/trusted-issuers-registry/v2/issuers/did:ebsi:unknown/attributes/${attributeId}`
+    );
+    expect(response2.body).toStrictEqual({
+      detail: expect.stringContaining(
+        `Issuer did:ebsi:unknown not found`
+      ) as string,
+      status: 404,
+      title: "Issuer Not Found",
+      type: "about:blank",
+    });
+    expect(response2.status).toBe(404);
+
+    // consult an attribute from a different did
+    const did2: string = issuers.body.items[issuers.body.items.length - 2];
+    const responseAttributes: SupertestAttributesResponse = await request(
+      app.getHttpServer()
+    ).get(`/trusted-issuers-registry/v2/issuers/${did2}/attributes`);
+    expect(responseAttributes.status).toBe(200);
+
+    const attributeId2 = responseAttributes.body[0].hash;
+
+    const response3: SupertestAttributeResponse = await request(
+      app.getHttpServer()
+    ).get(
+      `/trusted-issuers-registry/v2/issuers/${did}/attributes/${attributeId2}`
+    );
+    expect(response3.body).toStrictEqual({
+      detail: expect.stringContaining(
+        `Attribute ${attributeId2} not found`
+      ) as string,
+      status: 404,
+      title: "Attribute Not Found",
+      type: "about:blank",
+    });
+    expect(response3.status).toBe(404);
   });
 });

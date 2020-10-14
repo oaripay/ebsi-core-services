@@ -208,4 +208,87 @@ describe("Issuers Module", () => {
     });
     expect(response.status).toBe(404);
   });
+
+  it(`Gets attributes from a specific issuer`, async () => {
+    expect.assertions(2);
+    const response = await request(app.getHttpServer()).get(
+      `/trusted-issuers-registry/v2/issuers/did:ebsi:0x00/attributes`
+    );
+    const data = Buffer.from(JSON.stringify(jsonlds[0]));
+    const dataBase64 = data.toString("base64");
+    const dataHash = ethers.utils.keccak256(data);
+
+    expect(response.body).toStrictEqual([
+      {
+        body: dataBase64,
+        hash: dataHash,
+      },
+    ]);
+    expect(response.status).toBe(200);
+  });
+
+  it(`Gets a specific attribute`, async () => {
+    expect.assertions(2);
+    const data = Buffer.from(JSON.stringify(jsonlds[1]));
+    const dataBase64 = data.toString("base64");
+    const dataHash = ethers.utils.keccak256(data);
+    const response = await request(app.getHttpServer()).get(
+      `/trusted-issuers-registry/v2/issuers/did:ebsi:0x01/attributes/${dataHash}`
+    );
+    expect(response.body).toStrictEqual({
+      body: dataBase64,
+      hash: dataHash,
+    });
+    expect(response.status).toBe(200);
+  });
+
+  it(`Throws error when attribute is not found`, async () => {
+    expect.assertions(6);
+    // consult a random attribute
+    const attributeId =
+      "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
+
+    const response1 = await request(app.getHttpServer()).get(
+      `/trusted-issuers-registry/v2/issuers/did:ebsi:0x01/attributes/${attributeId}`
+    );
+    expect(response1.body).toStrictEqual({
+      detail: expect.stringContaining(
+        `Attribute ${attributeId} not found`
+      ) as string,
+      status: 404,
+      title: "Attribute Not Found",
+      type: "about:blank",
+    });
+    expect(response1.status).toBe(404);
+
+    // consult an attribute from a random did
+    const response2 = await request(app.getHttpServer()).get(
+      `/trusted-issuers-registry/v2/issuers/did:ebsi:unknown/attributes/${attributeId}`
+    );
+    expect(response2.body).toStrictEqual({
+      detail: expect.stringContaining(
+        `Issuer did:ebsi:unknown not found`
+      ) as string,
+      status: 404,
+      title: "Issuer Not Found",
+      type: "about:blank",
+    });
+    expect(response2.status).toBe(404);
+
+    // consult an attribute from a different did
+    const data = Buffer.from(JSON.stringify(jsonlds[4]));
+    const attributeId4 = ethers.utils.keccak256(data);
+    const response3 = await request(app.getHttpServer()).get(
+      `/trusted-issuers-registry/v2/issuers/did:ebsi:0x02/attributes/${attributeId4}`
+    );
+    expect(response3.body).toStrictEqual({
+      detail: expect.stringContaining(
+        `Attribute ${attributeId4} not found`
+      ) as string,
+      status: 404,
+      title: "Attribute Not Found",
+      type: "about:blank",
+    });
+    expect(response3.status).toBe(404);
+  });
 });

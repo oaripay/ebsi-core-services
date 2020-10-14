@@ -7,6 +7,7 @@ import {
 import LedgerService from "../../shared/services/ledger.service";
 import {
   IssuersListSmartContractResponseObject,
+  AttributeObject,
   IssuerResponseObject,
 } from "./types/issuers.interface";
 import TrustedIssuersRegistryContract from "../../shared/types/trusted-issuers-registry.interface";
@@ -27,6 +28,10 @@ export default class IssuersService {
     this.domain = this.configService.get<string>("domain");
   }
 
+  getDomain(): string {
+    return this.domain;
+  }
+
   async getIssuers(
     page: number,
     howMany: number
@@ -43,7 +48,21 @@ export default class IssuersService {
     }
   }
 
-  async getIssuer(_did: string): Promise<IssuerResponseObject> {
+  async getAttributeId(attributeId: string): Promise<AttributeObject> {
+    // This function assumes that the attributeId exists
+    const { attribData } = await this.tirContract.getIssuerAttributebyHash(
+      attributeId
+    );
+    const bufferAttribute = Buffer.from(attribData.slice(2), "hex");
+    const attributeBase64 = bufferAttribute.toString("base64");
+
+    return {
+      hash: attributeId,
+      body: attributeBase64,
+    };
+  }
+
+  async getAttributes(_did: string): Promise<AttributeObject[]> {
     const did = _did.toLowerCase();
     const attributesLastHash = await this.tirContract.getIssuer(did);
     if (attributesLastHash.length === 0) {
@@ -52,23 +71,36 @@ export default class IssuersService {
       });
     }
 
-    const formatIssuer = async (hash: string) => {
-      const { attribData } = await this.tirContract.getIssuerAttributebyHash(
-        hash
-      );
-      const bufferAttribute = Buffer.from(attribData.slice(2), "hex");
-      return {
-        hash,
-        body: bufferAttribute.toString("base64"),
-      };
-    };
+    return Promise.all(
+      attributesLastHash.map(async (hash) => {
+        return this.getAttributeId(hash);
+      })
+    );
+  }
 
-    const attributes = await Promise.all(attributesLastHash.map(formatIssuer));
-
+  async getIssuer(_did: string): Promise<IssuerResponseObject> {
+    const did = _did.toLowerCase();
+    const attributes = await this.getAttributes(did);
     return { did, attributes };
   }
 
-  getDomain(): string {
-    return this.domain;
+  async didIncludesAttribute(
+    did: string,
+    attributeId: string
+  ): Promise<boolean> {
+    const attributesLastHash = await this.tirContract.getIssuer(did);
+    if (attributesLastHash.length === 0) {
+      throw new NotFoundError("Issuer Not Found", {
+        detail: `Issuer ${did} not found`,
+      });
+    }
+    const ListRevisionHashes = await Promise.all(
+      attributesLastHash.map(async (hash) => {
+        return this.tirContract.getIssuerAttributeHistory(hash);
+      })
+    );
+    return !!ListRevisionHashes.find((revisionHashes) => {
+      return revisionHashes.find((hash) => hash === attributeId);
+    });
   }
 }

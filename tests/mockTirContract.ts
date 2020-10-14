@@ -180,6 +180,12 @@ function pagination(data: unknown[], inputPage: number, howMany: number) {
   };
 }
 
+function validateHash(hash: string) {
+  if (!hash.startsWith("0x") || hash.length !== 66) {
+    throw new Error("hex data is odd-length");
+  }
+}
+
 export function mockTirContract(): ethers.Contract {
   return ({
     connect() {
@@ -193,10 +199,24 @@ export function mockTirContract(): ethers.Contract {
           return [];
         }),
         getIssuerAttributebyHash: jest.fn((attrHash: string) => {
+          validateHash(attrHash);
+          if (!attributesInfos[attrHash]) {
+            return {
+              did: "",
+              attribData: "",
+            };
+          }
           const { did, attrId } = attributesInfos[attrHash];
           const attribData =
             issuers[did].attributesDetail[attrId].versionData[attrHash];
           return { did, attribData };
+        }),
+        getIssuerAttributeHistory: jest.fn((attrHash: string) => {
+          validateHash(attrHash);
+          const attrInfo = attributesInfos[attrHash];
+          if (!attributesInfos[attrHash]) return [];
+          const issuer = issuers[attrInfo.did];
+          return issuer.attributesDetail[attrInfo.attrId].versionHashes;
         }),
       };
     },

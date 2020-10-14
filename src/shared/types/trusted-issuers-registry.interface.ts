@@ -14,4 +14,6 @@ export default interface TrustedIssuersRegistryContract {
     did: string;
     attribData: string;
   }>;
+
+  getIssuerAttributeHistory: (anyAttrVersHash: string) => Promise<string[]>;
 }

@@ -1,8 +1,13 @@
 import { ethers } from "ethers";
 
+export interface AttributeObject {
+  hash: string;
+  body: string;
+}
+
 export interface IssuerResponseObject {
   did: string;
-  attributes: unknown[];
+  attributes: AttributeObject[];
 }
 
 export interface IssuersListResponseObject {

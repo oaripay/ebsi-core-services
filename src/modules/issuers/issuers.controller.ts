@@ -1,9 +1,11 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
+import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import IssuersService from "./issuers.service";
 import formatIssuers from "./issuers.formatter";
 import {
   IssuersListResponseObject,
   IssuerResponseObject,
+  AttributeObject,
 } from "./types/issuers.interface";
 import QueryPagination from "./types/query.interface";
 
@@ -46,5 +48,26 @@ export default class IssuersController {
   ): Promise<IssuerResponseObject> {
     const { did } = params;
     return this.issuersService.getIssuer(did);
+  }
+
+  @Get("/v2/issuers/:did/attributes")
+  issuerAttributes(
+    @Param() params: { did: string }
+  ): Promise<AttributeObject[]> {
+    const { did } = params;
+    return this.issuersService.getAttributes(did);
+  }
+
+  @Get("/v2/issuers/:did/attributes/:attributeId")
+  async issuerAttributeId(
+    @Param() params: { did: string; attributeId: string }
+  ): Promise<AttributeObject> {
+    const { did, attributeId } = params;
+    if (!(await this.issuersService.didIncludesAttribute(did, attributeId))) {
+      throw new NotFoundError("Attribute Not Found", {
+        detail: `Attribute ${attributeId} not found`,
+      });
+    }
+    return this.issuersService.getAttributeId(attributeId);
   }
 }
