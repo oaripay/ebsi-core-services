@@ -5,8 +5,14 @@ declare global {
       NODE_ENV: "development" | "production" | "test";
       EBSI_ENV: "local" | "integration" | "development" | "production";
       API_PRIVATE_KEY: string;
-      APP_PORT?: string;
+      API_PORT?: string;
+      API_URL_PREFIX?: string;
       LOG_LEVEL?: "error" | "warn" | "log" | "verbose" | "debug" | "silent";
+      ADMIN_TEST_PRIVATE_KEY?: string;
+      BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: string;
+      DOMAIN?: string;
+      LEDGER?: string;
+      PROVIDER?: string;
     }
   }
 }

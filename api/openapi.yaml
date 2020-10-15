@@ -166,15 +166,19 @@ paths:
       tags:
         - Trusted Issuers Registry
       summary: Helper APIs
-      description: "Helper APIs that assist the construction of blockchain transactions for TIR SC operations, and interaction with the ledger (Write operation on ledger)"
+      description: |
+        Helper APIs that assist the construction of blockchain transactions for TIR SC operations,
+        and interaction with the ledger (Write operation on ledger)
       requestBody:
         description: |
           The body follows the
           [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+
           It requires the following fields:
 
           - **jsonrpc**: Must be exactly '2.0'
-          - **method**: Method that to be invoked. Possible values: insertIssuer, signedTransaction.
+          - **method**: Method that to be invoked. Possible values: insertAdministrator,
+          insertIssuer, signedTransaction.
           - **params**: Array of parameters
           - **id**: Identifier stablished by the client
         content:
@@ -203,6 +207,19 @@ paths:
                   type: integer
                   example: 1
             examples:
+              Build tx to insert administrator:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertAdministrator
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      attribute:
+                        {
+                          body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9",
+                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+                        }
+                  id: 1
               Build tx to insert issuer:
                 value:
                   jsonrpc: "2.0"

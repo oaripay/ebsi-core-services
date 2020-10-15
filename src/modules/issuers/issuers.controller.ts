@@ -1,4 +1,5 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import IssuersService from "./issuers.service";
 import formatIssuers from "./issuers.formatter";
@@ -8,14 +9,16 @@ import {
   AttributeObject,
 } from "./types/issuers.interface";
 import QueryPagination from "./types/query.interface";
+import { ConfigObject } from "../../config/configuration";
 
-const version = "v2";
-
-@Controller("/trusted-issuers-registry")
+@Controller("/issuers")
 export default class IssuersController {
-  constructor(private issuersService: IssuersService) {}
+  constructor(
+    private issuersService: IssuersService,
+    private configService: ConfigService<ConfigObject>
+  ) {}
 
-  @Get("/v2/issuers")
+  @Get("")
   async issuers(
     @Query() query: QueryPagination
   ): Promise<IssuersListResponseObject> {
@@ -25,16 +28,19 @@ export default class IssuersController {
     const issuers = await this.issuersService.getIssuers(page, howMany);
     const { items, total, pageSize, prev, next } = formatIssuers(issuers);
 
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+
     return {
-      self: `${this.issuersService.getDomain()}/trusted-issuers-registry/${version}/issuers`,
+      self: `${domain}${apiUrlPrefix}/issuers`,
       items,
       total,
       pageSize,
       links: {
-        first: `/trusted-issuers-registry/${version}/issuers?page[after]=0&page[size]=${pageSize}`,
-        prev: `/trusted-issuers-registry/${version}/issuers?page[after]=${prev}&page[size]=${pageSize}`,
-        next: `/trusted-issuers-registry/${version}/issuers?page[after]=${next}&page[size]=${pageSize}`,
-        last: `/trusted-issuers-registry/${version}/issuers?page[after]=${parseInt(
+        first: `${apiUrlPrefix}/issuers?page[after]=0&page[size]=${pageSize}`,
+        prev: `${apiUrlPrefix}/issuers?page[after]=${prev}&page[size]=${pageSize}`,
+        next: `${apiUrlPrefix}/issuers?page[after]=${next}&page[size]=${pageSize}`,
+        last: `${apiUrlPrefix}/issuers?page[after]=${parseInt(
           Number((total - 1) / pageSize).toString(),
           10
         )}&page[size]=${pageSize}`,
@@ -42,7 +48,7 @@ export default class IssuersController {
     };
   }
 
-  @Get("/v2/issuers/:did")
+  @Get("/:did")
   async issuer(
     @Param() params: { did?: string }
   ): Promise<IssuerResponseObject> {
@@ -50,7 +56,7 @@ export default class IssuersController {
     return this.issuersService.getIssuer(did);
   }
 
-  @Get("/v2/issuers/:did/attributes")
+  @Get("/:did/attributes")
   issuerAttributes(
     @Param() params: { did: string }
   ): Promise<AttributeObject[]> {
@@ -58,7 +64,7 @@ export default class IssuersController {
     return this.issuersService.getAttributes(did);
   }
 
-  @Get("/v2/issuers/:did/attributes/:attributeId")
+  @Get("/:did/attributes/:attributeId")
   async issuerAttributeId(
     @Param() params: { did: string; attributeId: string }
   ): Promise<AttributeObject> {

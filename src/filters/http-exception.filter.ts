@@ -53,11 +53,13 @@ export default class AllExceptionsFilter implements ExceptionFilter {
         detail:
           "The server encountered an internal error and was unable to complete your request",
       });
-      this.logger.error(err.message);
-      this.logger.error(err.stack);
+
+      this.logger.error(err.message, err.stack);
     }
 
-    this.logger.debug(`${problemError.toString()}: ${problemError.detail}`);
+    this.logger.debug(
+      `${problemError.toString()}: ${problemError.detail || "No detail"}`
+    );
 
     return response
       .code(problemError.status)

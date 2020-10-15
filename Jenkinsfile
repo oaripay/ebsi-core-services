@@ -21,19 +21,15 @@ pipeline {
         TAG = "`grep image .ci/${EBSI_ENV}/docker-compose.yml | cut -d':' -f3`"
     }
     stages {
-        stage('Clone repo') {
-            steps {
-                checkout scm;
-            }
-        }
-        stage('Unit Test') {
+        stage('Lint and unit test') {
             environment {
               BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS = '0xcb29a1C8bf556047e164A51EB011B5b3047348f7'
               API_PRIVATE_KEY = credentials('APP_PRIVATE_KEY_TRUSTED_ISSUERS')
             }
             steps {
                 sh "yarn install --frozen-lockfile"
-                sh "yarn test:unit"
+                sh "yarn lint"
+                sh "yarn test:ci"
             }
         }
         stage('Pre Checks') {

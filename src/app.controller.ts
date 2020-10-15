@@ -1,12 +1,9 @@
-import { Controller, Get, Logger } from "@nestjs/common";
+import { Controller, Get } from "@nestjs/common";
 
-@Controller("/trusted-issuers-registry")
+@Controller()
 export default class AppController {
-  private readonly logger = new Logger(AppController.name);
-
-  @Get("/v2/health")
+  @Get("/health")
   health(): string {
-    this.logger.debug("GET health/");
     return "ok";
   }
 }

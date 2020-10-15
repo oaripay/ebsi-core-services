@@ -18,18 +18,11 @@ export default class IssuersService {
 
   private tirContract: TrustedIssuersRegistryContract;
 
-  private domain: string;
-
   constructor(
     private ledgerService: LedgerService,
     private configService: ConfigService
   ) {
     this.tirContract = (this.ledgerService.getContract() as unknown) as TrustedIssuersRegistryContract;
-    this.domain = this.configService.get<string>("domain");
-  }
-
-  getDomain(): string {
-    return this.domain;
   }
 
   async getIssuers(

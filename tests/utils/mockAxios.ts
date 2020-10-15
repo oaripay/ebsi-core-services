@@ -1,5 +1,5 @@
 import { BadRequestError } from "@cef-ebsi/problem-details-errors";
-import JsonRpcResponseObject from "../src/modules/jsonrpc/types/jsonrpc.interface";
+import JsonRpcResponseObject from "../../src/modules/jsonrpc/types/jsonrpc.interface";
 
 interface AxiosResponseSessions {
   status: number;
@@ -10,6 +10,7 @@ interface AxiosResponseSessions {
     issuedAt: number;
   };
 }
+
 interface AxiosResponseJsonRpc {
   status: number;
   data: JsonRpcResponseObject;

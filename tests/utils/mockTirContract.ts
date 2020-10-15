@@ -11,18 +11,6 @@ interface DbIssuer {
     };
   };
 }
-interface DbTir {
-  dids: string[];
-  issuers: {
-    [x: string]: DbIssuer;
-  };
-  attributesInfos: {
-    [y: string]: {
-      did: string;
-      attrId: string;
-    };
-  };
-}
 
 const jsonData = [
   {

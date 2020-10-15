@@ -1,21 +1,17 @@
 {
+  "extends": "@tsconfig/node12/tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
     "resolveJsonModule": true,
-    "declaration": true,
-    "removeComments": true,
+    "allowSyntheticDefaultImports": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "ES2018",
+    "declaration": false,
     "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": "./",
-    "types": ["jest", "node"],
     "incremental": true,
-    "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "strict": false,
+    "outDir": "./dist",
+    "baseUrl": "./"
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist", "uploads"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
 }

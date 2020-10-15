@@ -5,17 +5,20 @@ import { Agent, Scope } from "@cef-ebsi/app-jwt";
 import { ConfigService } from "@nestjs/config";
 import LedgerService from "../../shared/services/ledger.service";
 import RequestInsertIssuerDto from "./dto/insertIssuer/request-insert-issuer.dto";
+import RequestInsertAdministratorDto from "./dto/insertAdministrator/request-insert-administrator.dto";
 import RequestSignedTransactionDto from "./dto/signedTransaction/request-signed-transaction.dto";
 import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
 import JsonRpcResponseObject from "./types/jsonrpc.interface";
-import { validate, InvalidRequestJsonRpcError } from "./errors";
+import { InvalidRequestJsonRpcError } from "./errors";
 import TrustedIssuersRegistryContract from "../../shared/types/trusted-issuers-registry.interface";
 import ParamSignedTransaction from "./dto/signedTransaction/param.dto";
 import ArgsInsertIssuer from "./dto/signedTransaction/args-insert-issuer.dto";
+import ArgsInsertAdministrator from "./dto/signedTransaction/args-insert-administrator.dto";
 import {
-  unsignedTransactionEthers,
-  signatureEthers,
-} from "./jsonrpc.formatter";
+  formatEthersUnsignedTransaction,
+  formatEthersSignature,
+  validateClass,
+} from "./jsonrpc.utils";
 
 interface AxiosResponseSessions {
   status: number;
@@ -39,6 +42,7 @@ interface AxiosErrorResponse {
     data: unknown;
   };
 }
+
 @Injectable()
 export default class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
@@ -171,8 +175,8 @@ export default class JsonRpcService {
   async verifyTransaction(param: ParamSignedTransaction): Promise<string> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
 
-    const unsignedTx = unsignedTransactionEthers(unsignedTransaction);
-    const signature = signatureEthers(r, s, v);
+    const unsignedTx = formatEthersUnsignedTransaction(unsignedTransaction);
+    const signature = formatEthersSignature(r, s, v);
 
     // Serialize transaction with and without signature
     const serializedTransaction = ethers.utils.serializeTransaction(unsignedTx);
@@ -212,8 +216,12 @@ export default class JsonRpcService {
     );
 
     switch (functionFragment.name) {
+      case "insertAdministrator": {
+        await validateClass(ArgsInsertAdministrator, args);
+        break;
+      }
       case "insertIssuer": {
-        await validate(ArgsInsertIssuer, args);
+        await validateClass(ArgsInsertIssuer, args);
         break;
       }
       default:
@@ -247,12 +255,34 @@ export default class JsonRpcService {
     return unsignedTransaction;
   }
 
+  async buildTransactionInsertAdministrator(
+    body: RequestInsertAdministratorDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertAdministratorDto, body);
+      const { from, did, attribute } = body.params[0];
+      const bufferAttribute = Buffer.from(attribute.body, "base64");
+      const expectedHash = ethers.utils.keccak256(bufferAttribute);
+      if (attribute.hash !== expectedHash)
+        throw new Error(
+          `Invalid attribute.hash. Received: ${attribute.hash}. Expected: ${expectedHash}`
+        );
+      const data = [did.toLowerCase(), bufferAttribute];
+      return await this.buildTransaction(from, "insertAdministrator", data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
   async buildTransactionInsertIssuer(
     body: RequestInsertIssuerDto,
     id?: number | string
   ): Promise<UnsignedTransaction> {
     try {
-      await validate(RequestInsertIssuerDto, body);
+      await validateClass(RequestInsertIssuerDto, body);
       const { from, did, attribute } = body.params[0];
       const bufferAttribute = Buffer.from(attribute.body, "base64");
       const expectedHash = ethers.utils.keccak256(bufferAttribute);
@@ -274,7 +304,7 @@ export default class JsonRpcService {
     id?: number | string
   ): Promise<string> {
     try {
-      await validate(RequestSignedTransactionDto, body);
+      await validateClass(RequestSignedTransactionDto, body);
       const request = body.params[0];
       const signer = await this.verifyTransaction(request);
       await this.checkWritePermission(signer);

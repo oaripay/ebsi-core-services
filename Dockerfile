@@ -13,8 +13,7 @@ FROM base
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /app/dist dist
-ENV APP_PORT=3000
 RUN chown node:node /app
 USER node
-EXPOSE 3000/tcp
 CMD [ "node", "dist/main" ]
+

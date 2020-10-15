@@ -1,7 +1,10 @@
+import * as ClassValidator from "class-validator";
+import { ClassTransformer } from "class-transformer";
+import { ClassType } from "class-transformer/ClassTransformer";
 import { ethers } from "ethers";
 import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
 
-export function unsignedTransactionEthers(
+export function formatEthersUnsignedTransaction(
   unsignedTransaction: UnsignedTransaction
 ): ethers.UnsignedTransaction {
   return {
@@ -15,7 +18,7 @@ export function unsignedTransactionEthers(
   };
 }
 
-export function signatureEthers(
+export function formatEthersSignature(
   r: string,
   s: string,
   v: string
@@ -28,3 +31,14 @@ export function signatureEthers(
     _vs: null,
   };
 }
+
+export const validateClass = async (
+  classType: ClassType<unknown>,
+  data: unknown
+): Promise<void> => {
+  const dataClass = new ClassTransformer().plainToClass(classType, data);
+  const errors = await ClassValidator.validate(dataClass);
+  if (errors.length > 0) {
+    throw new Error(errors.toString());
+  }
+};

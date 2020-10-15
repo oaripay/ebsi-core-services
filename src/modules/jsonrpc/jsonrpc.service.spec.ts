@@ -1,28 +1,21 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication } from "@nestjs/common";
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 import axios from "axios";
-import { FastifyInstance } from "fastify";
 import JsonRpcService from "./jsonrpc.service";
 import AppModule from "../../app.module";
-import { mockTirContract } from "../../../tests/mockTirContract";
-
+import { mockTirContract } from "../../../tests/utils/mockTirContract";
 import {
   ledgerWorking,
   ledgerBadRequest,
   sessionsWorkingBesuBadRequest,
   sessionsWorkingBesuError,
   sessionsWorkingBesuUnexpectedError,
-} from "../../../tests/mockAxios";
+} from "../../../tests/utils/mockAxios";
 
 jest.spyOn(ethers, "Contract").mockImplementation(mockTirContract);
 
 describe("JsonRpcService", () => {
-  let app: INestApplication;
   let jsonRpcService: JsonRpcService;
 
   beforeAll(async () => {
@@ -30,12 +23,10 @@ describe("JsonRpcService", () => {
       imports: [AppModule],
     }).compile();
 
+    // Turn off logger
+    Logger.overrideLogger(false);
+
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
-    );
-    await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
   });
 
   beforeEach(() => {
@@ -43,11 +34,7 @@ describe("JsonRpcService", () => {
     jest.spyOn(axios, "post").mockImplementation(ledgerWorking);
   });
 
-  afterAll(async () => {
-    await app.close();
-  });
-
-  it(`Throws error the service cannot create a new session with ledger api`, async () => {
+  it(`Throws error if the service cannot create a new session with ledger api`, async () => {
     expect.assertions(1);
     jest.spyOn(axios, "post").mockImplementation(ledgerBadRequest);
     await expect(jsonRpcService.createSession()).rejects.toThrow(

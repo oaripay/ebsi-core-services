@@ -1,22 +1,29 @@
 pipeline {
     agent any
-    environment {
-        NODE_ENV='test'
-        EBSI_ENV='integration'
-        BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS='0x9B8397f1B0FEcD3a1a40CdD5E8221Fa461898517'
-        API_PRIVATE_KEY=credentials('APP_PRIVATE_KEY_TRUSTED_ISSUERS')
-        APP_PORT='3000'
-    }
     stages {
-        stage('Clone repo') {
+        stage('Setup') {
             steps {
-               checkout scm;
+                sh 'yarn install --frozen-lockfile'
             }
         }
-        stage('Unit Test') {
-            steps{
-                sh "yarn install --frozen-lockfile"
-                sh "yarn test:unit"
+        stage('Audit dependencies') {
+            steps {
+                sh 'yarn run audit'
+            }
+        }
+        stage('Lint') {
+            steps {
+                sh 'yarn lint'
+            }
+        }
+        stage('Unit tests') {
+            environment {
+                EBSI_ENV='integration'
+                BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS='0x9B8397f1B0FEcD3a1a40CdD5E8221Fa461898517'
+                API_PRIVATE_KEY=credentials('APP_PRIVATE_KEY_TRUSTED_ISSUERS')
+            }
+            steps {
+                sh 'yarn test:ci'
             }
         }
         stage('SonarQube Analysis') {
