@@ -16,6 +16,10 @@ import { FastifyInstance } from "fastify";
 import { loadConfig } from "../../src/config/configuration";
 import AppModule from "../../src/app.module";
 import AllExceptionsFilter from "../../src/filters/http-exception.filter";
+import {
+  AdministratorsListResponseObject,
+  AdministratorResponseObject,
+} from "../../src/modules/administrators/types/administrators.interface";
 import JsonRpcResponseObject from "../../src/modules/jsonrpc/types/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
@@ -23,6 +27,16 @@ import { waitToBeMined } from "../utils/waitToBeMined";
 interface SupertestJsonRpcResponse {
   status: number;
   body: JsonRpcResponseObject;
+}
+
+interface SupertestAdministratorsResponse {
+  status: number;
+  body: AdministratorsListResponseObject;
+}
+
+interface SupertestAdministratorResponse {
+  status: number;
+  body: AdministratorResponseObject;
 }
 
 jest.setTimeout(60000);
@@ -74,6 +88,76 @@ describe("Administrators (e2e)", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+  });
+
+  describe("/administrators", () => {
+    it("should return a collection of administrators", async () => {
+      expect.assertions(2);
+      const response: SupertestAdministratorsResponse = await request(
+        server
+      ).get("/administrators");
+
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          self: expect.stringContaining(
+            "/trusted-issuers-registry/v2/administrators"
+          ) as string,
+          items: expect.arrayContaining([]) as string[],
+          total: expect.any(Number) as number,
+          pageSize: expect.any(Number) as number,
+          links: expect.objectContaining({
+            first: expect.stringContaining(
+              "/trusted-issuers-registry/v2/administrators"
+            ) as string,
+            prev: expect.stringContaining(
+              "/trusted-issuers-registry/v2/administrators"
+            ) as string,
+            next: expect.stringContaining(
+              "/trusted-issuers-registry/v2/administrators"
+            ) as string,
+            last: expect.stringContaining(
+              "/trusted-issuers-registry/v2/administrators"
+            ) as string,
+          }) as AdministratorsListResponseObject["links"],
+        })
+      );
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("/administrators/{did}", () => {
+    it("should return a specific administrator", async () => {
+      expect.assertions(3);
+      const administrators: SupertestAdministratorsResponse = await request(
+        server
+      ).get("/administrators");
+      expect(administrators.status).toBe(200);
+      const did: string =
+        administrators.body.items[administrators.body.items.length - 1];
+
+      const response: SupertestAdministratorResponse = await request(
+        server
+      ).get(`/administrators/${did}`);
+      expect(response.body).toStrictEqual({
+        did: did.toLowerCase(),
+        attributes: expect.arrayContaining([]) as unknown[],
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the administrator is not found", async () => {
+      expect.assertions(2);
+      const response = await request(server).get(
+        "/administrators/unknown-administrator"
+      );
+      expect(response.body).toStrictEqual({
+        title: "Administrator Not Found",
+        status: 404,
+        detail: "Administrator unknown-administrator not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
   });
 
   describe("/jsonrpc - method: insertAdministrator", () => {

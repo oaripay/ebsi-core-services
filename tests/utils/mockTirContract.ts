@@ -178,6 +178,27 @@ export function mockTirContract(): ethers.Contract {
   return ({
     connect() {
       return {
+        getAdministrators: jest.fn((inputPage, howMany) => {
+          return pagination(dids, inputPage, howMany);
+        }),
+        getAdministrator: jest.fn((did: string) => {
+          const issuer = issuers[did];
+          if (issuer) return issuer.attributes;
+          return [];
+        }),
+        getAdministratorAttributebyHash: jest.fn((attrHash: string) => {
+          validateHash(attrHash);
+          if (!attributesInfos[attrHash]) {
+            return {
+              did: "",
+              attribData: "",
+            };
+          }
+          const { did, attrId } = attributesInfos[attrHash];
+          const attribData =
+            issuers[did].attributesDetail[attrId].versionData[attrHash];
+          return { did, attribData };
+        }),
         getIssuers: jest.fn((inputPage, howMany) => {
           return pagination(dids, inputPage, howMany);
         }),

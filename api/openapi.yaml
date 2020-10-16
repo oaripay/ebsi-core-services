@@ -7,18 +7,158 @@ info:
     The first implementation of this service in v1 checks for the presence of issuers DID
     in a Trusted Issuers Smart Contract and verifies if they are allowed
     to issue specific Verifiable Credentials.
-  version: 1.0.0
+  version: 2.0.0
   termsOfService: "/docs/terms"
   contact:
-    name: "EBSI Support"
+    name: EBSI Support
     url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
   license:
-    name: "EUPL-1.2"
+    name: EUPL-1.2
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
 tags:
   - name: Trusted Issuers Registry
     description: List and verify trusted issuers
 paths:
+  /trusted-issuers-registry/v2/administrators:
+    get:
+      tags:
+        - Trusted Issuers Registry
+      summary: List of trusted administrators
+      description: Returns a list of trusted administrators
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to administrators
+                  items:
+                    type: array
+                    description: list of administrators whith their decentralized identifier
+                    items:
+                      type: string
+                  total:
+                    type: integer
+                    description: Total number of pages in a collection
+                  pageSize:
+                    type: integer
+                    description: number of items to be return per page
+                  links:
+                    $ref: "#/components/schemas/links"
+              examples:
+                Success:
+                  value:
+                    self: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators"
+                    items:
+                      - did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                      - did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                    total: 2
+                    pageSize: 10
+                    links:
+                      first: "/trusted-issuers-registry/v2/administrators?page[after]=0&page[size]=10"
+                      prev: "/trusted-issuers-registry/v2/administrators?page[after]=2&page[size]=10"
+                      next: "/trusted-issuers-registry/v2/administrators?page[after]=4&page[size]=10"
+                      last: "/trusted-issuers-registry/v2/administrators?page[after]=13&page[size]=10"
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      operationId: get-trusted-issuers-registry-v2-administrators
+      parameters:
+        - in: query
+          name: "page[before]"
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: "page[after]"
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: Defines the maximum number of objects that may be returned.
+  "/trusted-issuers-registry/v2/administrators/{did}":
+    get:
+      tags:
+        - Trusted Issuers Registry
+      summary: Get administrator by its Decentralized Identifier
+      description: Returns a trusted administrator by its decentralized identifier
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/administrator"
+              examples:
+                Success:
+                  value:
+                    did: "did:ebsi:0x464190367BE948210608a46847bed183607f685A"
+                    attributes:
+                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                        body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9"
+        "400":
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: "The format of {did} parameter is not valid"
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      operationId: get-trusted-administrator
   /trusted-issuers-registry/v2/issuers:
     get:
       tags:
@@ -43,7 +183,7 @@ paths:
                       type: string
                   total:
                     type: integer
-                    description: " total number of pages in a collection"
+                    description: Total number of pages in a collection
                   pageSize:
                     type: integer
                     description: number of items to be return per page
@@ -75,7 +215,6 @@ paths:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-
         "500":
           description: Internal Server Error
           content:
@@ -85,7 +224,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-issuers-registry-v1-issuers
+      operationId: get-trusted-issuers-registry-v2-issuers
       parameters:
         - in: query
           name: "page[before]"
@@ -162,7 +301,7 @@ paths:
       operationId: get-trusted-issuer
   "/trusted-issuers-registry/v2/jsonrpc":
     post:
-      operationId: post-ledger-v1-blockchains-besu
+      operationId: post-ledger-v2-blockchains-besu
       tags:
         - Trusted Issuers Registry
       summary: Helper APIs
@@ -238,7 +377,7 @@ paths:
                   jsonrpc: "2.0"
                   method: signedTransaction
                   params:
-                    - protocol: "eth"
+                    - protocol: eth
                       unsignedTransaction:
                         from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                         to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
@@ -300,7 +439,7 @@ components:
         Not Enough Credit:
           type: "https://example.com/probs/out-of-credit"
           title: You do not have enough credit.
-          detail: "Your current balance is 30, but that costs 50."
+          detail: Your current balance is 30, but that costs 50.
           instance: /account/12345/msgs/abc
       properties:
         type:
@@ -341,16 +480,16 @@ components:
       properties:
         last:
           type: string
-          description: " URI of the last page"
+          description: URI of the last page
         prev:
           type: string
-          description: " URI of the previous page"
+          description: URI of the previous page
         next:
           type: string
-          description: " URI of the next page"
+          description: URI of the next page
         first:
           type: string
-          description: " URI of the first page"
+          description: URI of the first page
       description: links model used for pagination
       x-examples:
         Links:
@@ -373,6 +512,26 @@ components:
           oneOf:
             - type: object
             - type: string
+    administrator:
+      title: Administrator
+      type: object
+      description: Name of the administrator
+      properties:
+        did:
+          type: string
+          description: did of the administrator
+        attributes:
+          type: array
+          description: Array of attributes
+          items:
+            type: object
+            properties:
+              hash:
+                description: Attribute Id
+                type: string
+              body:
+                description: Attribute content in base64
+                type: string
     issuer:
       title: Issuer
       type: object
