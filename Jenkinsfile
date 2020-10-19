@@ -21,11 +21,6 @@ pipeline {
         TAG = "`grep image .ci/${EBSI_ENV}/docker-compose.yml | cut -d':' -f3`"
     }
     stages {
-        stage('Clone repo') {
-            steps {
-                checkout scm;
-            }
-        }
         stage('Unit test') {
             steps {
                 sh 'yarn install --frozen-lockfile'
