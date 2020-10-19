@@ -1,19 +1,18 @@
 pipeline {
     agent any
-    environment {
-        EBSI_ENV='test'
-        DEBUG_LEVEL='silly'
-        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY_HUB')
-    }
     stages {
-        stage('Clone repo') {
+        stage('Setup') {
             steps {
-               checkout scm;
+               sh 'yarn install --frozen-lockfile'
             }
         }
         stage('Unit test') {
+            environment {
+                EBSI_ENV='test'
+                DEBUG_LEVEL='silly'
+                API_PRIVATE_KEY=credentials('API_PRIVATE_KEY_HUB')
+            }
             steps {
-                sh 'yarn install --frozen-lockfile'
                 sh 'yarn run test:unit'
             }
         }

@@ -21,11 +21,6 @@ pipeline {
         TAG = "`grep image .ci/${EBSI_ENV}/docker-compose.yml | cut -d':' -f3`"
     }
     stages {
-        stage('Clone repo') {
-            steps {
-                checkout scm;
-            }
-        }
         stage('Pre Checks') {
             steps {
                 sh "/usr/local/bin/auto_container_validate.sh ${CONTAINER_NAME} ${MCO_TARGET} app lux"
