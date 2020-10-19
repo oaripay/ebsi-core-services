@@ -162,7 +162,7 @@ describe("Issuers (e2e)", () => {
     const dataHash = ethers.utils.keccak256(data);
     const attribute = {
       body: dataBase64,
-      hash: dataHash,
+      hash: dataHash.slice(2),
     };
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
@@ -290,8 +290,11 @@ describe("Issuers (e2e)", () => {
         `/issuers/${did}/attributes/${attributeId}`
       );
       expect(response.body).toStrictEqual({
-        body: expect.any(String) as string,
-        hash: expect.any(String) as string,
+        did,
+        attribute: {
+          body: expect.any(String) as string,
+          hash: attributeId,
+        },
       });
       expect(response.status).toBe(200);
     });
@@ -359,5 +362,39 @@ describe("Issuers (e2e)", () => {
       });
       expect(response3.status).toBe(404);
     });
+  });
+
+  it("Get revisions", async () => {
+    expect.assertions(4);
+
+    const issuers: SupertestIssuersResponse = await request(server).get(
+      "/issuers"
+    );
+    expect(issuers.status).toBe(200);
+    const did: string = issuers.body.items[issuers.body.items.length - 1];
+
+    const responseIssuer: SupertestIssuerResponse = await request(server).get(
+      `/issuers/${did}`
+    );
+    expect(responseIssuer.status).toBe(200);
+    const attributeId = responseIssuer.body.attributes[0].hash;
+    const urlPath = `/trusted-issuers-registry/v2/issuers/${did}/attributes/${attributeId}/revisions`;
+
+    const response = await request(server).get(
+      `/issuers/${did}/attributes/${attributeId}/revisions`
+    );
+    expect(response.body).toStrictEqual({
+      self: expect.stringContaining(urlPath) as string,
+      items: expect.arrayContaining([]) as AttributeObject[],
+      total: expect.any(Number) as number,
+      pageSize: expect.any(Number) as number,
+      links: {
+        first: expect.stringContaining(urlPath) as string,
+        prev: expect.stringContaining(urlPath) as string,
+        next: expect.stringContaining(urlPath) as string,
+        last: expect.stringContaining(urlPath) as string,
+      },
+    });
+    expect(response.status).toBe(200);
   });
 });

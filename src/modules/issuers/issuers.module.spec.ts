@@ -14,8 +14,13 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import IssuersModule from "./issuers.module";
+import { AttributeObject } from "./types/issuers.interface";
 import AllExceptionsFilter from "../../filters/http-exception.filter";
-import { mockTirContract, jsonlds } from "../../../tests/utils/mockTirContract";
+import {
+  mockTirContract,
+  jsonlds,
+  dummyData,
+} from "../../../tests/utils/mockTirContract";
 import { ledgerWorking } from "../../../tests/utils/mockAxios";
 
 jest.setTimeout(20000);
@@ -160,21 +165,21 @@ describe("Issuers Module", () => {
 
     const response1 = await request(server).get("/issuers?page[size]=100");
     expect(response1.body).toStrictEqual({
-      title: "Bad Paging Request",
+      title: "Bad Request",
       status: 400,
-      detail: "PageSize should not be greater than 50",
+      detail: '["PageSize must be between 1 and 50"]',
       type: "about:blank",
     });
     expect(response1.status).toBe(400);
 
     const response2 = await request(server).get("/issuers?page[size]=0");
     expect(response2.body).toStrictEqual({
-      title: "Bad Paging Request",
+      title: "Bad Request",
       status: 400,
-      detail: "PageSize should be greater than 0",
+      detail: '["PageSize must be between 1 and 50"]',
       type: "about:blank",
     });
-    expect(response1.status).toBe(400);
+    expect(response2.status).toBe(400);
   });
 
   it("Gets a specific issuer", async () => {
@@ -190,7 +195,7 @@ describe("Issuers Module", () => {
       attributes: [
         {
           body: dataBase64,
-          hash: dataHash,
+          hash: dataHash.slice(2),
         },
       ],
     });
@@ -224,7 +229,7 @@ describe("Issuers Module", () => {
     expect(response.body).toStrictEqual([
       {
         body: dataBase64,
-        hash: dataHash,
+        hash: dataHash.slice(2),
       },
     ]);
     expect(response.status).toBe(200);
@@ -240,8 +245,11 @@ describe("Issuers Module", () => {
       `/issuers/did:ebsi:0x01/attributes/${dataHash}`
     );
     expect(response.body).toStrictEqual({
-      body: dataBase64,
-      hash: dataHash,
+      did: "did:ebsi:0x01",
+      attribute: {
+        body: dataBase64,
+        hash: dataHash.slice(2),
+      },
     });
     expect(response.status).toBe(200);
   });
@@ -297,5 +305,146 @@ describe("Issuers Module", () => {
       type: "about:blank",
     });
     expect(response3.status).toBe(404);
+  });
+
+  it("Get revisions", async () => {
+    expect.assertions(3);
+
+    const did = "did:ebsi:0x12";
+    const data = Buffer.from(JSON.stringify(dummyData[did][0].attribute));
+    const dataHash = ethers.utils.keccak256(data);
+    const urlPath = `/trusted-issuers-registry/v2/issuers/${did}/attributes/${dataHash}/revisions`;
+
+    const response = await request(server).get(
+      `/issuers/${did}/attributes/${dataHash}/revisions`
+    );
+    expect(response.body).toStrictEqual({
+      self: expect.stringContaining(urlPath) as string,
+      items: expect.arrayContaining([]) as AttributeObject[],
+      total: 20,
+      pageSize: 10,
+      links: {
+        first: `${urlPath}?page[after]=0&page[size]=10`,
+        prev: `${urlPath}?page[after]=0&page[size]=10`,
+        next: `${urlPath}?page[after]=1&page[size]=10`,
+        last: `${urlPath}?page[after]=1&page[size]=10`,
+      },
+    });
+    expect((response.body as { items: string }).items).toHaveLength(10);
+    expect(response.status).toBe(200);
+  });
+
+  it("Get revisions different pagination", async () => {
+    expect.assertions(12);
+
+    const did = "did:ebsi:0x12";
+    const data = Buffer.from(JSON.stringify(dummyData[did][0].attribute));
+    const dataHash = ethers.utils.keccak256(data);
+    const urlPath = `/trusted-issuers-registry/v2/issuers/${did}/attributes/${dataHash}/revisions`;
+
+    const response1 = await request(server).get(
+      `/issuers/${did}/attributes/${dataHash}/revisions?page[size]=3`
+    );
+    expect(response1.body).toStrictEqual({
+      self: expect.stringContaining(urlPath) as string,
+      items: expect.arrayContaining([]) as AttributeObject[],
+      total: 20,
+      pageSize: 3,
+      links: {
+        first: `${urlPath}?page[after]=0&page[size]=3`,
+        prev: `${urlPath}?page[after]=0&page[size]=3`,
+        next: `${urlPath}?page[after]=1&page[size]=3`,
+        last: `${urlPath}?page[after]=6&page[size]=3`,
+      },
+    });
+    expect((response1.body as { items: string }).items).toHaveLength(3);
+    expect(response1.status).toBe(200);
+
+    // next page
+    const response2 = await request(server).get(
+      `/issuers/${did}/attributes/${dataHash}/revisions?page[after]=1&page[size]=3`
+    );
+    expect(response2.body).toStrictEqual({
+      self: expect.stringContaining(urlPath) as string,
+      items: expect.arrayContaining([]) as AttributeObject[],
+      total: 20,
+      pageSize: 3,
+      links: {
+        first: `${urlPath}?page[after]=0&page[size]=3`,
+        prev: `${urlPath}?page[after]=0&page[size]=3`,
+        next: `${urlPath}?page[after]=2&page[size]=3`,
+        last: `${urlPath}?page[after]=6&page[size]=3`,
+      },
+    });
+    expect((response2.body as { items: string }).items).toHaveLength(3);
+    expect(response2.status).toBe(200);
+
+    // big page
+    const response3 = await request(server).get(
+      `/issuers/${did}/attributes/${dataHash}/revisions?page[after]=100&page[size]=3`
+    );
+    expect(response3.body).toStrictEqual({
+      self: expect.stringContaining(urlPath) as string,
+      items: expect.arrayContaining([]) as AttributeObject[],
+      total: 20,
+      pageSize: 3,
+      links: {
+        first: `${urlPath}?page[after]=0&page[size]=3`,
+        prev: `${urlPath}?page[after]=5&page[size]=3`,
+        next: `${urlPath}?page[after]=6&page[size]=3`,
+        last: `${urlPath}?page[after]=6&page[size]=3`,
+      },
+    });
+    expect((response3.body as { items: string }).items).toHaveLength(2);
+    expect(response3.status).toBe(200);
+
+    // page after defined but page size undefined
+    const response4 = await request(server).get(
+      `/issuers/${did}/attributes/${dataHash}/revisions?page[after]=1`
+    );
+    expect(response4.body).toStrictEqual({
+      self: expect.stringContaining(urlPath) as string,
+      items: expect.arrayContaining([]) as AttributeObject[],
+      total: 20,
+      pageSize: 10,
+      links: {
+        first: `${urlPath}?page[after]=0&page[size]=10`,
+        prev: `${urlPath}?page[after]=0&page[size]=10`,
+        next: `${urlPath}?page[after]=1&page[size]=10`,
+        last: `${urlPath}?page[after]=1&page[size]=10`,
+      },
+    });
+    expect((response4.body as { items: string }).items).toHaveLength(10);
+    expect(response4.status).toBe(200);
+  });
+
+  it("Throws bad request for bad pagination in get revisions", async () => {
+    expect.assertions(4);
+
+    const did = "did:ebsi:0x12";
+    const data = Buffer.from(JSON.stringify(dummyData[did][0].attribute));
+    const dataHash = ethers.utils.keccak256(data);
+
+    const response1 = await request(server).get(
+      `/issuers/${did}/attributes/${dataHash}/revisions?page[size]=100`
+    );
+    expect(response1.body).toStrictEqual({
+      title: "Bad Request",
+      status: 400,
+      detail: '["PageSize must be between 1 and 50"]',
+      type: "about:blank",
+    });
+    expect(response1.status).toBe(400);
+
+    const response2 = await request(server).get(
+      `/issuers/${did}/attributes/${dataHash}/revisions?page[size]=0`
+    );
+    expect(response2.body).toStrictEqual({
+      title: "Bad Request",
+      status: 400,
+      detail: '["PageSize must be between 1 and 50"]',
+      type: "about:blank",
+    });
+    expect(response2.status).toBe(400);
   });
 });

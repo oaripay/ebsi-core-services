@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import pagination from "../../src/shared/pagination.utils";
 
 interface DbIssuer {
   attributes: string[];
@@ -12,109 +13,265 @@ interface DbIssuer {
   };
 }
 
-const jsonData = [
-  {
-    name: "alice",
-  },
-  {
-    name: "bob",
-  },
-  {
-    name: "carl",
-  },
-  {
-    name: "dany",
-  },
-  {
-    name: "jacob",
-  },
-  {
-    name: "smith",
-  },
-  {
-    name: "leo",
-  },
-  {
-    name: "chris",
-  },
-  {
-    name: "vivi",
-  },
-  {
-    name: "albert",
-  },
-  {
-    name: "lisa",
-  },
-  {
-    name: "mary",
-  },
-  {
-    name: "nathalie",
-  },
-  {
-    name: "giny",
-  },
-  {
-    name: "carol",
-  },
-  {
-    name: "clob",
-  },
-  {
-    name: "lina",
-  },
-  {
-    name: "bob",
-  },
-  {
-    name: "jane",
-  },
-  {
-    name: "admin",
-    description: "this is an admin account with rights to create more issuers",
-  },
-];
+interface AttributeHistoryObject {
+  attribute?: unknown;
+  versions: {
+    [y: string]: unknown;
+  }[];
+}
+
+interface DummyDataObject {
+  [x: string]: AttributeHistoryObject[];
+}
 
 const context = {
   name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
   description: "http://tir-api-test.org/description",
 };
 
-const dids = [
-  "did:ebsi:0x00",
-  "did:ebsi:0x01",
-  "did:ebsi:0x02",
-  "did:ebsi:0x03",
-  "did:ebsi:0x04",
-  "did:ebsi:0x05",
-  "did:ebsi:0x06",
-  "did:ebsi:0x07",
-  "did:ebsi:0x08",
-  "did:ebsi:0x09",
-  "did:ebsi:0x10",
-  "did:ebsi:0x11",
-  "did:ebsi:0x12",
-  "did:ebsi:0x13",
-  "did:ebsi:0x14",
-  "did:ebsi:0x15",
-  "did:ebsi:0x16",
-  "did:ebsi:0x17",
-  "did:ebsi:0x18",
-  "did:ebsi:0x61dc3a5d45d81179406312ad3d7412d2eed65e61",
-];
+const dummyDataWithoutContext: DummyDataObject = {
+  "did:ebsi:0x00": [
+    {
+      versions: [
+        {
+          name: "alice",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x01": [
+    {
+      versions: [
+        {
+          name: "bob",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x02": [
+    {
+      versions: [
+        {
+          name: "carl",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x03": [
+    {
+      versions: [
+        {
+          name: "dany",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x04": [
+    {
+      versions: [
+        {
+          name: "jacob",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x05": [
+    {
+      versions: [
+        {
+          name: "smith",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x06": [
+    {
+      versions: [
+        {
+          name: "leo",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x07": [
+    {
+      versions: [
+        {
+          name: "chris",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x08": [
+    {
+      versions: [
+        {
+          name: "vivi",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x09": [
+    {
+      versions: [
+        {
+          name: "albert",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x10": [
+    {
+      versions: [
+        {
+          name: "lisa",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x11": [
+    {
+      versions: [
+        {
+          name: "mary",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x12": [
+    {
+      versions: [
+        {
+          name: "nathalie",
+        },
+        {
+          name: "nathalie2",
+        },
+        {
+          name: "nathalie3",
+        },
+        {
+          name: "nathalie4",
+        },
+        {
+          name: "nathalie5",
+        },
+        {
+          name: "nathalie6",
+        },
+        {
+          name: "nathalie7",
+        },
+        {
+          name: "nathalie8",
+        },
+        {
+          name: "nathalie9",
+        },
+        {
+          name: "nathalie10",
+        },
+        {
+          name: "nathalie11",
+        },
+        {
+          name: "nathalie12",
+        },
+        {
+          name: "nathalie13",
+        },
+        {
+          name: "nathalie14",
+        },
+        {
+          name: "nathalie15",
+        },
+        {
+          name: "nathalie16",
+        },
+        {
+          name: "nathalie17",
+        },
+        {
+          name: "nathalie18",
+        },
+        {
+          name: "nathalie19",
+        },
+        {
+          name: "nathalie20",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x13": [
+    {
+      versions: [
+        {
+          name: "giny",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x14": [
+    {
+      versions: [
+        {
+          name: "carol",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x15": [
+    {
+      versions: [
+        {
+          name: "clob",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x16": [
+    {
+      versions: [
+        {
+          name: "lina",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x17": [
+    {
+      versions: [
+        {
+          name: "boby",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x18": [
+    {
+      versions: [
+        {
+          name: "jane",
+        },
+      ],
+    },
+  ],
+  "did:ebsi:0x61dc3a5d45d81179406312ad3d7412d2eed65e61": [
+    {
+      versions: [
+        {
+          name: "admin",
+        },
+      ],
+    },
+  ],
+};
 
-export const jsonlds = jsonData.map((data) => ({
-  "@context": context,
-  ...data,
-}));
-const buffers = jsonlds.map((jsonld) =>
-  Buffer.from(JSON.stringify(jsonld), "utf8")
-);
-
-const attrHashes = buffers.map((b) => ethers.utils.keccak256(b));
-const attrData = buffers.map((b) => `0x${b.toString("hex")}`);
-
+export const jsonlds = [];
+export const dummyData: DummyDataObject = {};
+const dids = Object.keys(dummyDataWithoutContext);
 const issuers: {
   [x: string]: DbIssuer;
 } = {};
@@ -124,49 +281,48 @@ const attributesInfos: {
     attrId: string;
   };
 } = {};
-for (let i = 0; i < 20; i += 1) {
-  const versionData = {};
+
+dids.forEach((did) => {
+  const didAttributes = dummyDataWithoutContext[did].map((attributeHistory) => {
+    const versions = attributeHistory.versions.map((version) => {
+      return {
+        "@context": context,
+        ...version,
+      };
+    });
+    const lastVersion = versions.length ? versions[versions.length - 1] : null;
+    return {
+      attribute: lastVersion,
+      versions,
+    };
+  });
+  dummyData[did] = didAttributes;
+});
+
+dids.forEach((did) => {
+  const attributes = [];
   const attributesDetail = {};
+  dummyData[did].forEach((attributeHistory) => {
+    const { versions } = attributeHistory;
+    let attrId: string = null;
+    const versionData = {};
+    const versionHashes = [];
 
-  const attrId = attrHashes[i];
-  const did = dids[i];
-
-  versionData[attrId] = attrData[i];
-  const attributes = [attrId];
-  const versionHashes = [attrId];
-  attributesDetail[attrId] = { versionData, versionHashes };
-
+    versions.forEach((version, i) => {
+      jsonlds.push(version);
+      const buffer = Buffer.from(JSON.stringify(version), "utf8");
+      const attrHash = ethers.utils.keccak256(buffer);
+      const attrData = `0x${buffer.toString("hex")}`;
+      versionHashes.push(attrHash);
+      versionData[attrHash] = attrData;
+      if (i === 0) attrId = attrHash;
+      attributesInfos[attrHash] = { did, attrId };
+    });
+    attributes.push(attrId);
+    attributesDetail[attrId] = { versionData, versionHashes };
+  });
   issuers[did] = { attributes, attributesDetail };
-  attributesInfos[attrId] = { did, attrId };
-}
-
-function pagination(data: unknown[], inputPage: number, howMany: number) {
-  if (howMany > 50) throw new Error("PageSize should not be greater than 50");
-  if (howMany <= 0) throw new Error("PageSize should be greater than 0");
-  const total = data.length;
-  const pageSize = howMany < total ? howMany : total;
-  const lastPage = parseInt(Number((total - 1) / pageSize).toString(), 10);
-  let page = inputPage;
-  if (page > lastPage) page = lastPage;
-  else if (page < 0) page = 0;
-
-  const prev = page === 0 ? 0 : page - 1;
-  const next = page >= lastPage ? lastPage : page + 1;
-
-  const cursor = pageSize * page;
-  const length = page < lastPage ? pageSize : total - cursor;
-
-  const items = [];
-  for (let i = cursor; i < cursor + length; i += 1) items.push(data[i]);
-
-  return {
-    items,
-    total: ethers.BigNumber.from(total),
-    pageSize: ethers.BigNumber.from(pageSize),
-    prev: ethers.BigNumber.from(prev),
-    next: ethers.BigNumber.from(next),
-  };
-}
+});
 
 function validateHash(hash: string) {
   if (!hash.startsWith("0x") || hash.length !== 66) {
@@ -178,8 +334,23 @@ export function mockTirContract(): ethers.Contract {
   return ({
     connect() {
       return {
-        getAdministrators: jest.fn((inputPage, howMany) => {
-          return pagination(dids, inputPage, howMany);
+        getAdministrators: jest.fn((inputPage, pageSize) => {
+          if (pageSize > 50)
+            throw new Error("PageSize should not be greater than 50");
+          if (pageSize <= 0)
+            throw new Error("PageSize should be greater than 0");
+          const { items, total, prev, next } = pagination(
+            dids,
+            inputPage,
+            pageSize
+          );
+          return {
+            items,
+            total: ethers.BigNumber.from(total),
+            pageSize: ethers.BigNumber.from(pageSize),
+            prev: ethers.BigNumber.from(prev),
+            next: ethers.BigNumber.from(next),
+          };
         }),
         getAdministrator: jest.fn((did: string) => {
           const issuer = issuers[did];
@@ -199,8 +370,23 @@ export function mockTirContract(): ethers.Contract {
             issuers[did].attributesDetail[attrId].versionData[attrHash];
           return { did, attribData };
         }),
-        getIssuers: jest.fn((inputPage, howMany) => {
-          return pagination(dids, inputPage, howMany);
+        getIssuers: jest.fn((inputPage, pageSize) => {
+          if (pageSize > 50)
+            throw new Error("PageSize should not be greater than 50");
+          if (pageSize <= 0)
+            throw new Error("PageSize should be greater than 0");
+          const { items, total, prev, next } = pagination(
+            dids,
+            inputPage,
+            pageSize
+          );
+          return {
+            items,
+            total: ethers.BigNumber.from(total),
+            pageSize: ethers.BigNumber.from(pageSize),
+            prev: ethers.BigNumber.from(prev),
+            next: ethers.BigNumber.from(next),
+          };
         }),
         getIssuer: jest.fn((did: string) => {
           const issuer = issuers[did];

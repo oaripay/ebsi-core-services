@@ -12,6 +12,9 @@ import {
 } from "./types/issuers.interface";
 import TrustedIssuersRegistryContract from "../../shared/types/trusted-issuers-registry.interface";
 
+const prefixWith0x = (key: string): string =>
+  key.startsWith("0x") ? key : `0x${key}`;
+
 @Injectable()
 export default class IssuersService {
   private readonly logger = new Logger(IssuersService.name);
@@ -27,10 +30,10 @@ export default class IssuersService {
 
   async getIssuers(
     page: number,
-    howMany: number
+    pageSize: number
   ): Promise<IssuersListSmartContractResponseObject> {
     try {
-      return await this.tirContract.getIssuers(page, howMany);
+      return await this.tirContract.getIssuers(page, pageSize);
     } catch (error) {
       if ((error as Error).message.includes("PageSize should")) {
         throw new BadRequestError("Bad Paging Request", {
@@ -43,14 +46,15 @@ export default class IssuersService {
 
   async getAttributeId(attributeId: string): Promise<AttributeObject> {
     // This function assumes that the attributeId exists
+    const hash = prefixWith0x(attributeId);
     const { attribData } = await this.tirContract.getIssuerAttributebyHash(
-      attributeId
+      hash
     );
     const bufferAttribute = Buffer.from(attribData.slice(2), "hex");
     const attributeBase64 = bufferAttribute.toString("base64");
 
     return {
-      hash: attributeId,
+      hash: hash.slice(2),
       body: attributeBase64,
     };
   }
@@ -71,6 +75,21 @@ export default class IssuersService {
     );
   }
 
+  async getIssuerAttributeIdRevisions(
+    attributeId: string
+  ): Promise<AttributeObject[]> {
+    // This function assumes that the attributeId exists
+    const hash = prefixWith0x(attributeId);
+    const revisionHashes = await this.tirContract.getIssuerAttributeHistory(
+      hash
+    );
+    return Promise.all(
+      revisionHashes.map(async (revisionHash) => {
+        return this.getAttributeId(revisionHash);
+      })
+    );
+  }
+
   async getIssuer(_did: string): Promise<IssuerResponseObject> {
     const did = _did.toLowerCase();
     const attributes = await this.getAttributes(did);
@@ -81,6 +100,7 @@ export default class IssuersService {
     did: string,
     attributeId: string
   ): Promise<boolean> {
+    const attribId = prefixWith0x(attributeId);
     const attributesLastHash = await this.tirContract.getIssuer(did);
     if (attributesLastHash.length === 0) {
       throw new NotFoundError("Issuer Not Found", {
@@ -93,7 +113,7 @@ export default class IssuersService {
       })
     );
     return !!ListRevisionHashes.find((revisionHashes) => {
-      return revisionHashes.find((hash) => hash === attributeId);
+      return revisionHashes.find((hash) => hash === attribId);
     });
   }
 }

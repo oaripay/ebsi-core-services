@@ -43,6 +43,9 @@ interface AxiosErrorResponse {
   };
 }
 
+const prefixWith0x = (key: string): string =>
+  key.startsWith("0x") ? key : `0x${key}`;
+
 @Injectable()
 export default class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
@@ -264,9 +267,11 @@ export default class JsonRpcService {
       const { from, did, attribute } = body.params[0];
       const bufferAttribute = Buffer.from(attribute.body, "base64");
       const expectedHash = ethers.utils.keccak256(bufferAttribute);
-      if (attribute.hash !== expectedHash)
+      if (prefixWith0x(attribute.hash) !== expectedHash)
         throw new Error(
-          `Invalid attribute.hash. Received: ${attribute.hash}. Expected: ${expectedHash}`
+          `Invalid attribute.hash. Received: ${prefixWith0x(
+            attribute.hash
+          )}. Expected: ${expectedHash}`
         );
       const data = [did.toLowerCase(), bufferAttribute];
       return await this.buildTransaction(from, "insertAdministrator", data);
@@ -286,9 +291,11 @@ export default class JsonRpcService {
       const { from, did, attribute } = body.params[0];
       const bufferAttribute = Buffer.from(attribute.body, "base64");
       const expectedHash = ethers.utils.keccak256(bufferAttribute);
-      if (attribute.hash !== expectedHash)
+      if (prefixWith0x(attribute.hash) !== expectedHash)
         throw new Error(
-          `Invalid issuer.attribute.hash. Received: ${attribute.hash}. Expected: ${expectedHash}`
+          `Invalid issuer.attribute.hash. Received: ${prefixWith0x(
+            attribute.hash
+          )}. Expected: ${expectedHash}`
         );
       const data = [did.toLowerCase(), bufferAttribute];
       return await this.buildTransaction(from, "insertIssuer", data);

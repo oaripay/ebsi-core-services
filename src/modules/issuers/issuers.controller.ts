@@ -7,8 +7,11 @@ import {
   IssuersListResponseObject,
   IssuerResponseObject,
   AttributeObject,
+  AttributeDetailsObject,
+  AttributesListResponseObject,
 } from "./types/issuers.interface";
 import QueryPagination from "./types/query.interface";
+import pagination from "../../shared/pagination.utils";
 import { ConfigObject } from "../../config/configuration";
 
 @Controller("/issuers")
@@ -22,11 +25,11 @@ export default class IssuersController {
   async issuers(
     @Query() query: QueryPagination
   ): Promise<IssuersListResponseObject> {
-    const howMany = parseInt(query["page[size]"] ?? "10", 10);
+    const pageSize = parseInt(query["page[size]"] ?? "10", 10);
     const page = parseInt(query["page[after]"] ?? "0", 10);
 
-    const issuers = await this.issuersService.getIssuers(page, howMany);
-    const { items, total, pageSize, prev, next } = formatIssuers(issuers);
+    const issuers = await this.issuersService.getIssuers(page, pageSize);
+    const { items, total, prev, next } = formatIssuers(issuers);
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
@@ -67,13 +70,56 @@ export default class IssuersController {
   @Get("/:did/attributes/:attributeId")
   async issuerAttributeId(
     @Param() params: { did: string; attributeId: string }
-  ): Promise<AttributeObject> {
+  ): Promise<AttributeDetailsObject> {
     const { did, attributeId } = params;
     if (!(await this.issuersService.didIncludesAttribute(did, attributeId))) {
       throw new NotFoundError("Attribute Not Found", {
         detail: `Attribute ${attributeId} not found`,
       });
     }
-    return this.issuersService.getAttributeId(attributeId);
+    const attribute = await this.issuersService.getAttributeId(attributeId);
+    return { did, attribute };
+  }
+
+  @Get("/:did/attributes/:attributeId/revisions")
+  async issuerAttributeIdRevisions(
+    @Query() query: QueryPagination,
+    @Param() params: { did: string; attributeId: string }
+  ): Promise<AttributesListResponseObject> {
+    const pageSize = parseInt(query["page[size]"] ?? "10", 10);
+    const page = parseInt(query["page[after]"] ?? "0", 10);
+
+    const { did, attributeId } = params;
+    if (!(await this.issuersService.didIncludesAttribute(did, attributeId))) {
+      throw new NotFoundError("Attribute Not Found", {
+        detail: `Attribute ${attributeId} not found`,
+      });
+    }
+
+    const revisions = await this.issuersService.getIssuerAttributeIdRevisions(
+      attributeId
+    );
+
+    const { items, total, prev, next } = pagination(revisions, page, pageSize);
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const urlPath = `${apiUrlPrefix}/issuers/${did}/attributes/${attributeId}/revisions`;
+
+    return {
+      self: `${domain}${urlPath}`,
+      items: items as AttributeObject[],
+      total,
+      pageSize,
+      links: {
+        first: `${urlPath}?page[after]=0&page[size]=${pageSize}`,
+        prev: `${urlPath}?page[after]=${prev}&page[size]=${pageSize}`,
+        next: `${urlPath}?page[after]=${next}&page[size]=${pageSize}`,
+        last: `${urlPath}?page[after]=${parseInt(
+          Number((total - 1) / pageSize).toString(),
+          10
+        )}&page[size]=${pageSize}`,
+      },
+    };
   }
 }

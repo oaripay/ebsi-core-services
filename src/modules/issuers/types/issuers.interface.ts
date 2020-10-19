@@ -5,6 +5,24 @@ export interface AttributeObject {
   body: string;
 }
 
+export interface AttributeDetailsObject {
+  did: string;
+  attribute: AttributeObject;
+}
+
+export interface AttributesListResponseObject {
+  self: string;
+  items: AttributeObject[];
+  total: number;
+  pageSize: number;
+  links: {
+    first: string;
+    prev: string;
+    next: string;
+    last: string;
+  };
+}
+
 export interface IssuerResponseObject {
   did: string;
   attributes: AttributeObject[];
