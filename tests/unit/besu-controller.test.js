@@ -24,7 +24,7 @@ const controller = require("../../src/api/besu/controller");
 const ANONYMOUS = false;
 const { notary } = config;
 let chainId = 0; // The chain ID this transaction is authorized on, as specified by EIP-155.
-jest.setTimeout(10000);
+jest.setTimeout(60000);
 
 /*
  * Functions
@@ -251,7 +251,7 @@ describe("hyperledger Besu Test", () => {
     expect(result).toStrictEqual(respBesu(expect.any(String)));
     const txId = result.result;
 
-    await utils.sleep(2000);
+    await utils.sleep(10000);
     const receipt = await callAPI("eth_getTransactionReceipt", [txId]);
 
     expect(receipt).toStrictEqual(
@@ -272,7 +272,7 @@ describe("hyperledger Besu Test", () => {
     expect(result).toStrictEqual(respBesu(expect.any(String)));
     const txId = result.result;
 
-    await utils.sleep(2000);
+    await utils.sleep(10000);
     const receipt = await callAPI("eth_getTransactionReceipt", [txId]);
 
     expect(receipt).toStrictEqual(
@@ -293,7 +293,7 @@ describe("hyperledger Besu Test", () => {
     expect(result).toStrictEqual(respBesu(expect.any(String)));
     const txId = result.result;
 
-    await utils.sleep(2000);
+    await utils.sleep(10000);
     const receipt = await callAPI("eth_getTransactionReceipt", [txId]);
 
     expect(receipt).toStrictEqual(

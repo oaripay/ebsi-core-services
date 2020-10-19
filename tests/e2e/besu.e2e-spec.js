@@ -20,6 +20,8 @@ if (url) {
 const { notary } = config;
 let chainId;
 
+jest.setTimeout(30000);
+
 const callBesu = (method, params) => {
   return request
     .post("/ledger/v1/blockchains/besu")
@@ -193,7 +195,7 @@ describe("hyperledger Besu integration test", () => {
 
     const txId = response.body.result;
 
-    await utils.sleep(2000);
+    await utils.sleep(10000);
     const responseReceipt = await callBesuAuth("eth_getTransactionReceipt", [
       txId,
     ]);
