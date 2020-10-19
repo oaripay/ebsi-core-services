@@ -1,18 +1,17 @@
 pipeline {
     agent any
-    environment {
-        EBSI_ENV="local"
-        API_PRIVATE_KEY=credentials('API_STORAGE_PRIVATE_KEY')
-    }
     stages {
-        stage('Clone repo') {
+        stage('Setup') {
             steps {
-               checkout scm;
+               sh 'yarn install --frozen-lockfile'
             }
         }
         stage('Unit test') {
+            environment {
+                EBSI_ENV="local"
+                API_PRIVATE_KEY=credentials('API_STORAGE_PRIVATE_KEY')
+            }
             steps {
-                sh 'yarn install --frozen-lockfile'
                 sh 'yarn run test:unit'
             }
         }
