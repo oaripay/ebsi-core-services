@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   timestamp-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/timestamp-api:ebsiint-2132-timeout-for-old-hash_v0.0.1
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/timestamp-api:ebsiint-ebsiint-2207-handle-log-not-found-and-imporvement-on-filter-for-a-single-hash_v0.0.1
     build: ../..

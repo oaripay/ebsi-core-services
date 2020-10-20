@@ -13,7 +13,7 @@ pipeline {
         stage('Unit test') {
             steps {
                 sh 'yarn install --frozen-lockfile'
-                sh 'yarn run test:unit'
+                sh 'yarn run test:ci'
             }
         }
         stage('SonarQube Analysis') {

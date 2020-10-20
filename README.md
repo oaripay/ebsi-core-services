@@ -12,9 +12,9 @@ Clone the repository and move to the project directory
 git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/timestamp-api.git
 ```
 
-Copy `.env.example` and rename it as `.env`. Set there corresponding besu address for notarization.
+You can choose to run the project locally with your own Node.js environment, or you can use Docker Compose to run it.
 
-For building you can choose to build with docker or to build from source directly.
+If you need to modify some variables You can duplicate the content of `.env` or only set the variables that you want to change.
 
 ### Build with docker
 
@@ -24,7 +24,7 @@ run
 docker-compose up --build
 ```
 
-The api will be accesible at http://localhost:8080
+The api will be accesible at http://localhost:3000
 
 ### Build from source
 
@@ -40,7 +40,7 @@ Start the api
 yarn run start
 ```
 
-The api will be accesible at http://localhost:8080
+The api will be accesible at http://localhost:3000
 
 ## Unit Tests
 

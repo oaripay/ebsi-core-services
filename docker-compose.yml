@@ -3,8 +3,8 @@ version: "3.7"
 services:
   timestamp-api:
     build: .
+    env_file:
+      - .env
+      - .env.local
     ports:
-      - "8080:8080"
-    environment:
-      - EBSI_ENV=integration
-      - BESU_ADDRESS_NOTARY=${BESU_ADDRESS_NOTARY}
+      - "${API_PORT:-3000}:${API_PORT:-3000}"

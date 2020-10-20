@@ -32,7 +32,7 @@ pipeline {
             }
             steps {
                 sh 'yarn install --frozen-lockfile'
-                sh 'yarn run test:unit'
+                sh 'yarn run test:ci'
             }
         }
         stage('Pre Checks') {

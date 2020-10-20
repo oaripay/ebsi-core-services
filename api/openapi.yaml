@@ -262,54 +262,11 @@ components:
         title: Bad Request
         status: 400
         detail: Bad request
-    InvalidToken:
-      value:
-        title: Invalid Token
-        status: 400
-        detail: Invalid token
-    Unauthorized:
-      value:
-        title: Unauthorized
-        status: 401
-        detail: Unauthorized
-    Forbidden:
-      value:
-        title: Forbidden
-        status: 403
-        detail: Forbidden
-    NotFound:
-      value:
-        title: Not Found
-        status: 404
-        detail: Not found
-    TooLarge:
-      value:
-        title: Payload Too Large
-        status: 413
-        detail: Payload too large
     InternalError:
       value:
         title: Internal Server Error
         status: 500
         detail: Internal error
-    ListFiles:
-      value:
-        items:
-          - hash1
-          - hash2
-        total: 2
-    ListFilesPagination:
-      value:
-        items:
-          - hash1
-          - hash2
-        total: 2
-        pageSize: 3
-        links:
-          first: "/timestamp/v1/hashes?page[after]=fff&page[size]=2"
-          prev: "/timestamp/v1/hashes?page[after]=ppp&page[size]=2"
-          next: "/timestamp/v1/hashes?page[after]=nnn&page[size]=2"
-          last: "/timestamp/v1/hashes?page[after]=lll&page[size]=2"
 tags:
   - name: Timestamp
     description: Validate timestamped records
