@@ -10,9 +10,9 @@ export interface AdministratorResponseObject {
   attributes: AttributeObject[];
 }
 
-export interface AdministratorsListResponseObject {
+export interface PaginatedList<T> {
   self: string;
-  items: string[];
+  items: T[];
   total: number;
   pageSize: number;
   links: {
@@ -23,18 +23,20 @@ export interface AdministratorsListResponseObject {
   };
 }
 
+export interface IdLink {
+  id: string;
+  href: string;
+}
+
+export interface DidLink {
+  did: string;
+  href: string;
+}
+
 export interface AdministratorsListSmartContractResponseObject {
   items: string[];
   total: ethers.BigNumber;
   pageSize: ethers.BigNumber;
   prev: ethers.BigNumber;
   next: ethers.BigNumber;
-}
-
-export interface AdministratorsListSmartContractResponseObjectFormatted {
-  items: string[];
-  total: number;
-  pageSize: number;
-  prev: number;
-  next: number;
 }

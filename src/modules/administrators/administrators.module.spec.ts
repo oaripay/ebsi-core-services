@@ -39,7 +39,7 @@ describe("Administrators Module", () => {
     Logger.overrideLogger(false);
 
     app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
@@ -50,190 +50,347 @@ describe("Administrators Module", () => {
     await app.close();
   });
 
-  it("Get /administrators", async () => {
-    expect.assertions(3);
+  describe("GET /administrators", () => {
+    it("should return a paginated collection of administrators", async () => {
+      expect.assertions(3);
 
-    const response = await request(server).get("/administrators");
-    expect(response.body).toStrictEqual({
-      self: expect.stringContaining(
-        "/trusted-issuers-registry/v2/administrators"
-      ) as string,
-      items: expect.arrayContaining([]) as Array<string>,
-      total: 20,
-      pageSize: 10,
-      links: {
-        first:
-          "/trusted-issuers-registry/v2/administrators?page[after]=0&page[size]=10",
-        prev:
-          "/trusted-issuers-registry/v2/administrators?page[after]=0&page[size]=10",
-        next:
-          "/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=10",
-        last:
-          "/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=10",
-      },
-    });
-    expect((response.body as { items: string }).items).toHaveLength(10);
-    expect(response.status).toBe(200);
-  });
-
-  it("Get /administrators different pagination", async () => {
-    expect.assertions(12);
-
-    const response1 = await request(server).get("/administrators?page[size]=3");
-    expect(response1.body).toStrictEqual({
-      self: expect.stringContaining(
-        "/trusted-issuers-registry/v2/administrators"
-      ) as string,
-      items: expect.arrayContaining([]) as Array<string>,
-      total: 20,
-      pageSize: 3,
-      links: {
-        first:
-          "/trusted-issuers-registry/v2/administrators?page[after]=0&page[size]=3",
-        prev:
-          "/trusted-issuers-registry/v2/administrators?page[after]=0&page[size]=3",
-        next:
-          "/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=3",
-        last:
-          "/trusted-issuers-registry/v2/administrators?page[after]=6&page[size]=3",
-      },
-    });
-    expect((response1.body as { items: string }).items).toHaveLength(3);
-    expect(response1.status).toBe(200);
-
-    // next page
-    const response2 = await request(server).get(
-      "/administrators?page[after]=1&page[size]=3"
-    );
-    expect(response2.body).toStrictEqual({
-      self: expect.stringContaining(
-        "/trusted-issuers-registry/v2/administrators"
-      ) as string,
-      items: expect.arrayContaining([]) as Array<string>,
-      total: 20,
-      pageSize: 3,
-      links: {
-        first:
-          "/trusted-issuers-registry/v2/administrators?page[after]=0&page[size]=3",
-        prev:
-          "/trusted-issuers-registry/v2/administrators?page[after]=0&page[size]=3",
-        next:
-          "/trusted-issuers-registry/v2/administrators?page[after]=2&page[size]=3",
-        last:
-          "/trusted-issuers-registry/v2/administrators?page[after]=6&page[size]=3",
-      },
-    });
-    expect((response2.body as { items: string }).items).toHaveLength(3);
-    expect(response2.status).toBe(200);
-
-    // big page
-    const response3 = await request(server).get(
-      "/administrators?page[after]=100&page[size]=3"
-    );
-    expect(response3.body).toStrictEqual({
-      self: expect.stringContaining(
-        "/trusted-issuers-registry/v2/administrators"
-      ) as string,
-      items: expect.arrayContaining([]) as Array<string>,
-      total: 20,
-      pageSize: 3,
-      links: {
-        first:
-          "/trusted-issuers-registry/v2/administrators?page[after]=0&page[size]=3",
-        prev:
-          "/trusted-issuers-registry/v2/administrators?page[after]=5&page[size]=3",
-        next:
-          "/trusted-issuers-registry/v2/administrators?page[after]=6&page[size]=3",
-        last:
-          "/trusted-issuers-registry/v2/administrators?page[after]=6&page[size]=3",
-      },
-    });
-    expect((response3.body as { items: string }).items).toHaveLength(2);
-    expect(response3.status).toBe(200);
-
-    // page after defined but page size undefined
-    const response4 = await request(server).get(
-      "/administrators?page[after]=1"
-    );
-    expect(response4.body).toStrictEqual({
-      self: expect.stringContaining(
-        "/trusted-issuers-registry/v2/administrators"
-      ) as string,
-      items: expect.arrayContaining([]) as Array<string>,
-      total: 20,
-      pageSize: 10,
-      links: {
-        first:
-          "/trusted-issuers-registry/v2/administrators?page[after]=0&page[size]=10",
-        prev:
-          "/trusted-issuers-registry/v2/administrators?page[after]=0&page[size]=10",
-        next:
-          "/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=10",
-        last:
-          "/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=10",
-      },
-    });
-    expect((response4.body as { items: string }).items).toHaveLength(10);
-    expect(response4.status).toBe(200);
-  });
-
-  it("Throws bad request for bad pagination in get /administrators", async () => {
-    expect.assertions(4);
-
-    const response1 = await request(server).get(
-      "/administrators?page[size]=100"
-    );
-    expect(response1.body).toStrictEqual({
-      title: "Bad Paging Request",
-      status: 400,
-      detail: "PageSize should not be greater than 50",
-      type: "about:blank",
-    });
-    expect(response1.status).toBe(400);
-
-    const response2 = await request(server).get("/administrators?page[size]=0");
-    expect(response2.body).toStrictEqual({
-      title: "Bad Paging Request",
-      status: 400,
-      detail: "PageSize should be greater than 0",
-      type: "about:blank",
-    });
-    expect(response1.status).toBe(400);
-  });
-
-  it("Gets a specific administrator", async () => {
-    expect.assertions(2);
-
-    const response = await request(server).get("/administrators/did:ebsi:0x00");
-    const data = Buffer.from(JSON.stringify(jsonlds[0]));
-    const dataBase64 = data.toString("base64");
-    const dataHash = ethers.utils.keccak256(data);
-
-    expect(response.body).toStrictEqual({
-      did: "did:ebsi:0x00",
-      attributes: [
-        {
-          body: dataBase64,
-          hash: dataHash,
+      const response = await request(server).get("/administrators");
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining("/administrators") as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 20,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/administrators?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/administrators?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining(
+            "/administrators?page[after]=2&page[size]=10"
+          ) as string,
+          last: expect.stringContaining(
+            "/administrators?page[after]=2&page[size]=10"
+          ) as string,
         },
-      ],
+      });
+      expect((response.body as { items: string }).items).toHaveLength(10);
+      expect(response.status).toBe(200);
     });
-    expect(response.status).toBe(200);
+
+    it("should handle the pagination properly", async () => {
+      expect.assertions(12);
+
+      const response1 = await request(server).get(
+        "/administrators?page[size]=3"
+      );
+      expect(response1.body).toStrictEqual({
+        self: expect.stringContaining("/administrators") as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 20,
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining(
+            "/administrators?page[after]=1&page[size]=3"
+          ) as string,
+          prev: expect.stringContaining(
+            "/administrators?page[after]=1&page[size]=3"
+          ) as string,
+          next: expect.stringContaining(
+            "/administrators?page[after]=2&page[size]=3"
+          ) as string,
+          last: expect.stringContaining(
+            "/administrators?page[after]=7&page[size]=3"
+          ) as string,
+        },
+      });
+      expect((response1.body as { items: string }).items).toHaveLength(3);
+      expect(response1.status).toBe(200);
+
+      // next page
+      const response2 = await request(server).get(
+        "/administrators?page[after]=2&page[size]=3"
+      );
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining("/administrators") as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 20,
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining(
+            "/administrators?page[after]=1&page[size]=3"
+          ) as string,
+          prev: expect.stringContaining(
+            "/administrators?page[after]=1&page[size]=3"
+          ) as string,
+          next: expect.stringContaining(
+            "/administrators?page[after]=3&page[size]=3"
+          ) as string,
+          last: expect.stringContaining(
+            "/administrators?page[after]=7&page[size]=3"
+          ) as string,
+        },
+      });
+      expect((response2.body as { items: string }).items).toHaveLength(3);
+      expect(response2.status).toBe(200);
+
+      // big page
+      const response3 = await request(server).get(
+        "/administrators?page[after]=100&page[size]=3"
+      );
+      expect(response3.body).toStrictEqual({
+        self: expect.stringContaining("/administrators") as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 20,
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining(
+            "/administrators?page[after]=1&page[size]=3"
+          ) as string,
+          prev: expect.stringContaining(
+            "/administrators?page[after]=7&page[size]=3"
+          ) as string,
+          next: expect.stringContaining(
+            "/administrators?page[after]=7&page[size]=3"
+          ) as string,
+          last: expect.stringContaining(
+            "/administrators?page[after]=7&page[size]=3"
+          ) as string,
+        },
+      });
+      expect((response3.body as { items: string }).items).toHaveLength(2);
+      expect(response3.status).toBe(200);
+
+      // page after defined but page size undefined
+      const response4 = await request(server).get(
+        "/administrators?page[after]=1"
+      );
+      expect(response4.body).toStrictEqual({
+        self: expect.stringContaining("/administrators") as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 20,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/administrators?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/administrators?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining(
+            "/administrators?page[after]=2&page[size]=10"
+          ) as string,
+          last: expect.stringContaining(
+            "/administrators?page[after]=2&page[size]=10"
+          ) as string,
+        },
+      });
+      expect((response4.body as { items: string }).items).toHaveLength(10);
+      expect(response4.status).toBe(200);
+    });
+
+    it("should throw a Bad Request for bad pagination", async () => {
+      expect.assertions(8);
+
+      const response1 = await request(server).get(
+        "/administrators?page[size]=100"
+      );
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be greater than 50"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server).get(
+        "/administrators?page[size]=0"
+      );
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server).get(
+        "/administrators?page[after]=0"
+      );
+      expect(response3.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[after] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+
+      const response4 = await request(server).get(
+        "/administrators?page[after]=abc"
+      );
+      expect(response4.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+    });
   });
 
-  it("Throws error for administrator not found", async () => {
-    expect.assertions(2);
+  describe("GET /administrators/{did}", () => {
+    it("should return a specific administrator", async () => {
+      expect.assertions(2);
 
-    const response = await request(server).get(
-      "/administrators/no-administrator"
-    );
+      const response = await request(server).get(
+        "/administrators/did:ebsi:0x00"
+      );
+      const data = Buffer.from(JSON.stringify(jsonlds[0]));
+      const dataBase64 = data.toString("base64");
+      const dataHash = ethers.utils.keccak256(data);
 
-    expect(response.body).toStrictEqual({
-      title: "Administrator Not Found",
-      status: 404,
-      detail: "Administrator no-administrator not found",
-      type: "about:blank",
+      expect(response.body).toStrictEqual({
+        did: "did:ebsi:0x00",
+        attributes: [
+          {
+            body: dataBase64,
+            hash: dataHash,
+          },
+        ],
+      });
+      expect(response.status).toBe(200);
     });
-    expect(response.status).toBe(404);
+
+    it("should throw an error if the administrator is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        "/administrators/no-administrator"
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Administrator Not Found",
+        status: 404,
+        detail: "Administrator no-administrator not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+  });
+
+  describe("GET /administrators/{did}/attributes", () => {
+    it("should return the attributes of a specific administrator", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        "/administrators/did:ebsi:0x00/attributes"
+      );
+      const data = Buffer.from(JSON.stringify(jsonlds[0]));
+      const dataHash = ethers.utils.keccak256(data);
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/administrators/did:ebsi:0x00/attributes"
+        ) as string,
+        items: [
+          {
+            href: expect.stringContaining(
+              `/administrators/did:ebsi:0x00/attributes/${dataHash}`
+            ) as string,
+            id: dataHash,
+          },
+        ],
+        total: expect.any(Number) as number,
+        pageSize: expect.any(Number) as number,
+        links: {
+          first: expect.stringContaining(
+            "/administrators/did:ebsi:0x00/attributes?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/administrators/did:ebsi:0x00/attributes?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining(
+            "/administrators/did:ebsi:0x00/attributes?page[after]=1&page[size]=10"
+          ) as string,
+          last: expect.stringContaining(
+            "/administrators/did:ebsi:0x00/attributes?page[after]=1&page[size]=10"
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /administrators/{did}/attributes/{attributeId}", () => {
+    it("should return a specific attribute", async () => {
+      expect.assertions(2);
+
+      const data = Buffer.from(JSON.stringify(jsonlds[1]));
+      const dataBase64 = data.toString("base64");
+      const dataHash = ethers.utils.keccak256(data);
+      const response = await request(server).get(
+        `/administrators/did:ebsi:0x01/attributes/${dataHash}`
+      );
+      expect(response.body).toStrictEqual({
+        body: dataBase64,
+        hash: dataHash,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error when the attribute is not found", async () => {
+      expect.assertions(6);
+
+      // Consult a random attribute
+      const attributeId =
+        "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
+      const response1 = await request(server).get(
+        `/administrators/did:ebsi:0x01/attributes/${attributeId}`
+      );
+
+      expect(response1.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Attribute ${attributeId} not found`
+        ) as string,
+        status: 404,
+        title: "Attribute Not Found",
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(404);
+
+      // Consult an attribute from a random did
+      const response2 = await request(server).get(
+        `/administrators/did:ebsi:unknown/attributes/${attributeId}`
+      );
+
+      expect(response2.body).toStrictEqual({
+        detail: expect.stringContaining(
+          "Administrator did:ebsi:unknown not found"
+        ) as string,
+        status: 404,
+        title: "Administrator Not Found",
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(404);
+
+      // Consult an attribute from a different did
+      const data = Buffer.from(JSON.stringify(jsonlds[4]));
+      const attributeId4 = ethers.utils.keccak256(data);
+      const response3 = await request(server).get(
+        `/administrators/did:ebsi:0x02/attributes/${attributeId4}`
+      );
+
+      expect(response3.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Attribute ${attributeId4} not found`
+        ) as string,
+        status: 404,
+        title: "Attribute Not Found",
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(404);
+    });
   });
 });

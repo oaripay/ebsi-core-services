@@ -1,15 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  BadRequestError,
-  NotFoundError,
-} from "@cef-ebsi/problem-details-errors";
+import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import LedgerService from "../../shared/services/ledger.service";
 import {
   AdministratorsListSmartContractResponseObject,
   AttributeObject,
   AdministratorResponseObject,
-} from "./types/administrators.interface";
+} from "./administrators.interface";
 import TrustedIssuersRegistryContract from "../../shared/types/trusted-issuers-registry.interface";
 
 @Injectable()
@@ -27,21 +24,15 @@ export default class AdministratorsService {
 
   async getAdministrators(
     page: number,
-    howMany: number
+    pageSize: number
   ): Promise<AdministratorsListSmartContractResponseObject> {
-    try {
-      return await this.tirContract.getAdministrators(page, howMany);
-    } catch (error) {
-      if ((error as Error).message.includes("PageSize should")) {
-        throw new BadRequestError("Bad Paging Request", {
-          detail: (error as Error).message,
-        });
-      }
-      throw error;
-    }
+    // TODO: currently, the SC is 0-based
+    // Remove this fix when the SC is updated
+    const scPage = page - 1;
+    return this.tirContract.getAdministrators(scPage, pageSize);
   }
 
-  async getAttributeId(attributeId: string): Promise<AttributeObject> {
+  async getAttribute(attributeId: string): Promise<AttributeObject> {
     // This function assumes that the attributeId exists
     const {
       attribData,
@@ -58,6 +49,7 @@ export default class AdministratorsService {
   async getAttributes(_did: string): Promise<AttributeObject[]> {
     const did = _did.toLowerCase();
     const attributesLastHash = await this.tirContract.getAdministrator(did);
+
     if (attributesLastHash.length === 0) {
       throw new NotFoundError("Administrator Not Found", {
         detail: `Administrator ${did} not found`,
@@ -66,7 +58,7 @@ export default class AdministratorsService {
 
     return Promise.all(
       attributesLastHash.map(async (hash) => {
-        return this.getAttributeId(hash);
+        return this.getAttribute(hash);
       })
     );
   }
@@ -82,17 +74,20 @@ export default class AdministratorsService {
     attributeId: string
   ): Promise<boolean> {
     const attributesLastHash = await this.tirContract.getAdministrator(did);
+
     if (attributesLastHash.length === 0) {
       throw new NotFoundError("Administrator Not Found", {
         detail: `Administrator ${did} not found`,
       });
     }
-    const ListRevisionHashes = await Promise.all(
+
+    const revisionHashesList = await Promise.all(
       attributesLastHash.map(async (hash) => {
         return this.tirContract.getAdministratorAttributeHistory(hash);
       })
     );
-    return !!ListRevisionHashes.find((revisionHashes) => {
+
+    return !!revisionHashesList.find((revisionHashes) => {
       return revisionHashes.find((hash) => hash === attributeId);
     });
   }

@@ -2,11 +2,8 @@ openapi: 3.0.3
 info:
   title: Trusted Issuers Registry API
   description: |
-    Trusted Issuers Registry API is a Core Service of the EBSI platform verifying
-    if a legal entity is authorized to issue a W3C Verifiable Credential.
-    The first implementation of this service in v1 checks for the presence of issuers DID
-    in a Trusted Issuers Smart Contract and verifies if they are allowed
-    to issue specific Verifiable Credentials.
+    Trusted Issuers Registry API is a Core Service of the EBSI platform verifying if a legal entity
+    is authorized to issue a W3C Verifiable Credential.
   version: 2.0.0
   termsOfService: "/docs/terms"
   contact:
@@ -38,9 +35,16 @@ paths:
                     description: URI to administrators
                   items:
                     type: array
-                    description: list of administrators whith their decentralized identifier
+                    description: List of administrators
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        did:
+                          type: string
+                          description: DID of the administrator
+                        href:
+                          type: string
+                          description: Link to the resource
                   total:
                     type: integer
                     description: Total number of pages in a collection
@@ -52,17 +56,19 @@ paths:
               examples:
                 Success:
                   value:
-                    self: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators"
+                    self: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=3&page[size]=10"
                     items:
-                      - did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                      - did:ebsi:0x454253492d52554c45532d4d414c494e41524148
-                    total: 2
+                      - did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+                        href: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      - did: "did:ebsi:0x454253492d52554c45532d4d414c494e41524148"
+                        href: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148"
+                    total: 124
                     pageSize: 10
                     links:
-                      first: "/trusted-issuers-registry/v2/administrators?page[after]=0&page[size]=10"
-                      prev: "/trusted-issuers-registry/v2/administrators?page[after]=2&page[size]=10"
-                      next: "/trusted-issuers-registry/v2/administrators?page[after]=4&page[size]=10"
-                      last: "/trusted-issuers-registry/v2/administrators?page[after]=13&page[size]=10"
+                      first: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=10"
+                      prev: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=2&page[size]=10"
+                      next: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=4&page[size]=10"
+                      last: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=13&page[size]=10"
         "400":
           description: Bad Request Error
           content:
@@ -159,6 +165,176 @@ paths:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
       operationId: get-trusted-administrator
+  "/trusted-issuers-registry/v2/administrators/{did}/attributes":
+    get:
+      tags:
+        - Trusted Issuers Registry
+      summary: List the attributes of an administrator
+      description: Returns a list of attributes for a given administrator
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to attributes
+                  items:
+                    type: array
+                    description: list of attributes
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: Attribute id. (hash, keccak-256)
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of pages in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/links"
+              examples:
+                Success:
+                  value:
+                    self: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=3&page[size]=10"
+                    items:
+                      - id: "792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b"
+                        href: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b"
+                      - id: "7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2"
+                        href: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2"
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10"
+                      prev: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=2&page[size]=10"
+                      next: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=4&page[size]=10"
+                      last: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=13&page[size]=10"
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      operationId: get-trusted-issuers-registry-v2-administrators-did-attributes
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+          required: true
+        - in: query
+          name: "page[before]"
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: "page[after]"
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: "page[size]"
+          description: Defines the maximum number of objects that may be returned.
+  "/trusted-issuers-registry/v2/administrators/{did}/attributes/{attributeId}":
+    get:
+      tags:
+        - Trusted Issuers Registry
+      summary: Get a specific attribute
+      description: Returns the corresponding attribute of a given administrator
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+          required: true
+        - name: attributeId
+          in: path
+          schema:
+            type: string
+          example: "7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2"
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/attributeDetails"
+              examples:
+                Success:
+                  value:
+                    did: "did:ebsi:0x464190367BE948210608a46847bed183607f685A"
+                    attribute:
+                      hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9"
+        "400":
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: "The format of {did} parameter is not valid"
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      operationId: get-trusted-issuers-registry-v2-administrators-did-attributes-attributeid
   /trusted-issuers-registry/v2/issuers:
     get:
       tags:
@@ -795,19 +971,12 @@ components:
       properties:
         did:
           type: string
-          description: did of the administrator
+          description: DID of the administrator
         attributes:
           type: array
           description: Array of attributes
           items:
-            type: object
-            properties:
-              hash:
-                description: Attribute Id
-                type: string
-              body:
-                description: Attribute content in base64
-                type: string
+            $ref: "#/components/schemas/attribute"
     issuer:
       title: Issuer
       type: object
@@ -820,14 +989,7 @@ components:
           type: array
           description: Array of attributes
           items:
-            type: object
-            properties:
-              hash:
-                description: Attribute Id
-                type: string
-              body:
-                description: Attribute content in base64
-                type: string
+            $ref: "#/components/schemas/attribute"
     attribute:
       title: Attribute
       type: object

@@ -5,6 +5,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ValidationPipe, NestMiddleware } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { FastifyInstance } from "fastify";
 import { fastifyHelmet } from "fastify-helmet";
 import AppModule from "./app.module";
 import AllExceptionsFilter from "./filters/http-exception.filter";
@@ -40,14 +41,26 @@ async function bootstrap() {
 
   app.setGlobalPrefix(apiUrlPrefix);
   app.useGlobalFilters(new AllExceptionsFilter());
-  app.register(fastifyHelmet);
+
+  // app.register(fastifyHelmet) currently produces TS Errors
+  // Argument of type 'FastifyPluginCallback<Readonly<HelmetOptions>, Server>' is not assignable to parameter of type 'FastifyPlugin<Readonly<HelmetOptions>>'.
+  // NestJS doesn't seem to support FastifyPluginCallback yet
+  // That's why we use this workaround
+  await (app.getHttpAdapter().getInstance() as FastifyInstance).register(
+    fastifyHelmet
+  );
+
   app.use(
-    (req: { method: string; url: string }, res, next: () => NestMiddleware) => {
+    (
+      req: { method: string; url: string },
+      res: unknown,
+      next: () => NestMiddleware
+    ) => {
       logger.log(`${req.method} ${req.url}`, "main");
       next();
     }
   );
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   logger.log(
     `API start, NODE_ENV: ${process.env.NODE_ENV} port:${port}`,

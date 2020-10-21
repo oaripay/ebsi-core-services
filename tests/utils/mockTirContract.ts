@@ -353,8 +353,8 @@ export function mockTirContract(): ethers.Contract {
           };
         }),
         getAdministrator: jest.fn((did: string) => {
-          const issuer = issuers[did];
-          if (issuer) return issuer.attributes;
+          const administrator = issuers[did];
+          if (administrator) return administrator.attributes;
           return [];
         }),
         getAdministratorAttributebyHash: jest.fn((attrHash: string) => {
@@ -369,6 +369,13 @@ export function mockTirContract(): ethers.Contract {
           const attribData =
             issuers[did].attributesDetail[attrId].versionData[attrHash];
           return { did, attribData };
+        }),
+        getAdministratorAttributeHistory: jest.fn((attrHash: string) => {
+          validateHash(attrHash);
+          const attrInfo = attributesInfos[attrHash];
+          if (!attributesInfos[attrHash]) return [];
+          const administrator = issuers[attrInfo.did];
+          return administrator.attributesDetail[attrInfo.attrId].versionHashes;
         }),
         getIssuers: jest.fn((inputPage, pageSize) => {
           if (pageSize > 50)
