@@ -8,6 +8,7 @@ import {
   AdministratorResponseObject,
 } from "./administrators.interface";
 import TrustedIssuersRegistryContract from "../../shared/types/trusted-issuers-registry.interface";
+import { prefixWith0x } from "../../shared/utils";
 
 @Injectable()
 export default class AdministratorsService {
@@ -90,5 +91,21 @@ export default class AdministratorsService {
     return !!revisionHashesList.find((revisionHashes) => {
       return revisionHashes.find((hash) => hash === attributeId);
     });
+  }
+
+  async getAdministratorAttributeRevisions(
+    attributeId: string
+  ): Promise<AttributeObject[]> {
+    // This function assumes that the attributeId exists
+    const hash = prefixWith0x(attributeId);
+    const revisionHashes = await this.tirContract.getIssuerAttributeHistory(
+      hash
+    );
+
+    return Promise.all(
+      revisionHashes.map(async (revisionHash) => {
+        return this.getAttribute(revisionHash);
+      })
+    );
   }
 }

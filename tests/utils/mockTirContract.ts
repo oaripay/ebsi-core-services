@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import pagination from "../../src/shared/pagination.utils";
+import { pagination } from "../../src/shared/utils";
 
 interface DbIssuer {
   attributes: string[];

@@ -24,6 +24,7 @@ import {
 import JsonRpcResponseObject from "../../src/modules/jsonrpc/types/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
+import { prefixWith0x } from "../../src/shared/utils";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -145,8 +146,6 @@ describe("Issuers (e2e)", () => {
   it("should insert and get a new issuer", async () => {
     expect.assertions(7);
 
-    const prefixWith0x = (key: string): string =>
-      key.startsWith("0x") ? key : `0x${key}`;
     const { adminTestPrivateKey } = loadConfig();
     const wallet = new ethers.Wallet(prefixWith0x(adminTestPrivateKey));
 

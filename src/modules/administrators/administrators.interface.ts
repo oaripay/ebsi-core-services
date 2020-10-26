@@ -10,19 +10,6 @@ export interface AdministratorResponseObject {
   attributes: AttributeObject[];
 }
 
-export interface PaginatedList<T> {
-  self: string;
-  items: T[];
-  total: number;
-  pageSize: number;
-  links: {
-    first: string;
-    prev: string;
-    next: string;
-    last: string;
-  };
-}
-
 export interface IdLink {
   id: string;
   href: string;

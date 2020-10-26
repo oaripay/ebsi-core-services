@@ -3,9 +3,7 @@ import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
 import * as TrustedIssuersRegistry from "../../contracts/TrustedIssuerRegistry.json";
 import TrustedIssuersRegistryContract from "../types/trusted-issuers-registry.interface";
-
-const prefixWith0x = (key: string): string =>
-  key.startsWith("0x") ? key : `0x${key}`;
+import { prefixWith0x } from "../utils";
 
 @Injectable()
 export default class LedgerService {

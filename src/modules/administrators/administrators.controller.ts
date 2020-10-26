@@ -5,15 +5,16 @@ import AdministratorsService from "./administrators.service";
 import {
   formatAdministrators,
   formatAttributes,
+  formatRevisions,
 } from "./administrators.formatter";
 import {
-  PaginatedList,
   IdLink,
   AdministratorResponseObject,
   AttributeObject,
   DidLink,
 } from "./administrators.interface";
 import PaginationQuery from "../../shared/dto/pagination-query";
+import { PaginatedList } from "../../shared/interfaces";
 import { ConfigObject } from "../../config/configuration";
 
 @Controller("/administrators")
@@ -88,5 +89,36 @@ export default class AdministratorsController {
     }
 
     return this.administratorsService.getAttribute(attributeId);
+  }
+
+  @Get("/:did/attributes/:attributeId/revisions")
+  async getAdministratorAttributeRevisions(
+    @Param() params: { did: string; attributeId: string },
+    @Query() query: PaginationQuery
+  ): Promise<PaginatedList<AttributeObject>> {
+    const { did, attributeId } = params;
+
+    if (
+      !(await this.administratorsService.didIncludesAttribute(did, attributeId))
+    ) {
+      throw new NotFoundError("Attribute Not Found", {
+        detail: `Attribute ${attributeId} not found`,
+      });
+    }
+
+    const revisions = await this.administratorsService.getAdministratorAttributeRevisions(
+      attributeId
+    );
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/administrators/${did}/attributes/${attributeId}/revisions`;
+
+    return formatRevisions(
+      revisions,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl
+    );
   }
 }

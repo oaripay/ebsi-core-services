@@ -11,9 +11,7 @@ import {
   IssuerResponseObject,
 } from "./types/issuers.interface";
 import TrustedIssuersRegistryContract from "../../shared/types/trusted-issuers-registry.interface";
-
-const prefixWith0x = (key: string): string =>
-  key.startsWith("0x") ? key : `0x${key}`;
+import { prefixWith0x } from "../../shared/utils";
 
 @Injectable()
 export default class IssuersService {

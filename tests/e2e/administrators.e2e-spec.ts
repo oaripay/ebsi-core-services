@@ -18,7 +18,6 @@ import AppModule from "../../src/app.module";
 import AllExceptionsFilter from "../../src/filters/http-exception.filter";
 import {
   AttributeObject,
-  PaginatedList,
   IdLink,
   DidLink,
   AdministratorResponseObject,
@@ -26,6 +25,8 @@ import {
 import JsonRpcResponseObject from "../../src/modules/jsonrpc/types/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
+import { prefixWith0x } from "../../src/shared/utils";
+import { PaginatedList } from "../../src/shared/interfaces";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -59,9 +60,6 @@ jest.setTimeout(60000);
 describe("Administrators (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
-
-  const prefixWith0x = (key: string): string =>
-    key.startsWith("0x") ? key : `0x${key}`;
 
   const { adminTestPrivateKey } = loadConfig();
 
@@ -322,6 +320,49 @@ describe("Administrators (e2e)", () => {
         type: "about:blank",
       });
       expect(response3.status).toBe(404);
+    });
+  });
+
+  describe("/administrators/{did}/attributes/{attributeId}/revisions", () => {
+    it("should return revisions", async () => {
+      expect.assertions(4);
+
+      const administrators: SupertestAdministratorsResponse = await request(
+        server
+      ).get("/administrators");
+
+      expect(administrators.status).toBe(200);
+
+      const { did }: DidLink = administrators.body.items[
+        administrators.body.items.length - 1
+      ];
+
+      const administratorResponse: SupertestAdministratorResponse = await request(
+        server
+      ).get(`/administrators/${did}`);
+
+      expect(administratorResponse.status).toBe(200);
+
+      const attributeId = administratorResponse.body.attributes[0].hash;
+      const urlPath = `/administrators/${did}/attributes/${attributeId}/revisions`;
+
+      const response = await request(server).get(
+        `/administrators/${did}/attributes/${attributeId}/revisions`
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(urlPath) as string,
+        items: expect.arrayContaining([]) as AttributeObject[],
+        total: expect.any(Number) as number,
+        pageSize: expect.any(Number) as number,
+        links: {
+          first: expect.stringContaining(urlPath) as string,
+          prev: expect.stringContaining(urlPath) as string,
+          next: expect.stringContaining(urlPath) as string,
+          last: expect.stringContaining(urlPath) as string,
+        },
+      });
+      expect(response.status).toBe(200);
     });
   });
 

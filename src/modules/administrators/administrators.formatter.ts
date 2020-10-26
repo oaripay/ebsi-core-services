@@ -1,10 +1,41 @@
 import {
   AdministratorsListSmartContractResponseObject,
   AttributeObject,
-  PaginatedList,
   IdLink,
   DidLink,
 } from "./administrators.interface";
+import { PaginatedList } from "../../shared/interfaces";
+import {
+  formatPaginatedResponse,
+  compute1BasedPaginationLinks,
+} from "../../shared/utils";
+
+function paginate<T>(
+  items: T[],
+  baseUrl: string,
+  total: number,
+  page: number,
+  pageSize: number
+): PaginatedList<T> {
+  const {
+    firstPage,
+    prevPage,
+    nextPage,
+    lastPage,
+  } = compute1BasedPaginationLinks(total, page, pageSize);
+
+  return formatPaginatedResponse<T>(
+    items,
+    baseUrl,
+    page,
+    pageSize,
+    total,
+    firstPage,
+    prevPage,
+    nextPage,
+    lastPage
+  );
+}
 
 export function formatAdministrators(
   administrators: AdministratorsListSmartContractResponseObject,
@@ -13,26 +44,14 @@ export function formatAdministrators(
   baseUrl: string
 ): PaginatedList<DidLink> {
   const total = administrators.total.toNumber();
-  const lastPage = Math.max(Math.ceil(total / pageSize), 1);
-  // Ignore SC's "prev" and "next"
-  const prev = Math.min(Math.max(page - 1, 1), lastPage);
-  const next = Math.min(page + 1, lastPage);
 
-  return {
-    self: `${baseUrl}?page[after]=${page}&page[size]=${pageSize}`,
-    items: administrators.items.map((did) => ({
-      did,
-      href: `${baseUrl}/${did}`,
-    })),
-    total,
-    pageSize,
-    links: {
-      first: `${baseUrl}?page[after]=1&page[size]=${pageSize}`,
-      prev: `${baseUrl}?page[after]=${prev}&page[size]=${pageSize}`,
-      next: `${baseUrl}?page[after]=${next}&page[size]=${pageSize}`,
-      last: `${baseUrl}?page[after]=${lastPage}&page[size]=${pageSize}`,
-    },
-  };
+  // Reshape items
+  const items = administrators.items.map((did) => ({
+    did,
+    href: `${baseUrl}/${did}`,
+  }));
+
+  return paginate<DidLink>(items, baseUrl, total, page, pageSize);
 }
 
 export function formatAttributes(
@@ -42,25 +61,28 @@ export function formatAttributes(
   baseUrl: string
 ): PaginatedList<IdLink> {
   const total = attributes.length;
-  const lastPage = Math.max(Math.ceil(total / pageSize), 1);
-  const prev = Math.min(Math.max(page - 1, 1), lastPage);
-  const next = Math.min(page + 1, lastPage);
 
-  return {
-    self: `${baseUrl}?page[after]=${page}&page[size]=${pageSize}`,
-    items: attributes
-      .slice((page - 1) * pageSize, page * pageSize)
-      .map((attr) => ({
-        id: attr.hash,
-        href: `${baseUrl}/${attr.hash}`,
-      })),
-    total,
-    pageSize,
-    links: {
-      first: `${baseUrl}?page[after]=1&page[size]=${pageSize}`,
-      prev: `${baseUrl}?page[after]=${prev}&page[size]=${pageSize}`,
-      next: `${baseUrl}?page[after]=${next}&page[size]=${pageSize}`,
-      last: `${baseUrl}?page[after]=${lastPage}&page[size]=${pageSize}`,
-    },
-  };
+  // Extract and reshape items
+  const items = attributes
+    .slice((page - 1) * pageSize, page * pageSize)
+    .map((attr) => ({
+      id: attr.hash,
+      href: `${baseUrl}/${attr.hash}`,
+    }));
+
+  return paginate<IdLink>(items, baseUrl, total, page, pageSize);
+}
+
+export function formatRevisions(
+  revisions: AttributeObject[],
+  page: number,
+  pageSize: number,
+  baseUrl: string
+): PaginatedList<AttributeObject> {
+  const total = revisions.length;
+
+  // Extract items
+  const items = revisions.slice((page - 1) * pageSize, page * pageSize);
+
+  return paginate<AttributeObject>(items, baseUrl, total, page, pageSize);
 }

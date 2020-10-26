@@ -11,7 +11,7 @@ import {
   AttributesListResponseObject,
 } from "./types/issuers.interface";
 import QueryPagination from "./types/query.interface";
-import pagination from "../../shared/pagination.utils";
+import { pagination } from "../../shared/utils";
 import { ConfigObject } from "../../config/configuration";
 
 @Controller("/issuers")
@@ -25,8 +25,8 @@ export default class IssuersController {
   async issuers(
     @Query() query: QueryPagination
   ): Promise<IssuersListResponseObject> {
-    const pageSize = parseInt(query["page[size]"] ?? "10", 10);
-    const page = parseInt(query["page[after]"] ?? "0", 10);
+    const pageSize = query["page[size]"];
+    const page = query["page[after]"];
 
     const issuers = await this.issuersService.getIssuers(page, pageSize);
     const { items, total, prev, next } = formatIssuers(issuers);
@@ -35,7 +35,7 @@ export default class IssuersController {
     const domain = this.configService.get<string>("domain");
 
     return {
-      self: `${domain}${apiUrlPrefix}/issuers`,
+      self: `${domain}${apiUrlPrefix}/issuers?page[after]=${page}&page[size]=${pageSize}`,
       items,
       total,
       pageSize,
@@ -86,8 +86,8 @@ export default class IssuersController {
     @Query() query: QueryPagination,
     @Param() params: { did: string; attributeId: string }
   ): Promise<AttributesListResponseObject> {
-    const pageSize = parseInt(query["page[size]"] ?? "10", 10);
-    const page = parseInt(query["page[after]"] ?? "0", 10);
+    const pageSize = query["page[size]"];
+    const page = query["page[after]"];
 
     const { did, attributeId } = params;
     if (!(await this.issuersService.didIncludesAttribute(did, attributeId))) {
@@ -100,25 +100,26 @@ export default class IssuersController {
       attributeId
     );
 
-    const { items, total, prev, next } = pagination(revisions, page, pageSize);
+    const { items, total, prev, next, last } = pagination<AttributeObject>(
+      revisions,
+      page,
+      pageSize
+    );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
     const urlPath = `${apiUrlPrefix}/issuers/${did}/attributes/${attributeId}/revisions`;
 
     return {
-      self: `${domain}${urlPath}`,
-      items: items as AttributeObject[],
+      self: `${domain}${urlPath}?page[after]=${page}&page[size]=${pageSize}`,
+      items,
       total,
       pageSize,
       links: {
         first: `${urlPath}?page[after]=0&page[size]=${pageSize}`,
         prev: `${urlPath}?page[after]=${prev}&page[size]=${pageSize}`,
         next: `${urlPath}?page[after]=${next}&page[size]=${pageSize}`,
-        last: `${urlPath}?page[after]=${parseInt(
-          Number((total - 1) / pageSize).toString(),
-          10
-        )}&page[size]=${pageSize}`,
+        last: `${urlPath}?page[after]=${last}&page[size]=${pageSize}`,
       },
     };
   }

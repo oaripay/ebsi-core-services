@@ -61,16 +61,24 @@ describe("Issuers Module", () => {
     const response = await request(server).get("/issuers");
     expect(response.body).toStrictEqual({
       self: expect.stringContaining(
-        `/trusted-issuers-registry/v2/issuers`
+        `/issuers?page[after]=0&page[size]=10`
       ) as string,
       items: expect.arrayContaining([]) as Array<string>,
       total: 20,
       pageSize: 10,
       links: {
-        first: `/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=10`,
-        prev: `/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=10`,
-        next: `/trusted-issuers-registry/v2/issuers?page[after]=1&page[size]=10`,
-        last: `/trusted-issuers-registry/v2/issuers?page[after]=1&page[size]=10`,
+        first: expect.stringContaining(
+          `/issuers?page[after]=0&page[size]=10`
+        ) as string,
+        prev: expect.stringContaining(
+          `/issuers?page[after]=0&page[size]=10`
+        ) as string,
+        next: expect.stringContaining(
+          `/issuers?page[after]=1&page[size]=10`
+        ) as string,
+        last: expect.stringContaining(
+          `/issuers?page[after]=1&page[size]=10`
+        ) as string,
       },
     });
     expect((response.body as { items: string }).items).toHaveLength(10);
@@ -83,16 +91,24 @@ describe("Issuers Module", () => {
     const response1 = await request(server).get("/issuers?page[size]=3");
     expect(response1.body).toStrictEqual({
       self: expect.stringContaining(
-        `/trusted-issuers-registry/v2/issuers`
+        `/issuers?page[after]=0&page[size]=3`
       ) as string,
       items: expect.arrayContaining([]) as Array<string>,
       total: 20,
       pageSize: 3,
       links: {
-        first: `/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=3`,
-        prev: `/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=3`,
-        next: `/trusted-issuers-registry/v2/issuers?page[after]=1&page[size]=3`,
-        last: `/trusted-issuers-registry/v2/issuers?page[after]=6&page[size]=3`,
+        first: expect.stringContaining(
+          `/issuers?page[after]=0&page[size]=3`
+        ) as string,
+        prev: expect.stringContaining(
+          `/issuers?page[after]=0&page[size]=3`
+        ) as string,
+        next: expect.stringContaining(
+          `/issuers?page[after]=1&page[size]=3`
+        ) as string,
+        last: expect.stringContaining(
+          `/issuers?page[after]=6&page[size]=3`
+        ) as string,
       },
     });
     expect((response1.body as { items: string }).items).toHaveLength(3);
@@ -104,16 +120,24 @@ describe("Issuers Module", () => {
     );
     expect(response2.body).toStrictEqual({
       self: expect.stringContaining(
-        `/trusted-issuers-registry/v2/issuers`
+        `/issuers?page[after]=1&page[size]=3`
       ) as string,
       items: expect.arrayContaining([]) as Array<string>,
       total: 20,
       pageSize: 3,
       links: {
-        first: `/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=3`,
-        prev: `/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=3`,
-        next: `/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=3`,
-        last: `/trusted-issuers-registry/v2/issuers?page[after]=6&page[size]=3`,
+        first: expect.stringContaining(
+          `/issuers?page[after]=0&page[size]=3`
+        ) as string,
+        prev: expect.stringContaining(
+          `/issuers?page[after]=0&page[size]=3`
+        ) as string,
+        next: expect.stringContaining(
+          `/issuers?page[after]=2&page[size]=3`
+        ) as string,
+        last: expect.stringContaining(
+          `/issuers?page[after]=6&page[size]=3`
+        ) as string,
       },
     });
     expect((response2.body as { items: string }).items).toHaveLength(3);
@@ -125,16 +149,24 @@ describe("Issuers Module", () => {
     );
     expect(response3.body).toStrictEqual({
       self: expect.stringContaining(
-        `/trusted-issuers-registry/v2/issuers`
+        `/issuers?page[after]=100&page[size]=3`
       ) as string,
       items: expect.arrayContaining([]) as Array<string>,
       total: 20,
       pageSize: 3,
       links: {
-        first: `/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=3`,
-        prev: `/trusted-issuers-registry/v2/issuers?page[after]=5&page[size]=3`,
-        next: `/trusted-issuers-registry/v2/issuers?page[after]=6&page[size]=3`,
-        last: `/trusted-issuers-registry/v2/issuers?page[after]=6&page[size]=3`,
+        first: expect.stringContaining(
+          `/issuers?page[after]=0&page[size]=3`
+        ) as string,
+        prev: expect.stringContaining(
+          `/issuers?page[after]=6&page[size]=3`
+        ) as string,
+        next: expect.stringContaining(
+          `/issuers?page[after]=6&page[size]=3`
+        ) as string,
+        last: expect.stringContaining(
+          `/issuers?page[after]=6&page[size]=3`
+        ) as string,
       },
     });
     expect((response3.body as { items: string }).items).toHaveLength(2);
@@ -144,16 +176,24 @@ describe("Issuers Module", () => {
     const response4 = await request(server).get("/issuers?page[after]=1");
     expect(response4.body).toStrictEqual({
       self: expect.stringContaining(
-        `/trusted-issuers-registry/v2/issuers`
+        `/issuers?page[after]=1&page[size]=10`
       ) as string,
       items: expect.arrayContaining([]) as Array<string>,
       total: 20,
       pageSize: 10,
       links: {
-        first: `/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=10`,
-        prev: `/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=10`,
-        next: `/trusted-issuers-registry/v2/issuers?page[after]=1&page[size]=10`,
-        last: `/trusted-issuers-registry/v2/issuers?page[after]=1&page[size]=10`,
+        first: expect.stringContaining(
+          `/issuers?page[after]=0&page[size]=10`
+        ) as string,
+        prev: expect.stringContaining(
+          `/issuers?page[after]=0&page[size]=10`
+        ) as string,
+        next: expect.stringContaining(
+          `/issuers?page[after]=1&page[size]=10`
+        ) as string,
+        last: expect.stringContaining(
+          `/issuers?page[after]=1&page[size]=10`
+        ) as string,
       },
     });
     expect((response4.body as { items: string }).items).toHaveLength(10);
@@ -167,7 +207,7 @@ describe("Issuers Module", () => {
     expect(response1.body).toStrictEqual({
       title: "Bad Request",
       status: 400,
-      detail: '["PageSize must be between 1 and 50"]',
+      detail: '["page[size] must not be greater than 50"]',
       type: "about:blank",
     });
     expect(response1.status).toBe(400);
@@ -176,7 +216,7 @@ describe("Issuers Module", () => {
     expect(response2.body).toStrictEqual({
       title: "Bad Request",
       status: 400,
-      detail: '["PageSize must be between 1 and 50"]',
+      detail: '["page[size] must not be less than 1"]',
       type: "about:blank",
     });
     expect(response2.status).toBe(400);
@@ -313,21 +353,31 @@ describe("Issuers Module", () => {
     const did = "did:ebsi:0x12";
     const data = Buffer.from(JSON.stringify(dummyData[did][0].attribute));
     const dataHash = ethers.utils.keccak256(data);
-    const urlPath = `/trusted-issuers-registry/v2/issuers/${did}/attributes/${dataHash}/revisions`;
+    const urlPath = `/issuers/${did}/attributes/${dataHash}/revisions`;
 
     const response = await request(server).get(
       `/issuers/${did}/attributes/${dataHash}/revisions`
     );
     expect(response.body).toStrictEqual({
-      self: expect.stringContaining(urlPath) as string,
+      self: expect.stringContaining(
+        `${urlPath}?page[after]=0&page[size]=10`
+      ) as string,
       items: expect.arrayContaining([]) as AttributeObject[],
       total: 20,
       pageSize: 10,
       links: {
-        first: `${urlPath}?page[after]=0&page[size]=10`,
-        prev: `${urlPath}?page[after]=0&page[size]=10`,
-        next: `${urlPath}?page[after]=1&page[size]=10`,
-        last: `${urlPath}?page[after]=1&page[size]=10`,
+        first: expect.stringContaining(
+          `${urlPath}?page[after]=0&page[size]=10`
+        ) as string,
+        prev: expect.stringContaining(
+          `${urlPath}?page[after]=0&page[size]=10`
+        ) as string,
+        next: expect.stringContaining(
+          `${urlPath}?page[after]=1&page[size]=10`
+        ) as string,
+        last: expect.stringContaining(
+          `${urlPath}?page[after]=1&page[size]=10`
+        ) as string,
       },
     });
     expect((response.body as { items: string }).items).toHaveLength(10);
@@ -340,21 +390,31 @@ describe("Issuers Module", () => {
     const did = "did:ebsi:0x12";
     const data = Buffer.from(JSON.stringify(dummyData[did][0].attribute));
     const dataHash = ethers.utils.keccak256(data);
-    const urlPath = `/trusted-issuers-registry/v2/issuers/${did}/attributes/${dataHash}/revisions`;
+    const urlPath = `/issuers/${did}/attributes/${dataHash}/revisions`;
 
     const response1 = await request(server).get(
       `/issuers/${did}/attributes/${dataHash}/revisions?page[size]=3`
     );
     expect(response1.body).toStrictEqual({
-      self: expect.stringContaining(urlPath) as string,
+      self: expect.stringContaining(
+        `${urlPath}?page[after]=0&page[size]=3`
+      ) as string,
       items: expect.arrayContaining([]) as AttributeObject[],
       total: 20,
       pageSize: 3,
       links: {
-        first: `${urlPath}?page[after]=0&page[size]=3`,
-        prev: `${urlPath}?page[after]=0&page[size]=3`,
-        next: `${urlPath}?page[after]=1&page[size]=3`,
-        last: `${urlPath}?page[after]=6&page[size]=3`,
+        first: expect.stringContaining(
+          `${urlPath}?page[after]=0&page[size]=3`
+        ) as string,
+        prev: expect.stringContaining(
+          `${urlPath}?page[after]=0&page[size]=3`
+        ) as string,
+        next: expect.stringContaining(
+          `${urlPath}?page[after]=1&page[size]=3`
+        ) as string,
+        last: expect.stringContaining(
+          `${urlPath}?page[after]=6&page[size]=3`
+        ) as string,
       },
     });
     expect((response1.body as { items: string }).items).toHaveLength(3);
@@ -365,15 +425,25 @@ describe("Issuers Module", () => {
       `/issuers/${did}/attributes/${dataHash}/revisions?page[after]=1&page[size]=3`
     );
     expect(response2.body).toStrictEqual({
-      self: expect.stringContaining(urlPath) as string,
+      self: expect.stringContaining(
+        `${urlPath}?page[after]=1&page[size]=3`
+      ) as string,
       items: expect.arrayContaining([]) as AttributeObject[],
       total: 20,
       pageSize: 3,
       links: {
-        first: `${urlPath}?page[after]=0&page[size]=3`,
-        prev: `${urlPath}?page[after]=0&page[size]=3`,
-        next: `${urlPath}?page[after]=2&page[size]=3`,
-        last: `${urlPath}?page[after]=6&page[size]=3`,
+        first: expect.stringContaining(
+          `${urlPath}?page[after]=0&page[size]=3`
+        ) as string,
+        prev: expect.stringContaining(
+          `${urlPath}?page[after]=0&page[size]=3`
+        ) as string,
+        next: expect.stringContaining(
+          `${urlPath}?page[after]=2&page[size]=3`
+        ) as string,
+        last: expect.stringContaining(
+          `${urlPath}?page[after]=6&page[size]=3`
+        ) as string,
       },
     });
     expect((response2.body as { items: string }).items).toHaveLength(3);
@@ -384,15 +454,25 @@ describe("Issuers Module", () => {
       `/issuers/${did}/attributes/${dataHash}/revisions?page[after]=100&page[size]=3`
     );
     expect(response3.body).toStrictEqual({
-      self: expect.stringContaining(urlPath) as string,
+      self: expect.stringContaining(
+        `${urlPath}?page[after]=100&page[size]=3`
+      ) as string,
       items: expect.arrayContaining([]) as AttributeObject[],
       total: 20,
       pageSize: 3,
       links: {
-        first: `${urlPath}?page[after]=0&page[size]=3`,
-        prev: `${urlPath}?page[after]=5&page[size]=3`,
-        next: `${urlPath}?page[after]=6&page[size]=3`,
-        last: `${urlPath}?page[after]=6&page[size]=3`,
+        first: expect.stringContaining(
+          `${urlPath}?page[after]=0&page[size]=3`
+        ) as string,
+        prev: expect.stringContaining(
+          `${urlPath}?page[after]=6&page[size]=3`
+        ) as string,
+        next: expect.stringContaining(
+          `${urlPath}?page[after]=6&page[size]=3`
+        ) as string,
+        last: expect.stringContaining(
+          `${urlPath}?page[after]=6&page[size]=3`
+        ) as string,
       },
     });
     expect((response3.body as { items: string }).items).toHaveLength(2);
@@ -403,15 +483,25 @@ describe("Issuers Module", () => {
       `/issuers/${did}/attributes/${dataHash}/revisions?page[after]=1`
     );
     expect(response4.body).toStrictEqual({
-      self: expect.stringContaining(urlPath) as string,
+      self: expect.stringContaining(
+        `${urlPath}?page[after]=1&page[size]=10`
+      ) as string,
       items: expect.arrayContaining([]) as AttributeObject[],
       total: 20,
       pageSize: 10,
       links: {
-        first: `${urlPath}?page[after]=0&page[size]=10`,
-        prev: `${urlPath}?page[after]=0&page[size]=10`,
-        next: `${urlPath}?page[after]=1&page[size]=10`,
-        last: `${urlPath}?page[after]=1&page[size]=10`,
+        first: expect.stringContaining(
+          `${urlPath}?page[after]=0&page[size]=10`
+        ) as string,
+        prev: expect.stringContaining(
+          `${urlPath}?page[after]=0&page[size]=10`
+        ) as string,
+        next: expect.stringContaining(
+          `${urlPath}?page[after]=1&page[size]=10`
+        ) as string,
+        last: expect.stringContaining(
+          `${urlPath}?page[after]=1&page[size]=10`
+        ) as string,
       },
     });
     expect((response4.body as { items: string }).items).toHaveLength(10);
@@ -431,7 +521,7 @@ describe("Issuers Module", () => {
     expect(response1.body).toStrictEqual({
       title: "Bad Request",
       status: 400,
-      detail: '["PageSize must be between 1 and 50"]',
+      detail: '["page[size] must not be greater than 50"]',
       type: "about:blank",
     });
     expect(response1.status).toBe(400);
@@ -442,7 +532,7 @@ describe("Issuers Module", () => {
     expect(response2.body).toStrictEqual({
       title: "Bad Request",
       status: 400,
-      detail: '["PageSize must be between 1 and 50"]',
+      detail: '["page[size] must not be less than 1"]',
       type: "about:blank",
     });
     expect(response2.status).toBe(400);

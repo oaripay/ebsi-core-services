@@ -19,6 +19,7 @@ import {
   formatEthersSignature,
   validateClass,
 } from "./jsonrpc.utils";
+import { prefixWith0x } from "../../shared/utils";
 
 interface AxiosResponseSessions {
   status: number;
@@ -42,9 +43,6 @@ interface AxiosErrorResponse {
     data: unknown;
   };
 }
-
-const prefixWith0x = (key: string): string =>
-  key.startsWith("0x") ? key : `0x${key}`;
 
 @Injectable()
 export default class JsonRpcService {
