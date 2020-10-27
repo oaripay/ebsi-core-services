@@ -1,15 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  BadRequestError,
-  NotFoundError,
-} from "@cef-ebsi/problem-details-errors";
+import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import LedgerService from "../../shared/services/ledger.service";
 import {
   IssuersListSmartContractResponseObject,
   AttributeObject,
   IssuerResponseObject,
-} from "./types/issuers.interface";
+} from "./issuers.interface";
 import TrustedIssuersRegistryContract from "../../shared/types/trusted-issuers-registry.interface";
 import { prefixWith0x } from "../../shared/utils";
 
@@ -30,19 +27,13 @@ export default class IssuersService {
     page: number,
     pageSize: number
   ): Promise<IssuersListSmartContractResponseObject> {
-    try {
-      return await this.tirContract.getIssuers(page, pageSize);
-    } catch (error) {
-      if ((error as Error).message.includes("PageSize should")) {
-        throw new BadRequestError("Bad Paging Request", {
-          detail: (error as Error).message,
-        });
-      }
-      throw error;
-    }
+    // TODO: currently, the SC is 0-based
+    // Remove this fix when the SC is updated
+    const scPage = page - 1;
+    return this.tirContract.getIssuers(scPage, pageSize);
   }
 
-  async getAttributeId(attributeId: string): Promise<AttributeObject> {
+  async getAttribute(attributeId: string): Promise<AttributeObject> {
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
     const { attribData } = await this.tirContract.getIssuerAttributebyHash(
@@ -60,6 +51,7 @@ export default class IssuersService {
   async getAttributes(_did: string): Promise<AttributeObject[]> {
     const did = _did.toLowerCase();
     const attributesLastHash = await this.tirContract.getIssuer(did);
+
     if (attributesLastHash.length === 0) {
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,
@@ -68,22 +60,7 @@ export default class IssuersService {
 
     return Promise.all(
       attributesLastHash.map(async (hash) => {
-        return this.getAttributeId(hash);
-      })
-    );
-  }
-
-  async getIssuerAttributeIdRevisions(
-    attributeId: string
-  ): Promise<AttributeObject[]> {
-    // This function assumes that the attributeId exists
-    const hash = prefixWith0x(attributeId);
-    const revisionHashes = await this.tirContract.getIssuerAttributeHistory(
-      hash
-    );
-    return Promise.all(
-      revisionHashes.map(async (revisionHash) => {
-        return this.getAttributeId(revisionHash);
+        return this.getAttribute(hash);
       })
     );
   }
@@ -100,18 +77,34 @@ export default class IssuersService {
   ): Promise<boolean> {
     const attribId = prefixWith0x(attributeId);
     const attributesLastHash = await this.tirContract.getIssuer(did);
+
     if (attributesLastHash.length === 0) {
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,
       });
     }
-    const ListRevisionHashes = await Promise.all(
+    const revisionHashesList = await Promise.all(
       attributesLastHash.map(async (hash) => {
         return this.tirContract.getIssuerAttributeHistory(hash);
       })
     );
-    return !!ListRevisionHashes.find((revisionHashes) => {
+    return !!revisionHashesList.find((revisionHashes) => {
       return revisionHashes.find((hash) => hash === attribId);
     });
+  }
+
+  async getIssuerAttributeIdRevisions(
+    attributeId: string
+  ): Promise<AttributeObject[]> {
+    // This function assumes that the attributeId exists
+    const hash = prefixWith0x(attributeId);
+    const revisionHashes = await this.tirContract.getIssuerAttributeHistory(
+      hash
+    );
+    return Promise.all(
+      revisionHashes.map(async (revisionHash) => {
+        return this.getAttribute(revisionHash);
+      })
+    );
   }
 }

@@ -1,5 +1,5 @@
 import { AdministratorsListSmartContractResponseObject } from "../../modules/administrators/administrators.interface";
-import { IssuersListSmartContractResponseObject } from "../../modules/issuers/types/issuers.interface";
+import { IssuersListSmartContractResponseObject } from "../../modules/issuers/issuers.interface";
 
 export default interface TrustedIssuersRegistryContract {
   getAdministrators: (

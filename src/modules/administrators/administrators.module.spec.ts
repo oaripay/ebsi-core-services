@@ -261,7 +261,7 @@ describe("Administrators Module", () => {
         attributes: [
           {
             body: dataBase64,
-            hash: dataHash,
+            hash: dataHash.slice(2),
           },
         ],
       });
@@ -293,7 +293,7 @@ describe("Administrators Module", () => {
         "/administrators/did:ebsi:0x00/attributes"
       );
       const data = Buffer.from(JSON.stringify(jsonlds[0]));
-      const dataHash = ethers.utils.keccak256(data);
+      const dataHash = ethers.utils.keccak256(data).slice(2);
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
@@ -339,8 +339,11 @@ describe("Administrators Module", () => {
         `/administrators/did:ebsi:0x01/attributes/${dataHash}`
       );
       expect(response.body).toStrictEqual({
-        body: dataBase64,
-        hash: dataHash,
+        did: "did:ebsi:0x01",
+        attribute: {
+          body: dataBase64,
+          hash: dataHash.slice(2),
+        },
       });
       expect(response.status).toBe(200);
     });
@@ -589,7 +592,7 @@ describe("Administrators Module", () => {
       expect(response.status).toBe(404);
     });
 
-    it("should throws Bad Request for bad pagination parameters", async () => {
+    it("should throw Bad Request for bad pagination parameters", async () => {
       expect.assertions(4);
 
       const did = "did:ebsi:0x12";

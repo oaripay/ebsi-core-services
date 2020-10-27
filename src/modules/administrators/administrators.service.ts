@@ -35,14 +35,15 @@ export default class AdministratorsService {
 
   async getAttribute(attributeId: string): Promise<AttributeObject> {
     // This function assumes that the attributeId exists
+    const hash = prefixWith0x(attributeId);
     const {
       attribData,
-    } = await this.tirContract.getAdministratorAttributebyHash(attributeId);
+    } = await this.tirContract.getAdministratorAttributebyHash(hash);
     const bufferAttribute = Buffer.from(attribData.slice(2), "hex");
     const attributeBase64 = bufferAttribute.toString("base64");
 
     return {
-      hash: attributeId,
+      hash: hash.slice(2),
       body: attributeBase64,
     };
   }
@@ -74,6 +75,7 @@ export default class AdministratorsService {
     did: string,
     attributeId: string
   ): Promise<boolean> {
+    const attribId = prefixWith0x(attributeId);
     const attributesLastHash = await this.tirContract.getAdministrator(did);
 
     if (attributesLastHash.length === 0) {
@@ -89,7 +91,7 @@ export default class AdministratorsService {
     );
 
     return !!revisionHashesList.find((revisionHashes) => {
-      return revisionHashes.find((hash) => hash === attributeId);
+      return revisionHashes.find((hash) => hash === attribId);
     });
   }
 

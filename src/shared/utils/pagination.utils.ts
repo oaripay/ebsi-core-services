@@ -68,19 +68,22 @@ export function pagination<T>(
   };
 }
 
-export function formatPaginatedResponse<T>(
+export function paginate<T>(
   items: T[],
   baseUrl: string,
-  currentPage: number,
-  pageSize: number,
   total: number,
-  firstPage: number,
-  prevPage: number,
-  nextPage: number,
-  lastPage: number
+  page: number,
+  pageSize: number
 ): PaginatedList<T> {
+  const {
+    firstPage,
+    prevPage,
+    nextPage,
+    lastPage,
+  } = compute1BasedPaginationLinks(total, page, pageSize);
+
   return {
-    self: `${baseUrl}?page[after]=${currentPage}&page[size]=${pageSize}`,
+    self: `${baseUrl}?page[after]=${page}&page[size]=${pageSize}`,
     items,
     total,
     pageSize,

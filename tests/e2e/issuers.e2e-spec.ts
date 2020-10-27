@@ -18,13 +18,15 @@ import AppModule from "../../src/app.module";
 import AllExceptionsFilter from "../../src/filters/http-exception.filter";
 import {
   AttributeObject,
-  IssuersListResponseObject,
+  IdLink,
+  DidLink,
   IssuerResponseObject,
-} from "../../src/modules/issuers/types/issuers.interface";
+} from "../../src/modules/issuers/issuers.interface";
 import JsonRpcResponseObject from "../../src/modules/jsonrpc/types/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { prefixWith0x } from "../../src/shared/utils";
+import { PaginatedList } from "../../src/shared/interfaces";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -33,7 +35,7 @@ interface SupertestJsonRpcResponse {
 
 interface SupertestIssuersResponse {
   status: number;
-  body: IssuersListResponseObject;
+  body: PaginatedList<DidLink>;
 }
 
 interface SupertestIssuerResponse {
@@ -43,7 +45,9 @@ interface SupertestIssuerResponse {
 
 interface SupertestAttributesResponse {
   status: number;
-  body: AttributeObject[];
+  body: {
+    items: IdLink[];
+  };
 }
 
 interface SupertestAttributeResponse {
@@ -56,6 +60,29 @@ jest.setTimeout(60000);
 describe("Issuers (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
+
+  const { adminTestPrivateKey } = loadConfig();
+
+  const wallet = new ethers.Wallet(prefixWith0x(adminTestPrivateKey));
+
+  const createIssuer = () => {
+    const did = `did:ebsi:test-${new Date().toISOString()}`;
+    const json = {
+      // any object here
+      any: "Any attribute here",
+      type: "credential",
+      data: crypto.randomBytes(16).toString("hex"),
+    };
+    const data = Buffer.from(JSON.stringify(json));
+    const dataBase64 = data.toString("base64");
+    const dataHash = ethers.utils.keccak256(data).slice(2);
+    const attribute = {
+      body: dataBase64,
+      hash: dataHash,
+    };
+
+    return { did, attribute };
+  };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -104,7 +131,7 @@ describe("Issuers (e2e)", () => {
             last: expect.stringContaining(
               "/trusted-issuers-registry/v2/issuers"
             ) as string,
-          }) as IssuersListResponseObject["links"],
+          }) as PaginatedList<IdLink>["links"],
         })
       );
       expect(response.status).toBe(200);
@@ -114,11 +141,13 @@ describe("Issuers (e2e)", () => {
   describe("/issuers/{did}", () => {
     it("should return a specific issuer", async () => {
       expect.assertions(3);
-      const issuers: SupertestIssuersResponse = await request(server).get(
-        "/issuers"
-      );
-      expect(issuers.status).toBe(200);
-      const did: string = issuers.body.items[issuers.body.items.length - 1];
+      const issuersResponse: SupertestIssuersResponse = await request(
+        server
+      ).get("/issuers");
+      expect(issuersResponse.status).toBe(200);
+      const { did }: DidLink = issuersResponse.body.items[
+        issuersResponse.body.items.length - 1
+      ];
 
       const response: SupertestIssuerResponse = await request(server).get(
         `/issuers/${did}`
@@ -143,26 +172,234 @@ describe("Issuers (e2e)", () => {
     });
   });
 
-  it("should insert and get a new issuer", async () => {
-    expect.assertions(7);
+  describe("/issuers/{did}/attributes", () => {
+    it("should return the attributes from a specific issuer", async () => {
+      expect.assertions(3);
 
-    const { adminTestPrivateKey } = loadConfig();
-    const wallet = new ethers.Wallet(prefixWith0x(adminTestPrivateKey));
+      const issuers: SupertestIssuersResponse = await request(server).get(
+        `/issuers`
+      );
 
-    const did = `did:ebsi:test-${new Date().toISOString()}`;
-    const json = {
-      // any object here
-      any: "Any attribute here",
-      type: "credential",
-      data: crypto.randomBytes(16).toString("hex"),
-    };
-    const data = Buffer.from(JSON.stringify(json));
-    const dataBase64 = data.toString("base64");
-    const dataHash = ethers.utils.keccak256(data);
-    const attribute = {
-      body: dataBase64,
-      hash: dataHash.slice(2),
-    };
+      expect(issuers.status).toBe(200);
+
+      const { did }: DidLink = issuers.body.items[
+        issuers.body.items.length - 1
+      ];
+      const response: SupertestAttributesResponse = await request(server).get(
+        `/issuers/${did}/attributes`
+      );
+
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          self: expect.stringContaining(
+            `/trusted-issuers-registry/v2/issuers/${did}/attributes`
+          ) as string,
+          items: expect.arrayContaining([]) as string[],
+          total: expect.any(Number) as number,
+          pageSize: expect.any(Number) as number,
+          links: expect.objectContaining({
+            first: expect.stringContaining(
+              `/trusted-issuers-registry/v2/issuers/${did}/attributes`
+            ) as string,
+            prev: expect.stringContaining(
+              `/trusted-issuers-registry/v2/issuers/${did}/attributes`
+            ) as string,
+            next: expect.stringContaining(
+              `/trusted-issuers-registry/v2/issuers/${did}/attributes`
+            ) as string,
+            last: expect.stringContaining(
+              `/trusted-issuers-registry/v2/issuers/${did}/attributes`
+            ) as string,
+          }) as PaginatedList<IdLink>["links"],
+        })
+      );
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("/issuers/{did}/attributes/{attributeId}", () => {
+    it("should return a specific attribute", async () => {
+      expect.assertions(4);
+
+      const issuers: SupertestIssuersResponse = await request(server).get(
+        `/issuers`
+      );
+      expect(issuers.status).toBe(200);
+
+      const { did }: DidLink = issuers.body.items[
+        issuers.body.items.length - 1
+      ];
+
+      const responseAttributes: SupertestAttributesResponse = await request(
+        server
+      ).get(`/issuers/${did}/attributes`);
+
+      expect(responseAttributes.status).toBe(200);
+
+      const attributeId = responseAttributes.body.items[0].id;
+
+      const response: SupertestAttributeResponse = await request(server).get(
+        `/issuers/${did}/attributes/${attributeId}`
+      );
+      expect(response.body).toStrictEqual({
+        did,
+        attribute: {
+          body: expect.any(String) as string,
+          hash: attributeId,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error when attribute is not found", async () => {
+      expect.assertions(8);
+
+      const issuers: SupertestIssuersResponse = await request(server).get(
+        "/issuers"
+      );
+      expect(issuers.status).toBe(200);
+
+      const { did }: DidLink = issuers.body.items[
+        issuers.body.items.length - 1
+      ];
+
+      // consult a random attribute
+      const attributeId =
+        "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
+      const response: SupertestAttributeResponse = await request(server).get(
+        `/issuers/${did}/attributes/${attributeId}`
+      );
+      expect(response.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Attribute ${attributeId} not found`
+        ) as string,
+        status: 404,
+        title: "Attribute Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+
+      // consult an attribute from a random did
+      const response2 = await request(server).get(
+        `/issuers/did:ebsi:unknown/attributes/${attributeId}`
+      );
+      expect(response2.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Issuer did:ebsi:unknown not found`
+        ) as string,
+        status: 404,
+        title: "Issuer Not Found",
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(404);
+
+      // consult an attribute from a different did
+      const { did: did2 }: DidLink = issuers.body.items[
+        issuers.body.items.length - 2
+      ];
+      const responseAttributes: SupertestAttributesResponse = await request(
+        server
+      ).get(`/issuers/${did2}/attributes`);
+      expect(responseAttributes.status).toBe(200);
+
+      const attributeId2 = responseAttributes.body.items[0].id;
+
+      const response3: SupertestAttributeResponse = await request(server).get(
+        `/issuers/${did}/attributes/${attributeId2}`
+      );
+      expect(response3.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Attribute ${attributeId2} not found`
+        ) as string,
+        status: 404,
+        title: "Attribute Not Found",
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(404);
+    });
+  });
+
+  describe("/issuers/{did}/attributes/{attributeId}/revisions", () => {
+    it("should return revisions", async () => {
+      expect.assertions(4);
+
+      const issuers: SupertestIssuersResponse = await request(server).get(
+        "/issuers"
+      );
+      expect(issuers.status).toBe(200);
+      const { did }: DidLink = issuers.body.items[
+        issuers.body.items.length - 1
+      ];
+
+      const responseIssuer: SupertestIssuerResponse = await request(server).get(
+        `/issuers/${did}`
+      );
+      expect(responseIssuer.status).toBe(200);
+      const attributeId = responseIssuer.body.attributes[0].hash;
+      const urlPath = `/trusted-issuers-registry/v2/issuers/${did}/attributes/${attributeId}/revisions`;
+
+      const response = await request(server).get(
+        `/issuers/${did}/attributes/${attributeId}/revisions`
+      );
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(urlPath) as string,
+        items: expect.arrayContaining([]) as AttributeObject[],
+        total: expect.any(Number) as number,
+        pageSize: expect.any(Number) as number,
+        links: {
+          first: expect.stringContaining(urlPath) as string,
+          prev: expect.stringContaining(urlPath) as string,
+          next: expect.stringContaining(urlPath) as string,
+          last: expect.stringContaining(urlPath) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("/jsonrpc - method: insertIssuer", () => {
+    it(`should return a new unsigned transaction`, async () => {
+      expect.assertions(2);
+
+      const { did, attribute } = createIssuer();
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method: "insertIssuer",
+          params: [
+            {
+              from: wallet.address,
+              did,
+              attribute,
+            },
+          ],
+          id: 231,
+        });
+
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        result: {
+          chainId: expect.any(String) as string,
+          data: expect.any(String) as string,
+          from: wallet.address,
+          gasLimit: expect.any(String) as string,
+          gasPrice: expect.any(String) as string,
+          nonce: expect.any(String) as string,
+          to: expect.any(String) as string,
+          value: expect.any(String) as string,
+        },
+      });
+      expect(responseBuild.status).toBe(200);
+    });
+  });
+
+  it("should insert a new issuer", async () => {
+    expect.assertions(5);
+
+    const { did, attribute } = createIssuer();
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
@@ -178,22 +415,6 @@ describe("Issuers (e2e)", () => {
         ],
         id: 231,
       });
-
-    expect(responseBuild.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: 231,
-      result: {
-        chainId: expect.any(String) as string,
-        data: expect.any(String) as string,
-        from: wallet.address,
-        gasLimit: expect.any(String) as string,
-        gasPrice: expect.any(String) as string,
-        nonce: expect.any(String) as string,
-        to: expect.any(String) as string,
-        value: expect.any(String) as string,
-      },
-    });
-    expect(responseBuild.status).toBe(200);
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
@@ -233,167 +454,12 @@ describe("Issuers (e2e)", () => {
     expect(receipt.status).toBe("0x1");
 
     // get issuer
-    const responseIssuer: SupertestIssuerResponse = await request(server).get(
-      `/issuers/${did}`
-    );
+    const issuerResponse = await request(server).get(`/issuers/${did}`);
 
-    expect(responseIssuer.body).toStrictEqual({
+    expect(issuerResponse.body).toStrictEqual({
       did: did.toLowerCase(),
       attributes: [attribute],
     });
-    expect(responseIssuer.status).toBe(200);
-  });
-
-  describe("/issuers/{did}/attributes", () => {
-    it("should return the attributes from a specific issuer", async () => {
-      expect.assertions(3);
-
-      const issuers: SupertestIssuersResponse = await request(server).get(
-        `/issuers`
-      );
-
-      expect(issuers.status).toBe(200);
-
-      const did: string = issuers.body.items[issuers.body.items.length - 1];
-      const response: SupertestAttributesResponse = await request(server).get(
-        `/issuers/${did}/attributes`
-      );
-
-      expect(response.body).toStrictEqual([
-        {
-          body: expect.any(String) as string,
-          hash: expect.any(String) as string,
-        },
-      ]);
-      expect(response.status).toBe(200);
-    });
-  });
-
-  describe("/issuers/{did}/attributes/{attributeId}", () => {
-    it("should return a specific attribute", async () => {
-      expect.assertions(4);
-      const issuers: SupertestIssuersResponse = await request(server).get(
-        `/issuers`
-      );
-      expect(issuers.status).toBe(200);
-      const did: string = issuers.body.items[issuers.body.items.length - 1];
-
-      const responseAttributes: SupertestAttributesResponse = await request(
-        server
-      ).get(`/issuers/${did}/attributes`);
-      expect(responseAttributes.status).toBe(200);
-
-      const attributeId = responseAttributes.body[0].hash;
-
-      const response: SupertestAttributeResponse = await request(server).get(
-        `/issuers/${did}/attributes/${attributeId}`
-      );
-      expect(response.body).toStrictEqual({
-        did,
-        attribute: {
-          body: expect.any(String) as string,
-          hash: attributeId,
-        },
-      });
-      expect(response.status).toBe(200);
-    });
-
-    it("should throw an error when attribute is not found", async () => {
-      expect.assertions(8);
-
-      const issuers: SupertestIssuersResponse = await request(server).get(
-        "/issuers"
-      );
-      expect(issuers.status).toBe(200);
-
-      const did: string = issuers.body.items[issuers.body.items.length - 1];
-
-      // consult a random attribute
-      const attributeId =
-        "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
-
-      const response: SupertestAttributeResponse = await request(server).get(
-        `/issuers/${did}/attributes/${attributeId}`
-      );
-      expect(response.body).toStrictEqual({
-        detail: expect.stringContaining(
-          `Attribute ${attributeId} not found`
-        ) as string,
-        status: 404,
-        title: "Attribute Not Found",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(404);
-
-      // consult an attribute from a random did
-      const response2 = await request(server).get(
-        `/issuers/did:ebsi:unknown/attributes/${attributeId}`
-      );
-      expect(response2.body).toStrictEqual({
-        detail: expect.stringContaining(
-          `Issuer did:ebsi:unknown not found`
-        ) as string,
-        status: 404,
-        title: "Issuer Not Found",
-        type: "about:blank",
-      });
-      expect(response2.status).toBe(404);
-
-      // consult an attribute from a different did
-      const did2: string = issuers.body.items[issuers.body.items.length - 2];
-      const responseAttributes: SupertestAttributesResponse = await request(
-        server
-      ).get(`/issuers/${did2}/attributes`);
-      expect(responseAttributes.status).toBe(200);
-
-      const attributeId2 = responseAttributes.body[0].hash;
-
-      const response3: SupertestAttributeResponse = await request(server).get(
-        `/issuers/${did}/attributes/${attributeId2}`
-      );
-      expect(response3.body).toStrictEqual({
-        detail: expect.stringContaining(
-          `Attribute ${attributeId2} not found`
-        ) as string,
-        status: 404,
-        title: "Attribute Not Found",
-        type: "about:blank",
-      });
-      expect(response3.status).toBe(404);
-    });
-  });
-
-  it("Get revisions", async () => {
-    expect.assertions(4);
-
-    const issuers: SupertestIssuersResponse = await request(server).get(
-      "/issuers"
-    );
-    expect(issuers.status).toBe(200);
-    const did: string = issuers.body.items[issuers.body.items.length - 1];
-
-    const responseIssuer: SupertestIssuerResponse = await request(server).get(
-      `/issuers/${did}`
-    );
-    expect(responseIssuer.status).toBe(200);
-    const attributeId = responseIssuer.body.attributes[0].hash;
-    const urlPath = `/trusted-issuers-registry/v2/issuers/${did}/attributes/${attributeId}/revisions`;
-
-    const response = await request(server).get(
-      `/issuers/${did}/attributes/${attributeId}/revisions`
-    );
-    expect(response.body).toStrictEqual({
-      self: expect.stringContaining(urlPath) as string,
-      items: expect.arrayContaining([]) as AttributeObject[],
-      total: expect.any(Number) as number,
-      pageSize: expect.any(Number) as number,
-      links: {
-        first: expect.stringContaining(urlPath) as string,
-        prev: expect.stringContaining(urlPath) as string,
-        next: expect.stringContaining(urlPath) as string,
-        last: expect.stringContaining(urlPath) as string,
-      },
-    });
-    expect(response.status).toBe(200);
+    expect(issuerResponse.status).toBe(200);
   });
 });

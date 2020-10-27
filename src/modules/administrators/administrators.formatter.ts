@@ -5,37 +5,7 @@ import {
   DidLink,
 } from "./administrators.interface";
 import { PaginatedList } from "../../shared/interfaces";
-import {
-  formatPaginatedResponse,
-  compute1BasedPaginationLinks,
-} from "../../shared/utils";
-
-function paginate<T>(
-  items: T[],
-  baseUrl: string,
-  total: number,
-  page: number,
-  pageSize: number
-): PaginatedList<T> {
-  const {
-    firstPage,
-    prevPage,
-    nextPage,
-    lastPage,
-  } = compute1BasedPaginationLinks(total, page, pageSize);
-
-  return formatPaginatedResponse<T>(
-    items,
-    baseUrl,
-    page,
-    pageSize,
-    total,
-    firstPage,
-    prevPage,
-    nextPage,
-    lastPage
-  );
-}
+import { paginate } from "../../shared/utils";
 
 export function formatAdministrators(
   administrators: AdministratorsListSmartContractResponseObject,

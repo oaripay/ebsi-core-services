@@ -10,7 +10,7 @@ export interface AttributeDetailsObject {
   attribute: AttributeObject;
 }
 
-export interface AdministratorResponseObject {
+export interface IssuerResponseObject {
   did: string;
   attributes: AttributeObject[];
 }
@@ -25,7 +25,7 @@ export interface DidLink {
   href: string;
 }
 
-export interface AdministratorsListSmartContractResponseObject {
+export interface IssuersListSmartContractResponseObject {
   items: string[];
   total: ethers.BigNumber;
   pageSize: ethers.BigNumber;

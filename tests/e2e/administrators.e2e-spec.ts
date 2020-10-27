@@ -75,7 +75,7 @@ describe("Administrators (e2e)", () => {
     };
     const data = Buffer.from(JSON.stringify(json));
     const dataBase64 = data.toString("base64");
-    const dataHash = ethers.utils.keccak256(data);
+    const dataHash = ethers.utils.keccak256(data).slice(2);
     const attribute = {
       body: dataBase64,
       hash: dataHash,
@@ -245,8 +245,11 @@ describe("Administrators (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        body: expect.any(String) as string,
-        hash: expect.any(String) as string,
+        did,
+        attribute: {
+          body: expect.any(String) as string,
+          hash: attributeId,
+        },
       });
       expect(response.status).toBe(200);
     });
@@ -406,7 +409,7 @@ describe("Administrators (e2e)", () => {
   });
 
   it("should insert a new administrator", async () => {
-    expect.assertions(3);
+    expect.assertions(5);
 
     const { did, attribute } = createAdministrator();
 
@@ -462,15 +465,15 @@ describe("Administrators (e2e)", () => {
     const receipt = await waitToBeMined(responseSend.body.result as string);
     expect(receipt.status).toBe("0x1");
 
-    /*
     // get administrator
-    const administratorResponse = await request(server).get(`/administrators/${did}`);
+    const administratorResponse = await request(server).get(
+      `/administrators/${did}`
+    );
 
     expect(administratorResponse.body).toStrictEqual({
       did: did.toLowerCase(),
       attributes: [attribute],
     });
     expect(administratorResponse.status).toBe(200);
-    */
   });
 });

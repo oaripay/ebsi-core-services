@@ -11,6 +11,7 @@ import {
   IdLink,
   AdministratorResponseObject,
   AttributeObject,
+  AttributeDetailsObject,
   DidLink,
 } from "./administrators.interface";
 import PaginationQuery from "../../shared/dto/pagination-query";
@@ -77,7 +78,7 @@ export default class AdministratorsController {
   @Get("/:did/attributes/:attributeId")
   async getAdministratorAttribute(
     @Param() params: { did: string; attributeId: string }
-  ): Promise<AttributeObject> {
+  ): Promise<AttributeDetailsObject> {
     const { did, attributeId } = params;
 
     if (
@@ -88,7 +89,14 @@ export default class AdministratorsController {
       });
     }
 
-    return this.administratorsService.getAttribute(attributeId);
+    const attribute = await this.administratorsService.getAttribute(
+      attributeId
+    );
+
+    return {
+      did,
+      attribute,
+    };
   }
 
   @Get("/:did/attributes/:attributeId/revisions")
