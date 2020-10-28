@@ -1,0 +1,8 @@
+node_modules
+coverage
+build
+*.log
+.env
+*log
+all.sol
+.secret*
