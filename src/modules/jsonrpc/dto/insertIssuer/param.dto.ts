@@ -1,10 +1,10 @@
-import { IsString, IsObject, ValidateNested } from "class-validator";
+import { IsEthereumAddress, IsObject, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
 import IsDid from "../../types/IsDid";
 import Attribute from "./attribute.dto";
 
 export default class Param {
-  @IsString()
+  @IsEthereumAddress()
   from: string;
 
   @IsDid()

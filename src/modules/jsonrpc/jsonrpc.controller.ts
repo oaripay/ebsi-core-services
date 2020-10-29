@@ -5,6 +5,7 @@ import { InvalidRequestJsonRpcError } from "./errors";
 import JsonRpcResponseObject from "./types/jsonrpc.interface";
 import RequestInsertAdministratorDto from "./dto/insertAdministrator/request-insert-administrator.dto";
 import RequestInsertIssuerDto from "./dto/insertIssuer/request-insert-issuer.dto";
+import RequestInsertPolicyDto from "./dto/insertPolicy/request-insert-policy.dto";
 import RequestSignedTransaction from "./dto/signedTransaction/request-signed-transaction.dto";
 
 function jsonRpcResponse(
@@ -33,6 +34,13 @@ export default class AppController {
       case "insertIssuer": {
         const transaction = await this.jsonRpcService.buildTransactionInsertIssuer(
           body as RequestInsertIssuerDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "insertPolicy": {
+        const transaction = await this.jsonRpcService.buildTransactionInsertPolicy(
+          body as RequestInsertPolicyDto,
           id
         );
         return jsonRpcResponse(transaction, id);

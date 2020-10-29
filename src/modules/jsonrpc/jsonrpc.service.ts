@@ -6,6 +6,7 @@ import { ConfigService } from "@nestjs/config";
 import LedgerService from "../../shared/services/ledger.service";
 import RequestInsertIssuerDto from "./dto/insertIssuer/request-insert-issuer.dto";
 import RequestInsertAdministratorDto from "./dto/insertAdministrator/request-insert-administrator.dto";
+import RequestInsertPolicyDto from "./dto/insertPolicy/request-insert-policy.dto";
 import RequestSignedTransactionDto from "./dto/signedTransaction/request-signed-transaction.dto";
 import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
 import JsonRpcResponseObject from "./types/jsonrpc.interface";
@@ -14,6 +15,7 @@ import TrustedIssuersRegistryContract from "../../shared/types/trusted-issuers-r
 import ParamSignedTransaction from "./dto/signedTransaction/param.dto";
 import ArgsInsertIssuer from "./dto/signedTransaction/args-insert-issuer.dto";
 import ArgsInsertAdministrator from "./dto/signedTransaction/args-insert-administrator.dto";
+import ArgsInsertPolicy from "./dto/signedTransaction/args-insert-policy.dto";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
@@ -225,6 +227,10 @@ export default class JsonRpcService {
         await validateClass(ArgsInsertIssuer, args);
         break;
       }
+      case "insertPolicy": {
+        await validateClass(ArgsInsertPolicy, args);
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -297,6 +303,23 @@ export default class JsonRpcService {
         );
       const data = [did.toLowerCase(), bufferAttribute];
       return await this.buildTransaction(from, "insertIssuer", data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertPolicy(
+    body: RequestInsertPolicyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertPolicyDto, body);
+      const { from, policy, policyId } = body.params[0];
+      const bufferPolicy = Buffer.from(policy, "base64");
+      const data = [policyId, bufferPolicy];
+      return await this.buildTransaction(from, "insertPolicy", data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;

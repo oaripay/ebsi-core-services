@@ -17,6 +17,9 @@ import {
 import JsonRpcModule from "./jsonrpc.module";
 import JsonRpcResponseObject from "./types/jsonrpc.interface";
 import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
+import paramInsertAdministrator from "./dto/insertAdministrator/param.dto";
+import paramInsertIssuer from "./dto/insertIssuer/param.dto";
+import paramInsertPolicy from "./dto/insertPolicy/param.dto";
 import AllExceptionsFilter from "../../filters/http-exception.filter";
 import { mockTirContract, jsonlds } from "../../../tests/utils/mockTirContract";
 import { ledgerWorking } from "../../../tests/utils/mockAxios";
@@ -27,6 +30,64 @@ import { loadConfig } from "../../config/configuration";
 interface SupertestJsonRpcResponse {
   status: number;
   body: JsonRpcResponseObject;
+}
+
+function createParamInsertAdministrator(
+  from: string
+): paramInsertAdministrator {
+  const did = `did:ebsi:test-${new Date().toISOString()}`;
+  const json = {
+    // any object here
+    any: "Any attribute here",
+    type: "credential",
+    data: crypto.randomBytes(16).toString("hex"),
+  };
+  const data = Buffer.from(JSON.stringify(json));
+  const dataBase64 = data.toString("base64");
+  const dataHash = ethers.utils.keccak256(data);
+  const attribute = {
+    body: dataBase64,
+    hash: dataHash,
+  };
+  return {
+    from,
+    did,
+    attribute,
+  };
+}
+
+function createParamInsertIssuer(from: string): paramInsertIssuer {
+  return createParamInsertAdministrator(from);
+}
+
+function createParamInsertPolicy(from: string): paramInsertPolicy {
+  const policyId = `policy-test-${new Date().toISOString()}`;
+  const json = {
+    // any object here
+    any: "Any attribute here",
+    type: "credential",
+    data: crypto.randomBytes(16).toString("hex"),
+  };
+  const data = Buffer.from(JSON.stringify(json));
+  const policy = data.toString("base64");
+  return {
+    from,
+    policyId,
+    policy,
+  };
+}
+
+function createParam(method: string, from: string) {
+  switch (method) {
+    case "insertIssuer":
+      return createParamInsertIssuer(from);
+    case "insertAdministrator":
+      return createParamInsertAdministrator(from);
+    case "insertPolicy":
+      return createParamInsertPolicy(from);
+    default:
+      throw new Error(`Test Error: Invalid method ${method}`);
+  }
 }
 
 jest.setTimeout(20000);
@@ -232,41 +293,23 @@ describe("JsonRpc Module", () => {
   });
 
   // Tests to be repeated for every method
-  describe.each(["insertIssuer", "insertAdministrator"])(
+  describe.each(["insertIssuer", "insertAdministrator", "insertPolicy"])(
     "/jsonrpc with method %s",
     (method: string) => {
       it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
         expect.assertions(4);
+
         const wallet = new ethers.Wallet(
           "0xf327a0b21cc9c380cbd3fdb6841b3f6a2be13ad864fc1b1acdd6863b8d45d964"
         );
-        const did = `did:ebsi:test-${new Date().toISOString()}`;
-        const json = {
-          // any object here
-          any: "Any attribute here",
-          type: "credential",
-          data: crypto.randomBytes(16).toString("hex"),
-        };
-        const data = Buffer.from(JSON.stringify(json));
-        const dataBase64 = data.toString("base64");
-        const dataHash = ethers.utils.keccak256(data);
-        const attribute = {
-          body: dataBase64,
-          hash: dataHash,
-        };
 
+        const param = createParam(method, wallet.address);
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
           .send({
             jsonrpc: "2.0",
             method,
-            params: [
-              {
-                from: wallet.address,
-                did,
-                attribute,
-              },
-            ],
+            params: [param],
             id: 231,
           });
 
@@ -276,7 +319,7 @@ describe("JsonRpc Module", () => {
           result: {
             chainId: expect.any(String) as string,
             data: expect.any(String) as string,
-            from: wallet.address,
+            from: param.from,
             gasLimit: expect.any(String) as string,
             gasPrice: expect.any(String) as string,
             nonce: expect.any(String) as string,
@@ -321,25 +364,15 @@ describe("JsonRpc Module", () => {
       it("should accept a request without id", async () => {
         expect.assertions(2);
         const wallet = ethers.Wallet.createRandom();
-        const did = `did:ebsi:test-${new Date().toISOString()}`;
-        const attribute = {
-          body: Buffer.from("123").toString("base64"),
-          hash:
-            "0x64e604787cbf194841e7b68d7cd28786f6c9a0a3ab9f8b0a0e87cb4387ab0107",
-        };
+
+        const param = createParam(method, wallet.address);
 
         const responseBuild = await request(server)
           .post("/jsonrpc")
           .send({
             jsonrpc: "2.0",
             method,
-            params: [
-              {
-                from: wallet.address,
-                did,
-                attribute,
-              },
-            ],
+            params: [param],
             // no id defined
           });
 
@@ -354,19 +387,52 @@ describe("JsonRpc Module", () => {
       it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
         expect.assertions(6);
 
-        // No attribute defined
+        const from = "0xde020FB144Bc3239C1446EB9dE73706A47D5929b";
+        const param1 = createParam(method, from);
+        const param2 = createParam(method, from);
+        const param3 = createParam(method, from);
+
+        let expectedErrorMessage1;
+        let expectedErrorMessage2;
+        let expectedErrorMessage3;
+        switch (method) {
+          case "insertIssuer":
+          case "insertAdministrator":
+            delete (param1 as paramInsertIssuer).attribute;
+            expectedErrorMessage1 =
+              "property params[0].attribute has failed the following constraints: isObject";
+
+            delete (param2 as paramInsertIssuer).did;
+            expectedErrorMessage2 =
+              "property params[0].did has failed the following constraints: isDid";
+
+            param3.from = "bad address";
+            expectedErrorMessage3 =
+              "property params[0].from has failed the following constraints: isEthereumAddress";
+            break;
+          case "insertPolicy":
+            delete (param1 as paramInsertPolicy).policy;
+            expectedErrorMessage1 =
+              "property params[0].policy has failed the following constraints: isBase64";
+
+            delete (param2 as paramInsertPolicy).policyId;
+            expectedErrorMessage2 =
+              "property params[0].policyId has failed the following constraints: isString";
+
+            param3.from = "bad address";
+            expectedErrorMessage3 =
+              "property params[0].from has failed the following constraints: isEthereumAddress";
+            break;
+          default:
+            throw new Error(`Test Error: Invalid method ${method}`);
+        }
+
         const response1 = await request(server)
           .post("/jsonrpc")
           .send({
             jsonrpc: "2.0",
             method,
-            params: [
-              {
-                from: "0xde020FB144Bc3239C1446EB9dE73706A47D5929b",
-                did: "did:ebsi:0xde020FB144Bc3239C1446EB9dE73706A47D5929b",
-                // no attribute defined
-              },
-            ],
+            params: [param1],
             id: 231,
           });
 
@@ -375,30 +441,17 @@ describe("JsonRpc Module", () => {
           id: 231,
           error: {
             code: -32600,
-            message: expect.stringContaining(
-              "params[0].attribute has failed"
-            ) as string,
+            message: expect.stringContaining(expectedErrorMessage1) as string,
           },
         });
         expect(response1.status).toBe(400);
 
-        // No did defined
         const response2 = await request(server)
           .post("/jsonrpc")
           .send({
             jsonrpc: "2.0",
             method,
-            params: [
-              {
-                from: "0xde020FB144Bc3239C1446EB9dE73706A47D5929b",
-                // no did present
-                attribute: {
-                  body: Buffer.from("123").toString("base64"),
-                  hash:
-                    "0x64e604787cbf194841e7b68d7cd28786f6c9a0a3ab9f8b0a0e87cb4387ab0107",
-                },
-              },
-            ],
+            params: [param2],
             id: 231,
           });
 
@@ -407,30 +460,17 @@ describe("JsonRpc Module", () => {
           id: 231,
           error: {
             code: -32600,
-            message: expect.stringContaining(
-              "params[0].did has failed"
-            ) as string,
+            message: expect.stringContaining(expectedErrorMessage2) as string,
           },
         });
         expect(response2.status).toBe(400);
 
-        // bad address
         const response3 = await request(server)
           .post("/jsonrpc")
           .send({
             jsonrpc: "2.0",
             method,
-            params: [
-              {
-                from: "bad address",
-                did: "did:ebsi:0xde020FB144Bc3239C1446EB9dE73706A47D5929b",
-                attribute: {
-                  body: Buffer.from("123").toString("base64"),
-                  hash:
-                    "0x64e604787cbf194841e7b68d7cd28786f6c9a0a3ab9f8b0a0e87cb4387ab0107",
-                },
-              },
-            ],
+            params: [param3],
             id: 231,
           });
 
@@ -439,9 +479,7 @@ describe("JsonRpc Module", () => {
           id: 231,
           error: {
             code: -32600,
-            message: expect.stringContaining(
-              "network does not support ENS"
-            ) as string,
+            message: expect.stringContaining(expectedErrorMessage3) as string,
           },
         });
         expect(response3.status).toBe(400);
@@ -452,29 +490,15 @@ describe("JsonRpc Module", () => {
         const wallet1 = ethers.Wallet.createRandom();
         const wallet2 = ethers.Wallet.createRandom();
 
-        const data1 = Buffer.from(JSON.stringify(jsonlds[1]));
-        const data1Base64 = data1.toString("base64");
-        const data1Hash = ethers.utils.keccak256(data1);
-
-        const data2 = Buffer.from(JSON.stringify(jsonlds[2]));
-        const data2Base64 = data2.toString("base64");
-        const data2Hash = ethers.utils.keccak256(data2);
+        const param1 = createParam(method, wallet1.address);
+        const param2 = createParam(method, wallet2.address);
 
         const responseBuild1: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
           .send({
             jsonrpc: "2.0",
             method,
-            params: [
-              {
-                from: wallet1.address,
-                did: "did:ebsi:1",
-                attribute: {
-                  body: data1Base64,
-                  hash: data1Hash,
-                },
-              },
-            ],
+            params: [param1],
             id: 231,
           });
         expect(responseBuild1.status).toBe(200);
@@ -485,16 +509,7 @@ describe("JsonRpc Module", () => {
           .send({
             jsonrpc: "2.0",
             method,
-            params: [
-              {
-                from: wallet2.address,
-                did: "did:ebsi:2",
-                attribute: {
-                  body: data2Base64,
-                  hash: data2Hash,
-                },
-              },
-            ],
+            params: [param2],
             id: 232,
           });
         expect(responseBuild2.status).toBe(200);
@@ -504,8 +519,8 @@ describe("JsonRpc Module", () => {
           JSON.parse(JSON.stringify(transaction1))
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await wallet1.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+        const sgnTx1 = await wallet1.signTransaction(uTx);
+        const { r, s, v } = ethers.utils.parseTransaction(sgnTx1);
 
         // tampering signatures
         const responseSend1 = await request(server)
@@ -520,7 +535,7 @@ describe("JsonRpc Module", () => {
                 r,
                 s,
                 v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
+                signedRawTransaction: sgnTx1,
               },
             ],
             id: "45",
@@ -551,7 +566,7 @@ describe("JsonRpc Module", () => {
                 r,
                 s,
                 v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
+                signedRawTransaction: sgnTx1,
               },
             ],
             id: "46",
