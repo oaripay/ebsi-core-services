@@ -7,28 +7,16 @@ import "./TirStorage.sol";
 
 contract TirDetailed is Initializable, TirStorage {
     /**
-     * @dev Sets the values for `operator`,   and `version`.
+     * @dev Sets the values for  `version`.
      */
 
-    function initialize(uint256 version, address operator) public initializer {
-        _onInitialize(version, operator);
+    function init(uint256 version) public initializer {
+        _onInitialize(version);
     }
 
-    function _onInitialize(uint256 version, address operator)
-        internal
-        initializer
-    {
+    function _onInitialize(uint256 version) internal initializer {
         Tir storage ds = TirStorage.tirStorage();
         ds._version = version;
-        ds._operator = operator;
-    }
-
-    /**
-     * @dev Returns the operator of the Tir SC
-     */
-    function operator() public view returns (address) {
-        Tir storage ds = tirStorage();
-        return ds._operator;
     }
 
     /**

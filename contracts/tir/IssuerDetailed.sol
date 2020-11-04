@@ -4,19 +4,20 @@ pragma experimental ABIEncoderV2;
 
 import "../utils/upgradeability/Initializable.sol";
 import "./IssuerStorage.sol";
-import "../utils/math/SafeMath.sol";
+import "../utils/Pagination.sol";
 
 abstract contract IssuerDetailed is IssuerStorage {
-    using SafeMath for uint256;
+    using Pagination for bytes32[];
+    using Pagination for string[];
 
-    event addIssuerAttribute(
+    event AddIssuerAttribute(
         bytes32 indexed didHash,
         bytes32 indexed firstAttrHash,
         string did,
         uint256 attributeVersionCount,
         uint256 attributesCount
     );
-    event updateIssuerAttribute(
+    event UpdateIssuerAttribute(
         bytes32 indexed didHash,
         bytes32 indexed newAttrHash,
         bytes32 indexed previousAttrHash,
@@ -32,13 +33,10 @@ abstract contract IssuerDetailed is IssuerStorage {
     function insertIssuer(string calldata did, bytes calldata attributeData)
         external
     {
-        bytes32 firstAttrHash = keccak256(attributeData);
+        bytes32 firstAttrHash = sha256(attributeData);
         Issuers storage ds = issuerStorage();
         Entity storage iss = ds.issuerStore[did];
-        require(
-            iss.attributes.length == 0,
-            "issuer already exist use updateIssuer to add or update an attribute"
-        );
+        require(iss.attributes.length == 0, "issuer already exist");
         require(
             keccak256(bytes(ds.attributeMetadataStore[firstAttrHash].did)) ==
                 keccak256(bytes("")),
@@ -68,8 +66,8 @@ abstract contract IssuerDetailed is IssuerStorage {
         iss.attributes.push(firstAttrHash);
         uint256 attributesCount = iss.attributes.length;
         ds.didStore.push(did);
-        emit addIssuerAttribute(
-            keccak256(bytes(did)),
+        emit AddIssuerAttribute(
+            sha256(bytes(did)),
             firstAttrHash,
             did,
             1,
@@ -84,7 +82,7 @@ abstract contract IssuerDetailed is IssuerStorage {
         external
     {
         Issuers storage ds = issuerStorage();
-        bytes32 newAttrHash = keccak256(attributeData);
+        bytes32 newAttrHash = sha256(attributeData);
         require(
             keccak256(bytes(ds.attributeMetadataStore[newAttrHash].did)) ==
                 keccak256(bytes("")),
@@ -92,10 +90,7 @@ abstract contract IssuerDetailed is IssuerStorage {
         );
 
         Entity storage iss = ds.issuerStore[did];
-        require(
-            iss.attributes.length > 0,
-            "issuer does not exist use insertIssuer to add an issuer"
-        );
+        require(iss.attributes.length > 0, "issuer does not exist");
 
         assert(iss.attributesStore[newAttrHash].revisionHashes.length == 0);
 
@@ -134,19 +129,16 @@ abstract contract IssuerDetailed is IssuerStorage {
         require(
             keccak256(bytes(ds.attributeMetadataStore[lastVersHash].did)) ==
                 keccak256(bytes(did)),
-            "lastVersHash does not refer to the specified DID"
+            "lastVersHash is not link to DID"
         );
 
         Entity storage iss = ds.issuerStore[did];
-        require(
-            iss.attributes.length > 0,
-            "issuer does not exist use insertIssuer to add an issuer"
-        );
+        require(iss.attributes.length > 0, "issuer does not exist");
         // based on the last version hash we can retrive the first version hash for this attribute along with the did
         bytes32 firstAttrHash = ds.attributeMetadataStore[lastVersHash]
             .attributeId;
         assert(iss.attributesStore[firstAttrHash].revisionHashes.length > 0);
-        bytes32 newAttrHash = keccak256(attributeData);
+        bytes32 newAttrHash = sha256(attributeData);
         require(
             keccak256(bytes(ds.attributeMetadataStore[newAttrHash].did)) ==
                 keccak256(bytes("")),
@@ -177,8 +169,8 @@ abstract contract IssuerDetailed is IssuerStorage {
         AttributeDetails storage atr = iss.attributesStore[firstAttrHash];
         uint256 attributeVersionCount = atr.revisionHashes.length;
         uint256 attributesCount = iss.attributes.length;
-        emit updateIssuerAttribute(
-            keccak256(bytes(did)),
+        emit UpdateIssuerAttribute(
+            sha256(bytes(did)),
             newAttrHash,
             lastVersHash,
             firstAttrHash,
@@ -212,84 +204,56 @@ abstract contract IssuerDetailed is IssuerStorage {
         return attributesLastHash;
     }
 
-    function getIssuers(uint256 page, uint256 howMany)
+    function getIssuers(uint256 page, uint256 pageSize)
         public
         view
         returns (
             string[] memory items,
             uint256 total,
-            uint256 pageSize,
+            uint256 howMany,
             uint256 prev,
             uint256 next
         )
     {
-        require(howMany <= 50, "PageSize should not be greater than 50");
-        require(howMany > 0, "PageSize should be greater than 0");
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
         Issuers storage ds = issuerStorage();
-        total = ds.didStore.length;
-        pageSize = howMany;
-        uint256 length = howMany;
-        uint256 cursor = page;
-        if (cursor == 0) {
-            if (total >= howMany) {
-                length = howMany;
-                prev = 0;
-                next = 1;
-            } else {
-                length = total;
-                pageSize = total;
-                prev = 0;
-                next = 0;
-            }
-        } else {
-            if (total > page.add(1).mul(howMany)) {
-                length = howMany;
-                cursor = page.mul(howMany);
-                prev = page.sub(1);
-                next = page.add(1);
-            } else {
-                if (howMany >= total) {
-                    length = total;
-                    pageSize = total;
-                    page = 0;
-                    cursor = 0;
-                    prev = 0;
-                    next = 0;
-                } else {
-                    length = total.mod(howMany);
-                    page = total.div(howMany);
-                    cursor = page.mul(howMany);
-                    prev = page.sub(1);
-                    next = page;
-                }
-            }
-        }
-
-        items = new string[](length);
-        for (uint256 i = 0; i < length; i++) {
-            items[i] = ds.didStore[cursor.add(i)];
-        }
-
-        return (items, total, pageSize, prev, next);
+        return ds.didStore.paginate(page, pageSize);
     }
 
-    function getIssuerAttributeRevisions(bytes32 anyAttrVersHash)
+    function getIssuerAttributeRevisions(
+        bytes32 anyAttrVersHash,
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
-        returns (bytes32[] memory)
+        returns (
+            bytes32[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
     {
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
         Issuers storage ds = issuerStorage();
         // retrieve first the did and attrId (firstHash of attribute)
-        AttributeMetadata memory i = ds.attributeMetadataStore[anyAttrVersHash];
-
+        AttributeMetadata memory am = ds
+            .attributeMetadataStore[anyAttrVersHash];
         require(
-            keccak256(bytes(i.did)) != keccak256(bytes("")),
+            keccak256(bytes(am.did)) != keccak256(bytes("")),
             "attribute has not been found"
         );
 
         // retrieve the issuer and the attribute detail
-        Entity storage iss = ds.issuerStore[i.did];
-        return iss.attributesStore[i.attributeId].revisionHashes;
+        return
+            ds.issuerStore[am.did].attributesStore[am.attributeId]
+                .revisionHashes
+                .paginate(page, pageSize);
     }
 
     function getIssuerAttributeByHash(bytes32 anyAttrVersHash)

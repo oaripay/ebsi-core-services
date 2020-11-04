@@ -4,19 +4,20 @@ pragma experimental ABIEncoderV2;
 
 import "../utils/upgradeability/Initializable.sol";
 import "./AdministratorStorage.sol";
-import "../utils/math/SafeMath.sol";
+import "../utils/Pagination.sol";
 
 abstract contract AdministratorDetailed is AdministratorStorage {
-    using SafeMath for uint256;
+    using Pagination for bytes32[];
+    using Pagination for string[];
 
-    event addAdministratorAttribute(
+    event AddAdministratorAttribute(
         bytes32 indexed didHash,
         bytes32 indexed firstAttrHash,
         string did,
         uint256 attributeVersionCount,
         uint256 attributesCount
     );
-    event updateAdministratorAttribute(
+    event UpdateAdministratorAttribute(
         bytes32 indexed didHash,
         bytes32 indexed newAttrHash,
         bytes32 indexed previousAttrHash,
@@ -33,13 +34,10 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         string calldata did,
         bytes calldata attributeData
     ) external {
-        bytes32 firstAttrHash = keccak256(attributeData);
+        bytes32 firstAttrHash = sha256(attributeData);
         Administrators storage ds = administratorStorage();
         Entity storage iss = ds.administratorStore[did];
-        require(
-            iss.attributes.length == 0,
-            "administrator already exist use updateAdministrator to add or update an attribute"
-        );
+        require(iss.attributes.length == 0, "administrator already exist");
         require(
             keccak256(bytes(ds.attributeMetadataStore[firstAttrHash].did)) ==
                 keccak256(bytes("")),
@@ -69,8 +67,8 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         iss.attributes.push(firstAttrHash);
         uint256 attributesCount = iss.attributes.length;
         ds.didStore.push(did);
-        emit addAdministratorAttribute(
-            keccak256(bytes(did)),
+        emit AddAdministratorAttribute(
+            sha256(bytes(did)),
             firstAttrHash,
             did,
             1,
@@ -86,7 +84,7 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         bytes calldata attributeData
     ) external {
         Administrators storage ds = administratorStorage();
-        bytes32 newAttrHash = keccak256(attributeData);
+        bytes32 newAttrHash = sha256(attributeData);
         require(
             keccak256(bytes(ds.attributeMetadataStore[newAttrHash].did)) ==
                 keccak256(bytes("")),
@@ -94,10 +92,7 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         );
 
         Entity storage iss = ds.administratorStore[did];
-        require(
-            iss.attributes.length > 0,
-            "administrator does not exist use insertAdministrator to add an administrator"
-        );
+        require(iss.attributes.length > 0, "administrator does not exist");
 
         assert(iss.attributesStore[newAttrHash].revisionHashes.length == 0);
 
@@ -136,19 +131,16 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         require(
             keccak256(bytes(ds.attributeMetadataStore[lastVersHash].did)) ==
                 keccak256(bytes(did)),
-            "lastVersHash does not refer to the specified DID"
+            "lastVersHash is not link to DID"
         );
 
         Entity storage iss = ds.administratorStore[did];
-        require(
-            iss.attributes.length >= 0,
-            "administrator does not exist use insertAdministrator to add an administrator"
-        );
+        require(iss.attributes.length >= 0, "administrator does not exist");
         // based on the last version hash we can retrive the first version hash for this attribute along with the did
         bytes32 firstAttrHash = ds.attributeMetadataStore[lastVersHash]
             .attributeId;
         assert(iss.attributesStore[firstAttrHash].revisionHashes.length > 0);
-        bytes32 newAttrHash = keccak256(attributeData);
+        bytes32 newAttrHash = sha256(attributeData);
         require(
             keccak256(bytes(ds.attributeMetadataStore[newAttrHash].did)) ==
                 keccak256(bytes("")),
@@ -179,8 +171,8 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         AttributeDetails storage atr = iss.attributesStore[firstAttrHash];
         uint256 attributeVersionCount = atr.revisionHashes.length;
         uint256 attributesCount = iss.attributes.length;
-        emit updateAdministratorAttribute(
-            keccak256(bytes(did)),
+        emit UpdateAdministratorAttribute(
+            sha256(bytes(did)),
             newAttrHash,
             lastVersHash,
             firstAttrHash,
@@ -222,82 +214,56 @@ abstract contract AdministratorDetailed is AdministratorStorage {
       "prev": 3,
       "next": 5
     } */
-    function getAdministrators(uint256 page, uint256 howMany)
+    function getAdministrators(uint256 page, uint256 pageSize)
         public
         view
         returns (
             string[] memory items,
             uint256 total,
-            uint256 pageSize,
+            uint256 howMany,
             uint256 prev,
             uint256 next
         )
     {
-        require(howMany <= 50, "PageSize should not be greater than 50");
-        require(howMany > 0, "PageSize should be greater than 0");
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
         Administrators storage ds = administratorStorage();
-        total = ds.didStore.length;
-        pageSize = howMany;
-        uint256 length = howMany;
-        uint256 cursor = page;
-        if (cursor == 0) {
-            if (total >= howMany) {
-                length = howMany;
-                prev = 0;
-                next = 1;
-            } else {
-                length = total;
-                pageSize = total;
-                prev = 0;
-                next = 0;
-            }
-        } else {
-            if (total > page.add(1).mul(howMany)) {
-                length = howMany;
-                cursor = page.mul(howMany);
-                prev = page.sub(1);
-                next = page.add(1);
-            } else {
-                if (howMany >= total) {
-                    length = total;
-                    pageSize = total;
-                    page = 0;
-                    cursor = 0;
-                    prev = 0;
-                    next = 0;
-                } else {
-                    length = total.mod(howMany);
-                    page = total.div(howMany);
-                    cursor = page.mul(howMany);
-                    prev = page.sub(1);
-                    next = page;
-                }
-            }
-        }
-
-        items = new string[](length);
-        for (uint256 i = 0; i < length; i++) {
-            items[i] = ds.didStore[cursor.add(i)];
-        }
-
-        return (items, total, pageSize, prev, next);
+        return ds.didStore.paginate(page, pageSize);
     }
 
-    function getAdministratorAttributeRevisions(bytes32 anyAttrVersHash)
+    function getAdministratorAttributeRevisions(
+        bytes32 anyAttrVersHash,
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
-        returns (bytes32[] memory)
+        returns (
+            bytes32[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
     {
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
         Administrators storage ds = administratorStorage();
         // retrieve first the did and attrId (firstHash of attribute)
-        AttributeMetadata memory i = ds.attributeMetadataStore[anyAttrVersHash];
+        AttributeMetadata memory am = ds
+            .attributeMetadataStore[anyAttrVersHash];
         require(
-            keccak256(bytes(i.did)) != keccak256(bytes("")),
+            keccak256(bytes(am.did)) != keccak256(bytes("")),
             "attribute has not been found"
         );
-        // retrieve the administrator and the attribute detail
-        Entity storage iss = ds.administratorStore[i.did];
-        return iss.attributesStore[i.attributeId].revisionHashes;
+
+        // retrieve the issuer and the attribute detail
+        return
+            ds.administratorStore[am.did].attributesStore[am.attributeId]
+                .revisionHashes
+                .paginate(page, pageSize);
     }
 
     function getAdministratorAttributeByHash(bytes32 anyAttrVersHash)

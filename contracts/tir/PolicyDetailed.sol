@@ -4,17 +4,18 @@ pragma experimental ABIEncoderV2;
 
 import "../utils/upgradeability/Initializable.sol";
 import "./PolicyStorage.sol";
-import "../utils/math/SafeMath.sol";
+import "../utils/Pagination.sol";
 
 abstract contract PolicyDetailed is PolicyStorage {
-    using SafeMath for uint256;
+    using Pagination for bytes32[];
+    using Pagination for string[];
 
-    event addNewPolicy(
+    event AddNewPolicy(
         string indexed policyId,
         bytes32 indexed policyHash,
         bytes policy
     );
-    event updateExistingPolicy(
+    event UpdateExistingPolicy(
         string indexed policyId,
         bytes32 indexed policyHash,
         bytes policy
@@ -26,14 +27,11 @@ abstract contract PolicyDetailed is PolicyStorage {
     function insertPolicy(string calldata policyId, bytes calldata policyData)
         external
     {
-        bytes32 firstPolicyHash = keccak256(policyData);
+        bytes32 firstPolicyHash = sha256(policyData);
 
         Policies storage ds = policyStorage();
         PolicyDetails storage p = ds.policyStore[policyId];
-        require(
-            p.revisionHashes.length == 0,
-            "policy already exist use updatePolicy to update a policy"
-        );
+        require(p.revisionHashes.length == 0, "policy already exist");
 
         assert(ds.revisions[firstPolicyHash].length == 0);
 
@@ -44,7 +42,7 @@ abstract contract PolicyDetailed is PolicyStorage {
         // push the policy ID
         ds.policyIdStore.push(policyId);
 
-        emit addNewPolicy(policyId, firstPolicyHash, policyData);
+        emit AddNewPolicy(policyId, firstPolicyHash, policyData);
     }
 
     /**
@@ -56,7 +54,7 @@ abstract contract PolicyDetailed is PolicyStorage {
         Policies storage ds = policyStorage();
         PolicyDetails storage p = ds.policyStore[policyId];
         require(p.revisionHashes.length > 0, "policy does not exist");
-        bytes32 newPolicyHash = keccak256(policyData);
+        bytes32 newPolicyHash = sha256(policyData);
 
         require(
             keccak256(bytes(ds.revisions[newPolicyHash])) ==
@@ -69,7 +67,7 @@ abstract contract PolicyDetailed is PolicyStorage {
 
         p.revisionHashes.push(newPolicyHash);
         ds.revisions[newPolicyHash] = policyData;
-        emit updateExistingPolicy(policyId, newPolicyHash, policyData);
+        emit UpdateExistingPolicy(policyId, newPolicyHash, policyData);
     }
 
     /**
@@ -78,7 +76,7 @@ abstract contract PolicyDetailed is PolicyStorage {
     function getPolicy(string memory policyId)
         public
         view
-        returns (bytes memory)
+        returns (bytes memory, bytes32)
     {
         Policies storage ds = policyStorage();
         bytes32[] memory policyRevisionHashes = ds.policyStore[policyId]
@@ -86,7 +84,7 @@ abstract contract PolicyDetailed is PolicyStorage {
         require(policyRevisionHashes.length > 0, "policy does not exist");
         bytes32 lastHash = policyRevisionHashes[policyRevisionHashes.length -
             1];
-        return ds.revisions[lastHash];
+        return (ds.revisions[lastHash], lastHash);
     }
 
     /**
@@ -110,84 +108,46 @@ abstract contract PolicyDetailed is PolicyStorage {
     /**
     Returns all the revision hashes
      */
-    function getPolicyRevisions(string calldata policyId)
+    function getPolicyRevisions(
+        string calldata policyId,
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
-        returns (bytes32[] memory)
+        returns (
+            bytes32[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
     {
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
         Policies storage ds = policyStorage();
         PolicyDetails memory p = ds.policyStore[policyId];
         require(p.revisionHashes.length > 0, "policyId does not exist");
-
-        return p.revisionHashes;
+        return p.revisionHashes.paginate(page, pageSize);
     }
 
-    /* {
-      "items": [policyA, policyB],
-      "total": 30,
-      "pageSize": 2,
-      "prev": 3,
-      "next": 5
-    } */
-    function getPolicies(uint256 page, uint256 howMany)
+    function getPolicies(uint256 page, uint256 pageSize)
         public
         view
         returns (
             string[] memory items,
             uint256 total,
-            uint256 pageSize,
+            uint256 howMany,
             uint256 prev,
             uint256 next
         )
     {
-        require(howMany <= 50, "PageSize should not be greater than 50");
-        require(howMany > 0, "PageSize should be greater than 0");
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
         Policies storage ds = policyStorage();
-        total = ds.policyIdStore.length;
-        pageSize = howMany;
-        uint256 length = howMany;
-        uint256 cursor = page;
-        if (cursor == 0) {
-            if (total >= howMany) {
-                length = howMany;
-                prev = 0;
-                next = 1;
-            } else {
-                length = total;
-                pageSize = total;
-                prev = 0;
-                next = 0;
-            }
-        } else {
-            if (total > page.add(1).mul(howMany)) {
-                length = howMany;
-                cursor = page.mul(howMany);
-                prev = page.sub(1);
-                next = page.add(1);
-            } else {
-                if (howMany >= total) {
-                    length = total;
-                    pageSize = total;
-                    page = 0;
-                    cursor = 0;
-                    prev = 0;
-                    next = 0;
-                } else {
-                    length = total.mod(howMany);
-                    page = total.div(howMany);
-                    cursor = page.mul(howMany);
-                    prev = page.sub(1);
-                    next = page;
-                }
-            }
-        }
-
-        items = new string[](length);
-        for (uint256 i = 0; i < length; i++) {
-            items[i] = ds.policyIdStore[cursor.add(i)];
-        }
-
-        return (items, total, pageSize, prev, next);
+        return ds.policyIdStore.paginate(page, pageSize);
     }
 
     uint256[50] private ______gap;

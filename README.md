@@ -39,6 +39,7 @@ yarn run build
 ## Deploying
 
 Deploy the smart contracts on the ebsi network
+you have to specify in the .secret.privatekeys file an hex encoded private key to sign the besu transaction
 
 ```sh
 npx truffle migrate --network ebsi --reset
@@ -49,7 +50,6 @@ npx truffle migrate --network ebsi --reset
 ### Requirements:
 
 - node 12 (use nvm)
-  Run
 
 ### Launch all tests
 
@@ -57,17 +57,11 @@ npx truffle migrate --network ebsi --reset
 yarn run test
 ```
 
-testing in intesbi
-
-```
-npx truffle test  --show-events --network intebsi --compile-all
-```
-
 if you experience some timeout issues try running tests one by one
 
 ### test change proxy ownership
 
-- launch ganache with the seed you have specified in the .secret file
+- launch ganache with the seed you have specified in the .secret.mnemonic file
 
 ```sh
 npx ganache-cli -m "myth like bonus scare over problem client lizard pioneer submit female collect"
@@ -79,37 +73,9 @@ npx ganache-cli -m "myth like bonus scare over problem client lizard pioneer sub
 npx truffle migrate  --compile-all  --reset
 ```
 
-Note at the end of the migration script the `ProxyAddress` this will be needed in the next step
-
-- change the proxy admin
-
-```sh
-node migrations/helpers/changeProxyOwnership.js {proxy SC address} {new proxy admin address}
-...
---Transfer Ownership from 0x9bba2ad7178e0e2731db6caf45f80dd4efbdfcd1 to 0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b
-...
-```
-
-### test coverage
-
-```sh
-npx truffle run coverage --files="tests/**/*.js"
-```
-
 ## Design
 
-We are using an proxy contract to be able to deploy new version at the same address.
-The address will remain the proxy address whereas the implementation address where the call that are not made by the proxy admin are delegate will be stored in the proxy storage along with proxy admin address.
-We use a new solidity features since [0.6.4](https://github.com/ethereum/solidity/releases/tag/v0.6.4) that makes possible to set storage slots for storage reference variables from inline assembly. This novelty is at the heart of the [diamond storage](https://dev.to/mudgen/what-is-diamond-storage-3n7c).
-We also leverage OpenZeppelin base class updated to solidity v0.6.12 to take care of the base functionalities like
-
-- admin
-- initialize
-- owner
-- role
-- pause
-
-We added a storage contract (see IssuerStorage.sol) that leverage the storage reference variables from inline assembly. We can then use this contract to get all the informations about Issuer. This will be store at the proxy contract storage slot and can be retrieve by any smart contract that the will be proxied without the need to take extra cautious steps like required with the unstructured storage
+We added a storage contract (see IssuerStorage.sol) that leverages the storage reference variables from inline assembly. We can then use this contract to get all the information about Issuer. if used through a proxy this will be stored at the proxy contract storage slot and can be retrieved by any smart contract implementation. The data can be retrieved without the need to take extra cautious steps like required when using the unstructured storage pattern.
 
 ### Attributes versioning
 
@@ -118,7 +84,7 @@ We decided to take the hash of the attribute as the unique identifier for the at
 
 Let's take an example and add new issuer. We will have to provide an attribute. We will store that first attribute hash in the Smart Contract.
 
-Now we want to update that issuer attribute so we will call the `updateIssuer()` method wich take three parameters the DID, the new version attribute's data, and the last version hash of this attribute known to the smart contract. In that case the last version will be the first version hash.
+Now we want to update that issuer attribute so we will call the `updateIssuer()` method wich take three parameters the DID, a new version attribute's data, and the last version hash of this attribute known to the smart contract. In that case the last version will be the first version hash.
 
 If we want to add a third version of that attribute, we will provide the second version hash as the last version hash parameter.
 
@@ -140,7 +106,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 ## Version
 
 `npx truffle version`
-Truffle v5.1.41 (core: 5.1.41)
-Solidity - ^0.6.12 (solc-js)
-Node v12.16.3
-Web3.js v1.2.1
+Truffle v5.1.50 (core: 5.1.50)
+Solidity - ^0.7.0 (solc-js)
+Node v12.18.4
+Web3.js v1.2.9

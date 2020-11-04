@@ -15,7 +15,7 @@ library Roles {
      */
     function add(Role storage role, address account) internal {
         // prettier-ignore
-        require(!has(role, account), "Roles: account already has role");
+        require(!has(role, account), "Account has role");
         role.bearer[account] = true;
     }
 
@@ -24,7 +24,7 @@ library Roles {
      */
     function remove(Role storage role, address account) internal {
         // prettier-ignore
-        require(has(role, account), "Roles: account does not have role");
+        require(has(role, account), "Account have no role");
         role.bearer[account] = false;
     }
 
@@ -38,7 +38,7 @@ library Roles {
         returns (bool)
     {
         // prettier-ignore
-        require(account != address(0), "Roles: account is the zero address");
+        require(account != address(0), "Account can't be zero");
         return role.bearer[account];
     }
 }

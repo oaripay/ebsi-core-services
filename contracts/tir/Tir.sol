@@ -3,7 +3,6 @@ pragma solidity ^0.7.0;
 pragma experimental ABIEncoderV2;
 
 import "../utils/upgradeability/Initializable.sol";
-import "../utils/pausable/Pausable.sol";
 import "./TirDetailed.sol";
 import "./IssuerDetailed.sol";
 import "./AdministratorDetailed.sol";
@@ -18,21 +17,9 @@ contract Tir is
     TirDetailed,
     IssuerDetailed,
     AdministratorDetailed,
-    PolicyDetailed,
-    Pausable
+    PolicyDetailed
 {
-    function initialize(
-        uint256 version,
-        address operator,
-        address[] memory pausers
-    ) public initializer {
-        TirDetailed.initialize(version, operator);
-
-        Pausable.initialize(address(this));
-        _removePauser(address(this));
-
-        for (uint256 i = 0; i < pausers.length; ++i) {
-            _addPauser(pausers[i]);
-        }
+    function initialize(uint256 version) public initializer {
+        TirDetailed.init(version);
     }
 }

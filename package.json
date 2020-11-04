@@ -1,44 +1,54 @@
 {
-  "name": "5-besu-trusted-issuers",
-  "version": "2.0.0",
+  "name": "trusted-issuers-registry-smart-contract",
+  "version": "3.0.0",
   "description": "Trusted Issuers Registry",
   "main": "truffle-config.js",
+  "private": "true",
   "scripts": {
-    "prettier-format": "prettier --write 'src/**/*.{js,ts,tsx}'",
+    "prettier-format": "prettier --write '**/*.{js,json,md,sol}'",
     "ganache": "ganache-cli --gasLimit=8000000 --allowUnlimitedContractSize -i 5042 >/dev/null 2>&1 &",
     "compile": "truffle compile contracts",
     "build": "truffle build --compile-all",
-    "lint": "yarn run lint:prettier && yarn run lint:js",
+    "lint": "yarn run lint:prettier && yarn run lint:js && yarn run lint:sol",
+    "lint:sol": " solhint 'contracts/**/*.sol'",
     "lint:prettier": "prettier . --check",
-    "lint:js": "eslint --ext .js tests --fix --ignore-pattern '*.json'",
-    "test": "truffle compile && jest --coverage --verbose"
+    "lint-staged": "lint-staged",
+    "lint:js": "eslint --ext .js . --fix --ignore-pattern '*.json'",
+    "test": "truffle compile && jest --verbose"
   },
   "author": "",
-  "license": "ISC",
+  "license": "EUPL-1.2",
   "dependencies": {
-    "@truffle/hdwallet-provider": "^1.0.42",
-    "eth-json-rpc-filters": "^4.1.1",
-    "fs": "0.0.1-security"
-  },
-  "jest": {
-    "testEnvironment": "node"
+    "@truffle/hdwallet-provider": "^1.1.1"
   },
   "devDependencies": {
-    "@openzeppelin/test-environment": "^0.1.4",
-    "@openzeppelin/test-helpers": "^0.5.6",
-    "eslint": "^7.8.1",
+    "@commitlint/cli": "^11.0.0",
+    "@commitlint/config-conventional": "^11.0.0",
+    "@openzeppelin/test-environment": "^0.1.6",
+    "@openzeppelin/test-helpers": "^0.5.9",
+    "eslint": "^7.12.1",
     "eslint-config-airbnb-base": "^14.2.0",
-    "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-import": "^2.22.0",
-    "eslint-plugin-jest": "^23.18.0",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jest": "^24.1.0",
     "eslint-plugin-prettier": "^3.1.4",
-    "ganache-cli": "^6.10.1",
-    "jest": "^26.4.2",
-    "prettier": "^2.1.1",
-    "prettier-plugin-solidity": "^1.0.0-alpha.56",
-    "solidity-coverage": "^0.7.10",
-    "truffle": "^5.1.42",
-    "truffle-flattener": "^1.4.4",
+    "ethers": "^5.0.19",
+    "ganache-cli": "^6.12.1",
+    "husky": "^4.3.0",
+    "jest": "^26.6.1",
+    "lint-staged": "^10.4.2",
+    "prettier": "^2.1.2",
+    "prettier-plugin-solidity": "^1.0.0-alpha.59",
+    "solhint": "^3.3.1",
+    "solidity-coverage": "^0.7.11",
+    "truffle": "^5.1.50",
+    "truffle-flattener": "^1.5.0",
     "truffle-typings": "^1.0.8"
+  },
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "lint-staged"
+    }
   }
 }

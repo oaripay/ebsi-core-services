@@ -17,14 +17,8 @@
  * phrase from a file you've .gitignored so it doesn't accidentally become public.
  *
  */
-
-const WalletProvider = require("@truffle/hdwallet-provider");
-const privateKey =
-  "8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63";
-
 const fs = require("fs");
-const path = `${__dirname}/.secret`;
-const mnemonic = fs.readFileSync(path).toString().trim();
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 
 module.exports = {
   /**
@@ -50,8 +44,18 @@ module.exports = {
       network_id: "*", // Any network (default: none)
     },
     ebsi: {
-      provider: () =>
-        new WalletProvider(privateKey, "https://www.ebsi.xyz/jsonrpc"),
+      provider: () => {
+        const privKeysPath = `${__dirname}/.secret.privatekeys`;
+        const privateKeys = fs
+          .readFileSync(privKeysPath)
+          .toString()
+          .split("\n")
+          .filter((n) => n);
+        return new HDWalletProvider(
+          privateKeys,
+          "https://www.ebsi.xyz/jsonrpc"
+        );
+      },
       network_id: "*",
       gas: "0x1ffffffffffffe",
       gasPrice: 0,
@@ -62,8 +66,14 @@ module.exports = {
       network_id: "*",
     },
     intebsi: {
-      provider: () =>
-        new WalletProvider(mnemonic, "https://www.intebsi.xyz/jsonrpc"),
+      provider: () => {
+        const mnemonicPath = `${__dirname}/.secret.mnemonic`;
+        const mnemonic = fs.readFileSync(mnemonicPath).toString().trim();
+        return new HDWalletProvider(
+          mnemonic,
+          "https://www.intebsi.xyz/jsonrpc"
+        );
+      },
       network_id: "*",
       gas: "0x1ffffffffffffe",
       gasPrice: 0,
