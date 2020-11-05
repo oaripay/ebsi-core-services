@@ -55,8 +55,6 @@ interface SupertestAttributeResponse {
   body: AttributeObject;
 }
 
-jest.setTimeout(60000);
-
 describe("Issuers (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
@@ -83,6 +81,10 @@ describe("Issuers (e2e)", () => {
 
     return { did, attribute };
   };
+  const newIssuer = createIssuer();
+  const { attribute: attribute1 } = createIssuer();
+  const { attribute: attribute2 } = createIssuer();
+  const { attribute: attribute3 } = createIssuer();
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -357,22 +359,34 @@ describe("Issuers (e2e)", () => {
     });
   });
 
-  describe("/jsonrpc - method: insertIssuer", () => {
+  describe.each([
+    "insertIssuer",
+    "updateIssuer",
+    "updateIssuer(test update attribute)",
+  ])("/jsonrpc - method: %s", (testMethod: string) => {
+    const updateAttribute = testMethod.includes("(test update attribute)");
+    const method = testMethod.replace("(test update attribute)", "");
+
     it(`should return a new unsigned transaction`, async () => {
       expect.assertions(2);
 
       const { did, attribute } = createIssuer();
+      let prevAttributeHash: string = null;
+      if (updateAttribute)
+        prevAttributeHash =
+          "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe";
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
         .send({
           jsonrpc: "2.0",
-          method: "insertIssuer",
+          method,
           params: [
             {
               from: wallet.address,
               did,
               attribute,
+              ...(prevAttributeHash && { prevAttributeHash }),
             },
           ],
           id: 231,
@@ -396,70 +410,105 @@ describe("Issuers (e2e)", () => {
     });
   });
 
-  it("should insert a new issuer", async () => {
-    expect.assertions(5);
+  describe.each([
+    "insertIssuer",
+    "updateIssuer",
+    "updateIssuer(test update attribute)",
+  ])("/jsonrpc - send transaction for %s", (testMethod: string) => {
+    const updateAttribute = testMethod.includes("(test update attribute)");
+    const method = testMethod.replace("(test update attribute)", "");
 
-    const { did, attribute } = createIssuer();
+    it("should send a transaction", async () => {
+      expect.assertions(5);
 
-    const responseBuild: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .send({
+      const { did } = newIssuer;
+      let attribute: AttributeObject;
+      let prevAttributeHash: string = null;
+      let expectedAttributes = [];
+
+      switch (method) {
+        case "insertIssuer":
+          // create a new issuer and add attribute1
+          attribute = attribute1;
+          expectedAttributes = [attribute1];
+          break;
+        case "updateIssuer":
+          if (updateAttribute) {
+            // update attribute1: change it to attribute3
+            attribute = attribute3;
+            prevAttributeHash = attribute1.hash;
+            expectedAttributes = [attribute3, attribute2];
+          } else {
+            // updateIssuer: add attribute2
+            attribute = attribute2;
+            expectedAttributes = [attribute1, attribute2];
+          }
+          break;
+        default:
+          break;
+      }
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [
+            {
+              from: wallet.address,
+              did,
+              attribute,
+              ...(prevAttributeHash && { prevAttributeHash }),
+            },
+          ],
+          id: 231,
+        });
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await wallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
         jsonrpc: "2.0",
-        method: "insertIssuer",
-        params: [
-          {
-            from: wallet.address,
-            did,
-            attribute,
-          },
-        ],
-        id: 231,
-      });
-
-    const unsignedTransaction = responseBuild.body.result;
-    const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(unsignedTransaction))
-    );
-    uTx.chainId = Number(uTx.chainId);
-    const sgnTx = await wallet.signTransaction(uTx);
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-    const responseSend: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .send({
-        jsonrpc: "2.0",
-        method: "signedTransaction",
-        params: [
-          {
-            protocol: "eth",
-            unsignedTransaction,
-            r,
-            s,
-            v: `0x${Number(v).toString(16)}`,
-            signedRawTransaction: sgnTx,
-          },
-        ],
         id: "45",
+        result: expect.any(String) as string,
       });
+      expect(responseSend.status).toBe(200);
 
-    expect(responseSend.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: "45",
-      result: expect.any(String) as string,
+      // wait to be mined
+      const receipt = await waitToBeMined(responseSend.body.result as string);
+      expect(receipt.status).toBe("0x1");
+
+      // get issuer
+      const issuerResponse = await request(server).get(`/issuers/${did}`);
+
+      expect(issuerResponse.body).toStrictEqual({
+        did: did.toLowerCase(),
+        attributes: expectedAttributes,
+      });
+      expect(issuerResponse.status).toBe(200);
     });
-    expect(responseSend.status).toBe(200);
-
-    // wait to be mined
-    const receipt = await waitToBeMined(responseSend.body.result as string);
-    expect(receipt.status).toBe("0x1");
-
-    // get issuer
-    const issuerResponse = await request(server).get(`/issuers/${did}`);
-
-    expect(issuerResponse.body).toStrictEqual({
-      did: did.toLowerCase(),
-      attributes: [attribute],
-    });
-    expect(issuerResponse.status).toBe(200);
   });
 });

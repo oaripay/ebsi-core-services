@@ -55,8 +55,6 @@ interface SupertestAttributeResponse {
   body: AttributeObject;
 }
 
-jest.setTimeout(60000);
-
 describe("Administrators (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;

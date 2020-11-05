@@ -26,8 +26,6 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-jest.setTimeout(60000);
-
 describe("Policies (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;

@@ -5,6 +5,7 @@ import { Agent, Scope } from "@cef-ebsi/app-jwt";
 import { ConfigService } from "@nestjs/config";
 import LedgerService from "../../shared/services/ledger.service";
 import RequestInsertIssuerDto from "./dto/insertIssuer/request-insert-issuer.dto";
+import RequestUpdateIssuerDto from "./dto/updateIssuer/request-update-issuer.dto";
 import RequestInsertAdministratorDto from "./dto/insertAdministrator/request-insert-administrator.dto";
 import RequestInsertPolicyDto from "./dto/insertPolicy/request-insert-policy.dto";
 import RequestSignedTransactionDto from "./dto/signedTransaction/request-signed-transaction.dto";
@@ -14,6 +15,7 @@ import { InvalidRequestJsonRpcError } from "./errors";
 import TrustedIssuersRegistryContract from "../../shared/types/trusted-issuers-registry.interface";
 import ParamSignedTransaction from "./dto/signedTransaction/param.dto";
 import ArgsInsertIssuer from "./dto/signedTransaction/args-insert-issuer.dto";
+import ArgsUpdateIssuer from "./dto/signedTransaction/args-update-issuer.dto";
 import ArgsInsertAdministrator from "./dto/signedTransaction/args-insert-administrator.dto";
 import ArgsInsertPolicy from "./dto/signedTransaction/args-insert-policy.dto";
 import {
@@ -227,6 +229,10 @@ export default class JsonRpcService {
         await validateClass(ArgsInsertIssuer, args);
         break;
       }
+      case "updateIssuer": {
+        await validateClass(ArgsUpdateIssuer, args);
+        break;
+      }
       case "insertPolicy": {
         await validateClass(ArgsInsertPolicy, args);
         break;
@@ -256,9 +262,20 @@ export default class JsonRpcService {
       gasLimit: "0x1000000",
       gasPrice: "0x0",
     };
-    unsignedTransaction.gasLimit = ethers.BigNumber.from(
-      Math.ceil(1.4 * Number(await this.estimateGas(unsignedTransaction)))
-    ).toHexString();
+    let gasEstimation = "unset";
+    try {
+      gasEstimation = await this.estimateGas(unsignedTransaction);
+      unsignedTransaction.gasLimit = ethers.BigNumber.from(
+        Math.ceil(1.4 * Number(gasEstimation))
+      ).toHexString();
+    } catch (error) {
+      this.logger.warn(
+        `Gas could not be estimated.${
+          gasEstimation === "unset" ? "" : `Received ${gasEstimation}.`
+        } Using 0x1000000`
+      );
+      unsignedTransaction.gasLimit = "0x1000000";
+    }
     return unsignedTransaction;
   }
 
@@ -303,6 +320,39 @@ export default class JsonRpcService {
         );
       const data = [did.toLowerCase(), bufferAttribute];
       return await this.buildTransaction(from, "insertIssuer", data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateIssuer(
+    body: RequestUpdateIssuerDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateIssuerDto, body);
+      const { from, did, attribute, prevAttributeHash } = body.params[0];
+      const bufferAttribute = Buffer.from(attribute.body, "base64");
+      const expectedHash = ethers.utils.keccak256(bufferAttribute);
+      if (prefixWith0x(attribute.hash) !== expectedHash)
+        throw new Error(
+          `Invalid issuer.attribute.hash. Received: ${prefixWith0x(
+            attribute.hash
+          )}. Expected: ${expectedHash}`
+        );
+      const data = [did.toLowerCase(), bufferAttribute];
+      if (prevAttributeHash) data.push(prefixWith0x(prevAttributeHash));
+      let functionSig;
+      if (prevAttributeHash) {
+        // using updateIssuer function (did, attributeData, lastVersHash)
+        functionSig = "updateIssuer(string,bytes,bytes32)";
+      } else {
+        // using updateIssuer function (did, attributeData)
+        functionSig = "updateIssuer(string,bytes)";
+      }
+      return await this.buildTransaction(from, functionSig, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;

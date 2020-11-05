@@ -930,6 +930,33 @@ paths:
                           hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
                         }
                   id: 1
+              Build tx to add a new attribute to an issuer:
+                value:
+                  jsonrpc: "2.0"
+                  method: updatetIssuer
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      attribute:
+                        {
+                          body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9",
+                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+                        }
+                  id: 1
+              Build tx to update an attribute of an issuer:
+                value:
+                  jsonrpc: "2.0"
+                  method: updatetIssuer
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      attribute:
+                        {
+                          body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9",
+                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+                        }
+                      prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
+                  id: 1
               Send Transaction:
                 value:
                   jsonrpc: "2.0"
@@ -959,7 +986,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/JsonRpcResponse"
               examples:
-                Build tx to insert issuer:
+                Build tx:
                   value:
                     jsonrpc: "2.0"
                     id: 1
