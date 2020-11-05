@@ -1,46 +1,112 @@
-## requirements
+![Logo of the project](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
 
-Optionally: ganache-cli
-https://www.npmjs.com/package/ganache-cli
+# Trusted Apps Registry Smart Contract
 
+> Smart Contract to store the trusted Administrators
 
-## install application
+## Table of Contents
 
-```
-npm install
-cp .env.dist .env
-```
+1. [Getting started](#Getting)
+2. [Building](#Building)
+3. [Deploying](#Deploying)
+4. [Testing](#Testing)
+5. [Design](#Design)
+6. [Licensing](#Licensing)
+7. [Version](#Version)
 
-## Run
+## Getting started
 
-#### Build Contract
-```
-truffle build
-```
+### Prerequisites
 
-#### Deploy Contracts
-availble networks (development, intebsi, ebsi) - for the development network it is required to run a ganache-cli
-```
-truffle migrate --network <network> 
-```
+- [Node.js](https://nodejs.org/en/download/)
 
-usage ganache-cli
-```
-ganache-cli
-```
-migrate to localhost:
-```
-truffle migrate --network development
+### Installing
+
+Install dependencies:
+
+```sh
+yarn install
 ```
 
-#### Run Tests
+## Building
+
+Build the smart contracts:
+
+```sh
+yarn run build
 ```
-ganache-cli
-truffle test
+
+## Deploying
+
+Deploy the smart contracts on the ebsi network
+you have to specify in the .secret.privatekeys file an hex encoded private key to sign the besu transaction
+
+```sh
+npx truffle migrate --network ebsi --reset
 ```
 
-Note: tests can be run in a different network, command `truffle test --network <network>`
+## Testing
 
-## Deployment information
+### Requirements:
 
-Registry Deployed at `0x72eC77b6d1e52C874e18CeD062bd0b465eDBc870`
+- node 12 (use nvm)
+
+### Launch all tests
+
+```sh
+yarn run test
+```
+
+if you experience some timeout issues try running tests one by one
+
+### test change proxy ownership
+
+- launch ganache with the seed you have specified in the .secret.mnemonic file
+
+```sh
+npx ganache-cli -m "myth like bonus scare over problem client lizard pioneer submit female collect"
+```
+
+- deploy the smart contracts
+
+```sh
+npx truffle migrate  --compile-all  --reset
+```
+
+## Design
+
+We added a storage contract (see AdministratorStorage.sol) that leverages the storage reference variables from inline assembly. We can then use this contract to get all the information about Administrator. if used through a proxy this will be stored at the proxy contract storage slot and can be retrieved by any smart contract implementation. The data can be retrieved without the need to take extra cautious steps like required when using the unstructured storage pattern.
+
+### Attributes versioning
+
+For policies and administrators we can have attributes wich are only bytes. We can't decode them although we should provide versioning for these attributes.
+We decided to take the hash of the attribute as the unique identifier for the attribute. So the hash of initial version of the attribute will be used as an indentifer for the attribute. When we want to update the version of this attribute we will provide the last version hash and the new data.
+
+Let's take an example and add new administrator. We will have to provide an attribute. We will store that first attribute hash in the Smart Contract.
+
+Now we want to update that administrator attribute so we will call the `updateAdministrator()` method wich take three parameters the DID, a new version attribute's data, and the last version hash of this attribute known to the smart contract. In that case the last version will be the first version hash.
+
+If we want to add a third version of that attribute, we will provide the second version hash as the last version hash parameter.
+
+To add a new attribute to the administrator we will call the `updateAdministrator()` method but with only two parameters the DID and the new attribute's data. The Smart Contract will check if this attribute is new and throw an error if it is already known to the Smart Contract.
+
+The `insertAdministrator()` method will make sure that the administrator DID and attribute is not known by the Smart Contract otherwise it will throw an error.
+
+## Licensing
+
+Copyright (c) 2019 European Commission  
+Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
+You may not use this work except in compliance with the Licence.
+You may obtain a copy of the Licence at:
+
+- https://joinup.ec.europa.eu/page/eupl-text-11-12
+
+Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.
+
+## Version
+
+`npx truffle version`
+Truffle v5.1.50 (core: 5.1.50)
+Solidity - ^0.7.0 (solc-js)
+Node v12.18.4
+Web3.js v1.2.9

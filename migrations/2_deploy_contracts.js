@@ -1,205 +1,31 @@
-const EBSIAppRegistry = artifacts.require('EBSIApplicationRegistry');
-
-module.exports = async (deployer, network) => {
-
-
-    console.log('Deploying EBSI App Registry on the network');
-
-    await deployer.deploy(EBSIAppRegistry)
-
-    console.log('Registry Deployed at ' + EBSIAppRegistry.address)
-
-
-    let registryInstance = await EBSIAppRegistry.deployed();
-
-
-    app = {
-        name: 'ebsi-besu',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVUeDQrcEtRRmVkZ2hOZU5kVk5OWDRkdTlvZVVyWmQwNwpvNXRUUmFwdFljTGFaNnhtN3ErTXgyczNMRmgxZ1dGNFg5cmNkbWk3dkkxWU9WM3QzNEFRNGc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0=',
-    }
-
-    console.log('adding app ', app.name)
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-
-
-    app = {
-        name: 'ebsi-fabric',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVwRlNOL0E1ZnlIUVhIMHkrblE1T2kyM2wrSjN2YW9KbAp3RkxiakhkbkkzN1FsOUtndTFrQzM4azBLTkF0WDhsZ3pMM2hvQUFzTXVvb2R0cTRrb2lOeGc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0=',
-    }
-
-    console.log('adding app ', app.name)
-    await  registryInstance.registerApp(app.pubKey, app.name)
-
-
-    app = {
-        name: 'ebsi-wallet',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVySVZhMmdvNTBnU3M1cENERjV3WStmYjUrVHpUenlDVwpBOVI4TGp1dTVYenozSUxoM1UvCk50a0NzS3I1Z2pYdUhNVlhka000eVdQMGJ5NTlFb0dYeWp3PT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t',
-    }
-
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-    app = {
-        name: 'ebsi-notary',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVzM2hTVW9NQkZZRkNKd2ZZeUJJdmFhUWVLajF5V0h1VwpFOW1rZXE4Q3VKbWYrYkhLU1hrdjV2aDNsZGRQS1hlak5RWmM0SG9RcjBEMDhGREpCUVBvY0E9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0='
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-   app = {
-        name: 'ebsi-storage',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVUQ2czYnNmWmh4NENLQkRpUUFLeUFsNU5rTVpXNFdxbwo0U2pvRjZxNDR0VFJtSUYxTlZlSXo3LzFaeHppMFhWRTcyUU9NeXZIWnpXeEQ1Q3MrVjl2QVE9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0'
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-
-
-    app = {
-        name: 'ebsi-diploma',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVMYTIvWHFPK2Ntc0hoMENMZVJLWFp3VHlKSjEwQzR4Tgo0MWVPTFIraUpEOXhQUy8KT28xN3RSOHNRQUh6aklicWVKUWRoS0VJN1gwZTY1K1licmRpQk9nPT0KLS0tLS1FTkQgUFVCTElDIEtFWS0tLS0t'
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-    app = {
-        name: 'ext-eca',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVHWXZGNDFuZm5KenlnWWFmZzlSMjB2TnhSejU1elFoaQpJb3hENEpwZG9JZm9yazFXN0wxTzhjKzNabVgrOU91ZXZETGJMQ1A1L2hnSTh2RHBjYUdzUEE9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0='
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-
-
-
-    app = {
-        name: 'ebsi-eidas-bridge',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVMeWlydDEvOWNuWm1Nd1Y2VjczSEhtaDhPSFdjZ05CVQpmL0U0T3M4Y1QyVWYrUjNsVzloQ2lQbTM3ZjlvakNxb2VyaG9HZm9NZ2lOSklSaEsrckRVZlE9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0'
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-
-    app = {
-        name: 'ext-taxud',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVRMkNoUlgrZzhkbDd6RzBvdEZJdkdBQzl1ai9vMW1vbwpCVkNaN1hJZmNVR1Y5M0JHdDVDeG1LWjNNcU5qaDYzdm5ENVExa2s3NkgzNFhPWGlWaTRmakE9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0='
-
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-
-    app = {
-        name: 'ebsi-ledger',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVqVFNEOWNPSWtMLzhnaks3L3gxbnpuVzB0SFM0TUpVMQpJMW1YR3lOYlF0Sm9FL3ozUkZ4YlU5SktHR28xYnA0a1A4M0VaaU5KYy9zS1dOQ3pra3BuRnc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K'
-
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-
-    app = {
-        name: 'trusted-apps-registry',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUV6YTdYTm02U045eWF2S0xuTlFTQTlUZks2Yks3YjBJZQo4anFXd3YzaHEwM29nUHJiMjdkdmpPdjBNQmNVOFNVSGJmaU0wNDYyTzcyYWdTdVJJVEZrL2c9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K'
-
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-
-    app = {
-        name: 'trusted-issuers-registry',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVDYkF2aWwvZDBpS3Q1T3BGS1Bydnc1bGlPdlAzTnI0OApSUEErTGZJdnQ1THpreHBObFhQVE04cDBORE1GZGlwMU00akRRaXFHMll0eFA4a2NIcUJJUWc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0='
-
-    }
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-    console.log('adding app ', app.name)
-    app = {
-        name: 'TEST-EBSI-ENTITY-001',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVPeDdRRlloQko4QitIZFpxUmZsWmlFNHpKZTk5UHhqbApaM2NEQ0pLZXYzMHZPS3ZBNnVvZVhIR1ZZeVdVSVh2c2FncUlINGtTYXZaNlVTUG05MzdPNEE9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K'
-
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-    app = {
-        name: 'ebsi-idhub',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVkT3NiWEZmRUpzZHdsc3JmZ0xaVHJrUG1iVU5uN2VUTgp5MGRqQW5UZTNoM2RGM09mZkVJTk1xUzlSRm5vMnVXS1RINzlsdTNMYmVnc3pGOHdWUFpnUGc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0='
-
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-    app = {
-        name: 'ebsi-self-sovereign-identity',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVsUmUyZGNFVGlrMHBzZWJOZGJUaFdPc0FQT2UrWFQ3OQpxTTRCTmd6N2NOVXJ1bklIYmxZZExPWmNUeUU3SS9wamVGaTJPUFZ1cjlqMTh0Uzg5anhoWXc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K'
-
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-
-    app = {
-        name: 'ebsi-diploma-bachelor',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVZcTV2dEg5aWlmZERhaU5yTFVpTFEwMHcxRmdVWk1VWQpjamg3amFCUHE4cnlxck9Pa2lESlh3d0dDazNKRXF0TW8vUGMrOE1DUEtDVWY3TTAxakFjcHc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K'
-
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-    app = {
-        name: 'ebsi-diploma-master',
-        pubKey: 'LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUVwRjAvd21qc3RLbnh3c1l0anBpbnowc3Z2V0V4RCt0MgpEeWdoMFRxQ2V0M1VRcVJTbFJaRGlKV2ptTTlaQnljTEFIaXliYjU4SVd5OFVDWXM4dWhDYWc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K'
-
-    }
-    console.log('adding app ', app.name)
-
-    await registryInstance.registerApp(app.pubKey, app.name)
-
-
-    console.log ('adding access from all to all')
-
-    let apps = ['ebsi-besu', 'ebsi-fabric', 'ebsi-wallet', 'ebsi-notary', 'ebsi-storage', 'ebsi-diploma', 'ebsi-ledger', 'trusted-apps-registry', 'ebsi-eidas-bridge', 'ebsi-idhub', 'trusted-issuers-registry'];
-
-    for(i=0; i<apps.length; i++) {
-        for(j=0; j<apps.length; j++) {
-            if (i===j) continue;
-            console.log('adding on ', apps[i], ' ', apps[j]);
-            await registryInstance.addNewAuthorization(apps[i], apps[j]);
-        }
-    }
-
-    console.log ('adding access of ebsi-notary to ext-eca')
-    await registryInstance.addNewAuthorization('ebsi-notary', 'ext-eca');
-    await registryInstance.addNewAuthorization('ebsi-ledger', 'ext-eca');
-
-
-    console.log ('adding access of ebsi-fabric to ext-taxud')
-    await registryInstance.addNewAuthorization('ebsi-fabric', 'ext-taxud');
-
-    await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-diploma-bachelor');
-    await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-diploma-master');
-
-
-    await registryInstance.addNewAuthorization('ebsi-wallet', 'TEST-EBSI-ENTITY-001');
-    await registryInstance.addNewAuthorization('ebsi-idhub', 'TEST-EBSI-ENTITY-001');
-    await registryInstance.addNewAuthorization('ebsi-eidas-bridge', 'TEST-EBSI-ENTITY-001');
-    await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-wallet');
-    await registryInstance.addNewAuthorization('ebsi-wallet', 'ebsi-self-sovereign-identity');
-
-}
+const TarSC = artifacts.require("Tar");
+const PaginationLibrary = artifacts.require("Pagination");
+
+module.exports = async (deployer, network, accounts) => {
+  /**
+   * Constants
+   */
+
+  const version = 3;
+  const admin = accounts[0];
+
+  console.log(`Deploying Tar smart contract on network:${network}`);
+  await deployer.deploy(PaginationLibrary);
+
+  await deployer.link(PaginationLibrary, [TarSC]);
+
+  await deployer.deploy(TarSC); // Tar SC deployed with blank state
+  const tokenSCInstance = await TarSC.deployed();
+  console.log(`Tar Contract deployed at address ${TarSC.address}`);
+
+  // Initialize proxy with token address and call initialize function 'initialize' that replace the constructor
+  await tokenSCInstance.initialize(version, {from: admin});
+  console.log(`
+  --Tar initialized with:
+    ProxyAddress:${tokenSCInstance.address}
+    Version:${version} `);
+
+  // we verify that indeed calling Tar SC function at the proxy address works
+  const vers = await tokenSCInstance.version({from: admin});
+  console.log(`  ----verification Tar version :${vers}`);
+};

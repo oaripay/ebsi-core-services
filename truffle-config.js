@@ -17,25 +17,8 @@
  * phrase from a file you've .gitignored so it doesn't accidentally become public.
  *
  */
-
-require('dotenv').config();
-const PrivateKeyProvider = require("truffle-hdwallet-provider");
-// const privateKey = "8f2a55949038a9610f50fb23b5883af3b4ecb3c3bb792cbcefbd1542c692be63";
-// const privateKey = "19E6F61A830DEEEA8C905E5217B4E0B7C207ED9EC1501FCEB00E0956E1A8B73C";
-
-// private key for integration
-const privateKey = [
-    // primary
-    process.env.DEPLOYER_KEY,
-    // secondary
-    process.env.TESTER_KEY
-];
-
-// const HDWalletProvider = require('truffle-hdwallet-provider');
-// const infuraKey = "fj4jll3k.....";
-//
-// const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
+const fs = require("fs");
+const HDWalletProvider = require("@truffle/hdwallet-provider");
 
 module.exports = {
   /**
@@ -56,63 +39,60 @@ module.exports = {
     // options below to some value.
     //
     development: {
-      host: "127.0.0.1",     // Localhost (default: none)
-      port: 8545,            // Standard Ethereum port (default: none)
-      network_id: "*",       // Any network (default: none)
+      host: "127.0.0.1", // Localhost (default: none)
+      port: 8545, // Standard Ethereum port (default: none)
+      network_id: "*", // Any network (default: none)
     },
     ebsi: {
-      provider: () => new PrivateKeyProvider(privateKey, "https://www.ebsi.xyz/jsonrpc", 0, 2),
+      provider: () => {
+        const privKeysPath = `${__dirname}/.secret.privatekeys`;
+        const privateKeys = fs
+          .readFileSync(privKeysPath)
+          .toString()
+          .split("\n")
+          .filter((n) => n);
+        return new HDWalletProvider(
+          privateKeys,
+          "https://www.ebsi.xyz/jsonrpc"
+        );
+      },
       network_id: "*",
-      gas:"0x1ffffffffffffe",
-      gasPrice: 0
+      gas: "0x1ffffffffffffe",
+      gasPrice: 0,
     },
-
+    functionalTestNet: {
+      host: "127.0.0.1",
+      port: 18545,
+      network_id: "*",
+    },
     intebsi: {
-      provider: () => new PrivateKeyProvider(privateKey, "http://15.188.183.79:48745", 0, 2),
+      provider: () => {
+        const mnemonicPath = `${__dirname}/.secret.mnemonic`;
+        const mnemonic = fs.readFileSync(mnemonicPath).toString().trim();
+        return new HDWalletProvider(
+          mnemonic,
+          "https://www.intebsi.xyz/jsonrpc"
+        );
+      },
       network_id: "*",
-      gas:"0x1ffffffffffffe",
-      gasPrice: 0
+      gas: "0x1ffffffffffffe",
+      gasPrice: 0,
     },
-
-    // Another network with more advanced options...
-    // advanced: {
-    // port: 8777,             // Custom port
-    // network_id: 1342,       // Custom network
-    // gas: 8500000,           // Gas sent with each transaction (default: ~6700000)
-    // gasPrice: 20000000000,  // 20 gwei (in wei) (default: 100 gwei)
-    // from: <address>,        // Account to send txs from (default: accounts[0])
-    // websockets: true        // Enable EventEmitter interface for web3 (default: false)
-    // },
-
-    // Useful for deploying to a public network.
-    // NB: It's important to wrap the provider as a function.
-    // ropsten: {
-    // provider: () => new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/YOUR-PROJECT-ID`),
-    // network_id: 3,       // Ropsten's id
-    // gas: 5500000,        // Ropsten has a lower block limit than mainnet
-    // confirmations: 2,    // # of confs to wait between deployments. (default: 0)
-    // timeoutBlocks: 200,  // # of blocks before a deployment times out  (minimum/default: 50)
-    // skipDryRun: true     // Skip dry run before migrations? (default: false for public nets )
-    // },
-
-    // Useful for private networks
-    // private: {
-    // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),
-    // network_id: 2111,   // This network is yours, in the cloud.
-    // production: true    // Treats this network as if it was a public net. (default: false)
-    // }
-  },
-
-  // Set default mocha options here, use special reporters etc.
-  mocha: {
-    // timeout: 100000
   },
 
   // Configure your compilers
   compilers: {
     solc: {
-      version: "0.5.9",    // Fetch exact version from solc-bin (default: truffle's version)
+      version: "^0.7.0", // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
+      settings: {
+        // See the solidity docs for advice about optimization and evmVersion
+        optimizer: {
+          enabled: true,
+          runs: 2000,
+        },
+        //  evmVersion: "byzantium"
+      },
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
       //  optimizer: {
       //    enabled: false,
@@ -120,6 +100,8 @@ module.exports = {
       //  },
       //  evmVersion: "byzantium"
       // }
-    }
-  }
-}
+    },
+  },
+  test_directory: "tests",
+  plugins: ["solidity-coverage"],
+};
