@@ -7,11 +7,25 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
+import cassandraDriver from "cassandra-driver";
 import { NotificationsModule } from "./notifications.module";
 import { Notification } from "./notifications.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { EbsiValidationPipe } from "../../pipes/ebsi-validation.pipe";
 import { validNotifications } from "../../../tests/utils/notifications";
+
+jest.mock("cassandra-driver");
+
+function cassandraResponse(rows: unknown[], pageState: string = null) {
+  return {
+    info: { isSchemaInAgreement: true },
+    first: () => rows[0],
+    rows,
+    pageState,
+  };
+}
+
+const mockExecute = jest.spyOn(cassandraDriver.Client.prototype, "execute");
 
 describe("Notifications module", () => {
   let app: INestApplication;
@@ -51,6 +65,10 @@ describe("Notifications module", () => {
         .createHash("sha3-256")
         .update(JSON.stringify(notification), "utf8")
         .digest("hex");
+
+      mockExecute.mockImplementation(() => {
+        return cassandraResponse([]);
+      });
 
       const response = await request(server)
         .post("/notifications")

@@ -18,7 +18,10 @@ pipeline {
         }
         stage('Unit test') {
             environment {
+                EBSI_ENV='integration'
                 API_PRIVATE_KEY='test'
+                CASSANDRA_USER='test'
+                CASSANDRA_PASSWORD='test'
             }
             steps {
                 sh 'yarn test:ci'

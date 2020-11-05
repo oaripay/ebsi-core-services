@@ -22,7 +22,23 @@ First, create an `.env.local` file locally. You can duplicate the content of `.e
 
 Please note that you need to fill the API_PRIVATE_KEY env variable with a secp256k1 elliptic curve private key in hexadecimal.
 
-You must at least set `API_PRIVATE_KEY` and `EBSI_ENV`.
+You must at least set `API_PRIVATE_KEY`, `EBSI_ENV`, `CASSANDRA_USER`, and `CASSANDRA_PASSWORD`.
+
+### Consistency
+
+Read and write consistencies can be defined independently by setting `CASSANDRA_CONSISTENCY_READ` and `CASSANDRA_CONSISTENCY_WRITE` respectively. There are 10 possible values:
+
+- **any**. Writing: A write must be written to at least one node. If all replica nodes for the given row key are down, the write can still succeed after a hinted handoff has been written. If all replica nodes are down at write time, an ANY write is not readable until the replica nodes for that row have recovered.
+- **one**. Returns a response from the closest replica, as determined by the snitch.
+- **two**. Returns the most recent data from two of the closest replicas.
+- **three**. Returns the most recent data from three of the closest replicas.
+- **quorum**. Reading: Returns the record with the most recent timestamp after a quorum of replicas has responded regardless of data center. Writing: A write must be written to the commit log and memory table on a quorum of replica nodes.
+- **all**. Reading: Returns the record with the most recent timestamp after all replicas have responded. The read operation will fail if a replica does not respond. Writing: A write must be written to the commit log and memory table on all replica nodes in the cluster for that row.
+- **localQuorum**. Reading: Returns the record with the most recent timestamp once a quorum of replicas in the current data center as the coordinator node has reported. Writing: A write must be written to the commit log and memory table on a quorum of replica nodes in the same data center as the coordinator node. Avoids latency of inter-data center communication.
+- **eachQuorum**. Reading: Returns the record once a quorum of replicas in each data center of the cluster has responded. Writing: Strong consistency. A write must be written to the commit log and memtable on a quorum of replica nodes in all data centers.
+- **localOne**. Similar to One but only within the DC the coordinator is in.
+
+By default both of them are defined as `one`.
 
 ### Run the project locally
 
@@ -31,6 +47,8 @@ Install the required dependencies:
 ```sh
 yarn install
 ```
+
+Define the contact points of cassadra using CASSANDRA_CONTACT_POINTS env variable. By default it will try to access the container "cassandradb" or "localhost".
 
 Run the development server:
 
@@ -62,6 +80,14 @@ After creating the `.env.local` file, run:
 
 ```sh
 docker-compose up --build
+```
+
+The compose file will start two containers: cassandradb and notifications api.
+
+Run the script to configure the keyspace in cassandra, the table and user permissions (the CASSANDRA_KEYSPACE variable must be defined in the env file):
+
+```sh
+yarn configure:cassandra
 ```
 
 You can now open http://localhost:3000/notifications/v1/health. If everything's working correctly, then you should see "ok".

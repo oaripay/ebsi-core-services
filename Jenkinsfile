@@ -24,7 +24,9 @@ pipeline {
         stage('Lint and unit test') {
             environment {
               // Add tests specific variables here
-              API_PRIVATE_KEY = credentials('APP_PRIVATE_KEY_NOTIFICATIONS_API')
+              API_PRIVATE_KEY='test'
+              CASSANDRA_USER='test'
+              CASSANDRA_PASSWORD='test'
             }
             steps {
                 sh "yarn install --frozen-lockfile"

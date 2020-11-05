@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { classToPlain } from "class-transformer";
 import crypto from "crypto";
+import { CassandraService } from "../cassandra/cassandra.service";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import {
   PaginatedResponse,
@@ -65,7 +66,10 @@ const fakeNotifications: Notification[] = [
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
 
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    private cassandraService: CassandraService
+  ) {}
 
   async create(
     createNotificationDto: CreateNotificationDto
@@ -73,14 +77,24 @@ export class NotificationsService {
     // Transform DTO to plain object to be stored
     const notification = classToPlain(createNotificationDto) as Notification;
 
+    const { from, to, issuanceDate, expirationDate } = notification;
+    const message = JSON.stringify(notification);
+
     // Generate ID
     const id = crypto
       .createHash("sha3-256")
-      .update(JSON.stringify(notification), "utf8")
+      .update(message, "utf8")
       .digest("hex");
 
     // Store notification to Cassandra
-    await Promise.resolve(); // Fake async work
+    await this.cassandraService.insertNotification(
+      id,
+      issuanceDate,
+      expirationDate,
+      from,
+      to,
+      message
+    );
 
     return { notification, id };
   }

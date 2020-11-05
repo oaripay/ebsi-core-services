@@ -15,7 +15,7 @@ import { Notification } from "../../src/modules/notifications/notifications.inte
 
 jest.setTimeout(10000);
 
-describe("AppController (e2e)", () => {
+describe("Notifications module (e2e)", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
 
@@ -43,7 +43,7 @@ describe("AppController (e2e)", () => {
   });
 
   describe("POST /notifications", () => {
-    it("should", async () => {
+    it("should create a notification", async () => {
       expect.assertions(3);
 
       const notification = validNotifications[0];
