@@ -20,6 +20,7 @@ import ArgsUpdateIssuer from "./dto/signedTransaction/args-update-issuer.dto";
 import ArgsInsertAdministrator from "./dto/signedTransaction/args-insert-administrator.dto";
 import ArgsUpdateAdministrator from "./dto/signedTransaction/args-update-administrator.dto";
 import ArgsInsertPolicy from "./dto/signedTransaction/args-insert-policy.dto";
+import ArgsUpdatePolicy from "./dto/signedTransaction/args-update-policy.dto";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
@@ -244,6 +245,10 @@ export default class JsonRpcService {
         await validateClass(ArgsInsertPolicy, args);
         break;
       }
+      case "updatePolicy": {
+        await validateClass(ArgsUpdatePolicy, args);
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -376,7 +381,8 @@ export default class JsonRpcService {
     }
   }
 
-  async buildTransactionInsertPolicy(
+  async buildTransactionPolicy(
+    scFunction: string,
     body: RequestInsertPolicyDto,
     id?: number | string
   ): Promise<UnsignedTransaction> {
@@ -385,7 +391,7 @@ export default class JsonRpcService {
       const { from, policy, policyId } = body.params[0];
       const bufferPolicy = Buffer.from(policy, "base64");
       const data = [policyId, bufferPolicy];
-      return await this.buildTransaction(from, "insertPolicy", data);
+      return await this.buildTransaction(from, scFunction, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;

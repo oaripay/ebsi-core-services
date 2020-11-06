@@ -48,6 +48,9 @@ describe("Policies (e2e)", () => {
     return { policyId, policy };
   };
 
+  const newPolicy = createPolicy();
+  const { policy: policy2 } = createPolicy();
+
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -67,114 +70,134 @@ describe("Policies (e2e)", () => {
     server = app.getHttpServer() as HttpServer;
   });
 
-  describe("/jsonrpc - method: insertPolicy", () => {
-    it(`should return a new unsigned transaction`, async () => {
-      expect.assertions(2);
+  describe.each(["insertPolicy", "updatePolicy"])(
+    "/jsonrpc - method: %s",
+    (method: string) => {
+      it(`should return a new unsigned transaction`, async () => {
+        expect.assertions(2);
 
-      const { policyId, policy } = createPolicy();
+        const { policyId, policy } = createPolicy();
 
-      const responseBuild: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
-        .send({
+        const responseBuild: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .send({
+            jsonrpc: "2.0",
+            method,
+            params: [
+              {
+                from: wallet.address,
+                policyId,
+                policy,
+              },
+            ],
+            id: 231,
+          });
+
+        expect(responseBuild.body).toStrictEqual({
           jsonrpc: "2.0",
-          method: "insertPolicy",
-          params: [
-            {
-              from: wallet.address,
-              policyId,
-              policy,
-            },
-          ],
           id: 231,
-        });
-
-      expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 231,
-        result: {
-          chainId: expect.any(String) as string,
-          data: expect.any(String) as string,
-          from: wallet.address,
-          gasLimit: expect.any(String) as string,
-          gasPrice: expect.any(String) as string,
-          nonce: expect.any(String) as string,
-          to: expect.any(String) as string,
-          value: expect.any(String) as string,
-        },
-      });
-      expect(responseBuild.status).toBe(200);
-    });
-  });
-
-  it("should insert a new policy", async () => {
-    expect.assertions(3);
-
-    const { policyId, policy } = createPolicy();
-
-    const responseBuild: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .send({
-        jsonrpc: "2.0",
-        method: "insertPolicy",
-        params: [
-          {
+          result: {
+            chainId: expect.any(String) as string,
+            data: expect.any(String) as string,
             from: wallet.address,
-            policyId,
-            policy,
+            gasLimit: expect.any(String) as string,
+            gasPrice: expect.any(String) as string,
+            nonce: expect.any(String) as string,
+            to: expect.any(String) as string,
+            value: expect.any(String) as string,
           },
-        ],
-        id: 231,
+        });
+        expect(responseBuild.status).toBe(200);
       });
+    }
+  );
 
-    const unsignedTransaction = responseBuild.body.result;
-    const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(unsignedTransaction))
-    );
-    uTx.chainId = Number(uTx.chainId);
-    const sgnTx = await wallet.signTransaction(uTx);
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+  describe.each(["insertPolicy", "updatePolicy"])(
+    "/jsonrpc - send transaction for %s",
+    (method: string) => {
+      it("should insert a new policy", async () => {
+        expect.assertions(3);
 
-    const responseSend: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .send({
-        jsonrpc: "2.0",
-        method: "signedTransaction",
-        params: [
-          {
-            protocol: "eth",
-            unsignedTransaction,
-            r,
-            s,
-            v: `0x${Number(v).toString(16)}`,
-            signedRawTransaction: sgnTx,
-          },
-        ],
-        id: "45",
+        const { policyId } = newPolicy;
+        let policy: string;
+
+        switch (method) {
+          case "insertPolicy":
+            policy = newPolicy.policy;
+            break;
+          case "updatePolicy":
+            policy = policy2;
+            break;
+          default:
+            break;
+        }
+
+        const responseBuild: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .send({
+            jsonrpc: "2.0",
+            method,
+            params: [
+              {
+                from: wallet.address,
+                policyId,
+                policy,
+              },
+            ],
+            id: 231,
+          });
+
+        const unsignedTransaction = responseBuild.body.result;
+        const uTx = formatEthersUnsignedTransaction(
+          JSON.parse(JSON.stringify(unsignedTransaction))
+        );
+        uTx.chainId = Number(uTx.chainId);
+        const sgnTx = await wallet.signTransaction(uTx);
+        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+        const responseSend: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .send({
+            jsonrpc: "2.0",
+            method: "signedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r,
+                s,
+                v: `0x${Number(v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
+            id: "45",
+          });
+
+        expect(responseSend.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: "45",
+          result: expect.any(String) as string,
+        });
+        expect(responseSend.status).toBe(200);
+
+        // wait to be mined
+        const receipt = await waitToBeMined(responseSend.body.result as string);
+        expect(receipt.status).toBe("0x1");
+
+        /*
+        // get policy
+        const policyResponse = await request(server).get(
+          `/policies/${policyId}`
+        );
+
+        expect(policyResponse.body).toStrictEqual({
+          policyId,
+          policy,
+          hash,
+        });
+        expect(policyResponse.status).toBe(200);
+        */
       });
-
-    expect(responseSend.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: "45",
-      result: expect.any(String) as string,
-    });
-    expect(responseSend.status).toBe(200);
-
-    // wait to be mined
-    const receipt = await waitToBeMined(responseSend.body.result as string);
-    expect(receipt.status).toBe("0x1");
-
-    /*
-    // get policy
-    const policyResponse = await request(server).get(
-      `/policies/${policyId}`
-    );
-
-    expect(policyResponse.body).toStrictEqual({
-      policyId,
-      policy,
-      hash,
-    });
-    expect(policyResponse.status).toBe(200);
-    */
-  });
+    }
+  );
 });

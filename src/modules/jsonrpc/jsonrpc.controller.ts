@@ -54,8 +54,10 @@ export default class AppController {
         );
         return jsonRpcResponse(transaction, id);
       }
-      case "insertPolicy": {
-        const transaction = await this.jsonRpcService.buildTransactionInsertPolicy(
+      case "insertPolicy":
+      case "updatePolicy": {
+        const transaction = await this.jsonRpcService.buildTransactionPolicy(
+          method,
           body as RequestInsertPolicyDto,
           id
         );

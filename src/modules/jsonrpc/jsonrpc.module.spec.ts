@@ -122,7 +122,7 @@ function createParamUpdateIssuer(
   );
 }
 
-function createParamInsertPolicy(from: string): paramInsertPolicy {
+function createParamPolicy(from: string): paramInsertPolicy {
   const policyId = `policy-test-${new Date().toISOString()}`;
   const json = {
     // any object here
@@ -159,7 +159,8 @@ function createParam(
         prevAttributeHash
       );
     case "insertPolicy":
-      return createParamInsertPolicy(from);
+    case "updatePolicy":
+      return createParamPolicy(from);
     default:
       throw new Error(`Test Error: Invalid method ${method}`);
   }
@@ -376,6 +377,7 @@ describe("JsonRpc Module", () => {
     "updateIssuer(test update attribute)",
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
+    "updatePolicy",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
@@ -497,6 +499,7 @@ describe("JsonRpc Module", () => {
             "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
         case "insertPolicy":
+        case "updatePolicy":
           delete (param1 as paramInsertPolicy).policy;
           expectedErrorMessage1 =
             "property params[0].policy has failed the following constraints: isBase64";

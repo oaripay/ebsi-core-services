@@ -984,6 +984,24 @@ paths:
                         }
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
                   id: 1
+              Build tx to insert a policy:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertPolicy
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      policyId: "policy1234"
+                      policy: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9"
+                  id: 1
+              Build tx to update a policy:
+                value:
+                  jsonrpc: "2.0"
+                  method: updatePolicy
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      policyId: "policy1234"
+                      policy: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9"
+                  id: 1
               Send Transaction:
                 value:
                   jsonrpc: "2.0"
