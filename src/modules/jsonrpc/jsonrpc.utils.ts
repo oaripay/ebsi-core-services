@@ -3,6 +3,7 @@ import { ClassTransformer } from "class-transformer";
 import { ClassType } from "class-transformer/ClassTransformer";
 import { ethers } from "ethers";
 import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
+import { prefixWith0x } from "../../shared/utils";
 
 export function formatEthersUnsignedTransaction(
   unsignedTransaction: UnsignedTransaction
@@ -41,4 +42,14 @@ export const validateClass = async (
   if (errors.length > 0) {
     throw new Error(errors.toString());
   }
+};
+
+export const checkHash = (buffer: Buffer, hash: string): void => {
+  const expectedHash = ethers.utils.keccak256(buffer);
+  if (prefixWith0x(hash) !== expectedHash)
+    throw new Error(
+      `Invalid issuer.attribute.hash. Received: ${prefixWith0x(
+        hash
+      )}. Expected: ${expectedHash}`
+    );
 };

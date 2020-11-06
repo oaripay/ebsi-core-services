@@ -4,6 +4,7 @@ import JsonRpcDto from "./dto/jsonrpc.dto";
 import { InvalidRequestJsonRpcError } from "./errors";
 import JsonRpcResponseObject from "./types/jsonrpc.interface";
 import RequestInsertAdministratorDto from "./dto/insertAdministrator/request-insert-administrator.dto";
+import RequestUpdateAdministratorDto from "./dto/updateAdministrator/request-update-administrator.dto";
 import RequestInsertIssuerDto from "./dto/insertIssuer/request-insert-issuer.dto";
 import RequestUpdateIssuerDto from "./dto/updateIssuer/request-update-issuer.dto";
 import RequestInsertPolicyDto from "./dto/insertPolicy/request-insert-policy.dto";
@@ -28,6 +29,13 @@ export default class AppController {
       case "insertAdministrator": {
         const transaction = await this.jsonRpcService.buildTransactionInsertAdministrator(
           body as RequestInsertAdministratorDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "updateAdministrator": {
+        const transaction = await this.jsonRpcService.buildTransactionUpdateAdministrator(
+          body as RequestUpdateAdministratorDto,
           id
         );
         return jsonRpcResponse(transaction, id);

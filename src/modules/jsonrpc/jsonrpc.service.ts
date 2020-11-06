@@ -7,6 +7,7 @@ import LedgerService from "../../shared/services/ledger.service";
 import RequestInsertIssuerDto from "./dto/insertIssuer/request-insert-issuer.dto";
 import RequestUpdateIssuerDto from "./dto/updateIssuer/request-update-issuer.dto";
 import RequestInsertAdministratorDto from "./dto/insertAdministrator/request-insert-administrator.dto";
+import RequestUpdateAdministratorDto from "./dto/updateAdministrator/request-update-administrator.dto";
 import RequestInsertPolicyDto from "./dto/insertPolicy/request-insert-policy.dto";
 import RequestSignedTransactionDto from "./dto/signedTransaction/request-signed-transaction.dto";
 import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
@@ -17,11 +18,13 @@ import ParamSignedTransaction from "./dto/signedTransaction/param.dto";
 import ArgsInsertIssuer from "./dto/signedTransaction/args-insert-issuer.dto";
 import ArgsUpdateIssuer from "./dto/signedTransaction/args-update-issuer.dto";
 import ArgsInsertAdministrator from "./dto/signedTransaction/args-insert-administrator.dto";
+import ArgsUpdateAdministrator from "./dto/signedTransaction/args-update-administrator.dto";
 import ArgsInsertPolicy from "./dto/signedTransaction/args-insert-policy.dto";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
   validateClass,
+  checkHash,
 } from "./jsonrpc.utils";
 import { prefixWith0x } from "../../shared/utils";
 
@@ -225,6 +228,10 @@ export default class JsonRpcService {
         await validateClass(ArgsInsertAdministrator, args);
         break;
       }
+      case "updateAdministrator": {
+        await validateClass(ArgsUpdateAdministrator, args);
+        break;
+      }
       case "insertIssuer": {
         await validateClass(ArgsInsertIssuer, args);
         break;
@@ -287,15 +294,36 @@ export default class JsonRpcService {
       await validateClass(RequestInsertAdministratorDto, body);
       const { from, did, attribute } = body.params[0];
       const bufferAttribute = Buffer.from(attribute.body, "base64");
-      const expectedHash = ethers.utils.keccak256(bufferAttribute);
-      if (prefixWith0x(attribute.hash) !== expectedHash)
-        throw new Error(
-          `Invalid attribute.hash. Received: ${prefixWith0x(
-            attribute.hash
-          )}. Expected: ${expectedHash}`
-        );
+      checkHash(bufferAttribute, attribute.hash);
       const data = [did.toLowerCase(), bufferAttribute];
       return await this.buildTransaction(from, "insertAdministrator", data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateAdministrator(
+    body: RequestUpdateAdministratorDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateAdministratorDto, body);
+      const { from, did, attribute, prevAttributeHash } = body.params[0];
+      const bufferAttribute = Buffer.from(attribute.body, "base64");
+      checkHash(bufferAttribute, attribute.hash);
+      const data = [did.toLowerCase(), bufferAttribute];
+      if (prevAttributeHash) data.push(prefixWith0x(prevAttributeHash));
+      let functionSig;
+      if (prevAttributeHash) {
+        // using updateAdministrator function (did, attributeData, lastVersHash)
+        functionSig = "updateAdministrator(string,bytes,bytes32)";
+      } else {
+        // using updateAdministrator function (did, attributeData)
+        functionSig = "updateAdministrator(string,bytes)";
+      }
+      return await this.buildTransaction(from, functionSig, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;
@@ -311,13 +339,7 @@ export default class JsonRpcService {
       await validateClass(RequestInsertIssuerDto, body);
       const { from, did, attribute } = body.params[0];
       const bufferAttribute = Buffer.from(attribute.body, "base64");
-      const expectedHash = ethers.utils.keccak256(bufferAttribute);
-      if (prefixWith0x(attribute.hash) !== expectedHash)
-        throw new Error(
-          `Invalid issuer.attribute.hash. Received: ${prefixWith0x(
-            attribute.hash
-          )}. Expected: ${expectedHash}`
-        );
+      checkHash(bufferAttribute, attribute.hash);
       const data = [did.toLowerCase(), bufferAttribute];
       return await this.buildTransaction(from, "insertIssuer", data);
     } catch (err) {
@@ -335,13 +357,7 @@ export default class JsonRpcService {
       await validateClass(RequestUpdateIssuerDto, body);
       const { from, did, attribute, prevAttributeHash } = body.params[0];
       const bufferAttribute = Buffer.from(attribute.body, "base64");
-      const expectedHash = ethers.utils.keccak256(bufferAttribute);
-      if (prefixWith0x(attribute.hash) !== expectedHash)
-        throw new Error(
-          `Invalid issuer.attribute.hash. Received: ${prefixWith0x(
-            attribute.hash
-          )}. Expected: ${expectedHash}`
-        );
+      checkHash(bufferAttribute, attribute.hash);
       const data = [did.toLowerCase(), bufferAttribute];
       if (prevAttributeHash) data.push(prefixWith0x(prevAttributeHash));
       let functionSig;

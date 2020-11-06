@@ -18,6 +18,7 @@ import JsonRpcModule from "./jsonrpc.module";
 import JsonRpcResponseObject from "./types/jsonrpc.interface";
 import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
 import paramInsertAdministrator from "./dto/insertAdministrator/param.dto";
+import paramUpdateAdministrator from "./dto/updateAdministrator/param.dto";
 import paramInsertIssuer from "./dto/insertIssuer/param.dto";
 import paramUpdateIssuer from "./dto/updateIssuer/param.dto";
 import paramInsertPolicy from "./dto/insertPolicy/param.dto";
@@ -65,11 +66,11 @@ function createParamInsertIssuer(from: string): paramInsertIssuer {
   return createParamInsertAdministrator(from);
 }
 
-function createParamUpdateIssuer(
+function createParamUpdateAdministrator(
   from: string,
   updateAttribute?: boolean,
   prevAttributeHash?: string
-): paramUpdateIssuer {
+): paramUpdateAdministrator {
   const did = "did:ebsi:0x02";
   const json = {
     // any object here
@@ -90,7 +91,7 @@ function createParamUpdateIssuer(
     from,
     did,
     attribute,
-  } as paramUpdateIssuer;
+  } as paramUpdateAdministrator;
 
   // check if we are creating a new attribute or we are updating an attribute
   if (updateAttribute) {
@@ -107,6 +108,18 @@ function createParamUpdateIssuer(
   }
 
   return param;
+}
+
+function createParamUpdateIssuer(
+  from: string,
+  updateAttribute?: boolean,
+  prevAttributeHash?: string
+): paramUpdateIssuer {
+  return createParamUpdateAdministrator(
+    from,
+    updateAttribute,
+    prevAttributeHash
+  );
 }
 
 function createParamInsertPolicy(from: string): paramInsertPolicy {
@@ -139,6 +152,12 @@ function createParam(
       return createParamUpdateIssuer(from, updateAttribute, prevAttributeHash);
     case "insertAdministrator":
       return createParamInsertAdministrator(from);
+    case "updateAdministrator":
+      return createParamUpdateAdministrator(
+        from,
+        updateAttribute,
+        prevAttributeHash
+      );
     case "insertPolicy":
       return createParamInsertPolicy(from);
     default:
@@ -355,6 +374,8 @@ describe("JsonRpc Module", () => {
     "insertPolicy",
     "updateIssuer",
     "updateIssuer(test update attribute)",
+    "updateAdministrator",
+    "updateAdministrator(test update attribute)",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
@@ -462,6 +483,7 @@ describe("JsonRpc Module", () => {
         case "insertIssuer":
         case "insertAdministrator":
         case "updateIssuer":
+        case "updateAdministrator":
           delete (param1 as paramInsertIssuer).attribute;
           expectedErrorMessage1 =
             "property params[0].attribute has failed the following constraints: isObject";
