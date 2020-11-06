@@ -73,7 +73,7 @@ describe("Administrators (e2e)", () => {
     };
     const data = Buffer.from(JSON.stringify(json));
     const dataBase64 = data.toString("base64");
-    const dataHash = ethers.utils.keccak256(data).slice(2);
+    const dataHash = ethers.utils.sha256(data).slice(2);
     const attribute = {
       body: dataBase64,
       hash: dataHash,
@@ -115,23 +115,23 @@ describe("Administrators (e2e)", () => {
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            "/trusted-issuers-registry/v2/administrators"
+            "/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=10"
           ) as string,
           items: expect.arrayContaining([]) as string[],
           total: expect.any(Number) as number,
           pageSize: expect.any(Number) as number,
           links: expect.objectContaining({
             first: expect.stringContaining(
-              "/trusted-issuers-registry/v2/administrators"
+              "/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=10"
             ) as string,
             prev: expect.stringContaining(
-              "/trusted-issuers-registry/v2/administrators"
+              "/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=10"
             ) as string,
             next: expect.stringContaining(
-              "/trusted-issuers-registry/v2/administrators"
+              "/trusted-issuers-registry/v2/administrators?page[after]="
             ) as string,
             last: expect.stringContaining(
-              "/trusted-issuers-registry/v2/administrators"
+              "/trusted-issuers-registry/v2/administrators?page[after]="
             ) as string,
           }) as PaginatedList<IdLink>["links"],
         })
@@ -197,23 +197,23 @@ describe("Administrators (e2e)", () => {
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            `/trusted-issuers-registry/v2/administrators/${did}/attributes`
+            `/trusted-issuers-registry/v2/administrators/${did}/attributes?page[after]=1&page[size]=10`
           ) as string,
           items: expect.arrayContaining([]) as string[],
           total: expect.any(Number) as number,
           pageSize: expect.any(Number) as number,
           links: expect.objectContaining({
             first: expect.stringContaining(
-              `/trusted-issuers-registry/v2/administrators/${did}/attributes`
+              `/trusted-issuers-registry/v2/administrators/${did}/attributes?page[after]=1&page[size]=10`
             ) as string,
             prev: expect.stringContaining(
-              `/trusted-issuers-registry/v2/administrators/${did}/attributes`
+              `/trusted-issuers-registry/v2/administrators/${did}/attributes?page[after]=1&page[size]=10`
             ) as string,
             next: expect.stringContaining(
-              `/trusted-issuers-registry/v2/administrators/${did}/attributes`
+              `/trusted-issuers-registry/v2/administrators/${did}/attributes?page[after]=`
             ) as string,
             last: expect.stringContaining(
-              `/trusted-issuers-registry/v2/administrators/${did}/attributes`
+              `/trusted-issuers-registry/v2/administrators/${did}/attributes?page[after]=`
             ) as string,
           }) as PaginatedList<IdLink>["links"],
         })

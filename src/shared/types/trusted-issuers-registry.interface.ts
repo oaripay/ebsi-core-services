@@ -1,5 +1,6 @@
 import { AdministratorsListSmartContractResponseObject } from "../../modules/administrators/administrators.interface";
 import { IssuersListSmartContractResponseObject } from "../../modules/issuers/issuers.interface";
+import { PoliciesListSmartContractResponseObject } from "../../modules/policies/policies.interface";
 
 export default interface TrustedIssuersRegistryContract {
   getAdministrators: (
@@ -9,16 +10,24 @@ export default interface TrustedIssuersRegistryContract {
 
   getAdministrator: (did: string) => Promise<string[]>;
 
-  getAdministratorAttributebyHash: (
+  getAdministratorAttributeByHash: (
     hash: string
   ) => Promise<{
     did: string;
     attribData: string;
   }>;
 
-  getAdministratorAttributeHistory: (
-    anyAttrVersHash: string
-  ) => Promise<string[]>;
+  getAdministratorAttributeRevisions: (
+    anyAttrVersHash,
+    page: number,
+    pageSize: number
+  ) => Promise<{
+    items: string[];
+    total: number;
+    howMany: number;
+    prev: number;
+    next: number;
+  }>;
 
   getIssuers: (
     page: number,
@@ -27,12 +36,29 @@ export default interface TrustedIssuersRegistryContract {
 
   getIssuer: (did: string) => Promise<string[]>;
 
-  getIssuerAttributebyHash: (
+  getIssuerAttributeByHash: (
     hash: string
   ) => Promise<{
     did: string;
     attribData: string;
   }>;
 
-  getIssuerAttributeHistory: (anyAttrVersHash: string) => Promise<string[]>;
+  getIssuerAttributeRevisions: (
+    anyAttrVersHash,
+    page: number,
+    pageSize: number
+  ) => Promise<{
+    items: string[];
+    total: number;
+    howMany: number;
+    prev: number;
+    next: number;
+  }>;
+
+  getPolicies: (
+    page: number,
+    howMany: number
+  ) => Promise<PoliciesListSmartContractResponseObject>;
+
+  getPolicy: (policyId: string) => Promise<string>;
 }

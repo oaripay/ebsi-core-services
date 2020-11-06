@@ -27,16 +27,13 @@ export default class IssuersService {
     page: number,
     pageSize: number
   ): Promise<IssuersListSmartContractResponseObject> {
-    // TODO: currently, the SC is 0-based
-    // Remove this fix when the SC is updated
-    const scPage = page - 1;
-    return this.tirContract.getIssuers(scPage, pageSize);
+    return this.tirContract.getIssuers(page, pageSize);
   }
 
   async getAttribute(attributeId: string): Promise<AttributeObject> {
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
-    const { attribData } = await this.tirContract.getIssuerAttributebyHash(
+    const { attribData } = await this.tirContract.getIssuerAttributeByHash(
       hash
     );
     const bufferAttribute = Buffer.from(attribData.slice(2), "hex");
@@ -50,9 +47,16 @@ export default class IssuersService {
 
   async getAttributes(_did: string): Promise<AttributeObject[]> {
     const did = _did.toLowerCase();
-    const attributesLastHash = await this.tirContract.getIssuer(did);
 
-    if (attributesLastHash.length === 0) {
+    let attributesLastHash: string[];
+
+    try {
+      attributesLastHash = await this.tirContract.getIssuer(did);
+
+      if (attributesLastHash.length === 0) {
+        throw new Error();
+      }
+    } catch (e) {
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,
       });
@@ -76,33 +80,47 @@ export default class IssuersService {
     attributeId: string
   ): Promise<boolean> {
     const attribId = prefixWith0x(attributeId);
-    const attributesLastHash = await this.tirContract.getIssuer(did);
+    let attributesLastHash: string[];
 
-    if (attributesLastHash.length === 0) {
+    try {
+      attributesLastHash = await this.tirContract.getIssuer(did);
+
+      if (attributesLastHash.length === 0) {
+        throw new Error();
+      }
+    } catch (e) {
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,
       });
     }
+
+    // /!\ only checks the first 10 revisions
     const revisionHashesList = await Promise.all(
       attributesLastHash.map(async (hash) => {
-        return this.tirContract.getIssuerAttributeHistory(hash);
+        return this.tirContract.getIssuerAttributeRevisions(hash, 1, 10);
       })
     );
     return !!revisionHashesList.find((revisionHashes) => {
-      return revisionHashes.find((hash) => hash === attribId);
+      return revisionHashes.items.find((hash) => hash === attribId);
     });
   }
 
   async getIssuerAttributeIdRevisions(
-    attributeId: string
+    attributeId: string,
+    page: number,
+    pageSize: number
   ): Promise<AttributeObject[]> {
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
-    const revisionHashes = await this.tirContract.getIssuerAttributeHistory(
-      hash
+
+    const revisionHashes = await this.tirContract.getIssuerAttributeRevisions(
+      hash,
+      page,
+      pageSize
     );
+
     return Promise.all(
-      revisionHashes.map(async (revisionHash) => {
+      revisionHashes.items.map(async (revisionHash) => {
         return this.getAttribute(revisionHash);
       })
     );

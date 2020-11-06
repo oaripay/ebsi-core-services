@@ -5,52 +5,37 @@
       "anonymous": false,
       "inputs": [
         {
-          "indexed": false,
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
-      ],
-      "name": "Paused",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "didHash",
+          "type": "bytes32"
+        },
         {
           "indexed": true,
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
-      ],
-      "name": "PauserAdded",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
-      ],
-      "name": "PauserRemoved",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
+          "internalType": "bytes32",
+          "name": "firstAttrHash",
+          "type": "bytes32"
+        },
         {
           "indexed": false,
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
+          "internalType": "string",
+          "name": "did",
+          "type": "string"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "attributeVersionCount",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "attributesCount",
+          "type": "uint256"
         }
       ],
-      "name": "Unpaused",
+      "name": "AddAdministratorAttribute",
       "type": "event"
     },
     {
@@ -87,44 +72,7 @@
           "type": "uint256"
         }
       ],
-      "name": "addAdministratorAttribute",
-      "type": "event"
-    },
-    {
-      "anonymous": false,
-      "inputs": [
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "didHash",
-          "type": "bytes32"
-        },
-        {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "firstAttrHash",
-          "type": "bytes32"
-        },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "did",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "attributeVersionCount",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "attributesCount",
-          "type": "uint256"
-        }
-      ],
-      "name": "addIssuerAttribute",
+      "name": "AddIssuerAttribute",
       "type": "event"
     },
     {
@@ -137,13 +85,19 @@
           "type": "string"
         },
         {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "policyHash",
+          "type": "bytes32"
+        },
+        {
           "indexed": false,
           "internalType": "bytes",
           "name": "policy",
           "type": "bytes"
         }
       ],
-      "name": "addNewPolicy",
+      "name": "AddNewPolicy",
       "type": "event"
     },
     {
@@ -192,7 +146,7 @@
           "type": "uint256"
         }
       ],
-      "name": "updateAdministratorAttribute",
+      "name": "UpdateAdministratorAttribute",
       "type": "event"
     },
     {
@@ -205,13 +159,19 @@
           "type": "string"
         },
         {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "policyHash",
+          "type": "bytes32"
+        },
+        {
           "indexed": false,
           "internalType": "bytes",
           "name": "policy",
           "type": "bytes"
         }
       ],
-      "name": "updateExistingPolicy",
+      "name": "UpdateExistingPolicy",
       "type": "event"
     },
     {
@@ -260,21 +220,64 @@
           "type": "uint256"
         }
       ],
-      "name": "updateIssuerAttribute",
+      "name": "UpdateIssuerAttribute",
       "type": "event"
     },
     {
-      "inputs": [
+      "inputs": [],
+      "name": "ISSUER_DIAMOND_STORAGE_POSITION",
+      "outputs": [
         {
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
         }
       ],
-      "name": "addPauser",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "TIR_ADMINISTRATOR_DIAMOND_STORAGE_POSITION",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "TIR_DIAMOND_STORAGE_POSITION",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [],
+      "name": "TIR_POLICY_DIAMOND_STORAGE_POSITION",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -293,7 +296,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -303,26 +307,7 @@
           "type": "bytes32"
         }
       ],
-      "name": "getAdministratorAttributeHistory",
-      "outputs": [
-        {
-          "internalType": "bytes32[]",
-          "name": "",
-          "type": "bytes32[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "anyAttrVersHash",
-          "type": "bytes32"
-        }
-      ],
-      "name": "getAdministratorAttributebyHash",
+      "name": "getAdministratorAttributeByHash",
       "outputs": [
         {
           "internalType": "string",
@@ -336,45 +321,58 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "did",
-          "type": "string"
-        }
-      ],
-      "name": "getAdministratorAttributesFirstHash",
-      "outputs": [
-        {
-          "internalType": "bytes32[]",
-          "name": "",
-          "type": "bytes32[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
         {
           "internalType": "bytes32",
-          "name": "attributeHash",
+          "name": "anyAttrVersHash",
           "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "page",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "pageSize",
+          "type": "uint256"
         }
       ],
-      "name": "getAdministratorDid",
+      "name": "getAdministratorAttributeRevisions",
       "outputs": [
         {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
+          "internalType": "bytes32[]",
+          "name": "items",
+          "type": "bytes32[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "total",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "howMany",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "prev",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "next",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -385,7 +383,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "howMany",
+          "name": "pageSize",
           "type": "uint256"
         }
       ],
@@ -403,7 +401,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "pageSize",
+          "name": "howMany",
           "type": "uint256"
         },
         {
@@ -418,7 +416,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -437,7 +436,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -447,26 +447,7 @@
           "type": "bytes32"
         }
       ],
-      "name": "getIssuerAttributeHistory",
-      "outputs": [
-        {
-          "internalType": "bytes32[]",
-          "name": "",
-          "type": "bytes32[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "anyAttrVersHash",
-          "type": "bytes32"
-        }
-      ],
-      "name": "getIssuerAttributebyHash",
+      "name": "getIssuerAttributeByHash",
       "outputs": [
         {
           "internalType": "string",
@@ -480,45 +461,58 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "string",
-          "name": "did",
-          "type": "string"
-        }
-      ],
-      "name": "getIssuerAttributesFirstHash",
-      "outputs": [
-        {
-          "internalType": "bytes32[]",
-          "name": "",
-          "type": "bytes32[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
         {
           "internalType": "bytes32",
-          "name": "attributeHash",
+          "name": "anyAttrVersHash",
           "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "page",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "pageSize",
+          "type": "uint256"
         }
       ],
-      "name": "getIssuerDid",
+      "name": "getIssuerAttributeRevisions",
       "outputs": [
         {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
+          "internalType": "bytes32[]",
+          "name": "items",
+          "type": "bytes32[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "total",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "howMany",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "prev",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "next",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -529,7 +523,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "howMany",
+          "name": "pageSize",
           "type": "uint256"
         }
       ],
@@ -547,7 +541,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "pageSize",
+          "name": "howMany",
           "type": "uint256"
         },
         {
@@ -562,7 +556,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -573,7 +568,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "howMany",
+          "name": "pageSize",
           "type": "uint256"
         }
       ],
@@ -591,7 +586,7 @@
         },
         {
           "internalType": "uint256",
-          "name": "pageSize",
+          "name": "howMany",
           "type": "uint256"
         },
         {
@@ -606,7 +601,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -622,9 +618,98 @@
           "internalType": "bytes",
           "name": "",
           "type": "bytes"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
         }
       ],
       "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "revisionHash",
+          "type": "bytes32"
+        }
+      ],
+      "name": "getPolicyByHash",
+      "outputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "string",
+          "name": "policyId",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "page",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "pageSize",
+          "type": "uint256"
+        }
+      ],
+      "name": "getPolicyRevisions",
+      "outputs": [
+        {
+          "internalType": "bytes32[]",
+          "name": "items",
+          "type": "bytes32[]"
+        },
+        {
+          "internalType": "uint256",
+          "name": "total",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "howMany",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "prev",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "next",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function",
+      "constant": true
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "version",
+          "type": "uint256"
+        }
+      ],
+      "name": "init",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -677,72 +762,6 @@
         }
       ],
       "name": "insertPolicy",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
-      ],
-      "name": "isPauser",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "operator",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "pause",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "paused",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "renouncePauser",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "unpause",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -858,7 +877,8 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
+      "type": "function",
+      "constant": true
     },
     {
       "inputs": [
@@ -866,47 +886,6 @@
           "internalType": "uint256",
           "name": "version",
           "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "operator",
-          "type": "address"
-        },
-        {
-          "internalType": "address[]",
-          "name": "pausers",
-          "type": "address[]"
-        }
-      ],
-      "name": "initialize",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "sender",
-          "type": "address"
-        }
-      ],
-      "name": "initialize",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "version",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "operator",
-          "type": "address"
         }
       ],
       "name": "initialize",

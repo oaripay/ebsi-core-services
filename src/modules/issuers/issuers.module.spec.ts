@@ -61,7 +61,9 @@ describe("Issuers Module", () => {
 
       const response = await request(server).get("/issuers");
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining("/issuers") as string,
+        self: expect.stringContaining(
+          "/issuers?page[after]=1&page[size]=10"
+        ) as string,
         items: expect.arrayContaining([]) as Array<string>,
         total: 20,
         pageSize: 10,
@@ -168,7 +170,7 @@ describe("Issuers Module", () => {
           ) as string,
         },
       });
-      expect((response3.body as { items: string }).items).toHaveLength(2);
+      expect((response3.body as { items: string }).items).toHaveLength(0);
       expect(response3.status).toBe(200);
 
       // page after defined but page size undefined
@@ -248,7 +250,7 @@ describe("Issuers Module", () => {
       const response = await request(server).get("/issuers/did:ebsi:0x00");
       const data = Buffer.from(JSON.stringify(jsonlds[0]));
       const dataBase64 = data.toString("base64");
-      const dataHash = ethers.utils.keccak256(data);
+      const dataHash = ethers.utils.sha256(data);
 
       expect(response.body).toStrictEqual({
         did: "did:ebsi:0x00",
@@ -285,7 +287,7 @@ describe("Issuers Module", () => {
         "/issuers/did:ebsi:0x00/attributes"
       );
       const data = Buffer.from(JSON.stringify(jsonlds[0]));
-      const dataHash = ethers.utils.keccak256(data).slice(2);
+      const dataHash = ethers.utils.sha256(data).slice(2);
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
@@ -326,7 +328,7 @@ describe("Issuers Module", () => {
 
       const data = Buffer.from(JSON.stringify(jsonlds[1]));
       const dataBase64 = data.toString("base64");
-      const dataHash = ethers.utils.keccak256(data);
+      const dataHash = ethers.utils.sha256(data);
       const response = await request(server).get(
         `/issuers/did:ebsi:0x01/attributes/${dataHash}`
       );
@@ -377,7 +379,7 @@ describe("Issuers Module", () => {
 
       // Consult an attribute from a different did
       const data = Buffer.from(JSON.stringify(jsonlds[4]));
-      const attributeId4 = ethers.utils.keccak256(data);
+      const attributeId4 = ethers.utils.sha256(data);
       const response3 = await request(server).get(
         `/issuers/did:ebsi:0x02/attributes/${attributeId4}`
       );
@@ -400,7 +402,7 @@ describe("Issuers Module", () => {
 
       const did = "did:ebsi:0x12";
       const data = Buffer.from(JSON.stringify(dummyData[did][0].attribute));
-      const dataHash = ethers.utils.keccak256(data);
+      const dataHash = ethers.utils.sha256(data);
       const urlPath = `/issuers/${did}/attributes/${dataHash}/revisions`;
 
       const response = await request(server).get(
@@ -437,7 +439,7 @@ describe("Issuers Module", () => {
 
       const did = "did:ebsi:0x12";
       const data = Buffer.from(JSON.stringify(dummyData[did][0].attribute));
-      const dataHash = ethers.utils.keccak256(data);
+      const dataHash = ethers.utils.sha256(data);
       const urlPath = `/issuers/${did}/attributes/${dataHash}/revisions`;
 
       const response1 = await request(server).get(
@@ -561,7 +563,7 @@ describe("Issuers Module", () => {
 
       const did = "did:ebsi:0x12";
       const data = Buffer.from(JSON.stringify(dummyData[did][0].attribute));
-      const dataHash = ethers.utils.keccak256(data);
+      const dataHash = ethers.utils.sha256(data);
 
       const response = await request(server).get(
         `/issuers/unknown-issuer/attributes/${dataHash}/revisions`
@@ -599,7 +601,7 @@ describe("Issuers Module", () => {
 
       const did = "did:ebsi:0x12";
       const data = Buffer.from(JSON.stringify(dummyData[did][0].attribute));
-      const dataHash = ethers.utils.keccak256(data);
+      const dataHash = ethers.utils.sha256(data);
 
       const response1 = await request(server).get(
         `/issuers/${did}/attributes/${dataHash}/revisions?page[size]=100`

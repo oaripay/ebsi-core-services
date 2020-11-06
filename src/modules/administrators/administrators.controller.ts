@@ -115,7 +115,9 @@ export default class AdministratorsController {
     }
 
     const revisions = await this.administratorsService.getAdministratorAttributeRevisions(
-      attributeId
+      attributeId,
+      query["page[after]"],
+      query["page[size]"]
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");

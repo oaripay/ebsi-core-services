@@ -1,5 +1,4 @@
 import request from "supertest";
-import crypto from "crypto";
 import { ethers } from "ethers";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -20,11 +19,30 @@ import JsonRpcResponseObject from "../../src/modules/jsonrpc/types/jsonrpc.inter
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { prefixWith0x } from "../../src/shared/utils";
+import {
+  PolicyResponseObject,
+  PolicyLink,
+} from "../../src/modules/policies/policies.interface";
+import { PaginatedList } from "../../src/shared/interfaces";
+import { createPolicy } from "../utils/mockTirContract";
+import { generateMultihash } from "../../src/shared/utils/multihash.utils";
 
 interface SupertestJsonRpcResponse {
   status: number;
   body: JsonRpcResponseObject;
 }
+
+interface SupertestPoliciesResponse {
+  status: number;
+  body: PaginatedList<PolicyLink>;
+}
+
+interface SupertestPolicyResponse {
+  status: number;
+  body: PolicyResponseObject;
+}
+
+jest.setTimeout(60000);
 
 describe("Policies (e2e)", () => {
   let app: INestApplication;
@@ -34,22 +52,8 @@ describe("Policies (e2e)", () => {
 
   const wallet = new ethers.Wallet(prefixWith0x(adminTestPrivateKey));
 
-  const createPolicy = () => {
-    const policyId = `policy-test-${new Date().toISOString()}`;
-    const json = {
-      // any object here
-      any: "Any attribute here",
-      type: "credential",
-      data: crypto.randomBytes(16).toString("hex"),
-    };
-    const data = Buffer.from(JSON.stringify(json));
-    const policy = data.toString("base64");
-
-    return { policyId, policy };
-  };
-
-  const newPolicy = createPolicy();
-  const { policy: policy2 } = createPolicy();
+  const newPolicy = createPolicy(new Date().toISOString());
+  const { policy: policy2 } = createPolicy(new Date().toISOString());
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -70,13 +74,85 @@ describe("Policies (e2e)", () => {
     server = app.getHttpServer() as HttpServer;
   });
 
+  describe("/policies", () => {
+    it("should return a collection of policies", async () => {
+      expect.assertions(2);
+      const response: SupertestPoliciesResponse = await request(server).get(
+        "/policies"
+      );
+
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          self: expect.stringContaining(
+            "/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=10"
+          ) as string,
+          items: expect.arrayContaining([]) as string[],
+          total: expect.any(Number) as number,
+          pageSize: expect.any(Number) as number,
+          links: expect.objectContaining({
+            first: expect.stringContaining(
+              "/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=10"
+            ) as string,
+            prev: expect.stringContaining(
+              "/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=10"
+            ) as string,
+            next: expect.stringContaining(
+              "/trusted-issuers-registry/v2/policies?page[after]=2&page[size]=10"
+            ) as string,
+            last: expect.stringContaining(
+              "/trusted-issuers-registry/v2/policies?page[after]="
+            ) as string,
+          }) as PaginatedList<PolicyLink>["links"],
+        })
+      );
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("/policies/{policyId}", () => {
+    it("should return a specific policy", async () => {
+      expect.assertions(3);
+      const policiesResponse: SupertestPoliciesResponse = await request(
+        server
+      ).get("/policies");
+
+      expect(policiesResponse.status).toBe(200);
+      const { policyId }: PolicyLink = policiesResponse.body.items[
+        policiesResponse.body.items.length - 1
+      ];
+
+      const response: SupertestPolicyResponse = await request(server).get(
+        `/policies/${encodeURIComponent(policyId)}`
+      );
+
+      expect(response.body).toStrictEqual({
+        policyId,
+        policy: expect.any(String) as string,
+        hash: expect.any(String) as string,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the policy is not found", async () => {
+      expect.assertions(2);
+      const response = await request(server).get("/policies/unknown-policy");
+      expect(response.body).toStrictEqual({
+        title: "Policy Not Found",
+        status: 404,
+        detail: "Policy unknown-policy not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+  });
+
   describe.each(["insertPolicy", "updatePolicy"])(
     "/jsonrpc - method: %s",
     (method: string) => {
       it(`should return a new unsigned transaction`, async () => {
         expect.assertions(2);
 
-        const { policyId, policy } = createPolicy();
+        const { policyId, policy } = createPolicy(new Date().toISOString());
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
@@ -116,7 +192,7 @@ describe("Policies (e2e)", () => {
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should insert a new policy", async () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const { policyId } = newPolicy;
         let policy: string;
@@ -184,19 +260,21 @@ describe("Policies (e2e)", () => {
         const receipt = await waitToBeMined(responseSend.body.result as string);
         expect(receipt.status).toBe("0x1");
 
-        /*
         // get policy
         const policyResponse = await request(server).get(
           `/policies/${policyId}`
         );
 
+        const expectedHash = generateMultihash(
+          ethers.utils.sha256(Buffer.from(policy, "base64"))
+        );
+
         expect(policyResponse.body).toStrictEqual({
           policyId,
           policy,
-          hash,
+          hash: expectedHash,
         });
         expect(policyResponse.status).toBe(200);
-        */
       });
     }
   );

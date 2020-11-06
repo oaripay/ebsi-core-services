@@ -108,7 +108,9 @@ export default class IssuersController {
     }
 
     const revisions = await this.issuersService.getIssuerAttributeIdRevisions(
-      attributeId
+      attributeId,
+      query["page[after]"],
+      query["page[size]"]
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");

@@ -27,10 +27,7 @@ export default class AdministratorsService {
     page: number,
     pageSize: number
   ): Promise<AdministratorsListSmartContractResponseObject> {
-    // TODO: currently, the SC is 0-based
-    // Remove this fix when the SC is updated
-    const scPage = page - 1;
-    return this.tirContract.getAdministrators(scPage, pageSize);
+    return this.tirContract.getAdministrators(page, pageSize);
   }
 
   async getAttribute(attributeId: string): Promise<AttributeObject> {
@@ -38,7 +35,7 @@ export default class AdministratorsService {
     const hash = prefixWith0x(attributeId);
     const {
       attribData,
-    } = await this.tirContract.getAdministratorAttributebyHash(hash);
+    } = await this.tirContract.getAdministratorAttributeByHash(hash);
     const bufferAttribute = Buffer.from(attribData.slice(2), "hex");
     const attributeBase64 = bufferAttribute.toString("base64");
 
@@ -48,11 +45,18 @@ export default class AdministratorsService {
     };
   }
 
-  async getAttributes(_did: string): Promise<AttributeObject[]> {
-    const did = _did.toLowerCase();
-    const attributesLastHash = await this.tirContract.getAdministrator(did);
+  async getAttributes(administratorDid: string): Promise<AttributeObject[]> {
+    const did = administratorDid.toLowerCase();
 
-    if (attributesLastHash.length === 0) {
+    let attributesLastHash: string[];
+
+    try {
+      attributesLastHash = await this.tirContract.getAdministrator(did);
+
+      if (attributesLastHash.length === 0) {
+        throw new Error();
+      }
+    } catch (e) {
       throw new NotFoundError("Administrator Not Found", {
         detail: `Administrator ${did} not found`,
       });
@@ -65,47 +69,62 @@ export default class AdministratorsService {
     );
   }
 
-  async getAdministrator(_did: string): Promise<AdministratorResponseObject> {
-    const did = _did.toLowerCase();
+  async getAdministrator(
+    administratorDid: string
+  ): Promise<AdministratorResponseObject> {
+    const did = administratorDid.toLowerCase();
     const attributes = await this.getAttributes(did);
     return { did, attributes };
   }
 
   async didIncludesAttribute(
-    did: string,
+    administratorDid: string,
     attributeId: string
   ): Promise<boolean> {
     const attribId = prefixWith0x(attributeId);
-    const attributesLastHash = await this.tirContract.getAdministrator(did);
+    let attributesLastHash: string[];
 
-    if (attributesLastHash.length === 0) {
+    try {
+      attributesLastHash = await this.tirContract.getAdministrator(
+        administratorDid
+      );
+
+      if (attributesLastHash.length === 0) {
+        throw new Error();
+      }
+    } catch (e) {
       throw new NotFoundError("Administrator Not Found", {
-        detail: `Administrator ${did} not found`,
+        detail: `Administrator ${administratorDid} not found`,
       });
     }
 
+    // /!\ only checks the first 10 revisions
     const revisionHashesList = await Promise.all(
       attributesLastHash.map(async (hash) => {
-        return this.tirContract.getAdministratorAttributeHistory(hash);
+        return this.tirContract.getAdministratorAttributeRevisions(hash, 1, 10);
       })
     );
 
     return !!revisionHashesList.find((revisionHashes) => {
-      return revisionHashes.find((hash) => hash === attribId);
+      return revisionHashes.items.find((hash) => hash === attribId);
     });
   }
 
   async getAdministratorAttributeRevisions(
-    attributeId: string
+    attributeId: string,
+    page: number,
+    pageSize: number
   ): Promise<AttributeObject[]> {
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
-    const revisionHashes = await this.tirContract.getIssuerAttributeHistory(
-      hash
+    const revisionHashes = await this.tirContract.getAdministratorAttributeRevisions(
+      hash,
+      page,
+      pageSize
     );
 
     return Promise.all(
-      revisionHashes.map(async (revisionHash) => {
+      revisionHashes.items.map(async (revisionHash) => {
         return this.getAttribute(revisionHash);
       })
     );

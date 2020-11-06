@@ -7,19 +7,6 @@ type PaginationLinks = {
   lastPage: number;
 };
 
-export function compute0BasedPaginationLinks(
-  total: number,
-  currentPage: number,
-  pageSize: number
-): PaginationLinks {
-  const firstPage = 0;
-  const lastPage = Math.max(Math.floor((total - 1) / pageSize), 0);
-  const prevPage = Math.max(Math.min(currentPage - 1, lastPage), firstPage);
-  const nextPage = Math.max(Math.min(currentPage + 1, lastPage), firstPage);
-
-  return { firstPage, prevPage, nextPage, lastPage };
-}
-
 export function compute1BasedPaginationLinks(
   total: number,
   currentPage: number,
@@ -31,41 +18,6 @@ export function compute1BasedPaginationLinks(
   const nextPage = Math.max(Math.min(currentPage + 1, lastPage), firstPage);
 
   return { firstPage, prevPage, nextPage, lastPage };
-}
-
-type PaginationResult<T> = {
-  items: T[];
-  total: number;
-  pageSize: number;
-  prev: number;
-  next: number;
-  last: number;
-};
-
-export function pagination<T>(
-  data: T[],
-  inputPage: number,
-  pageSize: number
-): PaginationResult<T> {
-  const total: number = data.length;
-
-  // /!\ 0-based pagination
-  const { prevPage, nextPage, lastPage } = compute0BasedPaginationLinks(
-    total,
-    inputPage,
-    pageSize
-  );
-  const page = Math.max(Math.min(inputPage, lastPage), 0);
-  const items: T[] = data.slice(page * pageSize, (page + 1) * pageSize);
-
-  return {
-    items,
-    total,
-    pageSize,
-    prev: prevPage,
-    next: nextPage,
-    last: lastPage,
-  };
 }
 
 export function paginate<T>(
@@ -95,5 +47,3 @@ export function paginate<T>(
     },
   };
 }
-
-export default pagination;

@@ -1,29 +1,45 @@
 pipeline {
     agent any
     stages {
-        stage('Setup') {
-            steps {
-                sh 'yarn install --frozen-lockfile'
+        stage('Node Agent') {
+            agent {
+                docker {
+                    image 'node:14.15.0-alpine3.12'
+                    reuseNode true
+                }
+            }
+            stages {
+                stage('Setup') {
+                    steps {
+                        sh 'yarn install --frozen-lockfile'
+                        sh 'yarn run audit'
+                    }
+                }
+                stage('Lint') {
+                    steps {
+                        sh 'yarn lint'
+                    }
+                }
+                stage('Unit tests') {
+                    environment {
+                        EBSI_ENV='integration'
+                        BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS='0x9B8397f1B0FEcD3a1a40CdD5E8221Fa461898517'
+                        API_PRIVATE_KEY=credentials('APP_PRIVATE_KEY_TRUSTED_ISSUERS')
+                    }
+                    steps {
+                        sh 'yarn test:ci'
+                    }
+                }
             }
         }
-        stage('Audit dependencies') {
-            steps {
-                sh 'yarn run audit'
-            }
-        }
-        stage('Lint') {
-            steps {
-                sh 'yarn lint'
-            }
-        }
-        stage('Unit tests') {
-            environment {
-                EBSI_ENV='integration'
-                BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS='0x9B8397f1B0FEcD3a1a40CdD5E8221Fa461898517'
-                API_PRIVATE_KEY=credentials('APP_PRIVATE_KEY_TRUSTED_ISSUERS')
+        stage ('Lint Dockerfile') {
+            agent {
+                docker {
+                    image 'hadolint/hadolint:latest-debian'
+                }
             }
             steps {
-                sh 'yarn test:ci'
+                sh 'hadolint Dockerfile'
             }
         }
         stage('SonarQube Analysis') {

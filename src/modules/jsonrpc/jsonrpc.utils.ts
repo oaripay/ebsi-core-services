@@ -45,7 +45,7 @@ export const validateClass = async (
 };
 
 export const checkHash = (buffer: Buffer, hash: string): void => {
-  const expectedHash = ethers.utils.keccak256(buffer);
+  const expectedHash = ethers.utils.sha256(buffer);
   if (prefixWith0x(hash) !== expectedHash)
     throw new Error(
       `Invalid issuer.attribute.hash. Received: ${prefixWith0x(

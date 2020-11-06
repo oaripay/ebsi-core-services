@@ -1,15 +1,16 @@
+import crypto from "crypto";
 import { ethers } from "ethers";
-import { pagination } from "../../src/shared/utils";
+import { compute1BasedPaginationLinks } from "../../src/shared/utils/pagination.utils";
 
-interface DbIssuer {
+interface Entity {
   attributes: string[];
-  attributesDetail: {
+  attributesStore: {
     [y: string]: {
-      versionHashes: string[];
-      versionData: {
-        [hash: string]: string;
-      };
+      revisionHashes: string[];
     };
+  };
+  revisions: {
+    [hash: string]: string;
   };
 }
 
@@ -22,6 +23,38 @@ interface AttributeHistoryObject {
 
 interface DummyDataObject {
   [x: string]: AttributeHistoryObject[];
+}
+
+type PaginationResult<T> = {
+  items: T[];
+  total: number;
+  prev: number;
+  next: number;
+};
+
+function pagination<T>(
+  data: T[],
+  inputPage: number,
+  pageSize: number
+): PaginationResult<T> {
+  const total: number = data.length;
+
+  const { prevPage, nextPage } = compute1BasedPaginationLinks(
+    total,
+    inputPage,
+    pageSize
+  );
+  const items: T[] = data.slice(
+    (inputPage - 1) * pageSize,
+    inputPage * pageSize
+  );
+
+  return {
+    items,
+    total,
+    prev: prevPage,
+    next: nextPage,
+  };
 }
 
 const context = {
@@ -271,18 +304,18 @@ const dummyDataWithoutContext: DummyDataObject = {
 
 export const jsonlds = [];
 export const dummyData: DummyDataObject = {};
-const dids = Object.keys(dummyDataWithoutContext);
-const issuers: {
-  [x: string]: DbIssuer;
+const didStore = Object.keys(dummyDataWithoutContext);
+const issuerStore: {
+  [x: string]: Entity;
 } = {};
-const attributesInfos: {
+const attributeMetadataStore: {
   [y: string]: {
     did: string;
-    attrId: string;
+    attributeId: string;
   };
 } = {};
 
-dids.forEach((did) => {
+didStore.forEach((did) => {
   const didAttributes = dummyDataWithoutContext[did].map((attributeHistory) => {
     const versions = attributeHistory.versions.map((version) => {
       return {
@@ -299,30 +332,68 @@ dids.forEach((did) => {
   dummyData[did] = didAttributes;
 });
 
-dids.forEach((did) => {
+didStore.forEach((did) => {
   const attributes = [];
-  const attributesDetail = {};
+  const attributesStore = {};
+  const revisions = {};
+
   dummyData[did].forEach((attributeHistory) => {
     const { versions } = attributeHistory;
-    let attrId: string = null;
-    const versionData = {};
-    const versionHashes = [];
+    let attributeId: string = null;
+    const revisionHashes = [];
 
     versions.forEach((version, i) => {
       jsonlds.push(version);
       const buffer = Buffer.from(JSON.stringify(version), "utf8");
-      const attrHash = ethers.utils.keccak256(buffer);
+      const attrHash = ethers.utils.sha256(buffer);
       const attrData = `0x${buffer.toString("hex")}`;
-      versionHashes.push(attrHash);
-      versionData[attrHash] = attrData;
-      if (i === 0) attrId = attrHash;
-      attributesInfos[attrHash] = { did, attrId };
+      revisionHashes.push(attrHash);
+      revisions[attrHash] = attrData;
+      if (i === 0) attributeId = attrHash;
+      attributeMetadataStore[attrHash] = { did, attributeId };
     });
-    attributes.push(attrId);
-    attributesDetail[attrId] = { versionData, versionHashes };
+    attributes.push(attributeId);
+    attributesStore[attributeId] = { revisionHashes };
   });
-  issuers[did] = { attributes, attributesDetail };
+  issuerStore[did] = { attributes, attributesStore, revisions };
 });
+
+export const encodePolicy = (val: string): string =>
+  `0x${Buffer.from(val, "base64").toString("hex")}`;
+
+export const createPolicy = (
+  n: string | number
+): { policyId: string; policy: string } => {
+  const policyId = `policy-test-${n}`;
+  const json = {
+    // any object here
+    any: "Any attribute here",
+    type: "credential",
+    data: crypto.randomBytes(16).toString("hex"),
+  };
+  const data = Buffer.from(JSON.stringify(json));
+  const policy = data.toString("base64");
+
+  return { policyId, policy };
+};
+
+export const policies: Record<
+  string,
+  { originalValue: string; encodedValue: string; hash: string }
+> = Array(10)
+  .fill("")
+  .map(() => createPolicy(crypto.randomBytes(16).toString("hex")))
+  .reduce(
+    (acc, policy) => ({
+      ...acc,
+      [`${policy.policyId}`]: {
+        originalValue: policy.policy, // as sent by the client
+        encodedValue: encodePolicy(policy.policy), // as return by the SC
+        hash: ethers.utils.sha256(Buffer.from(policy.policy, "utf-8")),
+      },
+    }),
+    {}
+  );
 
 function validateHash(hash: string) {
   if (!hash.startsWith("0x") || hash.length !== 66) {
@@ -340,7 +411,7 @@ export function mockTirContract(): ethers.Contract {
           if (pageSize <= 0)
             throw new Error("PageSize should be greater than 0");
           const { items, total, prev, next } = pagination(
-            dids,
+            didStore,
             inputPage,
             pageSize
           );
@@ -353,29 +424,32 @@ export function mockTirContract(): ethers.Contract {
           };
         }),
         getAdministrator: jest.fn((did: string) => {
-          const administrator = issuers[did];
+          const administrator = issuerStore[did];
           if (administrator) return administrator.attributes;
           return [];
         }),
-        getAdministratorAttributebyHash: jest.fn((attrHash: string) => {
+        getAdministratorAttributeByHash: jest.fn((attrHash: string) => {
           validateHash(attrHash);
-          if (!attributesInfos[attrHash]) {
+          if (!attributeMetadataStore[attrHash]) {
             return {
               did: "",
               attribData: "",
             };
           }
-          const { did, attrId } = attributesInfos[attrHash];
-          const attribData =
-            issuers[did].attributesDetail[attrId].versionData[attrHash];
+          const { did } = attributeMetadataStore[attrHash];
+          const attribData = issuerStore[did].revisions[attrHash];
           return { did, attribData };
         }),
-        getAdministratorAttributeHistory: jest.fn((attrHash: string) => {
+        getAdministratorAttributeRevisions: jest.fn((attrHash: string) => {
           validateHash(attrHash);
-          const attrInfo = attributesInfos[attrHash];
-          if (!attributesInfos[attrHash]) return [];
-          const administrator = issuers[attrInfo.did];
-          return administrator.attributesDetail[attrInfo.attrId].versionHashes;
+          const attrInfo = attributeMetadataStore[attrHash];
+          if (!attributeMetadataStore[attrHash]) return [];
+          const administrator = issuerStore[attrInfo.did];
+          return {
+            items:
+              administrator.attributesStore[attrInfo.attributeId]
+                .revisionHashes,
+          };
         }),
         getIssuers: jest.fn((inputPage, pageSize) => {
           if (pageSize > 50)
@@ -383,7 +457,7 @@ export function mockTirContract(): ethers.Contract {
           if (pageSize <= 0)
             throw new Error("PageSize should be greater than 0");
           const { items, total, prev, next } = pagination(
-            dids,
+            didStore,
             inputPage,
             pageSize
           );
@@ -396,29 +470,56 @@ export function mockTirContract(): ethers.Contract {
           };
         }),
         getIssuer: jest.fn((did: string) => {
-          const issuer = issuers[did];
+          const issuer = issuerStore[did];
           if (issuer) return issuer.attributes;
           return [];
         }),
-        getIssuerAttributebyHash: jest.fn((attrHash: string) => {
+        getIssuerAttributeByHash: jest.fn((attrHash: string) => {
           validateHash(attrHash);
-          if (!attributesInfos[attrHash]) {
+          if (!attributeMetadataStore[attrHash]) {
             return {
               did: "",
               attribData: "",
             };
           }
-          const { did, attrId } = attributesInfos[attrHash];
-          const attribData =
-            issuers[did].attributesDetail[attrId].versionData[attrHash];
+          const { did } = attributeMetadataStore[attrHash];
+          const attribData = issuerStore[did].revisions[attrHash];
           return { did, attribData };
         }),
-        getIssuerAttributeHistory: jest.fn((attrHash: string) => {
+        getIssuerAttributeRevisions: jest.fn((attrHash: string) => {
           validateHash(attrHash);
-          const attrInfo = attributesInfos[attrHash];
-          if (!attributesInfos[attrHash]) return [];
-          const issuer = issuers[attrInfo.did];
-          return issuer.attributesDetail[attrInfo.attrId].versionHashes;
+          const attrInfo = attributeMetadataStore[attrHash];
+          if (!attributeMetadataStore[attrHash]) return [];
+          const issuer = issuerStore[attrInfo.did];
+          return {
+            items: issuer.attributesStore[attrInfo.attributeId].revisionHashes,
+          };
+        }),
+        getPolicies: jest.fn((inputPage, pageSize) => {
+          if (pageSize > 50)
+            throw new Error("PageSize should not be greater than 50");
+          if (pageSize <= 0)
+            throw new Error("PageSize should be greater than 0");
+
+          const { items, total, prev, next } = pagination(
+            Object.keys(policies),
+            inputPage,
+            pageSize
+          );
+
+          return {
+            items,
+            total: ethers.BigNumber.from(total),
+            pageSize: ethers.BigNumber.from(pageSize),
+            prev: ethers.BigNumber.from(prev),
+            next: ethers.BigNumber.from(next),
+          };
+        }),
+        getPolicy: jest.fn((policyId: string): [string, string] => {
+          return [
+            policies[policyId]?.encodedValue ?? "0x",
+            policies[policyId]?.hash ?? "",
+          ];
         }),
       };
     },

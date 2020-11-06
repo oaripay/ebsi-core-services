@@ -159,6 +159,7 @@ export default class JsonRpcService {
 
   async estimateGas(transaction: UnsignedTransaction): Promise<string> {
     const { from, to, data, value } = transaction;
+
     return this.callBesuAuth("eth_estimateGas", [
       { from, to, data, value },
     ]) as Promise<string>;
@@ -173,7 +174,7 @@ export default class JsonRpcService {
     */
     const did = `did:ebsi:${address.toLowerCase()}`;
     // verify the did is in the TIR Registry
-    const attributesLastHash = await this.tirContract.getIssuer(did);
+    const attributesLastHash = await this.tirContract.getAdministrator(did);
     if (attributesLastHash.length === 0) {
       throw new Error(
         `Issuer ${did} was not found in the Trusted Issuer Registry`
@@ -264,6 +265,7 @@ export default class JsonRpcService {
     params: (string | Buffer)[]
   ): Promise<UnsignedTransaction> {
     const nonceInt = await this.ethersProvider.getTransactionCount(from);
+
     const unsignedTransaction: UnsignedTransaction = {
       from,
       to: this.tirAddress,
@@ -297,6 +299,7 @@ export default class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertAdministratorDto, body);
+
       const { from, did, attribute } = body.params[0];
       const bufferAttribute = Buffer.from(attribute.body, "base64");
       checkHash(bufferAttribute, attribute.hash);
@@ -405,8 +408,10 @@ export default class JsonRpcService {
   ): Promise<string> {
     try {
       await validateClass(RequestSignedTransactionDto, body);
+
       const request = body.params[0];
       const signer = await this.verifyTransaction(request);
+
       await this.checkWritePermission(signer);
 
       return this.callBesuAuth("eth_sendRawTransaction", [

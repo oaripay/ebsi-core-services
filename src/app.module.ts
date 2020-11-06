@@ -4,6 +4,7 @@ import AppController from "./app.controller";
 import AdministratorsModule from "./modules/administrators/administrators.module";
 import IssuersModule from "./modules/issuers/issuers.module";
 import JsonRpcModule from "./modules/jsonrpc/jsonrpc.module";
+import PoliciesModule from "./modules/policies/policies.module";
 
 @Module({
   imports: [
@@ -11,6 +12,7 @@ import JsonRpcModule from "./modules/jsonrpc/jsonrpc.module";
     AdministratorsModule,
     IssuersModule,
     JsonRpcModule,
+    PoliciesModule,
   ],
   controllers: [AppController],
   providers: [Logger],

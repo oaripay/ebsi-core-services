@@ -50,7 +50,7 @@ function createParamInsertAdministrator(
   };
   const data = Buffer.from(JSON.stringify(json));
   const dataBase64 = data.toString("base64");
-  const dataHash = ethers.utils.keccak256(data);
+  const dataHash = ethers.utils.sha256(data);
   const attribute = {
     body: dataBase64,
     hash: dataHash,
@@ -81,7 +81,7 @@ function createParamUpdateAdministrator(
 
   const data = Buffer.from(JSON.stringify(json));
   const dataBase64 = data.toString("base64");
-  const dataHash = ethers.utils.keccak256(data);
+  const dataHash = ethers.utils.sha256(data);
   const attribute = {
     body: dataBase64,
     hash: dataHash,
@@ -102,7 +102,7 @@ function createParamUpdateAdministrator(
       // taking one attribute id from the dummy data
       const [prevAttribute] = dummyData[did];
       const bufferPrevAttribute = Buffer.from(JSON.stringify(prevAttribute));
-      const hash = ethers.utils.keccak256(bufferPrevAttribute);
+      const hash = ethers.utils.sha256(bufferPrevAttribute);
       param.prevAttributeHash = hash;
     }
   }
@@ -286,7 +286,7 @@ describe("JsonRpc Module", () => {
 
     const data = Buffer.from(JSON.stringify(jsonlds[0]));
     const dataBase64 = data.toString("base64");
-    const dataHash = ethers.utils.keccak256(data);
+    const dataHash = ethers.utils.sha256(data);
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")

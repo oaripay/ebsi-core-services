@@ -5,13 +5,13 @@ info:
     Trusted Issuers Registry API is a Core Service of the EBSI platform verifying if a legal entity
     is authorized to issue a W3C Verifiable Credential.
   version: 2.0.0
-  termsOfService: "/docs/terms"
+  termsOfService: /docs/terms
   contact:
     name: EBSI Support
-    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
+    url: https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi
   license:
     name: EUPL-1.2
-    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
+    url: https://joinup.ec.europa.eu/page/eupl-text-11-12
 tags:
   - name: Trusted Issuers Registry
     description: List and verify trusted issuers
@@ -47,28 +47,28 @@ paths:
                           description: Link to the resource
                   total:
                     type: integer
-                    description: Total number of pages in a collection
+                    description: Total number of items in a collection
                   pageSize:
                     type: integer
-                    description: number of items to be return per page
+                    description: Number of items to be returned per page
                   links:
                     $ref: "#/components/schemas/links"
               examples:
                 Success:
                   value:
-                    self: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=3&page[size]=10"
+                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=3&page[size]=10
                     items:
-                      - did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
-                        href: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      - did: "did:ebsi:0x454253492d52554c45532d4d414c494e41524148"
-                        href: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148"
+                      - did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                      - did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148
                     total: 124
                     pageSize: 10
                     links:
-                      first: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=10"
-                      prev: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=2&page[size]=10"
-                      next: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=4&page[size]=10"
-                      last: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=13&page[size]=10"
+                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -93,19 +93,19 @@ paths:
       operationId: get-trusted-issuers-registry-v2-administrators
       parameters:
         - in: query
-          name: "page[before]"
+          name: page[before]
           schema:
             type: string
           description: Cursor that points to the start of the page of data that has been returned.
         - in: query
-          name: "page[after]"
+          name: page[after]
           schema:
             type: string
           description: Cursor that points to the end of the page of data that has been returned.
         - schema:
             type: integer
           in: query
-          name: "page[size]"
+          name: page[size]
           description: Defines the maximum number of objects that may be returned.
   "/trusted-issuers-registry/v2/administrators/{did}":
     get:
@@ -118,7 +118,7 @@ paths:
           in: path
           schema:
             type: string
-          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
           required: true
       responses:
         "200":
@@ -130,10 +130,10 @@ paths:
               examples:
                 Success:
                   value:
-                    did: "did:ebsi:0x464190367BE948210608a46847bed183607f685A"
+                    did: did:ebsi:0x464190367BE948210608a46847bed183607f685A
                     attributes:
                       - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                        body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
         "400":
           description: Bad Request
           content:
@@ -145,7 +145,7 @@ paths:
                   value:
                     title: Bad Request
                     status: 400
-                    detail: "The format of {did} parameter is not valid"
+                    detail: The format of {did} parameter is not valid
         "404":
           description: Not found
           content:
@@ -184,19 +184,19 @@ paths:
                     description: URI to attributes
                   items:
                     type: array
-                    description: list of attributes
+                    description: List of attributes
                     items:
                       type: object
                       properties:
                         id:
                           type: string
-                          description: Attribute id. (hash, keccak-256)
+                          description: Attribute ID. (hash, sha256)
                         href:
                           type: string
                           description: Link to the resource
                   total:
                     type: integer
-                    description: Total number of pages in a collection
+                    description: Total number of items in a collection
                   pageSize:
                     type: integer
                     description: Number of items to be returned per page
@@ -205,19 +205,19 @@ paths:
               examples:
                 Success:
                   value:
-                    self: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=3&page[size]=10"
+                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=3&page[size]=10
                     items:
-                      - id: "792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b"
-                        href: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b"
-                      - id: "7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2"
-                        href: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2"
+                      - id: 792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                      - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
                     total: 124
                     pageSize: 10
                     links:
-                      first: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10"
-                      prev: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=2&page[size]=10"
-                      next: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=4&page[size]=10"
-                      last: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=13&page[size]=10"
+                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -254,22 +254,22 @@ paths:
           in: path
           schema:
             type: string
-          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
           required: true
         - in: query
-          name: "page[before]"
+          name: page[before]
           schema:
             type: string
           description: Cursor that points to the start of the page of data that has been returned.
         - in: query
-          name: "page[after]"
+          name: page[after]
           schema:
             type: string
           description: Cursor that points to the end of the page of data that has been returned.
         - schema:
             type: integer
           in: query
-          name: "page[size]"
+          name: page[size]
           description: Defines the maximum number of objects that may be returned.
   "/trusted-issuers-registry/v2/administrators/{did}/attributes/{attributeId}":
     get:
@@ -282,13 +282,13 @@ paths:
           in: path
           schema:
             type: string
-          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
           required: true
         - name: attributeId
           in: path
           schema:
             type: string
-          example: "7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2"
+          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
           required: true
       responses:
         "200":
@@ -300,10 +300,10 @@ paths:
               examples:
                 Success:
                   value:
-                    did: "did:ebsi:0x464190367BE948210608a46847bed183607f685A"
+                    did: did:ebsi:0x464190367BE948210608a46847bed183607f685A
                     attribute:
                       hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9"
+                      body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
         "400":
           description: Bad Request
           content:
@@ -340,7 +340,8 @@ paths:
       tags:
         - Trusted Issuers Registry
       summary: List the revisions of an attribute
-      description: Returns a list of revisions for a given attribute attached to a given administrator
+      description: |
+        Returns a list of revisions for a given attribute attached to a given administrator.
       responses:
         "200":
           description: Success
@@ -368,19 +369,19 @@ paths:
               examples:
                 Success:
                   value:
-                    self: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=3&page[size]=10"
+                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=3&page[size]=10
                     items:
                       - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                        body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
                       - hash: "0x56ef14c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da632125a"
-                        body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8
                     total: 2
                     pageSize: 123
                     links:
-                      first: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=1&page[size]=10"
-                      prev: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=2&page[size]=10"
-                      next: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=4&page[size]=10"
-                      last: "https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=13&page[size]=10"
+                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -418,28 +419,28 @@ paths:
           in: path
           schema:
             type: string
-          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
           required: true
         - name: attributeId
           in: path
           schema:
             type: string
-          example: "7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2"
+          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
           required: true
         - in: query
-          name: "page[before]"
+          name: page[before]
           schema:
             type: string
           description: Cursor that points to the start of the page of data that has been returned.
         - in: query
-          name: "page[after]"
+          name: page[after]
           schema:
             type: string
           description: Cursor that points to the end of the page of data that has been returned.
         - schema:
             type: integer
           in: query
-          name: "page[size]"
+          name: page[size]
           description: Defines the maximum number of objects that may be returned.
   /trusted-issuers-registry/v2/issuers:
     get:
@@ -465,26 +466,26 @@ paths:
                       type: string
                   total:
                     type: integer
-                    description: Total number of pages in a collection
+                    description: Total number of items in a collection
                   pageSize:
                     type: integer
-                    description: number of items to be return per page
+                    description: Number of items to be returned per page
                   links:
                     $ref: "#/components/schemas/links"
               examples:
                 Success:
                   value:
-                    self: "https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers"
+                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers
                     items:
                       - did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
                       - did:ebsi:0x454253492d52554c45532d4d414c494e41524148
                     total: 2
                     pageSize: 10
                     links:
-                      first: "/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=10"
-                      prev: "/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=10"
-                      next: "/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=10"
-                      last: "/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=10"
+                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=10
+                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -509,19 +510,19 @@ paths:
       operationId: get-trusted-issuers-registry-v2-issuers
       parameters:
         - in: query
-          name: "page[before]"
+          name: page[before]
           schema:
             type: string
           description: Cursor that points to the start of the page of data that has been returned.
         - in: query
-          name: "page[after]"
+          name: page[after]
           schema:
             type: string
           description: Cursor that points to the end of the page of data that has been returned.
         - schema:
             type: integer
           in: query
-          name: "page[size]"
+          name: page[size]
           description: Defines the maximum number of objects that may be returned.
   "/trusted-issuers-registry/v2/issuers/{did}":
     get:
@@ -534,7 +535,7 @@ paths:
           in: path
           schema:
             type: string
-          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
           required: true
       responses:
         "200":
@@ -546,10 +547,10 @@ paths:
               examples:
                 Success:
                   value:
-                    did: "did:ebsi:0x464190367BE948210608a46847bed183607f685A"
+                    did: did:ebsi:0x464190367BE948210608a46847bed183607f685A
                     attributes:
                       - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                        body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
         "400":
           description: Bad Request
           content:
@@ -561,7 +562,7 @@ paths:
                   value:
                     title: Bad Request
                     status: 400
-                    detail: "The format of {did} parameter is not valid"
+                    detail: The format of {did} parameter is not valid
         "404":
           description: Not found
           content:
@@ -600,40 +601,40 @@ paths:
                     description: URI to attributes
                   items:
                     type: array
-                    description: list of attributes
+                    description: List of attributes
                     items:
                       type: object
                       properties:
                         id:
                           type: string
-                          description: Attribute id. (hash, keccak-256)
+                          description: Attribute ID. (hash, sha256)
                         href:
                           type: string
                           description: Link to the resource
                   total:
                     type: integer
-                    description: " total number of pages in a collection"
+                    description: Total number of items in a collection
                   pageSize:
                     type: integer
-                    description: number of items to be return per page
+                    description: Number of items to be returned per page
                   links:
                     $ref: "#/components/schemas/links"
               examples:
                 Success:
                   value:
-                    self: "https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes"
+                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes
                     items:
-                      - id: "792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b"
-                        href: "https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b"
-                      - id: "7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2"
-                        href: "https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2"
+                      - id: 792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                      - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
                     total: 2
                     pageSize: 10
                     links:
-                      first: "/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=0&page[size]=10"
-                      prev: "/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=2&page[size]=10"
-                      next: "/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=4&page[size]=10"
-                      last: "/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=13&page[size]=10"
+                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=0&page[size]=10
+                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -670,22 +671,22 @@ paths:
           in: path
           schema:
             type: string
-          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
           required: true
         - in: query
-          name: "page[before]"
+          name: page[before]
           schema:
             type: string
           description: Cursor that points to the start of the page of data that has been returned.
         - in: query
-          name: "page[after]"
+          name: page[after]
           schema:
             type: string
           description: Cursor that points to the end of the page of data that has been returned.
         - schema:
             type: integer
           in: query
-          name: "page[size]"
+          name: page[size]
           description: Defines the maximum number of objects that may be returned.
   "/trusted-issuers-registry/v2/issuers/{did}/attributes/{attributeId}":
     get:
@@ -698,13 +699,13 @@ paths:
           in: path
           schema:
             type: string
-          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
           required: true
         - name: attributeId
           in: path
           schema:
             type: string
-          example: "7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2"
+          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
           required: true
       responses:
         "200":
@@ -716,10 +717,10 @@ paths:
               examples:
                 Success:
                   value:
-                    did: "did:ebsi:0x464190367BE948210608a46847bed183607f685A"
+                    did: did:ebsi:0x464190367BE948210608a46847bed183607f685A
                     attribute:
                       hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9"
+                      body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
         "400":
           description: Bad Request
           content:
@@ -731,7 +732,7 @@ paths:
                   value:
                     title: Bad Request
                     status: 400
-                    detail: "The format of {did} parameter is not valid"
+                    detail: The format of {did} parameter is not valid
         "404":
           description: Not found
           content:
@@ -775,28 +776,28 @@ paths:
                       $ref: "#/components/schemas/attribute"
                   total:
                     type: integer
-                    description: " total number of pages in a collection"
+                    description: Total number of items in a collection
                   pageSize:
                     type: integer
-                    description: number of items to be return per page
+                    description: Number of items to be returned per page
                   links:
                     $ref: "#/components/schemas/links"
               examples:
                 Success:
                   value:
-                    self: "https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions"
+                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions
                     items:
                       - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                        body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
                       - hash: "0x56ef14c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da632125a"
-                        body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8
                     total: 2
                     pageSize: 10
                     links:
-                      first: "/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=0&page[size]=10"
-                      prev: "/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=2&page[size]=10"
-                      next: "/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=4&page[size]=10"
-                      last: "/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=13&page[size]=10"
+                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=0&page[size]=10
+                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -834,30 +835,178 @@ paths:
           in: path
           schema:
             type: string
-          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
           required: true
         - name: attributeId
           in: path
           schema:
             type: string
-          example: "7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2"
+          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
           required: true
         - in: query
-          name: "page[before]"
+          name: page[before]
           schema:
             type: string
           description: Cursor that points to the start of the page of data that has been returned.
         - in: query
-          name: "page[after]"
+          name: page[after]
           schema:
             type: string
           description: Cursor that points to the end of the page of data that has been returned.
         - schema:
             type: integer
           in: query
-          name: "page[size]"
+          name: page[size]
           description: Defines the maximum number of objects that may be returned.
-  "/trusted-issuers-registry/v2/jsonrpc":
+  /trusted-issuers-registry/v2/policies:
+    get:
+      tags:
+        - Trusted Issuers Registry
+      summary: Get all policies
+      description: Get all policies. Endpoint returns a paginated list of items.
+      operationId: get-trusted-issuers-registry-v2-policies
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to policies
+                  items:
+                    type: array
+                    description: List of policies
+                    items:
+                      type: object
+                      properties:
+                        policyId:
+                          type: string
+                          description: ID of the policiy
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=3&page[size]=10
+                    items:
+                      - policyId: test-policy-1
+                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1
+                      - policyId: test-policy-2
+                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-2
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=13&page[size]=10
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  "/trusted-issuers-registry/v2/policies/{policyId}":
+    get:
+      tags:
+        - Trusted Issuers Registry
+      summary: Get policy by its ID
+      description: Returns a trusted policiy by its ID
+      operationId: get-trusted-issuers-registry-v2-policy
+      parameters:
+        - name: policyId
+          in: path
+          schema:
+            type: string
+          example: test-policy-1
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/policy"
+              examples:
+                Success:
+                  value:
+                    policyId: test-policy-1
+                    policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
+                    hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
+        "400":
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {policyId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {policyId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /trusted-issuers-registry/v2/jsonrpc:
     post:
       operationId: post-ledger-v2-blockchains-besu
       tags:
@@ -875,7 +1024,7 @@ paths:
 
           - **jsonrpc**: Must be exactly '2.0'
           - **method**: Method that to be invoked. Possible values: insertAdministrator,
-          insertIssuer, signedTransaction.
+          insertIssuer, insertPolicy, signedTransaction.
           - **params**: Array of parameters
           - **id**: Identifier stablished by the client
         content:
@@ -910,10 +1059,10 @@ paths:
                   method: insertAdministrator
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attribute:
                         {
-                          body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9",
+                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
                           hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
                         }
                   id: 1
@@ -923,10 +1072,10 @@ paths:
                   method: updatetAdministrator
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attribute:
                         {
-                          body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9",
+                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
                           hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
                         }
                   id: 1
@@ -936,10 +1085,10 @@ paths:
                   method: updatetAdministrator
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attribute:
                         {
-                          body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9",
+                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
                           hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
                         }
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
@@ -950,12 +1099,21 @@ paths:
                   method: insertIssuer
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attribute:
                         {
-                          body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9",
+                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
                           hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
                         }
+                  id: 1
+              Build tx to insert policy:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertPolicy
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      policyId: test-policiy-1
+                      policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
                   id: 1
               Build tx to add a new attribute to an issuer:
                 value:
@@ -963,10 +1121,10 @@ paths:
                   method: updatetIssuer
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attribute:
                         {
-                          body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9",
+                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
                           hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
                         }
                   id: 1
@@ -976,10 +1134,10 @@ paths:
                   method: updatetIssuer
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attribute:
                         {
-                          body: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9",
+                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
                           hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
                         }
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
@@ -990,8 +1148,8 @@ paths:
                   method: insertPolicy
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyId: "policy1234"
-                      policy: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9"
+                      policyId: policy1234
+                      policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
                   id: 1
               Build tx to update a policy:
                 value:
@@ -999,8 +1157,8 @@ paths:
                   method: updatePolicy
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyId: "policy1234"
-                      policy: "eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9"
+                      policyId: policy1234
+                      policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
                   id: 1
               Send Transaction:
                 value:
@@ -1067,7 +1225,7 @@ components:
       type: object
       x-examples:
         Not Enough Credit:
-          type: "https://example.com/probs/out-of-credit"
+          type: https://example.com/probs/out-of-credit
           title: You do not have enough credit.
           detail: Your current balance is 30, but that costs 50.
           instance: /account/12345/msgs/abc
@@ -1078,7 +1236,7 @@ components:
           description: |
             An absolute URI that identifies the problem type. When dereferenced,
             it SHOULD provide human-readable documentation for the problem type.
-          default: "about:blank"
+          default: about:blank
         title:
           type: string
           description: |
@@ -1123,10 +1281,10 @@ components:
       description: links model used for pagination
       x-examples:
         Links:
-          first: "/trusted-issuers-registry/issuers?page[after]=0&page[size]=2"
-          prev: "/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=2"
-          next: "/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=2"
-          last: "/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=2"
+          first: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=1&page[size]=2
+          prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=2
+          next: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=2
+          last: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=2
     JsonRpcResponse:
       title: Json Rpc Response
       type: object
@@ -1175,7 +1333,7 @@ components:
       properties:
         hash:
           type: string
-          description: keccak-256 hash of the payload
+          description: sha256 hash of the payload
         body:
           description: Base64 encoded content
     attributeDetails:
@@ -1188,6 +1346,20 @@ components:
           description: DID of the attribute owner
         attribute:
           $ref: "#/components/schemas/attribute"
+    policy:
+      title: Policy
+      type: object
+      description: Policy data model
+      properties:
+        policyId:
+          type: string
+          description: Unique policy ID
+        policy:
+          type: string
+          description: Base64 encoded policy
+        hash:
+          type: string
+          description: Hash (multihash) of the policy
   examples:
     BadRequest:
       value:
@@ -1210,7 +1382,7 @@ components:
         status: 500
         detail: Internal error
 servers:
-  - url: "http://localhost"
+  - url: http://localhost
     description: Local Computer Environment
-  - url: "https://api.ebsi.xyz"
+  - url: https://api.ebsi.xyz
     description: EBSI Testing Environment
