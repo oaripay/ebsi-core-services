@@ -2,13 +2,10 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import LedgerService from "../../shared/services/ledger.service";
-import {
-  IssuersListSmartContractResponseObject,
-  AttributeObject,
-  IssuerResponseObject,
-} from "./issuers.interface";
-import TrustedIssuersRegistryContract from "../../shared/types/trusted-issuers-registry.interface";
+import { AttributeObject, IssuerResponseObject } from "./issuers.interface";
+import { TrustedIssuersRegistryContract } from "../../shared/types/trusted-issuers-registry.interface";
 import { prefixWith0x } from "../../shared/utils";
+import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 @Injectable()
 export default class IssuersService {
@@ -26,16 +23,28 @@ export default class IssuersService {
   async getIssuers(
     page: number,
     pageSize: number
-  ): Promise<IssuersListSmartContractResponseObject> {
+  ): ReturnType<TrustedIssuersRegistryContract["getIssuers"]> {
     return this.tirContract.getIssuers(page, pageSize);
   }
 
   async getAttribute(attributeId: string): Promise<AttributeObject> {
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
-    const { attribData } = await this.tirContract.getIssuerAttributeByHash(
-      hash
-    );
+
+    let attributeByHash: AsyncReturnType<
+      TrustedIssuersRegistryContract["getIssuerAttributeByHash"]
+    >;
+
+    try {
+      attributeByHash = await this.tirContract.getIssuerAttributeByHash(hash);
+    } catch (e) {
+      throw new NotFoundError("Attribute Not Found", {
+        detail: `Attribute ${hash} not found`,
+      });
+    }
+
+    const { attribData } = attributeByHash;
+
     const bufferAttribute = Buffer.from(attribData.slice(2), "hex");
     const attributeBase64 = bufferAttribute.toString("base64");
 
@@ -84,22 +93,24 @@ export default class IssuersService {
 
     try {
       attributesLastHash = await this.tirContract.getIssuer(did);
-
-      if (attributesLastHash.length === 0) {
-        throw new Error();
-      }
     } catch (e) {
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,
       });
     }
 
-    // /!\ only checks the first 10 revisions
+    if (attributesLastHash.length === 0) {
+      throw new Error();
+    }
+
+    // /!\ only checks the first 50 revisions of each hash
+    // Known issue: if there are more than 50 revisions, didIncludesAttribute may wrongly return false
     const revisionHashesList = await Promise.all(
       attributesLastHash.map(async (hash) => {
-        return this.tirContract.getIssuerAttributeRevisions(hash, 1, 10);
+        return this.tirContract.getIssuerAttributeRevisions(hash, 1, 50);
       })
     );
+
     return !!revisionHashesList.find((revisionHashes) => {
       return revisionHashes.items.find((hash) => hash === attribId);
     });
@@ -109,7 +120,7 @@ export default class IssuersService {
     attributeId: string,
     page: number,
     pageSize: number
-  ): Promise<AttributeObject[]> {
+  ): Promise<{ revisions: AttributeObject[]; total: number }> {
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
 
@@ -119,10 +130,12 @@ export default class IssuersService {
       pageSize
     );
 
-    return Promise.all(
+    const revisions = await Promise.all(
       revisionHashes.items.map(async (revisionHash) => {
         return this.getAttribute(revisionHash);
       })
     );
+
+    return { revisions, total: revisionHashes.total.toNumber() };
   }
 }

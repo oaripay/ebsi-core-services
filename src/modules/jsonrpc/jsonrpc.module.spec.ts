@@ -332,13 +332,14 @@ describe("JsonRpc Module", () => {
         ],
         id: "45",
       });
+
     expect(responseSend.body).toStrictEqual({
       jsonrpc: "2.0",
       id: "45",
       error: {
         code: -32600,
         message: expect.stringContaining(
-          `Issuer did:ebsi:${wallet.address.toLowerCase()} was not found in the Trusted Issuer Registry`
+          `Administrator did:ebsi:${wallet.address.toLowerCase()} was not found in the Trusted Issuer Registry`
         ) as string,
       },
     });

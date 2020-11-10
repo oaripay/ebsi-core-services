@@ -1,12 +1,18 @@
-import { AdministratorsListSmartContractResponseObject } from "../../modules/administrators/administrators.interface";
-import { IssuersListSmartContractResponseObject } from "../../modules/issuers/issuers.interface";
-import { PoliciesListSmartContractResponseObject } from "../../modules/policies/policies.interface";
+import { ethers } from "ethers";
 
-export default interface TrustedIssuersRegistryContract {
+type PaginatedSCResponse<T> = {
+  items: T[];
+  total: ethers.BigNumber;
+  howMany: ethers.BigNumber;
+  prev: ethers.BigNumber;
+  next: ethers.BigNumber;
+};
+
+export interface TrustedIssuersRegistryContract {
   getAdministrators: (
     page: number,
     howMany: number
-  ) => Promise<AdministratorsListSmartContractResponseObject>;
+  ) => Promise<PaginatedSCResponse<string>>;
 
   getAdministrator: (did: string) => Promise<string[]>;
 
@@ -21,18 +27,12 @@ export default interface TrustedIssuersRegistryContract {
     anyAttrVersHash,
     page: number,
     pageSize: number
-  ) => Promise<{
-    items: string[];
-    total: number;
-    howMany: number;
-    prev: number;
-    next: number;
-  }>;
+  ) => Promise<PaginatedSCResponse<string>>;
 
   getIssuers: (
     page: number,
     howMany: number
-  ) => Promise<IssuersListSmartContractResponseObject>;
+  ) => Promise<PaginatedSCResponse<string>>;
 
   getIssuer: (did: string) => Promise<string[]>;
 
@@ -47,18 +47,22 @@ export default interface TrustedIssuersRegistryContract {
     anyAttrVersHash,
     page: number,
     pageSize: number
-  ) => Promise<{
-    items: string[];
-    total: number;
-    howMany: number;
-    prev: number;
-    next: number;
-  }>;
+  ) => Promise<PaginatedSCResponse<string>>;
 
   getPolicies: (
     page: number,
     howMany: number
-  ) => Promise<PoliciesListSmartContractResponseObject>;
+  ) => Promise<PaginatedSCResponse<string>>;
 
-  getPolicy: (policyId: string) => Promise<string>;
+  getPolicy: (policyId: string) => Promise<[hexPolicy: string, hash: string]>;
+
+  getPolicyRevisions: (
+    policyId: string,
+    page: number,
+    pageSize: number
+  ) => Promise<PaginatedSCResponse<string>>;
+
+  getPolicyByHash: (revisionHash: string) => Promise<string>;
 }
+
+export default TrustedIssuersRegistryContract;

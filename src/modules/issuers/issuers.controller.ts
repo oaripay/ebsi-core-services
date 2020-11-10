@@ -107,7 +107,10 @@ export default class IssuersController {
       });
     }
 
-    const revisions = await this.issuersService.getIssuerAttributeIdRevisions(
+    const {
+      revisions,
+      total,
+    } = await this.issuersService.getIssuerAttributeIdRevisions(
       attributeId,
       query["page[after]"],
       query["page[size]"]
@@ -119,6 +122,7 @@ export default class IssuersController {
 
     return formatRevisions(
       revisions,
+      total,
       query["page[after]"],
       query["page[size]"],
       baseUrl

@@ -1,5 +1,6 @@
 import request from "supertest";
 import { ethers } from "ethers";
+import crypto from "crypto";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
   INestApplication,
@@ -24,7 +25,6 @@ import {
   PolicyLink,
 } from "../../src/modules/policies/policies.interface";
 import { PaginatedList } from "../../src/shared/interfaces";
-import { createPolicy } from "../utils/mockTirContract";
 import { generateMultihash } from "../../src/shared/utils/multihash.utils";
 
 interface SupertestJsonRpcResponse {
@@ -42,6 +42,11 @@ interface SupertestPolicyResponse {
   body: PolicyResponseObject;
 }
 
+interface SupertestRevisionsResponse {
+  status: number;
+  body: PaginatedList<PolicyResponseObject>;
+}
+
 jest.setTimeout(60000);
 
 describe("Policies (e2e)", () => {
@@ -51,6 +56,22 @@ describe("Policies (e2e)", () => {
   const { adminTestPrivateKey } = loadConfig();
 
   const wallet = new ethers.Wallet(prefixWith0x(adminTestPrivateKey));
+
+  const createPolicy = (
+    n: string | number
+  ): { policyId: string; policy: string } => {
+    const policyId = `policy-test-${n}`;
+    const json = {
+      // any object here
+      any: "Any attribute here",
+      type: "credential",
+      data: crypto.randomBytes(16).toString("hex"),
+    };
+    const data = Buffer.from(JSON.stringify(json));
+    const policy = data.toString("base64");
+
+    return { policyId, policy };
+  };
 
   const newPolicy = createPolicy(new Date().toISOString());
   const { policy: policy2 } = createPolicy(new Date().toISOString());
@@ -97,7 +118,7 @@ describe("Policies (e2e)", () => {
               "/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=10"
             ) as string,
             next: expect.stringContaining(
-              "/trusted-issuers-registry/v2/policies?page[after]=2&page[size]=10"
+              "/trusted-issuers-registry/v2/policies?page[after]="
             ) as string,
             last: expect.stringContaining(
               "/trusted-issuers-registry/v2/policies?page[after]="
@@ -143,6 +164,117 @@ describe("Policies (e2e)", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe("/policies/{policyId}/revisions", () => {
+    it("should return a paginated list of revisions", async () => {
+      expect.assertions(3);
+      const policiesResponse: SupertestPoliciesResponse = await request(
+        server
+      ).get("/policies");
+
+      expect(policiesResponse.status).toBe(200);
+      const { policyId }: PolicyLink = policiesResponse.body.items[
+        policiesResponse.body.items.length - 1
+      ];
+
+      const response: SupertestRevisionsResponse = await request(server).get(
+        `/policies/${encodeURIComponent(policyId)}/revisions`
+      );
+
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          self: expect.stringContaining(
+            `/trusted-issuers-registry/v2/policies/${encodeURIComponent(
+              policyId
+            )}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          items: expect.arrayContaining([
+            expect.objectContaining({
+              policyId: expect.any(String) as string,
+              policy: expect.any(String) as string,
+              hash: expect.any(String) as string,
+            }),
+          ]) as string[],
+          total: expect.any(Number) as number,
+          pageSize: expect.any(Number) as number,
+          links: expect.objectContaining({
+            first: expect.stringContaining(
+              `/trusted-issuers-registry/v2/policies/${encodeURIComponent(
+                policyId
+              )}/revisions?page[after]=1&page[size]=10`
+            ) as string,
+            prev: expect.stringContaining(
+              `/trusted-issuers-registry/v2/policies/${encodeURIComponent(
+                policyId
+              )}/revisions?page[after]=1&page[size]=10`
+            ) as string,
+            next: expect.stringContaining(
+              `/trusted-issuers-registry/v2/policies/${encodeURIComponent(
+                policyId
+              )}/revisions?page[after]=`
+            ) as string,
+            last: expect.stringContaining(
+              `/trusted-issuers-registry/v2/policies/${encodeURIComponent(
+                policyId
+              )}/revisions?page[after]=`
+            ) as string,
+          }) as PaginatedList<PolicyLink>["links"],
+        })
+      );
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the policy is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        "/policies/unknown-policy/revisions"
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Policy Not Found",
+        status: 404,
+        detail: "Policy unknown-policy not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+  });
+
+  describe("/jsonrpc - method: insertPolicy", () => {
+    it(`should return a new unsigned transaction`, async () => {
+      expect.assertions(2);
+      const response: SupertestPoliciesResponse = await request(server).get(
+        "/policies"
+      );
+
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          self: expect.stringContaining(
+            "/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=10"
+          ) as string,
+          items: expect.arrayContaining([]) as string[],
+          total: expect.any(Number) as number,
+          pageSize: expect.any(Number) as number,
+          links: expect.objectContaining({
+            first: expect.stringContaining(
+              "/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=10"
+            ) as string,
+            prev: expect.stringContaining(
+              "/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=10"
+            ) as string,
+            next: expect.stringContaining(
+              "/trusted-issuers-registry/v2/policies?page[after]=2&page[size]=10"
+            ) as string,
+            last: expect.stringContaining(
+              "/trusted-issuers-registry/v2/policies?page[after]="
+            ) as string,
+          }) as PaginatedList<PolicyLink>["links"],
+        })
+      );
+      expect(response.status).toBe(200);
     });
   });
 

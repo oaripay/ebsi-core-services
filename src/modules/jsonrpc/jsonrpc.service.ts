@@ -13,7 +13,7 @@ import RequestSignedTransactionDto from "./dto/signedTransaction/request-signed-
 import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
 import JsonRpcResponseObject from "./types/jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
-import TrustedIssuersRegistryContract from "../../shared/types/trusted-issuers-registry.interface";
+import { TrustedIssuersRegistryContract } from "../../shared/types/trusted-issuers-registry.interface";
 import ParamSignedTransaction from "./dto/signedTransaction/param.dto";
 import ArgsInsertIssuer from "./dto/signedTransaction/args-insert-issuer.dto";
 import ArgsUpdateIssuer from "./dto/signedTransaction/args-update-issuer.dto";
@@ -174,10 +174,11 @@ export default class JsonRpcService {
     */
     const did = `did:ebsi:${address.toLowerCase()}`;
     // verify the did is in the TIR Registry
-    const attributesLastHash = await this.tirContract.getAdministrator(did);
-    if (attributesLastHash.length === 0) {
+    try {
+      await this.tirContract.getAdministrator(did);
+    } catch (e) {
       throw new Error(
-        `Issuer ${did} was not found in the Trusted Issuer Registry`
+        `Administrator ${did} was not found in the Trusted Issuer Registry`
       );
     }
   }

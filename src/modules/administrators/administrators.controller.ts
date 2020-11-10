@@ -114,7 +114,10 @@ export default class AdministratorsController {
       });
     }
 
-    const revisions = await this.administratorsService.getAdministratorAttributeRevisions(
+    const {
+      revisions,
+      total,
+    } = await this.administratorsService.getAdministratorAttributeRevisions(
       attributeId,
       query["page[after]"],
       query["page[size]"]
@@ -126,6 +129,7 @@ export default class AdministratorsController {
 
     return formatRevisions(
       revisions,
+      total,
       query["page[after]"],
       query["page[size]"],
       baseUrl

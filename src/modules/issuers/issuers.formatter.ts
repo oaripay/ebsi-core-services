@@ -1,14 +1,11 @@
-import {
-  IssuersListSmartContractResponseObject,
-  AttributeObject,
-  IdLink,
-  DidLink,
-} from "./issuers.interface";
+import { AttributeObject, IdLink, DidLink } from "./issuers.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
+import { TrustedIssuersRegistryContract } from "../../shared/types/trusted-issuers-registry.interface";
+import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatIssuers(
-  issuers: IssuersListSmartContractResponseObject,
+  issuers: AsyncReturnType<TrustedIssuersRegistryContract["getIssuers"]>,
   page: number,
   pageSize: number,
   baseUrl: string
@@ -45,14 +42,10 @@ export function formatAttributes(
 
 export function formatRevisions(
   revisions: AttributeObject[],
+  total: number,
   page: number,
   pageSize: number,
   baseUrl: string
 ): PaginatedList<AttributeObject> {
-  const total = revisions.length;
-
-  // Extract items
-  const items = revisions.slice((page - 1) * pageSize, page * pageSize);
-
-  return paginate<AttributeObject>(items, baseUrl, total, page, pageSize);
+  return paginate<AttributeObject>(revisions, baseUrl, total, page, pageSize);
 }

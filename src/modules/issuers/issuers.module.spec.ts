@@ -405,9 +405,8 @@ describe("Issuers Module", () => {
       const dataHash = ethers.utils.sha256(data);
       const urlPath = `/issuers/${did}/attributes/${dataHash}/revisions`;
 
-      const response = await request(server).get(
-        `/issuers/${did}/attributes/${dataHash}/revisions`
-      );
+      const response = await request(server).get(urlPath);
+
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `${urlPath}?page[after]=1&page[size]=10`

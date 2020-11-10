@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
 import * as TrustedIssuersRegistry from "../../contracts/TrustedIssuerRegistry.json";
-import TrustedIssuersRegistryContract from "../types/trusted-issuers-registry.interface";
+import { TrustedIssuersRegistryContract } from "../types/trusted-issuers-registry.interface";
 import { prefixWith0x } from "../utils";
 
 @Injectable()

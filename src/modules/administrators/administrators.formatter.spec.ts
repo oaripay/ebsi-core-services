@@ -3,18 +3,19 @@ import {
   formatAdministrators,
   formatAttributes,
 } from "./administrators.formatter";
-import {
-  AttributeObject,
-  AdministratorsListSmartContractResponseObject,
-} from "./administrators.interface";
+import { AttributeObject } from "./administrators.interface";
+import { TrustedIssuersRegistryContract } from "../../shared/types/trusted-issuers-registry.interface";
+import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatAdministrators", () => {
-  const administrators: AdministratorsListSmartContractResponseObject = {
+  const administrators: AsyncReturnType<
+    TrustedIssuersRegistryContract["getAdministrators"]
+  > = {
     prev: ethers.BigNumber.from("1"),
     next: ethers.BigNumber.from("3"),
     items: ["0x001", "0x002", "0x003"],
     total: ethers.BigNumber.from("42"),
-    pageSize: ethers.BigNumber.from("3"),
+    howMany: ethers.BigNumber.from("3"),
   };
 
   it("should use the values returned by the smart contract (except pageSize)", () => {

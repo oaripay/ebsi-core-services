@@ -1,14 +1,13 @@
-import {
-  AdministratorsListSmartContractResponseObject,
-  AttributeObject,
-  IdLink,
-  DidLink,
-} from "./administrators.interface";
+import { AttributeObject, IdLink, DidLink } from "./administrators.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
+import { TrustedIssuersRegistryContract } from "../../shared/types/trusted-issuers-registry.interface";
+import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatAdministrators(
-  administrators: AdministratorsListSmartContractResponseObject,
+  administrators: AsyncReturnType<
+    TrustedIssuersRegistryContract["getAdministrators"]
+  >,
   page: number,
   pageSize: number,
   baseUrl: string
@@ -45,14 +44,10 @@ export function formatAttributes(
 
 export function formatRevisions(
   revisions: AttributeObject[],
+  total: number,
   page: number,
   pageSize: number,
   baseUrl: string
 ): PaginatedList<AttributeObject> {
-  const total = revisions.length;
-
-  // Extract items
-  const items = revisions.slice((page - 1) * pageSize, page * pageSize);
-
-  return paginate<AttributeObject>(items, baseUrl, total, page, pageSize);
+  return paginate<AttributeObject>(revisions, baseUrl, total, page, pageSize);
 }

@@ -413,11 +413,12 @@ describe("Administrators Module", () => {
       const dataHash = ethers.utils.sha256(data);
       const urlPath = `/administrators/${did}/attributes/${dataHash}/revisions`;
 
-      const response = await request(server).get(
-        `/administrators/${did}/attributes/${dataHash}/revisions`
-      );
+      const response = await request(server).get(urlPath);
+
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(urlPath) as string,
+        self: expect.stringContaining(
+          `${urlPath}?page[after]=1&page[size]=10`
+        ) as string,
         items: expect.arrayContaining([]) as AttributeObject[],
         total: 20,
         pageSize: 10,
@@ -451,6 +452,7 @@ describe("Administrators Module", () => {
       const response1 = await request(server).get(
         `/administrators/${did}/attributes/${dataHash}/revisions?page[size]=3`
       );
+
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(urlPath) as string,
         items: expect.arrayContaining([]) as AttributeObject[],
