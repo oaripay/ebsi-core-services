@@ -72,6 +72,14 @@ To test the integration environment run:
 EBSI_ENV=integration yarn test:e2e
 ```
 
+### e2e Tests Fabric
+
+To run e2e tests in fabric
+
+```sh
+EBSI_ENV=integration yarn test:e2e:fabric
+```
+
 ## Licensing
 
 Copyright (c) 2019 European Commission
