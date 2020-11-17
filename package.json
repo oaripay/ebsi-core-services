@@ -1,6 +1,6 @@
 {
   "private": true,
-  "version": "0.0.1",
+  "version": "1.0.0",
   "license": "EUPL-1.2",
   "scripts": {
     "build": "rimraf dist && tsc -p tsconfig.build.json",
