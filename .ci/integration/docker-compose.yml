@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   storage-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/storage-api:integration_ebsiint-2206-no-lightweight-tx_v0.0.1
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/storage-api:integration_ebsiint-2439-release202011_v1.0.0
     build: ../..
