@@ -8,14 +8,17 @@ import {
   Param,
   Response,
   Logger,
+  Req,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyReply } from "fastify";
+import { FastifyRequest, FastifyReply } from "fastify";
+import jwtDecode from "jwt-decode";
 import { NotificationsService } from "./notifications.service";
 import {
   PaginatedResponse,
   Notification,
   NotificationWithLinks,
+  DecodedToken,
 } from "./notifications.interface";
 import { ConfigObject } from "../../config/configuration";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
@@ -52,15 +55,19 @@ export class NotificationsController {
 
   @Get("")
   async findAll(
+    @Req() request: FastifyRequest,
     @Query() query: PaginationQuery,
     @Response() res: FastifyReply
   ): Promise<FastifyReply> {
+    // TODO implement proper middleware to handle the token
+    const { headers } = request;
+    const decodedToken = jwtDecode(headers.authorization) as DecodedToken;
     const notifications: PaginatedResponse<NotificationWithLinks> = await this.notificationsService.findAll(
+      decodedToken.did,
       query["page[after]"],
       query["page[size]"],
       this.baseUrl
     );
-
     return res.code(200).send(notifications);
   }
 

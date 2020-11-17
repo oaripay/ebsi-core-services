@@ -2,23 +2,19 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { classToPlain } from "class-transformer";
 import crypto from "crypto";
-import { CassandraService } from "../cassandra/cassandra.service";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import {
   PaginatedResponse,
   Notification,
   NotificationWithLinks,
 } from "./notifications.interface";
-import {
-  getPaginationIndices,
-  formatPaginatedResponse,
-} from "./notifications.utils";
-
-// Fake content until we pull it from Cassandra
+import { isExpired, formatPaginatedResponse } from "./notifications.utils";
+import { CassandraService } from "../cassandra/cassandra.service";
+// Fake content we push to Cassandra
 const fakeNotifications: Notification[] = [
   {
     schemaId: "notifications-001",
-    type: ["Notification", "StoreVerfiableCredential"],
+    type: ["Notification", "StoreVerifiableCredential"],
     "@context": [
       "https://www.w3.org/2018/credentials/v1",
       "https://essif.europa.eu/schemas/vc/2020/v1",
@@ -26,8 +22,8 @@ const fakeNotifications: Notification[] = [
     ],
     from: "did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657",
     to: "did:ebsi:0xC2322cfDde2ffB61De2692D6369C4AFDAc48fe93",
-    issuanceDate: "2019-06-22T14:11:44Z",
-    expirationDate: "2019-06-27T14:11:44Z",
+    issuanceDate: "2020-11-09T14:11:44Z",
+    expirationDate: "2021-06-27T14:11:44Z",
     payload: {},
     proof: {
       type: "EcdsaSecp256k1Signature2019",
@@ -39,7 +35,7 @@ const fakeNotifications: Notification[] = [
     },
   },
   {
-    schemaId: "102",
+    schemaId: "notifications-002",
     type: ["Notification", "RequestVerifiablePresentation"],
     "@context": [
       "https://www.w3.org/2018/credentials/v1",
@@ -48,8 +44,8 @@ const fakeNotifications: Notification[] = [
     ],
     from: "did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657",
     to: "did:ebsi:0xC2322cfDde2ffB61De2692D6369C4AFDAc48fe93",
-    issuanceDate: "2019-06-22T14:11:44Z",
-    expirationDate: "2019-06-27T14:11:44Z",
+    issuanceDate: "2020-11-09T14:11:44Z",
+    expirationDate: "2021-06-27T14:11:44Z",
     payload: {},
     proof: {
       type: "EcdsaSecp256k1Signature2019",
@@ -100,39 +96,39 @@ export class NotificationsService {
   }
 
   async findAll(
+    did: string,
     page: number,
     pageSize: number,
     baseUrl: string
   ): Promise<PaginatedResponse<NotificationWithLinks>> {
-    await Promise.resolve();
-    const total = fakeNotifications.length;
-
-    const indices = getPaginationIndices(total, page, pageSize);
-
+    const notifications = await this.cassandraService.getNotifications(did);
+    // TODO this.cassandraService.deleteExpiredNotifications();
     // Add _links to the notifications
-    const notificationWithLinks = fakeNotifications.map((notification) => {
-      // Compute ID dynamically
-      // In practice, it will be returned by Cassandra
-      const id = crypto
-        .createHash("sha3-256")
-        .update(JSON.stringify(notification), "utf8")
-        .digest("hex");
-
-      return {
-        ...notification,
-        _links: {
-          self: { href: `${baseUrl}/${id}` },
-        },
-      };
-    });
-
+    const notificationWithLinks = notifications
+      .filter((notification) => {
+        const valid = !isExpired(notification.expirationDate);
+        return valid;
+      })
+      .map((notification) => {
+        const returnNotification = JSON.parse(
+          notification.message
+        ) as Notification;
+        return {
+          ...returnNotification,
+          _links: {
+            self: { href: `${baseUrl}/${notification.id}` },
+          },
+        };
+      });
+    notificationWithLinks.sort((a, b) =>
+      a.issuanceDate > b.issuanceDate ? 1 : -1
+    );
     return formatPaginatedResponse<NotificationWithLinks>(
       notificationWithLinks,
       baseUrl,
       page,
       pageSize,
-      total,
-      indices
+      notificationWithLinks.length
     );
   }
 
@@ -146,5 +142,4 @@ export class NotificationsService {
     await Promise.resolve(id);
   }
 }
-
 export default NotificationsService;

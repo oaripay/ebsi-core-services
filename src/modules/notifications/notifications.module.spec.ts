@@ -8,28 +8,26 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import cassandraDriver from "cassandra-driver";
+import { ConfigService } from "@nestjs/config";
+import { CassandraService } from "../cassandra/cassandra.service";
 import { NotificationsModule } from "./notifications.module";
 import { Notification } from "./notifications.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { EbsiValidationPipe } from "../../pipes/ebsi-validation.pipe";
-import { validNotifications } from "../../../tests/utils/notifications";
+import {
+  validNotifications,
+  resultNotifications,
+  storedNotifications,
+} from "../../../tests/utils/notifications";
+import { initSetupForTesting } from "../../../tests/utils/tokens";
+import { ConfigObject } from "../../config/configuration";
 
 jest.mock("cassandra-driver");
-
-function cassandraResponse(rows: unknown[], pageState: string = null) {
-  return {
-    info: { isSchemaInAgreement: true },
-    first: () => rows[0],
-    rows,
-    pageState,
-  };
-}
-
-const mockExecute = jest.spyOn(cassandraDriver.Client.prototype, "execute");
 
 describe("Notifications module", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let testToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -39,7 +37,9 @@ describe("Notifications module", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-
+    const configService = app.get<ConfigService<ConfigObject>>(ConfigService);
+    const { token } = initSetupForTesting(configService);
+    testToken = token;
     // Turn off logger
     Logger.overrideLogger(false);
 
@@ -57,6 +57,15 @@ describe("Notifications module", () => {
 
   describe("POST /notifications", () => {
     it("should accept a valid payload", async () => {
+      function cassandraResponse(rows: unknown[], pageState: string = null) {
+        return {
+          info: { isSchemaInAgreement: true },
+          first: () => rows[0],
+          rows,
+          pageState,
+        };
+      }
+
       expect.assertions(3);
 
       const notification = validNotifications[0];
@@ -65,6 +74,11 @@ describe("Notifications module", () => {
         .createHash("sha3-256")
         .update(JSON.stringify(notification), "utf8")
         .digest("hex");
+
+      const mockExecute = jest.spyOn(
+        cassandraDriver.Client.prototype,
+        "execute"
+      );
 
       mockExecute.mockImplementation(() => {
         return cassandraResponse([]);
@@ -83,6 +97,7 @@ describe("Notifications module", () => {
           ) as string,
         })
       );
+      jest.resetAllMocks();
     });
 
     it("should reject invalid payloads", async () => {
@@ -128,29 +143,32 @@ describe("Notifications module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(400);
+      jest.resetAllMocks();
     });
   });
 
   describe("GET /notifications", () => {
     it("should return a list of notification", async () => {
       expect.assertions(2);
+      jest
+        .spyOn(CassandraService.prototype, "getNotifications")
+        .mockResolvedValue(storedNotifications);
 
-      const response = await request(server).get("/notifications");
-
+      const response = await request(server)
+        .get("/notifications")
+        .set("Authorization", `Bearer ${testToken}`);
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/notifications?page[after]=1&page[size]=10"
         ) as string,
-        items: validNotifications.map((notif) => {
-          const id = crypto
-            .createHash("sha3-256")
-            .update(JSON.stringify(notif), "utf8")
-            .digest("hex");
+        items: resultNotifications.map((result) => {
           return {
-            ...notif,
+            ...result.notification,
             _links: {
               self: {
-                href: expect.stringContaining(`/notifications/${id}`) as string,
+                href: expect.stringContaining(
+                  `/notifications/${result.id}`
+                ) as string,
               },
             },
           };

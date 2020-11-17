@@ -12,6 +12,7 @@ export interface ConfigObject {
   cassandraConnection: DseClientOptions;
   optsWrite: DseClientOptions["queryOptions"];
   optsRead: DseClientOptions["queryOptions"];
+  apiName: string;
 }
 
 // Default values to be used, depending on the environment
@@ -83,6 +84,7 @@ export const loadConfig = (): ConfigObject => {
         process.env.CASSANDRA_PASSWORD
       ),
     },
+    apiName: "ebsi-notifications",
   };
 };
 

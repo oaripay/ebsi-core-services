@@ -24,7 +24,7 @@ pipeline {
         stage('Lint and unit test') {
             environment {
               // Add tests specific variables here
-              API_PRIVATE_KEY='test'
+              API_PRIVATE_KEY='0xc2cdf0a8b0a83b35ace53f097b5e6e6a0a1f2d40535eff1cf434f52a43d59d8f'
               CASSANDRA_USER='test'
               CASSANDRA_PASSWORD='test'
             }

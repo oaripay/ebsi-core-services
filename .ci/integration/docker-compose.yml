@@ -3,4 +3,4 @@ version: "3.7"
 services:
   notifications-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/notifications-api:integration_ebsiint-1653-init_v0.0.2
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/notifications-api:integration_ebsiint-2177-getnotifications_v0.0.1

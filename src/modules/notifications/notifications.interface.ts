@@ -40,3 +40,13 @@ export interface NotificationWithLinks extends Notification {
     };
   };
 }
+
+export interface DecodedToken {
+  aud: string;
+  iss: string;
+  did: string;
+  nonce: string;
+  sub: string;
+  iat: string;
+  exp: string;
+}
