@@ -12,7 +12,7 @@ then
 fi
 
 echo creating table notification_storage
-docker exec -t cassandradb bash -c "cqlsh -u cassandra -p cassandra -e \"create table $CASSANDRA_KEYSPACE.notification_storage (id text, issuanceDate timestamp, expirationDate timestamp, sender text, receiver text, message text, primary key(id));\""
+docker exec -t cassandradb bash -c "cqlsh -u cassandra -p cassandra -e \"create table $CASSANDRA_KEYSPACE.notification_storage (id text, sender text, receiver text, message text, primary key(id));\""
 
 echo creating index for receiver column
 docker exec -t cassandradb bash -c "cqlsh -u cassandra -p cassandra -e \"create index on $CASSANDRA_KEYSPACE.notification_storage (receiver);\""

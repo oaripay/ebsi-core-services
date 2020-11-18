@@ -82,7 +82,7 @@ export class CreateNotificationDto {
   payload: unknown;
 
   @IsNotEmpty()
-  @ValidateNested()
+  @ValidateNested({ message: "nested property proof must be an object" })
   @Type(() => Proof)
   proof: Proof;
 }

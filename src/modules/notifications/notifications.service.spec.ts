@@ -1,9 +1,22 @@
 import { Test } from "@nestjs/testing";
-import { storedNotifications } from "../../../tests/utils/notifications";
 import { ApiConfigModule } from "../../config/configuration";
 import { CassandraService } from "../cassandra/cassandra.service";
 import { NotificationsService } from "./notifications.service";
-import * as utils from "./notifications.utils";
+
+const notificationsCassandra = [
+  {
+    id: "cassandraFakeId1",
+    from: "did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657",
+    to: "did:ebsi:0xC2322cfDde2ffB61De2692D6369C4AFDAc48fe93",
+    message: JSON.stringify({ test: "test" }),
+  },
+  {
+    id: "cassandraFakeId2",
+    from: "did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657",
+    to: "did:ebsi:0xC2322cfDde2ffB61De2692D6369C4AFDAc48fe93",
+    message: JSON.stringify({ test: "test" }),
+  },
+];
 
 describe("Notifications service", () => {
   describe("GET /notifications", () => {
@@ -27,74 +40,19 @@ describe("Notifications service", () => {
 
       jest
         .spyOn(cassandraService, "getNotifications")
-        .mockResolvedValue(storedNotifications);
-      jest.spyOn(cassandraService, "deleteNotification").mockReturnValue();
-      jest.spyOn(utils, "isExpired").mockReturnValue(false);
+        .mockResolvedValue(notificationsCassandra);
 
       const result = await notificationsService.findAll(
-        storedNotifications[0].to,
+        notificationsCassandra[0].to,
         1,
         pageSize,
         `test/notifications`
       );
 
       expect(result).toHaveProperty("items");
-      expect(result.items).toHaveLength(storedNotifications.length);
+      expect(result.items).toHaveLength(notificationsCassandra.length);
       expect(result).toHaveProperty("total");
-      expect(result.total).toBe(storedNotifications.length);
-      expect(result).toHaveProperty("pageSize");
-      expect(result.pageSize).toBe(pageSize);
-      jest.resetAllMocks();
-    });
-
-    it("should resolve paginatedResponse for only one notification", async () => {
-      expect.assertions(6);
-      const pageSize = 10;
-
-      jest
-        .spyOn(cassandraService, "getNotifications")
-        .mockResolvedValue(storedNotifications);
-      jest.spyOn(cassandraService, "deleteNotification").mockReturnValue();
-      jest.spyOn(utils, "isExpired").mockReturnValueOnce(true);
-      jest.spyOn(utils, "isExpired").mockReturnValueOnce(false);
-
-      const result = await notificationsService.findAll(
-        storedNotifications[0].to,
-        1,
-        pageSize,
-        `test/notifications`
-      );
-
-      expect(result).toHaveProperty("items");
-      expect(result.items).toHaveLength(1);
-      expect(result).toHaveProperty("total");
-      expect(result.total).toBe(1);
-      expect(result).toHaveProperty("pageSize");
-      expect(result.pageSize).toBe(pageSize);
-      jest.resetAllMocks();
-    });
-
-    it("should resolve paginatedResponse with no items", async () => {
-      expect.assertions(6);
-      const pageSize = 10;
-
-      jest
-        .spyOn(cassandraService, "getNotifications")
-        .mockResolvedValue(storedNotifications);
-      jest.spyOn(cassandraService, "deleteNotification").mockReturnValue();
-      jest.spyOn(utils, "isExpired").mockReturnValue(true);
-
-      const result = await notificationsService.findAll(
-        storedNotifications[0].to,
-        1,
-        pageSize,
-        `test/notifications`
-      );
-
-      expect(result).toHaveProperty("items");
-      expect(result.items).toHaveLength(0);
-      expect(result).toHaveProperty("total");
-      expect(result.total).toBe(0);
+      expect(result.total).toBe(notificationsCassandra.length);
       expect(result).toHaveProperty("pageSize");
       expect(result.pageSize).toBe(pageSize);
       jest.resetAllMocks();

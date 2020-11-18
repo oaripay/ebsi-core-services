@@ -29,6 +29,7 @@
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
+    "@cef-ebsi/app-jwt": "^0.0.11",
     "@cef-ebsi/problem-details-errors": "0.0.3",
     "@nestjs/common": "^7.4.4",
     "@nestjs/config": "^0.5.0",
@@ -62,7 +63,6 @@
     "@typescript-eslint/eslint-plugin": "^4.6.0",
     "@typescript-eslint/parser": "^4.6.0",
     "audit-ci": "^3.0.0",
-    "base64url": "^3.0.1",
     "dotenv-cli": "^4.0.0",
     "eslint": "^7.12.1",
     "eslint-config-airbnb-typescript": "^12.0.0",
@@ -70,11 +70,9 @@
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jest": "^24.1.0",
     "eslint-plugin-prettier": "^3.1.3",
-    "ethers": "^5.0.19",
     "husky": "^4.3.0",
     "jest": "^26.6.1",
     "jest-sonar": "^0.2.11",
-    "jose": "^2.0.3",
     "lint-staged": "^10.5.0",
     "prettier": "^2.1.2",
     "rimraf": "^3.0.2",

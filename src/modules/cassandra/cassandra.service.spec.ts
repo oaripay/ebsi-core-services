@@ -2,10 +2,69 @@ import { Test } from "@nestjs/testing";
 import cassandra from "cassandra-driver";
 import { ApiConfigModule } from "../../config/configuration";
 import { CassandraService } from "./cassandra.service";
-import {
-  fakeEmptyQueryResult,
-  fakeQueryResult,
-} from "../../../tests/utils/notifications";
+
+const fakeQueryResult = {
+  info: {
+    queriedHost: "::1:9042",
+    triedHosts: { "::1:9042": null },
+    speculativeExecutions: 0,
+    achievedConsistency: 10,
+    traceId: undefined,
+    warnings: undefined,
+    customPayload: undefined,
+    isSchemaInAgreement: true,
+  },
+  rows: [
+    {
+      get: jest.fn(),
+      id: "03ea09bf577a94157b493b337bf9c356e69a0eaa5427274d971ad7d31fb5aefa",
+      message: "json string",
+      receiver: "did:ebsi:0xC2322cfDde2ffB61De2692D6369C4AFDAc48fe93",
+      sender: "did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657",
+    },
+    {
+      get: jest.fn(),
+      id: "d2f349deeae0eee3a5f674d0edd4a88c38896df69e27ab2d7827ca5d66f43088",
+      message: "json string",
+      receiver: "did:ebsi:0xC2322cfDde2ffB61De2692D6369C4AFDAc48fe93",
+      sender: "did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657",
+    },
+  ],
+  rowLength: 2,
+  columns: [
+    { name: "id", type: [Object] },
+    { name: "message", type: [Object] },
+    { name: "receiver", type: [Object] },
+    { name: "sender", type: [Object] },
+  ],
+  pageState: null,
+  nextPage: undefined,
+  nextPageAsync: undefined,
+};
+
+const fakeEmptyQueryResult = {
+  info: {
+    queriedHost: "::1:9042",
+    triedHosts: { "::1:9042": null },
+    speculativeExecutions: 0,
+    achievedConsistency: 10,
+    traceId: undefined,
+    warnings: undefined,
+    customPayload: undefined,
+    isSchemaInAgreement: true,
+  },
+  rows: [],
+  rowLength: 0,
+  columns: [
+    { name: "id", type: [Object] },
+    { name: "message", type: [Object] },
+    { name: "receiver", type: [Object] },
+    { name: "sender", type: [Object] },
+  ],
+  pageState: null,
+  nextPage: undefined,
+  nextPageAsync: undefined,
+};
 
 describe("Cassandra service", () => {
   describe("GET /notifications", () => {
@@ -41,7 +100,7 @@ describe("Cassandra service", () => {
     });
 
     it("should return a list of stored notifications", async () => {
-      expect.assertions(13);
+      expect.assertions(9);
       jest.mock("cassandra-driver");
       const mockExecute = jest.spyOn(cassandra.Client.prototype, "execute");
       mockExecute.mockImplementation(() => {
@@ -54,10 +113,6 @@ describe("Cassandra service", () => {
           switch (input) {
             case "id":
               return fakeQueryResult.rows[0].id;
-            case "issuancedate":
-              return fakeQueryResult.rows[0].issuanceDate;
-            case "expirationdate":
-              return fakeQueryResult.rows[0].expirationDate;
             case "sender":
               return fakeQueryResult.rows[0].sender;
             case "receiver":
@@ -78,14 +133,6 @@ describe("Cassandra service", () => {
       expect(result[0].from).toStrictEqual(fakeQueryResult.rows[0].sender);
       expect(result[0]).toHaveProperty("to");
       expect(result[0].to).toStrictEqual(fakeQueryResult.rows[0].receiver);
-      expect(result[0]).toHaveProperty("expirationDate");
-      expect(result[0].expirationDate).toStrictEqual(
-        fakeQueryResult.rows[0].expirationDate
-      );
-      expect(result[0]).toHaveProperty("issuanceDate");
-      expect(result[0].issuanceDate).toStrictEqual(
-        fakeQueryResult.rows[0].issuanceDate
-      );
       expect(result[0]).toHaveProperty("message");
       expect(result[0].message).toStrictEqual(fakeQueryResult.rows[0].message);
 

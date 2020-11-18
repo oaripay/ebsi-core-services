@@ -1,10 +1,10 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, OnApplicationShutdown } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import cassandra, { DseClientOptions } from "cassandra-driver";
 import { StoredNotification } from "./cassandra.interface";
 
 @Injectable()
-export class CassandraService {
+export class CassandraService implements OnApplicationShutdown {
   private readonly logger = new Logger(CassandraService.name);
 
   client: cassandra.Client;
@@ -21,28 +21,33 @@ export class CassandraService {
     this.optsRead = this.configService.get("optsRead");
   }
 
+  async onApplicationShutdown(): Promise<void> {
+    await this.client.shutdown();
+  }
+
   getClient(): cassandra.Client {
     return this.client;
   }
 
   async insertNotification(
     id: string,
-    issuanceDate: string,
-    expirationDate: string,
+    issuanceDateStr: string,
+    expirationDateStr: string,
     from: string,
     to: string,
     message: string
   ): Promise<void> {
-    const queryInsert = `insert into notification_storage (id, issuanceDate, expirationDate, sender, receiver, message) values (?, ?, ?, ?, ?, ?)`;
-    const params = [
-      id,
-      new Date(issuanceDate),
-      new Date(expirationDate),
-      from,
-      to,
-      message,
-    ];
-    await this.client.execute(queryInsert, params, this.optsWrite);
+    const issuanceDate = new Date(issuanceDateStr);
+    const expirationDate = new Date(expirationDateStr);
+    const ttl = Math.trunc(
+      (expirationDate.getTime() - issuanceDate.getTime()) / 1000
+    );
+    const queryInsert = `insert into notification_storage (id, sender, receiver, message) values (?, ?, ?, ?) using ttl ?`;
+    const params = [id, from, to, message, ttl];
+    await this.client.execute(queryInsert, params, {
+      prepare: true,
+      ...this.optsWrite,
+    });
   }
 
   async getNotifications(to: string): Promise<StoredNotification[]> {
@@ -53,8 +58,6 @@ export class CassandraService {
     const list = result.rows.map((row) => {
       return {
         id: row.get("id") as string,
-        issuanceDate: row.get("issuancedate") as string,
-        expirationDate: row.get("expirationdate") as string,
         from: row.get("sender") as string,
         to: row.get("receiver") as string,
         message: row.get("message") as string,
@@ -63,9 +66,11 @@ export class CassandraService {
     return list;
   }
 
-  // TODO
-  deleteNotification(id: string) {
-    console.log(`delete notification ${id}`);
+  async deleteNotification(id: string): Promise<void> {
+    // TODO: getNotification and throw error if it does not exist
+    const query = `delete from notification_storage where id = ?`;
+    const params = [id];
+    await this.client.execute(query, params);
   }
 }
 
