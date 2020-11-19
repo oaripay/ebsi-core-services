@@ -21,15 +21,6 @@ pipeline {
         TAG = "`grep image .ci/${EBSI_ENV}/docker-compose.yml | cut -d':' -f3`"
     }
     stages {
-        stage('Unit test') {
-            steps {
-                sh 'yarn install --frozen-lockfile'
-                sh 'cp .env.test .env'
-                withCredentials([string(credentialsId: 'API_PRIVATE_KEY', variable: 'API_PRIVATE_KEY')]) {
-                    sh 'yarn run test:unit'
-                }
-            }
-        }
         stage('Pre Checks') {
             steps {
                 sh "/usr/local/bin/auto_container_validate.sh ${CONTAINER_NAME} ${MCO_TARGET} app lux"
