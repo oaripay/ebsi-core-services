@@ -1,3 +1,4 @@
+import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { Injectable, Logger, OnApplicationShutdown } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import cassandra, { DseClientOptions } from "cassandra-driver";
@@ -66,10 +67,26 @@ export class CassandraService implements OnApplicationShutdown {
     return list;
   }
 
-  async deleteNotification(id: string): Promise<void> {
-    // TODO: getNotification and throw error if it does not exist
-    const query = `delete from notification_storage where id = ?`;
+  async getNotification(to: string, id: string): Promise<StoredNotification> {
+    const query = `select * from notification_storage where receiver = ? and id = ? allow filtering`;
+    const params = [to, id];
+    const result = await this.client.execute(query, params);
+    if (result.rowLength === 0)
+      throw new NotFoundError("Notification Not Found", {
+        detail: `Id parameter not found`,
+      });
+    return {
+      id: result.rows[0].get("id") as string,
+      from: result.rows[0].get("sender") as string,
+      to: result.rows[0].get("receiver") as string,
+      message: result.rows[0].get("message") as string,
+    } as StoredNotification;
+  }
+
+  async deleteNotification(to: string, id: string): Promise<void> {
+    await this.getNotification(to, id);
     const params = [id];
+    const query = `delete from notification_storage where id = ?`;
     await this.client.execute(query, params);
   }
 }

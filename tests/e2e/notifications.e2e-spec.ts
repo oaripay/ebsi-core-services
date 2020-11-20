@@ -390,21 +390,62 @@ describe("Notifications module (e2e)", () => {
   });
 
   describe("GET /notifications/{id}", () => {
-    it("should retrieve the notification", () => {
-      expect.assertions(0);
+    it("should return specified notification", async () => {
+      expect.assertions(2);
+      const [notification] = expectedNotifications;
+      const notificationId = crypto
+        .createHash("sha3-256")
+        .update(JSON.stringify(notification), "utf8")
+        .digest("hex");
+      const response = await request(server)
+        .get(`/notifications/${notificationId}`)
+        .set("Authorization", `Bearer ${token}`);
+      expect(response.body).toStrictEqual(notification);
+      expect(response.status).toBe(200);
+    });
 
-      /* const response = await request(server).get(`/notifications/123`);
+    it("should throw NotFoundError if notification does not exist", async () => {
+      expect.assertions(2);
+      const notificationId = "fakeId";
+      const response = await request(server)
+        .get(`/notifications/${notificationId}`)
+        .set("Authorization", `Bearer ${token}`);
+      expect(response.body).toStrictEqual({
+        detail: "Id parameter not found",
+        status: 404,
+        title: "Notification Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
 
-      expect(response.body).toStrictEqual(validNotifications[0]);
-      expect(response.status).toBe(200); */
+    it("should throw NotFoundError if specified notification does not match receiver", async () => {
+      expect.assertions(2);
+      const anotherDid = randomDid();
+      const anotherToken = createToken(anotherDid);
+      const [notification] = expectedNotifications;
+      const notificationId = crypto
+        .createHash("sha3-256")
+        .update(JSON.stringify(notification), "utf8")
+        .digest("hex");
+      const response = await request(server)
+        .get(`/notifications/${notificationId}`)
+        .set("Authorization", `Bearer ${anotherToken}`);
+      expect(response.body).toStrictEqual({
+        detail: "Id parameter not found",
+        status: 404,
+        title: "Notification Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
     });
   });
 
   describe("DELETE /notifications/{id}", () => {
     it("should delete the notification", async () => {
-      expect.assertions(3);
+      expect.assertions(5);
 
-      const notification = createNotification();
+      const notification = createNotification(did);
       const responseInsert = await request(server)
         .post("/notifications")
         .send(notification);
@@ -412,18 +453,28 @@ describe("Notifications module (e2e)", () => {
       const { location } = responseInsert.headers as { location: string };
       const id = location.slice(location.lastIndexOf("/") + 1);
 
-      const response = await request(server).delete(`/notifications/${id}`);
+      const response = await request(server)
+        .delete(`/notifications/${id}`)
+        .set("Authorization", `Bearer ${token}`);
       expect(response.body).toStrictEqual({});
       expect(response.status).toBe(204);
 
-      /* const responseGet = await request(server).get(`/notifications/${id}`);
-      expect(response.status).toBe(404); */
+      const responseGet = await request(server)
+        .get(`/notifications/${id}`)
+        .set("Authorization", `Bearer ${token}`);
+      expect(responseGet.body).toStrictEqual({
+        detail: "Id parameter not found",
+        status: 404,
+        title: "Notification Not Found",
+        type: "about:blank",
+      });
+      expect(responseGet.status).toBe(404);
     });
 
     it("should delete the notification after the ttl", async () => {
-      expect.assertions(1);
+      expect.assertions(3);
 
-      const notification = createNotification();
+      const notification = createNotification(did);
       // expiration in 10 seconds
       const ttl = 5000; // ms
       notification.expirationDate = new Date(
@@ -433,12 +484,36 @@ describe("Notifications module (e2e)", () => {
         .post("/notifications")
         .send(notification);
       expect(responseInsert.status).toBe(201);
+      const { location } = responseInsert.headers as { location: string };
+      const id = location.slice(location.lastIndexOf("/") + 1);
 
       // wait the ttl
       await new Promise((r) => setTimeout(r, ttl + 200));
 
-      /* const responseGet = await request(server).get(`/notifications/${id}`);
-      expect(response.status).toBe(404); */
+      const responseGet = await request(server)
+        .get(`/notifications/${id}`)
+        .set("Authorization", `Bearer ${token}`);
+      expect(responseGet.body).toStrictEqual({
+        detail: "Id parameter not found",
+        status: 404,
+        title: "Notification Not Found",
+        type: "about:blank",
+      });
+      expect(responseGet.status).toBe(404);
+    });
+
+    it("should throw NotFoundError when deleting a with notification that does not exist", async () => {
+      expect.assertions(2);
+      const response = await request(server)
+        .delete(`/notifications/fakeId`)
+        .set("Authorization", `Bearer ${token}`);
+      expect(response.body).toStrictEqual({
+        detail: "Id parameter not found",
+        status: 404,
+        title: "Notification Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
     });
   });
 });

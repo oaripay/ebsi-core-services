@@ -349,7 +349,7 @@ paths:
                 Forbidden:
                   $ref: "#/components/examples/Forbidden"
         404:
-          description: Notification ID does not exist
+          description: Notification Not Found
           content:
             application/problem+json:
               schema:
@@ -420,7 +420,7 @@ paths:
                 Forbidden:
                   $ref: "#/components/examples/Forbidden"
         404:
-          description: Notification ID does not exist
+          description: Notification Not Found
           content:
             application/problem+json:
               schema:

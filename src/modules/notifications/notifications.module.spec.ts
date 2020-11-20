@@ -8,6 +8,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import cassandraDriver from "cassandra-driver";
+import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { CassandraService } from "../cassandra/cassandra.service";
 import { NotificationsModule } from "./notifications.module";
 import { Notification } from "./notifications.interface";
@@ -315,28 +316,97 @@ describe("Notifications module", () => {
         },
       });
       expect(response.status).toBe(200);
+      jest.resetAllMocks();
     });
   });
 
   describe("GET /notifications/{id}", () => {
-    it("should retrieve the notification", () => {
-      expect.assertions(0);
+    it("should return specified notification", async () => {
+      expect.assertions(2);
+      const did = "did:ebsi:test";
+      const token = createToken(did);
+      const resultNotifications = [
+        { notification: createNotification(did), id: "id1" },
+      ];
+      const storedNotifications = resultNotifications.map((r) => {
+        return {
+          id: r.id,
+          from: r.notification.from,
+          to: r.notification.to,
+          message: JSON.stringify(r.notification),
+        };
+      });
+      jest
+        .spyOn(CassandraService.prototype, "getNotification")
+        .mockResolvedValue(storedNotifications[0]);
 
-      /* const response = await request(server).get("/notifications/123");
+      const notificationId = storedNotifications[0].id;
 
-      expect(response.body).toStrictEqual(validNotifications[0]);
-      expect(response.status).toBe(200); */
+      const response = await request(server)
+        .get(`/notifications/${notificationId}`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.body).toStrictEqual(resultNotifications[0].notification);
+      expect(response.status).toBe(200);
+      jest.resetAllMocks();
+    });
+
+    it("should throw NotFoundError if notification does not exist", async () => {
+      expect.assertions(2);
+      const did = "did:ebsi:test";
+      const token = createToken(did);
+      jest
+        .spyOn(CassandraService.prototype, "getNotification")
+        .mockImplementation(() => {
+          throw new NotFoundError("Notification Not Found", {
+            detail: `Id parameter not found`,
+          });
+        });
+
+      const notificationId = "789xyz";
+
+      const response = await request(server)
+        .get(`/notifications/${notificationId}`)
+        .set("Authorization", `Bearer ${token}`);
+
+      expect(response.body).toStrictEqual({
+        detail: "Id parameter not found",
+        status: 404,
+        title: "Notification Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      jest.resetAllMocks();
     });
   });
-
   describe("DELETE /notifications/{id}", () => {
     it("should delete the notification", async () => {
       expect.assertions(2);
-
-      const response = await request(server).delete("/notifications/123");
-
+      const did = "did:ebsi:test";
+      const token = createToken(did);
+      const resultNotifications = [
+        { notification: createNotification(did), id: "id1" },
+      ];
+      const storedNotifications = resultNotifications.map((r) => {
+        return {
+          id: r.id,
+          from: r.notification.from,
+          to: r.notification.to,
+          message: JSON.stringify(r.notification),
+        };
+      });
+      jest
+        .spyOn(CassandraService.prototype, "getNotification")
+        .mockResolvedValue(storedNotifications[0]);
+      jest
+        .spyOn(CassandraService.prototype, "deleteNotification")
+        .mockResolvedValue();
+      const response = await request(server)
+        .delete("/notifications/123")
+        .set("Authorization", `Bearer ${token}`);
       expect(response.body).toStrictEqual({});
       expect(response.status).toBe(204);
+      jest.resetAllMocks();
     });
   });
 });

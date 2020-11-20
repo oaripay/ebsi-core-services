@@ -73,21 +73,31 @@ export class NotificationsController {
 
   @Get("/:id")
   async find(
+    @Req() request: FastifyRequest,
     @Param() params: { id: string },
     @Response() res: FastifyReply
   ): Promise<FastifyReply> {
+    // TODO implement proper middleware to handle the token
+    const { headers } = request;
+    const decodedToken = jwtDecode(headers.authorization) as DecodedToken;
     const { id } = params;
-    const notification: Notification = await this.notificationsService.find(id);
+    const notification: Notification = await this.notificationsService.find(
+      decodedToken.did,
+      id
+    );
     return res.code(200).send(notification);
   }
 
   @Delete("/:id")
   async delete(
+    @Req() request: FastifyRequest,
     @Param() params: { id: string },
     @Response() res: FastifyReply
   ): Promise<FastifyReply> {
+    const { headers } = request;
+    const decodedToken = jwtDecode(headers.authorization) as DecodedToken;
     const { id } = params;
-    await this.notificationsService.delete(id);
+    await this.notificationsService.delete(decodedToken.did, id);
     return res.code(204).send();
   }
 }
