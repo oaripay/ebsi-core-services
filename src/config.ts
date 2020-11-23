@@ -14,19 +14,19 @@ const EBSI_STORES = "distributed";
 // GLOBAL ENVIRONMENT CONFIG AND URLS PER EACH ENV
 const GLOBAL_CONFIG = {
   production: {
-    logLevel: "info",
+    logLevel: process.env.DEBUG_LEVEL || "info",
     ebsiApiBaseUrl: EBSI_API_PROD_URL,
   },
   development: {
-    logLevel: "info",
+    logLevel: process.env.DEBUG_LEVEL || "info",
     ebsiApiBaseUrl: EBSI_API_DEV_URL,
   },
   integration: {
-    logLevel: "debug",
+    logLevel: process.env.DEBUG_LEVEL || "debug",
     ebsiApiBaseUrl: EBSI_API_INT_URL,
   },
   test: {
-    logLevel: "info",
+    logLevel: process.env.DEBUG_LEVEL || "info",
     ebsiApiBaseUrl: EBSI_API_INT_URL,
   },
   local: {
