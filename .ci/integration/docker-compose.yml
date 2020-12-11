@@ -3,4 +3,4 @@ version: "3.7"
 services:
   trusted-apps-registry:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/trusted-apps-registry:integration_ebsiint-2439-release202011_v1.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/trusted-apps-registry:integration_ebsiint-2249-bootstrap-repo_v2.0.0

@@ -1,17 +1,21 @@
-FROM node:12.19.1-alpine3.12@sha256:3ae30348acd445501758896f691106cbc32111f3525651c7256a7df75aa8a97d as base
+FROM node:14.15.1-alpine3.12@sha256:5f5c0679611843292161d2374c967f1e04196bc3f5281125c408de65db8284fe as base
+WORKDIR /app
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile --silent --production && yarn cache clean
+RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
 
 FROM base as builder
+# Because some dependencies of submodules/trusted-apps-registry-ethereum-sc need to be fetched with git
+RUN apk add --no-cache git=2.26.2-r0
+COPY submodules submodules
 RUN yarn install --frozen-lockfile --silent
-COPY . .
+COPY nest-cli.json tsconfig*.json ./
+COPY src src
 RUN yarn build
 
 FROM base
-WORKDIR /usr/src/app
-COPY --from=builder dist dist
-COPY scripts/start.sh scripts/start.sh
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=builder /app/dist dist
+RUN chown node:node /app
 USER node
-EXPOSE 9000
-ENV NODE_ENV production
-CMD [ "sh", "scripts/start.sh" ]
+CMD [ "node", "dist/main" ]

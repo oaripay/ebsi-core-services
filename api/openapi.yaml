@@ -5,7 +5,7 @@ info:
     Trusted Apps Registry API is a Core Service of the EBSI platform providing the capability of
     verifying if an application is trusted and authorized to interact with other applications in
     the EBSI network.
-  version: 1.0.0
+  version: 2.0.0
   termsOfService: "/docs/terms"
   contact:
     name: "EBSI Support"
@@ -13,13 +13,17 @@ info:
   license:
     name: "EUPL-1.2"
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
+tags:
+  - name: Trusted Apps Registry
+    description: List and verify trusted apps
 paths:
-  /trusted-apps-registry/v1/apps:
+  /trusted-apps-registry/v2/administrators:
     get:
       tags:
         - Trusted Apps Registry
-      summary: List of trusted apps
-      description: Returns a list of trusted apps
+      summary: List of trusted administrators
+      description: Returns a list of trusted administrators
+      operationId: get-trusted-apps-registry-v2-administrators
       responses:
         "200":
           description: Success
@@ -28,109 +32,57 @@ paths:
               schema:
                 type: object
                 properties:
+                  self:
+                    type: string
+                    description: URI to administrators
                   items:
                     type: array
-                    description: list of trusted apps
+                    description: List of administrators
                     items:
-                      $ref: "#/components/schemas/App"
+                      type: object
+                      properties:
+                        did:
+                          type: string
+                          description: DID of the administrator
+                        href:
+                          type: string
+                          description: Link to the resource
                   total:
                     type: integer
-                    description: " total number of pages in a collection"
+                    description: Total number of items in a collection
                   pageSize:
                     type: integer
-                    description: number of items to be return per page
+                    description: Number of items to be returned per page
                   links:
-                    $ref: "#/components/schemas/Links"
+                    $ref: "#/components/schemas/links"
               examples:
                 Success:
                   value:
+                    self: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=3&page[size]=10
                     items:
-                      - appName: wallet
-                        pubKey: fb34cf74b6d2acde0f95f0d4e06aa043591acfabdb8b93844bfbe37143861fe81b57fa7068b91e2c9bbc285ca523a3f349c6d5dc34cb7157b68bc76795f94b9e
-                      - appName: wallet
-                        pubKey: fb34cf74b6d2acde0f95f0d4e06aa043591acfabdb8b93844bfbe37143861fe81b57fa7068b91e2c9bbc285ca523a3f349c6d5dc34cb7157b68bc76795f94b9e
-                    total: 2
+                      - did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                        href: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                      - did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                        href: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                    total: 124
                     pageSize: 10
                     links:
-                      first: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=2"
-                      prev: "/trusted-apps-registry/v1/apps?page[after]=2&page[size]=2"
-                      next: "/trusted-apps-registry/v1/apps?page[after]=4&page[size]=2"
-                      last: "/trusted-apps-registry/v1/apps?page[after]=13&page[size]=2"
-        "500":
-          description: Internal Server Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-apps-registry-v1-apps
-      parameters:
-        - in: query
-          name: "page[before]"
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
-          name: "page[after]"
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: "page[size]"
-          description: Defines the maximum number of objects that may be returned.
-  "/trusted-apps-registry/v1/apps/{appName}":
-    get:
-      tags:
-        - Trusted Apps Registry
-      summary: Get trusted application
-      description: Returns trusted app information, including its public key.
-      parameters:
-        - name: appName
-          in: path
-          schema:
-            type: string
-          example: wallet
-          required: true
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/App"
-              examples:
-                Success:
-                  value:
-                    appName: wallet
-                    pubKey: fb34cf74b6d2acde0f95f0d4e06aa043591acfabdb8b93844bfbe37143861fe81b57fa7068b91e2c9bbc285ca523a3f349c6d5dc34cb7157b68bc76795f94b9e
+                      first: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=13&page[size]=10
         "400":
-          description: Bad Request
+          description: Bad Request Error
           content:
             "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Invalid {appName} Parameter:
+                Bad Paging Request:
                   value:
-                    title: Bad Request
+                    title: Bad Paging Request
                     status: 400
-                    detail: The format of {appName} parameter is not valid
-        "404":
-          description: Not Found
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Not Found:
-                  value:
-                    title: Not Found
-                    status: 404
-                    detail: "{appName} not found"
+                    detail: PageSize should not be greater than 50
         "500":
           description: Internal Server Error
           content:
@@ -140,146 +92,50 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-apps-registry-v1-store
-    parameters:
-      - schema:
-          type: string
-        name: appName
-        in: path
-        required: true
-  "/trusted-apps-registry/v1/apps/{appName}/authorized-apps":
-    get:
-      tags:
-        - Trusted Apps Registry
-      summary: List of trusted apps authorized to consume services
-      description: |
-        Returns a list of trusted apps that are authorized to consume service of the {appName} app.
       parameters:
-        - name: appName
-          in: path
-          schema:
-            type: string
-          example: wallet
-          required: true
         - in: query
-          name: "page[before]"
+          name: page[before]
           schema:
             type: string
           description: Cursor that points to the start of the page of data that has been returned.
         - in: query
-          name: "page[after]"
+          name: page[after]
           schema:
             type: string
           description: Cursor that points to the end of the page of data that has been returned.
         - schema:
             type: integer
           in: query
-          name: "page[size]"
+          name: page[size]
           description: Defines the maximum number of objects that may be returned.
+  "/trusted-apps-registry/v2/administrators/{did}":
+    get:
+      tags:
+        - Trusted Apps Registry
+      summary: Get administrator by its Decentralized Identifier
+      description: Returns a trusted administrator by its decentralized identifier
+      operationId: get-trusted-administrator
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          required: true
       responses:
         "200":
           description: Success
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  items:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/AuthorizedApp"
-                  links:
-                    $ref: "#/components/schemas/Links"
-                  pageSize:
-                    type: integer
-                    description: number of items to be return per page
-                  total:
-                    type: integer
-                    description: " total number of pages in a collection"
+                $ref: "#/components/schemas/administrator"
               examples:
                 Success:
                   value:
-                    items:
-                      - authorizedAppName: string
-                      - authorizedAppName: string
-                    total: 13
-                    pageSize: 2
-                    links:
-                      first: "/trusted-apps-registry/v1/apps/{appName}/authorized-apps?page[after]=0&page[size]=2"
-                      prev: "/trusted-apps-registry/v1/apps/{appName}/authorized-apps?page[after]=2&page[size]=2"
-                      next: "/trusted-apps-registry/v1/apps/{appName}/authorized-apps?page[after]=4&page[size]=2"
-                      last: "/trusted-apps-registry/v1/apps/{appName}/authorized-apps?page[after]=13&page[size]=2"
-        "400":
-          description: Bad request
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Invalid {appName} parameter:
-                  value:
-                    title: Bad Request
-                    status: 400
-                    detail: The format of {appName} parameter is not valid
-        "404":
-          description: Not Found
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Not Found:
-                  value:
-                    title: Not Found
-                    status: 404
-                    detail: "{appName} not found"
-        "500":
-          description: Internal Server Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-apps-registry-v1-app-auhtorized-apps
-    parameters:
-      - schema:
-          type: string
-        name: appName
-        in: path
-        required: true
-  /trusted-apps-registry/v1/apps/{appName}/authorized-apps/{authorizedAppName}:
-    get:
-      tags:
-        - Trusted Apps Registry
-      summary: Verify if app is authorized to consume service
-      description: |
-        Verify if {authorizedAppName} app is authorized to consume {appName} app services.
-      parameters:
-        - name: appName
-          in: path
-          schema:
-            type: string
-          example: storage
-          required: true
-        - name: authorizedAppName
-          in: path
-          schema:
-            type: string
-          example: wallet-client
-          required: true
-      responses:
-        "200":
-          description: Successful response returns an authorized application name
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthorizedApp"
-              examples:
-                Success:
-                  value:
-                    authorizedAppName: wallet-client
+                    did: did:ebsi:0x464190367BE948210608a46847bed183607f685A
+                    attributes:
+                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
         "400":
           description: Bad Request
           content:
@@ -287,95 +143,39 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Invalid {appName} Parameter:
+                Invalid {did} Parameter:
                   value:
                     title: Bad Request
                     status: 400
-                    detail: The format of {appName} parameter is not valid
+                    detail: The format of {did} parameter is not valid
         "404":
-          description: Not Found
+          description: Not found
           content:
             "application/problem+json":
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                AppName Not Found:
-                  value:
-                    title: Not Found
-                    status: 404
-                    detail: "{appName} not found"
-                AuthorizedAppName Not Found:
-                  value:
-                    title: Not Found
-                    status: 404
-                    detail: "{authorizedAppName} not found"
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
         "500":
           description: Internal Server Error
           content:
-            "application/problem+json":
+            application/json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-apps-registry-v1-app-auhtorized-app
-    parameters:
-      - schema:
-          type: string
-        name: appName
-        in: path
-        required: true
-      - schema:
-          type: string
-        name: authorizedAppName
-        in: path
-        required: true
 components:
   schemas:
-    AuthorizedApp:
-      title: Authorized App
-      type: object
-      x-examples:
-        authorized-app example:
-          authorizedAppName: string
-      description: "Authorized application name"
-      properties:
-        authorizedAppName:
-          type: string
-          description: name of an application that is authorized to communicate with appName
-      required:
-        - authorizedAppName
-    Links:
-      title: Links
-      type: object
-      properties:
-        last:
-          type: string
-          description: " URI of the last page"
-        prev:
-          type: string
-          description: " URI of the previous page"
-        next:
-          type: string
-          description: " URI of the next page"
-        first:
-          type: string
-          description: " URI of the first page"
-      description: links model used for pagination
-      x-examples:
-        links example:
-          first: "/trusted-apps-registry/v1/apps?page[after]=0&page[size]=2"
-          prev: "/trusted-apps-registry/v1/apps?page[after]=2&page[size]=2"
-          next: "/trusted-apps-registry/v1/apps?page[after]=4&page[size]=2"
-          last: "/trusted-apps-registry/v1/apps?page[after]=13&page[size]=2"
     Problem:
       description: A Problem Details object (RFC 7807)
       type: object
       x-examples:
         Not Enough Credit:
-          type: "https://example.com/probs/out-of-credit"
+          type: https://example.com/probs/out-of-credit
           title: You do not have enough credit.
-          detail: "Your current balance is 30, but that costs 50."
+          detail: Your current balance is 30, but that costs 50.
           instance: /account/12345/msgs/abc
       properties:
         type:
@@ -384,7 +184,7 @@ components:
           description: |
             An absolute URI that identifies the problem type. When dereferenced,
             it SHOULD provide human-readable documentation for the problem type.
-          default: "about:blank"
+          default: about:blank
         title:
           type: string
           description: |
@@ -410,65 +210,65 @@ components:
           description: |
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
-    App:
+    links:
+      title: Links
       type: object
-      description: App model
-      title: "App Model"
-      x-examples:
-        App Model:
-          appName: wallet
-          pubKey: fb34cf74b6d2acde0f95f0d4e06aa043591acfabdb8b93844bfbe37143861fe81b57fa7068b91e2c9bbc285ca523a3f349c6d5dc34cb7157b68bc76795f94b9e
       properties:
-        appName:
+        last:
           type: string
-          example: wallet
-          description: application name
-        pubKey:
+          description: URI of the last page
+        prev:
           type: string
-          example: fb34cf74b6d2acde0f95f0d4e06aa043591acfabdb8b93844bfbe37143861fe81b57fa7068b91e2c9bbc285ca523a3f349c6d5dc34cb7157b68bc76795f94b9e
-          description: Secp256k1 Public key
-      required:
-        - appName
-        - pubKey
+          description: URI of the previous page
+        next:
+          type: string
+          description: URI of the next page
+        first:
+          type: string
+          description: URI of the first page
+      description: links model used for pagination
+      x-examples:
+        Links:
+          first: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=1&page[size]=2
+          prev: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=2&page[size]=2
+          next: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=4&page[size]=2
+          last: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=13&page[size]=2
+    attribute:
+      title: Attribute
+      type: object
+      description: Attribute
+      properties:
+        hash:
+          type: string
+          description: sha256 hash of the payload
+        body:
+          description: Base64 encoded content
+    administrator:
+      title: Administrator
+      type: object
+      description: Name of the administrator
+      properties:
+        did:
+          type: string
+          description: DID of the administrator
+        attributes:
+          type: array
+          description: Array of attributes
+          items:
+            $ref: "#/components/schemas/attribute"
   examples:
-    BadRequest:
-      value:
-        title: Bad Request
-        status: 400
-        detail: Bad request.
     NotFound:
       value:
-        title: Not Found
+        title: Not found
         status: 404
-        detail: Page not found.
+        detail: Not found
     InternalError:
       value:
-        title: Internal Server Error
+        title: Internal error
         status: 500
-        detail: The server encountered an internal error and was unable to complete your request.
-    ListFiles:
-      value:
-        items:
-          - hash1
-          - hash2
-        total: 2
-    ListFilesPagination:
-      value:
-        items:
-          - hash1
-          - hash2
-        total: 2
-        pageSize: 3
-        links:
-          first: "/trusted-apps-registry/v1/apps/distributed?page[after]=fff&page[size]=2"
-          prev: "/trusted-apps-registry/v1/apps/distributed?page[after]=ppp&page[size]=2"
-          next: "/trusted-apps-registry/v1/apps/distributed?page[after]=nnn&page[size]=2"
-          last: "/trusted-apps-registry/v1/apps/distributed?page[after]=lll&page[size]=2"
-tags:
-  - name: Trusted Apps Registry
-    description: List and verify trusted apps
+        detail: Internal error
 servers:
-  - url: "http://localhost"
+  - url: http://localhost
     description: Local Computer Environment
-  - url: "https://api.ebsi.xyz"
+  - url: https://api.ebsi.xyz
     description: EBSI Testing Environment

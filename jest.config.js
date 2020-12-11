@@ -2,25 +2,18 @@ module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
   rootDir: ".",
-  roots: ["<rootDir>/src/", "<rootDir>/api/", "<rootDir>/tests/"],
-  testMatch: ["**/?(*.)+(spec|e2e-spec|test).+(ts|tsx|js)"],
-  testResultsProcessor: "jest-sonar-reporter",
+  roots: ["<rootDir>/src/", "<rootDir>/tests/"],
+  testMatch: ["**/?(*.|*-)+(spec|test).ts"],
   transform: {
-    "^.+\\.(ts|tsx)?$": "ts-jest",
+    "^.+\\.(t|j)s$": "ts-jest",
   },
-  moduleFileExtensions: ["ts", "js", "json"],
+  moduleFileExtensions: ["js", "json", "ts"],
   coverageDirectory: "./coverage/",
-  collectCoverageFrom: ["src/**/*.ts", "!src/**/*.d.ts", "!**/node_modules/**"],
-  collectCoverage: true,
-  reporters: ["default", "jest-sonar"],
-  globals: {
-    "ts-jest": {
-      diagnostics: true,
-      warnOnly: true,
-      ignoreCodes: [
-        18002, // The ‘files’ list in config file is empty. (it is strongly recommended to include this one)
-      ],
-      pretty: true,
-    },
-  },
+  collectCoverageFrom: [
+    "src/**/*.(t|j)s",
+    "!src/contracts/**/*.(t|j)s",
+    "!src/main.ts",
+    "!**/*.d.ts",
+  ],
+  coverageReporters: ["text", "lcov", "json", "clover", "cobertura"],
 };

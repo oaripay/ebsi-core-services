@@ -1,45 +1,62 @@
 import {
   ExceptionFilter,
   Catch,
-  Logger,
   ArgumentsHost,
+  Logger,
   NotFoundException,
+  BadRequestException,
 } from "@nestjs/common";
 import {
   ProblemDetailsError,
+  BadRequestError,
   InternalServerError,
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
+import { FastifyReply } from "fastify";
 
 @Catch()
-export default class AllExceptionsFilter implements ExceptionFilter {
+export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
-  // eslint-disable-next-line class-methods-use-this
-  catch(err: Error | ProblemDetailsError, host: ArgumentsHost) {
+  catch(err: Error | ProblemDetailsError, host: ArgumentsHost): FastifyReply {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
+    const response = ctx.getResponse<FastifyReply>();
 
-    let problemError;
+    let problemError: ProblemDetailsError;
     if (err instanceof ProblemDetailsError) {
       problemError = err;
     } else if (err instanceof NotFoundException) {
-      problemError = new NotFoundError(NotFoundError.defaultTitle, {
+      problemError = new NotFoundError("Invalid service", {
         detail: err.message,
       });
+    } else if (err instanceof BadRequestException) {
+      let detail = err.message;
+      const resp = err.getResponse();
+      if (typeof resp === "object") {
+        const { message } = resp as { message: string };
+        if (message) {
+          if (typeof message === "string") detail = message;
+          else detail = JSON.stringify(message);
+        }
+      }
+      problemError = new BadRequestError(BadRequestError.defaultTitle, {
+        detail,
+      });
     } else {
-      this.logger.error(err.stack);
-      problemError = new InternalServerError(InternalServerError.defaultTitle, {
+      problemError = new InternalServerError(undefined, {
         detail:
           "The server encountered an internal error and was unable to complete your request",
       });
+      this.logger.error(err.message, err.stack);
     }
 
     this.logger.debug(problemError.toString());
 
-    response
-      .status(problemError.status)
-      .set("Content-Type", "application/problem+json")
-      .json(problemError.toJSON());
+    return response
+      .code(problemError.status)
+      .type("application/problem+json")
+      .send(problemError.toJSON());
   }
 }
+
+export default AllExceptionsFilter;

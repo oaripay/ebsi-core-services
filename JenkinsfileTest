@@ -1,20 +1,68 @@
 pipeline {
     agent any
+    options {
+        skipDefaultCheckout()
+    }
     stages {
-        stage('Setup') {
+        stage('Checkout') {
             steps {
-               sh 'yarn install --frozen-lockfile'
-               sh 'cp .env.test .env'
+                checkout([
+                    $class: 'GitSCM',
+                    branches: scm.branches,
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[
+                        $class: 'SubmoduleOption',
+                        disableSubmodules: false,
+                        parentCredentials: true,
+                        recursiveSubmodules: true,
+                        reference: '',
+                        trackingSubmodules: false
+                    ]],
+                    submoduleCfg: [],
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
             }
         }
-        stage('Unit test') {
-            environment {
-                EBSI_ENV='integration'
+        stage('Node Agent') {
+            agent {
+                docker {
+                    image 'node:14.15.1'
+                    args '-u root:sudo'
+                    reuseNode true
+                }
+            }
+            stages {
+                stage('Setup') {
+                    steps {
+                        sh 'yarn install --frozen-lockfile'
+                        sh 'yarn run audit'
+                    }
+                }
+                stage('Lint') {
+                    steps {
+                        sh 'yarn lint'
+                    }
+                }
+                stage('Unit tests') {
+                    environment {
+                        EBSI_ENV='integration'
+                        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+                    }
+                    steps {
+                        sh 'yarn test:ci'
+                    }
+                }
+            }
+        }
+        stage ('Lint Dockerfile') {
+            agent {
+                docker {
+                    image 'hadolint/hadolint:latest-debian'
+                    reuseNode true
+                }
             }
             steps {
-                withCredentials([string(credentialsId: 'API_PRIVATE_KEY', variable: 'API_PRIVATE_KEY')]) {
-                    sh 'yarn run test:unit'
-                }
+                sh 'hadolint Dockerfile'
             }
         }
         stage('SonarQube Analysis') {

@@ -14,25 +14,63 @@ def getMcoTarget(branch) {
 }
 pipeline {
     agent any
+    options {
+        skipDefaultCheckout()
+    }
     environment {
         EBSI_ENV = getEnvFromBranch(env.BRANCH_NAME)
         MCO_TARGET = getMcoTarget(env.BRANCH_NAME)
-        CONTAINER_NAME = "`grep -A1 services .ci/${EBSI_ENV}/docker-compose.yml | tail -1 | sed -e s'/ //'g -e s'/://'g`"
-        TAG = "`grep image .ci/${EBSI_ENV}/docker-compose.yml | cut -d':' -f3`"
     }
     stages {
-        stage('Unit test') {
+        stage('Checkout') {
             steps {
-                sh 'yarn install --frozen-lockfile'
-                sh 'cp .env.test .env'
-                withCredentials([string(credentialsId: 'API_PRIVATE_KEY', variable: 'API_PRIVATE_KEY')]) {
-                    sh 'yarn run test:unit'
-                }
+                checkout([
+                    $class: 'GitSCM',
+                    branches: scm.branches,
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[
+                        $class: 'SubmoduleOption',
+                        disableSubmodules: false,
+                        parentCredentials: true,
+                        recursiveSubmodules: true,
+                        reference: '',
+                        trackingSubmodules: false
+                    ]],
+                    submoduleCfg: [],
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
             }
         }
         stage('Pre Checks') {
+            environment {
+                CONTAINER_NAME = "`grep -A1 services .ci/${EBSI_ENV}/docker-compose.yml | tail -1 | sed -e s'/ //'g -e s'/://'g`"
+                TAG = "`grep image .ci/${EBSI_ENV}/docker-compose.yml | cut -d':' -f3`"
+            }
             steps {
                 sh "/usr/local/bin/auto_container_validate.sh ${CONTAINER_NAME} ${MCO_TARGET} app lux"
+            }
+        }
+        stage('Node Agent') {
+            agent {
+                docker {
+                    image 'node:14.15.1'
+                    args '-u root:sudo'
+                    reuseNode true
+                }
+            }
+            stages {
+                stage('Unit test') {
+                    environment {
+                        EBSI_ENV='integration'
+                        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+                    }
+                    steps {
+                        sh 'yarn install --frozen-lockfile'
+                        sh "yarn run audit"
+                        sh "yarn lint"
+                        sh 'yarn test:ci'
+                    }
+                }
             }
         }
         stage('Build image') {
@@ -47,6 +85,10 @@ pipeline {
             }
         }
         stage('Modify YAML & Commit') {
+            environment {
+                CONTAINER_NAME = "`grep -A1 services .ci/${EBSI_ENV}/docker-compose.yml | tail -1 | sed -e s'/ //'g -e s'/://'g`"
+                TAG = "`grep image .ci/${EBSI_ENV}/docker-compose.yml | cut -d':' -f3`"
+            }
             steps {
                 sh "sudo -u ebsi1-robot /usr/local/bin/yaml_wrapper.sh ${EBSI_ENV} ${MCO_TARGET}/lux/app.yaml ${CONTAINER_NAME} ${TAG}"
                 //sh "sudo su - ebsi1-robot -c 'cd /etc/puppetlabs/code/environments/${EBSI_ENV} ; git pull'"
@@ -55,6 +97,10 @@ pipeline {
             }
         }
         stage("Deploy on network") {
+            environment {
+                CONTAINER_NAME = "`grep -A1 services .ci/${EBSI_ENV}/docker-compose.yml | tail -1 | sed -e s'/ //'g -e s'/://'g`"
+                TAG = "`grep image .ci/${EBSI_ENV}/docker-compose.yml | cut -d':' -f3`"
+            }
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
                     sh "ssh -i $PK ebsi1-operator@mco01-0-ebsi-dev-lux.ebsi.xyz -o StrictHostKeyChecking=no -o 'UserKnownHostsFile /dev/null' -p 48722 '/usr/local/bin/puppet_run_containers_only.sh ${MCO_TARGET} app lux'"

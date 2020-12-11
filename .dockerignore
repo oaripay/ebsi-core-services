@@ -4,8 +4,13 @@
 # Only add what is necessary
 !package.json
 !nest-cli.json
-!tsconfig.build.json
+!tsconfig.production.json
 !tsconfig.json
 !yarn.lock
 !scripts
 !src
+src/contracts
+!submodules/trusted-apps-registry-ethereum-sc/contracts
+!submodules/trusted-apps-registry-ethereum-sc/package.json
+!submodules/trusted-apps-registry-ethereum-sc/yarn.lock
+!submodules/trusted-apps-registry-ethereum-sc/truffle-config.js
