@@ -1,6 +1,6 @@
 import { IsString } from "class-validator";
 
-export default class UnsignedTransaction {
+export class UnsignedTransaction {
   @IsString()
   from: string;
 
@@ -25,3 +25,5 @@ export default class UnsignedTransaction {
   @IsString()
   value: string;
 }
+
+export default { UnsignedTransaction };

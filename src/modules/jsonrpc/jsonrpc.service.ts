@@ -3,13 +3,21 @@ import axios from "axios";
 import { ethers } from "ethers";
 import { Agent, Scope } from "@cef-ebsi/app-jwt";
 import { ConfigService } from "@nestjs/config";
-import RequestInsertAdministratorDto from "./dto/insertAdministrator/request-insert-administrator.dto";
-import RequestSignedTransactionDto from "./dto/signedTransaction/request-signed-transaction.dto";
-import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
-import JsonRpcResponseObject from "./types/jsonrpc.interface";
+import {
+  RequestInsertAdministratorDto,
+  RequestSignedTransactionDto,
+  RequestUpdateAdministratorDto,
+  UnsignedTransaction,
+  ArgsInsertAdministrator,
+  ArgsUpdateAdministrator,
+  SignedTransactionParam,
+} from "./dto";
+import {
+  AxiosResponseSessions,
+  AxiosResponseJsonRpc,
+  AxiosErrorResponse,
+} from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
-import ParamSignedTransaction from "./dto/signedTransaction/param.dto";
-import ArgsInsertAdministrator from "./dto/signedTransaction/args-insert-administrator.dto";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
@@ -19,32 +27,10 @@ import {
 import LedgerService from "../../shared/services/ledger.service";
 import { Tar } from "../../contracts/Tar";
 import { ApiConfig } from "../../config/configuration";
-
-interface AxiosResponseSessions {
-  status: number;
-  data: {
-    accessToken: string;
-    tokenType: string;
-    expiresIn: number;
-    issuedAt: number;
-  };
-}
-
-interface AxiosResponseJsonRpc {
-  status: number;
-  data: JsonRpcResponseObject;
-}
-
-interface AxiosErrorResponse {
-  message: string;
-  response: {
-    status: number;
-    data: unknown;
-  };
-}
+import { prefixWith0x } from "../../shared/utils";
 
 @Injectable()
-export default class JsonRpcService {
+export class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
 
   private tarContract: Tar;
@@ -163,7 +149,7 @@ export default class JsonRpcService {
     }
   }
 
-  async verifyTransaction(param: ParamSignedTransaction): Promise<string> {
+  async verifyTransaction(param: SignedTransactionParam): Promise<string> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
 
     const unsignedTx = formatEthersUnsignedTransaction(unsignedTransaction);
@@ -210,6 +196,10 @@ export default class JsonRpcService {
     switch (functionFragment.name) {
       case "insertAdministrator": {
         await validateClass(ArgsInsertAdministrator, args);
+        break;
+      }
+      case "updateAdministrator": {
+        await validateClass(ArgsUpdateAdministrator, args);
         break;
       }
       default:
@@ -282,6 +272,50 @@ export default class JsonRpcService {
     }
   }
 
+  async buildTransactionUpdateAdministrator(
+    body: RequestUpdateAdministratorDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateAdministratorDto, body);
+
+      const { from, did, attribute, prevAttributeHash } = body.params[0];
+      const bufferAttribute = Buffer.from(attribute.body, "base64");
+
+      checkHash(bufferAttribute, attribute.hash);
+
+      const data = [did.toLowerCase(), bufferAttribute];
+
+      if (prevAttributeHash) {
+        data.push(prefixWith0x(prevAttributeHash));
+      }
+
+      let functionSig;
+
+      if (prevAttributeHash) {
+        // using updateAdministrator function (did, attributeData, lastVersHash)
+        functionSig = "updateAdministrator(string,bytes,bytes32)";
+      } else {
+        // using updateAdministrator function (did, attributeData)
+        functionSig = "updateAdministrator(string,bytes)";
+      }
+
+      // TODO: double check result
+      const encodedData = this.tarContract.interface.encodeFunctionData(
+        functionSig,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        data
+      );
+
+      return await this.buildTransaction(from, encodedData);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
   async sendTransaction(
     body: RequestSignedTransactionDto,
     id?: number | string
@@ -304,3 +338,5 @@ export default class JsonRpcService {
     }
   }
 }
+
+export default { JsonRpcService };

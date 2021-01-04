@@ -105,12 +105,13 @@ export async function setupTestEnv(
 
   // Insert fake data
 
-  // Create admins
+  // Create as many admins as requested
   const admins = await Promise.all(
     Array(opts.administrators)
       .fill("")
       .map(async () => {
-        const wallet = ethers.Wallet.createRandom();
+        // Create random wallet and connect it so we can use it later to send transactions
+        const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
         await insertAdmin(tarContract, wallet.address);
         return wallet;
       })

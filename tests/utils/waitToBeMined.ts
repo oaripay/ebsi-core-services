@@ -1,6 +1,6 @@
 import request from "supertest";
 import { loadConfig } from "../../src/config/configuration";
-import JsonRpcResponseObject from "../../src/modules/jsonrpc/types/jsonrpc.interface";
+import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 
 interface SupertestJsonRpcResponse {
   status: number;

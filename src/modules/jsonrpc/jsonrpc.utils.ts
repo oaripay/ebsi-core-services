@@ -2,7 +2,7 @@ import * as ClassValidator from "class-validator";
 import { ClassTransformer } from "class-transformer";
 import { ClassType } from "class-transformer/ClassTransformer";
 import { ethers } from "ethers";
-import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
+import { UnsignedTransaction } from "./dto";
 import { prefixWith0x } from "../../shared/utils";
 
 export function formatEthersUnsignedTransaction(

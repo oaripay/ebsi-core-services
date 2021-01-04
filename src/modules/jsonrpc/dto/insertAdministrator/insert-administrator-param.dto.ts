@@ -1,9 +1,9 @@
 import { IsEthereumAddress, IsObject, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
-import IsDid from "../../types/IsDid";
-import Attribute from "./attribute.dto";
+import { IsDid } from "../../validators";
+import { Attribute } from "../shared/attribute.dto";
 
-export default class Param {
+export class InsertAdministratorParam {
   @IsEthereumAddress()
   from: string;
 
@@ -15,3 +15,5 @@ export default class Param {
   @Type(() => Attribute)
   attribute: Attribute;
 }
+
+export default { InsertAdministratorParam };

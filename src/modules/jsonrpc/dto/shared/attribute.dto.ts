@@ -1,9 +1,11 @@
 import { IsBase64, IsHexadecimal } from "class-validator";
 
-export default class Attribute {
+export class Attribute {
   @IsHexadecimal()
   hash: string;
 
   @IsBase64()
   body: string;
 }
+
+export default { Attribute };

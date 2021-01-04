@@ -1,10 +1,13 @@
 import { Controller, Body, Post, HttpCode } from "@nestjs/common";
-import JsonRpcService from "./jsonrpc.service";
-import JsonRpcDto from "./dto/jsonrpc.dto";
+import { JsonRpcService } from "./jsonrpc.service";
 import { InvalidRequestJsonRpcError } from "./errors";
-import JsonRpcResponseObject from "./types/jsonrpc.interface";
-import RequestInsertAdministratorDto from "./dto/insertAdministrator/request-insert-administrator.dto";
-import RequestSignedTransaction from "./dto/signedTransaction/request-signed-transaction.dto";
+import { JsonRpcResponseObject } from "./jsonrpc.interface";
+import {
+  JsonRpcDto,
+  RequestInsertAdministratorDto,
+  RequestUpdateAdministratorDto,
+  RequestSignedTransactionDto,
+} from "./dto";
 
 function jsonRpcResponse(
   result: unknown,
@@ -29,9 +32,16 @@ export default class AppController {
         );
         return jsonRpcResponse(transaction, id);
       }
+      case "updateAdministrator": {
+        const transaction = await this.jsonRpcService.buildTransactionUpdateAdministrator(
+          body as RequestUpdateAdministratorDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
+      }
       case "signedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(
-          body as RequestSignedTransaction,
+          body as RequestSignedTransactionDto,
           id
         );
         return jsonRpcResponse(result, id);

@@ -53,7 +53,7 @@ pipeline {
         stage('Node Agent') {
             agent {
                 docker {
-                    image 'node:14.15.1'
+                    image 'node:14.15.3'
                     args '-u root:sudo'
                     reuseNode true
                 }
