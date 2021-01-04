@@ -3,32 +3,38 @@ import {
   Catch,
   ArgumentsHost,
   Logger,
-  NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
 import {
   ProblemDetailsError,
-  BadRequestError,
   InternalServerError,
-  NotFoundError,
+  BadRequestError,
 } from "@cef-ebsi/problem-details-errors";
 import { FastifyReply } from "fastify";
+import { InvalidRequestJsonRpcError } from "../modules/jsonrpc/errors";
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
-  catch(err: Error | ProblemDetailsError, host: ArgumentsHost): FastifyReply {
+  catch(
+    err: Error | ProblemDetailsError | InvalidRequestJsonRpcError,
+    host: ArgumentsHost
+  ): FastifyReply {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
 
     let problemError: ProblemDetailsError;
+    if (err instanceof InvalidRequestJsonRpcError) {
+      const JsonRpcError = err;
+      this.logger.debug(JsonRpcError.toString());
+      return response
+        .code(JsonRpcError.status)
+        .type("application/problem+json")
+        .send(JsonRpcError.toJSON());
+    }
     if (err instanceof ProblemDetailsError) {
       problemError = err;
-    } else if (err instanceof NotFoundException) {
-      problemError = new NotFoundError("Invalid service", {
-        detail: err.message,
-      });
     } else if (err instanceof BadRequestException) {
       let detail = err.message;
       const resp = err.getResponse();
@@ -47,10 +53,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
         detail:
           "The server encountered an internal error and was unable to complete your request",
       });
+
       this.logger.error(err.message, err.stack);
     }
 
-    this.logger.debug(problemError.toString());
+    this.logger.debug(
+      `${problemError.toString()}: ${problemError.detail || "No detail"}`
+    );
 
     return response
       .code(problemError.status)

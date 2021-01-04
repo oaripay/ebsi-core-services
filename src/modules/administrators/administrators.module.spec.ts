@@ -14,21 +14,29 @@ import {
 import { FastifyInstance } from "fastify";
 import { AdministratorsModule } from "./administrators.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { Tar } from "../../contracts/Tar";
-import { Tar__factory } from "../../contracts/factories/Tar__factory";
-import { mockedTarContract, jsonlds } from "../../../tests/mocks/tarContract";
+import { Tar__factory } from "../../contracts";
+import { setupTestEnv } from "../../../tests/utils/tar";
+import { AsyncReturnType } from "../../shared/types/async-return-type";
 
-jest.setTimeout(20000);
+jest.setTimeout(30000);
 
-jest
-  .spyOn(Tar__factory, "connect")
-  .mockImplementation(mockedTarContract as jest.Mock<Tar>);
+const ADMINISTRATORS_TOTAL = 3;
 
 describe("Administrators Module", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let testEnv: AsyncReturnType<typeof setupTestEnv>;
 
   beforeAll(async () => {
+    // Spin up test blockchain (ganache)
+    testEnv = await setupTestEnv({
+      administrators: ADMINISTRATORS_TOTAL,
+    });
+    const { tarContract } = testEnv;
+
+    // Mock TAR contract
+    jest.spyOn(Tar__factory, "connect").mockImplementation(() => tarContract);
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AdministratorsModule],
     }).compile();
@@ -62,7 +70,7 @@ describe("Administrators Module", () => {
           "/administrators?page[after]=1&page[size]=10"
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
-        total: 20,
+        total: ADMINISTRATORS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
@@ -72,14 +80,14 @@ describe("Administrators Module", () => {
             "/administrators?page[after]=1&page[size]=10"
           ) as string,
           next: expect.stringContaining(
-            "/administrators?page[after]=2&page[size]=10"
+            "/administrators?page[after]=1&page[size]=10"
           ) as string,
           last: expect.stringContaining(
-            "/administrators?page[after]=2&page[size]=10"
+            "/administrators?page[after]=1&page[size]=10"
           ) as string,
         },
       });
-      expect((response.body as { items: string }).items).toHaveLength(10);
+      expect((response.body as { items: string }).items).toHaveLength(3);
       expect(response.status).toBe(200);
     });
 
@@ -87,79 +95,85 @@ describe("Administrators Module", () => {
       expect.assertions(12);
 
       const response1 = await request(server).get(
-        "/administrators?page[size]=3"
+        "/administrators?page[size]=2"
       );
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining("/administrators") as string,
+        self: expect.stringContaining(
+          "/administrators?page[after]=1&page[size]=2"
+        ) as string,
         items: expect.arrayContaining([]) as Array<string>,
-        total: 20,
-        pageSize: 3,
+        total: ADMINISTRATORS_TOTAL,
+        pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/administrators?page[after]=1&page[size]=3"
+            "/administrators?page[after]=1&page[size]=2"
           ) as string,
           prev: expect.stringContaining(
-            "/administrators?page[after]=1&page[size]=3"
+            "/administrators?page[after]=1&page[size]=2"
           ) as string,
           next: expect.stringContaining(
-            "/administrators?page[after]=2&page[size]=3"
+            "/administrators?page[after]=2&page[size]=2"
           ) as string,
           last: expect.stringContaining(
-            "/administrators?page[after]=7&page[size]=3"
+            "/administrators?page[after]=2&page[size]=2"
           ) as string,
         },
       });
-      expect((response1.body as { items: string }).items).toHaveLength(3);
+      expect((response1.body as { items: string }).items).toHaveLength(2);
       expect(response1.status).toBe(200);
 
       // next page
       const response2 = await request(server).get(
-        "/administrators?page[after]=2&page[size]=3"
+        "/administrators?page[after]=2&page[size]=2"
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining("/administrators") as string,
+        self: expect.stringContaining(
+          "/administrators?page[after]=2&page[size]=2"
+        ) as string,
         items: expect.arrayContaining([]) as Array<string>,
-        total: 20,
-        pageSize: 3,
+        total: ADMINISTRATORS_TOTAL,
+        pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/administrators?page[after]=1&page[size]=3"
+            "/administrators?page[after]=1&page[size]=2"
           ) as string,
           prev: expect.stringContaining(
-            "/administrators?page[after]=1&page[size]=3"
+            "/administrators?page[after]=1&page[size]=2"
           ) as string,
           next: expect.stringContaining(
-            "/administrators?page[after]=3&page[size]=3"
+            "/administrators?page[after]=2&page[size]=2"
           ) as string,
           last: expect.stringContaining(
-            "/administrators?page[after]=7&page[size]=3"
+            "/administrators?page[after]=2&page[size]=2"
           ) as string,
         },
       });
-      expect((response2.body as { items: string }).items).toHaveLength(3);
+      expect((response2.body as { items: string }).items).toHaveLength(1);
       expect(response2.status).toBe(200);
 
       // big page
       const response3 = await request(server).get(
-        "/administrators?page[after]=100&page[size]=3"
+        "/administrators?page[after]=100&page[size]=2"
       );
       expect(response3.body).toStrictEqual({
-        self: expect.stringContaining("/administrators") as string,
+        self: expect.stringContaining(
+          "/administrators?page[after]=100&page[size]=2"
+        ) as string,
         items: expect.arrayContaining([]) as Array<string>,
-        total: 20,
-        pageSize: 3,
+        total: ADMINISTRATORS_TOTAL,
+        pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/administrators?page[after]=1&page[size]=3"
+            "/administrators?page[after]=1&page[size]=2"
           ) as string,
           prev: expect.stringContaining(
-            "/administrators?page[after]=7&page[size]=3"
+            "/administrators?page[after]=2&page[size]=2"
           ) as string,
           next: expect.stringContaining(
-            "/administrators?page[after]=7&page[size]=3"
+            "/administrators?page[after]=2&page[size]=2"
           ) as string,
           last: expect.stringContaining(
-            "/administrators?page[after]=7&page[size]=3"
+            "/administrators?page[after]=2&page[size]=2"
           ) as string,
         },
       });
@@ -171,9 +185,11 @@ describe("Administrators Module", () => {
         "/administrators?page[after]=1"
       );
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining("/administrators") as string,
+        self: expect.stringContaining(
+          "/administrators?page[after]=1&page[size]=10"
+        ) as string,
         items: expect.arrayContaining([]) as Array<string>,
-        total: 20,
+        total: ADMINISTRATORS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
@@ -183,14 +199,14 @@ describe("Administrators Module", () => {
             "/administrators?page[after]=1&page[size]=10"
           ) as string,
           next: expect.stringContaining(
-            "/administrators?page[after]=2&page[size]=10"
+            "/administrators?page[after]=1&page[size]=10"
           ) as string,
           last: expect.stringContaining(
-            "/administrators?page[after]=2&page[size]=10"
+            "/administrators?page[after]=1&page[size]=10"
           ) as string,
         },
       });
-      expect((response4.body as { items: string }).items).toHaveLength(10);
+      expect((response4.body as { items: string }).items).toHaveLength(3);
       expect(response4.status).toBe(200);
     });
 
@@ -248,15 +264,25 @@ describe("Administrators Module", () => {
     it("should return a specific administrator", async () => {
       expect.assertions(2);
 
-      const response = await request(server).get(
-        "/administrators/did:ebsi:0x00"
+      const { administrators } = testEnv;
+      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+
+      const response = await request(server).get(`/administrators/${adminDid}`);
+
+      const data = Buffer.from(
+        JSON.stringify({
+          "@context": {
+            name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
+            description: "http://tir-api-test.org/description",
+          },
+          name: `test-${adminDid}`,
+        })
       );
-      const data = Buffer.from(JSON.stringify(jsonlds[0]));
       const dataBase64 = data.toString("base64");
       const dataHash = ethers.utils.sha256(data);
 
       expect(response.body).toStrictEqual({
-        did: "did:ebsi:0x00",
+        did: adminDid,
         attributes: [
           {
             body: dataBase64,

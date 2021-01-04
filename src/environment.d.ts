@@ -12,6 +12,7 @@ declare global {
       CONTRACT_ADDR: string;
       AUTH_EXPIRE_TIME: string;
       DOMAIN?: string;
+      ADMIN_TEST_PRIVATE_KEY?: string;
     }
   }
 }

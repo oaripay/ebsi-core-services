@@ -11,6 +11,7 @@ export interface ApiConfig {
   domain: string;
   logLevel: string;
   ledger: string;
+  adminTestPrivateKey: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -44,6 +45,7 @@ export const loadConfig = (): ApiConfig => {
   const { EBSI_ENV } = process.env;
 
   return {
+    adminTestPrivateKey: process.env.ADMIN_TEST_PRIVATE_KEY || "",
     authExpireTime: parseInt(process.env.AUTH_EXPIRE_TIME, 10) || 60, // minutes
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
@@ -83,6 +85,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "debug"
     ),
     // TAR specific variables
+    ADMIN_TEST_PRIVATE_KEY: Joi.string(),
     AUTH_EXPIRE_TIME: Joi.string(),
     DOMAIN: Joi.string().uri(),
     LEDGER: Joi.string().uri(),

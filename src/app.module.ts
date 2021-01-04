@@ -3,10 +3,16 @@ import { TerminusModule } from "@nestjs/terminus";
 import { ApiConfigModule } from "./config/configuration";
 import { AppController } from "./app.controller";
 import { AdministratorsModule } from "./modules/administrators/administrators.module";
+import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { HealthController } from "./health.controller";
 
 @Module({
-  imports: [ApiConfigModule, TerminusModule, AdministratorsModule],
+  imports: [
+    ApiConfigModule,
+    TerminusModule,
+    AdministratorsModule,
+    JsonRpcModule,
+  ],
   controllers: [AppController, HealthController],
   providers: [],
 })
