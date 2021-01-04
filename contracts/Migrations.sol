@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.7.0;
+pragma solidity ^0.7.5;
 
 contract Migrations {
     address public owner;

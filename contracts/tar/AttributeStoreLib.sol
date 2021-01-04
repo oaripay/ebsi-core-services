@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.7.0;
+pragma solidity ^0.7.5;
 
-abstract contract AttributeStorage {
+library AttributeStoreLib {
     struct AttributeMetadata {
         // For each Attribute version hash, this is an object that stores the DID of his owner and the hash of the first version.
         string did; // DID of the attribute owner.

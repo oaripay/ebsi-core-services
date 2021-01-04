@@ -3,23 +3,75 @@ const {
   expectRevert,
   expectEvent, // Assertions for emitted events
 } = require("@openzeppelin/test-helpers");
-const {accounts, contract, web3} = require("@openzeppelin/test-environment");
+const { accounts, contract, web3 } = require("@openzeppelin/test-environment");
 
-const {ethers} = require("ethers");
+const { ethers } = require("ethers");
 
 const Tar = contract.fromArtifact("Tar");
 const Pagination = contract.fromArtifact("Pagination");
+const PolicyLib = contract.fromArtifact("PolicyLib");
+const PolicyStoreLib = contract.fromArtifact("PolicyStoreLib");
 
-describe("trusted administrator registry", () => {
+const RevocationLib = contract.fromArtifact("RevocationLib");
+const RevocationStoreLib = contract.fromArtifact("RevocationStoreLib");
+
+const AuthLib = contract.fromArtifact("AuthLib");
+const AuthStoreLib = contract.fromArtifact("AuthStoreLib");
+
+const AppLib = contract.fromArtifact("AppLib");
+const AppStoreLib = contract.fromArtifact("AppStoreLib");
+
+const AdminLib = contract.fromArtifact("AdminLib");
+const AdminStoreLib = contract.fromArtifact("AdminStoreLib");
+const AttributeStoreLib = contract.fromArtifact("AttributeStoreLib");
+
+describe("trusted application registry", () => {
+  let implV0;
+  let acc1;
+  beforeEach(async () => {
+    [acc1] = accounts;
+    const paginationLib = await Pagination.new();
+    await AdminLib.detectNetwork();
+    await AdminLib.link("Pagination", paginationLib.address);
+    const adminLib = await AdminLib.new();
+    const adminStoreLib = await AdminStoreLib.new();
+    const attributeStoreLib = await AttributeStoreLib.new();
+    await PolicyLib.detectNetwork();
+    await PolicyLib.link("Pagination", paginationLib.address);
+    const policyLib = await PolicyLib.new();
+    const policyStoreLib = await PolicyStoreLib.new();
+    await AuthLib.detectNetwork();
+    await AuthLib.link("Pagination", paginationLib.address);
+    const authLib = await AuthLib.new();
+    const authStoreLib = await AuthStoreLib.new();
+
+    await RevocationLib.detectNetwork();
+    const revocationLib = await RevocationLib.new();
+    const revocationStoreLib = await RevocationStoreLib.new();
+
+    await AppLib.detectNetwork();
+    await AppLib.link("Pagination", paginationLib.address);
+    const appLib = await AppLib.new();
+    const appStoreLib = await AppStoreLib.new();
+    await Tar.detectNetwork();
+
+    await Tar.link("RevocationLib", revocationLib.address);
+    await Tar.link("RevocationStoreLib", revocationStoreLib.address);
+    await Tar.link("AuthLib", authLib.address);
+    await Tar.link("AuthStoreLib", authStoreLib.address);
+    await Tar.link("AppLib", appLib.address);
+    await Tar.link("AppStoreLib", appStoreLib.address);
+    await Tar.link("PolicyLib", policyLib.address);
+    await Tar.link("PolicyStoreLib", policyStoreLib.address);
+    await Tar.link("AdminLib", adminLib.address);
+    await Tar.link("AdminStoreLib", adminStoreLib.address);
+    await Tar.link("AttributeStoreLib", attributeStoreLib.address);
+    implV0 = await Tar.new({ from: acc1 });
+  });
   describe("administrator CRUD", () => {
     describe("get administrator", () => {
       it("should revert for an unknown did", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         // insert did and attribute1v0
         const attribute1v0 =
@@ -34,16 +86,11 @@ describe("trusted administrator registry", () => {
           implV0.getAdministrator.call("notexistingdid", {
             from: acc1,
           }),
-          "administrator does not exist"
+          "admin unknown"
         );
       });
       it("should return all the latest hashes", async () => {
         expect.assertions(4);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         // insert did and attribute1v0
         const attribute1v0 =
@@ -155,11 +202,6 @@ describe("trusted administrator registry", () => {
       });
       it("attributeHistory should return all the version hashes for an attribute", async () => {
         expect.assertions(6);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         // insert did and attribute1v0
         const attribute1v0 =
@@ -313,11 +355,7 @@ describe("trusted administrator registry", () => {
       });
       it("attributeRevisions should revert for an unknown hash", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
+
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         // insert did and attribute1v0
         const attribute1v0 =
@@ -337,16 +375,11 @@ describe("trusted administrator registry", () => {
               from: acc1,
             }
           ),
-          "attribute has not been found"
+          "attr unknown"
         );
       });
       it("attributebyHash should revert for an unknown hash", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         // insert did and attribute1v0
         const attribute1v0 =
@@ -364,16 +397,11 @@ describe("trusted administrator registry", () => {
               from: acc1,
             }
           ),
-          "attribute has not been found"
+          "attr unknown"
         );
       });
       it("attributebyHash should return the attribute data and the did", async () => {
         expect.assertions(5);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         // insert did and attribute1v0
         const attribute1v0 =
@@ -514,12 +542,6 @@ describe("trusted administrator registry", () => {
       );
       it("should failed with wrong page size", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = `didi`;
         const firstinputdata = web3.utils.hexToBytes(
           web3.utils.toHex("data-update-0")
@@ -553,7 +575,7 @@ describe("trusted administrator registry", () => {
               from: acc1,
             }
           ),
-          "PageSize must be > 0"
+          "PSize not >0"
         );
         // page  = 0 should revert
         await expectRevert(
@@ -565,7 +587,7 @@ describe("trusted administrator registry", () => {
               from: acc1,
             }
           ),
-          "Page must be > 0"
+          "Page not >0"
         );
 
         // pagesize > 50 should revert
@@ -578,16 +600,11 @@ describe("trusted administrator registry", () => {
               from: acc1,
             }
           ),
-          "PageSize must be <= 50"
+          "PSize not <= 50"
         );
       });
       it("should work", async () => {
         expect.assertions(18);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = `didi`;
         const firstinputdata = web3.utils.hexToBytes(
           web3.utils.toHex("data-update-0")
@@ -669,11 +686,6 @@ describe("trusted administrator registry", () => {
     describe("insert", () => {
       it("should work", async () => {
         expect.assertions(1);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -706,11 +718,6 @@ describe("trusted administrator registry", () => {
       });
       it("for two did should fail if it is the same attribute for both", async () => {
         expect.assertions(1);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did1 = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const did1Hash = ethers.utils.sha256(web3.utils.toHex(did1));
 
@@ -748,16 +755,11 @@ describe("trusted administrator registry", () => {
           implV0.insertAdministrator(did2, inputdata, {
             from: acc1,
           }),
-          "attribute is already stored"
+          "attr exist"
         );
       });
       it("for two did", async () => {
         expect.assertions(2);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did1 = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const did1Hash = ethers.utils.sha256(web3.utils.toHex(did1));
 
@@ -820,11 +822,6 @@ describe("trusted administrator registry", () => {
       });
       it("should fail if attribute exists", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
@@ -849,7 +846,7 @@ describe("trusted administrator registry", () => {
           implV0.insertAdministrator(did, inputdata, {
             from: acc1,
           }),
-          "administrator already exist"
+          "admin exist"
         );
       });
     });
@@ -857,13 +854,6 @@ describe("trusted administrator registry", () => {
       const resAttributeHash = [...Array(11).keys()].map((i) => i.toString());
       it("should failed with wrong page size", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
-
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
@@ -880,14 +870,14 @@ describe("trusted administrator registry", () => {
           implV0.getAdministrators.call(1, 0, {
             from: acc1,
           }),
-          "PageSize must be > 0"
+          "PSize not >0"
         );
         // page  = 0 should revert
         await expectRevert(
           implV0.getAdministrators.call(0, 10, {
             from: acc1,
           }),
-          "Page must be > 0"
+          "Page not >0"
         );
 
         // pagesize > 50 should revert
@@ -895,18 +885,11 @@ describe("trusted administrator registry", () => {
           implV0.getAdministrators.call(1, 52, {
             from: acc1,
           }),
-          "PageSize must be <= 50"
+          "PSize not <= 50"
         );
       });
       it("should work with page==X and pagesize eq total", async () => {
-        expect.assertions(12);
-        const [acc1] = accounts;
-
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
-
+        expect.assertions(18);
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
@@ -917,6 +900,20 @@ describe("trusted administrator registry", () => {
             from: acc1,
           });
         }
+
+        // page = 1 and pagesize1
+        const r0 = await implV0.getAdministrators.call(1, 1, {
+          from: acc1,
+        });
+        expect(r0.items).toHaveLength(1);
+        expect(r0).toMatchObject({
+          items: resAttributeHash.slice(0, 1),
+        });
+        expect(r0.total.toString()).toStrictEqual("11");
+        expect(r0.howMany.toString()).toStrictEqual("1");
+        expect(r0.prev.toString()).toStrictEqual("1");
+        expect(r0.next.toString()).toStrictEqual("2");
+
         // page = 1 and pagesize is equal to the total
         const r = await implV0.getAdministrators.call(1, 11, {
           from: acc1,
@@ -946,11 +943,6 @@ describe("trusted administrator registry", () => {
     describe("update", () => {
       it("should work", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -989,13 +981,8 @@ describe("trusted administrator registry", () => {
           attributesCount: new BN(1),
         });
       });
-      it("should fail if administrator does not exists", async () => {
+      it("should fail if admin unknowns", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const data = ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
         const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
@@ -1006,16 +993,11 @@ describe("trusted administrator registry", () => {
           implV0.methods["updateAdministrator(string,bytes)"](did, inputdata, {
             from: acc1,
           }),
-          "administrator does not exist"
+          "admin unknown"
         );
       });
       it("should fail if lastversHash is incorrect", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -1064,16 +1046,11 @@ describe("trusted administrator registry", () => {
               from: acc1,
             }
           ),
-          "lastVersHash is not link to DID"
+          "lastVers != DID"
         );
       });
       it("should fail if attribute exists", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -1102,16 +1079,11 @@ describe("trusted administrator registry", () => {
               from: acc1,
             }
           ),
-          "attribute is already stored"
+          "attr exist"
         );
       });
       it("should fail if attribute is new", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -1143,16 +1115,11 @@ describe("trusted administrator registry", () => {
               from: acc1,
             }
           ),
-          "lastVersHash is not link to DID"
+          "lastVers != DID"
         );
       });
       it("two different attributes should fail if the second version attribute is already a version of another attribute", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -1236,7 +1203,7 @@ describe("trusted administrator registry", () => {
               from: acc1,
             }
           ),
-          "attribute is already stored"
+          "attr exist"
         );
         // same data than attr1 v1
         const attr2InputNewData2 = web3.utils.hexToBytes(
@@ -1251,16 +1218,11 @@ describe("trusted administrator registry", () => {
               from: acc1,
             }
           ),
-          "attribute is already stored"
+          "attr exist"
         );
       });
       it("two different attributes", async () => {
         expect.assertions(3);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -1412,11 +1374,6 @@ describe("trusted administrator registry", () => {
       });
       it("two different attributes for two did", async () => {
         expect.assertions(4);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 

@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.7.0;
+pragma solidity ^0.7.5;
 
 contract TarStorage {
     // The state variables we care about.
-    bytes32 public constant TAR_DIAMOND_STORAGE_POSITION = keccak256(
-        "diamond.standard.tar.storage"
-    );
+    bytes32 public constant TAR_DIAMOND_STORAGE_POSITION =
+        keccak256("diamond.standard.tar.storage");
 
     struct Tar {
         uint256 _version;

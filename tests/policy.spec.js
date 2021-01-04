@@ -2,23 +2,74 @@ const {
   expectRevert,
   expectEvent, // Assertions for emitted events
 } = require("@openzeppelin/test-helpers");
-const {accounts, contract, web3} = require("@openzeppelin/test-environment");
+const { accounts, contract, web3 } = require("@openzeppelin/test-environment");
 
-const {ethers} = require("ethers");
+const { ethers } = require("ethers");
 
 const Tar = contract.fromArtifact("Tar");
 const Pagination = contract.fromArtifact("Pagination");
+const PolicyLib = contract.fromArtifact("PolicyLib");
+const PolicyStoreLib = contract.fromArtifact("PolicyStoreLib");
+
+const AuthLib = contract.fromArtifact("AuthLib");
+const AuthStoreLib = contract.fromArtifact("AuthStoreLib");
+
+const RevocationLib = contract.fromArtifact("RevocationLib");
+const RevocationStoreLib = contract.fromArtifact("RevocationStoreLib");
+
+const AppLib = contract.fromArtifact("AppLib");
+const AppStoreLib = contract.fromArtifact("AppStoreLib");
+
+const AdminLib = contract.fromArtifact("AdminLib");
+const AdminStoreLib = contract.fromArtifact("AdminStoreLib");
+const AttributeStoreLib = contract.fromArtifact("AttributeStoreLib");
 
 describe("trusted policy registry", () => {
+  let implV0;
+  let acc1;
+  beforeEach(async () => {
+    [acc1] = accounts;
+    const paginationLib = await Pagination.new();
+    await AdminLib.detectNetwork();
+    await AdminLib.link("Pagination", paginationLib.address);
+    const adminLib = await AdminLib.new();
+    const adminStoreLib = await AdminStoreLib.new();
+    const attributeStoreLib = await AttributeStoreLib.new();
+    await PolicyLib.detectNetwork();
+    await PolicyLib.link("Pagination", paginationLib.address);
+    const policyLib = await PolicyLib.new();
+    const policyStoreLib = await PolicyStoreLib.new();
+
+    await RevocationLib.detectNetwork();
+    const revocationLib = await RevocationLib.new();
+    const revocationStoreLib = await RevocationStoreLib.new();
+
+    await AuthLib.detectNetwork();
+    await AuthLib.link("Pagination", paginationLib.address);
+    const authLib = await AuthLib.new();
+    const authStoreLib = await AuthStoreLib.new();
+    await AppLib.detectNetwork();
+    await AppLib.link("Pagination", paginationLib.address);
+    const appLib = await AppLib.new();
+    const appStoreLib = await AppStoreLib.new();
+    await Tar.detectNetwork();
+    await Tar.link("RevocationLib", revocationLib.address);
+    await Tar.link("RevocationStoreLib", revocationStoreLib.address);
+    await Tar.link("AuthLib", authLib.address);
+    await Tar.link("AuthStoreLib", authStoreLib.address);
+    await Tar.link("AppLib", appLib.address);
+    await Tar.link("AppStoreLib", appStoreLib.address);
+    await Tar.link("PolicyLib", policyLib.address);
+    await Tar.link("PolicyStoreLib", policyStoreLib.address);
+    await Tar.link("AdminLib", adminLib.address);
+    await Tar.link("AdminStoreLib", adminStoreLib.address);
+    await Tar.link("AttributeStoreLib", attributeStoreLib.address);
+    implV0 = await Tar.new({ from: acc1 });
+  });
   describe("policy CRUD", () => {
     describe("get policy", () => {
       it("should return all the latest data", async () => {
         expect.assertions(18);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const policyId = "policyId:ebsi:1";
         // insert did and attribute1v0
         const attribute1v0 = web3.utils.toHex(
@@ -111,11 +162,6 @@ describe("trusted policy registry", () => {
       );
       it("should failed with wrong page size", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = `didi`;
         const firstinputdata = web3.utils.hexToBytes(
           web3.utils.toHex("data-update-0")
@@ -139,14 +185,14 @@ describe("trusted policy registry", () => {
           implV0.getPolicyRevisions.call(didFirstInputHash, 1, 0, {
             from: acc1,
           }),
-          "PageSize must be > 0"
+          "PSize not >0"
         );
         // pagesize = 0 should revert
         await expectRevert(
           implV0.getPolicyRevisions.call(didFirstInputHash, 0, 10, {
             from: acc1,
           }),
-          "Page must be > 0"
+          "Page not >0"
         );
 
         // pagesize > 50 should revert
@@ -154,16 +200,11 @@ describe("trusted policy registry", () => {
           implV0.getPolicyRevisions.call(didFirstInputHash, 1, 52, {
             from: acc1,
           }),
-          "PageSize must be <= 50"
+          "PSize not <= 50"
         );
       });
       it("should work", async () => {
         expect.assertions(17);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const did = `didi`;
         const firstinputdata = web3.utils.hexToBytes(
           web3.utils.toHex("data-update-0")
@@ -222,11 +263,6 @@ describe("trusted policy registry", () => {
     describe("insert", () => {
       it("should work", async () => {
         expect.assertions(2);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const policyId = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
         const data = web3.utils.toHex(
@@ -252,11 +288,6 @@ describe("trusted policy registry", () => {
       });
       it("for twice the same policyId should fail", async () => {
         expect.assertions(2);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const policyId = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
         const data = web3.utils.toHex(
@@ -289,17 +320,11 @@ describe("trusted policy registry", () => {
           implV0.insertPolicy(policyId, inputdata2, {
             from: acc1,
           }),
-          "policy already exist"
+          "pol exist"
         );
       });
       it("for two policyId", async () => {
         expect.assertions(10);
-
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const policyId = "policyId:ebsi:1";
         // insert did and attribute1v0
         const attribute1v0 = web3.utils.toHex(
@@ -381,12 +406,6 @@ describe("trusted policy registry", () => {
 
       it("should failed with wrong page size", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
-
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
@@ -403,30 +422,25 @@ describe("trusted policy registry", () => {
           implV0.getPolicies.call(1, 0, {
             from: acc1,
           }),
-          "PageSize must be > 0"
+          "PSize not >0"
         );
         // page  = 0 should revert
         await expectRevert(
           implV0.getPolicies.call(0, 2, {
             from: acc1,
           }),
-          "Page must be > 0"
+          "Page not >0"
         );
         // pagesize > 50 should revert
         await expectRevert(
           implV0.getPolicies.call(1, 52, {
             from: acc1,
           }),
-          "PageSize must be <= 50"
+          "PSize not <= 50"
         );
       });
       it("should work with page==X and pagesize less than total", async () => {
         expect.assertions(24);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
@@ -490,12 +504,6 @@ describe("trusted policy registry", () => {
       });
       it("by hash should work or revert if not found", async () => {
         expect.assertions(19);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
-
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
@@ -574,17 +582,11 @@ describe("trusted policy registry", () => {
               from: acc1,
             }
           ),
-          "policy data does not exist"
+          "pol data unknown"
         );
       });
       it("Revisions should work or revert if not found", async () => {
         expect.assertions(11);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
-
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
@@ -639,7 +641,7 @@ describe("trusted policy registry", () => {
           implV0.getPolicyRevisions(`12`, 1, 10, {
             from: acc1,
           }),
-          "policyId does not exist"
+          "pId unknown"
         );
         for (let i = 4; i < 11; i += 1) {
           const did = `${i}`;
@@ -660,11 +662,6 @@ describe("trusted policy registry", () => {
     describe("update", () => {
       it("should work", async () => {
         expect.assertions(10);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const policyId = "policyId:ebsi:1";
         // insert did and attribute1v0
         const attribute1v0 = web3.utils.toHex(
@@ -726,13 +723,8 @@ describe("trusted policy registry", () => {
         expect(res1V1[0]).toStrictEqual(attribute1v1);
         expect(res1V1[1]).toStrictEqual(secondHash);
       });
-      it("should fail if policy does not exists", async () => {
+      it("should fail if pol unknowns", async () => {
         expect.assertions(0);
-        const [acc1] = accounts;
-        const myLibrary = await Pagination.new();
-        await Tar.detectNetwork();
-        await Tar.link("Pagination", myLibrary.address);
-        const implV0 = await Tar.new({from: acc1});
         const policyId = "policyId:ebsi:1";
         const attribute1v0 = web3.utils.toHex(
           ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798"
@@ -742,13 +734,13 @@ describe("trusted policy registry", () => {
           implV0.updatePolicy(policyId, inputdata, {
             from: acc1,
           }),
-          "policy does not exist"
+          "pol unknown"
         );
         await expectRevert(
           implV0.getPolicy.call(policyId, {
             from: acc1,
           }),
-          "policy does not exist"
+          "pol unknown"
         );
       });
     });

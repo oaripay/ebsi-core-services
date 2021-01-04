@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.7.0;
+pragma solidity ^0.7.5;
 pragma experimental ABIEncoderV2;
 
 import "../utils/upgradeability/Initializable.sol";
@@ -26,6 +26,4 @@ contract TarDetailed is Initializable, TarStorage {
         Tar storage ds = tarStorage();
         return ds._version;
     }
-
-    uint256[50] private ______gap;
 }

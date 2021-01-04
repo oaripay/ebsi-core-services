@@ -2,7 +2,7 @@
 
 # Trusted Apps Registry Smart Contract
 
-> Smart Contract to store the trusted Administrators
+> Smart Contract to store the trusted Applications
 
 ## Table of Contents
 
@@ -38,7 +38,7 @@ yarn run build
 
 ## Deploying
 
-Deploy the smart contracts on the ebsi network
+Deploy the smart contracts on the ebsi network. You must be able to reach the ebsi network to run this command.
 you have to specify in the .secret.privatekeys file an hex encoded private key to sign the besu transaction
 
 ```sh
@@ -59,23 +59,44 @@ yarn run test
 
 if you experience some timeout issues try running tests one by one
 
-### test change proxy ownership
-
-- launch ganache with the seed you have specified in the .secret.mnemonic file
-
-```sh
-npx ganache-cli -m "myth like bonus scare over problem client lizard pioneer submit female collect"
-```
-
-- deploy the smart contracts
-
-```sh
-npx truffle migrate  --compile-all  --reset
-```
-
 ## Design
 
 We added a storage contract (see AdministratorStorage.sol) that leverages the storage reference variables from inline assembly. We can then use this contract to get all the information about Administrator. if used through a proxy this will be stored at the proxy contract storage slot and can be retrieved by any smart contract implementation. The data can be retrieved without the need to take extra cautious steps like required when using the unstructured storage pattern.
+
+To avoid (bytecode size limitation)[https://github.com/ethereum/EIPs/blob/master/EIPS/eip-170.md] we have splitted the contracts into libraries. Each library handles a specific scope. Here is the smart contract bytecode size (output from `npx truffle run contract-size`)
+
+| Contract              | Size      |
+| --------------------- | --------- |
+| Address               | 0.08 KiB  |
+| AdminLib              | 7.41 KiB  |
+| AdminStoreLib         | 0.17 KiB  |
+| AdministratorDetailed | 3.22 KiB  |
+| AdministratorStorage  | 0.06 KiB  |
+| AppDetailed           | 5.60 KiB  |
+| AppLib                | 11.38 KiB |
+| AppStorage            | 0.06 KiB  |
+| AppStoreLib           | 0.17 KiB  |
+| AttributeStoreLib     | 0.08 KiB  |
+| AuthLib               | 5.44 KiB  |
+| AuthStoreLib          | 0.17 KiB  |
+| AuthorizationDetailed | 2.87 KiB  |
+| AuthorizationStorage  | 0.06 KiB  |
+| Initializable         | 0.06 KiB  |
+| Migrations            | 0.43 KiB  |
+| Pagination            | 1.61 KiB  |
+| PolicyDetailed        | 2.87 KiB  |
+| PolicyLib             | 5.25 KiB  |
+| PolicyStorage         | 0.06 KiB  |
+| RevocationDetailed    | 1.04 KiB  |
+| PolicyStoreLib        | 0.18 KiB  |
+| RevocationLib         | 1.75 KiB  |
+| RevocationStorage     | 0.06 KiB  |
+| RevocationStoreLib    | 0.17 KiB  |
+| Roles                 | 0.08 KiB  |
+| SafeMath              | 0.08 KiB  |
+| Tar                   | 11.16 K…  |
+| TarDetailed           | 0.68 KiB  |
+| TarStorage            | 0.16 KiB  |
 
 ### Attributes versioning
 
@@ -92,6 +113,14 @@ To add a new attribute to the administrator we will call the `updateAdministrato
 
 The `insertAdministrator()` method will make sure that the administrator DID and attribute is not known by the Smart Contract otherwise it will throw an error.
 
+## Version
+
+`npx truffle version`
+Truffle v5.1.50 (core: 5.1.50)
+Solidity - ^0.7.0 (solc-js)
+Node v12.18.4
+Web3.js v1.2.9
+
 ## Licensing
 
 Copyright (c) 2019 European Commission  
@@ -102,11 +131,3 @@ You may obtain a copy of the Licence at:
 - https://joinup.ec.europa.eu/page/eupl-text-11-12
 
 Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.
-
-## Version
-
-`npx truffle version`
-Truffle v5.1.50 (core: 5.1.50)
-Solidity - ^0.7.0 (solc-js)
-Node v12.18.4
-Web3.js v1.2.9

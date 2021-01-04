@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.7.0;
+pragma solidity ^0.7.5;
 
 // see: https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Address.sol
 
@@ -30,9 +30,8 @@ library Address {
         // for accounts without code, i.e. `keccak256('')`
         bytes32 codehash;
 
-
-            bytes32 accountHash
-         = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
+        bytes32 accountHash =
+            0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
         // solhint-disable-next-line no-inline-assembly
         assembly {
             codehash := extcodehash(account)

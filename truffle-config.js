@@ -89,7 +89,7 @@ module.exports = {
         // See the solidity docs for advice about optimization and evmVersion
         optimizer: {
           enabled: true,
-          runs: 2000,
+          runs: 1,
         },
         //  evmVersion: "byzantium"
       },
@@ -103,5 +103,5 @@ module.exports = {
     },
   },
   test_directory: "tests",
-  plugins: ["solidity-coverage"],
+  plugins: ["solidity-coverage", "truffle-contract-size"],
 };
