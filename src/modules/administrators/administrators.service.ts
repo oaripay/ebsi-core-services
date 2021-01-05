@@ -31,7 +31,21 @@ export default class AdministratorsService {
     return this.tarContract.getAdministrators(page, pageSize);
   }
 
-  async getAttribute(attributeId: string): Promise<AttributeObject> {
+  async getAttribute(
+    attributeId: string,
+    adminDid?: string
+  ): Promise<AttributeObject> {
+    // If `adminDid` is passed, make sure the admin exists
+    if (adminDid) {
+      try {
+        await this.tarContract.getAdministrator(adminDid);
+      } catch (e) {
+        throw new NotFoundError("Administrator Not Found", {
+          detail: `Administrator ${adminDid} not found`,
+        });
+      }
+    }
+
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
 
@@ -44,6 +58,13 @@ export default class AdministratorsService {
         hash
       );
     } catch (e) {
+      throw new NotFoundError("Attribute Not Found", {
+        detail: `Attribute ${hash} not found`,
+      });
+    }
+
+    // If `adminDid` is passed, make sure the attribute belongs to the given administrator
+    if (adminDid && attributeByHash.did !== adminDid) {
       throw new NotFoundError("Attribute Not Found", {
         detail: `Attribute ${hash} not found`,
       });

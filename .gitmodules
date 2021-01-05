@@ -1,4 +1,4 @@
 [submodule "submodules/trusted-apps-registry-ethereum-sc"]
 	path = submodules/trusted-apps-registry-ethereum-sc
 	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-apps-registry-ethereum-sc.git
-	branch = feat/EBSIINT-TAR-SC
+	branch = develop

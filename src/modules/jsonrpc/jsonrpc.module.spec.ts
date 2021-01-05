@@ -207,8 +207,8 @@ describe("JsonRpc Module", () => {
     const data = Buffer.from(
       JSON.stringify({
         "@context": {
-          name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
-          description: "http://tir-api-test.org/description",
+          name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
+          description: "http://tar-api-test.org/description",
         },
         name: "alice",
       })
