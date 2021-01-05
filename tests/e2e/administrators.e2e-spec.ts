@@ -334,6 +334,49 @@ describe("Administrators (e2e)", () => {
     });
   });
 
+  describe("/administrators/{did}/attributes/{attributeId}/revisions", () => {
+    it("should return revisions", async () => {
+      expect.assertions(4);
+
+      const administrators: SupertestAdministratorsResponse = await request(
+        server
+      ).get("/administrators");
+
+      expect(administrators.status).toBe(200);
+
+      const { did }: DidLink = administrators.body.items[
+        administrators.body.items.length - 1
+      ];
+
+      const administratorResponse: SupertestAdministratorResponse = await request(
+        server
+      ).get(`/administrators/${did}`);
+
+      expect(administratorResponse.status).toBe(200);
+
+      const attributeId = administratorResponse.body.attributes[0].hash;
+      const urlPath = `/administrators/${did}/attributes/${attributeId}/revisions`;
+
+      const response = await request(server).get(
+        `/administrators/${did}/attributes/${attributeId}/revisions`
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(urlPath) as string,
+        items: expect.arrayContaining([]) as AttributeObject[],
+        total: expect.any(Number) as number,
+        pageSize: expect.any(Number) as number,
+        links: {
+          first: expect.stringContaining(urlPath) as string,
+          prev: expect.stringContaining(urlPath) as string,
+          next: expect.stringContaining(urlPath) as string,
+          last: expect.stringContaining(urlPath) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
   describe.each([
     "insertAdministrator",
     "updateAdministrator",

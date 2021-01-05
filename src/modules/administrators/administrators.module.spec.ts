@@ -13,6 +13,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { AdministratorsModule } from "./administrators.module";
+import { AttributeObject } from "./administrators.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Tar__factory } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tar";
@@ -472,6 +473,278 @@ describe("Administrators Module", () => {
         type: "about:blank",
       });
       expect(response3.status).toBe(404);
+    });
+  });
+
+  describe("GET /administrators/{did}/attributes/{attributeId}/revisions", () => {
+    it("should return the revisions of a specific attribute", async () => {
+      expect.assertions(3);
+
+      const { administrators } = testEnv;
+      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+
+      const data = Buffer.from(
+        JSON.stringify({
+          "@context": {
+            name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
+            description: "http://tar-api-test.org/description",
+          },
+          name: `test-${adminDid}`,
+        })
+      );
+
+      const dataHash = ethers.utils.sha256(data);
+
+      const urlPath = `/administrators/${adminDid}/attributes/${dataHash}/revisions`;
+
+      const response = await request(server).get(urlPath);
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `${urlPath}?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([]) as AttributeObject[],
+        total: 1,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect((response.body as { items: string }).items).toHaveLength(1);
+      expect(response.status).toBe(200);
+    });
+
+    it("should handle the pagination properly", async () => {
+      expect.assertions(12);
+
+      const { administrators } = testEnv;
+      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+
+      const data = Buffer.from(
+        JSON.stringify({
+          "@context": {
+            name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
+            description: "http://tar-api-test.org/description",
+          },
+          name: `test-${adminDid}`,
+        })
+      );
+
+      const dataHash = ethers.utils.sha256(data);
+
+      const urlPath = `/administrators/${adminDid}/attributes/${dataHash}/revisions`;
+
+      const response1 = await request(server).get(
+        `/administrators/${adminDid}/attributes/${dataHash}/revisions?page[size]=3`
+      );
+
+      expect(response1.body).toStrictEqual({
+        self: expect.stringContaining(urlPath) as string,
+        items: expect.arrayContaining([]) as AttributeObject[],
+        total: 1,
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=3`
+          ) as string,
+          prev: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=3`
+          ) as string,
+          next: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=3`
+          ) as string,
+          last: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=3`
+          ) as string,
+        },
+      });
+      expect((response1.body as { items: string }).items).toHaveLength(1);
+      expect(response1.status).toBe(200);
+
+      // next page
+      const response2 = await request(server).get(
+        `/administrators/${adminDid}/attributes/${dataHash}/revisions?page[after]=2&page[size]=3`
+      );
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining(urlPath) as string,
+        items: expect.arrayContaining([]) as AttributeObject[],
+        total: 1,
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=3`
+          ) as string,
+          prev: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=3`
+          ) as string,
+          next: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=3`
+          ) as string,
+          last: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=3`
+          ) as string,
+        },
+      });
+      expect((response2.body as { items: string }).items).toHaveLength(0);
+      expect(response2.status).toBe(200);
+
+      // big page
+      const response3 = await request(server).get(
+        `/administrators/${adminDid}/attributes/${dataHash}/revisions?page[after]=100&page[size]=3`
+      );
+      expect(response3.body).toStrictEqual({
+        self: expect.stringContaining(urlPath) as string,
+        items: expect.arrayContaining([]) as AttributeObject[],
+        total: 1,
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=3`
+          ) as string,
+          prev: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=3`
+          ) as string,
+          next: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=3`
+          ) as string,
+          last: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=3`
+          ) as string,
+        },
+      });
+      expect((response3.body as { items: string }).items).toHaveLength(0);
+      expect(response3.status).toBe(200);
+
+      // page after defined but page size undefined
+      const response4 = await request(server).get(
+        `/administrators/${adminDid}/attributes/${dataHash}/revisions?page[after]=1`
+      );
+      expect(response4.body).toStrictEqual({
+        self: expect.stringContaining(urlPath) as string,
+        items: expect.arrayContaining([]) as AttributeObject[],
+        total: 1,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `${urlPath}?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect((response4.body as { items: string }).items).toHaveLength(1);
+      expect(response4.status).toBe(200);
+    });
+
+    it("should throw an error if the administrator is not found", async () => {
+      expect.assertions(2);
+
+      const { administrators } = testEnv;
+      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+
+      const data = Buffer.from(
+        JSON.stringify({
+          "@context": {
+            name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
+            description: "http://tar-api-test.org/description",
+          },
+          name: `test-${adminDid}`,
+        })
+      );
+
+      const dataHash = ethers.utils.sha256(data);
+
+      const response = await request(server).get(
+        `/administrators/unknown-admin/attributes/${dataHash}/revisions`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Administrator Not Found",
+        status: 404,
+        detail: "Administrator unknown-admin not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw an error if the attribute is not found", async () => {
+      expect.assertions(2);
+
+      const { administrators } = testEnv;
+      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+
+      const response = await request(server).get(
+        `/administrators/${adminDid}/attributes/wrong-hash/revisions`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Attribute Not Found",
+        status: 404,
+        detail: "Attribute 0xwrong-hash not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw Bad Request for bad pagination parameters", async () => {
+      expect.assertions(4);
+
+      const { administrators } = testEnv;
+      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+
+      const data = Buffer.from(
+        JSON.stringify({
+          "@context": {
+            name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
+            description: "http://tar-api-test.org/description",
+          },
+          name: `test-${adminDid}`,
+        })
+      );
+
+      const dataHash = ethers.utils.sha256(data);
+
+      const response1 = await request(server).get(
+        `/administrators/${adminDid}/attributes/${dataHash}/revisions?page[size]=100`
+      );
+
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be greater than 50"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server).get(
+        `/administrators/${adminDid}/attributes/${dataHash}/revisions?page[size]=0`
+      );
+
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
     });
   });
 });
