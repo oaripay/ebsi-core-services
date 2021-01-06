@@ -31,7 +31,7 @@ describe("Administrators Module", () => {
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv({
-      administrators: ADMINISTRATORS_TOTAL,
+      administratorsTotal: ADMINISTRATORS_TOTAL,
     });
     const { tarContract } = testEnv;
 
