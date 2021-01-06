@@ -303,6 +303,7 @@ describe("JsonRpc Module", () => {
 
   // Tests to be repeated for every method
   describe.each([
+    "insertApp",
     "insertAdministrator",
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
@@ -316,34 +317,60 @@ describe("JsonRpc Module", () => {
       const { did } = adminV1;
       let attribute: AttributeObject;
       let prevAttributeHash: string = null;
+      let param: {
+        from: string;
+        [x: string]: unknown;
+      } = null;
+
+      const signer = administrators[0];
 
       switch (method) {
+        case "insertApp":
+          // insert a new app
+          param = {
+            from: signer.address,
+            name: "App1",
+            domain: "ebsi",
+            appAdministrator: "did:ebsi:0x001F",
+            publicKey: "this is a public key",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          };
+          break;
         case "insertAdministrator":
           // create a new administrator and add attribute1
           attribute = adminV1.attribute;
+          param = {
+            attribute,
+            did: did.toLowerCase(),
+            from: signer.address,
+          };
           break;
         case "updateAdministrator":
           if (updateAttribute) {
             // update attribute1: change it to attribute3
             attribute = adminV3.attribute;
             prevAttributeHash = adminV1.attribute.hash;
+            param = {
+              attribute,
+              did: did.toLowerCase(),
+              from: signer.address,
+              prevAttributeHash,
+            };
           } else {
             // updateIssuer: add attribute2
             attribute = adminV2.attribute;
+            param = {
+              attribute,
+              did: did.toLowerCase(),
+              from: signer.address,
+            };
           }
           break;
         default:
           break;
       }
-
-      const signer = administrators[0];
-
-      const param = {
-        attribute,
-        did: did.toLowerCase(),
-        from: signer.address,
-        ...(prevAttributeHash && { prevAttributeHash }),
-      };
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -409,11 +436,35 @@ describe("JsonRpc Module", () => {
       const { attribute, did } = adminV1;
       const signer = administrators[0];
 
-      const param = {
-        attribute,
-        did,
-        from: signer.address,
-      };
+      let param: {
+        from: string;
+        [x: string]: unknown;
+      } = null;
+
+      switch (method) {
+        case "insertApp":
+          param = {
+            from: signer.address,
+            name: "App1",
+            domain: "ebsi",
+            appAdministrator: "did:ebsi:0x001F",
+            publicKey: "this is a public key",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          };
+          break;
+        case "insertAdministrator":
+        case "updateAdministrator":
+          param = {
+            attribute,
+            did,
+            from: signer.address,
+          };
+          break;
+        default:
+          break;
+      }
 
       const responseBuild = await request(server)
         .post("/jsonrpc")
@@ -437,34 +488,85 @@ describe("JsonRpc Module", () => {
 
       const signer = administrators[0];
 
-      const param1 = {
-        ...adminV1,
-        from: signer.address,
-      };
-      const param2 = {
-        ...adminV2,
-        from: signer.address,
-      };
-      const param3 = {
-        ...adminV3,
-        from: signer.address,
-      };
+      let param1: {
+        from: string;
+        [x: string]: unknown;
+      } = null;
+
+      let param2: {
+        from: string;
+        [x: string]: unknown;
+      } = null;
+
+      let param3: {
+        from: string;
+        [x: string]: unknown;
+      } = null;
 
       let expectedErrorMessage1;
       let expectedErrorMessage2;
       let expectedErrorMessage3;
       switch (method) {
+        case "insertApp":
+          param1 = {
+            from: signer.address,
+            domain: "ebsi",
+            appAdministrator: "did:ebsi:0x001F",
+            publicKey: "this is a public key",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          };
+
+          param2 = {
+            from: signer.address,
+            name: "App1",
+            domain: "unknown domain",
+            appAdministrator: "did:ebsi:0x001F",
+            publicKey: "this is a public key",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          };
+
+          param3 = {
+            from: signer.address,
+            name: "App1",
+            domain: "ebsi",
+            appAdministrator: "did:ebsi:0x001F",
+            publicKey: "this is a public key",
+            status: "active",
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          };
+
+          expectedErrorMessage1 =
+            "property params[0].name has failed the following constraints: isString";
+          expectedErrorMessage2 =
+            "property params[0].domain has failed the following constraints: isEnum";
+          expectedErrorMessage3 =
+            "property params[0].notBefore has failed the following constraints: isInt";
+
+          break;
         case "insertAdministrator":
         case "updateAdministrator":
-          delete param1.attribute;
+          param1 = {
+            from: signer.address,
+            did: adminV1.did,
+          };
           expectedErrorMessage1 =
             "property params[0].attribute has failed the following constraints: isObject";
 
-          delete param2.did;
+          param2 = {
+            from: signer.address,
+            attribute: adminV1.attribute,
+          };
           expectedErrorMessage2 =
             "property params[0].did has failed the following constraints: isDid";
 
-          param3.from = "bad address";
+          param3 = {
+            ...adminV3,
+            from: "bad address",
+          };
           expectedErrorMessage3 =
             "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
@@ -535,14 +637,46 @@ describe("JsonRpc Module", () => {
 
       const signer = administrators[0];
 
-      const param1 = {
-        ...adminV1,
-        from: signer.address,
-      };
-      const param2 = {
-        ...adminV2,
-        from: signer.address,
-      };
+      let param1;
+      let param2;
+
+      switch (method) {
+        case "insertApp":
+          param1 = {
+            from: signer.address,
+            name: "App1",
+            domain: "ebsi",
+            appAdministrator: "did:ebsi:0x001F",
+            publicKey: "this is a public key",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          };
+          param2 = {
+            from: signer.address,
+            name: "App2",
+            domain: "ebsi",
+            appAdministrator: "did:ebsi:0x001A",
+            publicKey: "this is a public key",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          };
+          break;
+        case "insertAdministrator":
+        case "updateAdministrator":
+          param1 = {
+            ...adminV1,
+            from: signer.address,
+          };
+          param2 = {
+            ...adminV2,
+            from: signer.address,
+          };
+          break;
+        default:
+          break;
+      }
 
       const responseBuild1: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")

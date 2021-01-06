@@ -4,10 +4,12 @@ import { ethers } from "ethers";
 import { Agent, Scope } from "@cef-ebsi/app-jwt";
 import { ConfigService } from "@nestjs/config";
 import {
+  RequestInsertAppDto,
   RequestInsertAdministratorDto,
   RequestSignedTransactionDto,
   RequestUpdateAdministratorDto,
   UnsignedTransaction,
+  ArgsInsertApp,
   ArgsInsertAdministrator,
   ArgsUpdateAdministrator,
   SignedTransactionParam,
@@ -194,6 +196,10 @@ export class JsonRpcService {
     } = this.tarContract.interface.parseTransaction(unsignedTransaction);
 
     switch (functionFragment.name) {
+      case "insertApp": {
+        await validateClass(ArgsInsertApp, args);
+        break;
+      }
       case "insertAdministrator": {
         await validateClass(ArgsInsertAdministrator, args);
         break;
@@ -245,6 +251,55 @@ export class JsonRpcService {
     }
 
     return unsignedTransaction;
+  }
+
+  async buildTransactionInsertApp(
+    body: RequestInsertAppDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertAppDto, body);
+
+      const {
+        from,
+        name,
+        domain,
+        appAdministrator,
+        publicKey,
+        status,
+        notBefore,
+        notAfter,
+      } = body.params[0];
+
+      const domainId = {
+        ebsi: 0,
+        external: 1,
+      }[domain];
+
+      const statusId = {
+        active: 0,
+        revoked: 1,
+        suspended: 2,
+      }[status];
+
+      const bufferPublicKey = Buffer.from(publicKey, "base64");
+
+      const data = this.tarContract.interface.encodeFunctionData("insertApp", [
+        name,
+        domainId,
+        appAdministrator,
+        bufferPublicKey,
+        statusId,
+        notBefore,
+        notAfter,
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
   }
 
   async buildTransactionInsertAdministrator(
