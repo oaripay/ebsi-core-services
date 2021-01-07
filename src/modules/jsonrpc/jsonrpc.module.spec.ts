@@ -57,10 +57,30 @@ describe("JsonRpc Module", () => {
     return { did, attribute };
   };
 
+  function createPolicy() {
+    const policyId = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
+    const json = {
+      // any object here
+      any: "Any attribute here",
+      type: "credential",
+      data: crypto.randomBytes(16).toString("hex"),
+    };
+    const data = Buffer.from(JSON.stringify(json));
+    const policy = data.toString("base64");
+    return {
+      policyId,
+      policy,
+    };
+  }
+
   const newAdminWallet = ethers.Wallet.createRandom();
   const adminV1 = createAdministrator(newAdminWallet);
   const adminV2 = createAdministrator(newAdminWallet);
   const adminV3 = createAdministrator(newAdminWallet);
+
+  const policy1 = createPolicy();
+  const policy2 = createPolicy();
+  const policy3 = createPolicy();
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -307,6 +327,8 @@ describe("JsonRpc Module", () => {
     "insertAdministrator",
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
+    "insertPolicy",
+    "updatePolicy",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
@@ -315,14 +337,12 @@ describe("JsonRpc Module", () => {
       expect.assertions(4);
 
       const { did } = adminV1;
-      let attribute: AttributeObject;
-      let prevAttributeHash: string = null;
+      const signer = administrators[0];
+
       let param: {
         from: string;
         [x: string]: unknown;
       } = null;
-
-      const signer = administrators[0];
 
       switch (method) {
         case "insertApp":
@@ -340,9 +360,8 @@ describe("JsonRpc Module", () => {
           break;
         case "insertAdministrator":
           // create a new administrator and add attribute1
-          attribute = adminV1.attribute;
           param = {
-            attribute,
+            attribute: adminV1.attribute,
             did: did.toLowerCase(),
             from: signer.address,
           };
@@ -350,23 +369,34 @@ describe("JsonRpc Module", () => {
         case "updateAdministrator":
           if (updateAttribute) {
             // update attribute1: change it to attribute3
-            attribute = adminV3.attribute;
-            prevAttributeHash = adminV1.attribute.hash;
             param = {
-              attribute,
+              attribute: adminV3.attribute,
               did: did.toLowerCase(),
               from: signer.address,
-              prevAttributeHash,
+              prevAttributeHash: adminV1.attribute.hash,
             };
           } else {
             // updateIssuer: add attribute2
-            attribute = adminV2.attribute;
             param = {
-              attribute,
+              attribute: adminV2.attribute,
               did: did.toLowerCase(),
               from: signer.address,
             };
           }
+          break;
+        case "insertPolicy":
+          param = {
+            from: signer.address,
+            policyId: policy1.policyId,
+            policy: policy1.policy,
+          };
+          break;
+        case "updatePolicy":
+          param = {
+            from: signer.address,
+            policyId: policy1.policyId,
+            policy: policy2.policy,
+          };
           break;
         default:
           break;
@@ -433,7 +463,6 @@ describe("JsonRpc Module", () => {
 
     it("should accept a request without id", async () => {
       expect.assertions(2);
-      const { attribute, did } = adminV1;
       const signer = administrators[0];
 
       let param: {
@@ -456,10 +485,19 @@ describe("JsonRpc Module", () => {
           break;
         case "insertAdministrator":
         case "updateAdministrator":
+          // create a new administrator and add attribute1
           param = {
-            attribute,
-            did,
+            attribute: adminV1.attribute,
+            did: adminV1.did.toLowerCase(),
             from: signer.address,
+          };
+          break;
+        case "insertPolicy":
+        case "updatePolicy":
+          param = {
+            from: signer.address,
+            policyId: policy1.policyId,
+            policy: policy1.policy,
           };
           break;
         default:
@@ -506,6 +544,7 @@ describe("JsonRpc Module", () => {
       let expectedErrorMessage1;
       let expectedErrorMessage2;
       let expectedErrorMessage3;
+
       switch (method) {
         case "insertApp":
           param1 = {
@@ -550,9 +589,19 @@ describe("JsonRpc Module", () => {
         case "insertAdministrator":
         case "updateAdministrator":
           param1 = {
+            ...adminV1,
             from: signer.address,
-            did: adminV1.did,
           };
+          param2 = {
+            ...adminV2,
+            from: signer.address,
+          };
+          param3 = {
+            ...adminV3,
+            from: signer.address,
+          };
+
+          delete param1.attribute;
           expectedErrorMessage1 =
             "property params[0].attribute has failed the following constraints: isObject";
 
@@ -567,6 +616,33 @@ describe("JsonRpc Module", () => {
             ...adminV3,
             from: "bad address",
           };
+          expectedErrorMessage3 =
+            "property params[0].from has failed the following constraints: isEthereumAddress";
+          break;
+        case "insertPolicy":
+        case "updatePolicy":
+          param1 = {
+            ...policy1,
+            from: signer.address,
+          };
+          param2 = {
+            ...policy2,
+            from: signer.address,
+          };
+          param3 = {
+            ...policy3,
+            from: signer.address,
+          };
+
+          delete param1.policyId;
+          expectedErrorMessage1 =
+            "property params[0].policyId has failed the following constraints: isString";
+
+          delete param2.policy;
+          expectedErrorMessage2 =
+            "property params[0].policy has failed the following constraints: isBase64";
+
+          param3.from = "bad address";
           expectedErrorMessage3 =
             "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
@@ -637,8 +713,15 @@ describe("JsonRpc Module", () => {
 
       const signer = administrators[0];
 
-      let param1;
-      let param2;
+      let param1: {
+        from: string;
+        [x: string]: unknown;
+      } = null;
+
+      let param2: {
+        from: string;
+        [x: string]: unknown;
+      } = null;
 
       switch (method) {
         case "insertApp":
@@ -674,8 +757,19 @@ describe("JsonRpc Module", () => {
             from: signer.address,
           };
           break;
-        default:
+        case "insertPolicy":
+        case "updatePolicy":
+          param1 = {
+            ...policy1,
+            from: signer.address,
+          };
+          param2 = {
+            ...policy2,
+            from: signer.address,
+          };
           break;
+        default:
+          throw new Error(`Test Error: Invalid method ${method}`);
       }
 
       const responseBuild1: SupertestJsonRpcResponse = await request(server)

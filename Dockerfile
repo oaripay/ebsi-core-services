@@ -1,4 +1,4 @@
-FROM node:14.15.3-alpine3.12@sha256:3fcd65a94320827a74eacd80da24a190f2c3e65ce0f66e4fe7764629f11afde3 as base
+FROM node:14.15.4-alpine3.12@sha256:55bf28ea11b18fd914e1242835ea3299ec76f5a034e8c6e42b2ede70064e338c as base
 WORKDIR /app
 # Some dependencies need git to be installed (see yarn.lock)
 RUN apk add --no-cache --virtual .build-deps git=2.26.2-r0

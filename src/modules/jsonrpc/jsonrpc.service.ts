@@ -8,10 +8,14 @@ import {
   RequestInsertAdministratorDto,
   RequestSignedTransactionDto,
   RequestUpdateAdministratorDto,
+  RequestInsertPolicyDto,
+  RequestUpdatePolicyDto,
   UnsignedTransaction,
   ArgsInsertApp,
   ArgsInsertAdministrator,
   ArgsUpdateAdministrator,
+  ArgsInsertPolicy,
+  ArgsUpdatePolicy,
   SignedTransactionParam,
 } from "./dto";
 import {
@@ -208,6 +212,14 @@ export class JsonRpcService {
         await validateClass(ArgsUpdateAdministrator, args);
         break;
       }
+      case "insertPolicy": {
+        await validateClass(ArgsInsertPolicy, args);
+        break;
+      }
+      case "updatePolicy": {
+        await validateClass(ArgsUpdatePolicy, args);
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -364,6 +376,48 @@ export class JsonRpcService {
       );
 
       return await this.buildTransaction(from, encodedData);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertPolicy(
+    body: RequestInsertPolicyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertPolicyDto, body);
+      const { from, policy, policyId } = body.params[0];
+      const bufferPolicy = Buffer.from(policy, "base64");
+
+      const data = this.tarContract.interface.encodeFunctionData(
+        "insertPolicy",
+        [policyId, bufferPolicy]
+      );
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdatePolicy(
+    body: RequestUpdatePolicyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdatePolicyDto, body);
+      const { from, policy, policyId } = body.params[0];
+      const bufferPolicy = Buffer.from(policy, "base64");
+
+      const data = this.tarContract.interface.encodeFunctionData(
+        "updatePolicy",
+        [policyId, bufferPolicy]
+      );
+      return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;
