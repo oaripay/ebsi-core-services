@@ -43,6 +43,11 @@ interface SupertestPolicyResponse {
   body: PolicyResponseObject;
 }
 
+interface SupertestRevisionsResponse {
+  status: number;
+  body: PaginatedList<PolicyResponseObject>;
+}
+
 jest.setTimeout(60000);
 
 describe("Policies (e2e)", () => {
@@ -159,6 +164,82 @@ describe("Policies (e2e)", () => {
     it("should throw an error if the policy is not found", async () => {
       expect.assertions(2);
       const response = await request(server).get("/policies/unknown-policy");
+      expect(response.body).toStrictEqual({
+        title: "Policy Not Found",
+        status: 404,
+        detail: "Policy unknown-policy not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+  });
+
+  describe("/policies/{policyId}/revisions", () => {
+    it("should return a paginated list of revisions", async () => {
+      expect.assertions(3);
+      const policiesResponse: SupertestPoliciesResponse = await request(
+        server
+      ).get("/policies");
+
+      expect(policiesResponse.status).toBe(200);
+      const { policyId }: PolicyLink = policiesResponse.body.items[
+        policiesResponse.body.items.length - 1
+      ];
+
+      const response: SupertestRevisionsResponse = await request(server).get(
+        `/policies/${encodeURIComponent(policyId)}/revisions`
+      );
+
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          self: expect.stringContaining(
+            `/trusted-apps-registry/v2/policies/${encodeURIComponent(
+              policyId
+            )}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          items: expect.arrayContaining([
+            expect.objectContaining({
+              policyId: expect.any(String) as string,
+              policy: expect.any(String) as string,
+              hash: expect.any(String) as string,
+            }),
+          ]) as string[],
+          total: expect.any(Number) as number,
+          pageSize: expect.any(Number) as number,
+          links: expect.objectContaining({
+            first: expect.stringContaining(
+              `/trusted-apps-registry/v2/policies/${encodeURIComponent(
+                policyId
+              )}/revisions?page[after]=1&page[size]=10`
+            ) as string,
+            prev: expect.stringContaining(
+              `/trusted-apps-registry/v2/policies/${encodeURIComponent(
+                policyId
+              )}/revisions?page[after]=1&page[size]=10`
+            ) as string,
+            next: expect.stringContaining(
+              `/trusted-apps-registry/v2/policies/${encodeURIComponent(
+                policyId
+              )}/revisions?page[after]=`
+            ) as string,
+            last: expect.stringContaining(
+              `/trusted-apps-registry/v2/policies/${encodeURIComponent(
+                policyId
+              )}/revisions?page[after]=`
+            ) as string,
+          }) as PaginatedList<PolicyLink>["links"],
+        })
+      );
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the policy is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        "/policies/unknown-policy/revisions"
+      );
+
       expect(response.body).toStrictEqual({
         title: "Policy Not Found",
         status: 404,

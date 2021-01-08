@@ -1,6 +1,8 @@
 import crypto from "crypto";
 import { ethers } from "ethers";
 import ganache from "ganache-core";
+import { range } from "rxjs";
+import { mergeMap, toArray } from "rxjs/operators";
 import {
   Tar,
   Tar__factory,
@@ -111,21 +113,43 @@ export async function insertPolicy(contract: Tar): Promise<PolicyObject> {
   return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
 }
 
+export async function updatePolicy(
+  contract: Tar,
+  policyId: string
+): Promise<PolicyObject> {
+  const policyData = {
+    // any object here
+    any: "Any attribute here",
+    type: "credential",
+    data: crypto.randomBytes(16).toString("hex"),
+  };
+
+  const policyBuffer = Buffer.from(JSON.stringify(policyData));
+  const policyHash = ethers.utils.sha256(policyBuffer);
+
+  await contract.updatePolicy(policyId, policyBuffer);
+
+  return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
+}
+
 export interface SetupOptions {
   administratorsTotal?: number;
   policiesTotal?: number;
+  policiesRevisionsTotal?: number;
 }
 
 export async function setupTestEnv(
   opts: SetupOptions = {
     administratorsTotal: 1,
     policiesTotal: 0,
+    policiesRevisionsTotal: 1,
   }
 ): Promise<{
   provider: ethers.providers.Web3Provider;
   tarContract: Tar;
   administrators: ethers.Wallet[];
   policies: PolicyObject[];
+  policyRevisions: { [x: string]: PolicyObject[] };
 }> {
   const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
 
@@ -135,23 +159,45 @@ export async function setupTestEnv(
   // Insert fake data
 
   // Create as many admins as requested
-  const administrators = await Promise.all(
-    Array(opts.administratorsTotal)
-      .fill("")
-      .map(async () => {
-        // Create random wallet and connect it so we can use it later to send transactions
-        const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
-        await insertAdmin(tarContract, wallet.address);
-        return wallet;
-      })
-  );
+  const createAdminWallet = async () => {
+    // Create random wallet and connect it so we can use it later to send transactions
+    const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
+    await insertAdmin(tarContract, wallet.address);
+    return wallet;
+  };
+
+  const administrators = await range(0, opts.administratorsTotal)
+    .pipe(mergeMap(createAdminWallet), toArray())
+    .toPromise();
+
+  const policyRevisions = {};
 
   // Create as many policies as requested
-  const policies = await Promise.all(
-    Array(opts.policiesTotal)
-      .fill("")
-      .map(async () => insertPolicy(tarContract))
-  );
+  const createPolicy = async () => {
+    const policy = await insertPolicy(tarContract);
+
+    const createRevision = async () =>
+      updatePolicy(tarContract, policy.policyId);
+
+    // For each policy, add revisions
+    policyRevisions[policy.policyId] = [
+      // The first revision is the policy itself
+      policy,
+      // Then, we add new revisions
+      ...(await range(0, opts.policiesRevisionsTotal - 1)
+        .pipe(mergeMap(createRevision), toArray())
+        .toPromise()),
+    ];
+
+    return policy;
+  };
+
+  const policies =
+    opts.policiesRevisionsTotal >= 1
+      ? await range(0, opts.policiesTotal)
+          .pipe(mergeMap(createPolicy), toArray())
+          .toPromise()
+      : [];
 
   // Return test env variables
   return {
@@ -159,5 +205,6 @@ export async function setupTestEnv(
     tarContract,
     administrators,
     policies,
+    policyRevisions,
   };
 }

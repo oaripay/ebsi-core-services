@@ -18,9 +18,10 @@ import { Tar__factory } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
-const POLICIES_TOTAL = 25;
+const POLICIES_TOTAL = 12;
+const POLICIES_REVISIONS_TOTAL = 5;
 
 describe("Policies Module", () => {
   let app: INestApplication;
@@ -31,6 +32,7 @@ describe("Policies Module", () => {
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv({
       policiesTotal: POLICIES_TOTAL,
+      policiesRevisionsTotal: POLICIES_REVISIONS_TOTAL,
     });
     const { tarContract } = testEnv;
 
@@ -80,14 +82,21 @@ describe("Policies Module", () => {
             "/policies?page[after]=1&page[size]=10"
           ) as string,
           next: expect.stringContaining(
-            "/policies?page[after]=2&page[size]=10"
+            `/policies?page[after]=${Math.min(
+              Math.ceil(POLICIES_TOTAL / 10),
+              2
+            )}&page[size]=10`
           ) as string,
           last: expect.stringContaining(
-            "/policies?page[after]=3&page[size]=10"
+            `/policies?page[after]=${Math.ceil(
+              POLICIES_TOTAL / 10
+            )}&page[size]=10`
           ) as string,
         },
       });
-      expect((response.body as { items: string }).items).toHaveLength(10);
+      expect((response.body as { items: string }).items).toHaveLength(
+        Math.min(10, POLICIES_TOTAL)
+      );
       expect(response.status).toBe(200);
     });
 
@@ -113,7 +122,7 @@ describe("Policies Module", () => {
             "/policies?page[after]=2&page[size]=3"
           ) as string,
           last: expect.stringContaining(
-            "/policies?page[after]=9&page[size]=3"
+            "/policies?page[after]=4&page[size]=3"
           ) as string,
         },
       });
@@ -140,7 +149,7 @@ describe("Policies Module", () => {
             "/policies?page[after]=3&page[size]=3"
           ) as string,
           last: expect.stringContaining(
-            "/policies?page[after]=9&page[size]=3"
+            "/policies?page[after]=4&page[size]=3"
           ) as string,
         },
       });
@@ -163,13 +172,13 @@ describe("Policies Module", () => {
             "/policies?page[after]=1&page[size]=3"
           ) as string,
           prev: expect.stringContaining(
-            "/policies?page[after]=9&page[size]=3"
+            "/policies?page[after]=4&page[size]=3"
           ) as string,
           next: expect.stringContaining(
-            "/policies?page[after]=9&page[size]=3"
+            "/policies?page[after]=4&page[size]=3"
           ) as string,
           last: expect.stringContaining(
-            "/policies?page[after]=9&page[size]=3"
+            "/policies?page[after]=4&page[size]=3"
           ) as string,
         },
       });
@@ -194,7 +203,7 @@ describe("Policies Module", () => {
             "/policies?page[after]=2&page[size]=10"
           ) as string,
           last: expect.stringContaining(
-            "/policies?page[after]=3&page[size]=10"
+            "/policies?page[after]=2&page[size]=10"
           ) as string,
         },
       });
@@ -249,8 +258,12 @@ describe("Policies Module", () => {
       expect.assertions(2);
 
       // Get first policy
-      const { policies } = testEnv;
-      const { policyId, policyHash, policyData } = policies[0];
+      const { policies, policyRevisions } = testEnv;
+      const { policyId } = policies[0];
+      // Get last revision of this policy
+      const { policyData, policyHash } = policyRevisions[policyId][
+        policyRevisions[policyId].length - 1
+      ];
 
       const expectedPolicy = policyData;
       const expectedHash = generateMultihash(policyHash);
@@ -279,6 +292,167 @@ describe("Policies Module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe("GET /policies/{policyId}/revisions", () => {
+    it("should return a specific policy", async () => {
+      expect.assertions(3);
+
+      // Get first policy
+      const { policies } = testEnv;
+      const { policyId } = policies[0];
+
+      const url = `/policies/${encodeURIComponent(policyId)}/revisions`;
+      const response = await request(server).get(url);
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `${url}?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: POLICIES_REVISIONS_TOTAL,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect((response.body as { items: string }).items).toHaveLength(
+        POLICIES_REVISIONS_TOTAL
+      );
+      expect(response.status).toBe(200);
+    });
+
+    it("should handle the pagination properly", async () => {
+      expect.assertions(12);
+
+      // Get first policy
+      const { policies } = testEnv;
+      const { policyId } = policies[0];
+
+      const url = `/policies/${encodeURIComponent(policyId)}/revisions`;
+
+      const response1 = await request(server).get(`${url}?page[size]=3`);
+      expect(response1.body).toStrictEqual({
+        self: expect.stringContaining(
+          `${url}?page[after]=1&page[size]=3`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: POLICIES_REVISIONS_TOTAL,
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=3`
+          ) as string,
+          prev: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=3`
+          ) as string,
+          next: expect.stringContaining(
+            `${url}?page[after]=2&page[size]=3`
+          ) as string,
+          last: expect.stringContaining(
+            `${url}?page[after]=2&page[size]=3`
+          ) as string,
+        },
+      });
+      expect((response1.body as { items: string }).items).toHaveLength(3);
+      expect(response1.status).toBe(200);
+
+      // next page
+      const response2 = await request(server).get(
+        `${url}?page[after]=2&page[size]=3`
+      );
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining("/policies") as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: POLICIES_REVISIONS_TOTAL,
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=3`
+          ) as string,
+          prev: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=3`
+          ) as string,
+          next: expect.stringContaining(
+            `${url}?page[after]=2&page[size]=3`
+          ) as string,
+          last: expect.stringContaining(
+            `${url}?page[after]=2&page[size]=3`
+          ) as string,
+        },
+      });
+      expect((response2.body as { items: string }).items).toHaveLength(2);
+      expect(response2.status).toBe(200);
+
+      // big page
+      const response3 = await request(server).get(
+        `${url}?page[after]=100&page[size]=3`
+      );
+      expect(response3.body).toStrictEqual({
+        self: expect.stringContaining(
+          `${url}?page[after]=100&page[size]=3`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: POLICIES_REVISIONS_TOTAL,
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=3`
+          ) as string,
+          prev: expect.stringContaining(
+            `${url}?page[after]=2&page[size]=3`
+          ) as string,
+          next: expect.stringContaining(
+            `${url}?page[after]=2&page[size]=3`
+          ) as string,
+          last: expect.stringContaining(
+            `${url}?page[after]=2&page[size]=3`
+          ) as string,
+        },
+      });
+      expect((response3.body as { items: string }).items).toHaveLength(0);
+      expect(response3.status).toBe(200);
+
+      // page after defined but page size undefined
+      const response4 = await request(server).get(`${url}?page[after]=1`);
+      expect(response4.body).toStrictEqual({
+        self: expect.stringContaining(
+          `${url}?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: POLICIES_REVISIONS_TOTAL,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `${url}?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect((response4.body as { items: string }).items).toHaveLength(
+        POLICIES_REVISIONS_TOTAL
+      );
+      expect(response4.status).toBe(200);
     });
   });
 });
