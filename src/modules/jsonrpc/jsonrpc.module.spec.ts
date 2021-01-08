@@ -1,5 +1,5 @@
-import request from "supertest";
 import axios from "axios";
+import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
   INestApplication,
@@ -17,7 +17,16 @@ import {
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
-import { UnsignedTransaction } from "./dto";
+import {
+  UnsignedTransaction,
+  InsertAppParam,
+  InsertAdministratorParam,
+  UpdateAdministratorParam,
+  InsertRevocationParam,
+  InsertPolicyParam,
+  UpdatePolicyParam,
+  UpdateAppPublicKeyParam,
+} from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AttributeObject } from "../administrators/administrators.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -28,6 +37,15 @@ interface SupertestJsonRpcResponse {
   status: number;
   body: JsonRpcResponseObject;
 }
+
+type JsonRpcParams =
+  | InsertAppParam
+  | InsertAdministratorParam
+  | UpdateAdministratorParam
+  | InsertRevocationParam
+  | InsertPolicyParam
+  | UpdatePolicyParam
+  | UpdateAppPublicKeyParam;
 
 jest.setTimeout(60000);
 
@@ -327,6 +345,7 @@ describe("JsonRpc Module", () => {
     "insertAdministrator",
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
+    "insertRevocation",
     "updateAppPublicKey",
     "insertPolicy",
     "updatePolicy",
@@ -338,40 +357,39 @@ describe("JsonRpc Module", () => {
       expect.assertions(4);
 
       const { did } = adminV1;
+      let param: JsonRpcParams = null;
+
       const signer = administrators[0];
 
-      let param: {
-        from: string;
-        [x: string]: unknown;
-      } = null;
-
-      const publicKey = "this is a public key";
-      const publickeyBytes = Buffer.from(publicKey, "utf8");
+      const appPublicKey = "this is a public key";
+      const publickeyBytes = Buffer.from(appPublicKey, "utf8");
       const publicKeyId = ethers.utils.sha256(publickeyBytes);
 
       switch (method) {
-        case "insertApp":
+        case "insertApp": {
           // insert a new app
           param = {
             from: signer.address,
             name: "App1",
             domain: "ebsi",
             appAdministrator: "did:ebsi:0x001F",
-            publicKey,
+            publicKey: appPublicKey,
             status: "active",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
-          };
+          } as InsertAppParam;
           break;
-        case "insertAdministrator":
+        }
+        case "insertAdministrator": {
           // create a new administrator and add attribute1
           param = {
             attribute: adminV1.attribute,
             did: did.toLowerCase(),
             from: signer.address,
-          };
+          } as InsertAdministratorParam;
           break;
-        case "updateAdministrator":
+        }
+        case "updateAdministrator": {
           if (updateAttribute) {
             // update attribute1: change it to attribute3
             param = {
@@ -379,38 +397,54 @@ describe("JsonRpc Module", () => {
               did: did.toLowerCase(),
               from: signer.address,
               prevAttributeHash: adminV1.attribute.hash,
-            };
+            } as UpdateAdministratorParam;
           } else {
             // updateIssuer: add attribute2
             param = {
               attribute: adminV2.attribute,
               did: did.toLowerCase(),
               from: signer.address,
-            };
+            } as UpdateAdministratorParam;
           }
           break;
-        case "updateAppPublicKey":
+        }
+        case "insertRevocation": {
+          param = {
+            from: signer.address,
+            // The applicationId is derived from the app public key
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            revokedBy: "did:ebsi:0x001F",
+            notBefore: Date.now() + 10000000,
+          } as InsertRevocationParam;
+          break;
+        }
+        case "updateAppPublicKey": {
           param = {
             from: signer.address,
             publicKeyId,
             status: "revoked",
             notAfter: Date.now(),
-          };
+          } as UpdateAppPublicKeyParam;
           break;
-        case "insertPolicy":
+        }
+        case "insertPolicy": {
           param = {
             from: signer.address,
             policyId: policy1.policyId,
             policy: policy1.policy,
-          };
+          } as InsertPolicyParam;
           break;
-        case "updatePolicy":
+        }
+        case "updatePolicy": {
           param = {
             from: signer.address,
             policyId: policy1.policyId,
             policy: policy2.policy,
-          };
+          } as UpdatePolicyParam;
           break;
+        }
         default:
           break;
       }
@@ -477,51 +511,64 @@ describe("JsonRpc Module", () => {
     it("should accept a request without id", async () => {
       expect.assertions(2);
       const signer = administrators[0];
+      const appPublicKey = "this is a public key";
 
-      let param: {
-        from: string;
-        [x: string]: unknown;
-      } = null;
+      let param: JsonRpcParams = null;
 
       switch (method) {
-        case "insertApp":
+        case "insertApp": {
           param = {
             from: signer.address,
             name: "App1",
             domain: "ebsi",
             appAdministrator: "did:ebsi:0x001F",
-            publicKey: "this is a public key",
+            publicKey: appPublicKey,
             status: "active",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
-          };
+          } as InsertAppParam;
           break;
+        }
         case "insertAdministrator":
-        case "updateAdministrator":
+        case "updateAdministrator": {
           // create a new administrator and add attribute1
           param = {
             attribute: adminV1.attribute,
             did: adminV1.did.toLowerCase(),
             from: signer.address,
-          };
+          } as InsertAdministratorParam;
           break;
+        }
         case "insertPolicy":
-        case "updatePolicy":
+        case "updatePolicy": {
           param = {
             from: signer.address,
             policyId: policy1.policyId,
             policy: policy1.policy,
-          };
+          } as InsertPolicyParam;
           break;
-        case "updateAppPublicKey":
+        }
+        case "insertRevocation": {
+          param = {
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            revokedBy: "did:ebsi:0x001F",
+            notBefore: Date.now() + 10000000,
+          } as InsertRevocationParam;
+          break;
+        }
+        case "updateAppPublicKey": {
           param = {
             from: signer.address,
             publicKeyId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
             status: "revoked",
             notAfter: Date.now(),
-          };
+          } as UpdateAppPublicKeyParam;
           break;
+        }
         default:
           break;
       }
@@ -548,120 +595,145 @@ describe("JsonRpc Module", () => {
 
       const signer = administrators[0];
 
-      let param1: {
-        from: string;
-        [x: string]: unknown;
-      } = null;
-
-      let param2: {
-        from: string;
-        [x: string]: unknown;
-      } = null;
-
-      let param3: {
-        from: string;
-        [x: string]: unknown;
-      } = null;
+      let param1: JsonRpcParams = null;
+      let param2: JsonRpcParams = null;
+      let param3: JsonRpcParams = null;
 
       let expectedErrorMessage1;
       let expectedErrorMessage2;
       let expectedErrorMessage3;
 
+      const appPublicKey = "this is a public key";
+
       switch (method) {
-        case "insertApp":
+        case "insertApp": {
           param1 = {
             from: signer.address,
             domain: "ebsi",
             appAdministrator: "did:ebsi:0x001F",
-            publicKey: "this is a public key",
+            publicKey: appPublicKey,
             status: "active",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
-          };
+          } as InsertAppParam;
 
-          param2 = {
+          expectedErrorMessage1 =
+            "property params[0].name has failed the following constraints: isString";
+
+          param2 = ({
             from: signer.address,
             name: "App1",
             domain: "unknown domain",
             appAdministrator: "did:ebsi:0x001F",
-            publicKey: "this is a public key",
+            publicKey: appPublicKey,
             status: "active",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
-          };
+          } as unknown) as InsertAppParam;
+
+          expectedErrorMessage2 =
+            "property params[0].domain has failed the following constraints: isEnum";
 
           param3 = {
             from: signer.address,
             name: "App1",
             domain: "ebsi",
             appAdministrator: "did:ebsi:0x001F",
-            publicKey: "this is a public key",
+            publicKey: appPublicKey,
             status: "active",
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
-          };
+          } as InsertAppParam;
 
-          expectedErrorMessage1 =
-            "property params[0].name has failed the following constraints: isString";
-          expectedErrorMessage2 =
-            "property params[0].domain has failed the following constraints: isEnum";
           expectedErrorMessage3 =
             "property params[0].notBefore has failed the following constraints: isInt";
-
           break;
+        }
         case "insertAdministrator":
-        case "updateAdministrator":
+        case "updateAdministrator": {
           param1 = {
             ...adminV1,
             from: signer.address,
-          };
-          param2 = {
-            ...adminV2,
-            from: signer.address,
-          };
-          param3 = {
-            ...adminV3,
-            from: signer.address,
-          };
+          } as InsertAdministratorParam;
 
           delete param1.attribute;
+
           expectedErrorMessage1 =
             "property params[0].attribute has failed the following constraints: isObject";
 
           param2 = {
             from: signer.address,
             attribute: adminV1.attribute,
-          };
+          } as InsertAdministratorParam;
+
           expectedErrorMessage2 =
             "property params[0].did has failed the following constraints: isDid";
 
           param3 = {
             ...adminV3,
             from: "bad address",
-          };
+          } as InsertAdministratorParam;
+
           expectedErrorMessage3 =
             "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
-        case "updateAppPublicKey":
+        }
+        case "insertRevocation": {
+          param1 = {
+            from: signer.address,
+            applicationId: appPublicKey,
+            revokedBy: "did:ebsi:0x001F",
+            notBefore: Date.now() + 10000000,
+          } as InsertRevocationParam;
+
+          expectedErrorMessage1 =
+            "property params[0].applicationId has failed the following constraints: isHexadecimal";
+
+          param2 = {
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            revokedBy: "mario",
+            notBefore: Date.now() + 10000000,
+          } as InsertRevocationParam;
+
+          expectedErrorMessage2 =
+            "property params[0].revokedBy has failed the following constraints: isDid";
+
+          param3 = {
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            revokedBy: "did:ebsi:0x001F",
+            notBefore: -10,
+          } as InsertRevocationParam;
+
+          expectedErrorMessage3 =
+            "property params[0].notBefore has failed the following constraints: min";
+          break;
+        }
+        case "updateAppPublicKey": {
           param1 = {
             from: signer.address,
             publicKeyId: "bad id",
             status: "revoked",
             notAfter: Date.now(),
-          };
+          } as UpdateAppPublicKeyParam;
 
           param2 = {
             from: signer.address,
             publicKeyId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
             notAfter: Date.now(),
-          };
+          } as UpdateAppPublicKeyParam;
 
           param3 = {
             from: signer.address,
             publicKeyId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
             status: "revoked",
-          };
+          } as UpdateAppPublicKeyParam;
 
           expectedErrorMessage1 =
             "property params[0].publicKeyId has failed the following constraints: isHexadecimal";
@@ -670,8 +742,9 @@ describe("JsonRpc Module", () => {
           expectedErrorMessage3 =
             "property params[0].notAfter has failed the following constraints: isInt";
           break;
+        }
         case "insertPolicy":
-        case "updatePolicy":
+        case "updatePolicy": {
           param1 = {
             ...policy1,
             from: signer.address,
@@ -697,6 +770,7 @@ describe("JsonRpc Module", () => {
           expectedErrorMessage3 =
             "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
+        }
         default:
           throw new Error(`Test Error: Invalid method ${method}`);
       }
@@ -764,28 +838,23 @@ describe("JsonRpc Module", () => {
 
       const signer = administrators[0];
 
-      let param1: {
-        from: string;
-        [x: string]: unknown;
-      } = null;
+      let param1: JsonRpcParams;
+      let param2: JsonRpcParams;
 
-      let param2: {
-        from: string;
-        [x: string]: unknown;
-      } = null;
+      const appPublicKey = "this is a public key";
 
       switch (method) {
-        case "insertApp":
+        case "insertApp": {
           param1 = {
             from: signer.address,
             name: "App1",
             domain: "ebsi",
             appAdministrator: "did:ebsi:0x001F",
-            publicKey: "this is a public key",
+            publicKey: appPublicKey,
             status: "active",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
-          };
+          } as InsertAppParam;
           param2 = {
             from: signer.address,
             name: "App2",
@@ -795,46 +864,69 @@ describe("JsonRpc Module", () => {
             status: "active",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
-          };
+          } as InsertAppParam;
           break;
+        }
         case "insertAdministrator":
-        case "updateAdministrator":
+        case "updateAdministrator": {
           param1 = {
             ...adminV1,
             from: signer.address,
-          };
+          } as InsertAdministratorParam;
           param2 = {
             ...adminV2,
             from: signer.address,
-          };
+          } as InsertAdministratorParam;
           break;
-        case "updateAppPublicKey":
+        }
+        case "insertRevocation": {
+          param1 = {
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            revokedBy: "did:ebsi:0x001F",
+            notBefore: Date.now() + 10000000,
+          } as InsertRevocationParam;
+          param2 = {
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            revokedBy: "did:ebsi:0x001A",
+            notBefore: Date.now() + 10000000,
+          } as InsertRevocationParam;
+          break;
+        }
+        case "updateAppPublicKey": {
           param1 = {
             from: signer.address,
             publicKeyId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
             status: "active",
             notAfter: Date.now(),
-          };
+          } as UpdateAppPublicKeyParam;
           param2 = {
             from: signer.address,
             publicKeyId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
             status: "revoked",
             notAfter: Date.now(),
-          };
+          } as UpdateAppPublicKeyParam;
           break;
+        }
         case "insertPolicy":
-        case "updatePolicy":
+        case "updatePolicy": {
           param1 = {
             ...policy1,
             from: signer.address,
-          };
+          } as InsertPolicyParam;
           param2 = {
             ...policy2,
             from: signer.address,
-          };
+          } as InsertPolicyParam;
           break;
+        }
         default:
           throw new Error(`Test Error: Invalid method ${method}`);
       }

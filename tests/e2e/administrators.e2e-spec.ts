@@ -445,12 +445,13 @@ describe("Administrators (e2e)", () => {
       let expectedAttributes = [];
 
       switch (method) {
-        case "insertAdministrator":
+        case "insertAdministrator": {
           // create a new administrator and add attribute1
           attribute = attribute1;
           expectedAttributes = [attribute1];
           break;
-        case "updateAdministrator":
+        }
+        case "updateAdministrator": {
           if (updateAttribute) {
             // update attribute1: change it to attribute3
             attribute = attribute3;
@@ -462,6 +463,7 @@ describe("Administrators (e2e)", () => {
             expectedAttributes = [attribute1, attribute2];
           }
           break;
+        }
         default:
           break;
       }

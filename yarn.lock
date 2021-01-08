@@ -1443,10 +1443,10 @@
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha1-7ihweulOEdK4J7y+UnC86n8+ce4=
 
-"@types/k6@^0.29.0":
-  version "0.29.0"
-  resolved "https://registry.yarnpkg.com/@types/k6/-/k6-0.29.0.tgz#14eb02c022c529bd3197285fda3f8c21cee5c264"
-  integrity sha512-h01a+ibhskaY/yGtSsd6HdJyfzI0aAJ3q5zDelXAlaSXTAEvidS4gJN/QYgXsUrvOrbI/8shTHwG+yeLaLU0mg==
+"@types/k6@^0.29.1":
+  version "0.29.1"
+  resolved "https://registry.yarnpkg.com/@types/k6/-/k6-0.29.1.tgz#93a946cb8a37b1edb0dd8bf0d22db0877131858a"
+  integrity sha512-IjbXo46BfwfwBfxxvAY7gxM243tS7Ty6T2GEUt9Wwvb5BOwHPSraFAMxZHFSk5o1qjKWmgymJyrN+7f3EYa/jg==
 
 "@types/minimatch@*":
   version "3.0.3"

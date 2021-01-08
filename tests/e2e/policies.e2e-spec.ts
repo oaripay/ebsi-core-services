@@ -302,12 +302,14 @@ describe("Policies (e2e)", () => {
         let policy: string;
 
         switch (method) {
-          case "insertPolicy":
+          case "insertPolicy": {
             policy = newPolicy.policy;
             break;
-          case "updatePolicy":
+          }
+          case "updatePolicy": {
             policy = policy2;
             break;
+          }
           default:
             break;
         }

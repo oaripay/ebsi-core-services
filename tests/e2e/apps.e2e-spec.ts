@@ -16,6 +16,11 @@ import { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
+import {
+  InsertAppParam,
+  InsertRevocationParam,
+  UpdateAppPublicKeyParam,
+} from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
@@ -25,6 +30,11 @@ interface SupertestJsonRpcResponse {
   status: number;
   body: JsonRpcResponseObject;
 }
+
+type JsonRpcParams =
+  | InsertAppParam
+  | InsertRevocationParam
+  | UpdateAppPublicKeyParam;
 
 describe("Apps (e2e)", () => {
   let app: INestApplication;
@@ -71,36 +81,42 @@ describe("Apps (e2e)", () => {
     );
   });
 
-  describe.each(["insertApp", "updateAppPublicKey"])(
+  describe.each(["insertApp", "insertRevocation", "updateAppPublicKey"])(
     "/jsonrpc - method: %s",
     (method: string) => {
       it(`should return a new unsigned transaction`, async () => {
         expect.assertions(2);
 
-        let param: {
-          from: string;
-          [x: string]: unknown;
-        } = null;
+        let param: JsonRpcParams = null;
+        const publickeyBytes = Buffer.from(newApp.publicKey, "utf8");
+        const publicKeyId = ethers.utils.sha256(publickeyBytes);
 
         switch (method) {
-          case "insertApp":
+          case "insertApp": {
             param = {
               from: adminTestWallet.address,
               ...newApp,
-            };
+            } as InsertAppParam;
             break;
-          case "updateAppPublicKey":
-            {
-              const publickeyBytes = Buffer.from(newApp.publicKey, "utf8");
-              const publicKeyId = ethers.utils.sha256(publickeyBytes);
-              param = {
-                from: adminTestWallet.address,
-                publicKeyId,
-                status: "revoked",
-                notAfter: 1709926740,
-              };
-            }
+          }
+          case "insertRevocation": {
+            param = {
+              from: adminTestWallet.address,
+              applicationId: publicKeyId,
+              revokedBy: "did:ebsi:0x001F",
+              notBefore: Date.now() + 10000000,
+            } as InsertRevocationParam;
             break;
+          }
+          case "updateAppPublicKey": {
+            param = {
+              from: adminTestWallet.address,
+              publicKeyId,
+              status: "revoked",
+              notAfter: 1709926740,
+            } as UpdateAppPublicKeyParam;
+            break;
+          }
           default:
             break;
         }
@@ -133,40 +149,45 @@ describe("Apps (e2e)", () => {
     }
   );
 
-  describe.each(["insertApp", "updateAppPublicKey"])(
+  describe.each(["insertApp", "insertRevocation", "updateAppPublicKey"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
         expect.assertions(3);
 
-        let param: {
-          from: string;
-          [x: string]: unknown;
-        } = null;
+        let param: JsonRpcParams = null;
+        // this public key is created with the first "insertApp" call
+        const publickeyBytes = Buffer.from(newApp.publicKey, "utf8");
+        const publicKeyId = ethers.utils.sha256(publickeyBytes);
 
         switch (method) {
-          case "insertApp":
+          case "insertApp": {
             // create a new app
             param = {
               from: adminTestWallet.address,
               ...newApp,
-            };
+            } as InsertAppParam;
             break;
-          case "updateAppPublicKey":
-            {
-              // update app public key
-
-              // this public key is already created with the previous "insertApp" call
-              const publickeyBytes = Buffer.from(newApp.publicKey, "utf8");
-              const publicKeyId = ethers.utils.sha256(publickeyBytes);
-              param = {
-                from: adminTestWallet.address,
-                publicKeyId,
-                status: "revoked",
-                notAfter: Date.now(),
-              };
-            }
+          }
+          case "insertRevocation": {
+            param = {
+              from: adminTestWallet.address,
+              applicationId: publicKeyId,
+              revokedBy: "did:ebsi:0x001F",
+              notBefore: Date.now() + 10000000,
+            } as InsertRevocationParam;
             break;
+          }
+          case "updateAppPublicKey": {
+            // update app public key
+            param = {
+              from: adminTestWallet.address,
+              publicKeyId,
+              status: "revoked",
+              notAfter: Date.now(),
+            } as UpdateAppPublicKeyParam;
+            break;
+          }
           default:
             break;
         }

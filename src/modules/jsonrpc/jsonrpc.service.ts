@@ -8,6 +8,7 @@ import {
   RequestInsertAdministratorDto,
   RequestSignedTransactionDto,
   RequestUpdateAdministratorDto,
+  RequestInsertRevocationDto,
   RequestUpdateAppPublicKeyDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
@@ -15,6 +16,7 @@ import {
   ArgsInsertApp,
   ArgsInsertAdministrator,
   ArgsUpdateAdministrator,
+  ArgsInsertRevocation,
   ArgsUpdateAppPublicKey,
   ArgsInsertPolicy,
   ArgsUpdatePolicy,
@@ -221,12 +223,16 @@ export class JsonRpcService {
         await validateClass(ArgsInsertAdministrator, args);
         break;
       }
-      case "insertPolicy": {
-        await validateClass(ArgsInsertPolicy, args);
-        break;
-      }
       case "updateAdministrator": {
         await validateClass(ArgsUpdateAdministrator, args);
+        break;
+      }
+      case "insertRevocation": {
+        await validateClass(ArgsInsertRevocation, args);
+        break;
+      }
+      case "insertPolicy": {
+        await validateClass(ArgsInsertPolicy, args);
         break;
       }
       case "updateAppPublicKey": {
@@ -312,7 +318,7 @@ export class JsonRpcService {
         notAfter,
       ]);
 
-      return await this.buildTransaction(from, data);
+      return this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;
@@ -337,7 +343,7 @@ export class JsonRpcService {
         [did.toLowerCase(), bufferAttribute]
       );
 
-      return await this.buildTransaction(from, data);
+      return this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;
@@ -381,7 +387,29 @@ export class JsonRpcService {
         data
       );
 
-      return await this.buildTransaction(from, encodedData);
+      return this.buildTransaction(from, encodedData);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertRevocation(
+    body: RequestInsertRevocationDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertRevocationDto, body);
+
+      const { from, applicationId, revokedBy, notBefore } = body.params[0];
+
+      const data = this.tarContract.interface.encodeFunctionData(
+        "insertRevocation",
+        [applicationId, revokedBy, notBefore]
+      );
+
+      return this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;
