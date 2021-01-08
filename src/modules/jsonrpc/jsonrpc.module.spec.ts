@@ -327,6 +327,7 @@ describe("JsonRpc Module", () => {
     "insertAdministrator",
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
+    "updateAppPublicKey",
     "insertPolicy",
     "updatePolicy",
   ])("/jsonrpc with method %s", (testMethod: string) => {
@@ -344,6 +345,10 @@ describe("JsonRpc Module", () => {
         [x: string]: unknown;
       } = null;
 
+      const publicKey = "this is a public key";
+      const publickeyBytes = Buffer.from(publicKey, "utf8");
+      const publicKeyId = ethers.utils.sha256(publickeyBytes);
+
       switch (method) {
         case "insertApp":
           // insert a new app
@@ -352,7 +357,7 @@ describe("JsonRpc Module", () => {
             name: "App1",
             domain: "ebsi",
             appAdministrator: "did:ebsi:0x001F",
-            publicKey: "this is a public key",
+            publicKey,
             status: "active",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
@@ -383,6 +388,14 @@ describe("JsonRpc Module", () => {
               from: signer.address,
             };
           }
+          break;
+        case "updateAppPublicKey":
+          param = {
+            from: signer.address,
+            publicKeyId,
+            status: "revoked",
+            notAfter: Date.now(),
+          };
           break;
         case "insertPolicy":
           param = {
@@ -498,6 +511,15 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             policyId: policy1.policyId,
             policy: policy1.policy,
+          };
+          break;
+        case "updateAppPublicKey":
+          param = {
+            from: signer.address,
+            publicKeyId:
+              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+            status: "revoked",
+            notAfter: Date.now(),
           };
           break;
         default:
@@ -618,6 +640,35 @@ describe("JsonRpc Module", () => {
           };
           expectedErrorMessage3 =
             "property params[0].from has failed the following constraints: isEthereumAddress";
+          break;
+        case "updateAppPublicKey":
+          param1 = {
+            from: signer.address,
+            publicKeyId: "bad id",
+            status: "revoked",
+            notAfter: Date.now(),
+          };
+
+          param2 = {
+            from: signer.address,
+            publicKeyId:
+              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+            notAfter: Date.now(),
+          };
+
+          param3 = {
+            from: signer.address,
+            publicKeyId:
+              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+            status: "revoked",
+          };
+
+          expectedErrorMessage1 =
+            "property params[0].publicKeyId has failed the following constraints: isHexadecimal";
+          expectedErrorMessage2 =
+            "property params[0].status has failed the following constraints: isEnum";
+          expectedErrorMessage3 =
+            "property params[0].notAfter has failed the following constraints: isInt";
           break;
         case "insertPolicy":
         case "updatePolicy":
@@ -755,6 +806,22 @@ describe("JsonRpc Module", () => {
           param2 = {
             ...adminV2,
             from: signer.address,
+          };
+          break;
+        case "updateAppPublicKey":
+          param1 = {
+            from: signer.address,
+            publicKeyId:
+              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+            status: "active",
+            notAfter: Date.now(),
+          };
+          param2 = {
+            from: signer.address,
+            publicKeyId:
+              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+            status: "revoked",
+            notAfter: Date.now(),
           };
           break;
         case "insertPolicy":

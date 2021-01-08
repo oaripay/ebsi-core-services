@@ -8,12 +8,14 @@ import {
   RequestInsertAdministratorDto,
   RequestSignedTransactionDto,
   RequestUpdateAdministratorDto,
+  RequestUpdateAppPublicKeyDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
   UnsignedTransaction,
   ArgsInsertApp,
   ArgsInsertAdministrator,
   ArgsUpdateAdministrator,
+  ArgsUpdateAppPublicKey,
   ArgsInsertPolicy,
   ArgsUpdatePolicy,
   SignedTransactionParam,
@@ -34,6 +36,17 @@ import LedgerService from "../../shared/services/ledger.service";
 import { Tar } from "../../contracts/Tar";
 import { ApiConfig } from "../../config/configuration";
 import { prefixWith0x } from "../../shared/utils";
+
+const statusId = {
+  active: 0,
+  revoked: 1,
+  suspended: 2,
+};
+
+const domainId = {
+  ebsi: 0,
+  external: 1,
+};
 
 @Injectable()
 export class JsonRpcService {
@@ -208,12 +221,16 @@ export class JsonRpcService {
         await validateClass(ArgsInsertAdministrator, args);
         break;
       }
+      case "insertPolicy": {
+        await validateClass(ArgsInsertPolicy, args);
+        break;
+      }
       case "updateAdministrator": {
         await validateClass(ArgsUpdateAdministrator, args);
         break;
       }
-      case "insertPolicy": {
-        await validateClass(ArgsInsertPolicy, args);
+      case "updateAppPublicKey": {
+        await validateClass(ArgsUpdateAppPublicKey, args);
         break;
       }
       case "updatePolicy": {
@@ -283,25 +300,14 @@ export class JsonRpcService {
         notAfter,
       } = body.params[0];
 
-      const domainId = {
-        ebsi: 0,
-        external: 1,
-      }[domain];
-
-      const statusId = {
-        active: 0,
-        revoked: 1,
-        suspended: 2,
-      }[status];
-
-      const bufferPublicKey = Buffer.from(publicKey, "base64");
+      const bufferPublicKey = Buffer.from(publicKey, "utf8");
 
       const data = this.tarContract.interface.encodeFunctionData("insertApp", [
         name,
-        domainId,
+        domainId[domain],
         appAdministrator,
         bufferPublicKey,
-        statusId,
+        statusId[status],
         notBefore,
         notAfter,
       ]);
@@ -376,6 +382,27 @@ export class JsonRpcService {
       );
 
       return await this.buildTransaction(from, encodedData);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateAppPublicKey(
+    body: RequestUpdateAppPublicKeyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateAppPublicKeyDto, body);
+
+      const { from, publicKeyId, status, notAfter } = body.params[0];
+
+      const data = this.tarContract.interface.encodeFunctionData(
+        "updateAppPublicKey",
+        [publicKeyId, statusId[status], notAfter]
+      );
+      return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;
