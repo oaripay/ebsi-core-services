@@ -7,6 +7,7 @@ import {
   RequestInsertAppDto,
   RequestInsertAdministratorDto,
   RequestUpdateAdministratorDto,
+  RequestUpdateAppDto,
   RequestInsertRevocationDto,
   RequestUpdateAppPublicKeyDto,
   RequestInsertPolicyDto,
@@ -47,6 +48,13 @@ export default class AppController {
       case "updateAdministrator": {
         const transaction = await this.jsonRpcService.buildTransactionUpdateAdministrator(
           body as RequestUpdateAdministratorDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "updateApp": {
+        const transaction = await this.jsonRpcService.buildTransactionUpdateApp(
+          body as RequestUpdateAppDto,
           id
         );
         return jsonRpcResponse(transaction, id);

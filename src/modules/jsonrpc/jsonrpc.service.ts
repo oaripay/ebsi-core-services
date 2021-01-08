@@ -8,6 +8,7 @@ import {
   RequestInsertAdministratorDto,
   RequestSignedTransactionDto,
   RequestUpdateAdministratorDto,
+  RequestUpdateAppDto,
   RequestInsertRevocationDto,
   RequestUpdateAppPublicKeyDto,
   RequestInsertPolicyDto,
@@ -16,6 +17,7 @@ import {
   ArgsInsertApp,
   ArgsInsertAdministrator,
   ArgsUpdateAdministrator,
+  ArgsUpdateApp,
   ArgsInsertRevocation,
   ArgsUpdateAppPublicKey,
   ArgsInsertPolicy,
@@ -227,6 +229,10 @@ export class JsonRpcService {
         await validateClass(ArgsUpdateAdministrator, args);
         break;
       }
+      case "updateApp": {
+        await validateClass(ArgsUpdateApp, args);
+        break;
+      }
       case "insertRevocation": {
         await validateClass(ArgsInsertRevocation, args);
         break;
@@ -410,6 +416,29 @@ export class JsonRpcService {
       );
 
       return this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateApp(
+    body: RequestUpdateAppDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateAppDto, body);
+
+      const { from, applicationId, name, domain } = body.params[0];
+
+      const data = this.tarContract.interface.encodeFunctionData("updateApp", [
+        applicationId,
+        name,
+        domainId[domain],
+      ]);
+
+      return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;

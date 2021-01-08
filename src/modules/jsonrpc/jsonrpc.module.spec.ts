@@ -25,6 +25,7 @@ import {
   InsertRevocationParam,
   InsertPolicyParam,
   UpdatePolicyParam,
+  UpdateAppParam,
   UpdateAppPublicKeyParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
@@ -45,6 +46,7 @@ type JsonRpcParams =
   | InsertRevocationParam
   | InsertPolicyParam
   | UpdatePolicyParam
+  | UpdateAppParam
   | UpdateAppPublicKeyParam;
 
 jest.setTimeout(60000);
@@ -345,6 +347,7 @@ describe("JsonRpc Module", () => {
     "insertAdministrator",
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
+    "updateApp",
     "insertRevocation",
     "updateAppPublicKey",
     "insertPolicy",
@@ -406,6 +409,15 @@ describe("JsonRpc Module", () => {
               from: signer.address,
             } as UpdateAdministratorParam;
           }
+          break;
+        }
+        case "updateApp": {
+          param = {
+            from: signer.address,
+            applicationId: publicKeyId,
+            name: "App1-v2",
+            domain: "ebsi",
+          } as UpdateAppParam;
           break;
         }
         case "insertRevocation": {
@@ -515,6 +527,9 @@ describe("JsonRpc Module", () => {
 
       let param: JsonRpcParams = null;
 
+      const publicKey = "this is a public key";
+      const publicKeyId = ethers.utils.sha256(Buffer.from(publicKey, "utf8"));
+
       switch (method) {
         case "insertApp": {
           param = {
@@ -548,6 +563,14 @@ describe("JsonRpc Module", () => {
           } as InsertPolicyParam;
           break;
         }
+        case "updateApp":
+          param = {
+            from: signer.address,
+            applicationId: publicKeyId,
+            name: "new-name",
+            domain: "ebsi",
+          } as UpdateAppParam;
+          break;
         case "insertRevocation": {
           param = {
             from: signer.address,
@@ -562,8 +585,7 @@ describe("JsonRpc Module", () => {
         case "updateAppPublicKey": {
           param = {
             from: signer.address,
-            publicKeyId:
-              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+            publicKeyId,
             status: "revoked",
             notAfter: Date.now(),
           } as UpdateAppPublicKeyParam;
@@ -677,6 +699,36 @@ describe("JsonRpc Module", () => {
             "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
         }
+        case "updateApp":
+          param1 = ({
+            from: signer.address,
+            applicationId:
+              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+            name: "new-name",
+            domain: "bad domain",
+          } as unknown) as UpdateAppParam;
+
+          param2 = {
+            from: signer.address,
+            name: "new-name",
+            domain: "ebsi",
+          } as UpdateAppParam;
+
+          param3 = {
+            from: signer.address,
+            applicationId:
+              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+            domain: "ebsi",
+          } as UpdateAppParam;
+
+          expectedErrorMessage1 =
+            "property params[0].domain has failed the following constraints: isEnum";
+          expectedErrorMessage2 =
+            "property params[0].applicationId has failed the following constraints: isHexadecimal";
+          expectedErrorMessage3 =
+            "property params[0].name has failed the following constraints: isString";
+
+          break;
         case "insertRevocation": {
           param1 = {
             from: signer.address,
@@ -898,6 +950,23 @@ describe("JsonRpc Module", () => {
           } as InsertRevocationParam;
           break;
         }
+        case "updateApp":
+          param1 = {
+            from: signer.address,
+            applicationId:
+              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+            name: "App1-v2",
+            domain: "ebsi",
+          } as UpdateAppParam;
+
+          param2 = {
+            from: signer.address,
+            applicationId:
+              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+            name: "App1-v2.1",
+            domain: "ebsi",
+          } as UpdateAppParam;
+          break;
         case "updateAppPublicKey": {
           param1 = {
             from: signer.address,

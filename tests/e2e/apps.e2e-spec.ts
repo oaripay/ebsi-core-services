@@ -19,6 +19,7 @@ import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interfa
 import {
   InsertAppParam,
   InsertRevocationParam,
+  UpdateAppParam,
   UpdateAppPublicKeyParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
@@ -34,6 +35,7 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | InsertAppParam
   | InsertRevocationParam
+  | UpdateAppParam
   | UpdateAppPublicKeyParam;
 
 describe("Apps (e2e)", () => {
@@ -81,171 +83,192 @@ describe("Apps (e2e)", () => {
     );
   });
 
-  describe.each(["insertApp", "insertRevocation", "updateAppPublicKey"])(
-    "/jsonrpc - method: %s",
-    (method: string) => {
-      it(`should return a new unsigned transaction`, async () => {
-        expect.assertions(2);
+  describe.each([
+    "insertApp",
+    "insertRevocation",
+    "updateApp",
+    "updateAppPublicKey",
+  ])("/jsonrpc - method: %s", (method: string) => {
+    it(`should return a new unsigned transaction`, async () => {
+      expect.assertions(2);
 
-        let param: JsonRpcParams = null;
-        const publickeyBytes = Buffer.from(newApp.publicKey, "utf8");
-        const publicKeyId = ethers.utils.sha256(publickeyBytes);
+      let param: JsonRpcParams = null;
+      const publickeyBytes = Buffer.from(newApp.publicKey, "utf8");
+      const publicKeyId = ethers.utils.sha256(publickeyBytes);
 
-        switch (method) {
-          case "insertApp": {
-            param = {
-              from: adminTestWallet.address,
-              ...newApp,
-            } as InsertAppParam;
-            break;
-          }
-          case "insertRevocation": {
-            param = {
-              from: adminTestWallet.address,
-              applicationId: publicKeyId,
-              revokedBy: "did:ebsi:0x001F",
-              notBefore: Date.now() + 10000000,
-            } as InsertRevocationParam;
-            break;
-          }
-          case "updateAppPublicKey": {
-            param = {
-              from: adminTestWallet.address,
-              publicKeyId,
-              status: "revoked",
-              notAfter: 1709926740,
-            } as UpdateAppPublicKeyParam;
-            break;
-          }
-          default:
-            break;
-        }
-
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param],
-            id: 231,
-          });
-
-        expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
+      switch (method) {
+        case "insertApp": {
+          param = {
             from: adminTestWallet.address,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: expect.any(String) as string,
-          },
-        });
-        expect(responseBuild.status).toBe(200);
-      });
-    }
-  );
-
-  describe.each(["insertApp", "insertRevocation", "updateAppPublicKey"])(
-    "/jsonrpc - send transaction for %s",
-    (method: string) => {
-      it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
-        expect.assertions(3);
-
-        let param: JsonRpcParams = null;
-        // this public key is created with the first "insertApp" call
-        const publickeyBytes = Buffer.from(newApp.publicKey, "utf8");
-        const publicKeyId = ethers.utils.sha256(publickeyBytes);
-
-        switch (method) {
-          case "insertApp": {
-            // create a new app
-            param = {
-              from: adminTestWallet.address,
-              ...newApp,
-            } as InsertAppParam;
-            break;
-          }
-          case "insertRevocation": {
-            param = {
-              from: adminTestWallet.address,
-              applicationId: publicKeyId,
-              revokedBy: "did:ebsi:0x001F",
-              notBefore: Date.now() + 10000000,
-            } as InsertRevocationParam;
-            break;
-          }
-          case "updateAppPublicKey": {
-            // update app public key
-            param = {
-              from: adminTestWallet.address,
-              publicKeyId,
-              status: "revoked",
-              notAfter: Date.now(),
-            } as UpdateAppPublicKeyParam;
-            break;
-          }
-          default:
-            break;
+            ...newApp,
+          } as InsertAppParam;
+          break;
         }
+        case "insertRevocation": {
+          param = {
+            from: adminTestWallet.address,
+            applicationId: publicKeyId,
+            revokedBy: "did:ebsi:0x001F",
+            notBefore: Date.now() + 10000000,
+          } as InsertRevocationParam;
+          break;
+        }
+        case "updateApp":
+          param = {
+            from: adminTestWallet.address,
+            applicationId: publicKeyId,
+            name: `test-app-updated-${new Date().toISOString()}`,
+            domain: "external",
+          } as UpdateAppParam;
+          break;
+        case "updateAppPublicKey":
+          param = {
+            from: adminTestWallet.address,
+            publicKeyId,
+            status: "revoked",
+            notAfter: 1709926740,
+          } as UpdateAppPublicKeyParam;
+          break;
+        default:
+          break;
+      }
 
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param],
-            id: 231,
-          });
-
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction))
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await adminTestWallet.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-        const responseSend: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method: "signedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
-              },
-            ],
-            id: "45",
-          });
-
-        expect(responseSend.body).toStrictEqual({
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
           jsonrpc: "2.0",
-          id: "45",
-          result: expect.any(String) as string,
+          method,
+          params: [param],
+          id: 231,
         });
-        expect(responseSend.status).toBe(200);
 
-        // wait to be mined
-        const receipt = await waitToBeMined(responseSend.body.result as string);
-        expect(receipt.status).toBe("0x1");
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        result: {
+          chainId: expect.any(String) as string,
+          data: expect.any(String) as string,
+          from: adminTestWallet.address,
+          gasLimit: expect.any(String) as string,
+          gasPrice: expect.any(String) as string,
+          nonce: expect.any(String) as string,
+          to: expect.any(String) as string,
+          value: expect.any(String) as string,
+        },
+      });
+      expect(responseBuild.status).toBe(200);
+    });
+  });
 
-        // get app
-        /* const appResponse = await request(server).get(
+  describe.each([
+    "insertApp",
+    "insertRevocation",
+    "updateApp",
+    "updateAppPublicKey",
+  ])("/jsonrpc - send transaction for %s", (method: string) => {
+    it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
+      expect.assertions(3);
+
+      let param: JsonRpcParams = null;
+      // this public key is created with the first "insertApp" call
+      const publickeyBytes = Buffer.from(newApp.publicKey, "utf8");
+      const publicKeyId = ethers.utils.sha256(publickeyBytes);
+
+      switch (method) {
+        case "insertApp": {
+          // create a new app
+          param = {
+            from: adminTestWallet.address,
+            ...newApp,
+          } as InsertAppParam;
+          break;
+        }
+        case "insertRevocation": {
+          param = {
+            from: adminTestWallet.address,
+            applicationId: publicKeyId,
+            revokedBy: "did:ebsi:0x001F",
+            notBefore: Date.now() + 10000000,
+          } as InsertRevocationParam;
+          break;
+        }
+        case "updateApp":
+          // update app
+          param = {
+            from: adminTestWallet.address,
+            applicationId: publicKeyId,
+            name: `test-app-updated-${new Date().toISOString()}`,
+            domain: "external",
+          } as UpdateAppParam;
+          break;
+        case "updateAppPublicKey":
+          // update app public key
+
+          // this public key is already created with the previous "insertApp" call
+          param = {
+            from: adminTestWallet.address,
+            publicKeyId,
+            status: "revoked",
+            notAfter: Date.now(),
+          } as UpdateAppPublicKeyParam;
+          break;
+        default:
+          break;
+      }
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param],
+          id: 231,
+        });
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await adminTestWallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        result: expect.any(String) as string,
+      });
+      expect(responseSend.status).toBe(200);
+
+      // wait to be mined
+      const receipt = await waitToBeMined(responseSend.body.result as string);
+      expect(receipt.status).toBe("0x1");
+
+      // get app
+      /* const appResponse = await request(server).get(
         `/apps?name=${newApp.name}`
       );
 
       expect(appResponse.body).toStrictEqual({});
       expect(appResponse.status).toBe(200); */
-      });
-    }
-  );
+    });
+  });
 });
