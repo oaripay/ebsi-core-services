@@ -19,6 +19,7 @@ import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interfa
 import {
   InsertAppParam,
   InsertRevocationParam,
+  InsertAuthorizationParam,
   UpdateAppParam,
   UpdateAppPublicKeyParam,
 } from "../../src/modules/jsonrpc/dto";
@@ -35,6 +36,7 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | InsertAppParam
   | InsertRevocationParam
+  | InsertAuthorizationParam
   | UpdateAppParam
   | UpdateAppPublicKeyParam;
 
@@ -86,6 +88,7 @@ describe("Apps (e2e)", () => {
   describe.each([
     "insertApp",
     "insertRevocation",
+    "insertAuthorization",
     "updateApp",
     "updateAppPublicKey",
   ])("/jsonrpc - method: %s", (method: string) => {
@@ -111,6 +114,19 @@ describe("Apps (e2e)", () => {
             revokedBy: "did:ebsi:0x001F",
             notBefore: Date.now() + 10000000,
           } as InsertRevocationParam;
+          break;
+        }
+        case "insertAuthorization": {
+          param = {
+            from: adminTestWallet.address,
+            name: newApp.name,
+            authorizedAppName: newApp.name,
+            iss: "did:ebsi:0x001F",
+            operations: "cru",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAuthorizationParam;
           break;
         }
         case "updateApp":
@@ -163,6 +179,7 @@ describe("Apps (e2e)", () => {
   describe.each([
     "insertApp",
     "insertRevocation",
+    "insertAuthorization",
     "updateApp",
     "updateAppPublicKey",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
@@ -190,6 +207,19 @@ describe("Apps (e2e)", () => {
             revokedBy: "did:ebsi:0x001F",
             notBefore: Date.now() + 10000000,
           } as InsertRevocationParam;
+          break;
+        }
+        case "insertAuthorization": {
+          param = {
+            from: adminTestWallet.address,
+            name: newApp.name,
+            authorizedAppName: newApp.name, // Fun fact: "authorizedAppName" can be the same as "name" cc @ben
+            iss: "did:ebsi:0x001F",
+            operations: "cru",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAuthorizationParam;
           break;
         }
         case "updateApp":

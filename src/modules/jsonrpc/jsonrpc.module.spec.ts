@@ -23,6 +23,7 @@ import {
   InsertAdministratorParam,
   UpdateAdministratorParam,
   InsertRevocationParam,
+  InsertAuthorizationParam,
   InsertPolicyParam,
   UpdatePolicyParam,
   UpdateAppParam,
@@ -33,6 +34,7 @@ import { AttributeObject } from "../administrators/administrators.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Tar, Tar__factory } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tar";
+import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -44,6 +46,7 @@ type JsonRpcParams =
   | InsertAdministratorParam
   | UpdateAdministratorParam
   | InsertRevocationParam
+  | InsertAuthorizationParam
   | InsertPolicyParam
   | UpdatePolicyParam
   | UpdateAppParam
@@ -57,6 +60,7 @@ describe("JsonRpc Module", () => {
   let tarContract: Tar;
   let administrators: ethers.Wallet[];
   let jsonRpcService: JsonRpcService;
+  let testEnv: AsyncReturnType<typeof setupTestEnv>;
 
   const createAdministrator = (wallet: ethers.Wallet) => {
     const did = `did:ebsi:${wallet.address.toLowerCase()}`;
@@ -104,7 +108,12 @@ describe("JsonRpc Module", () => {
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
-    const testEnv = await setupTestEnv();
+    testEnv = await setupTestEnv({
+      administratorsTotal: 1,
+      policiesTotal: 0,
+      policiesRevisionsTotal: 0,
+      appsTotal: 2, // create 2 random apps
+    });
     tarContract = testEnv.tarContract;
     administrators = testEnv.administrators;
 
@@ -349,6 +358,7 @@ describe("JsonRpc Module", () => {
     "updateAdministrator(test update attribute)",
     "updateApp",
     "insertRevocation",
+    "insertAuthorization",
     "updateAppPublicKey",
     "insertPolicy",
     "updatePolicy",
@@ -367,6 +377,9 @@ describe("JsonRpc Module", () => {
       const appPublicKey = "this is a public key";
       const publickeyBytes = Buffer.from(appPublicKey, "utf8");
       const publicKeyId = ethers.utils.sha256(publickeyBytes);
+
+      // Get pre-existing apps
+      const { apps } = testEnv;
 
       switch (method) {
         case "insertApp": {
@@ -430,6 +443,19 @@ describe("JsonRpc Module", () => {
             revokedBy: "did:ebsi:0x001F",
             notBefore: Date.now() + 10000000,
           } as InsertRevocationParam;
+          break;
+        }
+        case "insertAuthorization": {
+          param = {
+            from: signer.address,
+            name: apps[0].name,
+            authorizedAppName: apps[1].name,
+            iss: "did:ebsi:0x001F",
+            operations: "cru",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAuthorizationParam;
           break;
         }
         case "updateAppPublicKey": {
@@ -525,6 +551,9 @@ describe("JsonRpc Module", () => {
       const signer = administrators[0];
       const appPublicKey = "this is a public key";
 
+      // Get pre-existing apps
+      const { apps } = testEnv;
+
       let param: JsonRpcParams = null;
 
       const publicKey = "this is a public key";
@@ -582,6 +611,19 @@ describe("JsonRpc Module", () => {
           } as InsertRevocationParam;
           break;
         }
+        case "insertAuthorization": {
+          param = {
+            from: signer.address,
+            name: apps[0].name,
+            authorizedAppName: apps[1].name,
+            iss: "did:ebsi:0x001F",
+            operations: "cru",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAuthorizationParam;
+          break;
+        }
         case "updateAppPublicKey": {
           param = {
             from: signer.address,
@@ -626,6 +668,9 @@ describe("JsonRpc Module", () => {
       let expectedErrorMessage3;
 
       const appPublicKey = "this is a public key";
+
+      // Get pre-existing apps
+      const { apps } = testEnv;
 
       switch (method) {
         case "insertApp": {
@@ -765,6 +810,50 @@ describe("JsonRpc Module", () => {
             "property params[0].notBefore has failed the following constraints: min";
           break;
         }
+        case "insertAuthorization": {
+          param1 = {
+            from: signer.address,
+            name: apps[0].name,
+            authorizedAppName: apps[1].name,
+            iss: "did:ebsi:0x001F",
+            operations: "test",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAuthorizationParam;
+
+          expectedErrorMessage1 =
+            "property params[0].operations has failed the following constraints: matches";
+
+          param2 = {
+            from: signer.address,
+            name: apps[0].name,
+            authorizedAppName: apps[1].name,
+            iss: "invalid iss",
+            operations: "cru",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAuthorizationParam;
+
+          expectedErrorMessage2 =
+            "property params[0].iss has failed the following constraints: isDid";
+
+          param3 = ({
+            from: signer.address,
+            name: apps[0].name,
+            authorizedAppName: apps[1].name,
+            iss: "did:ebsi:0x001F",
+            operations: "cru",
+            status: "unknown",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as unknown) as InsertAuthorizationParam;
+
+          expectedErrorMessage3 =
+            "property params[0].status has failed the following constraints: isEnum";
+          break;
+        }
         case "updateAppPublicKey": {
           param1 = {
             from: signer.address,
@@ -895,6 +984,9 @@ describe("JsonRpc Module", () => {
 
       const appPublicKey = "this is a public key";
 
+      // Get pre-existing apps
+      const { apps } = testEnv;
+
       switch (method) {
         case "insertApp": {
           param1 = {
@@ -950,7 +1042,7 @@ describe("JsonRpc Module", () => {
           } as InsertRevocationParam;
           break;
         }
-        case "updateApp":
+        case "updateApp": {
           param1 = {
             from: signer.address,
             applicationId:
@@ -967,6 +1059,30 @@ describe("JsonRpc Module", () => {
             domain: "ebsi",
           } as UpdateAppParam;
           break;
+        }
+        case "insertAuthorization": {
+          param1 = {
+            from: signer.address,
+            name: apps[0].name,
+            authorizedAppName: apps[1].name,
+            iss: "did:ebsi:0x001F",
+            operations: "cru",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAuthorizationParam;
+          param2 = {
+            from: signer.address,
+            name: apps[0].name,
+            authorizedAppName: apps[1].name,
+            iss: "did:ebsi:0x001F",
+            operations: "cru",
+            status: "revoked",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAuthorizationParam;
+          break;
+        }
         case "updateAppPublicKey": {
           param1 = {
             from: signer.address,

@@ -13,6 +13,7 @@ import {
   RequestUpdateAppPublicKeyDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
+  RequestInsertAuthorizationDto,
   UnsignedTransaction,
   ArgsInsertApp,
   ArgsInsertAdministrator,
@@ -22,6 +23,7 @@ import {
   ArgsUpdateAppPublicKey,
   ArgsInsertPolicy,
   ArgsUpdatePolicy,
+  ArgsInsertAuthorization,
   SignedTransactionParam,
 } from "./dto";
 import {
@@ -247,6 +249,10 @@ export class JsonRpcService {
       }
       case "updatePolicy": {
         await validateClass(ArgsUpdatePolicy, args);
+        break;
+      }
+      case "insertAuthorization": {
+        await validateClass(ArgsInsertAuthorization, args);
         break;
       }
       default:
@@ -501,6 +507,57 @@ export class JsonRpcService {
         "updatePolicy",
         [policyId, bufferPolicy]
       );
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertAuthorization(
+    body: RequestInsertAuthorizationDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertAuthorizationDto, body);
+
+      const {
+        from,
+        name,
+        authorizedAppName,
+        iss,
+        status,
+        operations,
+        notBefore,
+        notAfter,
+      } = body.params[0];
+
+      // Convert string "operations" (e.g. "crud") into integer
+      const permissions: { [x: string]: number } = {
+        c: 8,
+        r: 4,
+        u: 2,
+        d: 1,
+      };
+
+      const operationsInteger = Object.keys(permissions)
+        .map((op) => (operations.indexOf(op) >= 0 ? permissions[op] : 0))
+        .reduce((acc, val) => acc + val, 0);
+
+      const data = this.tarContract.interface.encodeFunctionData(
+        "insertAuthorization",
+        [
+          name,
+          authorizedAppName,
+          iss,
+          statusId[status],
+          operationsInteger,
+          notBefore,
+          notAfter,
+        ]
+      );
+
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);

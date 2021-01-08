@@ -24,6 +24,16 @@ interface PolicyObject {
   policyHash: string;
 }
 
+interface AppObject {
+  name: string;
+  domain: number;
+  appAdministrator: string;
+  publicKey: string;
+  status: number;
+  notBefore: number;
+  notAfter: number;
+}
+
 export async function deployTarContract(
   ethersProvider: ethers.providers.Web3Provider
 ): Promise<Tar> {
@@ -132,10 +142,43 @@ export async function updatePolicy(
   return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
 }
 
+export async function insertApp(contract: Tar): Promise<AppObject> {
+  const name = `app-${crypto.randomBytes(8).toString("hex")}`;
+  const domain = 0; // "ebsi"
+  const appAdministrator = "did:ebsi:0x001F";
+  const publicKey = `pubkey-${crypto.randomBytes(8).toString("hex")}`;
+  const status = 0; // "active"
+  const notBefore = Date.now();
+  const notAfter = Date.now() + 365 * 24 * 60 * 60 * 1000;
+
+  const bufferPublicKey = Buffer.from(publicKey, "utf8");
+
+  await contract.insertApp(
+    name,
+    domain,
+    appAdministrator,
+    bufferPublicKey,
+    status,
+    notBefore,
+    notAfter
+  );
+
+  return {
+    name,
+    domain,
+    appAdministrator,
+    publicKey,
+    status,
+    notBefore,
+    notAfter,
+  };
+}
+
 export interface SetupOptions {
   administratorsTotal?: number;
   policiesTotal?: number;
   policiesRevisionsTotal?: number;
+  appsTotal?: number;
 }
 
 export async function setupTestEnv(
@@ -143,6 +186,7 @@ export async function setupTestEnv(
     administratorsTotal: 1,
     policiesTotal: 0,
     policiesRevisionsTotal: 1,
+    appsTotal: 0,
   }
 ): Promise<{
   provider: ethers.providers.Web3Provider;
@@ -150,6 +194,7 @@ export async function setupTestEnv(
   administrators: ethers.Wallet[];
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
+  apps: AppObject[];
 }> {
   const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
 
@@ -199,6 +244,13 @@ export async function setupTestEnv(
           .toPromise()
       : [];
 
+  // Create as many apps as requested
+  const createApp = async () => insertApp(tarContract);
+
+  const apps = await range(0, opts.appsTotal)
+    .pipe(mergeMap(createApp), toArray())
+    .toPromise();
+
   // Return test env variables
   return {
     provider: ethersProvider,
@@ -206,5 +258,6 @@ export async function setupTestEnv(
     administrators,
     policies,
     policyRevisions,
+    apps,
   };
 }
