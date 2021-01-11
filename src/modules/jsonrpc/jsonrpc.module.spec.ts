@@ -20,6 +20,7 @@ import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   UnsignedTransaction,
   InsertAppParam,
+  InsertAppAdministratorParam,
   InsertAdministratorParam,
   UpdateAdministratorParam,
   InsertRevocationParam,
@@ -43,6 +44,7 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams =
   | InsertAppParam
+  | InsertAppAdministratorParam
   | InsertAdministratorParam
   | UpdateAdministratorParam
   | InsertRevocationParam
@@ -353,6 +355,7 @@ describe("JsonRpc Module", () => {
   // Tests to be repeated for every method
   describe.each([
     "insertApp",
+    "insertAppAdministrator",
     "insertAdministrator",
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
@@ -396,6 +399,14 @@ describe("JsonRpc Module", () => {
           } as InsertAppParam;
           break;
         }
+        case "insertAppAdministrator":
+          // insert administrator to an app
+          param = {
+            from: signer.address,
+            applicationId: publicKeyId,
+            administratorId: "did:ebsi:0x0010",
+          } as InsertAppAdministratorParam;
+          break;
         case "insertAdministrator": {
           // create a new administrator and add attribute1
           param = {
@@ -573,6 +584,14 @@ describe("JsonRpc Module", () => {
           } as InsertAppParam;
           break;
         }
+        case "insertAppAdministrator":
+          // insert administrator to an app
+          param = {
+            from: signer.address,
+            applicationId: publicKeyId,
+            administratorId: "did:ebsi:0x0010",
+          } as InsertAppAdministratorParam;
+          break;
         case "insertAdministrator":
         case "updateAdministrator": {
           // create a new administrator and add attribute1
@@ -715,6 +734,36 @@ describe("JsonRpc Module", () => {
             "property params[0].notBefore has failed the following constraints: isInt";
           break;
         }
+        case "insertAppAdministrator":
+          param1 = {
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            administratorId: "did:ebsi:0x0010",
+          } as InsertAppAdministratorParam;
+
+          expectedErrorMessage1 =
+            "property params[0].from has failed the following constraints: isEthereumAddress";
+
+          param2 = {
+            from: signer.address,
+            administratorId: "did:ebsi:0x0010",
+          } as InsertAppAdministratorParam;
+
+          expectedErrorMessage2 =
+            "property params[0].applicationId has failed the following constraints: isHexadecimal";
+
+          param3 = {
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+          } as InsertAppAdministratorParam;
+
+          expectedErrorMessage3 =
+            "property params[0].administratorId has failed the following constraints: isDid";
+
+          break;
         case "insertAdministrator":
         case "updateAdministrator": {
           param1 = {
@@ -1011,6 +1060,22 @@ describe("JsonRpc Module", () => {
           } as InsertAppParam;
           break;
         }
+        case "insertAppAdministrator":
+          param1 = {
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            administratorId: "did:ebsi:0x0010",
+          } as InsertAppAdministratorParam;
+          param2 = {
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            administratorId: "did:ebsi:0x0020",
+          } as InsertAppAdministratorParam;
+          break;
         case "insertAdministrator":
         case "updateAdministrator": {
           param1 = {

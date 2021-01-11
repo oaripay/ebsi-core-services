@@ -5,6 +5,7 @@ import { Agent, Scope } from "@cef-ebsi/app-jwt";
 import { ConfigService } from "@nestjs/config";
 import {
   RequestInsertAppDto,
+  RequestInsertAppAdministratorDto,
   RequestInsertAdministratorDto,
   RequestSignedTransactionDto,
   RequestUpdateAdministratorDto,
@@ -16,6 +17,7 @@ import {
   RequestInsertAuthorizationDto,
   UnsignedTransaction,
   ArgsInsertApp,
+  ArgsInsertAppAdministrator,
   ArgsInsertAdministrator,
   ArgsUpdateAdministrator,
   ArgsUpdateApp,
@@ -223,6 +225,10 @@ export class JsonRpcService {
         await validateClass(ArgsInsertApp, args);
         break;
       }
+      case "insertAppAdministrator": {
+        await validateClass(ArgsInsertAppAdministrator, args);
+        break;
+      }
       case "insertAdministrator": {
         await validateClass(ArgsInsertAdministrator, args);
         break;
@@ -329,6 +335,28 @@ export class JsonRpcService {
         notBefore,
         notAfter,
       ]);
+
+      return this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertAppAdministrator(
+    body: RequestInsertAppAdministratorDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertAppAdministratorDto, body);
+
+      const { from, applicationId, administratorId } = body.params[0];
+
+      const data = this.tarContract.interface.encodeFunctionData(
+        "insertAppAdministrator",
+        [applicationId, administratorId]
+      );
 
       return this.buildTransaction(from, data);
     } catch (err) {
