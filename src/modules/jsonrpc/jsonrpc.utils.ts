@@ -53,3 +53,17 @@ export const checkHash = (buffer: Buffer, hash: string): void => {
       )}. Expected: ${expectedHash}`
     );
 };
+
+// Convert string permissions (e.g. "crud") into integer (e.g. 15)
+export const computePermissions = (permissions: string): number => {
+  const operations: { [x: string]: number } = {
+    c: 8,
+    r: 4,
+    u: 2,
+    d: 1,
+  };
+
+  return Object.keys(operations)
+    .map((op) => (permissions.indexOf(op) >= 0 ? operations[op] : 0))
+    .reduce((acc, val) => acc + val, 0);
+};

@@ -25,6 +25,7 @@ import {
   UpdateAdministratorParam,
   InsertRevocationParam,
   InsertAuthorizationParam,
+  UpdateAuthorizationParam,
   InsertPolicyParam,
   UpdatePolicyParam,
   UpdateAppParam,
@@ -35,6 +36,7 @@ import { AttributeObject } from "../administrators/administrators.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Tar, Tar__factory } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tar";
+import LedgerService from "../../shared/services/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 interface SupertestJsonRpcResponse {
@@ -49,12 +51,13 @@ type JsonRpcParams =
   | UpdateAdministratorParam
   | InsertRevocationParam
   | InsertAuthorizationParam
+  | UpdateAuthorizationParam
   | InsertPolicyParam
   | UpdatePolicyParam
   | UpdateAppParam
   | UpdateAppPublicKeyParam;
 
-jest.setTimeout(60000);
+jest.setTimeout(90000);
 
 describe("JsonRpc Module", () => {
   let app: INestApplication;
@@ -62,6 +65,7 @@ describe("JsonRpc Module", () => {
   let tarContract: Tar;
   let administrators: ethers.Wallet[];
   let jsonRpcService: JsonRpcService;
+  let ledgerService: LedgerService;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
 
   const createAdministrator = (wallet: ethers.Wallet) => {
@@ -141,6 +145,7 @@ describe("JsonRpc Module", () => {
     server = app.getHttpServer() as HttpServer;
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     // Make sure we never use axios.post in tests ;-)
     jest.spyOn(axios, "post").mockImplementation(() => {
@@ -362,6 +367,7 @@ describe("JsonRpc Module", () => {
     "updateApp",
     "insertRevocation",
     "insertAuthorization",
+    "updateAuthorization",
     "updateAppPublicKey",
     "insertPolicy",
     "updatePolicy",
@@ -383,6 +389,16 @@ describe("JsonRpc Module", () => {
 
       // Get pre-existing apps
       const { apps } = testEnv;
+
+      const authorization = {
+        name: apps[0].name,
+        authorizedAppName: apps[1].name,
+        iss: "did:ebsi:0x001F",
+        permissions: "cru",
+        status: "active",
+        notBefore: Date.now(),
+        notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+      };
 
       switch (method) {
         case "insertApp": {
@@ -459,14 +475,30 @@ describe("JsonRpc Module", () => {
         case "insertAuthorization": {
           param = {
             from: signer.address,
-            name: apps[0].name,
-            authorizedAppName: apps[1].name,
-            iss: "did:ebsi:0x001F",
-            operations: "cru",
-            status: "active",
-            notBefore: Date.now(),
-            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+            ...authorization,
           } as InsertAuthorizationParam;
+          break;
+        }
+        case "updateAuthorization": {
+          // Dynamically get the authorizationId that we've just inserted
+          const authorizationId = (
+            await ledgerService
+              .getContract()
+              .getAuthorizations(
+                ethers.utils.sha256(Buffer.from(apps[0].publicKey, "utf8")),
+                ethers.utils.sha256(Buffer.from(apps[1].publicKey, "utf8")),
+                1,
+                10
+              )
+          ).items[0];
+
+          param = {
+            from: signer.address,
+            authorizationId,
+            permissions: "cru",
+            status: "active",
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as UpdateAuthorizationParam;
           break;
         }
         case "updateAppPublicKey": {
@@ -636,11 +668,22 @@ describe("JsonRpc Module", () => {
             name: apps[0].name,
             authorizedAppName: apps[1].name,
             iss: "did:ebsi:0x001F",
-            operations: "cru",
+            permissions: "cru",
             status: "active",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAuthorizationParam;
+          break;
+        }
+        case "updateAuthorization": {
+          param = {
+            from: signer.address,
+            authorizationId:
+              "0x8bdd58e4f558d893144de376fc7c87a8aaef26ba8aabb2b2c7a8c022d1c88a31", // a valid, random ID
+            permissions: "cru",
+            status: "active",
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as UpdateAuthorizationParam;
           break;
         }
         case "updateAppPublicKey": {
@@ -865,21 +908,21 @@ describe("JsonRpc Module", () => {
             name: apps[0].name,
             authorizedAppName: apps[1].name,
             iss: "did:ebsi:0x001F",
-            operations: "test",
+            permissions: "test",
             status: "active",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAuthorizationParam;
 
           expectedErrorMessage1 =
-            "property params[0].operations has failed the following constraints: matches";
+            "property params[0].permissions has failed the following constraints: matches";
 
           param2 = {
             from: signer.address,
             name: apps[0].name,
             authorizedAppName: apps[1].name,
             iss: "invalid iss",
-            operations: "cru",
+            permissions: "cru",
             status: "active",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
@@ -893,7 +936,7 @@ describe("JsonRpc Module", () => {
             name: apps[0].name,
             authorizedAppName: apps[1].name,
             iss: "did:ebsi:0x001F",
-            operations: "cru",
+            permissions: "cru",
             status: "unknown",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
@@ -901,6 +944,44 @@ describe("JsonRpc Module", () => {
 
           expectedErrorMessage3 =
             "property params[0].status has failed the following constraints: isEnum";
+          break;
+        }
+        case "updateAuthorization": {
+          param1 = {
+            from: signer.address,
+            authorizationId: "t42",
+            permissions: "cru",
+            status: "active",
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as UpdateAuthorizationParam;
+
+          expectedErrorMessage1 =
+            "property params[0].authorizationId has failed the following constraints: isHexadecimal";
+
+          param2 = {
+            from: signer.address,
+            authorizationId:
+              "0x8bdd58e4f558d893144de376fc7c87a8aaef26ba8aabb2b2c7a8c022d1c88a31",
+            permissions: "test",
+            status: "active",
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as UpdateAuthorizationParam;
+
+          expectedErrorMessage2 =
+            "property params[0].permissions has failed the following constraints: matches";
+
+          param3 = ({
+            from: signer.address,
+            authorizationId:
+              "0x8bdd58e4f558d893144de376fc7c87a8aaef26ba8aabb2b2c7a8c022d1c88a31",
+            permissions: "cru",
+            status: "broken",
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as unknown) as UpdateAuthorizationParam;
+
+          expectedErrorMessage3 =
+            "property params[0].status has failed the following constraints: isEnum";
+
           break;
         }
         case "updateAppPublicKey": {
@@ -1131,7 +1212,7 @@ describe("JsonRpc Module", () => {
             name: apps[0].name,
             authorizedAppName: apps[1].name,
             iss: "did:ebsi:0x001F",
-            operations: "cru",
+            permissions: "cru",
             status: "active",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
@@ -1141,11 +1222,30 @@ describe("JsonRpc Module", () => {
             name: apps[0].name,
             authorizedAppName: apps[1].name,
             iss: "did:ebsi:0x001F",
-            operations: "cru",
+            permissions: "cru",
             status: "revoked",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAuthorizationParam;
+          break;
+        }
+        case "updateAuthorization": {
+          param1 = {
+            from: signer.address,
+            authorizationId:
+              "0x8bdd58e4f558d893144de376fc7c87a8aaef26ba8aabb2b2c7a8c022d1c88a31",
+            permissions: "cru",
+            status: "active",
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as UpdateAuthorizationParam;
+          param2 = {
+            from: signer.address,
+            authorizationId:
+              "0x8bdd58e4f558d893144de376fc7c87a8aaef26ba8aabb2b2c7a8c022d1c88a31",
+            permissions: "cru",
+            status: "revoked",
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as UpdateAuthorizationParam;
           break;
         }
         case "updateAppPublicKey": {

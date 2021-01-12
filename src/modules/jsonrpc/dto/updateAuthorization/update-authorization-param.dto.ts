@@ -3,23 +3,17 @@ import {
   IsString,
   IsEnum,
   IsInt,
+  IsHexadecimal,
   Matches,
 } from "class-validator";
-import { IsDid } from "../../validators";
 import { Status } from "../shared/enums";
 
-export class InsertAuthorizationParam {
+export class UpdateAuthorizationParam {
   @IsEthereumAddress()
   from: string;
 
-  @IsString()
-  name: string;
-
-  @IsString()
-  authorizedAppName: string;
-
-  @IsDid()
-  iss: string;
+  @IsHexadecimal()
+  authorizationId: string;
 
   @IsEnum(Status)
   status: Status;
@@ -29,10 +23,7 @@ export class InsertAuthorizationParam {
   permissions: string;
 
   @IsInt()
-  notBefore: number;
-
-  @IsInt()
   notAfter: number;
 }
 
-export default { InsertAuthorizationParam };
+export default { UpdateAuthorizationParam };

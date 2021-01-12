@@ -571,7 +571,7 @@ paths:
                       authorizedAppName: "app2"
                       iss: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
                       status: "active"
-                      operations: "crud"
+                      permissions: "crud"
                       notBefore: 1609926740
                       notAfter: 1709926740
                   id: 1

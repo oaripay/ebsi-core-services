@@ -23,10 +23,12 @@ import {
   InsertAuthorizationParam,
   UpdateAppParam,
   UpdateAppPublicKeyParam,
+  UpdateAuthorizationParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
+import LedgerService from "../../src/shared/services/ledger.service";
 import { waitToBeMined } from "../utils/waitToBeMined";
 
 interface SupertestJsonRpcResponse {
@@ -39,12 +41,14 @@ type JsonRpcParams =
   | InsertAppAdministratorParam
   | InsertRevocationParam
   | InsertAuthorizationParam
+  | UpdateAuthorizationParam
   | UpdateAppParam
   | UpdateAppPublicKeyParam;
 
 describe("Apps (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let ledgerService: LedgerService;
   let adminTestWallet: ethers.Wallet;
 
   const createApp = () => {
@@ -85,6 +89,8 @@ describe("Apps (e2e)", () => {
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("adminTestPrivateKey"))
     );
+
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
   });
 
   describe.each([
@@ -132,7 +138,7 @@ describe("Apps (e2e)", () => {
             name: newApp.name,
             authorizedAppName: newApp.name,
             iss: "did:ebsi:0x001F",
-            operations: "cru",
+            permissions: "cru",
             status: "active",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
@@ -191,6 +197,7 @@ describe("Apps (e2e)", () => {
     "insertAppAdministrator",
     "insertRevocation",
     "insertAuthorization",
+    "updateAuthorization",
     "updateApp",
     "updateAppPublicKey",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
@@ -233,11 +240,31 @@ describe("Apps (e2e)", () => {
             name: newApp.name,
             authorizedAppName: newApp.name, // Fun fact: "authorizedAppName" can be the same as "name" cc @ben
             iss: "did:ebsi:0x001F",
-            operations: "cru",
+            permissions: "cru",
             status: "active",
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAuthorizationParam;
+          break;
+        }
+        case "updateAuthorization": {
+          // Dynamically get the authorizationId that we've just inserted
+          const appId = ethers.utils.sha256(
+            Buffer.from(newApp.publicKey, "utf8")
+          );
+          const authorizationId = (
+            await ledgerService
+              .getContract()
+              .getAuthorizations(appId, appId, 1, 10)
+          ).items[0];
+
+          param = {
+            from: adminTestWallet.address,
+            authorizationId,
+            permissions: "cru",
+            status: "active",
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as UpdateAuthorizationParam;
           break;
         }
         case "updateApp":

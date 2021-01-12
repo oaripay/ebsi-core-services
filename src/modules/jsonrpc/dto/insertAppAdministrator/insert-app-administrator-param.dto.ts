@@ -1,4 +1,4 @@
-import { IsEthereumAddress, IsString, IsHexadecimal } from "class-validator";
+import { IsEthereumAddress, IsHexadecimal } from "class-validator";
 import { IsDid } from "../../validators";
 
 export class InsertAppAdministratorParam {

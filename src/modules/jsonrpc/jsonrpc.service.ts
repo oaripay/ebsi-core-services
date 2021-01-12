@@ -15,6 +15,7 @@ import {
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
   RequestInsertAuthorizationDto,
+  RequestUpdateAuthorizationDto,
   UnsignedTransaction,
   ArgsInsertApp,
   ArgsInsertAppAdministrator,
@@ -26,6 +27,7 @@ import {
   ArgsInsertPolicy,
   ArgsUpdatePolicy,
   ArgsInsertAuthorization,
+  ArgsUpdateAuthorization,
   SignedTransactionParam,
 } from "./dto";
 import {
@@ -39,6 +41,7 @@ import {
   formatEthersSignature,
   validateClass,
   checkHash,
+  computePermissions,
 } from "./jsonrpc.utils";
 import LedgerService from "../../shared/services/ledger.service";
 import { Tar } from "../../contracts/Tar";
@@ -259,6 +262,10 @@ export class JsonRpcService {
       }
       case "insertAuthorization": {
         await validateClass(ArgsInsertAuthorization, args);
+        break;
+      }
+      case "updateAuthorization": {
+        await validateClass(ArgsUpdateAuthorization, args);
         break;
       }
       default:
@@ -556,22 +563,12 @@ export class JsonRpcService {
         authorizedAppName,
         iss,
         status,
-        operations,
+        permissions,
         notBefore,
         notAfter,
       } = body.params[0];
 
-      // Convert string "operations" (e.g. "crud") into integer
-      const permissions: { [x: string]: number } = {
-        c: 8,
-        r: 4,
-        u: 2,
-        d: 1,
-      };
-
-      const operationsInteger = Object.keys(permissions)
-        .map((op) => (operations.indexOf(op) >= 0 ? permissions[op] : 0))
-        .reduce((acc, val) => acc + val, 0);
+      const permissionsInteger = computePermissions(permissions);
 
       const data = this.tarContract.interface.encodeFunctionData(
         "insertAuthorization",
@@ -580,10 +577,40 @@ export class JsonRpcService {
           authorizedAppName,
           iss,
           statusId[status],
-          operationsInteger,
+          permissionsInteger,
           notBefore,
           notAfter,
         ]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateAuthorization(
+    body: RequestUpdateAuthorizationDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateAuthorizationDto, body);
+
+      const {
+        from,
+        authorizationId,
+        status,
+        permissions,
+        notAfter,
+      } = body.params[0];
+
+      const permissionsInteger = computePermissions(permissions);
+
+      const data = this.tarContract.interface.encodeFunctionData(
+        "updateAuthorization",
+        [authorizationId, statusId[status], permissionsInteger, notAfter]
       );
 
       return await this.buildTransaction(from, data);

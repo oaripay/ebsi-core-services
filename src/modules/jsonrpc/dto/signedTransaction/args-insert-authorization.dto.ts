@@ -19,7 +19,7 @@ export class ArgsInsertAuthorization {
   @IsInt()
   @Min(0)
   @Max(15)
-  operations: number;
+  permissions: number;
 
   @IsInt()
   notBefore: number;

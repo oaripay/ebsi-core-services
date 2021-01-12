@@ -1,4 +1,4 @@
-import { IsHexadecimal, IsString } from "class-validator";
+import { IsHexadecimal } from "class-validator";
 import { IsDid } from "../../validators";
 
 export class ArgsInsertAppAdministrator {

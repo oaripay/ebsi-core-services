@@ -14,6 +14,7 @@ import {
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
   RequestInsertAuthorizationDto,
+  RequestUpdateAuthorizationDto,
   RequestSignedTransactionDto,
 } from "./dto";
 
@@ -99,6 +100,13 @@ export default class AppController {
       case "insertAuthorization": {
         const transaction = await this.jsonRpcService.buildTransactionInsertAuthorization(
           body as RequestInsertAuthorizationDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "updateAuthorization": {
+        const transaction = await this.jsonRpcService.buildTransactionUpdateAuthorization(
+          body as RequestUpdateAuthorizationDto,
           id
         );
         return jsonRpcResponse(transaction, id);
