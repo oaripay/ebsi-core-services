@@ -4,6 +4,7 @@ import { InvalidRequestJsonRpcError } from "./errors";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   JsonRpcDto,
+  RequestDeleteAppAdministratorDto,
   RequestInsertAppDto,
   RequestInsertAppAdministratorDto,
   RequestInsertAppInfoDto,
@@ -35,6 +36,13 @@ export default class AppController {
   async jsonRPC(@Body() body: JsonRpcDto): Promise<JsonRpcResponseObject> {
     const { method, id } = body;
     switch (method) {
+      case "deleteAppAdministrator": {
+        const transaction = await this.jsonRpcService.buildTransactionDeleteAppAdministrator(
+          body as RequestDeleteAppAdministratorDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
+      }
       case "insertApp": {
         const transaction = await this.jsonRpcService.buildTransactionInsertApp(
           body as RequestInsertAppDto,

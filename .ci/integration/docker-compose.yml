@@ -3,4 +3,4 @@ version: "3.7"
 services:
   trusted-apps-registry:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/trusted-apps-registry:integration_ebsiint-2268-insertappinfo_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/trusted-apps-registry:integration_ebsiint-2441-deleleappadministrator_v2.0.0

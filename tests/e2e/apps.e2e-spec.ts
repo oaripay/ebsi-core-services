@@ -17,6 +17,7 @@ import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import {
+  DeleteAppAdministratorParam,
   InsertAppParam,
   InsertAppAdministratorParam,
   InsertAppInfoParam,
@@ -38,6 +39,7 @@ interface SupertestJsonRpcResponse {
 }
 
 type JsonRpcParams =
+  | DeleteAppAdministratorParam
   | InsertAppParam
   | InsertAppAdministratorParam
   | InsertAppInfoParam
@@ -98,6 +100,7 @@ describe("Apps (e2e)", () => {
   describe.each([
     "insertApp",
     "insertAppAdministrator",
+    "deleteAppAdministrator",
     "insertAppInfo",
     "insertRevocation",
     "insertAuthorization",
@@ -125,6 +128,13 @@ describe("Apps (e2e)", () => {
             applicationId: publicKeyId,
             administratorId: "did:ebsi:0x00123",
           } as InsertAppAdministratorParam;
+          break;
+        case "deleteAppAdministrator":
+          param = {
+            from: adminTestWallet.address,
+            applicationId: publicKeyId,
+            administratorId: "did:ebsi:0x00123",
+          } as DeleteAppAdministratorParam;
           break;
         case "insertAppInfo":
           param = {
@@ -207,6 +217,7 @@ describe("Apps (e2e)", () => {
   describe.each([
     "insertApp",
     "insertAppAdministrator",
+    "deleteAppAdministrator",
     "insertAppInfo",
     "insertRevocation",
     "insertAuthorization",
@@ -237,6 +248,13 @@ describe("Apps (e2e)", () => {
             applicationId: publicKeyId,
             administratorId: "did:ebsi:0x00123",
           } as InsertAppAdministratorParam;
+          break;
+        case "deleteAppAdministrator":
+          param = {
+            from: adminTestWallet.address,
+            applicationId: publicKeyId,
+            administratorId: "did:ebsi:0x00123",
+          } as DeleteAppAdministratorParam;
           break;
         case "insertAppInfo":
           param = {

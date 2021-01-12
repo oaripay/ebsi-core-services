@@ -19,6 +19,7 @@ import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   UnsignedTransaction,
+  DeleteAppAdministratorParam,
   InsertAppParam,
   InsertAppInfoParam,
   InsertAppAdministratorParam,
@@ -46,6 +47,7 @@ interface SupertestJsonRpcResponse {
 }
 
 type JsonRpcParams =
+  | DeleteAppAdministratorParam
   | InsertAppParam
   | InsertAppInfoParam
   | InsertAppAdministratorParam
@@ -363,6 +365,7 @@ describe("JsonRpc Module", () => {
   describe.each([
     "insertApp",
     "insertAppAdministrator",
+    "deleteAppAdministrator",
     "insertAppInfo",
     "insertAdministrator",
     "updateAdministrator",
@@ -425,6 +428,14 @@ describe("JsonRpc Module", () => {
             applicationId: publicKeyId,
             administratorId: "did:ebsi:0x0010",
           } as InsertAppAdministratorParam;
+          break;
+        case "deleteAppAdministrator":
+          // delete administrator from an app
+          param = {
+            from: signer.address,
+            applicationId: publicKeyId,
+            administratorId: "did:ebsi:0x0010",
+          } as DeleteAppAdministratorParam;
           break;
         case "insertAppInfo":
           // insert info to an app
@@ -637,6 +648,14 @@ describe("JsonRpc Module", () => {
             administratorId: "did:ebsi:0x0010",
           } as InsertAppAdministratorParam;
           break;
+        case "deleteAppAdministrator":
+          // delete administrator from an app
+          param = {
+            from: signer.address,
+            applicationId: publicKeyId,
+            administratorId: "did:ebsi:0x0010",
+          } as DeleteAppAdministratorParam;
+          break;
         case "insertAppInfo":
           // insert info to an app
           param = {
@@ -825,6 +844,36 @@ describe("JsonRpc Module", () => {
               Buffer.from(appPublicKey, "utf8")
             ),
           } as InsertAppAdministratorParam;
+
+          expectedErrorMessage3 =
+            "property params[0].administratorId has failed the following constraints: isDid";
+
+          break;
+        case "deleteAppAdministrator":
+          param1 = {
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            administratorId: "did:ebsi:0x0010",
+          } as DeleteAppAdministratorParam;
+
+          expectedErrorMessage1 =
+            "property params[0].from has failed the following constraints: isEthereumAddress";
+
+          param2 = {
+            from: signer.address,
+            administratorId: "did:ebsi:0x0010",
+          } as DeleteAppAdministratorParam;
+
+          expectedErrorMessage2 =
+            "property params[0].applicationId has failed the following constraints: isHexadecimal";
+
+          param3 = {
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+          } as DeleteAppAdministratorParam;
 
           expectedErrorMessage3 =
             "property params[0].administratorId has failed the following constraints: isDid";
@@ -1212,6 +1261,22 @@ describe("JsonRpc Module", () => {
             ),
             administratorId: "did:ebsi:0x0020",
           } as InsertAppAdministratorParam;
+          break;
+        case "deleteAppAdministrator":
+          param1 = {
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            administratorId: "did:ebsi:0x0010",
+          } as DeleteAppAdministratorParam;
+          param2 = {
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            administratorId: "did:ebsi:0x0020",
+          } as DeleteAppAdministratorParam;
           break;
         case "insertAppInfo":
           param1 = {

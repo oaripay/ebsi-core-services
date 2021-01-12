@@ -4,6 +4,7 @@ import { ethers } from "ethers";
 import { Agent, Scope } from "@cef-ebsi/app-jwt";
 import { ConfigService } from "@nestjs/config";
 import {
+  RequestDeleteAppAdministratorDto,
   RequestInsertAppDto,
   RequestInsertAppAdministratorDto,
   RequestInsertAppInfoDto,
@@ -18,6 +19,7 @@ import {
   RequestInsertAuthorizationDto,
   RequestUpdateAuthorizationDto,
   UnsignedTransaction,
+  ArgsDeleteAppAdministrator,
   ArgsInsertApp,
   ArgsInsertAppAdministrator,
   ArgsInsertAppInfo,
@@ -226,6 +228,10 @@ export class JsonRpcService {
     } = this.tarContract.interface.parseTransaction(unsignedTransaction);
 
     switch (functionFragment.name) {
+      case "deleteAppAdministrator": {
+        await validateClass(ArgsDeleteAppAdministrator, args);
+        break;
+      }
       case "insertApp": {
         await validateClass(ArgsInsertApp, args);
         break;
@@ -317,6 +323,28 @@ export class JsonRpcService {
     }
 
     return unsignedTransaction;
+  }
+
+  async buildTransactionDeleteAppAdministrator(
+    body: RequestDeleteAppAdministratorDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestDeleteAppAdministratorDto, body);
+
+      const { from, applicationId, administratorId } = body.params[0];
+
+      const data = this.tarContract.interface.encodeFunctionData(
+        "deleteAppAdministrator",
+        [applicationId, administratorId]
+      );
+
+      return this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
   }
 
   async buildTransactionInsertApp(
