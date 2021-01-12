@@ -13,6 +13,7 @@ import {
   RequestUpdateAdministratorDto,
   RequestUpdateAppDto,
   RequestInsertRevocationDto,
+  RequestInsertAppPublicKeyDto,
   RequestUpdateAppPublicKeyDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
@@ -27,6 +28,7 @@ import {
   ArgsUpdateAdministrator,
   ArgsUpdateApp,
   ArgsInsertRevocation,
+  ArgsInsertAppPublicKey,
   ArgsUpdateAppPublicKey,
   ArgsInsertPolicy,
   ArgsUpdatePolicy,
@@ -262,6 +264,10 @@ export class JsonRpcService {
       }
       case "insertPolicy": {
         await validateClass(ArgsInsertPolicy, args);
+        break;
+      }
+      case "insertAppPublicKey": {
+        await validateClass(ArgsInsertAppPublicKey, args);
         break;
       }
       case "updateAppPublicKey": {
@@ -536,6 +542,36 @@ export class JsonRpcService {
         domainId[domain],
       ]);
 
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertAppPublicKey(
+    body: RequestInsertAppPublicKeyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertAppPublicKeyDto, body);
+
+      const {
+        from,
+        applicationId,
+        publicKey,
+        status,
+        notBefore,
+        notAfter,
+      } = body.params[0];
+
+      const bufferPublicKey = Buffer.from(publicKey, "utf8");
+
+      const data = this.tarContract.interface.encodeFunctionData(
+        "insertAppPublicKey",
+        [applicationId, bufferPublicKey, statusId[status], notBefore, notAfter]
+      );
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);

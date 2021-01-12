@@ -1,24 +1,19 @@
 import {
   IsEthereumAddress,
-  IsString,
+  IsHexadecimal,
   IsEnum,
   IsInt,
+  IsString,
   Min,
 } from "class-validator";
-import { Status, Domain } from "../shared/enums";
+import { Status } from "../shared/enums";
 
-export class InsertAppParam {
+export class InsertAppPublicKeyParam {
   @IsEthereumAddress()
   from: string;
 
-  @IsString()
-  name: string;
-
-  @IsEnum(Domain)
-  domain: Domain;
-
-  @IsString()
-  appAdministrator: string;
+  @IsHexadecimal()
+  applicationId: string;
 
   @IsString()
   publicKey: string;
@@ -35,4 +30,4 @@ export class InsertAppParam {
   notAfter: number;
 }
 
-export default { InsertAppParam };
+export default { InsertAppPublicKeyParam };

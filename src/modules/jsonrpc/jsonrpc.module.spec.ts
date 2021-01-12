@@ -31,6 +31,7 @@ import {
   InsertPolicyParam,
   UpdatePolicyParam,
   UpdateAppParam,
+  InsertAppPublicKeyParam,
   UpdateAppPublicKeyParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
@@ -59,6 +60,7 @@ type JsonRpcParams =
   | InsertPolicyParam
   | UpdatePolicyParam
   | UpdateAppParam
+  | InsertAppPublicKeyParam
   | UpdateAppPublicKeyParam;
 
 jest.setTimeout(90000);
@@ -374,6 +376,7 @@ describe("JsonRpc Module", () => {
     "insertRevocation",
     "insertAuthorization",
     "updateAuthorization",
+    "insertAppPublicKey",
     "updateAppPublicKey",
     "insertPolicy",
     "updatePolicy",
@@ -523,6 +526,17 @@ describe("JsonRpc Module", () => {
             status: "active",
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as UpdateAuthorizationParam;
+          break;
+        }
+        case "insertAppPublicKey": {
+          param = {
+            from: signer.address,
+            applicationId: publicKeyId,
+            publicKey: "another public key",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAppPublicKeyParam;
           break;
         }
         case "updateAppPublicKey": {
@@ -728,6 +742,17 @@ describe("JsonRpc Module", () => {
           } as UpdateAuthorizationParam;
           break;
         }
+        case "insertAppPublicKey": {
+          param = {
+            from: signer.address,
+            applicationId: publicKeyId,
+            publicKey: "another public key",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAppPublicKeyParam;
+          break;
+        }
         case "updateAppPublicKey": {
           param = {
             from: signer.address,
@@ -816,7 +841,7 @@ describe("JsonRpc Module", () => {
           } as InsertAppParam;
 
           expectedErrorMessage3 =
-            "property params[0].notBefore has failed the following constraints: isInt";
+            "property params[0].notBefore has failed the following constraints: min, isInt";
           break;
         }
         case "insertAppAdministrator":
@@ -1089,6 +1114,46 @@ describe("JsonRpc Module", () => {
 
           break;
         }
+        case "insertAppPublicKey": {
+          param1 = {
+            from: signer.address,
+            applicationId: "x",
+            publicKey: "another public key",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAppPublicKeyParam;
+
+          expectedErrorMessage1 =
+            "property params[0].applicationId has failed the following constraints: isHexadecimal";
+
+          param2 = ({
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            publicKey: "another public key",
+            status: "unknown",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as unknown) as InsertAppPublicKeyParam;
+
+          expectedErrorMessage2 =
+            "property params[0].status has failed the following constraints: isEnum";
+
+          param3 = {
+            from: signer.address,
+            applicationId: "0",
+            publicKey: "another public key",
+            status: "active",
+            notBefore: -1,
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAppPublicKeyParam;
+
+          expectedErrorMessage3 =
+            "property params[0].notBefore has failed the following constraints: min";
+          break;
+        }
         case "updateAppPublicKey": {
           param1 = {
             from: signer.address,
@@ -1097,12 +1162,18 @@ describe("JsonRpc Module", () => {
             notAfter: Date.now(),
           } as UpdateAppPublicKeyParam;
 
+          expectedErrorMessage1 =
+            "property params[0].publicKeyId has failed the following constraints: isHexadecimal";
+
           param2 = {
             from: signer.address,
             publicKeyId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
             notAfter: Date.now(),
           } as UpdateAppPublicKeyParam;
+
+          expectedErrorMessage2 =
+            "property params[0].status has failed the following constraints: isEnum";
 
           param3 = {
             from: signer.address,
@@ -1111,12 +1182,8 @@ describe("JsonRpc Module", () => {
             status: "revoked",
           } as UpdateAppPublicKeyParam;
 
-          expectedErrorMessage1 =
-            "property params[0].publicKeyId has failed the following constraints: isHexadecimal";
-          expectedErrorMessage2 =
-            "property params[0].status has failed the following constraints: isEnum";
           expectedErrorMessage3 =
-            "property params[0].notAfter has failed the following constraints: isInt";
+            "property params[0].notAfter has failed the following constraints: min, isInt";
           break;
         }
         case "insertPolicy":
@@ -1385,6 +1452,29 @@ describe("JsonRpc Module", () => {
             status: "revoked",
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as UpdateAuthorizationParam;
+          break;
+        }
+        case "insertAppPublicKey": {
+          param1 = {
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            publicKey: "another public key",
+            status: "active",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAppPublicKeyParam;
+          param2 = {
+            from: signer.address,
+            applicationId: ethers.utils.sha256(
+              Buffer.from(appPublicKey, "utf8")
+            ),
+            publicKey: "another public key",
+            status: "revoked",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAppPublicKeyParam;
           break;
         }
         case "updateAppPublicKey": {

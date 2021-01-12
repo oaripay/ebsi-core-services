@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsInt,
   Matches,
+  Min,
 } from "class-validator";
 import { IsDid } from "../../validators";
 import { Status } from "../shared/enums";
@@ -29,9 +30,11 @@ export class InsertAuthorizationParam {
   permissions: string;
 
   @IsInt()
+  @Min(0)
   notBefore: number;
 
   @IsInt()
+  @Min(0)
   notAfter: number;
 }
 

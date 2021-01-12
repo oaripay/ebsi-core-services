@@ -23,6 +23,7 @@ import {
   InsertAppInfoParam,
   InsertRevocationParam,
   InsertAuthorizationParam,
+  InsertAppPublicKeyParam,
   UpdateAppParam,
   UpdateAppPublicKeyParam,
   UpdateAuthorizationParam,
@@ -45,6 +46,7 @@ type JsonRpcParams =
   | InsertAppInfoParam
   | InsertRevocationParam
   | InsertAuthorizationParam
+  | InsertAppPublicKeyParam
   | UpdateAuthorizationParam
   | UpdateAppParam
   | UpdateAppPublicKeyParam;
@@ -223,6 +225,7 @@ describe("Apps (e2e)", () => {
     "insertAuthorization",
     "updateAuthorization",
     "updateApp",
+    "insertAppPublicKey",
     "updateAppPublicKey",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
@@ -315,6 +318,16 @@ describe("Apps (e2e)", () => {
             name: `test-app-updated-${new Date().toISOString()}`,
             domain: "external",
           } as UpdateAppParam;
+          break;
+        case "insertAppPublicKey":
+          param = {
+            from: adminTestWallet.address,
+            applicationId: publicKeyId,
+            publicKey: `another public key - ${new Date().toISOString()}`,
+            status: "revoked",
+            notBefore: Date.now(),
+            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
+          } as InsertAppPublicKeyParam;
           break;
         case "updateAppPublicKey":
           // update app public key

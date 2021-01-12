@@ -22,9 +22,11 @@ export class ArgsInsertAuthorization {
   permissions: number;
 
   @IsInt()
+  @Min(0)
   notBefore: number;
 
   @IsInt()
+  @Min(0)
   notAfter: number;
 }
 

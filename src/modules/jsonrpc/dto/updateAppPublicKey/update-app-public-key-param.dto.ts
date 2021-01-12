@@ -3,6 +3,7 @@ import {
   IsHexadecimal,
   IsEnum,
   IsInt,
+  Min,
 } from "class-validator";
 import { Status } from "../shared/enums";
 
@@ -17,6 +18,7 @@ export class UpdateAppPublicKeyParam {
   status: Status;
 
   @IsInt()
+  @Min(0)
   notAfter: number;
 }
 

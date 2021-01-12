@@ -21,9 +21,11 @@ export class ArgsInsertApp {
   status: number;
 
   @IsInt()
+  @Min(0)
   notBefore: number;
 
   @IsInt()
+  @Min(0)
   notAfter: number;
 }
 
