@@ -103,7 +103,9 @@ describe("Notifications module (e2e)", () => {
       expect(response.body).toStrictEqual({
         detail: "Your request parameters didn't validate.",
         "invalid-params": {
-          expirationDate: ["expirationDate must be a ISOString"],
+          expirationDate: [
+            "expirationDate must be a valid ISO 8601 date string",
+          ],
         },
         status: 400,
         title: "Validation Error",

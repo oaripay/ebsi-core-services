@@ -61,9 +61,9 @@ export class NotificationsController {
   ): Promise<FastifyReply> {
     // TODO implement proper middleware to handle the token
     const { headers } = request;
-    const decodedToken = jwtDecode(headers.authorization) as DecodedToken;
+    const decodedToken = jwtDecode(headers.authorization);
     const notifications: PaginatedResponse<NotificationWithLinks> = await this.notificationsService.findAll(
-      decodedToken.did,
+      (decodedToken as DecodedToken).did,
       query["page[after]"],
       query["page[size]"],
       this.baseUrl
@@ -79,10 +79,10 @@ export class NotificationsController {
   ): Promise<FastifyReply> {
     // TODO implement proper middleware to handle the token
     const { headers } = request;
-    const decodedToken = jwtDecode(headers.authorization) as DecodedToken;
+    const decodedToken = jwtDecode(headers.authorization);
     const { id } = params;
     const notification: Notification = await this.notificationsService.find(
-      decodedToken.did,
+      (decodedToken as DecodedToken).did,
       id
     );
     return res.code(200).send(notification);
@@ -95,9 +95,12 @@ export class NotificationsController {
     @Response() res: FastifyReply
   ): Promise<FastifyReply> {
     const { headers } = request;
-    const decodedToken = jwtDecode(headers.authorization) as DecodedToken;
+    const decodedToken = jwtDecode(headers.authorization);
     const { id } = params;
-    await this.notificationsService.delete(decodedToken.did, id);
+    await this.notificationsService.delete(
+      (decodedToken as DecodedToken).did,
+      id
+    );
     return res.code(204).send();
   }
 }

@@ -45,7 +45,7 @@ describe("Notifications module", () => {
   });
 
   afterAll(async () => {
-    await new Promise((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
     await app.close();
   });
 
@@ -111,7 +111,9 @@ describe("Notifications module", () => {
       expect(response.body).toStrictEqual({
         detail: "Your request parameters didn't validate.",
         "invalid-params": {
-          expirationDate: ["expirationDate must be a ISOString"],
+          expirationDate: [
+            "expirationDate must be a valid ISO 8601 date string",
+          ],
         },
         status: 400,
         title: "Validation Error",
@@ -159,7 +161,7 @@ describe("Notifications module", () => {
                 "type should not be empty",
               ],
               created: [
-                "created must be a ISOString",
+                "created must be a valid ISO 8601 date string",
                 "created should not be empty",
               ],
               proofPurpose: [
