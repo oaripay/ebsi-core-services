@@ -1,6 +1,8 @@
 export * from "./jsonrpc.dto";
 export * from "./insertApp/insert-app-param.dto";
 export * from "./insertApp/request-insert-app.dto";
+export * from "./insertAppInfo/insert-app-info-param.dto";
+export * from "./insertAppInfo/request-insert-app-info.dto";
 export * from "./insertAppAdministrator/insert-app-administrator-param.dto";
 export * from "./insertAppAdministrator/request-insert-app-administrator.dto";
 export * from "./insertAdministrator/insert-administrator-param.dto";
@@ -13,6 +15,7 @@ export * from "./updateAuthorization";
 export * from "./signedTransaction/request-signed-transaction.dto";
 export * from "./signedTransaction/unsigned-transaction.dto";
 export * from "./signedTransaction/args-insert-app.dto";
+export * from "./signedTransaction/args-insert-app-info.dto";
 export * from "./signedTransaction/args-insert-app-administrator.dto";
 export * from "./signedTransaction/args-insert-policy.dto";
 export * from "./signedTransaction/args-insert-administrator.dto";

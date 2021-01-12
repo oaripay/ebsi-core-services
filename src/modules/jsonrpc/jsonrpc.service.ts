@@ -6,6 +6,7 @@ import { ConfigService } from "@nestjs/config";
 import {
   RequestInsertAppDto,
   RequestInsertAppAdministratorDto,
+  RequestInsertAppInfoDto,
   RequestInsertAdministratorDto,
   RequestSignedTransactionDto,
   RequestUpdateAdministratorDto,
@@ -19,6 +20,7 @@ import {
   UnsignedTransaction,
   ArgsInsertApp,
   ArgsInsertAppAdministrator,
+  ArgsInsertAppInfo,
   ArgsInsertAdministrator,
   ArgsUpdateAdministrator,
   ArgsUpdateApp,
@@ -232,6 +234,10 @@ export class JsonRpcService {
         await validateClass(ArgsInsertAppAdministrator, args);
         break;
       }
+      case "insertAppInfo": {
+        await validateClass(ArgsInsertAppInfo, args);
+        break;
+      }
       case "insertAdministrator": {
         await validateClass(ArgsInsertAdministrator, args);
         break;
@@ -363,6 +369,29 @@ export class JsonRpcService {
       const data = this.tarContract.interface.encodeFunctionData(
         "insertAppAdministrator",
         [applicationId, administratorId]
+      );
+
+      return this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertAppInfo(
+    body: RequestInsertAppInfoDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertAppInfoDto, body);
+
+      const { from, applicationId, info } = body.params[0];
+      const infoBytes = Buffer.from(JSON.stringify(info), "utf8");
+
+      const data = this.tarContract.interface.encodeFunctionData(
+        "insertAppInfo",
+        [applicationId, infoBytes]
       );
 
       return this.buildTransaction(from, data);

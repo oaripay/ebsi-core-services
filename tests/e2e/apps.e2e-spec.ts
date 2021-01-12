@@ -19,6 +19,7 @@ import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interfa
 import {
   InsertAppParam,
   InsertAppAdministratorParam,
+  InsertAppInfoParam,
   InsertRevocationParam,
   InsertAuthorizationParam,
   UpdateAppParam,
@@ -39,6 +40,7 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | InsertAppParam
   | InsertAppAdministratorParam
+  | InsertAppInfoParam
   | InsertRevocationParam
   | InsertAuthorizationParam
   | UpdateAuthorizationParam
@@ -96,6 +98,7 @@ describe("Apps (e2e)", () => {
   describe.each([
     "insertApp",
     "insertAppAdministrator",
+    "insertAppInfo",
     "insertRevocation",
     "insertAuthorization",
     "updateApp",
@@ -122,6 +125,15 @@ describe("Apps (e2e)", () => {
             applicationId: publicKeyId,
             administratorId: "did:ebsi:0x00123",
           } as InsertAppAdministratorParam;
+          break;
+        case "insertAppInfo":
+          param = {
+            from: adminTestWallet.address,
+            applicationId: publicKeyId,
+            info: {
+              someData: Date.now(),
+            },
+          } as InsertAppInfoParam;
           break;
         case "insertRevocation": {
           param = {
@@ -195,6 +207,7 @@ describe("Apps (e2e)", () => {
   describe.each([
     "insertApp",
     "insertAppAdministrator",
+    "insertAppInfo",
     "insertRevocation",
     "insertAuthorization",
     "updateAuthorization",
@@ -224,6 +237,15 @@ describe("Apps (e2e)", () => {
             applicationId: publicKeyId,
             administratorId: "did:ebsi:0x00123",
           } as InsertAppAdministratorParam;
+          break;
+        case "insertAppInfo":
+          param = {
+            from: adminTestWallet.address,
+            applicationId: publicKeyId,
+            info: {
+              someData: Date.now(),
+            },
+          } as InsertAppInfoParam;
           break;
         case "insertRevocation": {
           param = {

@@ -20,6 +20,7 @@ import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   UnsignedTransaction,
   InsertAppParam,
+  InsertAppInfoParam,
   InsertAppAdministratorParam,
   InsertAdministratorParam,
   UpdateAdministratorParam,
@@ -46,6 +47,7 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams =
   | InsertAppParam
+  | InsertAppInfoParam
   | InsertAppAdministratorParam
   | InsertAdministratorParam
   | UpdateAdministratorParam
@@ -361,6 +363,7 @@ describe("JsonRpc Module", () => {
   describe.each([
     "insertApp",
     "insertAppAdministrator",
+    "insertAppInfo",
     "insertAdministrator",
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
@@ -422,6 +425,16 @@ describe("JsonRpc Module", () => {
             applicationId: publicKeyId,
             administratorId: "did:ebsi:0x0010",
           } as InsertAppAdministratorParam;
+          break;
+        case "insertAppInfo":
+          // insert info to an app
+          param = {
+            from: signer.address,
+            applicationId: publicKeyId,
+            info: {
+              data1: "data",
+            },
+          } as InsertAppInfoParam;
           break;
         case "insertAdministrator": {
           // create a new administrator and add attribute1
@@ -624,6 +637,16 @@ describe("JsonRpc Module", () => {
             administratorId: "did:ebsi:0x0010",
           } as InsertAppAdministratorParam;
           break;
+        case "insertAppInfo":
+          // insert info to an app
+          param = {
+            from: signer.address,
+            applicationId: publicKeyId,
+            info: {
+              data1: "data",
+            },
+          } as InsertAppInfoParam;
+          break;
         case "insertAdministrator":
         case "updateAdministrator": {
           // create a new administrator and add attribute1
@@ -806,6 +829,39 @@ describe("JsonRpc Module", () => {
           expectedErrorMessage3 =
             "property params[0].administratorId has failed the following constraints: isDid";
 
+          break;
+        case "insertAppInfo":
+          // insert info to an app
+          param1 = ({
+            from: signer.address,
+            info: {
+              data1: "data",
+            },
+          } as unknown) as InsertAppInfoParam;
+
+          expectedErrorMessage1 =
+            "property params[0].applicationId has failed the following constraints: isHexadecimal";
+
+          // insert info to an app
+          param2 = {
+            from: signer.address,
+            applicationId:
+              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+          } as InsertAppInfoParam;
+
+          expectedErrorMessage2 =
+            "property params[0].info has failed the following constraints: isObject";
+
+          // insert info to an app
+          param3 = ({
+            from: signer.address,
+            applicationId:
+              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+            info: 123,
+          } as unknown) as InsertAppInfoParam;
+
+          expectedErrorMessage3 =
+            "property params[0].info has failed the following constraints: isObject";
           break;
         case "insertAdministrator":
         case "updateAdministrator": {
@@ -1156,6 +1212,24 @@ describe("JsonRpc Module", () => {
             ),
             administratorId: "did:ebsi:0x0020",
           } as InsertAppAdministratorParam;
+          break;
+        case "insertAppInfo":
+          param1 = {
+            from: signer.address,
+            applicationId:
+              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+            info: {
+              data1: "data",
+            },
+          } as InsertAppInfoParam;
+          param2 = {
+            from: signer.address,
+            applicationId:
+              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d4",
+            info: {
+              data1: "data2",
+            },
+          } as InsertAppInfoParam;
           break;
         case "insertAdministrator":
         case "updateAdministrator": {
