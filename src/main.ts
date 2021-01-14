@@ -6,17 +6,10 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
 import { fastifyHelmet } from "fastify-helmet";
-import AppModule from "./app.module";
+import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
 import { createLogger, consoleTransport } from "./logger/logger";
-import { ConfigObject } from "./config/configuration";
-
-declare const module: {
-  hot: {
-    accept: () => void;
-    dispose: (cb: () => Promise<void>) => void;
-  };
-};
+import { ApiConfig } from "./config/configuration";
 
 async function bootstrap(): Promise<void> {
   const fastifyAdapter = new FastifyAdapter();
@@ -30,8 +23,8 @@ async function bootstrap(): Promise<void> {
     { logger }
   );
 
-  const configService = app.get<ConfigService<ConfigObject>>(ConfigService);
-  const apiUrl = configService.get<string>("apiUrl");
+  const configService = app.get<ConfigService<ApiConfig>>(ConfigService);
+  const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
   const port = configService.get<number>("apiPort");
   const logLevel = configService.get<string>("logLevel");
 
@@ -44,10 +37,8 @@ async function bootstrap(): Promise<void> {
 
   logger.debug(
     `Starting API with:
-- EBSI_ENV: ${process.env.EBSI_ENV}
 - NODE_ENV: ${process.env.NODE_ENV}
-- API_URL:${apiUrl}
-- besuRPCNode:${configService.get<string>("besuRPCNode")}
+- API_URL_PREFIX:${apiUrlPrefix}
 - API_PORT:${port}
 - LOG_LEVEL: ${logLevel}
 `,
@@ -57,10 +48,12 @@ async function bootstrap(): Promise<void> {
   // Starts listening for shutdown hooks
   app.enableShutdownHooks();
 
-  app.setGlobalPrefix(apiUrl);
-  app.register(fastifyHelmet);
+  app.setGlobalPrefix(apiUrlPrefix);
+
+  await app.register(fastifyHelmet);
+
   app.useGlobalFilters(new AllExceptionsFilter());
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   // Notes:
   // - see https://github.com/nestjs/nest/issues/3209
@@ -72,13 +65,6 @@ async function bootstrap(): Promise<void> {
       logger.log(`Server listening on ${address}`, "main");
     }
   });
-
-  if (module.hot) {
-    module.hot.accept();
-    module.hot.dispose(async () => {
-      await app.close();
-    });
-  }
 }
 
 bootstrap()

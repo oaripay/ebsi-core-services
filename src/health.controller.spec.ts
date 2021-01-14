@@ -6,7 +6,7 @@ import {
   FastifyAdapter,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
-import AppModule from "./app.module";
+import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
 
 describe("HealthController", () => {

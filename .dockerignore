@@ -7,4 +7,10 @@
 !tsconfig.production.json
 !tsconfig.json
 !yarn.lock
+!scripts
 !src
+src/contracts
+!submodules/timestamp-ethereum-sc/contracts
+!submodules/timestamp-ethereum-sc/package.json
+!submodules/timestamp-ethereum-sc/yarn.lock
+!submodules/timestamp-ethereum-sc/hardhat.config.ts

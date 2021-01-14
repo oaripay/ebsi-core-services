@@ -1,59 +1,66 @@
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
-import { abi } from "./sc-notary.json";
+
 // List here all the values that will be returned by the config factory
-export interface ConfigObject {
-  besuRPCNode: string;
-  besuAddressNotary: string;
-  besuNotaryAbi: Array<unknown>;
+export interface ApiConfig {
   apiPort: number;
-  defaultPageSize: number;
-  apiUrl: string;
-  externalEBSIApiUrl: string;
-  externalEBSIApiHealthCheck: string;
+  apiPrivateKey: string;
+  apiUrlPrefix: string;
+  authExpireTime: number;
+  contractAddr: string;
+  domain: string;
   logLevel: string;
+  ledger: string;
+  adminTestPrivateKey: string;
+  externalEBSIApiHealthCheck: string;
 }
 
 // Example of default values to be used, depending on the environment
 const defaultConfig = {
   local: {
     LOG_LEVEL: "debug",
-    url: "https://api.intebsi.xyz",
-    healthCheck: `https://api.intebsi.xyz/docs/`,
+    DOMAIN: "https://api.intebsi.xyz",
+    LEDGER: "https://api.intebsi.xyz/ledger/v1",
+    HEALTH_CHECK: `https://api.intebsi.xyz/docs/`,
   },
   integration: {
     LOG_LEVEL: "info",
-    url: "https://api.intebsi.xyz",
-    healthCheck: `https://api.intebsi.xyz/docs/`,
+    DOMAIN: "https://api.intebsi.xyz",
+    LEDGER: "https://api.intebsi.xyz/ledger/v1",
+    HEALTH_CHECK: `https://api.intebsi.xyz/docs/`,
   },
   development: {
     LOG_LEVEL: "warn",
-    url: "https://api.ebsi.xyz",
-    healthCheck: `https://api.ebsi.xyz/docs/`,
+    DOMAIN: "https://api.ebsi.xyz",
+    LEDGER: "https://api.ebsi.xyz/ledger/v1",
+    HEALTH_CHECK: `https://api.ebsi.xyz/docs/`,
   },
   production: {
     LOG_LEVEL: "error",
-    url: "https://api.ebsi.tech.ec.europa.eu",
-    healthCheck: `https://api.ebsi.xyz/docs/`,
+    DOMAIN: "https://api.ebsi.xyz",
+    LEDGER: "https://api.ebsi.xyz/ledger/v1",
+    HEALTH_CHECK: `https://api.ebsi.xyz/docs/`,
   },
 };
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
 // should have already been validated by Joi in src/app.module.ts
-export const configuration = (): ConfigObject => {
-  const environment = process.env.EBSI_ENV || "development";
-  const { url, LOG_LEVEL, healthCheck } = defaultConfig[environment];
+export const loadConfig = (): ApiConfig => {
+  const { EBSI_ENV } = process.env;
+
   return {
-    besuRPCNode: `${url}/ledger/v1/blockchains/besu`,
-    besuAddressNotary: process.env.BESU_ADDRESS_NOTARY,
-    besuNotaryAbi: abi,
+    adminTestPrivateKey: process.env.ADMIN_TEST_PRIVATE_KEY || "",
+    authExpireTime: parseInt(process.env.AUTH_EXPIRE_TIME, 10) || 60, // minutes
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
-    defaultPageSize: 10,
-    apiUrl: process.env.API_URL || "",
-    externalEBSIApiUrl: url,
-    externalEBSIApiHealthCheck: healthCheck,
-    logLevel: process.env.LOG_LEVEL || LOG_LEVEL,
+    apiPrivateKey: process.env.API_PRIVATE_KEY,
+    apiUrlPrefix: process.env.API_URL_PREFIX || "",
+    contractAddr: process.env.CONTRACT_ADDR,
+    domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
+    ledger: process.env.LEDGER || defaultConfig[EBSI_ENV].LEDGER,
+    externalEBSIApiHealthCheck:
+      process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
   };
 };
 
@@ -64,17 +71,18 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ".env.local",
     ".env",
   ],
-  load: [configuration],
+  load: [loadConfig],
   validationSchema: Joi.object({
+    // Common API variables
     EBSI_ENV: Joi.string()
       .valid("local", "integration", "development", "production")
       .required(),
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
-    BESU_ADDRESS_NOTARY: Joi.string().required(),
     API_PORT: Joi.string().default("3000"),
-    API_URL: Joi.string().required(),
+    API_PRIVATE_KEY: Joi.string().required(),
+    API_URL_PREFIX: Joi.string().required(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -83,5 +91,10 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug"
     ),
+    // TAR specific variables
+    ADMIN_TEST_PRIVATE_KEY: Joi.string(),
+    DOMAIN: Joi.string().uri(),
+    LEDGER: Joi.string().uri(),
+    HEALTH_CHECK: Joi.string(),
   }),
 });

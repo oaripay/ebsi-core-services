@@ -6,7 +6,7 @@ info:
     capability of checking the authenticity of a digital document by
     verifying the presence and the timestamp of the document's hash
     in a specific smart contract.
-  version: 1.0.0
+  version: 2.0.0
   termsOfService: "/docs/terms"
   contact:
     name: "EBSI Support"
@@ -15,114 +15,92 @@ info:
     name: "EUPL-1.2"
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
 paths:
-  /timestamp/v1/hashes:
-    get:
+  /timestamp/v2/jsonrpc:
+    post:
+      operationId: post-timestamp-v2-jsonrpc
       tags:
-        - Timestamp
-      summary: Get a list of records
-      description: Returns a list of records.
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  items:
-                    description: list of channel names
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/hash"
-                  total:
-                    type: integer
-                    description: "total number of pages in a collection"
-                  pageSize:
-                    type: integer
-                    description: number of items to be return per page
-                  links:
-                    $ref: "#/components/schemas/links"
-              examples:
-                Get Records:
-                  value:
-                    items:
-                      - hash: 23...d7f
-                        txHash: 0x12...ba
-                        timestamp: "2019-10-23T14:25:20+00:00"
-                        registeredBy: 0xfa...94
-                        blockNumber: 739688
-                      - hash: 13...d7f
-                        txHash: 0x32...ba
-                        timestamp: "2019-10-23T14:26:20+00:00"
-                        registeredBy: 0xfa...94
-                        blockNumber: 739689
-                    total: 13
-                    pageSize: 2
-                    links:
-                      first: "/timestamp/v1/hashes?page[after]=0&page[size]=2"
-                      prev: "/timestamp/v1/hashes?page[after]=2&page[size]=2"
-                      next: "/timestamp/v1/hashes?page[after]=4&page[size]=2"
-                      last: "/timestamp/v1/hashes?page[after]=13&page[size]=2"
-        "500":
-          description: Internal Server Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: get-timestamp-v1-hashes
-      parameters:
-        - in: query
-          name: "page[before]"
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
-          name: "page[after]"
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: "page[size]"
-          description: Defines the maximum number of objects that may be returned.
-  "/timestamp/v1/hashes/{hash}":
-    get:
-      tags:
-        - Timestamp
-      summary: Get a record by its hash
+        - Timestamp API
+      summary: Helper APIs
       description: |
-        Retrieve notarization record from the smart contract by the
-        hash of the notarized document. If the hash exists in the smart
-        contract, it will return the timestamp (epoch time) and the
-        address that performed the notarization.
-      parameters:
-        - name: hash
-          in: path
-          schema:
-            type: string
-          example: "0xbe5b5152fcd01b6bf53f149bfd1493a49ec5e8ae94cc4c29a81563eea0e347f4"
-          required: true
+        Helper APIs that assist the construction of blockchain transactions for Timestamp
+        operations, and interaction with the ledger (Write operation on ledger)
+      requestBody:
+        required: true
+        description: |
+          The body follows the
+          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+
+          It requires the following fields:
+
+          - **jsonrpc**: Must be exactly '2.0'
+          - **method**: Method that to be invoked. Possible values: insertHashAlgorithm.
+          - **params**: Array of parameters
+          - **id**: Identifier stablished by the client
+        content:
+          application/json:
+            schema:
+              required:
+                - jsonrpc
+                - id
+                - method
+                - params
+              type: object
+              properties:
+                jsonrpc:
+                  description: Must be exactly '2.0'
+                  type: string
+                method:
+                  description: Method that needs to be invoked
+                  type: string
+                params:
+                  description: Array of parameters
+                  type: array
+                  items:
+                    type: object
+                id:
+                  description: Identifier stablished by the client
+                  type: integer
+                  example: 1
+            examples:
+              Build tx to insertHashAlgorithm:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertHashAlgorithm
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      outputLength: 256
+                      ianaName: sha-256
+                      oid: "2.16.840.1.101.3.4.2.1"
+                      status: 1
+                  id: 1
       responses:
         "200":
-          description: Record exists
+          description: Response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/hash"
+                $ref: "#/components/schemas/JsonRpcResponse"
               examples:
-                Get a Record:
+                Build tx:
                   value:
-                    hash: 23...7f
-                    txHash: 0x12...ba
-                    timestamp: "2019-10-23T14:25:20+00:00"
-                    registeredBy: 0xfa...94
-                    blockNumber: 739688
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                      data: "0x0000..."
+                      nonce: "0x00"
+                      chainId: "0x1b3b"
+                      gasLimit: "0x10000"
+                      gasPrice: "0x00"
+                      value: "0x00"
+                Send Transaction:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
         "400":
-          description: Bad Request
+          description: Bad request
           content:
             "application/problem+json":
               schema:
@@ -130,33 +108,6 @@ paths:
               examples:
                 Bad Request:
                   $ref: "#/components/examples/BadRequest"
-                Hash Not Valid:
-                  value:
-                    title: Bad Request
-                    status: 400
-                    detail: "The format of {hash} parameter is not valid"
-        "404":
-          description: Store Does Not Exist
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Not Found:
-                  value:
-                    title: Not Found
-                    status: 404
-                    detail: "{hash} parameter not found"
-        "500":
-          description: Internal Server Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: get-timestamp-v1-hash
 components:
   schemas:
     Problem:
@@ -201,74 +152,29 @@ components:
           description: |
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
-    hash:
+    JsonRpcResponse:
+      title: Json Rpc Response
       type: object
-      description: Notarized Document Record
-      x-examples:
-        Hash example:
-          hash: 23...d7f
-          txHash: 0x12...ba
-          timestamp: "2019-10-23T14:25:20+00:00"
-          registeredBy: 0xfa...94
-          blockNumber: 739688
-      title: Record
       properties:
-        hash:
+        jsonrpc:
+          description: Must be exactly '2.0'
           type: string
-          example: 892c9637814ccd39256cbaa03250c92507ae183dda03d091fc24a3221ecae303
-          description: keccak-256 hash of the file
-        txHash:
-          type: string
-          example: "0x561de67a9789b20bedf627e97bf6444206f83ad6e5c29c692d8cc52c352c0676"
-          description: Valid Ethereum transaction hash
-        blockNumber:
+        id:
+          description: Same identifier established by the client in the call
           type: integer
-          example: 900
-          description: Number of the block containing the transaction
-        registeredBy:
-          type: string
-          example: "0x6B175474E89094C44Da98b954EedeAC495271d0F"
-          description: Valid Ethereum Address
-        timestamp:
-          type: string
-          example: "2019-10-23T14:25:20+00:00"
-          description: Timestamp converted to ISO 8601 format
-    links:
-      title: Links
-      type: object
-      properties:
-        last:
-          type: string
-          description: " URI of the last page"
-        prev:
-          type: string
-          description: " URI of the previous page"
-        next:
-          type: string
-          description: " URI of the next page"
-        first:
-          type: string
-          description: " URI of the first page"
-      description: Links model used for pagination
-      x-examples:
-        Links:
-          first: "/timestamp/v1/hashes?page[after]=0&page[size]=2"
-          prev: "/timestamp/v1/hashes?page[after]=2&page[size]=2"
-          next: "/timestamp/v1/hashes?page[after]=4&page[size]=2"
-          last: "/timestamp/v1/hashes?page[after]=13&page[size]=2"
+        result:
+          description: Result of the call
+          oneOf:
+            - type: object
+            - type: string
   examples:
     BadRequest:
       value:
         title: Bad Request
         status: 400
         detail: Bad request
-    InternalError:
-      value:
-        title: Internal Server Error
-        status: 500
-        detail: Internal error
 tags:
-  - name: Timestamp
+  - name: Timestamp API
     description: Validate timestamped records
 servers:
   - url: "http://localhost"

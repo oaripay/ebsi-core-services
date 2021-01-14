@@ -7,12 +7,13 @@ import {
   DNSHealthIndicator,
   HealthCheckResult,
 } from "@nestjs/terminus";
+import { ApiConfig } from "./config/configuration";
 
 @Controller("health")
 export class HealthController {
   constructor(
     private health: HealthCheckService,
-    private configService: ConfigService,
+    private configService: ConfigService<ApiConfig>,
     private dns: DNSHealthIndicator
   ) {}
 
@@ -25,7 +26,7 @@ export class HealthController {
       () =>
         this.dns.pingCheck(
           "ebsi-apis",
-          this.configService.get<string>("externalEBSIApiHealthCheck")
+          this.configService.get("externalEBSIApiHealthCheck")
         ),
     ]);
   }

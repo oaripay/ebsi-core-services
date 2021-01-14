@@ -1,6 +1,6 @@
 coverage
 dist
 node_modules
-logs
 .env*.local
+src/contracts
 yarn-error.log

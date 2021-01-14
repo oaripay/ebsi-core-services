@@ -1,19 +1,68 @@
 pipeline {
     agent any
-    environment {
-        EBSI_ENV='integration'
-        BESU_ADDRESS_NOTARY='0x21b38942aA9BC992482627f63814Ffa06DA7e500'
+    options {
+        skipDefaultCheckout()
     }
     stages {
-        stage('Clone repo') {
+        stage('Checkout') {
             steps {
-               checkout scm;
+                checkout([
+                    $class: 'GitSCM',
+                    branches: scm.branches,
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[
+                        $class: 'SubmoduleOption',
+                        disableSubmodules: false,
+                        parentCredentials: true,
+                        recursiveSubmodules: true,
+                        reference: '',
+                        trackingSubmodules: false
+                    ]],
+                    submoduleCfg: [],
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
             }
         }
-        stage('Unit test') {
+        stage('Node Agent') {
+            agent {
+                docker {
+                    image 'node:14.15.4'
+                    args '-u root:sudo'
+                    reuseNode true
+                }
+            }
+            stages {
+                stage('Setup') {
+                    steps {
+                        sh 'yarn install --frozen-lockfile'
+                        sh 'yarn run audit'
+                    }
+                }
+                stage('Lint') {
+                    steps {
+                        sh 'yarn lint'
+                    }
+                }
+                stage('Unit tests') {
+                    environment {
+                        EBSI_ENV='integration'
+                        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+                    }
+                    steps {
+                        sh 'yarn test:ci'
+                    }
+                }
+            }
+        }
+        stage ('Lint Dockerfile') {
+            agent {
+                docker {
+                    image 'hadolint/hadolint:latest-debian'
+                    reuseNode true
+                }
+            }
             steps {
-                sh 'yarn install --frozen-lockfile'
-                sh 'yarn run test:ci'
+                sh 'hadolint Dockerfile'
             }
         }
         stage('SonarQube Analysis') {
@@ -29,4 +78,10 @@ pipeline {
             }
         }
     }
+    post {
+        always {
+            cleanWs()
+        }
+    }
 }
+

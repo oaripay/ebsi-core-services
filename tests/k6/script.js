@@ -16,8 +16,8 @@ export const options = {
 };
 
 export default function loadTesting() {
-  group("/timestamp/v1/hashes", () => {
-    const url = `${BASE_URL}/timestamp/v1/hashes`;
+  group("/timestamp/v2/hashes", () => {
+    const url = `${BASE_URL}/timestamp/v2/hashes`;
     const request = http.get(url);
     check(request, {
       Success: (r) => r.status === 200,

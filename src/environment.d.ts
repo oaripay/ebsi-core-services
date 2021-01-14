@@ -4,10 +4,15 @@ declare global {
     interface ProcessEnv {
       NODE_ENV: "development" | "production" | "test";
       EBSI_ENV: "local" | "integration" | "development" | "production";
-      BESU_ADDRESS_NOTARY: string;
+      API_PRIVATE_KEY: string;
       API_PORT?: string;
-      API_URL?: string;
+      API_URL_PREFIX?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
+      LEDGER?: string;
+      CONTRACT_ADDR: string;
+      DOMAIN?: string;
+      ADMIN_TEST_PRIVATE_KEY?: string;
+      HEALTH_CHECK?: string;
     }
   }
 }

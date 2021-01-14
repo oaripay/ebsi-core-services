@@ -16,9 +16,9 @@ module.exports = {
     { type: "test", hidden: true },
   ],
   commitUrlFormat:
-    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/api-boilerplate/commits/{{hash}}",
+    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/commits/{{hash}}",
   issueUrlFormat:
-    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/api-boilerplate/pull-requests/{{id}}/overview",
+    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/pull-requests/{{id}}/overview",
   compareUrlFormat:
-    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/api-boilerplate/compare/diff?targetBranch=refs%2Ftags%2F{{previousTag}}&sourceBranch=refs%2Ftags%2F{{currentTag}}&targetRepoId=285",
+    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2F{{previousTag}}&sourceBranch=refs%2Ftags%2F{{currentTag}}&targetRepoId=285",
 };
