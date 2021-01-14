@@ -29,14 +29,29 @@ import {
   UpdateAuthorizationParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
+import {
+  AppResponseObject,
+  AppLink,
+} from "../../src/modules/apps/apps.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import LedgerService from "../../src/shared/services/ledger.service";
 import { waitToBeMined } from "../utils/waitToBeMined";
+import { PaginatedList } from "../../src/shared/interfaces";
 
 interface SupertestJsonRpcResponse {
   status: number;
   body: JsonRpcResponseObject;
+}
+
+interface SupertestAppsResponse {
+  status: number;
+  body: PaginatedList<AppLink>;
+}
+
+interface SupertestAppResponse {
+  status: number;
+  body: AppResponseObject;
 }
 
 type JsonRpcParams =
@@ -97,6 +112,156 @@ describe("Apps (e2e)", () => {
     );
 
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
+  });
+
+  describe("/apps", () => {
+    it("should return a collection of apps", async () => {
+      expect.assertions(2);
+      const response: SupertestAppsResponse = await request(server).get(
+        "/apps"
+      );
+
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          self: expect.stringContaining(
+            "/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10"
+          ) as string,
+          items: expect.arrayContaining([]) as string[],
+          total: expect.any(Number) as number,
+          pageSize: expect.any(Number) as number,
+          links: expect.objectContaining({
+            first: expect.stringContaining(
+              "/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10"
+            ) as string,
+            prev: expect.stringContaining(
+              "/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10"
+            ) as string,
+            next: expect.stringContaining(
+              "/trusted-apps-registry/v2/apps?page[after]="
+            ) as string,
+            last: expect.stringContaining(
+              "/trusted-apps-registry/v2/apps?page[after]="
+            ) as string,
+          }) as PaginatedList<AppLink>["links"],
+        })
+      );
+      expect(response.status).toBe(200);
+    });
+
+    it("should return an app when query name is defined", async () => {
+      expect.assertions(3);
+
+      const responseApps: SupertestAppsResponse = await request(server).get(
+        "/apps"
+      );
+      const appName = responseApps.body.items[0].name;
+      const response: SupertestAppsResponse = await request(server).get(
+        `/apps?name=${appName}`
+      );
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          self: expect.stringContaining(
+            `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&name=${appName}`
+          ) as string,
+          items: expect.arrayContaining([]) as string[],
+          total: expect.any(Number) as number,
+          pageSize: expect.any(Number) as number,
+          links: expect.objectContaining({
+            first: expect.stringContaining(
+              `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&name=${appName}`
+            ) as string,
+            prev: expect.stringContaining(
+              `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&name=${appName}`
+            ) as string,
+            next: expect.stringContaining(
+              "/trusted-apps-registry/v2/apps?page[after]="
+            ) as string,
+            last: expect.stringContaining(
+              "/trusted-apps-registry/v2/apps?page[after]="
+            ) as string,
+          }) as PaginatedList<AppLink>["links"],
+        })
+      );
+      expect(response.body.items).toHaveLength(1);
+      expect(response.status).toBe(200);
+    });
+
+    it("should return an app when query public_key_id is defined", async () => {
+      expect.assertions(3);
+
+      const responseApps: SupertestAppsResponse = await request(server).get(
+        "/apps"
+      );
+      const publicKeyId = responseApps.body.items[0].id;
+      const response: SupertestAppsResponse = await request(server).get(
+        `/apps?public_key_id=${publicKeyId}`
+      );
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
+          ) as string,
+          prev: expect.stringContaining(
+            `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
+          ) as string,
+          next: expect.stringContaining(
+            "/trusted-apps-registry/v2/apps?page[after]="
+          ) as string,
+          last: expect.stringContaining(
+            "/trusted-apps-registry/v2/apps?page[after]="
+          ) as string,
+        },
+      });
+      expect(response.body.items).toHaveLength(1);
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("/apps/{applicationId}", () => {
+    it("should return a specific app", async () => {
+      expect.assertions(3);
+
+      const appsResponse: SupertestAppsResponse = await request(server).get(
+        "/apps"
+      );
+
+      expect(appsResponse.status).toBe(200);
+      const { id, name }: AppLink = appsResponse.body.items[
+        appsResponse.body.items.length - 1
+      ];
+
+      const response: SupertestAppResponse = await request(server).get(
+        `/apps/${id}`
+      );
+
+      expect(response.body).toStrictEqual({
+        id,
+        name,
+        domain: expect.any(String) as string,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the app is not found", async () => {
+      expect.assertions(2);
+      const response = await request(server).get(
+        "/apps/0x0000000000000000000000000000000000000000000000000000000000000000"
+      );
+      expect(response.body).toStrictEqual({
+        title: "App Not Found",
+        status: 404,
+        detail:
+          "App 0x0000000000000000000000000000000000000000000000000000000000000000 not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
   });
 
   describe.each([
@@ -229,7 +394,7 @@ describe("Apps (e2e)", () => {
     "updateAppPublicKey",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
-      expect.assertions(3);
+      expect.assertions(5);
 
       let param: JsonRpcParams = null;
       // this public key is created with the first "insertApp" call
@@ -390,13 +555,22 @@ describe("Apps (e2e)", () => {
       const receipt = await waitToBeMined(responseSend.body.result as string);
       expect(receipt.status).toBe("0x1");
 
-      // get app
-      /* const appResponse = await request(server).get(
-        `/apps?name=${newApp.name}`
-      );
-
-      expect(appResponse.body).toStrictEqual({});
-      expect(appResponse.status).toBe(200); */
+      /* eslint-disable jest/no-conditional-expect */
+      switch (method) {
+        case "insertApp": {
+          // get app
+          const appResponse: SupertestAppsResponse = await request(server).get(
+            `/apps?name=${newApp.name}`
+          );
+          expect(appResponse.body.items).toHaveLength(1);
+          expect(appResponse.status).toBe(200);
+          break;
+        }
+        default:
+          expect(1).toBe(1);
+          expect(1).toBe(1);
+          break;
+      }
     });
   });
 });

@@ -1,6 +1,5 @@
 import * as ClassValidator from "class-validator";
-import { ClassTransformer } from "class-transformer";
-import { ClassType } from "class-transformer/ClassTransformer";
+import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
 import { UnsignedTransaction } from "./dto";
 import { prefixWith0x } from "../../shared/utils";
@@ -34,7 +33,7 @@ export function formatEthersSignature(
 }
 
 export const validateClass = async (
-  classType: ClassType<unknown>,
+  classType: ClassConstructor<unknown>,
   data: unknown
 ): Promise<void> => {
   const dataClass = new ClassTransformer().plainToClass(classType, data);

@@ -17,6 +17,169 @@ tags:
   - name: Trusted Apps Registry
     description: List and verify trusted apps
 paths:
+  /trusted-apps-registry/v2/apps:
+    get:
+      tags:
+        - Trusted Apps Registry
+      summary: Get all apps
+      description: Get all apps. Endpoint returns a paginated list of items.
+      operationId: get-trusted-apps-registry-v2-apps
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: Filter results by name
+        - in: query
+          name: public_key_id
+          schema:
+            type: string
+          description: Filter results by public key id
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to apps
+                  items:
+                    type: array
+                    description: List of apps
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: ID of the app
+                        name:
+                          type: string
+                          description: Name of the app
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-apps-registry/v2/apps?page[after]=3&page[size]=2
+                    items:
+                      - id: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+                        name: test-app-1
+                        href: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
+                      - id: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
+                        name: test-app-2
+                        href: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.ebsi.xyz/trusted-apps-registry/v2/apps?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/trusted-apps-registry/v2/apps?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/trusted-apps-registry/v2/apps?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/trusted-apps-registry/v2/apps?page[after]=62&page[size]=2
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  "/trusted-apps-registry/v2/apps/{applicationId}":
+    get:
+      tags:
+        - Trusted Apps Registry
+      summary: Get app by its ID
+      description: Returns a trusted app by its ID
+      operationId: get-trusted-apps-registry-v2-app
+      parameters:
+        - name: applicationId
+          in: path
+          schema:
+            type: string
+          example: test-app-1
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/app"
+              examples:
+                Success:
+                  value:
+                    id: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+                    name: test-app-1
+                    domain: ebsi
+        "400":
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {appId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {appId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /trusted-apps-registry/v2/administrators:
     get:
       tags:
@@ -443,282 +606,6 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
-  /trusted-apps-registry/v2/jsonrpc:
-    post:
-      operationId: post-ledger-v2-blockchains-besu
-      tags:
-        - Trusted Apps Registry
-      summary: Helper APIs
-      description: |
-        Helper APIs that assist the construction of blockchain transactions for TAR SC operations,
-        and interaction with the ledger (Write operation on ledger)
-      requestBody:
-        description: |
-          The body follows the
-          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
-
-          It requires the following fields:
-
-          - **jsonrpc**: Must be exactly '2.0'
-          - **method**: Method that to be invoked. Possible values: deleteAppAdministrator,
-          insertAdministrator, insertApp, insertAppAdministrator, insertAppInfo,
-          insertAppPublicKey, insertAuthorization, insertPolicy, insertRevocation,
-          signedTransaction, updateAdministrator, updateApp, updateAppPublicKey,
-          updateAuthorization, and updatePolicy.
-          - **params**: Array of parameters
-          - **id**: Identifier stablished by the client
-        content:
-          application/json:
-            schema:
-              required:
-                - jsonrpc
-                - id
-                - method
-                - params
-              type: object
-              properties:
-                jsonrpc:
-                  description: Must be exactly '2.0'
-                  type: string
-                method:
-                  description: Method that needs to be invoked
-                  type: string
-                params:
-                  description: Array of parameters
-                  type: array
-                  items:
-                    type: object
-                id:
-                  description: Identifier stablished by the client
-                  type: integer
-                  example: 1
-            examples:
-              Build tx to deleteAppAdministrator:
-                value:
-                  jsonrpc: "2.0"
-                  method: deleteAppAdministrator
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      administratorId: "did:ebsi:0x5afee6162656c2e4c65652e452d412d506f652f"
-                  id: 1
-              Build tx to insertAdministrator:
-                value:
-                  jsonrpc: "2.0"
-                  method: insertAdministrator
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
-                      attribute:
-                        {
-                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
-                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-                        }
-                  id: 1
-              Build tx to insertApp:
-                value:
-                  jsonrpc: "2.0"
-                  method: insertApp
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      name: "my app"
-                      domain: "ebsi"
-                      appAdministrator: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
-                      publicKey: |
-                        -----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZI...IqA==\n-----END PUBLIC KEY-----
-                      status: "active"
-                      notBefore: 1609926740
-                      notAfter: 1709926740
-                  id: 1
-              Build tx to insertAppAdministrator:
-                value:
-                  jsonrpc: "2.0"
-                  method: insertAppAdministrator
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      administratorId: "did:ebsi:0x5afee6162656c2e4c65652e452d412d506f652f"
-                  id: 1
-              Build tx to insertAppInfo:
-                value:
-                  jsonrpc: "2.0"
-                  method: insertAppInfo
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      info: { anyField: info data }
-                  id: 1
-              Build tx to insertAppPublicKey:
-                value:
-                  jsonrpc: "2.0"
-                  method: insertAppPublicKey
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      publicKey: |
-                        -----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZI...IqA==\n-----END PUBLIC KEY-----
-                      status: "suspended"
-                      notBefore: 1609926740
-                      notAfter: 1709926740
-                  id: 1
-              Build tx to insertAuthorization:
-                value:
-                  jsonrpc: "2.0"
-                  method: insertAuthorization
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      name: "app1"
-                      authorizedAppName: "app2"
-                      iss: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
-                      status: "active"
-                      permissions: "crud"
-                      notBefore: 1609926740
-                      notAfter: 1709926740
-                  id: 1
-              Build tx to insertPolicy:
-                value:
-                  jsonrpc: "2.0"
-                  method: insertPolicy
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyId: test-policiy-1
-                      policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
-                  id: 1
-              Build tx to insertRevocation:
-                value:
-                  jsonrpc: "2.0"
-                  method: insertRevocation
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      revokedBy: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
-                      notBefore: 1609926740
-                  id: 1
-              Build tx to updateAdministrator (new attribute):
-                value:
-                  jsonrpc: "2.0"
-                  method: updateAdministrator
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
-                      attribute:
-                        {
-                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
-                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-                        }
-                  id: 1
-              Build tx to updateAdministrator (update attribute):
-                value:
-                  jsonrpc: "2.0"
-                  method: updateAdministrator
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
-                      attribute:
-                        {
-                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
-                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-                        }
-                      prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
-                  id: 1
-              Build tx to updateApp:
-                value:
-                  jsonrpc: "2.0"
-                  method: updateApp
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      name: "new name"
-                      domain: "external"
-                  id: 1
-              Build tx to updateAppPublicKey:
-                value:
-                  jsonrpc: "2.0"
-                  method: updateAppPublicKey
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      publicKeyId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      status: "revoked"
-                      notAfter: 1709926740
-                  id: 1
-              Build tx to updateAuthorization:
-                value:
-                  jsonrpc: "2.0"
-                  method: updateAuthorization
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      authorizationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      status: "active"
-                      permissions: "crud"
-                      notAfter: 1709926740
-                  id: 1
-              Build tx to updatePolicy:
-                value:
-                  jsonrpc: "2.0"
-                  method: updatePolicy
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyId: test-policiy-1
-                      policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
-                  id: 1
-              Send Transaction:
-                value:
-                  jsonrpc: "2.0"
-                  method: signedTransaction
-                  params:
-                    - protocol: eth
-                      unsignedTransaction:
-                        from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
-                        data: "0x0000..."
-                        nonce: "0x00"
-                        chainId: "0x1b3b"
-                        gasLimit: "0x10000"
-                        gasPrice: "0x00"
-                        value: "0x00"
-                      r: "0x..."
-                      s: "0x..."
-                      v: "0x..."
-                      signedRawTransaction: "--- signed raw transaction ---"
-                  id: 1
-        required: true
-      responses:
-        "200":
-          description: Response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/JsonRpcResponse"
-              examples:
-                Build tx:
-                  value:
-                    jsonrpc: "2.0"
-                    id: 1
-                    result:
-                      from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
-                      data: "0x0000..."
-                      nonce: "0x00"
-                      chainId: "0x1b3b"
-                      gasLimit: "0x10000"
-                      gasPrice: "0x00"
-                      value: "0x00"
-                Send Transaction:
-                  value:
-                    jsonrpc: "2.0"
-                    id: 1
-                    result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
-        "400":
-          description: Bad request
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Bad Request:
-                  $ref: "#/components/examples/BadRequest"
-                Invalid Token:
-                  $ref: "#/components/examples/InvalidToken"
   /trusted-apps-registry/v2/policies:
     get:
       tags:
@@ -761,7 +648,7 @@ paths:
                       properties:
                         policyId:
                           type: string
-                          description: ID of the policiy
+                          description: ID of the policy
                         href:
                           type: string
                           description: Link to the resource
@@ -815,7 +702,7 @@ paths:
       tags:
         - Trusted Apps Registry
       summary: Get policy by its ID
-      description: Returns a trusted policiy by its ID
+      description: Returns a trusted policy by its ID
       operationId: get-trusted-apps-registry-v2-policy
       parameters:
         - name: policyId
@@ -968,6 +855,282 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /trusted-apps-registry/v2/jsonrpc:
+    post:
+      operationId: post-ledger-v2-blockchains-besu
+      tags:
+        - Trusted Apps Registry
+      summary: Helper APIs
+      description: |
+        Helper APIs that assist the construction of blockchain transactions for TAR SC operations,
+        and interaction with the ledger (Write operation on ledger)
+      requestBody:
+        description: |
+          The body follows the
+          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+
+          It requires the following fields:
+
+          - **jsonrpc**: Must be exactly '2.0'
+          - **method**: Method that to be invoked. Possible values: deleteAppAdministrator,
+          insertAdministrator, insertApp, insertAppAdministrator, insertAppInfo,
+          insertAppPublicKey, insertAuthorization, insertPolicy, insertRevocation,
+          signedTransaction, updateAdministrator, updateApp, updateAppPublicKey,
+          updateAuthorization, and updatePolicy.
+          - **params**: Array of parameters
+          - **id**: Identifier stablished by the client
+        content:
+          application/json:
+            schema:
+              required:
+                - jsonrpc
+                - id
+                - method
+                - params
+              type: object
+              properties:
+                jsonrpc:
+                  description: Must be exactly '2.0'
+                  type: string
+                method:
+                  description: Method that needs to be invoked
+                  type: string
+                params:
+                  description: Array of parameters
+                  type: array
+                  items:
+                    type: object
+                id:
+                  description: Identifier stablished by the client
+                  type: integer
+                  example: 1
+            examples:
+              Build tx to deleteAppAdministrator:
+                value:
+                  jsonrpc: "2.0"
+                  method: deleteAppAdministrator
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      administratorId: "did:ebsi:0x5afee6162656c2e4c65652e452d412d506f652f"
+                  id: 1
+              Build tx to insertAdministrator:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertAdministrator
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
+                      attribute:
+                        {
+                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
+                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+                        }
+                  id: 1
+              Build tx to insertApp:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertApp
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      name: "my app"
+                      domain: "ebsi"
+                      appAdministrator: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      publicKey: |
+                        -----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZI...IqA==\n-----END PUBLIC KEY-----
+                      status: "active"
+                      notBefore: 1609926740
+                      notAfter: 1709926740
+                  id: 1
+              Build tx to insertAppAdministrator:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertAppAdministrator
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      administratorId: "did:ebsi:0x5afee6162656c2e4c65652e452d412d506f652f"
+                  id: 1
+              Build tx to insertAppInfo:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertAppInfo
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      info: { anyField: info data }
+                  id: 1
+              Build tx to insertAppPublicKey:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertAppPublicKey
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      publicKey: |
+                        -----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZI...IqA==\n-----END PUBLIC KEY-----
+                      status: "suspended"
+                      notBefore: 1609926740
+                      notAfter: 1709926740
+                  id: 1
+              Build tx to insertAuthorization:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertAuthorization
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      name: "app1"
+                      authorizedAppName: "app2"
+                      iss: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      status: "active"
+                      permissions: "crud"
+                      notBefore: 1609926740
+                      notAfter: 1709926740
+                  id: 1
+              Build tx to insertPolicy:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertPolicy
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      appId: test-policy-1
+                      app: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
+                  id: 1
+              Build tx to insertRevocation:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertRevocation
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      revokedBy: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      notBefore: 1609926740
+                  id: 1
+              Build tx to updateAdministrator (new attribute):
+                value:
+                  jsonrpc: "2.0"
+                  method: updateAdministrator
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
+                      attribute:
+                        {
+                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
+                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+                        }
+                  id: 1
+              Build tx to updateAdministrator (update attribute):
+                value:
+                  jsonrpc: "2.0"
+                  method: updateAdministrator
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
+                      attribute:
+                        {
+                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
+                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
+                        }
+                      prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
+                  id: 1
+              Build tx to updateApp:
+                value:
+                  jsonrpc: "2.0"
+                  method: updateApp
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      name: "new name"
+                      domain: "external"
+                  id: 1
+              Build tx to updateAppPublicKey:
+                value:
+                  jsonrpc: "2.0"
+                  method: updateAppPublicKey
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      publicKeyId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      status: "revoked"
+                      notAfter: 1709926740
+                  id: 1
+              Build tx to updateAuthorization:
+                value:
+                  jsonrpc: "2.0"
+                  method: updateAuthorization
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      authorizationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      status: "active"
+                      permissions: "crud"
+                      notAfter: 1709926740
+                  id: 1
+              Build tx to updatePolicy:
+                value:
+                  jsonrpc: "2.0"
+                  method: updatePolicy
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      appId: test-policy-1
+                      app: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
+                  id: 1
+              Send Transaction:
+                value:
+                  jsonrpc: "2.0"
+                  method: signedTransaction
+                  params:
+                    - protocol: eth
+                      unsignedTransaction:
+                        from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                        data: "0x0000..."
+                        nonce: "0x00"
+                        chainId: "0x1b3b"
+                        gasLimit: "0x10000"
+                        gasPrice: "0x00"
+                        value: "0x00"
+                      r: "0x..."
+                      s: "0x..."
+                      v: "0x..."
+                      signedRawTransaction: "--- signed raw transaction ---"
+                  id: 1
+        required: true
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonRpcResponse"
+              examples:
+                Build tx:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                      data: "0x0000..."
+                      nonce: "0x00"
+                      chainId: "0x1b3b"
+                      gasLimit: "0x10000"
+                      gasPrice: "0x00"
+                      value: "0x00"
+                Send Transaction:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
+        "400":
+          description: Bad request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Request:
+                  $ref: "#/components/examples/BadRequest"
+                Invalid Token:
+                  $ref: "#/components/examples/InvalidToken"
 components:
   schemas:
     Problem:
@@ -1083,6 +1246,20 @@ components:
           oneOf:
             - type: object
             - type: string
+    app:
+      title: App
+      type: object
+      description: App data model
+      properties:
+        id:
+          type: string
+          description: Unique app ID
+        name:
+          type: string
+          description: App name
+        domain:
+          type: string
+          description: domain (ebsi or external)
     policy:
       title: Policy
       type: object
