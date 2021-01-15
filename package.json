@@ -2,6 +2,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "audit": "audit-ci --moderate",
     "prettier-format": "prettier --write 'src/**/*.{js,ts,tsx}'",
     "start": "node src/start.js",
     "lint-staged": "lint-staged",
@@ -19,7 +20,7 @@
     "API"
   ],
   "dependencies": {
-    "@cef-ebsi/app-jwt": "0.0.11",
+    "@cef-ebsi/app-jwt": "0.0.12",
     "@cef-ebsi/express-problem-details": "0.0.2",
     "@cef-ebsi/problem-details-errors": "0.0.3",
     "body-parser": "^1.19.0",
@@ -35,6 +36,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
+    "audit-ci": "^3.0.0",
     "eslint": "^7.9.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-config-prettier": "^6.11.0",
