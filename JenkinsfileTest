@@ -6,6 +6,16 @@ pipeline {
                sh 'yarn install --frozen-lockfile'
             }
         }
+        stage('Audit dependencies') {
+            steps {
+                sh 'yarn run audit'
+            }
+        }
+        stage('Lint') {
+            steps {
+                sh 'yarn lint'
+            }
+        }
         stage('Unit test') {
             environment {
                 EBSI_ENV='test'
@@ -26,6 +36,14 @@ pipeline {
         stage("Quality Gate") {
             steps {
                 waitForQualityGate abortPipeline: true
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+            dir("${env.WORKSPACE}@script") {
+                deleteDir()
             }
         }
     }
