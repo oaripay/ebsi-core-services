@@ -3,6 +3,7 @@ import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
 import {
   ArgsInsertHashAlgorithm,
+  ArgsUpdateHashAlgorithm,
   RequestInsertHashAlgorithmDto,
   RequestSignedTransactionDto,
   UnsignedTransaction,
@@ -39,7 +40,8 @@ export function formatEthersSignature(
 type JsonRpcDtos =
   | RequestSignedTransactionDto
   | RequestInsertHashAlgorithmDto
-  | ArgsInsertHashAlgorithm;
+  | ArgsInsertHashAlgorithm
+  | ArgsUpdateHashAlgorithm;
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,

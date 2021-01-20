@@ -16,7 +16,11 @@ import {
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
-import { InsertHashAlgorithmParam, UnsignedTransaction } from "./dto";
+import {
+  InsertHashAlgorithmParam,
+  UnsignedTransaction,
+  UpdateHashAlgorithmParam,
+} from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Timestamp, Timestamp__factory } from "../../contracts";
@@ -28,7 +32,7 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertHashAlgorithmParam;
+type JsonRpcParams = InsertHashAlgorithmParam | UpdateHashAlgorithmParam;
 
 jest.setTimeout(90000);
 
@@ -272,7 +276,7 @@ describe("JsonRpc Module", () => {
 
   // Tests to be repeated for every method
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertHashAlgorithm"])(
+  describe.each(["insertHashAlgorithm", "updateHashAlgorithm"])(
     "/jsonrpc with method %s",
     (method: string) => {
       it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
@@ -293,8 +297,19 @@ describe("JsonRpc Module", () => {
             } as InsertHashAlgorithmParam;
             break;
           }
-          default:
+          case "updateHashAlgorithm": {
+            param = {
+              from: signer.address,
+              hashAlgorithmId: 0, // "0" is the ID of the hash we've just inserted
+              outputLength: 256,
+              ianaName: "sha-256",
+              oid: "2.16.840.1.101.3.4.2.1",
+              status: 1,
+            } as UpdateHashAlgorithmParam;
             break;
+          }
+          default:
+            throw new Error(`Test Error: Invalid method ${method}`);
         }
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
@@ -373,8 +388,19 @@ describe("JsonRpc Module", () => {
             } as InsertHashAlgorithmParam;
             break;
           }
-          default:
+          case "updateHashAlgorithm": {
+            param = {
+              from: signer.address,
+              hashAlgorithmId: 1,
+              outputLength: 256,
+              ianaName: "sha-256",
+              oid: "2.16.840.1.101.3.4.2.1",
+              status: 1,
+            } as UpdateHashAlgorithmParam;
             break;
+          }
+          default:
+            throw new Error(`Test Error: Invalid method ${method}`);
         }
 
         const responseBuild = await request(server)
@@ -441,6 +467,44 @@ describe("JsonRpc Module", () => {
 
             expectedErrorMessage3 =
               "property params[0].oid has failed the following constraints: isString";
+            break;
+          }
+          case "updateHashAlgorithm": {
+            param1 = {
+              from: signer.address,
+              hashAlgorithmId: -1,
+              outputLength: 256,
+              ianaName: "sha-256",
+              oid: "2.16.840.1.101.3.4.2.1",
+              status: 1,
+            } as UpdateHashAlgorithmParam;
+
+            expectedErrorMessage1 =
+              "property params[0].hashAlgorithmId has failed the following constraints: min";
+
+            param2 = {
+              from: signer.address,
+              hashAlgorithmId: 1,
+              outputLength: -1,
+              ianaName: "sha-256",
+              oid: "2.16.840.1.101.3.4.2.1",
+              status: 1,
+            } as UpdateHashAlgorithmParam;
+
+            expectedErrorMessage2 =
+              "property params[0].outputLength has failed the following constraints: min";
+
+            param3 = {
+              from: signer.address,
+              hashAlgorithmId: 1,
+              outputLength: 256,
+              ianaName: "sha-256",
+              oid: "2.16.840.1.101.3.4.2.1",
+              status: 0,
+            } as UpdateHashAlgorithmParam;
+
+            expectedErrorMessage3 =
+              "property params[0].status has failed the following constraints: min";
             break;
           }
           default:
@@ -530,6 +594,27 @@ describe("JsonRpc Module", () => {
               oid: "2.16.840.1.101.3.4.2.1",
               status: 2,
             } as InsertHashAlgorithmParam;
+
+            break;
+          }
+          case "updateHashAlgorithm": {
+            param1 = {
+              from: signer.address,
+              hashAlgorithmId: 1,
+              outputLength: 256,
+              ianaName: "sha-256",
+              oid: "2.16.840.1.101.3.4.2.1",
+              status: 1,
+            } as UpdateHashAlgorithmParam;
+
+            param2 = {
+              from: signer.address,
+              hashAlgorithmId: 1,
+              outputLength: 256,
+              ianaName: "sha-256",
+              oid: "2.16.840.1.101.3.4.2.1",
+              status: 2,
+            } as UpdateHashAlgorithmParam;
 
             break;
           }

@@ -5,7 +5,9 @@ import { Agent, Scope } from "@cef-ebsi/app-jwt";
 import { ConfigService } from "@nestjs/config";
 import {
   ArgsInsertHashAlgorithm,
+  ArgsUpdateHashAlgorithm,
   RequestInsertHashAlgorithmDto,
+  RequestUpdateHashAlgorithmDto,
   RequestSignedTransactionDto,
   SignedTransactionParam,
   UnsignedTransaction,
@@ -192,11 +194,17 @@ export class JsonRpcService {
     } = this.timestampContract.interface.parseTransaction(unsignedTransaction);
 
     switch (functionFragment.name) {
-      // TODO: update name once the SC is updated
       case "insertHashAlgorithm": {
         await validateClass(
           ArgsInsertHashAlgorithm,
           (args as unknown) as ArgsInsertHashAlgorithm
+        );
+        break;
+      }
+      case "updateHashAlgorithm": {
+        await validateClass(
+          ArgsUpdateHashAlgorithm,
+          (args as unknown) as ArgsUpdateHashAlgorithm
         );
         break;
       }
@@ -259,6 +267,35 @@ export class JsonRpcService {
       const data = this.timestampContract.interface.encodeFunctionData(
         "insertHashAlgorithm",
         [outputLength, ianaName, oid, status]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateHashAlgorithm(
+    body: RequestUpdateHashAlgorithmDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateHashAlgorithmDto, body);
+
+      const {
+        from,
+        hashAlgorithmId,
+        outputLength,
+        ianaName,
+        oid,
+        status,
+      } = body.params[0];
+
+      const data = this.timestampContract.interface.encodeFunctionData(
+        "updateHashAlgorithm",
+        [hashAlgorithmId, outputLength, ianaName, oid, status]
       );
 
       return await this.buildTransaction(from, data);

@@ -20,5 +20,5 @@ module.exports = {
   issueUrlFormat:
     "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/pull-requests/{{id}}/overview",
   compareUrlFormat:
-    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2F{{previousTag}}&sourceBranch=refs%2Ftags%2F{{currentTag}}&targetRepoId=285",
+    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2F{{previousTag}}&sourceBranch=refs%2Ftags%2F{{currentTag}}&targetRepoId=247",
 };
