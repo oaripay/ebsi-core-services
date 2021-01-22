@@ -23,34 +23,29 @@ pipeline {
                 ])
             }
         }
-        stage('Node Agent') {
-            agent {
-                docker {
-                    image 'node:14.15.4'
-                    args '-u root:sudo'
-                    reuseNode true
+        stage('Setup') {
+            steps {
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn install --frozen-lockfile'
+                    sh 'yarn run audit'
                 }
             }
-            stages {
-                stage('Setup') {
-                    steps {
-                        sh 'yarn install --frozen-lockfile'
-                        sh 'yarn run audit'
-                    }
+        }
+        stage('Lint') {
+            steps {
+                nodejs(nodeJSInstallationName: '14.15.4') {    
+                    sh 'yarn lint'
                 }
-                stage('Lint') {
-                    steps {
-                        sh 'yarn lint'
-                    }
-                }
-                stage('Unit tests') {
-                    environment {
-                        EBSI_ENV='integration'
-                        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-                    }
-                    steps {
-                        sh 'yarn test:ci'
-                    }
+            }
+        }
+        stage('Unit tests') {
+            environment {
+                EBSI_ENV='integration'
+                API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+            }
+            steps {
+                nodejs(nodeJSInstallationName: '14.15.4') {  
+                    sh 'yarn test:ci'
                 }
             }
         }
@@ -75,6 +70,14 @@ pipeline {
         stage("Quality Gate") {
             steps {
                 waitForQualityGate abortPipeline: true
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+            dir("${env.WORKSPACE}@script") {
+                deleteDir()
             }
         }
     }

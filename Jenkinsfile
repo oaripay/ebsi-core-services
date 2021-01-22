@@ -50,26 +50,17 @@ pipeline {
                 sh "/usr/local/bin/auto_container_validate.sh ${CONTAINER_NAME} ${MCO_TARGET} app lux"
             }
         }
-        stage('Node Agent') {
-            agent {
-                docker {
-                    image 'node:14.15.4'
-                    args '-u root:sudo'
-                    reuseNode true
-                }
+        stage('Unit test') {
+            environment {
+                EBSI_ENV='integration'
+                API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
             }
-            stages {
-                stage('Unit test') {
-                    environment {
-                        EBSI_ENV='integration'
-                        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-                    }
-                    steps {
-                        sh 'yarn install --frozen-lockfile'
-                        sh "yarn run audit"
-                        sh "yarn lint"
-                        sh 'yarn test:ci'
-                    }
+            steps {
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn install --frozen-lockfile'
+                    sh "yarn run audit"
+                    sh "yarn lint"
+                    sh 'yarn test:ci'
                 }
             }
         }

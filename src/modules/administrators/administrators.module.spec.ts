@@ -19,7 +19,7 @@ import { Tar__factory } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
-jest.setTimeout(30000);
+jest.setTimeout(60000);
 
 const ADMINISTRATORS_TOTAL = 3;
 
