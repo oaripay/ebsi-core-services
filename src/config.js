@@ -41,9 +41,13 @@ const sharedConfig = {
   trustedAppsRegistry: `${url}/trusted-apps-registry/v1`,
   cassandra: {
     connection: {
-      contactPoints: ["cassandradb", "localhost"],
-      localDataCenter: "datacenter1",
-      keyspace: finalConfig.keyspace,
+      contactPoints: (process.env.CASSANDRA_CONTACT_POINTS &&
+        process.env.CASSANDRA_CONTACT_POINTS.split(",")) || [
+        "cassandradb",
+        "localhost",
+      ],
+      localDataCenter: process.env.CASSANDRA_LOCAL_DATACENTER || "datacenter1",
+      keyspace: process.env.CASSANDRA_KEYSPACE || finalConfig.keyspace,
       queryOptions: {
         consistency: cassandraDriver.types.consistencies[consistency],
       },
