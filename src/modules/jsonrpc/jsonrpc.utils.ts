@@ -1,9 +1,34 @@
 import * as ClassValidator from "class-validator";
-import { ClassTransformer } from "class-transformer";
-import { ClassType } from "class-transformer/ClassTransformer";
+import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
 import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
 import { prefixWith0x } from "../../shared/utils";
+import RequestInsertIssuerDto from "./dto/insertIssuer/request-insert-issuer.dto";
+import RequestUpdateIssuerDto from "./dto/updateIssuer/request-update-issuer.dto";
+import RequestInsertAdministratorDto from "./dto/insertAdministrator/request-insert-administrator.dto";
+import RequestUpdateAdministratorDto from "./dto/updateAdministrator/request-update-administrator.dto";
+import RequestInsertPolicyDto from "./dto/insertPolicy/request-insert-policy.dto";
+import RequestSignedTransactionDto from "./dto/signedTransaction/request-signed-transaction.dto";
+import ArgsInsertIssuer from "./dto/signedTransaction/args-insert-issuer.dto";
+import ArgsUpdateIssuer from "./dto/signedTransaction/args-update-issuer.dto";
+import ArgsInsertAdministrator from "./dto/signedTransaction/args-insert-administrator.dto";
+import ArgsUpdateAdministrator from "./dto/signedTransaction/args-update-administrator.dto";
+import ArgsInsertPolicy from "./dto/signedTransaction/args-insert-policy.dto";
+import ArgsUpdatePolicy from "./dto/signedTransaction/args-update-policy.dto";
+
+type JsonRpcDtos =
+  | RequestInsertIssuerDto
+  | RequestUpdateIssuerDto
+  | RequestInsertAdministratorDto
+  | RequestUpdateAdministratorDto
+  | RequestInsertPolicyDto
+  | RequestSignedTransactionDto
+  | ArgsInsertIssuer
+  | ArgsUpdateIssuer
+  | ArgsInsertAdministrator
+  | ArgsUpdateAdministrator
+  | ArgsInsertPolicy
+  | ArgsUpdatePolicy;
 
 export function formatEthersUnsignedTransaction(
   unsignedTransaction: UnsignedTransaction
@@ -34,10 +59,13 @@ export function formatEthersSignature(
 }
 
 export const validateClass = async (
-  classType: ClassType<unknown>,
-  data: unknown
+  classType: ClassConstructor<JsonRpcDtos>,
+  data: JsonRpcDtos
 ): Promise<void> => {
-  const dataClass = new ClassTransformer().plainToClass(classType, data);
+  const dataClass = new ClassTransformer().plainToClass<
+    JsonRpcDtos,
+    JsonRpcDtos
+  >(classType, data);
   const errors = await ClassValidator.validate(dataClass);
   if (errors.length > 0) {
     throw new Error(errors.toString());

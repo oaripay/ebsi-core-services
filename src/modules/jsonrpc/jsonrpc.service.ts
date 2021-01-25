@@ -228,27 +228,45 @@ export default class JsonRpcService {
 
     switch (functionFragment.name) {
       case "insertAdministrator": {
-        await validateClass(ArgsInsertAdministrator, args);
+        await validateClass(
+          ArgsInsertAdministrator,
+          (args as unknown) as ArgsInsertAdministrator
+        );
         break;
       }
       case "updateAdministrator": {
-        await validateClass(ArgsUpdateAdministrator, args);
+        await validateClass(
+          ArgsUpdateAdministrator,
+          (args as unknown) as ArgsUpdateAdministrator
+        );
         break;
       }
       case "insertIssuer": {
-        await validateClass(ArgsInsertIssuer, args);
+        await validateClass(
+          ArgsInsertIssuer,
+          (args as unknown) as ArgsInsertIssuer
+        );
         break;
       }
       case "updateIssuer": {
-        await validateClass(ArgsUpdateIssuer, args);
+        await validateClass(
+          ArgsUpdateIssuer,
+          (args as unknown) as ArgsUpdateIssuer
+        );
         break;
       }
       case "insertPolicy": {
-        await validateClass(ArgsInsertPolicy, args);
+        await validateClass(
+          ArgsInsertPolicy,
+          (args as unknown) as ArgsInsertPolicy
+        );
         break;
       }
       case "updatePolicy": {
-        await validateClass(ArgsUpdatePolicy, args);
+        await validateClass(
+          ArgsUpdatePolicy,
+          (args as unknown) as ArgsUpdatePolicy
+        );
         break;
       }
       default:

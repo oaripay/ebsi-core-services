@@ -22,21 +22,17 @@ pipeline {
     }
     stages {
         stage('Lint and unit test') {
-            agent {
-                docker {
-                    image 'node:14.15.0-alpine3.12'
-                    reuseNode true
-                }
-            }
             environment {
               BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS = '0xcb29a1C8bf556047e164A51EB011B5b3047348f7'
               API_PRIVATE_KEY = credentials('APP_PRIVATE_KEY_TRUSTED_ISSUERS')
             }
             steps {
-                sh "yarn install --frozen-lockfile"
-                sh "yarn run audit"
-                sh "yarn lint"
-                sh "yarn test:ci"
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh "yarn install --frozen-lockfile"
+                    sh "yarn run audit"
+                    sh "yarn lint"
+                    sh "yarn test:ci"
+                }
             }
         }
         stage('Pre Checks') {
