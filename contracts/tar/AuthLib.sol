@@ -4,10 +4,12 @@ pragma experimental ABIEncoderV2;
 
 import "./AuthStoreLib.sol";
 import "../utils/Pagination.sol";
+import "../utils/SafeAddArray.sol";
 import "./AppStoreLib.sol";
 
 library AuthLib {
     using Pagination for bytes32[];
+    using SafeAddArray for bytes32[];
 
     event AddNewAuthorization(
         bytes32 indexed appId,
@@ -47,8 +49,8 @@ library AuthLib {
         bytes32 authorizedAppId = apps.nameToId[authorizedAppName];
         require(authorizedAppId != bytes32(0), "authapp unknown");
 
-        // add an entry to the authorizedAppsStore
-        auths.authorizedAppsStore[appId].authorizedAppIds.push(authorizedAppId);
+        // add an entry to the authorizedAppsStore if it doesn't exist
+        auths.authorizedAppsStore[appId].authorizedAppIds.add(authorizedAppId);
 
         // compute authorizationID. Note that arguments are tightly packed which means that the arguments are concatenated without padding
         bytes32 newAuthorizationId =
