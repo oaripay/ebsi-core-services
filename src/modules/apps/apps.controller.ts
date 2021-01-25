@@ -1,10 +1,20 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import AppsService from "./apps.service";
-import { formatApps } from "./apps.formatter";
-import { AppResponseObject, AppLink, AppObject } from "./apps.interface";
+import { formatApps, formatAuthorizations } from "./apps.formatter";
+import {
+  AppResponseObject,
+  AppLink,
+  AppObject,
+  AuthorizationResponseObject,
+  AuthorizationItemObject,
+  AuthorizationLink,
+} from "./apps.interface";
 import GetAppsDto from "./dto/get-apps.dto";
 import GetAppDto from "./dto/get-app.dto";
+import GetAuthorizationDto from "./dto/get-authorization.dto";
+import GetAuthorizationsParamDto from "./dto/get-authorizations-param.dto";
+import GetAuthorizationsDto from "./dto/get-authorizations.dto";
 import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 
@@ -93,5 +103,60 @@ export default class AppsController {
     const app = await this.appsService.getApp(applicationId);
 
     return app;
+  }
+
+  @Get("/:resourceApplicationId/authorizations")
+  async getAuthorizations(
+    @Param() params: GetAuthorizationsParamDto,
+    @Query() query: GetAuthorizationsDto
+  ): Promise<PaginatedList<AuthorizationLink>> {
+    const { resourceApplicationId } = params;
+    const pageAfter = query["page[after]"];
+    const pageSize = query["page[size]"];
+
+    let authorizations: { items: AuthorizationItemObject[]; total: number };
+    let extraQuery = "";
+    if (query.requesterApplicationId) {
+      authorizations = await this.appsService.getAuthorizationsByRequesterApplicationId(
+        resourceApplicationId,
+        query.requesterApplicationId,
+        pageAfter,
+        pageSize
+      );
+      extraQuery = `&requesterApplicationId=${query.requesterApplicationId}`;
+    } else {
+      authorizations = await this.appsService.getAuthorizations(
+        resourceApplicationId,
+        pageAfter,
+        pageSize
+      );
+    }
+    const { total, items } = authorizations;
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/apps/${resourceApplicationId}/authorizations`;
+
+    return formatAuthorizations(
+      items,
+      total,
+      pageAfter,
+      pageSize,
+      baseUrl,
+      extraQuery
+    );
+  }
+
+  @Get("/:resourceApplicationId/authorizations/:authorizationId")
+  async getAuthorization(
+    @Param() params: GetAuthorizationDto
+  ): Promise<AuthorizationResponseObject> {
+    const { resourceApplicationId, authorizationId } = params;
+
+    const authorization = await this.appsService.getAuthorization(
+      resourceApplicationId,
+      authorizationId
+    );
+
+    return authorization;
   }
 }

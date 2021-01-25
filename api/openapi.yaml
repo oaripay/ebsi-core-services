@@ -271,6 +271,172 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+  /trusted-apps-registry/v2/apps/{resourceApplicationId}/authorizations:
+    get:
+      tags:
+        - Trusted Apps Registry
+      summary: Get authorizations from a specific App
+      description: Returns the authorizations of a given applicationId
+      operationId: get-apps-resourceApplicationId-authorizations
+      parameters:
+        - name: resourceApplicationId
+          in: path
+          schema:
+            type: string
+          example: "0x123456789012345678901234567890123456789012345678901234"
+          required: true
+        - name: requesterApplicationId
+          in: query
+          schema:
+            type: string
+          example: "0xab435678901234567890123456789012345678901234567890ef0c"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to authorizations
+                  items:
+                    type: array
+                    description: List of authorizations
+                    items:
+                      type: object
+                      properties:
+                        authorizationId:
+                          type: string
+                          description: ID of the authorization
+                        requesterApplicationName:
+                          type: string
+                          description: Name of the app authorized
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/authorizations?page[after]=3&page[size]=2
+                    items:
+                      - authorizationId: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+                        requesterApplicationName: test-app-1
+                        href: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/authorizations/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
+                      - authorizationId: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
+                        requesterApplicationName: test-app-2
+                        href: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/authorizations/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/authorizations?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/authorizations?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/authorizations?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/authorizations?page[after]=62&page[size]=2
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  ? /trusted-apps-registry/v2/apps/{resourceApplicationId}/authorizations/{authorizationId}
+  : get:
+      tags:
+        - Trusted Apps Registry
+      summary: Get authorization by its ID
+      description: Returns an authorization its ID
+      operationId: get-trusted-apps-registry-v2-authorizationId
+      parameters:
+        - name: resourceApplicationId
+          in: path
+          schema:
+            type: string
+          example: test-app-1
+          required: true
+        - name: authorizationId
+          in: path
+          schema:
+            type: string
+          example: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/authorization"
+              examples:
+                Success:
+                  value:
+                    authorizationId: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+                    resourceApplicationId: "0x125b1838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0845"
+                    requesterApplicationId: "0xca451838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d1234"
+                    resourceApplicationName: test-app-1
+                    requesterApplicationName: test-app-2
+                    iss: did:ebsi:0xeD82f3e166D72d47a687cD4b182710a21F431485
+                    permissions:
+                      create: "true"
+                      read: "true"
+                      update: "false"
+                      delete: "false"
+                    status: active
+                    notBefore: 1610699786
+                    notAfter: 2610699786
+        "400":
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {authorizationId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {authorizationId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   "/trusted-apps-registry/v2/administrators/{did}":
     get:
       tags:
@@ -1260,6 +1426,57 @@ components:
         domain:
           type: string
           description: domain (ebsi or external)
+    authorization:
+      description: Authorization data model
+      type: object
+      properties:
+        authorizationId:
+          type: string
+          format: multi-base64url encoded authorization id
+        resourceApplicationId:
+          description: Application id of application that authorizes an app (requesterApplicationId) to perform operations.
+          type: string
+          format: multi-base64url encoded application id
+        requesterApplicationId:
+          description: Application id of the app that is authorized to consume app (resourceApplicationId) resources.
+          type: string
+          format: multi-base64url encoded application id
+        resourceApplicationName:
+          description: Application name
+          type: string
+        requesterApplicationName:
+          description: Application name
+          type: string
+        iss:
+          description: DID of the authorization issuer.
+          type: string
+          format: DID
+        permissions:
+          description: Application permissions
+          type: object
+          properties:
+            create:
+              type: string
+              enum: ["true", "false"]
+            read:
+              type: string
+              enum: ["true", "false"]
+            update:
+              type: string
+              enum: ["true", "false"]
+            delete:
+              type: string
+              enum: ["true", "false"]
+        status:
+          description: "Authorization status: active, revoked"
+          type: string
+          enum: ["active", "revoked"]
+        notBefore:
+          description: Date and time before the authorization must be considered invalid.
+          type: number
+        notAfter:
+          description: Date and time after the authorization must be considered invalid.
+          type: number
     policy:
       title: Policy
       type: object

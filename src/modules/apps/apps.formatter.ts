@@ -1,4 +1,9 @@
-import { AppLink, AppObject } from "./apps.interface";
+import {
+  AppLink,
+  AppObject,
+  AuthorizationLink,
+  AuthorizationItemObject,
+} from "./apps.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
 
@@ -20,4 +25,27 @@ export function formatApps(
   return paginate<AppLink>(items, baseUrl, total, page, pageSize, extraQuery);
 }
 
-export default formatApps;
+export function formatAuthorizations(
+  authorizations: AuthorizationItemObject[],
+  total: number,
+  page: number,
+  pageSize: number,
+  baseUrl: string,
+  extraQuery?: string
+): PaginatedList<AuthorizationLink> {
+  // Reshape items
+  const items = authorizations.map((auth) => ({
+    authorizationId: auth.authorizationId,
+    requesterApplicationName: auth.authorizedAppName,
+    href: `${baseUrl}/${auth.authorizationId}`,
+  }));
+
+  return paginate<AuthorizationLink>(
+    items,
+    baseUrl,
+    total,
+    page,
+    pageSize,
+    extraQuery
+  );
+}

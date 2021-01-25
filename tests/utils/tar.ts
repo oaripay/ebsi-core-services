@@ -34,6 +34,16 @@ interface AppObject {
   notAfter: number;
 }
 
+interface AuthorizationObject {
+  name: string;
+  authorizedAppName: string;
+  iss: string;
+  status: number;
+  permissions: number;
+  notBefore: number;
+  notAfter: number;
+}
+
 export async function deployTarContract(
   ethersProvider: ethers.providers.Web3Provider
 ): Promise<Tar> {
@@ -174,6 +184,37 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
   };
 }
 
+export async function insertAuthorization(
+  contract: Tar,
+  name: string,
+  authorizedAppName: string
+): Promise<AuthorizationObject> {
+  const iss = `did:ebsi:0x${crypto.randomBytes(10).toString("hex")}`;
+  const status = 0; // "active"
+  const permissions = 4; // "0100" read only
+  const notBefore = Date.now();
+  const notAfter = Date.now() + 365 * 24 * 60 * 60 * 1000;
+  await contract.insertAuthorization(
+    name,
+    authorizedAppName,
+    iss,
+    status,
+    permissions,
+    notBefore,
+    notAfter
+  );
+
+  return {
+    name,
+    authorizedAppName,
+    iss,
+    status,
+    permissions,
+    notBefore,
+    notAfter,
+  };
+}
+
 export interface SetupOptions {
   administratorsTotal?: number;
   policiesTotal?: number;
@@ -195,6 +236,7 @@ export async function setupTestEnv(
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
   apps: AppObject[];
+  authorizations: [AuthorizationObject, AuthorizationObject][][];
 }> {
   const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
 
@@ -251,6 +293,28 @@ export async function setupTestEnv(
     .pipe(mergeMap(createApp), toArray())
     .toPromise();
 
+  const authorizations = await Promise.all(
+    apps.map((app) =>
+      Promise.all(
+        apps.map(
+          async (app2): Promise<[AuthorizationObject, AuthorizationObject]> => {
+            const auth1 = await insertAuthorization(
+              tarContract,
+              app.name,
+              app2.name
+            );
+            const auth2 = await insertAuthorization(
+              tarContract,
+              app.name,
+              app2.name
+            );
+            return [auth1, auth2];
+          }
+        )
+      )
+    )
+  );
+
   // Return test env variables
   return {
     provider: ethersProvider,
@@ -259,5 +323,6 @@ export async function setupTestEnv(
     policies,
     policyRevisions,
     apps,
+    authorizations,
   };
 }

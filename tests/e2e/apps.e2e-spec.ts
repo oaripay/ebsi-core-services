@@ -32,6 +32,7 @@ import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonr
 import {
   AppResponseObject,
   AppLink,
+  AuthorizationLink,
 } from "../../src/modules/apps/apps.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
@@ -52,6 +53,11 @@ interface SupertestAppsResponse {
 interface SupertestAppResponse {
   status: number;
   body: AppResponseObject;
+}
+
+interface SupertestAuthorizationsResponse {
+  status: number;
+  body: PaginatedList<AuthorizationLink>;
 }
 
 type JsonRpcParams =
@@ -219,6 +225,81 @@ describe("Apps (e2e)", () => {
         },
       });
       expect(response.body.items).toHaveLength(1);
+      expect(response.status).toBe(200);
+    });
+
+    it("should return a paginated collection of authorizations", async () => {
+      expect.assertions(2);
+
+      const responseApps: SupertestAppsResponse = await request(server).get(
+        "/apps"
+      );
+      const applicationId = responseApps.body.items[0].id;
+      const response: SupertestAuthorizationsResponse = await request(
+        server
+      ).get(`/apps/${applicationId}/authorizations`);
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/trusted-apps-registry/v2/apps/${applicationId}/authorizations?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: expect.any(Number) as number,
+        links: {
+          first: expect.stringContaining(
+            `/trusted-apps-registry/v2/apps/${applicationId}/authorizations?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/trusted-apps-registry/v2/apps/${applicationId}/authorizations?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/trusted-apps-registry/v2/apps/${applicationId}/authorizations?page[after]=`
+          ) as string,
+          last: expect.stringContaining(
+            `/trusted-apps-registry/v2/apps/${applicationId}/authorizations?page[after]=`
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should return a paginated collection of authorizations filtered by requesterApplicationId", async () => {
+      expect.assertions(2);
+
+      // Get first app
+      const responseApps: SupertestAppsResponse = await request(server).get(
+        "/apps"
+      );
+      const applicationId1 = responseApps.body.items[0].id;
+      const applicationId2 = responseApps.body.items[1].id;
+
+      const response: SupertestAuthorizationsResponse = await request(
+        server
+      ).get(
+        `/apps/${applicationId1}/authorizations?requesterApplicationId=${applicationId2}`
+      );
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: expect.any(Number) as number,
+        links: {
+          first: expect.stringContaining(
+            `/trusted-apps-registry/v2/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+          ) as string,
+          prev: expect.stringContaining(
+            `/trusted-apps-registry/v2/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+          ) as string,
+          next: expect.stringContaining(
+            `/trusted-apps-registry/v2/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+          ) as string,
+          last: expect.stringContaining(
+            `/trusted-apps-registry/v2/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+          ) as string,
+        },
+      });
       expect(response.status).toBe(200);
     });
   });
@@ -564,6 +645,42 @@ describe("Apps (e2e)", () => {
           );
           expect(appResponse.body.items).toHaveLength(1);
           expect(appResponse.status).toBe(200);
+          break;
+        }
+        case "insertAuthorization": {
+          // get Authorization
+          const appResponse: SupertestAppsResponse = await request(server).get(
+            `/apps?name=${newApp.name}`
+          );
+          const appId = appResponse.body.items[0].id;
+          const authsResponse: SupertestAuthorizationsResponse = await request(
+            server
+          ).get(`/apps/${appId}/authorizations`);
+          const {
+            authorizationId,
+            requesterApplicationName,
+          } = authsResponse.body.items[0];
+          const response = await request(server).get(
+            `/apps/${appId}/authorizations/${authorizationId}`
+          );
+          expect(response.body).toStrictEqual({
+            authorizationId,
+            resourceApplicationId: appId,
+            requesterApplicationId: expect.any(String) as string,
+            resourceApplicationName: newApp.name,
+            requesterApplicationName,
+            iss: "did:ebsi:0x001F",
+            permissions: {
+              create: "true",
+              read: "true",
+              update: "true",
+              delete: "false",
+            },
+            status: "active",
+            notBefore: expect.any(Number) as number,
+            notAfter: expect.any(Number) as number,
+          });
+          expect(response.status).toBe(200);
           break;
         }
         default:

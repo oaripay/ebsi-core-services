@@ -13,18 +13,23 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { AppsModule } from "./apps.module";
-import { AppLink } from "./apps.interface";
+import { AppLink, AuthorizationLink } from "./apps.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Tar__factory } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { PaginatedList } from "../../shared/interfaces";
 
-jest.setTimeout(60000);
+jest.setTimeout(150000);
 
 interface SupertestAppsResponse {
   status: number;
   body: PaginatedList<AppLink>;
+}
+
+interface SupertestAuthorizationsResponse {
+  status: number;
+  body: PaginatedList<AuthorizationLink>;
 }
 
 const APPS_TOTAL = 12;
@@ -211,27 +216,27 @@ describe("Apps Module", () => {
       expect.assertions(3);
 
       const response: SupertestAppsResponse = await request(server).get(
-        `/apps?public_key_id=0x123`
+        `/apps?public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
       );
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/apps?page[after]=1&page[size]=10&public_key_id=0x123`
+          `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
         total: APPS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/apps?page[after]=1&page[size]=10&public_key_id=0x123`
+            `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
           ) as string,
           prev: expect.stringContaining(
-            `/apps?page[after]=1&page[size]=10&public_key_id=0x123`
+            `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
           ) as string,
           next: expect.stringContaining(
-            `/apps?page[after]=1&page[size]=10&public_key_id=0x123`
+            `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
           ) as string,
           last: expect.stringContaining(
-            `/apps?page[after]=1&page[size]=10&public_key_id=0x123`
+            `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
           ) as string,
         },
       });
@@ -455,6 +460,127 @@ describe("Apps Module", () => {
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
+    });
+  });
+
+  describe("GET /apps/{resourceApplicationId}/authorizations", () => {
+    it("should return a paginated collection of authorizations", async () => {
+      expect.assertions(3);
+
+      // Get first app
+      const { apps } = testEnv;
+      const { publicKey } = apps[0];
+      const applicationId = ethers.utils.sha256(Buffer.from(publicKey, "utf8"));
+
+      const response: SupertestAuthorizationsResponse = await request(
+        server
+      ).get(`/apps/${applicationId}/authorizations`);
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/apps/${applicationId}/authorizations?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 2 * APPS_TOTAL,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/apps/${applicationId}/authorizations?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/apps/${applicationId}/authorizations?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/apps/${applicationId}/authorizations?page[after]=${Math.min(
+              Math.ceil((2 * APPS_TOTAL) / 10),
+              2
+            )}&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/apps/${applicationId}/authorizations?page[after]=${Math.ceil(
+              (2 * APPS_TOTAL) / 10
+            )}&page[size]=10`
+          ) as string,
+        },
+      });
+      expect(response.body.items).toHaveLength(Math.min(10, 2 * APPS_TOTAL));
+      expect(response.status).toBe(200);
+    });
+
+    it("should return a paginated collection of authorizations filtered by requesterApplicationId", async () => {
+      expect.assertions(3);
+
+      // Get first app
+      const { apps } = testEnv;
+      const applicationId1 = ethers.utils.sha256(
+        Buffer.from(apps[0].publicKey, "utf8")
+      );
+      const applicationId2 = ethers.utils.sha256(
+        Buffer.from(apps[1].publicKey, "utf8")
+      );
+
+      const response: SupertestAuthorizationsResponse = await request(
+        server
+      ).get(
+        `/apps/${applicationId1}/authorizations?requesterApplicationId=${applicationId2}`
+      );
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 2,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+          ) as string,
+          prev: expect.stringContaining(
+            `/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+          ) as string,
+          next: expect.stringContaining(
+            `/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+          ) as string,
+          last: expect.stringContaining(
+            `/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+          ) as string,
+        },
+      });
+      expect(response.body.items).toHaveLength(2);
+      expect(response.status).toBe(200);
+    });
+
+    it("should return a specific authorization", async () => {
+      expect.assertions(2);
+
+      const { apps, authorizations } = testEnv;
+      const { publicKey, name } = apps[0];
+      const applicationId = ethers.utils.sha256(Buffer.from(publicKey, "utf8"));
+
+      const responseAuths: SupertestAuthorizationsResponse = await request(
+        server
+      ).get(`/apps/${applicationId}/authorizations`);
+      const { authorizationId } = responseAuths.body.items[0];
+      const response = await request(server).get(
+        `/apps/${applicationId}/authorizations/${authorizationId}`
+      );
+      expect(response.body).toStrictEqual({
+        authorizationId: expect.any(String) as string,
+        resourceApplicationId: applicationId,
+        requesterApplicationId: applicationId,
+        resourceApplicationName: name,
+        requesterApplicationName: name,
+        iss: authorizations[0][0][0].iss,
+        permissions: {
+          create: "false",
+          read: "true",
+          update: "false",
+          delete: "false",
+        },
+        status: "active",
+        notBefore: expect.any(Number) as number,
+        notAfter: expect.any(Number) as number,
+      });
+      expect(response.status).toBe(200);
     });
   });
 });
