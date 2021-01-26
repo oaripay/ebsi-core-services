@@ -14,6 +14,11 @@ const config = {
     keyspace: "ebsi_production",
   },
 
+  test: {
+    url: "https://api.test.intebsi.xyz",
+    besuRPCNode: "https://www.test.intebsi.xyz/jsonrpc",
+  },
+
   development: {
     url: "https://api.ebsi.xyz",
     besuRPCNode: "https://www.ebsi.xyz/jsonrpc",
