@@ -6,7 +6,7 @@ import {
   RecordLib__factory,
   HashAlgoLib__factory,
   TimestampLib__factory,
-} from "../../src/contracts";
+} from "../../src/contracts/timestamp";
 
 export async function deployTimestampContract(
   ethersProvider: ethers.providers.Web3Provider

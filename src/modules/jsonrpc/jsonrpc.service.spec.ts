@@ -5,7 +5,9 @@ import { BadRequestError } from "@cef-ebsi/problem-details-errors";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import { AppModule } from "../../app.module";
-import { Timestamp, Timestamp__factory } from "../../contracts";
+import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
+import { Tar } from "../../contracts/trusted-apps-registry/Tar";
+import { Tar__factory } from "../../contracts/trusted-apps-registry/factories/Tar__factory";
 
 interface AxiosResponseSessions {
   status: number;
@@ -44,10 +46,13 @@ function accessToken() {
   });
 }
 
-// Note: make sure the TAR contract is not called
+// Note: make sure the Timestamp and Tar contracts are not called
 jest
   .spyOn(Timestamp__factory, "connect")
   .mockImplementation((() => {}) as jest.Mock<Timestamp>);
+jest
+  .spyOn(Tar__factory, "connect")
+  .mockImplementation((() => {}) as jest.Mock<Tar>);
 
 describe("JsonRpcService", () => {
   let jsonRpcService: JsonRpcService;

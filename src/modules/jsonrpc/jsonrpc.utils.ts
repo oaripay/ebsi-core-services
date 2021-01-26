@@ -4,7 +4,10 @@ import { ethers } from "ethers";
 import {
   ArgsInsertHashAlgorithm,
   ArgsUpdateHashAlgorithm,
+  ArgsTimestampHashes,
   RequestInsertHashAlgorithmDto,
+  RequestUpdateHashAlgorithmDto,
+  RequestTimestampHashesDto,
   RequestSignedTransactionDto,
   UnsignedTransaction,
 } from "./dto";
@@ -40,8 +43,11 @@ export function formatEthersSignature(
 type JsonRpcDtos =
   | RequestSignedTransactionDto
   | RequestInsertHashAlgorithmDto
+  | RequestUpdateHashAlgorithmDto
+  | RequestTimestampHashesDto
   | ArgsInsertHashAlgorithm
-  | ArgsUpdateHashAlgorithm;
+  | ArgsUpdateHashAlgorithm
+  | ArgsTimestampHashes;
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,

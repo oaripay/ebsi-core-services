@@ -20,6 +20,7 @@ import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interfa
 import {
   InsertHashAlgorithmParam,
   UpdateHashAlgorithmParam,
+  TimestampHashesParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
@@ -31,7 +32,10 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertHashAlgorithmParam | UpdateHashAlgorithmParam;
+type JsonRpcParams =
+  | InsertHashAlgorithmParam
+  | UpdateHashAlgorithmParam
+  | TimestampHashesParam;
 
 describe("HashAlgorithms (e2e)", () => {
   let app: INestApplication;
@@ -66,35 +70,28 @@ describe("HashAlgorithms (e2e)", () => {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertHashAlgorithm", "updateHashAlgorithm"])(
+  describe.each(["timestampHashes"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should work", async () => {
         expect.assertions(5);
 
-        let params: JsonRpcParams = null;
+        let param: JsonRpcParams = null;
 
         switch (method) {
-          case "insertHashAlgorithm": {
-            params = {
+          case "timestampHashes": {
+            param = {
               from: adminTestWallet.address,
-              outputLength: 256,
-              ianaName: `sha-256-${crypto.randomBytes(16).toString("hex")}`,
-              oid: "2.16.840.1.101.3.4.2.1",
-              status: 1,
-            } as InsertHashAlgorithmParam;
-            break;
-          }
-          case "updateHashAlgorithm": {
-            // TODO: get hashAlgorithmId dynamically
-            params = {
-              from: adminTestWallet.address,
-              hashAlgorithmId: 1,
-              outputLength: 256,
-              ianaName: `sha-256-${crypto.randomBytes(16).toString("hex")}`,
-              oid: "2.16.840.1.101.3.4.2.1",
-              status: 1,
-            } as UpdateHashAlgorithmParam;
+              hashAlgorithmIds: [0, 0],
+              hashValues: [
+                `0x${crypto.randomBytes(32).toString("hex")}`,
+                `0x${crypto.randomBytes(32).toString("hex")}`,
+              ],
+              timestampData: [
+                `0x${crypto.randomBytes(32).toString("hex")}`,
+                `0x${crypto.randomBytes(32).toString("hex")}`,
+              ],
+            } as TimestampHashesParam;
             break;
           }
           default:
@@ -106,7 +103,7 @@ describe("HashAlgorithms (e2e)", () => {
           .send({
             jsonrpc: "2.0",
             method,
-            params: [params],
+            params: [param],
             id: 231,
           });
 

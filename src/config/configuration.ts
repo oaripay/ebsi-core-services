@@ -8,6 +8,7 @@ export interface ApiConfig {
   apiUrlPrefix: string;
   authExpireTime: number;
   contractAddr: string;
+  tarContractAddr: string;
   domain: string;
   logLevel: string;
   ledger: string;
@@ -56,6 +57,7 @@ export const loadConfig = (): ApiConfig => {
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiUrlPrefix: process.env.API_URL_PREFIX || "",
     contractAddr: process.env.CONTRACT_ADDR,
+    tarContractAddr: process.env.TRUSTED_APPS_REGISTRY_CONTRACT_ADDR,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     ledger: process.env.LEDGER || defaultConfig[EBSI_ENV].LEDGER,
@@ -91,10 +93,12 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug"
     ),
-    // TAR specific variables
+    // Timestamp specific variables
     ADMIN_TEST_PRIVATE_KEY: Joi.string(),
     DOMAIN: Joi.string().uri(),
     LEDGER: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
+    CONTRACT_ADDR: Joi.string(),
+    TRUSTED_APPS_REGISTRY_CONTRACT_ADDR: Joi.string(),
   }),
 });

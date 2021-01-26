@@ -6,9 +6,11 @@ import { ConfigService } from "@nestjs/config";
 import {
   ArgsInsertHashAlgorithm,
   ArgsUpdateHashAlgorithm,
+  ArgsTimestampHashes,
   RequestInsertHashAlgorithmDto,
   RequestUpdateHashAlgorithmDto,
   RequestSignedTransactionDto,
+  RequestTimestampHashesDto,
   SignedTransactionParam,
   UnsignedTransaction,
 } from "./dto";
@@ -24,7 +26,8 @@ import {
   validateClass,
 } from "./jsonrpc.utils";
 import LedgerService from "../../shared/services/ledger.service";
-import { Timestamp } from "../../contracts";
+import { Timestamp } from "../../contracts/timestamp";
+import { Tar } from "../../contracts/trusted-apps-registry/Tar";
 import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
@@ -32,6 +35,8 @@ export class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
 
   private timestampContract: Timestamp;
+
+  private tarContract: Tar;
 
   private chainId: string = null;
 
@@ -44,6 +49,7 @@ export class JsonRpcService {
     private ledgerService: LedgerService
   ) {
     this.timestampContract = this.ledgerService.getContract();
+    this.tarContract = this.ledgerService.getTarContract();
   }
 
   async createSession(): Promise<void> {
@@ -51,7 +57,7 @@ export class JsonRpcService {
       Scope.COMPONENT,
       this.configService.get<string>("apiPrivateKey"),
       {
-        issuer: "timestamp-api",
+        issuer: "timestamp",
       }
     );
     const requestToken = (await agent.createRequestPayload(
@@ -68,6 +74,9 @@ export class JsonRpcService {
         Number(response.data.issuedAt) + Number(response.data.expiresIn);
     } catch (error) {
       this.logger.error("Error creating new session with ledger api");
+      if ((error as AxiosErrorResponse).response) {
+        this.logger.error((error as AxiosErrorResponse).response.data);
+      }
       this.logger.error((error as Error).message);
       this.logger.error((error as Error).stack);
       throw new Error(
@@ -131,25 +140,58 @@ export class JsonRpcService {
 
   // TODO: implement EBSI admin verification
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async checkWritePermission(address: string): Promise<void> {
-    /* TODO: check -->
-      - Actor DID must be registered in the DID Registry
-      - The actor must be authorized for the write operation in the TAR SC
-        - EBSI Admin is authorized in the Trusted IAM SC - query the Trusted IAM Registry API: /administrators
-        - Domain admin is authorized in the TAR SC - Query the SC: /administrators
-    const did = `did:ebsi:${address.toLowerCase()}`;
-    // verify the did is in the TAR Registry
-    try {
-      await this.timestampContract.getAdministrator(did);
-    } catch (e) {
-      throw new Error(
-        `Administrator ${did} was not found in the Trusted Apps Registry`
-      );
+  async checkWritePermission(
+    functionName: string,
+    address: string
+  ): Promise<void> {
+    switch (functionName) {
+      /* For the following functions only EBSI Admins
+       * can register new algorithms
+       *
+       * - Check admins on Trusted Apps Registry
+       * TODO: check admins in the Trusted Identity and Access Management
+       */
+      case "insertHashAlgorithm":
+      case "updateHashAlgorithm": {
+        const did = `did:ebsi:${address.toLowerCase()}`;
+        try {
+          await this.tarContract.getAdministrator(did);
+        } catch (e) {
+          throw new Error(
+            `Administrator ${did} was not found in the Trusted Apps Registry`
+          );
+        }
+        break;
+      }
+      /* For the following functions only subjects with access to
+       *  EBSI Timestamp API and SC can write
+       */
+      case "timestampHashes":
+      case "timestampRecordHashes":
+      case "timestampRecordVersionHashes":
+      case "timestampVersionHashes":
+      case "appendRecordVersionHashes":
+      case "detachRecordVersionHash":
+      case "insertRecordVersionInfo":
+        // TODO: Verify that the address is included in the DID Registry
+        break;
+
+      /* For the following functions only existing record owners
+       * are allowed to insert new owners
+       */
+      case "insertRecordOwner":
+      case "revokeRecordOwner":
+        // TODO: Verify that the address is included in the DID Registry
+        break;
+      default:
+        // The rest of the functions are open to the public
+        break;
     }
-    */
   }
 
-  async verifyTransaction(param: SignedTransactionParam): Promise<string> {
+  async verifyTransaction(
+    param: SignedTransactionParam
+  ): Promise<{ signer: string; functionName: string }> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
 
     const unsignedTx = formatEthersUnsignedTransaction(unsignedTransaction);
@@ -208,13 +250,23 @@ export class JsonRpcService {
         );
         break;
       }
+      case "timestampHashes": {
+        await validateClass(
+          ArgsTimestampHashes,
+          (args as unknown) as ArgsTimestampHashes
+        );
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
         );
     }
 
-    return signer;
+    return {
+      signer,
+      functionName: functionFragment.name,
+    };
   }
 
   async buildTransaction(
@@ -306,6 +358,33 @@ export class JsonRpcService {
     }
   }
 
+  async buildTransactionTimestampHashes(
+    body: RequestTimestampHashesDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestTimestampHashesDto, body);
+
+      const {
+        from,
+        hashAlgorithmIds,
+        hashValues,
+        timestampData,
+      } = body.params[0];
+
+      const data = this.timestampContract.interface.encodeFunctionData(
+        "timestampHashes",
+        [hashAlgorithmIds, hashValues, timestampData]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
   async sendTransaction(
     body: RequestSignedTransactionDto,
     id?: number | string
@@ -314,9 +393,9 @@ export class JsonRpcService {
       await validateClass(RequestSignedTransactionDto, body);
 
       const request = body.params[0];
-      const signer = await this.verifyTransaction(request);
+      const { signer, functionName } = await this.verifyTransaction(request);
 
-      await this.checkWritePermission(signer);
+      await this.checkWritePermission(functionName, signer);
 
       return this.callBesuAuth("eth_sendRawTransaction", [
         request.signedRawTransaction,

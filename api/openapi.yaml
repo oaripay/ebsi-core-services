@@ -33,8 +33,8 @@ paths:
           It requires the following fields:
 
           - **jsonrpc**: Must be exactly '2.0'
-          - **method**: Method that to be invoked. Possible values: insertHashAlgorithm,
-            updateHashAlgorithm.
+          - **method**: Method to be invoked. Possible values: insertHashAlgorithm,
+            updateHashAlgorithm, timestampHashes.
           - **params**: Array of parameters
           - **id**: Identifier stablished by the client
         content:
@@ -85,6 +85,19 @@ paths:
                       ianaName: sha-256
                       oid: "2.16.840.1.101.3.4.2.1"
                       status: 2
+                  id: 1
+              Build tx to timestampHashes:
+                value:
+                  jsonrpc: "2.0"
+                  method: timestampHashes
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      hashAlgorithmIds:
+                        - 0
+                      hashValues:
+                        - "0x1234567890123456789012345678901234567890123456789012345678901234"
+                      timestampData:
+                        - "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
                   id: 1
       responses:
         "200":
