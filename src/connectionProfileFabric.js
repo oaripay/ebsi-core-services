@@ -9,6 +9,10 @@ const config = {
     fabricDomain: "fabric-prod.ebsi.tech.ec.europa.eu",
   },
 
+  test: {
+    fabricDomain: "0-fabric-int-lux.test.intebsi.xyz",
+  },
+
   development: {
     fabricDomain: "fabric-dev.ebsi.xyz",
   },
