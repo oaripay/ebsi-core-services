@@ -5,9 +5,11 @@ import {
   ArgsInsertHashAlgorithm,
   ArgsUpdateHashAlgorithm,
   ArgsTimestampHashes,
+  ArgsTimestampRecordHashes,
   RequestInsertHashAlgorithmDto,
   RequestUpdateHashAlgorithmDto,
   RequestTimestampHashesDto,
+  RequestTimestampRecordHashesDto,
   RequestSignedTransactionDto,
   UnsignedTransaction,
 } from "./dto";
@@ -45,9 +47,11 @@ type JsonRpcDtos =
   | RequestInsertHashAlgorithmDto
   | RequestUpdateHashAlgorithmDto
   | RequestTimestampHashesDto
+  | RequestTimestampRecordHashesDto
   | ArgsInsertHashAlgorithm
   | ArgsUpdateHashAlgorithm
-  | ArgsTimestampHashes;
+  | ArgsTimestampHashes
+  | ArgsTimestampRecordHashes;
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,

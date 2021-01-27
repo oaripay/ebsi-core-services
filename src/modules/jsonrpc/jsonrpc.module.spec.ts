@@ -19,6 +19,7 @@ import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   InsertHashAlgorithmParam,
   TimestampHashesParam,
+  TimestampRecordHashesParam,
   UnsignedTransaction,
   UpdateHashAlgorithmParam,
 } from "./dto";
@@ -39,7 +40,8 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | InsertHashAlgorithmParam
   | UpdateHashAlgorithmParam
-  | TimestampHashesParam;
+  | TimestampHashesParam
+  | TimestampRecordHashesParam;
 
 jest.setTimeout(90000);
 
@@ -291,6 +293,7 @@ describe("JsonRpc Module", () => {
     "insertHashAlgorithm",
     "updateHashAlgorithm",
     "timestampHashes",
+    "timestampRecordHashes",
   ])("/jsonrpc with method %s", (method: string) => {
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
       expect.assertions(4);
@@ -332,6 +335,20 @@ describe("JsonRpc Module", () => {
               "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
             ],
           } as TimestampHashesParam;
+          break;
+        }
+        case "timestampRecordHashes": {
+          param = {
+            from: signer.address,
+            hashAlgorithmIds: [0],
+            hashValues: [
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            ],
+            timestampData: [
+              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            ],
+            versionInfo: "0x1234567890",
+          } as TimestampRecordHashesParam;
           break;
         }
         default:
@@ -436,6 +453,20 @@ describe("JsonRpc Module", () => {
               "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
             ],
           } as TimestampHashesParam;
+          break;
+        }
+        case "timestampRecordHashes": {
+          param = {
+            from: signer.address,
+            hashAlgorithmIds: [0],
+            hashValues: [
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            ],
+            timestampData: [
+              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            ],
+            versionInfo: "0x1234567890",
+          } as TimestampRecordHashesParam;
           break;
         }
         default:
@@ -583,6 +614,46 @@ describe("JsonRpc Module", () => {
             "property params[0].timestampData has failed the following constraints: isHexadecimal";
           break;
         }
+        case "timestampRecordHashes": {
+          param1 = ({
+            from: signer.address,
+            hashValues: [
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            ],
+            timestampData: [
+              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            ],
+            versionInfo: "0x1234567890",
+          } as unknown) as TimestampRecordHashesParam;
+
+          expectedErrorMessage1 =
+            "property params[0].hashAlgorithmIds has failed the following constraints: isInt";
+
+          param2 = ({
+            from: signer.address,
+            hashAlgorithmIds: [0],
+            timestampData: [
+              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            ],
+            versionInfo: "0x1234567890",
+          } as unknown) as TimestampRecordHashesParam;
+
+          expectedErrorMessage2 =
+            "property params[0].hashValues has failed the following constraints: isHexadecimal";
+
+          param3 = ({
+            from: signer.address,
+            hashAlgorithmIds: [0],
+            hashValues: [
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            ],
+            versionInfo: "0x1234567890",
+          } as unknown) as TimestampRecordHashesParam;
+
+          expectedErrorMessage3 =
+            "property params[0].timestampData has failed the following constraints: isHexadecimal";
+          break;
+        }
         default:
           throw new Error(`Test Error: Invalid method ${method}`);
       }
@@ -716,6 +787,33 @@ describe("JsonRpc Module", () => {
               "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
             ],
           } as TimestampHashesParam;
+
+          break;
+        }
+        case "timestampRecordHashes": {
+          param1 = {
+            from: signer.address,
+            hashAlgorithmIds: [0],
+            hashValues: [
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            ],
+            timestampData: [
+              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            ],
+            versionInfo: "0x125345568a",
+          } as TimestampRecordHashesParam;
+
+          param2 = {
+            from: signer.address,
+            hashAlgorithmIds: [0],
+            hashValues: [
+              "0x0a45567890123456789012345678901234567890123456789012345678901234",
+            ],
+            timestampData: [
+              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            ],
+            versionInfo: "0x1234567890",
+          } as TimestampRecordHashesParam;
 
           break;
         }

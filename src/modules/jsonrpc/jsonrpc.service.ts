@@ -7,10 +7,12 @@ import {
   ArgsInsertHashAlgorithm,
   ArgsUpdateHashAlgorithm,
   ArgsTimestampHashes,
+  ArgsTimestampRecordHashes,
   RequestInsertHashAlgorithmDto,
   RequestUpdateHashAlgorithmDto,
   RequestSignedTransactionDto,
   RequestTimestampHashesDto,
+  RequestTimestampRecordHashesDto,
   SignedTransactionParam,
   UnsignedTransaction,
 } from "./dto";
@@ -257,6 +259,13 @@ export class JsonRpcService {
         );
         break;
       }
+      case "timestampRecordHashes": {
+        await validateClass(
+          ArgsTimestampRecordHashes,
+          (args as unknown) as ArgsTimestampRecordHashes
+        );
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -375,6 +384,34 @@ export class JsonRpcService {
       const data = this.timestampContract.interface.encodeFunctionData(
         "timestampHashes",
         [hashAlgorithmIds, hashValues, timestampData]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionTimestampRecordHashes(
+    body: RequestTimestampRecordHashesDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestTimestampRecordHashesDto, body);
+
+      const {
+        from,
+        hashAlgorithmIds,
+        hashValues,
+        timestampData,
+        versionInfo,
+      } = body.params[0];
+
+      const data = this.timestampContract.interface.encodeFunctionData(
+        "timestampRecordHashes",
+        [hashAlgorithmIds, hashValues, timestampData, versionInfo]
       );
 
       return await this.buildTransaction(from, data);

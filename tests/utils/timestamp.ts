@@ -6,6 +6,7 @@ import {
   RecordLib__factory,
   HashAlgoLib__factory,
   TimestampLib__factory,
+  StringManip__factory,
 } from "../../src/contracts/timestamp";
 
 export async function deployTimestampContract(
@@ -14,8 +15,17 @@ export async function deployTimestampContract(
   const owner = ethersProvider.getSigner();
 
   // Deploy libs
-  const recordLibAddress = (await new RecordLib__factory(owner).deploy())
+  const stringManipLibAddress = (await new StringManip__factory(owner).deploy())
     .address;
+
+  const recordLibAddress = (
+    await new RecordLib__factory(
+      {
+        __$8147b76a27e37c94a969b90d63cdae8dcb$__: stringManipLibAddress,
+      },
+      owner
+    ).deploy()
+  ).address;
 
   const hashAlgoLibAddress = (await new HashAlgoLib__factory(owner).deploy())
     .address;

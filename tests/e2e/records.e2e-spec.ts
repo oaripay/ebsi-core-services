@@ -17,11 +17,7 @@ import { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
-import {
-  InsertHashAlgorithmParam,
-  UpdateHashAlgorithmParam,
-  TimestampHashesParam,
-} from "../../src/modules/jsonrpc/dto";
+import { TimestampRecordHashesParam } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
@@ -32,12 +28,9 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams =
-  | InsertHashAlgorithmParam
-  | UpdateHashAlgorithmParam
-  | TimestampHashesParam;
+type JsonRpcParams = TimestampRecordHashesParam;
 
-describe("Timestamp (e2e)", () => {
+describe("Records (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
@@ -70,7 +63,7 @@ describe("Timestamp (e2e)", () => {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["timestampHashes"])(
+  describe.each(["timestampRecordHashes"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should work", async () => {
@@ -79,7 +72,7 @@ describe("Timestamp (e2e)", () => {
         let param: JsonRpcParams = null;
 
         switch (method) {
-          case "timestampHashes": {
+          case "timestampRecordHashes": {
             param = {
               from: adminTestWallet.address,
               hashAlgorithmIds: [0, 0],
@@ -91,7 +84,8 @@ describe("Timestamp (e2e)", () => {
                 `0x${crypto.randomBytes(32).toString("hex")}`,
                 `0x${crypto.randomBytes(32).toString("hex")}`,
               ],
-            } as TimestampHashesParam;
+              versionInfo: `0x${crypto.randomBytes(10).toString("hex")}`,
+            } as TimestampRecordHashesParam;
             break;
           }
           default:

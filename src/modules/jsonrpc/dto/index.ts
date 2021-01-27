@@ -3,3 +3,4 @@ export * from "./insertHashAlgorithm";
 export * from "./signedTransaction";
 export * from "./updateHashAlgorithm";
 export * from "./timestampHashes";
+export * from "./timestampRecordHashes";
