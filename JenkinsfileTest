@@ -3,28 +3,27 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
-                sh 'yarn install --frozen-lockfile'
-            }
-        }
-        stage('Audit dependencies') {
-            steps {
-                sh 'yarn run audit'
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn install --frozen-lockfile'
+                    sh 'yarn run audit'
+                }
             }
         }
         stage('Lint') {
             steps {
-                sh 'yarn lint'
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn lint'
+                }
             }
         }
         stage('Unit test') {
             environment {
-                EBSI_ENV='integration'
                 API_PRIVATE_KEY='0xc2cdf0a8b0a83b35ace53f097b5e6e6a0a1f2d40535eff1cf434f52a43d59d8f'
-                CASSANDRA_USER='test'
-                CASSANDRA_PASSWORD='test'
             }
             steps {
-                sh 'yarn test:ci'
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn test:ci'
+                }
             }
         }
         stage ('Lint Dockerfile') {

@@ -23,23 +23,23 @@ const defaultConfig = {
     CASSANDRA_KEYSPACE: "ebsi_local",
     HEALTHCHECK_EBSI_API: "https://api.intebsi.xyz/docs/",
   },
-  integration: {
+  test: {
     LOG_LEVEL: "info",
-    API_URL_ORIGIN: "https://api.intebsi.xyz",
-    CASSANDRA_KEYSPACE: "ebsi_integration",
-    HEALTHCHECK_EBSI_API: "https://api.intebsi.xyz/docs/",
+    API_URL_ORIGIN: "https://api.test.intebsi.xyz",
+    CASSANDRA_KEYSPACE: "ebsi_test",
+    HEALTHCHECK_EBSI_API: "https://api.test.intebsi.xyz/docs/",
   },
-  development: {
+  pilot: {
     LOG_LEVEL: "warn",
-    API_URL_ORIGIN: "https://api.ebsi.xyz",
-    CASSANDRA_KEYSPACE: "ebsi_development",
-    HEALTHCHECK_EBSI_API: "https://api.ebsi.xyz/docs/",
+    API_URL_ORIGIN: "https://api.pilot.ebsi.xyz",
+    CASSANDRA_KEYSPACE: "ebsi_pilot",
+    HEALTHCHECK_EBSI_API: "https://api.pilot.ebsi.xyz/docs/",
   },
-  production: {
+  prod: {
     LOG_LEVEL: "error",
-    API_URL_ORIGIN: "https://api.ebsi.xyz",
-    CASSANDRA_KEYSPACE: "ebsi_production",
-    HEALTHCHECK_EBSI_API: "https://api.ebsi.xyz/docs/",
+    API_URL_ORIGIN: "https://api.prod.ebsi.xyz",
+    CASSANDRA_KEYSPACE: "ebsi_prod",
+    HEALTHCHECK_EBSI_API: "https://api.prod.ebsi.xyz/docs/",
   },
 };
 
@@ -98,9 +98,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
   load: [loadConfig],
   validationSchema: Joi.object({
     // Common API variables
-    EBSI_ENV: Joi.string()
-      .valid("local", "integration", "development", "production")
-      .required(),
+    EBSI_ENV: Joi.string().valid("local", "test", "pilot", "prod").required(),
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
