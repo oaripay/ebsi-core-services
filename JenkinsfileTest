@@ -33,18 +33,17 @@ pipeline {
         }
         stage('Lint') {
             steps {
-                nodejs(nodeJSInstallationName: '14.15.4') {    
+                nodejs(nodeJSInstallationName: '14.15.4') {
                     sh 'yarn lint'
                 }
             }
         }
         stage('Unit tests') {
             environment {
-                EBSI_ENV='integration'
                 API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
             }
             steps {
-                nodejs(nodeJSInstallationName: '14.15.4') {  
+                nodejs(nodeJSInstallationName: '14.15.4') {
                     sh 'yarn test:ci'
                 }
             }

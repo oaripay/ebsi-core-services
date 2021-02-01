@@ -231,59 +231,95 @@ export class JsonRpcService {
 
     switch (functionFragment.name) {
       case "deleteAppAdministrator": {
-        await validateClass(ArgsDeleteAppAdministrator, args);
+        await validateClass(
+          ArgsDeleteAppAdministrator,
+          (args as unknown) as ArgsDeleteAppAdministrator
+        );
         break;
       }
       case "insertApp": {
-        await validateClass(ArgsInsertApp, args);
+        await validateClass(ArgsInsertApp, (args as unknown) as ArgsInsertApp);
         break;
       }
       case "insertAppAdministrator": {
-        await validateClass(ArgsInsertAppAdministrator, args);
+        await validateClass(
+          ArgsInsertAppAdministrator,
+          (args as unknown) as ArgsInsertAppAdministrator
+        );
         break;
       }
       case "insertAppInfo": {
-        await validateClass(ArgsInsertAppInfo, args);
+        await validateClass(
+          ArgsInsertAppInfo,
+          (args as unknown) as ArgsInsertAppInfo
+        );
         break;
       }
       case "insertAdministrator": {
-        await validateClass(ArgsInsertAdministrator, args);
+        await validateClass(
+          ArgsInsertAdministrator,
+          (args as unknown) as ArgsInsertAdministrator
+        );
         break;
       }
       case "updateAdministrator": {
-        await validateClass(ArgsUpdateAdministrator, args);
+        await validateClass(
+          ArgsUpdateAdministrator,
+          (args as unknown) as ArgsUpdateAdministrator
+        );
         break;
       }
       case "updateApp": {
-        await validateClass(ArgsUpdateApp, args);
+        await validateClass(ArgsUpdateApp, (args as unknown) as ArgsUpdateApp);
         break;
       }
       case "insertRevocation": {
-        await validateClass(ArgsInsertRevocation, args);
+        await validateClass(
+          ArgsInsertRevocation,
+          (args as unknown) as ArgsInsertRevocation
+        );
         break;
       }
       case "insertPolicy": {
-        await validateClass(ArgsInsertPolicy, args);
+        await validateClass(
+          ArgsInsertPolicy,
+          (args as unknown) as ArgsInsertPolicy
+        );
         break;
       }
       case "insertAppPublicKey": {
-        await validateClass(ArgsInsertAppPublicKey, args);
+        await validateClass(
+          ArgsInsertAppPublicKey,
+          (args as unknown) as ArgsInsertAppPublicKey
+        );
         break;
       }
       case "updateAppPublicKey": {
-        await validateClass(ArgsUpdateAppPublicKey, args);
+        await validateClass(
+          ArgsUpdateAppPublicKey,
+          (args as unknown) as ArgsUpdateAppPublicKey
+        );
         break;
       }
       case "updatePolicy": {
-        await validateClass(ArgsUpdatePolicy, args);
+        await validateClass(
+          ArgsUpdatePolicy,
+          (args as unknown) as ArgsUpdatePolicy
+        );
         break;
       }
       case "insertAuthorization": {
-        await validateClass(ArgsInsertAuthorization, args);
+        await validateClass(
+          ArgsInsertAuthorization,
+          (args as unknown) as ArgsInsertAuthorization
+        );
         break;
       }
       case "updateAuthorization": {
-        await validateClass(ArgsUpdateAuthorization, args);
+        await validateClass(
+          ArgsUpdateAuthorization,
+          (args as unknown) as ArgsUpdateAuthorization
+        );
         break;
       }
       default:

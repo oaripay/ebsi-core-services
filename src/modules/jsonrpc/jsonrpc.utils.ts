@@ -1,8 +1,71 @@
 import * as ClassValidator from "class-validator";
 import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
-import { UnsignedTransaction } from "./dto";
+import {
+  RequestDeleteAppAdministratorDto,
+  RequestInsertAppDto,
+  RequestInsertAppAdministratorDto,
+  RequestInsertAppInfoDto,
+  RequestInsertAdministratorDto,
+  RequestSignedTransactionDto,
+  RequestUpdateAdministratorDto,
+  RequestUpdateAppDto,
+  RequestInsertRevocationDto,
+  RequestInsertAppPublicKeyDto,
+  RequestUpdateAppPublicKeyDto,
+  RequestInsertPolicyDto,
+  RequestUpdatePolicyDto,
+  RequestInsertAuthorizationDto,
+  RequestUpdateAuthorizationDto,
+  UnsignedTransaction,
+  ArgsDeleteAppAdministrator,
+  ArgsInsertApp,
+  ArgsInsertAppAdministrator,
+  ArgsInsertAppInfo,
+  ArgsInsertAdministrator,
+  ArgsUpdateAdministrator,
+  ArgsUpdateApp,
+  ArgsInsertRevocation,
+  ArgsInsertAppPublicKey,
+  ArgsUpdateAppPublicKey,
+  ArgsInsertPolicy,
+  ArgsUpdatePolicy,
+  ArgsInsertAuthorization,
+  ArgsUpdateAuthorization,
+} from "./dto";
 import { prefixWith0x } from "../../shared/utils";
+
+type JsonRpcDtos =
+  | RequestDeleteAppAdministratorDto
+  | RequestInsertAppDto
+  | RequestInsertAppAdministratorDto
+  | RequestInsertAppInfoDto
+  | RequestInsertAdministratorDto
+  | RequestSignedTransactionDto
+  | RequestUpdateAdministratorDto
+  | RequestUpdateAppDto
+  | RequestInsertRevocationDto
+  | RequestInsertAppPublicKeyDto
+  | RequestUpdateAppPublicKeyDto
+  | RequestInsertPolicyDto
+  | RequestUpdatePolicyDto
+  | RequestInsertAuthorizationDto
+  | RequestUpdateAuthorizationDto
+  | UnsignedTransaction
+  | ArgsDeleteAppAdministrator
+  | ArgsInsertApp
+  | ArgsInsertAppAdministrator
+  | ArgsInsertAppInfo
+  | ArgsInsertAdministrator
+  | ArgsUpdateAdministrator
+  | ArgsUpdateApp
+  | ArgsInsertRevocation
+  | ArgsInsertAppPublicKey
+  | ArgsUpdateAppPublicKey
+  | ArgsInsertPolicy
+  | ArgsUpdatePolicy
+  | ArgsInsertAuthorization
+  | ArgsUpdateAuthorization;
 
 export function formatEthersUnsignedTransaction(
   unsignedTransaction: UnsignedTransaction
@@ -33,8 +96,8 @@ export function formatEthersSignature(
 }
 
 export const validateClass = async (
-  classType: ClassConstructor<unknown>,
-  data: unknown
+  classType: ClassConstructor<JsonRpcDtos>,
+  data: JsonRpcDtos
 ): Promise<void> => {
   const dataClass = new ClassTransformer().plainToClass(classType, data);
   const errors = await ClassValidator.validate(dataClass);

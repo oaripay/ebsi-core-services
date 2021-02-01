@@ -1,6 +1,0 @@
-version: "3.7"
-
-services:
-  trusted-apps-registry:
-    build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry:development_ebsiint-2260-get-apps_v2.0.0

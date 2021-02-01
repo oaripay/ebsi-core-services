@@ -17,23 +17,23 @@ export interface ApiConfig {
 // Example of default values to be used, depending on the environment
 const defaultConfig = {
   local: {
-    DOMAIN: "https://api.intebsi.xyz",
-    LEDGER: "https://api.intebsi.xyz/ledger/v1",
+    DOMAIN: "https://api.test.intebsi.xyz",
+    LEDGER: "https://api.test.intebsi.xyz/ledger/v1",
     LOG_LEVEL: "debug",
   },
-  integration: {
-    DOMAIN: "https://api.intebsi.xyz",
-    LEDGER: "https://api.intebsi.xyz/ledger/v1",
+  test: {
+    DOMAIN: "https://api.test.intebsi.xyz",
+    LEDGER: "https://api.test.intebsi.xyz/ledger/v1",
     LOG_LEVEL: "info",
   },
-  development: {
-    DOMAIN: "https://api.ebsi.xyz",
-    LEDGER: "https://api.ebsi.xyz/ledger/v1",
+  pilot: {
+    DOMAIN: "https://api.pilot.ebsi.xyz",
+    LEDGER: "https://api.pilot.ebsi.xyz/ledger/v1",
     LOG_LEVEL: "warn",
   },
-  production: {
-    DOMAIN: "https://api.ebsi.xyz",
-    LEDGER: "https://api.ebsi.xyz/ledger/v1",
+  prod: {
+    DOMAIN: "https://api.prod.ebsi.xyz",
+    LEDGER: "https://api.prod.ebsi.xyz/ledger/v1",
     LOG_LEVEL: "error",
   },
 };
@@ -67,9 +67,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
   load: [loadConfig],
   validationSchema: Joi.object({
     // Common API variables
-    EBSI_ENV: Joi.string()
-      .valid("local", "integration", "development", "production")
-      .required(),
+    EBSI_ENV: Joi.string().valid("local", "test", "pilot", "prod").required(),
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
