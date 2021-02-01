@@ -18,8 +18,6 @@ pipeline {
         }
         stage('Unit tests') {
             environment {
-                EBSI_ENV='integration'
-                BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS='0x9B8397f1B0FEcD3a1a40CdD5E8221Fa461898517'
                 API_PRIVATE_KEY=credentials('APP_PRIVATE_KEY_TRUSTED_ISSUERS')
             }
             steps {

@@ -8,7 +8,6 @@ export interface ConfigObject {
   apiPrivateKey: string;
   apiUrlPrefix: string;
   logLevel: string;
-  provider: string;
   domain: string;
   ledger: string;
   besuTrustedIssuersRegistryAddress: string;
@@ -16,28 +15,24 @@ export interface ConfigObject {
 
 const defaultConfig = {
   local: {
-    PROVIDER: "https://www.intebsi.xyz/jsonrpc",
-    DOMAIN: "https://api.intebsi.xyz",
-    LEDGER: "https://api.intebsi.xyz/ledger/v1",
+    DOMAIN: "https://api.test.intebsi.xyz",
+    LEDGER: "https://api.test.intebsi.xyz/ledger/v1",
     LOG_LEVEL: "debug",
   },
-  integration: {
-    PROVIDER: "https://www.intebsi.xyz/jsonrpc",
-    DOMAIN: "https://api.intebsi.xyz",
-    LEDGER: "https://api.intebsi.xyz/ledger/v1",
-    LOG_LEVEL: "debug",
+  test: {
+    DOMAIN: "https://api.test.intebsi.xyz",
+    LEDGER: "https://api.test.intebsi.xyz/ledger/v1",
+    LOG_LEVEL: "info",
   },
-  development: {
-    PROVIDER: "https://www.ebsi.xyz/jsonrpc",
-    DOMAIN: "https://api.ebsi.xyz",
-    LEDGER: "https://api.ebsi.xyz/ledger/v1",
-    LOG_LEVEL: "debug",
-  },
-  production: {
-    PROVIDER: "https://www.ebsi.xyz/jsonrpc",
-    DOMAIN: "https://api.ebsi.xyz",
-    LEDGER: "https://api.ebsi.xyz/ledger/v1",
+  pilot: {
+    DOMAIN: "https://api.pilot.ebsi.xyz",
+    LEDGER: "https://api.pilot.ebsi.xyz/ledger/v1",
     LOG_LEVEL: "warn",
+  },
+  prod: {
+    DOMAIN: "https://api.prod.ebsi.xyz",
+    LEDGER: "https://api.prod.ebsi.xyz/ledger/v1",
+    LOG_LEVEL: "error",
   },
 };
 
@@ -50,7 +45,6 @@ export const loadConfig = (): ConfigObject => {
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiUrlPrefix: process.env.API_URL_PREFIX || "",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
-    provider: process.env.PROVIDER || defaultConfig[EBSI_ENV].PROVIDER,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     ledger: process.env.LEDGER || defaultConfig[EBSI_ENV].LEDGER,
     besuTrustedIssuersRegistryAddress:
@@ -68,9 +62,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
   load: [loadConfig],
   validationSchema: Joi.object({
     // Common API variables
-    EBSI_ENV: Joi.string()
-      .valid("local", "integration", "development", "production")
-      .required(),
+    EBSI_ENV: Joi.string().valid("local", "test", "pilot", "prod").required(),
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
@@ -90,6 +82,5 @@ export const ApiConfigModule = ConfigModule.forRoot({
     BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: Joi.string().required(),
     DOMAIN: Joi.string(),
     LEDGER: Joi.string(),
-    PROVIDER: Joi.string(),
   }),
 });

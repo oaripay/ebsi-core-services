@@ -3,7 +3,7 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       NODE_ENV: "development" | "production" | "test";
-      EBSI_ENV: "local" | "integration" | "development" | "production";
+      EBSI_ENV: "local" | "test" | "pilot" | "prod";
       API_PRIVATE_KEY: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
@@ -12,7 +12,6 @@ declare global {
       BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: string;
       DOMAIN?: string;
       LEDGER?: string;
-      PROVIDER?: string;
     }
   }
 }
