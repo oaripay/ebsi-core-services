@@ -11,7 +11,7 @@ const { domain } = loadConfig();
 
 export const waitToBeMined = async (
   txId: string
-): Promise<{ status: string }> => {
+): Promise<{ status: string; blockNumber: string }> => {
   let mined = false;
   let receipt = null;
   /* eslint-disable no-await-in-loop */
@@ -30,7 +30,7 @@ export const waitToBeMined = async (
     mined = !!receipt;
   }
 
-  return receipt as { status: string };
+  return receipt as { status: string; blockNumber: string };
 };
 
 export default waitToBeMined;

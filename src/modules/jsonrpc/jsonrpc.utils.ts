@@ -12,6 +12,8 @@ import {
   RequestTimestampRecordHashesDto,
   RequestSignedTransactionDto,
   UnsignedTransaction,
+  RequestDetachRecordVersionHashDto,
+  ArgsDetachRecordVersionHash,
 } from "./dto";
 
 export function formatEthersUnsignedTransaction(
@@ -48,9 +50,11 @@ type JsonRpcDtos =
   | RequestUpdateHashAlgorithmDto
   | RequestTimestampHashesDto
   | RequestTimestampRecordHashesDto
+  | RequestDetachRecordVersionHashDto
   | ArgsInsertHashAlgorithm
   | ArgsUpdateHashAlgorithm
   | ArgsTimestampHashes
+  | ArgsDetachRecordVersionHash
   | ArgsTimestampRecordHashes;
 
 export const validateClass = async (

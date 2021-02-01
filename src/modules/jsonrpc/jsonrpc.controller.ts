@@ -9,6 +9,7 @@ import {
   RequestUpdateHashAlgorithmDto,
   RequestTimestampHashesDto,
   RequestTimestampRecordHashesDto,
+  RequestDetachRecordVersionHashDto,
 } from "./dto";
 
 function jsonRpcResponse(
@@ -51,6 +52,13 @@ export default class AppController {
       case "timestampRecordHashes": {
         const result = await this.jsonRpcService.buildTransactionTimestampRecordHashes(
           body as RequestTimestampRecordHashesDto,
+          id
+        );
+        return jsonRpcResponse(result, id);
+      }
+      case "detachRecordVersionHash": {
+        const result = await this.jsonRpcService.buildTransactionDetachRecordVersionHash(
+          body as RequestDetachRecordVersionHashDto,
           id
         );
         return jsonRpcResponse(result, id);

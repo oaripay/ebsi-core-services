@@ -1,5 +1,7 @@
 module.exports = {
   preset: "ts-jest",
+  testTimeout: 360000,
+  maxConcurrency: 1,
   testEnvironment: "node",
   rootDir: ".",
   roots: ["<rootDir>/src/", "<rootDir>/tests/"],

@@ -17,6 +17,7 @@ import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
+  DetachRecordVersionHashParam,
   InsertHashAlgorithmParam,
   TimestampHashesParam,
   TimestampRecordHashesParam,
@@ -41,6 +42,7 @@ type JsonRpcParams =
   | InsertHashAlgorithmParam
   | UpdateHashAlgorithmParam
   | TimestampHashesParam
+  | DetachRecordVersionHashParam
   | TimestampRecordHashesParam;
 
 jest.setTimeout(90000);
@@ -53,14 +55,17 @@ describe("JsonRpc Module", () => {
   let jsonRpcService: JsonRpcService;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let testEnvTar: AsyncReturnType<typeof setupTestEnvTar>;
-
+  const firstHashValue = `0x1234567890123456789012345678901234567890123456789012345678901234`;
+  let recordId: string;
+  let blockNumber = 0;
+  let provider: ethers.providers.Web3Provider;
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv();
     testEnvTar = await setupTestEnvTar({ administratorsTotal: 1 });
     timestampContract = testEnv.timestampContract;
     tarContract = testEnvTar.tarContract;
-    const { provider } = testEnv;
+    provider = testEnv.provider;
 
     // Mock Timestamp and TAR contract
     jest
@@ -294,6 +299,7 @@ describe("JsonRpc Module", () => {
     "updateHashAlgorithm",
     "timestampHashes",
     "timestampRecordHashes",
+    "detachRecordVersionHash",
   ])("/jsonrpc with method %s", (method: string) => {
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
       expect.assertions(4);
@@ -328,9 +334,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             hashAlgorithmIds: [0],
-            hashValues: [
-              "0x1234567890123456789012345678901234567890123456789012345678901234",
-            ],
+            hashValues: [firstHashValue],
             timestampData: [
               "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
             ],
@@ -341,14 +345,27 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             hashAlgorithmIds: [0],
-            hashValues: [
-              "0x1234567890123456789012345678901234567890123456789012345678901234",
-            ],
+            hashValues: [firstHashValue],
             timestampData: [
               "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
             ],
             versionInfo: "0x1234567890",
           } as TimestampRecordHashesParam;
+          break;
+        }
+        case "detachRecordVersionHash": {
+          recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [signer.address, blockNumber, firstHashValue]
+            )
+          );
+          param = {
+            from: signer.address,
+            recordId,
+            versionId: 0,
+            hashValue: firstHashValue,
+          } as DetachRecordVersionHashParam;
           break;
         }
         default:
@@ -405,7 +422,10 @@ describe("JsonRpc Module", () => {
           ],
           id: "45",
         });
-
+      // blocknumber needed to compute the recordid
+      if (method === "timestampRecordHashes") {
+        blockNumber = await provider.getBlockNumber();
+      }
       expect(responseSend.body).toStrictEqual({
         jsonrpc: "2.0",
         id: "45",
@@ -467,6 +487,16 @@ describe("JsonRpc Module", () => {
             ],
             versionInfo: "0x1234567890",
           } as TimestampRecordHashesParam;
+          break;
+        }
+        case "detachRecordVersionHash": {
+          param = {
+            from: signer.address,
+            recordId:
+              "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
+            versionId: 0,
+            hashValue: "0x1234567890",
+          } as DetachRecordVersionHashParam;
           break;
         }
         default:
@@ -654,6 +684,39 @@ describe("JsonRpc Module", () => {
             "property params[0].timestampData has failed the following constraints: isHexadecimal";
           break;
         }
+        case "detachRecordVersionHash": {
+          param1 = ({
+            from: signer.address,
+            recordId:
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            versionId:
+              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            hashValue: "0x1234567890",
+          } as unknown) as DetachRecordVersionHashParam;
+
+          expectedErrorMessage1 =
+            "property params[0].versionId has failed the following constraints: isInt";
+
+          param2 = ({
+            from: signer.address,
+            recordId:
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            versionId: 0,
+          } as unknown) as DetachRecordVersionHashParam;
+
+          expectedErrorMessage2 =
+            "property params[0].hashValue has failed the following constraints: isHexadecimal";
+
+          param3 = ({
+            from: signer.address,
+            versionId: 12,
+            hashValue: "0x1234567890",
+          } as unknown) as DetachRecordVersionHashParam;
+
+          expectedErrorMessage3 =
+            "property params[0].recordId has failed the following constraints: isHexadecimal";
+          break;
+        }
         default:
           throw new Error(`Test Error: Invalid method ${method}`);
       }
@@ -814,6 +877,23 @@ describe("JsonRpc Module", () => {
             ],
             versionInfo: "0x1234567890",
           } as TimestampRecordHashesParam;
+
+          break;
+        }
+        case "detachRecordVersionHash": {
+          param1 = {
+            from: signer.address,
+            recordId: firstHashValue,
+            versionId: 0,
+            hashValue: "0x125345568a",
+          } as DetachRecordVersionHashParam;
+
+          param2 = {
+            from: signer.address,
+            recordId: firstHashValue,
+            versionId: 0,
+            hashValue: "0x1234567890",
+          } as DetachRecordVersionHashParam;
 
           break;
         }

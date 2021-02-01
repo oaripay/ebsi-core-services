@@ -17,7 +17,10 @@ import { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
-import { TimestampRecordHashesParam } from "../../src/modules/jsonrpc/dto";
+import {
+  TimestampRecordHashesParam,
+  DetachRecordVersionHashParam,
+} from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
@@ -28,13 +31,14 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = TimestampRecordHashesParam;
+type JsonRpcParams = TimestampRecordHashesParam | DetachRecordVersionHashParam;
 
 describe("Records (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
-
+  let blockNumber = 0;
+  const firstHashValue = `0x${crypto.randomBytes(32).toString("hex")}`;
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -56,28 +60,26 @@ describe("Records (e2e)", () => {
     const configService = moduleFixture.get<ConfigService<ApiConfig>>(
       ConfigService
     );
-
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("adminTestPrivateKey"))
     );
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["timestampRecordHashes"])(
+  describe.each(["timestampRecordHashes", "detachRecordVersionHash"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should work", async () => {
         expect.assertions(5);
 
         let param: JsonRpcParams = null;
-
         switch (method) {
           case "timestampRecordHashes": {
             param = {
               from: adminTestWallet.address,
               hashAlgorithmIds: [0, 0],
               hashValues: [
-                `0x${crypto.randomBytes(32).toString("hex")}`,
+                firstHashValue,
                 `0x${crypto.randomBytes(32).toString("hex")}`,
               ],
               timestampData: [
@@ -86,6 +88,21 @@ describe("Records (e2e)", () => {
               ],
               versionInfo: `0x${crypto.randomBytes(10).toString("hex")}`,
             } as TimestampRecordHashesParam;
+            break;
+          }
+          case "detachRecordVersionHash": {
+            const recordId = ethers.utils.sha256(
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "uint256", "bytes"],
+                [adminTestWallet.address, blockNumber, firstHashValue]
+              )
+            );
+            param = {
+              from: adminTestWallet.address,
+              recordId,
+              versionId: 0,
+              hashValue: firstHashValue,
+            } as DetachRecordVersionHashParam;
             break;
           }
           default:
@@ -152,6 +169,9 @@ describe("Records (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(responseSend.body.result as string);
+        blockNumber = parseInt(receipt.blockNumber.substring(2), 16);
+
+        /** */
         expect(receipt.status).toBe("0x1");
       });
     }

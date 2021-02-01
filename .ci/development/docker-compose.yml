@@ -1,6 +1,0 @@
-version: "3.7"
-
-services:
-  timestamp-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api:development_ebsiint-2549-timestamp-record-hashes_v2.0.0
-    build: ../..

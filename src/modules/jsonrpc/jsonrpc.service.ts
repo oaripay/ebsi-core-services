@@ -8,11 +8,13 @@ import {
   ArgsUpdateHashAlgorithm,
   ArgsTimestampHashes,
   ArgsTimestampRecordHashes,
+  ArgsDetachRecordVersionHash,
   RequestInsertHashAlgorithmDto,
   RequestUpdateHashAlgorithmDto,
   RequestSignedTransactionDto,
   RequestTimestampHashesDto,
   RequestTimestampRecordHashesDto,
+  RequestDetachRecordVersionHashDto,
   SignedTransactionParam,
   UnsignedTransaction,
 } from "./dto";
@@ -107,6 +109,10 @@ export class JsonRpcService {
     return this.chainId;
   }
 
+  async getBlockNumber(): Promise<number> {
+    return this.timestampContract.provider.getBlockNumber();
+  }
+
   async callBesuAuth(method: string, params: unknown[]): Promise<unknown> {
     await this.checkSession();
     const url = `${this.configService.get<string>("ledger")}/blockchains/besu`;
@@ -118,6 +124,9 @@ export class JsonRpcService {
     };
     try {
       const response: AxiosResponseJsonRpc = await axios.post(url, data, opts);
+      if (response.data.error) {
+        throw new Error(JSON.stringify(response.data.error));
+      }
       return response.data.result;
     } catch (error) {
       const errorAxios = error as AxiosErrorResponse;
@@ -266,6 +275,13 @@ export class JsonRpcService {
         );
         break;
       }
+      case "detachRecordVersionHash": {
+        await validateClass(
+          ArgsDetachRecordVersionHash,
+          (args as unknown) as ArgsDetachRecordVersionHash
+        );
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -386,6 +402,27 @@ export class JsonRpcService {
         [hashAlgorithmIds, hashValues, timestampData]
       );
 
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionDetachRecordVersionHash(
+    body: RequestDetachRecordVersionHashDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestDetachRecordVersionHashDto, body);
+
+      const { from, recordId, versionId, hashValue } = body.params[0];
+
+      const data = this.timestampContract.interface.encodeFunctionData(
+        "detachRecordVersionHash",
+        [recordId, versionId, hashValue]
+      );
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);

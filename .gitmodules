@@ -1,7 +1,8 @@
 [submodule "submodules/timestamp-ethereum-sc"]
 	path = submodules/timestamp-ethereum-sc
 	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/timestamp-ethereum-sc.git
-	branch = EBSIINT-2553-TimeStamp-SC
+	branch = develop
 [submodule "submodules/trusted-apps-registry-ethereum-sc"]
 	path = submodules/trusted-apps-registry-ethereum-sc
 	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-apps-registry-ethereum-sc.git
+  branch = develop
