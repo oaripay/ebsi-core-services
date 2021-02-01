@@ -34,7 +34,7 @@ contract AuthorizationDetailed is AuthorizationStorage {
         string calldata authorizedAppName,
         string calldata iss,
         AppStoreLib.Status status,
-        uint8 operations,
+        uint8 permissions,
         uint256 notBefore,
         uint256 notAfter
     ) external {
@@ -46,7 +46,7 @@ contract AuthorizationDetailed is AuthorizationStorage {
             authorizedAppName,
             iss,
             status,
-            operations,
+            permissions,
             notBefore,
             notAfter
         );

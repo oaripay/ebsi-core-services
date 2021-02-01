@@ -38,7 +38,7 @@ library AuthLib {
         string calldata authorizedAppName,
         string calldata iss,
         AppStoreLib.Status status,
-        uint8 operations,
+        uint8 permissions,
         uint256 notBefore,
         uint256 notAfter
     ) external {
@@ -60,7 +60,7 @@ library AuthLib {
                     authorizedAppId,
                     iss,
                     status,
-                    operations,
+                    permissions,
                     notBefore,
                     notAfter
                 )
@@ -83,7 +83,7 @@ library AuthLib {
             authorizedAppId,
             iss,
             status,
-            operations,
+            permissions,
             notBefore,
             notAfter
         );
@@ -95,7 +95,7 @@ library AuthLib {
             authorizedAppId,
             newAuthorizationId,
             status,
-            operations,
+            permissions,
             notBefore,
             notAfter
         );

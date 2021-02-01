@@ -16,7 +16,7 @@ library AuthStoreLib {
         string iss;
         // authorization status: active, revoked
         AppStoreLib.Status status;
-        // bitmap of authorized operation based on CRUD
+        // bitmap of authorized permissions based on CRUD
         uint8 permissions;
         // date before the authorization is not valid
         uint256 notBefore;
