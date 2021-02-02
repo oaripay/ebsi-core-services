@@ -37,6 +37,29 @@ export function useRegistryContractHook() {
     []
   );
 
+  const insertAuthorization = useCallback(
+    (
+      name: string,
+      authorizedAppName: string,
+      calldata: string,
+      status: number,
+      operations: number,
+      notBefore: number,
+      notAfter: number
+    ) => {
+      return registryContract.insertAuthorization(
+        name,
+        authorizedAppName,
+        calldata,
+        status,
+        operations,
+        notBefore,
+        notAfter
+      );
+    },
+    []
+  );
+
   const getApplications = useCallback(() => {
     return getApplicationIds().then((ids: number[]) => {
       const appsPromises = Promise.all(
@@ -140,25 +163,6 @@ export function useRegistryContractHook() {
     []
   );
 
-  const addNewAuthorization = useCallback(
-    (appName: string, authName: string) => {
-      return registryContract.populateTransaction
-        .addNewAuthorization(appName, authName)
-        .then((response: PopulatedTransaction) => {
-          return post(config.NOTIFICATION_URL, {
-            did: localStorage.getItem("Did"),
-            rawTransaction: {
-              to: response.to,
-              data: response.data,
-            },
-            redirectUrl: config.REDIRECT_URL,
-            iss: "trusted-app-admin-add-auth",
-          });
-        });
-    },
-    [registryContract]
-  );
-
   const deleteAuthorization = useCallback(
     (appName: string, authName: string) => {
       return registryContract.populateTransaction
@@ -182,9 +186,9 @@ export function useRegistryContractHook() {
     getApplications,
     registerApp,
     updateApp,
-    addNewAuthorization,
     deleteAuthorization,
     isOperator,
     insertAppPublicKey,
+    insertAuthorization,
   };
 }

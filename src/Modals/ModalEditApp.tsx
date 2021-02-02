@@ -51,7 +51,9 @@ export function ModalEditApp() {
         <Form
           layout="vertical"
           form={form}
-          initialValues={appCtx.editModal.data}
+          initialValues={{
+            status: 1,
+          }}
         >
           <Row>
             <Col lg={24}>

@@ -58,15 +58,11 @@ export function useTableHook() {
       key: "authorizedApps",
       width: 500,
       render: (params: any) => {
-        if (params.authorizedApps) {
+        if (params.authorizedApps.length) {
           return (
-            <Paragraph ellipsis={{ rows: 1, expandable: true, symbol: "More" }}>
+            <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: "More" }}>
               {params.authorizedApps.map((authApp: any) => (
-                <Tag
-                  className="m-t-10"
-                  key={authApp + params.name}
-                  color="processing"
-                >
+                <Tag className="m-t-10" key={authApp} color="processing">
                   {authApp}
                 </Tag>
               ))}
@@ -118,8 +114,11 @@ export function useTableHook() {
               <Button
                 type="default"
                 onClick={() => {
-                  appCtx.setInsertPublicKeyModal({
+                  appCtx.setAuthorizedAppsModal({
                     show: true,
+                    data: {
+                      name: params.name,
+                    },
                   });
                 }}
               >

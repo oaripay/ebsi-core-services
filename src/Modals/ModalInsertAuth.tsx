@@ -10,57 +10,60 @@ import {
   Select,
   Space,
 } from "antd";
-import { ethers } from "ethers";
+
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
 import { AppContext } from "../AppContext";
 
-export default function ModalInsertPublicKey(): ReactElement {
+export default function ModalInsertAuth(): ReactElement {
   const [form] = Form.useForm();
 
-  const { insertAppPublicKey } = useRegistryContractHook();
+  const { insertAuthorization } = useRegistryContractHook();
   const appCtx = useContext(AppContext);
 
   return (
     <Modal
       title="Add public key"
-      visible={appCtx.insertPublicKeyModal.show}
+      visible={appCtx.authorizedAppsModal.show}
       okText="Save"
       onOk={() => {
         form
           .validateFields([
-            "appId",
-            "publicKey",
+            "authorizedAppName",
+            "iss",
             "status",
+            "operations",
             "notBefore",
             "notAfter",
           ])
           .then(() => {
             const fields = form.getFieldsValue([
-              "appId",
-              "publicKey",
+              "authorizedAppName",
+              "iss",
               "status",
+              "operations",
               "notBefore",
               "notAfter",
             ]);
 
-            const insertPubKeyFields: any = {
+            const insertAuthFields: any = {
               ...fields,
+              name: appCtx.authorizedAppsModal.data.name,
               notBefore: fields.notBefore.unix(),
               notAfter: fields.notAfter.unix(),
-              publicKey: ethers.utils.formatBytes32String(fields.publicKey),
             };
 
-            appCtx.setInsertPublicKeyModal({
-              ...appCtx.insertPublicKeyModal,
+            appCtx.setAuthorizedAppsModal({
               show: false,
             });
 
-            insertAppPublicKey(
-              insertPubKeyFields.appId,
-              insertPubKeyFields.publicKey,
-              insertPubKeyFields.status,
-              insertPubKeyFields.notBefore,
-              insertPubKeyFields.notAfter
+            insertAuthorization(
+              insertAuthFields.name,
+              insertAuthFields.authorizedAppName,
+              insertAuthFields.iss,
+              insertAuthFields.status,
+              insertAuthFields.operations,
+              insertAuthFields.notBefore,
+              insertAuthFields.notAfter
             )
               .then(() => {
                 notification.info({
@@ -82,25 +85,27 @@ export default function ModalInsertPublicKey(): ReactElement {
           });
       }}
       onCancel={() =>
-        appCtx.setInsertPublicKeyModal({
+        appCtx.setAuthorizedAppsModal({
           show: false,
         })
       }
     >
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
         <Form
+          layout="vertical"
+          form={form}
           initialValues={{
             status: 1,
           }}
-          layout="vertical"
-          form={form}
         >
           <Row>
             <Col lg={24}>
               <Form.Item
-                label="APP Id"
-                name="appId"
-                rules={[{ required: true, message: "Please input app id!" }]}
+                label="Authorized app name"
+                name="authorizedAppName"
+                rules={[
+                  { required: true, message: "Please input auth app name!" },
+                ]}
               >
                 <Input />
               </Form.Item>
@@ -109,11 +114,9 @@ export default function ModalInsertPublicKey(): ReactElement {
           <Row>
             <Col lg={24}>
               <Form.Item
-                label="Public key"
-                name="publicKey"
-                rules={[
-                  { required: true, message: "Please input public key!" },
-                ]}
+                label="ISS"
+                name="iss"
+                rules={[{ required: true, message: "Please input iss!" }]}
               >
                 <Input />
               </Form.Item>
@@ -128,6 +131,19 @@ export default function ModalInsertPublicKey(): ReactElement {
                   <Select.Option value={3}>suspended</Select.Option>
                   <Select.Option value={0}>undefined</Select.Option>
                 </Select>
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row>
+            <Col lg={24}>
+              <Form.Item
+                label="Operations"
+                name="operations"
+                rules={[
+                  { required: true, message: "Please input operations!" },
+                ]}
+              >
+                <Input />
               </Form.Item>
             </Col>
           </Row>

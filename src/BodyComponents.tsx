@@ -2,10 +2,10 @@ import React, { ReactElement, useContext } from "react";
 
 import { NewApp } from "./NewApp";
 import { ModalEditApp } from "./Modals/ModalEditApp";
-import { ModalAttachAuthorizedApp } from "./Modals/ModalAttachAuthorizedApp";
 import { AppContext } from "./AppContext";
 import OperatorWarning from "./OperatorWarning";
 import ModalInsertPublicKey from "./Modals/ModalInsertPublicKey";
+import ModalInsertAuth from "./Modals/ModalInsertAuth";
 
 export default function BodyComponents(): ReactElement {
   const appCtx = useContext(AppContext);
@@ -19,8 +19,8 @@ export default function BodyComponents(): ReactElement {
       <OperatorWarning />
       <NewApp />
       <ModalInsertPublicKey />
+      <ModalInsertAuth />
       <ModalEditApp />
-      <ModalAttachAuthorizedApp />
     </>
   );
 }
