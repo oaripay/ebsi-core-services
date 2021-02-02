@@ -15,8 +15,10 @@ import {
   RequestTimestampHashesDto,
   RequestTimestampRecordHashesDto,
   RequestDetachRecordVersionHashDto,
+  RequestInsertRecordOwnerDto,
   SignedTransactionParam,
   UnsignedTransaction,
+  ArgsInsertRecordOwner,
 } from "./dto";
 import {
   AxiosResponseSessions,
@@ -275,6 +277,13 @@ export class JsonRpcService {
         );
         break;
       }
+      case "insertRecordOwner": {
+        await validateClass(
+          ArgsInsertRecordOwner,
+          (args as unknown) as ArgsInsertRecordOwner
+        );
+        break;
+      }
       case "detachRecordVersionHash": {
         await validateClass(
           ArgsDetachRecordVersionHash,
@@ -402,6 +411,27 @@ export class JsonRpcService {
         [hashAlgorithmIds, hashValues, timestampData]
       );
 
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertRecordOwner(
+    body: RequestInsertRecordOwnerDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertRecordOwnerDto, body);
+
+      const { from, recordId, ownerId, notBefore, notAfter } = body.params[0];
+
+      const data = this.timestampContract.interface.encodeFunctionData(
+        "insertRecordOwner",
+        [recordId, ownerId, notBefore, notAfter]
+      );
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);

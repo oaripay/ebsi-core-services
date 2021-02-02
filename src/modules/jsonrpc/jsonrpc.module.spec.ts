@@ -18,6 +18,7 @@ import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   DetachRecordVersionHashParam,
+  InsertRecordOwnerParam,
   InsertHashAlgorithmParam,
   TimestampHashesParam,
   TimestampRecordHashesParam,
@@ -43,6 +44,7 @@ type JsonRpcParams =
   | UpdateHashAlgorithmParam
   | TimestampHashesParam
   | DetachRecordVersionHashParam
+  | InsertRecordOwnerParam
   | TimestampRecordHashesParam;
 
 jest.setTimeout(90000);
@@ -300,6 +302,7 @@ describe("JsonRpc Module", () => {
     "timestampHashes",
     "timestampRecordHashes",
     "detachRecordVersionHash",
+    "insertRecordOwner",
   ])("/jsonrpc with method %s", (method: string) => {
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
       expect.assertions(4);
@@ -366,6 +369,22 @@ describe("JsonRpc Module", () => {
             versionId: 0,
             hashValue: firstHashValue,
           } as DetachRecordVersionHashParam;
+          break;
+        }
+        case "insertRecordOwner": {
+          recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [signer.address, blockNumber, firstHashValue]
+            )
+          );
+          param = {
+            from: signer.address,
+            recordId,
+            ownerId: "owner",
+            notBefore: 1042,
+            notAfter: 1021201545,
+          } as InsertRecordOwnerParam;
           break;
         }
         default:
@@ -497,6 +516,17 @@ describe("JsonRpc Module", () => {
             versionId: 0,
             hashValue: "0x1234567890",
           } as DetachRecordVersionHashParam;
+          break;
+        }
+        case "insertRecordOwner": {
+          param = {
+            from: signer.address,
+            recordId:
+              "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
+            ownerId: "owner",
+            notBefore: 1042,
+            notAfter: 1021201545,
+          } as InsertRecordOwnerParam;
           break;
         }
         default:
@@ -717,6 +747,42 @@ describe("JsonRpc Module", () => {
             "property params[0].recordId has failed the following constraints: isHexadecimal";
           break;
         }
+        case "insertRecordOwner": {
+          param1 = ({
+            from: signer.address,
+            recordId:
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            ownerId: 0,
+            notBefore: 1,
+            notAfter: 12,
+          } as unknown) as InsertRecordOwnerParam;
+
+          expectedErrorMessage1 =
+            "property params[0].ownerId has failed the following constraints: isString";
+
+          param2 = ({
+            from: signer.address,
+            recordId:
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            ownerId: "owner",
+            notBefore: "1",
+            notAfter: 12,
+          } as unknown) as InsertRecordOwnerParam;
+
+          expectedErrorMessage2 =
+            "property params[0].notBefore has failed the following constraints: isInt";
+
+          param3 = ({
+            from: signer.address,
+            ownerId: "owner",
+            notBefore: 1,
+            notAfter: 12,
+          } as unknown) as InsertRecordOwnerParam;
+
+          expectedErrorMessage3 =
+            "property params[0].recordId has failed the following constraints: isHexadecimal";
+          break;
+        }
         default:
           throw new Error(`Test Error: Invalid method ${method}`);
       }
@@ -894,6 +960,25 @@ describe("JsonRpc Module", () => {
             versionId: 0,
             hashValue: "0x1234567890",
           } as DetachRecordVersionHashParam;
+
+          break;
+        }
+        case "insertRecordOwner": {
+          param1 = {
+            from: signer.address,
+            recordId: firstHashValue,
+            ownerId: "owner",
+            notBefore: 1042,
+            notAfter: 1021201545,
+          } as InsertRecordOwnerParam;
+
+          param2 = {
+            from: signer.address,
+            recordId: firstHashValue,
+            ownerId: "ownerchanged",
+            notBefore: 1042,
+            notAfter: 1021201545,
+          } as InsertRecordOwnerParam;
 
           break;
         }

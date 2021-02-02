@@ -10,6 +10,7 @@ import {
   RequestTimestampHashesDto,
   RequestTimestampRecordHashesDto,
   RequestDetachRecordVersionHashDto,
+  RequestInsertRecordOwnerDto,
 } from "./dto";
 
 function jsonRpcResponse(
@@ -52,6 +53,13 @@ export default class AppController {
       case "timestampRecordHashes": {
         const result = await this.jsonRpcService.buildTransactionTimestampRecordHashes(
           body as RequestTimestampRecordHashesDto,
+          id
+        );
+        return jsonRpcResponse(result, id);
+      }
+      case "insertRecordOwner": {
+        const result = await this.jsonRpcService.buildTransactionInsertRecordOwner(
+          body as RequestInsertRecordOwnerDto,
           id
         );
         return jsonRpcResponse(result, id);

@@ -20,6 +20,7 @@ import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interfa
 import {
   TimestampRecordHashesParam,
   DetachRecordVersionHashParam,
+  InsertRecordOwnerParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
@@ -31,7 +32,10 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = TimestampRecordHashesParam | DetachRecordVersionHashParam;
+type JsonRpcParams =
+  | TimestampRecordHashesParam
+  | DetachRecordVersionHashParam
+  | InsertRecordOwnerParam;
 
 describe("Records (e2e)", () => {
   let app: INestApplication;
@@ -130,114 +134,136 @@ describe("Records (e2e)", () => {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["timestampRecordHashes", "detachRecordVersionHash"])(
-    "/jsonrpc - send transaction for %s",
-    (method: string) => {
-      it("should work", async () => {
-        expect.assertions(5);
+  describe.each([
+    "timestampRecordHashes",
+    "detachRecordVersionHash",
+    "insertRecordOwner",
+  ])("/jsonrpc - send transaction for %s", (method: string) => {
+    it("should work", async () => {
+      expect.assertions(5);
 
-        let param: JsonRpcParams = null;
-        switch (method) {
-          case "timestampRecordHashes": {
-            param = {
-              from: adminTestWallet.address,
-              hashAlgorithmIds: [0, 0],
-              hashValues: [
-                firstHashValue,
-                `0x${crypto.randomBytes(32).toString("hex")}`,
-              ],
-              timestampData: [
-                `0x${crypto.randomBytes(32).toString("hex")}`,
-                `0x${crypto.randomBytes(32).toString("hex")}`,
-              ],
-              versionInfo: `0x${crypto.randomBytes(10).toString("hex")}`,
-            } as TimestampRecordHashesParam;
-            break;
-          }
-          case "detachRecordVersionHash": {
-            const recordId = ethers.utils.sha256(
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "uint256", "bytes"],
-                [adminTestWallet.address, blockNumber, firstHashValue]
-              )
-            );
-            param = {
-              from: adminTestWallet.address,
-              recordId,
-              versionId: 0,
-              hashValue: firstHashValue,
-            } as DetachRecordVersionHashParam;
-            break;
-          }
-          default:
-            throw new Error(`Test Error: Invalid method ${method}`);
-        }
-
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param],
-            id: 231,
-          });
-
-        expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
+      let param: JsonRpcParams = null;
+      switch (method) {
+        case "timestampRecordHashes": {
+          param = {
             from: adminTestWallet.address,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: expect.any(String) as string,
-          },
-        });
-        expect(responseBuild.status).toBe(200);
-
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction))
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await adminTestWallet.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-        const responseSend: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method: "signedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
-              },
+            hashAlgorithmIds: [0, 0],
+            hashValues: [
+              firstHashValue,
+              `0x${crypto.randomBytes(32).toString("hex")}`,
             ],
-            id: "45",
-          });
+            timestampData: [
+              `0x${crypto.randomBytes(32).toString("hex")}`,
+              `0x${crypto.randomBytes(32).toString("hex")}`,
+            ],
+            versionInfo: `0x${crypto.randomBytes(10).toString("hex")}`,
+          } as TimestampRecordHashesParam;
+          break;
+        }
+        case "detachRecordVersionHash": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [adminTestWallet.address, blockNumber, firstHashValue]
+            )
+          );
+          param = {
+            from: adminTestWallet.address,
+            recordId,
+            versionId: 0,
+            hashValue: firstHashValue,
+          } as DetachRecordVersionHashParam;
+          break;
+        }
+        case "insertRecordOwner": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [adminTestWallet.address, blockNumber, firstHashValue]
+            )
+          );
+          const notBefore = new Date().getTime();
+          param = {
+            from: adminTestWallet.address,
+            recordId,
+            ownerId: "myownerid",
+            notBefore,
+            notAfter: notBefore + 1000000,
+          } as InsertRecordOwnerParam;
+          break;
+        }
+        default:
+          throw new Error(`Test Error: Invalid method ${method}`);
+      }
 
-        expect(responseSend.body).toStrictEqual({
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
           jsonrpc: "2.0",
-          id: "45",
-          result: expect.any(String) as string,
+          method,
+          params: [param],
+          id: 231,
         });
-        expect(responseSend.status).toBe(200);
 
-        // wait to be mined
-        const receipt = await waitToBeMined(responseSend.body.result as string);
-        blockNumber = parseInt(receipt.blockNumber.substring(2), 16);
-
-        /** */
-        expect(receipt.status).toBe("0x1");
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        result: {
+          chainId: expect.any(String) as string,
+          data: expect.any(String) as string,
+          from: adminTestWallet.address,
+          gasLimit: expect.any(String) as string,
+          gasPrice: expect.any(String) as string,
+          nonce: expect.any(String) as string,
+          to: expect.any(String) as string,
+          value: expect.any(String) as string,
+        },
       });
-    }
-  );
+      expect(responseBuild.status).toBe(200);
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await adminTestWallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        result: expect.any(String) as string,
+      });
+      expect(responseSend.status).toBe(200);
+
+      // wait to be mined
+      const receipt = await waitToBeMined(responseSend.body.result as string);
+      if (method === "timestampRecordHashes") {
+        // we need the blocknumber to be able to compute the recordId
+        // created by timestampRecordHashes
+        blockNumber = parseInt(receipt.blockNumber.substring(2), 16);
+      }
+
+      /** */
+      expect(receipt.status).toBe("0x1");
+    });
+  });
 });
