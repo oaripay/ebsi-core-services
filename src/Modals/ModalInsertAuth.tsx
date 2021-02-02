@@ -22,7 +22,7 @@ export default function ModalInsertAuth(): ReactElement {
 
   return (
     <Modal
-      title="Add public key"
+      title="Add auth"
       visible={appCtx.authorizedAppsModal.show}
       okText="Save"
       onOk={() => {
