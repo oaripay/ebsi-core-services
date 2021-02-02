@@ -25,7 +25,8 @@ export function paginate<T>(
   baseUrl: string,
   total: number,
   page: number,
-  pageSize: number
+  pageSize: number,
+  extraQuery = ""
 ): PaginatedList<T> {
   const {
     firstPage,
@@ -35,15 +36,15 @@ export function paginate<T>(
   } = compute1BasedPaginationLinks(total, page, pageSize);
 
   return {
-    self: `${baseUrl}?page[after]=${page}&page[size]=${pageSize}`,
+    self: `${baseUrl}?page[after]=${page}&page[size]=${pageSize}${extraQuery}`,
     items,
     total,
     pageSize,
     links: {
-      first: `${baseUrl}?page[after]=${firstPage}&page[size]=${pageSize}`,
-      prev: `${baseUrl}?page[after]=${prevPage}&page[size]=${pageSize}`,
-      next: `${baseUrl}?page[after]=${nextPage}&page[size]=${pageSize}`,
-      last: `${baseUrl}?page[after]=${lastPage}&page[size]=${pageSize}`,
+      first: `${baseUrl}?page[after]=${firstPage}&page[size]=${pageSize}${extraQuery}`,
+      prev: `${baseUrl}?page[after]=${prevPage}&page[size]=${pageSize}${extraQuery}`,
+      next: `${baseUrl}?page[after]=${nextPage}&page[size]=${pageSize}${extraQuery}`,
+      last: `${baseUrl}?page[after]=${lastPage}&page[size]=${pageSize}${extraQuery}`,
     },
   };
 }

@@ -65,6 +65,70 @@ describe("Records (e2e)", () => {
     );
   });
 
+  describe("GET /records", () => {
+    it("should return a paginated collection of records", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/records");
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/records?page[after]=1&page[size]=10"
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/records?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/records?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining("/records?page[after]=") as string,
+          last: expect.stringContaining("/records?page[after]=") as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /records/{recordId}", () => {
+    it("should return a specific record", async () => {
+      expect.assertions(2);
+
+      const respRecords = await request(server).get("/records");
+      const { recordId } = (respRecords.body as {
+        items: Array<{ recordId: string }>;
+      }).items[0];
+      const response = await request(server).get(`/records/${recordId}`);
+
+      expect(response.body).toStrictEqual({
+        ownerIds: expect.arrayContaining([]) as string[],
+        revokedOwnerIds: expect.arrayContaining([]) as string[],
+        firstVersionTimestamps: expect.arrayContaining([]) as string[],
+        lastVersionTimestamps: expect.arrayContaining([]) as string[],
+        totalVersions: expect.any(Number) as number,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the record is not found", async () => {
+      expect.assertions(2);
+
+      const recordId = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      const response = await request(server).get(`/records/${recordId}`);
+
+      expect(response.body).toStrictEqual({
+        title: "Record Not Found",
+        status: 404,
+        detail: `Record ${recordId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+  });
+
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each(["timestampRecordHashes", "detachRecordVersionHash"])(
     "/jsonrpc - send transaction for %s",

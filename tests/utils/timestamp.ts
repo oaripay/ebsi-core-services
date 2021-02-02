@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import crypto from "crypto";
 import ganache from "ganache-core";
 import {
   Timestamp,
@@ -8,6 +9,20 @@ import {
   TimestampLib__factory,
   StringManip__factory,
 } from "../../src/contracts/timestamp";
+
+interface HashAlgorithmObject {
+  outputLength: number;
+  ianaName: string;
+  oid: string;
+  status: number;
+}
+interface RecordObject {
+  recordId: string;
+  hashAlgorithmIds: number[];
+  hashValues: string[];
+  timestampData: string[];
+  versionInfo: string;
+}
 
 export async function deployTimestampContract(
   ethersProvider: ethers.providers.Web3Provider
@@ -70,18 +85,97 @@ export async function deployTimestampContract(
   return TimestampContract;
 }
 
-export async function setupTestEnv(): Promise<{
+export async function insertHashAlgorithm(
+  contract: Timestamp
+): Promise<HashAlgorithmObject> {
+  const outputLength = 20;
+  const ianaName = `algo-${crypto.randomBytes(4).toString("hex")}`;
+  const oid = "oid-test";
+  const status = 1;
+  await contract.insertHashAlgorithm(outputLength, ianaName, oid, status);
+  return {
+    outputLength,
+    ianaName,
+    oid,
+    status,
+  };
+}
+
+export async function insertRecord(
+  contract: Timestamp,
+  sender: string
+): Promise<RecordObject> {
+  const hashAlgorithmIds = Array(3).fill(0);
+  const hashValues = Array(3)
+    .fill(0)
+    .map(() => `0x${crypto.randomBytes(4).toString("hex")}`);
+  const timestampData = Array(3)
+    .fill(0)
+    .map(() => `0x${crypto.randomBytes(4).toString("hex")}`);
+  const versionInfo = `0x${crypto.randomBytes(10).toString("hex")}`;
+  await contract.timestampRecordHashes(
+    hashAlgorithmIds,
+    hashValues,
+    timestampData,
+    versionInfo
+  );
+
+  const blockNumber = 2;
+  const types = ["address", "uint256", "uint256"];
+  const values = [sender, blockNumber, hashValues[0]];
+  const enc = ethers.utils.defaultAbiCoder.encode(types, values);
+  const recordId = ethers.utils.sha256(enc);
+
+  return {
+    recordId,
+    hashAlgorithmIds,
+    hashValues,
+    timestampData,
+    versionInfo,
+  };
+}
+
+export interface SetupOptions {
+  hashAlgorithmsTotal?: number;
+  recordsTotal?: number;
+}
+
+export async function setupTestEnv(
+  opts: SetupOptions = {
+    hashAlgorithmsTotal: 1,
+    recordsTotal: 1,
+  }
+): Promise<{
   provider: ethers.providers.Web3Provider;
   timestampContract: Timestamp;
+  hashAlgorithms: HashAlgorithmObject[];
+  records: RecordObject[];
 }> {
   const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
+  const sender = await ethersProvider.getSigner().getAddress();
 
   // Deploy contract
   const timestampContract = await deployTimestampContract(ethersProvider);
+
+  // Insert fake data
+
+  const hashAlgorithms = await Promise.all(
+    Array(opts.hashAlgorithmsTotal)
+      .fill(0)
+      .map(() => insertHashAlgorithm(timestampContract))
+  );
+
+  const records = await Promise.all(
+    Array(opts.recordsTotal)
+      .fill(0)
+      .map(() => insertRecord(timestampContract, sender))
+  );
 
   // Return test env variables
   return {
     provider: ethersProvider,
     timestampContract,
+    hashAlgorithms,
+    records,
   };
 }
