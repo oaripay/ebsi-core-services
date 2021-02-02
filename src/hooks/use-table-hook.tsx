@@ -1,23 +1,14 @@
-import {
-  Button,
-  Modal,
-  Space,
-  Tag,
-  Tooltip,
-  Typography,
-  notification,
-} from "antd";
+import { Button, Space, Tag, Tooltip, Typography } from "antd";
 import React, { useContext } from "react";
 import {
-  DeleteOutlined,
   EditOutlined,
-  ExclamationCircleOutlined,
+  KeyOutlined,
   LockOutlined,
+  PlusOutlined,
+  PropertySafetyOutlined,
 } from "@ant-design/icons/lib";
 
 import { AppContext } from "../AppContext";
-
-const { confirm } = Modal;
 
 const { Paragraph } = Typography;
 
@@ -110,41 +101,30 @@ export function useTableHook() {
                 <EditOutlined />
               </Button>
             </Tooltip>
-            <Tooltip title="Delete">
+            <Tooltip title="Add public key">
               <Button
                 type="default"
-                danger
                 onClick={() => {
-                  confirm({
-                    title: (
-                      <div>
-                        Are you sure you want to delete{" "}
-                        <strong>{params.name}</strong> application ?
-                      </div>
-                    ),
-                    icon: <ExclamationCircleOutlined />,
-                    onOk() {
-                      notification.info({
-                        message: "Transaction",
-                        description: (
-                          <>
-                            <p>A transaction has been broadcasted.</p>
-                          </>
-                        ),
-                      });
-                      // deleteApp(params.name).catch(() => {
-                      //   notification.error({
-                      //     message: "Error",
-                      //     description:
-                      //       "A problem appeared on trying to delete app. Please make sure you're logged in wallet client. If that didn't fix please contact an admin for further instructions!",
-                      //   });
-                      // });
-                    },
-                    onCancel() {},
+                  appCtx.setInsertPublicKeyModal({
+                    show: true,
                   });
                 }}
               >
-                <DeleteOutlined />
+                <PlusOutlined />
+                <KeyOutlined />
+              </Button>
+            </Tooltip>
+            <Tooltip title="Add authorization">
+              <Button
+                type="default"
+                onClick={() => {
+                  appCtx.setInsertPublicKeyModal({
+                    show: true,
+                  });
+                }}
+              >
+                <PlusOutlined />
+                <PropertySafetyOutlined />
               </Button>
             </Tooltip>
           </Space>

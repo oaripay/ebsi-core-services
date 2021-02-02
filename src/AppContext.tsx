@@ -10,7 +10,9 @@ export type AppContextType = {
   searchedTerm: string;
   setSearchedTerm: (searchedTerm: string) => void;
   setEditModal: (params: any) => void;
+  setInsertPublicKeyModal: (params: any) => void;
   editModal: { show: boolean; data: any };
+  insertPublicKeyModal: { show: boolean; data: any };
   setAuthorizedAppsModal: (params: any) => void;
   authorizedAppsModal: { show: boolean; data: any };
   metamask: {};
@@ -42,6 +44,9 @@ export function AppProvider({ children }: any) {
   const [appState, setAppState] = useState(defaultParams);
   const [tableDataState, setTableDataState] = useState(defaultParamsTable);
   const [editModalState, setEditModalState] = useState(defaultParamstModal);
+  const [insertPublicKeyModalState, setInsertPublicKeyModalState] = useState(
+    defaultParamstModal
+  );
   const [authorizedAppsModalState, setAuthorizedAppsModalState] = useState(
     defaultParamstModal
   );
@@ -126,6 +131,16 @@ export function AppProvider({ children }: any) {
     [editModalState]
   );
 
+  const setInsertPublicKeyModal = useCallback(
+    (insertPubKeyModal: any) => {
+      setInsertPublicKeyModalState({
+        ...insertPublicKeyModalState,
+        ...insertPubKeyModal,
+      });
+    },
+    [insertPublicKeyModalState]
+  );
+
   const setAuthorizedAppsModal = useCallback(
     (authorizedAppsModal: any) => {
       setAuthorizedAppsModalState({
@@ -147,13 +162,16 @@ export function AppProvider({ children }: any) {
       setSearchedTerm,
       setTableFilteredDataSource,
       setEditModal,
+      setInsertPublicKeyModal,
       setAuthorizedAppsModal,
       pageErr,
       metamask,
+      insertPublicKeyModal: insertPublicKeyModalState,
     };
   }, [
     appState,
     editModalState,
+    setInsertPublicKeyModal,
     tableDataState,
     authorizedAppsModalState,
     metamask,

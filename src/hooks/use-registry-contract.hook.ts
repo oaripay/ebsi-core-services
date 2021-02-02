@@ -18,6 +18,25 @@ export function useRegistryContractHook() {
     });
   }, []);
 
+  const insertAppPublicKey = useCallback(
+    (
+      appId: string,
+      publicKey: string,
+      status: number,
+      notBefore: number,
+      notAfter: number
+    ) => {
+      return registryContract.insertAppPublicKey(
+        appId,
+        publicKey,
+        status,
+        notAfter,
+        notAfter
+      );
+    },
+    []
+  );
+
   const getApplications = useCallback(() => {
     return getApplicationIds().then((ids: number[]) => {
       const appsPromises = Promise.all(
@@ -69,22 +88,6 @@ export function useRegistryContractHook() {
       return registryContract?.isOperator(addr[2]);
     }
     return new Promise((resolve) => resolve(false));
-  }, []);
-
-  const deleteApp = useCallback((name: string) => {
-    return registryContract.populateTransaction
-      .deleteApp(name)
-      .then((response: PopulatedTransaction) => {
-        return post(config.NOTIFICATION_URL, {
-          did: localStorage.getItem("Did"),
-          rawTransaction: {
-            to: response.to,
-            data: response.data,
-          },
-          redirectUrl: config.REDIRECT_URL,
-          iss: "trusted-app-admin-delete",
-        });
-      });
   }, []);
 
   // eslint-disable-next-line no-unused-vars
@@ -177,11 +180,11 @@ export function useRegistryContractHook() {
 
   return {
     getApplications,
-    deleteApp,
     registerApp,
     updateApp,
     addNewAuthorization,
     deleteAuthorization,
     isOperator,
+    insertAppPublicKey,
   };
 }

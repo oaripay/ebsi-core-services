@@ -1,8 +1,8 @@
 export const config = {
-  PROVIDER: process.env.REACT_APP_PROVIDER || "http://127.0.0.1:7545",
+  PROVIDER: process.env.REACT_APP_PROVIDER || "http://127.0.0.1:8545",
   REGISTRY_ADDRESS:
     process.env.REACT_APP_REGISTRY_ADDRESS ||
-    "0x59727673f2426A6C68E09511C0B0422ab512d413",
+    "0xC505fE2E1a87FdAA7a5fd2559C237848d3820e3d",
   NOTIFICATION_URL:
     process.env.REACT_APP_TAW_TX_URI || "/raw-transaction-signatures",
   REDIRECT_URL: process.env.REACT_APP_REDIRECT_URL || "http://localhost:3000",
