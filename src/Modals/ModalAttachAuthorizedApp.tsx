@@ -4,7 +4,6 @@ import _ from "lodash";
 
 import { AppContext } from "../AppContext";
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import {config} from '../config';
 
 const { Option } = Select;
 
@@ -15,7 +14,6 @@ export function ModalAttachAuthorizedApp() {
   const {
     addNewAuthorization,
     deleteAuthorization,
-    getApplications,
   } = useRegistryContractHook();
 
   const appNames = useMemo(() => {
@@ -80,11 +78,7 @@ export function ModalAttachAuthorizedApp() {
             message: "Transaction",
             description: (
               <>
-                <p>
-                  A transaction is being sent to wallet. Please go to
-                  <a href={config.WALLET_WEB_CLIENT_URL}> wallet</a> to sign and
-                  broadcast the transaction
-                </p>
+                <p>A transaction has been broadcasted.</p>
               </>
             ),
           });

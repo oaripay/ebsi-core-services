@@ -1,40 +1,62 @@
-import { BigNumber } from "ethers";
+import { PopulatedTransaction } from "ethers";
 import { useCallback } from "react";
 
 import { useEthersHook } from "./use-ethers.hook";
 import { useFetch } from "./use-fetch";
 import { config } from "../config";
+import { domains } from "../constants";
+
+const PAGE_SIZE = 20;
 
 export function useRegistryContractHook() {
   const { registryContract } = useEthersHook();
   const { post } = useFetch();
 
-  const getApplicationKeys = useCallback(() => {
-    return registryContract.getApplicationKeys().then((appKeys: any) => {
-      return appKeys.map((appKey: BigNumber) => appKey.toNumber());
+  const getApplicationIds = useCallback(() => {
+    return registryContract.getApps(1, PAGE_SIZE).then((appKeys: any) => {
+      return appKeys.items;
     });
   }, []);
 
   const getApplications = useCallback(() => {
-    return getApplicationKeys().then((keys: number[]) => {
-      const appsPromises = keys.map((key: number) =>
-        registryContract.getApplicationByIndex(key)
+    return getApplicationIds().then((ids: number[]) => {
+      const appsPromises = Promise.all(
+        ids.map((id: number) => registryContract.getAppById(id))
       );
 
-      return Promise.all(appsPromises).then((apps) => {
-        const authAppsPromises = apps.map((item) =>
-          registryContract.getAuthorizedApps(item[0])
-        );
+      const appPublicKeysPromises = Promise.all(
+        ids.map((id: number) =>
+          registryContract.getAppPublicKeyIds(id, 1, PAGE_SIZE)
+        )
+      );
 
-        return Promise.all(authAppsPromises).then((authApps) => {
-          return authApps.map((authApp, index) => ({
-            name: apps[index][0],
-            publicKey: apps[index][1],
-            code: apps[index][2],
-            id: keys[index],
-            authorizedApps: authApp,
-          }));
-        });
+      const appAuthorizationsKeysPromises = Promise.all(
+        ids.map((id: number) =>
+          registryContract.getAuthorizedAppsIds(id, 1, PAGE_SIZE)
+        )
+      );
+
+      return Promise.allSettled([
+        appsPromises,
+        appPublicKeysPromises,
+        appAuthorizationsKeysPromises,
+      ]).then((result) => {
+        const apps: any = result[0];
+        const appPublicKeys: any = result[1];
+        const appAuthorizations: any = result[2];
+
+        const tableData = [];
+
+        for (let i = 0; i < apps.value.length; i += 1) {
+          tableData.push({
+            id: ids[i],
+            name: apps.value[i].name,
+            domain: domains[apps.value[i].domain],
+            publicKeys: appPublicKeys.value[i].items,
+            authorizedApps: appAuthorizations.value[i].items,
+          });
+        }
+        return tableData;
       });
     });
   }, []);
@@ -44,7 +66,7 @@ export function useRegistryContractHook() {
     const addr: string[] = did?.split(":") || [];
 
     if (addr[2]) {
-      return registryContract.isOperator(addr[2]);
+      return registryContract?.isOperator(addr[2]);
     }
     return new Promise((resolve) => resolve(false));
   }, []);
@@ -52,7 +74,7 @@ export function useRegistryContractHook() {
   const deleteApp = useCallback((name: string) => {
     return registryContract.populateTransaction
       .deleteApp(name)
-      .then((response) => {
+      .then((response: PopulatedTransaction) => {
         return post(config.NOTIFICATION_URL, {
           did: localStorage.getItem("Did"),
           rawTransaction: {
@@ -66,27 +88,41 @@ export function useRegistryContractHook() {
   }, []);
 
   // eslint-disable-next-line no-unused-vars
-  const registerApp = useCallback((name: string, pubKey: string) => {
-    return registryContract.populateTransaction
-      .registerApp(name, pubKey)
-      .then((response) => {
-        return post(config.NOTIFICATION_URL, {
-          did: localStorage.getItem("Did"),
-          rawTransaction: {
-            to: response.to,
-            data: response.data,
-          },
-          redirectUrl: config.REDIRECT_URL,
-          iss: "trusted-app-admin-register",
+  const registerApp = useCallback(
+    (
+      name: string,
+      domain: number,
+      appAdministrator: string,
+      pubKey: string,
+      status: number,
+      notBefore: number,
+      notAfter: number
+    ) => {
+      return registryContract
+        .insertApp(
+          name,
+          domain,
+          appAdministrator,
+          pubKey,
+          status,
+          notBefore,
+          notAfter
+        )
+        .then((data: any) => {
+          console.log(data);
+        })
+        .catch((er: any) => {
+          console.log(er);
         });
-      });
-  }, []);
+    },
+    []
+  );
 
   const updateApp = useCallback(
     (currName: string, newName: string, pubKey: string) => {
       return registryContract.populateTransaction
         .updateApp(currName, newName, pubKey)
-        .then((response) => {
+        .then((response: PopulatedTransaction) => {
           return post(config.NOTIFICATION_URL, {
             did: localStorage.getItem("Did"),
             rawTransaction: {
@@ -105,7 +141,7 @@ export function useRegistryContractHook() {
     (appName: string, authName: string) => {
       return registryContract.populateTransaction
         .addNewAuthorization(appName, authName)
-        .then((response) => {
+        .then((response: PopulatedTransaction) => {
           return post(config.NOTIFICATION_URL, {
             did: localStorage.getItem("Did"),
             rawTransaction: {
@@ -124,7 +160,7 @@ export function useRegistryContractHook() {
     (appName: string, authName: string) => {
       return registryContract.populateTransaction
         .deleteAuthorization(appName, authName)
-        .then((response) => {
+        .then((response: PopulatedTransaction) => {
           return post(config.NOTIFICATION_URL, {
             did: localStorage.getItem("Did"),
             rawTransaction: {
@@ -140,7 +176,6 @@ export function useRegistryContractHook() {
   );
 
   return {
-    getApplicationKeys,
     getApplications,
     deleteApp,
     registerApp,

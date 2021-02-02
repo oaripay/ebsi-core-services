@@ -3,7 +3,6 @@ import { Col, Form, Input, Modal, notification, Row, Space } from "antd";
 
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
 import { AppContext } from "../AppContext";
-import { config } from "../config";
 
 export function ModalEditApp() {
   const [form] = Form.useForm();
@@ -28,11 +27,7 @@ export function ModalEditApp() {
             message: "Transaction",
             description: (
               <>
-                <p>
-                  A transaction is being sent to wallet. Please go to
-                  <a href={config.WALLET_WEB_CLIENT_URL}> wallet</a> to sign and
-                  broadcast the transaction
-                </p>
+                <p>A transaction has been broadcasted.</p>
               </>
             ),
           });

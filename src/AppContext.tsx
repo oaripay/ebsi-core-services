@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 export type AppContextType = {
   tableLoading: true;
@@ -13,9 +13,10 @@ export type AppContextType = {
   editModal: { show: boolean; data: any };
   setAuthorizedAppsModal: (params: any) => void;
   authorizedAppsModal: { show: boolean; data: any };
+  metamask: {};
 };
 
-const defaultValue: any = null;
+const defaultValue: any = {};
 export const AppContext = React.createContext<AppContextType>(defaultValue);
 
 export function AppProvider({ children }: any) {
@@ -44,6 +45,33 @@ export function AppProvider({ children }: any) {
   const [authorizedAppsModalState, setAuthorizedAppsModalState] = useState(
     defaultParamstModal
   );
+
+  const basePageErr: string = "";
+
+  const [pageErr, setPageErr] = useState(basePageErr);
+  const [metamask, setMetamask] = useState();
+
+  useEffect(() => {
+    const Window: any = window;
+
+    if (!Window?.ethereum) {
+      setPageErr("Please install MetaMask first.");
+    }
+
+    if (!metamask) {
+      if (Window?.ethereum) {
+        setMetamask(Window.ethereum);
+      }
+      Window?.ethereum
+        .enable()
+        .then(() => {
+          setMetamask(Window.ethereum);
+        })
+        .catch(() => {
+          setPageErr("You need to allow MetaMask.");
+        });
+    }
+  }, []);
 
   const setTableLoading = useCallback(
     (tableLoading) => {
@@ -120,8 +148,16 @@ export function AppProvider({ children }: any) {
       setTableFilteredDataSource,
       setEditModal,
       setAuthorizedAppsModal,
+      pageErr,
+      metamask,
     };
-  }, [appState, editModalState, tableDataState, authorizedAppsModalState]);
+  }, [
+    appState,
+    editModalState,
+    tableDataState,
+    authorizedAppsModalState,
+    metamask,
+  ]);
 
   return <AppContext.Provider value={props}>{children}</AppContext.Provider>;
 }
