@@ -1,9 +1,7 @@
 import { Button, Space, Tag, Tooltip, Typography } from "antd";
 import React, { useContext } from "react";
 import {
-  EditOutlined,
   KeyOutlined,
-  LockOutlined,
   PlusOutlined,
   PropertySafetyOutlined,
 } from "@ant-design/icons/lib";
@@ -77,26 +75,6 @@ export function useTableHook() {
       render: (params: any) => {
         return (
           <Space>
-            <Tooltip title="Modify authorized apps">
-              <Button
-                type="default"
-                onClick={() => {
-                  appCtx.setAuthorizedAppsModal({ show: true, data: params });
-                }}
-              >
-                <LockOutlined />
-              </Button>
-            </Tooltip>
-            <Tooltip title="Edit">
-              <Button
-                type="default"
-                onClick={() => {
-                  appCtx.setEditModal({ show: true, data: params });
-                }}
-              >
-                <EditOutlined />
-              </Button>
-            </Tooltip>
             <Tooltip title="Add public key">
               <Button
                 type="default"

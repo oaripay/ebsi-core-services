@@ -134,11 +134,11 @@ export function useRegistryContractHook() {
           notBefore,
           notAfter
         )
-        .then((data: any) => {
-          console.log(data);
+        .then(() => {
+          // console.log(data);
         })
-        .catch((er: any) => {
-          console.log(er);
+        .catch(() => {
+          // console.log(er);
         });
     },
     []

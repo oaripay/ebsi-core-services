@@ -1,7 +1,6 @@
 import React, { ReactElement, useContext } from "react";
 
 import { NewApp } from "./NewApp";
-import { ModalEditApp } from "./Modals/ModalEditApp";
 import { AppContext } from "./AppContext";
 import OperatorWarning from "./OperatorWarning";
 import ModalInsertPublicKey from "./Modals/ModalInsertPublicKey";
@@ -20,7 +19,6 @@ export default function BodyComponents(): ReactElement {
       <NewApp />
       <ModalInsertPublicKey />
       <ModalInsertAuth />
-      <ModalEditApp />
     </>
   );
 }

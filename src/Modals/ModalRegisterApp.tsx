@@ -191,6 +191,7 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
           <Row>
             <Col lg={20}>
               <Form.Item
+                dependencies={["notBefore"]}
                 label="Not after"
                 name="notAfter"
                 rules={[
@@ -198,6 +199,20 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
                     required: true,
                     message: "Please input a not after date!",
                   },
+                  ({ getFieldValue }) => ({
+                    validator() {
+                      const notBefore = getFieldValue("notBefore");
+                      const notAfter = getFieldValue("notAfter");
+                      if (notBefore.diff(notAfter) > 0) {
+                        return Promise.reject(
+                          new Error(
+                            "Not after date is less than not before date!"
+                          )
+                        );
+                      }
+                      return Promise.resolve();
+                    },
+                  }),
                 ]}
               >
                 <DatePicker style={{ width: "100%" }} />
