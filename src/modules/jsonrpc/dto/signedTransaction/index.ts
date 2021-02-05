@@ -2,6 +2,7 @@ export * from "./args-insert-hash-algorithm.dto";
 export * from "./args-update-hash-algorithm.dto";
 export * from "./args-timestamp-hashes.dto";
 export * from "./args-timestamp-record-hashes.dto";
+export * from "./args-timestamp-record-version-hashes.dto";
 export * from "./args-detach-record-version-hash.dto";
 export * from "./args-insert-record-owner.dto";
 export * from "./request-signed-transaction.dto";

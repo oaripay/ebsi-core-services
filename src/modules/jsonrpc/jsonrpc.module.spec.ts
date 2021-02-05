@@ -22,6 +22,7 @@ import {
   InsertHashAlgorithmParam,
   TimestampHashesParam,
   TimestampRecordHashesParam,
+  TimestampRecordVersionHashesParam,
   UnsignedTransaction,
   UpdateHashAlgorithmParam,
 } from "./dto";
@@ -45,6 +46,7 @@ type JsonRpcParams =
   | TimestampHashesParam
   | DetachRecordVersionHashParam
   | InsertRecordOwnerParam
+  | TimestampRecordVersionHashesParam
   | TimestampRecordHashesParam;
 
 jest.setTimeout(90000);
@@ -303,6 +305,7 @@ describe("JsonRpc Module", () => {
     "timestampRecordHashes",
     "detachRecordVersionHash",
     "insertRecordOwner",
+    "timestampRecordVersionHashes",
   ])("/jsonrpc with method %s", (method: string) => {
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
       expect.assertions(4);
@@ -385,6 +388,25 @@ describe("JsonRpc Module", () => {
             notBefore: 1042,
             notAfter: 1021201545,
           } as InsertRecordOwnerParam;
+          break;
+        }
+        case "timestampRecordVersionHashes": {
+          recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [signer.address, blockNumber, firstHashValue]
+            )
+          );
+          param = {
+            from: signer.address,
+            recordId,
+            hashAlgorithmIds: [0],
+            hashValues: [firstHashValue],
+            timestampData: [
+              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            ],
+            versionInfo: "0x1234567890",
+          } as TimestampRecordVersionHashesParam;
           break;
         }
         default:
@@ -516,6 +538,22 @@ describe("JsonRpc Module", () => {
             versionId: 0,
             hashValue: "0x1234567890",
           } as DetachRecordVersionHashParam;
+          break;
+        }
+        case "timestampRecordVersionHashes": {
+          param = {
+            from: signer.address,
+            hashAlgorithmIds: [0],
+            recordId:
+              "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
+            hashValues: [
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            ],
+            timestampData: [
+              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            ],
+            versionInfo: "0x1234567890",
+          } as TimestampRecordVersionHashesParam;
           break;
         }
         case "insertRecordOwner": {
@@ -747,6 +785,52 @@ describe("JsonRpc Module", () => {
             "property params[0].recordId has failed the following constraints: isHexadecimal";
           break;
         }
+        case "timestampRecordVersionHashes": {
+          param1 = ({
+            from: signer.address,
+            recordId:
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            hashValues: [
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            ],
+            timestampData: [
+              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            ],
+            versionInfo: "0x1234567890",
+          } as unknown) as TimestampRecordHashesParam;
+
+          expectedErrorMessage1 =
+            "property params[0].hashAlgorithmIds has failed the following constraints: isInt";
+
+          param2 = ({
+            from: signer.address,
+            recordId:
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            hashAlgorithmIds: [0],
+            timestampData: [
+              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            ],
+            versionInfo: "0x1234567890",
+          } as unknown) as TimestampRecordHashesParam;
+
+          expectedErrorMessage2 =
+            "property params[0].hashValues has failed the following constraints: isHexadecimal";
+
+          param3 = ({
+            from: signer.address,
+            recordId:
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            hashAlgorithmIds: [0],
+            hashValues: [
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            ],
+            versionInfo: "0x1234567890",
+          } as unknown) as TimestampRecordHashesParam;
+
+          expectedErrorMessage3 =
+            "property params[0].timestampData has failed the following constraints: isHexadecimal";
+          break;
+        }
         case "insertRecordOwner": {
           param1 = ({
             from: signer.address,
@@ -943,6 +1027,35 @@ describe("JsonRpc Module", () => {
             ],
             versionInfo: "0x1234567890",
           } as TimestampRecordHashesParam;
+
+          break;
+        }
+        case "timestampRecordVersionHashes": {
+          param1 = {
+            from: signer.address,
+            recordId: firstHashValue,
+            hashAlgorithmIds: [0],
+            hashValues: [
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            ],
+            timestampData: [
+              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            ],
+            versionInfo: "0x125345568a",
+          } as TimestampRecordVersionHashesParam;
+
+          param2 = {
+            from: signer.address,
+            recordId: firstHashValue,
+            hashAlgorithmIds: [0],
+            hashValues: [
+              "0x0a45567890123456789012345678901234567890123456789012345678901234",
+            ],
+            timestampData: [
+              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            ],
+            versionInfo: "0x1234567890",
+          } as TimestampRecordVersionHashesParam;
 
           break;
         }

@@ -10,6 +10,7 @@ import {
   RequestUpdateHashAlgorithmDto,
   RequestTimestampHashesDto,
   RequestTimestampRecordHashesDto,
+  RequestTimestampRecordVersionHashesDto,
   RequestSignedTransactionDto,
   UnsignedTransaction,
   RequestDetachRecordVersionHashDto,
@@ -52,6 +53,7 @@ type JsonRpcDtos =
   | RequestUpdateHashAlgorithmDto
   | RequestTimestampHashesDto
   | RequestTimestampRecordHashesDto
+  | RequestTimestampRecordVersionHashesDto
   | RequestDetachRecordVersionHashDto
   | RequestInsertRecordOwnerDto
   | ArgsInsertHashAlgorithm

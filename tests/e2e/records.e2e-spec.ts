@@ -19,6 +19,7 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import {
   TimestampRecordHashesParam,
+  TimestampRecordVersionHashesParam,
   DetachRecordVersionHashParam,
   InsertRecordOwnerParam,
 } from "../../src/modules/jsonrpc/dto";
@@ -34,6 +35,7 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams =
   | TimestampRecordHashesParam
+  | TimestampRecordVersionHashesParam
   | DetachRecordVersionHashParam
   | InsertRecordOwnerParam;
 
@@ -136,6 +138,7 @@ describe("Records (e2e)", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each([
     "timestampRecordHashes",
+    "timestampRecordVersionHashes",
     "detachRecordVersionHash",
     "insertRecordOwner",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
@@ -190,6 +193,29 @@ describe("Records (e2e)", () => {
             notBefore,
             notAfter: notBefore + 1000000,
           } as InsertRecordOwnerParam;
+          break;
+        }
+        case "timestampRecordVersionHashes": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [adminTestWallet.address, blockNumber, firstHashValue]
+            )
+          );
+          param = {
+            from: adminTestWallet.address,
+            recordId,
+            hashAlgorithmIds: [0, 0],
+            hashValues: [
+              firstHashValue,
+              `0x${crypto.randomBytes(32).toString("hex")}`,
+            ],
+            timestampData: [
+              `0x${crypto.randomBytes(32).toString("hex")}`,
+              `0x${crypto.randomBytes(32).toString("hex")}`,
+            ],
+            versionInfo: `0x${crypto.randomBytes(10).toString("hex")}`,
+          } as TimestampRecordHashesParam;
           break;
         }
         default:
