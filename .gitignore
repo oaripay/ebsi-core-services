@@ -1,5 +1,6 @@
-.env
-!.ci/*/.env
-node_modules
 coverage
+dist
+node_modules
 peerOrganizations
+.env*.local
+yarn-error.log

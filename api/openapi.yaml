@@ -2,599 +2,56 @@ openapi: 3.0.3
 info:
   title: Ledger API
   description: |
-    Ledger API is a Core Service of the EBSI platform providing access to the
-    EBSI Ledger Protocols and Smart Contracts services of the lower layer
-    Chain & Storage. In v1 we provide capabilities to interact with Hyperledger
-    Besu and Fabric ledgers.
+    This service gives use case applications access to all the available blockchain protocol
+    interfaces and capabilities provided by the ledger nodes software running on MS hosted nodes.
 
-    For Besu, we are exposing a selected set of BESU RPC native APIs. Write
-    operations require authentication.
+    The Ledger API is a Core Service of the EBSI platform providing access to the EBSI Ledger
+    Protocol(s) and Smart Contracts services running at the lower layer Chain & Storage.
 
-    For Fabric, we start in v1 by providing an initial set of read REST API to
-    interact with the ledger.
+    EBSI V2 Ledger API provides capabilities to interact (Read and Write) with Hyperledger Besu and
+    (Read-Only) for Fabric ledgers. As a remark, for EBSI v2.0, in order to interact with the
+    Fabric node clients, consumers must install the Fabric SDK kit because Fabric ledgers has not a
+    full feature set natively exposed by a REST API. Only a limited set of features are exposed.
+
+    As a general principle, only EBSI Core Service API, acting as JSON-RPC proxy for the end-users
+    can have access to the Ledger API JSON RPC Proxy, meaning end-users have no direct access to
+    the EBSI Ledgers clients software running on MS nodes.
   license:
     name: EUPL-1.2
-    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
-  version: 1.0.0
+    url: https://joinup.ec.europa.eu/page/eupl-text-11-12
+  version: 2.0.0
   contact:
     name: EBSI Support
-    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
-  termsOfService: "/docs/terms"
+    url: https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi
+  termsOfService: /docs/terms
 tags:
-  - name: Authentication
-    description: Authenticate to the Ledger API
   - name: Hyperledger Besu
     description: Interact with Besu RPC APIs
   - name: Hyperledger Fabric
     description: Interact with Fabric REST APIs
 paths:
-  /ledger/v1/sessions:
+  /ledger/v2/blockchains/besu:
     post:
-      operationId: post-ledger-v1-sessions
-      tags:
-        - Authentication
-      summary: Login to Ledger
-      description: Login to Ledger API
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SessionsRequest"
-        required: true
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SessionsResponse"
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Bad Request:
-                  $ref: "#/components/examples/BadRequest"
-                Invalid Token:
-                  $ref: "#/components/examples/InvalidToken"
-                Issuer Not Found:
-                  $ref: "#/components/examples/IssuerNotFound"
-        "500":
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-  /ledger/v1/blockchains/fabric/channels:
-    get:
-      tags:
-        - Hyperledger Fabric
-      summary: Get a list of all the available channels
-      description: Returns a list of all the available EBSI Fabric channels.
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  items:
-                    type: array
-                    description: List of channel names.
-                    items:
-                      $ref: "#/components/schemas/channel"
-                  links:
-                    $ref: "#/components/schemas/links"
-                  total:
-                    type: integer
-                    description: "Total number of pages in a collection."
-                  pageSize:
-                    type: integer
-                    description: "Number of items to be return per page."
-              examples:
-                Get Available Channels:
-                  value:
-                    items:
-                      - channelA
-                      - channelB
-                    total: 13
-                    pageSize: 2
-                    links:
-                      self: "/ledger/v1/blockchains/fabric/channels?page[after]=3&page[size]=2"
-                      first: "/ledger/v1/blockchains/fabric/channels?page[after]=0&page[size]=2"
-                      prev: "/ledger/v1/blockchains/fabric/channels?page[after]=2&page[size]=2"
-                      next: "/ledger/v1/blockchains/fabric/channels?page[after]=4&page[size]=2"
-                      last: "/ledger/v1/blockchains/fabric/channels?page[after]=13&page[size]=2"
-        "500":
-          description: Internal Server Error
-          content:
-            "application/problem+json":
-              schema:
-                type: object
-                properties:
-                  title:
-                    type: string
-                  status:
-                    type: number
-                  detail:
-                    type: string
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: get-ledger-bc-fabric-v1-channels
-      parameters:
-        - in: query
-          name: "page[after]"
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: "page[size]"
-          description: Defines the maximum number of objects that may be returned.
-    parameters: []
-  "/ledger/v1/blockchains/fabric/channels/{channel}":
-    get:
-      tags:
-        - Hyperledger Fabric
-      description: Check if channel exists
-      summary: Check if channel exists
-      responses:
-        "204":
-          description: Succes. Channel exists.
-        "400":
-          description: "Bad request. The format of the {channel} parameter is not valid."
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Invalid {channel} Parameter:
-                  value:
-                    title: Bad request
-                    status: 400
-                    detail: "The format of {channel} parameter is not valid"
-        "404":
-          description: Channel {channel} not found
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Channel Not Found:
-                  value:
-                    title: Not Found
-                    status: 404
-                    detail: "{channel} not found"
-        "500":
-          description: Internal Server Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: get-ledger-bc-fabric-v1-channel
-    parameters:
-      - schema:
-          type: string
-        name: channel
-        in: path
-        required: true
-        description: Fabric channel name.
-  "/ledger/v1/blockchains/fabric/channels/{channel}/blocks":
-    get:
-      tags:
-        - Hyperledger Fabric
-      summary: Get blocks
-      description: |
-        Returns a list of blocks of the channel {channel}. By default API
-        returns the last 10 (or less) blocks.
-      responses:
-        "200":
-          description: Success.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  items:
-                    type: array
-                    description: List of blocks.
-                    items:
-                      $ref: "#/components/schemas/block"
-                  links:
-                    $ref: "#/components/schemas/links"
-                  total:
-                    type: integer
-                    description: " Total number of pages in a collection."
-                  pageSize:
-                    type: integer
-                    description: Number of items to be return per page.
-              examples:
-                Get Blocks:
-                  value:
-                    items:
-                      - blockNum: 1
-                        txCount: 1
-                        dataHash: 990ebf9a62d7d995aa126fa675139059ed96ac0b57dae8e2277c0cb744563dfc
-                        blockHash: 5c8c30b5ab69fe0c267a3d37aa3cbf2d7358288395cdaa35f520fb162861404f
-                        preHash: 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
-                        txhash:
-                          - f76ec19619ed05df3d97baf44ccf332547c6bf8197bf9470be0094ab1ef292a3
-                        channelName: ebsichannel
-                        createdTime: "2020-03-23T15:26:16.236Z"
-                      - blockNum: 2
-                        txCount: 1
-                        dataHash: 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
-                        blockHash: def8746428f0d8cc45b9b2993a847130e851a15661935330bc191b6858b63a77
-                        preHash: af44ccf332547c6bf8197bf9470be0094ab151a15661935330bc191b6858b63a77
-                        txhash:
-                          - 42d78c9ead6759a293c2aaa78c453c13fcc3c764cc325f2fd58255c5eba1a686
-                        channelName: ebsichannel
-                        createdTime: "2020-03-23T15:26:16.236Z"
-                    total: 13
-                    pageSize: 2
-                    links:
-                      first: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2"
-                      prev: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2"
-                      next: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2"
-                      last: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=13&page[size]=2"
-        "400":
-          description: "Bad request the format of {channel} parameter is not valid"
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Invalid {channel} Parameter:
-                  value:
-                    title: Bad request
-                    status: 400
-                    detail: "The format of {channel} parameter is not valid"
-        "404":
-          description: Not Found
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Channel Not Found:
-                  value:
-                    title: Not Found
-                    status: 404
-                    detail: "{channel} parameter not found"
-        "500":
-          description: Internal Server Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: get-ledger-bc-fabric-v1-channel-blocks
-      parameters:
-        - in: query
-          name: "page[before]"
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
-          name: "page[after]"
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: "page[size]"
-          description: Defines the maximum number of objects that may be returned.
-    parameters:
-      - schema:
-          type: string
-        name: channel
-        in: path
-        required: true
-        description: Fabric channel name.
-  "/ledger/v1/blockchains/fabric/channels/{channel}/blocks/{blockNumber}":
-    get:
-      responses:
-        "200":
-          description: Success.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/block"
-              examples:
-                "Get Block 15":
-                  value:
-                    blockNum: 15
-                    txCount: 1
-                    dataHash: 990ebf9a62d7d995aa126fa675139059ed96ac0b57dae8e2277c0cb744563dfc
-                    blockHash: 5c8c30b5ab69fe0c267a3d37aa3cbf2d7358288395cdaa35f520fb162861404f
-                    preHash: 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
-                    txhash:
-                      - f76ec19619ed05df3d97baf44ccf332547c6bf8197bf9470be0094ab1ef292a3
-                    channelName: ebsichannel
-                    createdTime: "2020-03-23T15:26:16.236Z"
-        "400":
-          description: |
-            Bad request the format of {channel} or {blockNumber}  parameter is
-            not valid
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Invalid {channel} Parameter:
-                  value:
-                    title: Bad request
-                    status: 400
-                    detail: "The format of {channel} parameter is not valid"
-        "404":
-          description: Not Found
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Channel Not Found:
-                  value:
-                    title: Not Found
-                    status: 404
-                    detail: "{channel} parameter not found"
-                Block Not Found:
-                  value:
-                    title: Not Found
-                    status: 404
-                    detail: "{blockNumber} parameter not found"
-        "500":
-          description: Internal Server Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: get-ledger-bc-fabric-v1-channel-block-number
-      summary: Get block by number
-      tags:
-        - Hyperledger Fabric
-      description: Returns block for the specified channel and block number
-    parameters:
-      - schema:
-          type: string
-        name: channel
-        in: path
-        required: true
-        description: Fabric channel name.
-      - schema:
-          type: integer
-        name: blockNumber
-        in: path
-        required: true
-        description: Block number.
-  "/ledger/v1/blockchains/fabric/channels/{channel}/transactions":
-    get:
-      tags:
-        - Hyperledger Fabric
-      summary: Get transactions
-      description: Returns the last 10 (or less) transactions of the channel
-      responses:
-        "200":
-          description: Success.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  pageSize:
-                    type: integer
-                    description: "Number of items to be return per page."
-                  total:
-                    type: integer
-                    description: "Total number of pages in a collection."
-                  links:
-                    $ref: "#/components/schemas/links"
-                  items:
-                    type: array
-                    description: list of transactions
-                    items:
-                      $ref: "#/components/schemas/transaction"
-              examples:
-                Transaction List:
-                  value:
-                    items:
-                      - txHash: 10f75d8ead6759a293c2aaa78c453c13fcc3c764cc325f2fd58255c5eba1a686
-                        validationCode: VALID
-                        payloadProposalHash: def8746428f0d8cc45b9b2993a847130e851a15661935330bc191b6858b63a77
-                        creatorMspId: EbsiNode1MSP
-                        endorserMspId: "EbsiNode1MSP,EbsiNode2MSP,EbsiNode3MSP"
-                        chaincodeName: taxudchaincode
-                        type: ENDORSER_TRANSACTION
-                        createdAt: "2020-03-23T13:30:20.103Z"
-                        channelName: ebsichannel
-                      - txHash: 42d78c9ead6759a293c2aaa78c453c13fcc3c764cc325f2fd58255c5eba1a686
-                        validationCode: INVALID
-                        payloadProposalHash: def8746428f0d8cc45b9b2993a847130e851a15661935330bc191b6858b63a77
-                        creatorMspId: EbsiNode1MSP
-                        endorserMspId: "EbsiNode1MSP,EbsiNode2MSP,EbsiNode3MSP"
-                        chaincodeName: taxudchaincode
-                        type: ENDORSER_TRANSACTION
-                        createdAt: "2020-03-23T13:30:20.103Z"
-                        channelName: ebsichannel
-                    total: 13
-                    pageSize: 2
-                    links:
-                      first: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2"
-                      prev: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2"
-                      next: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2"
-                      last: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=13&page[size]=2"
-        "400":
-          description: "Bad request the format of {channel} parameter is not valid"
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Invalid {channel} Parameter:
-                  value:
-                    title: Bad request
-                    status: 400
-                    detail: "The format of {channel} parameter is not valid"
-        "404":
-          description: Channel not found
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Channel Not Found:
-                  value:
-                    title: Not Found
-                    status: 404
-                    detail: "{channel} parameter not found"
-        "500":
-          description: Internal Server Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: get-ledger-bc-fabric-v1-channel-txs
-      parameters:
-        - in: query
-          name: "page[before]"
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
-          name: "page[after]"
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: "page[size]"
-          description: Defines the maximum number of objects that may be returned.
-    parameters:
-      - schema:
-          type: string
-        name: channel
-        in: path
-        required: true
-        description: Fabric channel name
-  /ledger/v1/blockchains/fabric/channels/{channel}/transactions/{transactionId}:
-    get:
-      tags:
-        - Hyperledger Fabric
-      summary: Get transaction details
-      description: Return transaction details
-      responses:
-        "200":
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/transaction"
-              examples:
-                Transaction:
-                  value:
-                    txHash: ca926ad2367b0f194ab6acccfa331a35c45575eb4874d518e4b355d2a808acc7
-                    validationCode: VALID
-                    payloadProposalHash: 008df9b7662d2dd1baeeda1dbdf428f72f7b823953a1bc1ff9c6afdc689fb648
-                    creatorMspId: EbsiNode1MSP
-                    endorserMspId: "EbsiNode1MSP,EbsiNode2MSP,EbsiNode3MSP"
-                    chaincodeName: taxudchaincode
-                    type: ENDORSER_TRANSACTION
-                    createdAt: "2020-03-23T13:30:20.103Z"
-                    channelName: ebsichannel
-        "400":
-          description: |
-            Bad request the format of {channel} or {transactionId} parameter
-            is not valid
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Invalid {transactionId} Parameter:
-                  value:
-                    title: Bad request
-                    status: 400
-                    detail: "The format of {transactionId} parameter is not valid"
-        "404":
-          description: Not Found
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Channel Not Found:
-                  value:
-                    title: Not Found
-                    status: 404
-                    detail: "{channel} parameter not found"
-                Transaction Not Found:
-                  value:
-                    title: Not Found
-                    status: 404
-                    detail: "{transactionId} parameter not found"
-        "500":
-          description: Internal Server Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: get-ledger-bc-fabric-v1-channel-tx-id
-    parameters:
-      - schema:
-          type: string
-        name: channel
-        in: path
-        required: true
-        description: Fabric channel name
-      - schema:
-          type: string
-        name: transactionId
-        in: path
-        required: true
-        description: transaction identifier
-  /ledger/v1/blockchains/besu:
-    post:
-      operationId: post-ledger-v1-blockchains-besu
+      operationId: post-ledger-v2-blockchains-besu
       tags:
         - Hyperledger Besu
-      summary: Hyperledger Besu RPC APIs
-      description: "Exposed Besu JSON-RPC APIs. Write methods require authentication."
+      summary: Hyperledger Besu RPC API
+      description: This endpoint exposes Besu's JSON-RPC API. Authentication required.
+      security:
+        - bearerAuth: []
       requestBody:
+        required: true
         description: |
           The body follows the
           [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
           It requires the following fields:
 
           - **jsonrpc**: Must be exactly '2.0'
-          - **method**: Besu RPC native method that needs to be invoked. The
-          list of all possible methods can be found at
-          [eth JSON RPC](https://besu.hyperledger.org/en/stable/Reference/API-Methods/).
+          - **method**: Besu RPC native method to be invoked. The list of all allowed methods can
+          be found on
+          [EBSI's wiki](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Ledger+API).
           - **params**: Array of parameters
-          - **id**: Identifier stablished by the client
+          - **id**: Identifier established by the client
         content:
           application/json:
             schema:
@@ -609,15 +66,18 @@ paths:
                   description: Must be exactly '2.0'
                   type: string
                 method:
-                  description: Besu RPC native method that needs to be invoked
+                  description: Besu RPC native method to be invoked
                   type: string
                 params:
                   description: Array of parameters
                   type: array
                   items:
-                    type: string
+                    oneOf:
+                      - type: boolean
+                      - type: object
+                      - type: string
                 id:
-                  description: Identifier stablished by the client
+                  description: Identifier established by the client
                   type: integer
                   example: 1
             examples:
@@ -643,9 +103,8 @@ paths:
                   params:
                     - "---signed raw transation---"
                   id: 1
-        required: true
       responses:
-        "200":
+        200:
           description: Response
           content:
             application/json:
@@ -700,10 +159,10 @@ paths:
                     jsonrpc: "2.0"
                     id: 1
                     result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
-        "400":
+        400:
           description: Bad request
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -715,19 +174,19 @@ paths:
                   $ref: "#/components/examples/MethodDisabled"
                 Invalid Method:
                   $ref: "#/components/examples/MethodNoExists"
-        "401":
+        401:
           description: Unauthorized
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Unauthorized:
                   $ref: "#/components/examples/NoAnonymous"
-        "403":
+        403:
           description: Forbidden
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -735,8 +194,511 @@ paths:
                   $ref: "#/components/examples/BesuPermissions"
                 Deployment Forbidden:
                   $ref: "#/components/examples/NoDeploySC"
-      security:
-        - bearerAuth: []
+  /ledger/v2/blockchains/fabric/channels:
+    get:
+      tags:
+        - Hyperledger Fabric
+      summary: Get a list of all the available channels
+      description: Returns a list of all the available EBSI Fabric channels.
+      operationId: get-ledger-bc-fabric-v2-channels
+      parameters:
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    description: List of channel names.
+                    items:
+                      $ref: "#/components/schemas/channel"
+                  links:
+                    $ref: "#/components/schemas/links"
+                  total:
+                    type: integer
+                    description: Total number of pages in a collection.
+                  pageSize:
+                    type: integer
+                    description: Number of items to be return per page.
+              examples:
+                Get Available Channels:
+                  value:
+                    items:
+                      - channelA
+                      - channelB
+                    total: 13
+                    pageSize: 2
+                    links:
+                      self: /ledger/v2/blockchains/fabric/channels?page[after]=3&page[size]=2
+                      first: /ledger/v2/blockchains/fabric/channels?page[after]=0&page[size]=2
+                      prev: /ledger/v2/blockchains/fabric/channels?page[after]=2&page[size]=2
+                      next: /ledger/v2/blockchains/fabric/channels?page[after]=4&page[size]=2
+                      last: /ledger/v2/blockchains/fabric/channels?page[after]=13&page[size]=2
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                type: object
+                properties:
+                  title:
+                    type: string
+                  status:
+                    type: number
+                  detail:
+                    type: string
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}:
+    parameters:
+      - schema:
+          type: string
+        name: channel
+        in: path
+        required: true
+        description: Fabric channel name.
+    get:
+      tags:
+        - Hyperledger Fabric
+      description: Check if channel exists
+      summary: Check if channel exists
+      operationId: get-ledger-bc-fabric-v2-channel
+      responses:
+        204:
+          description: Succes. Channel exists.
+        400:
+          description: Bad request. The format of the {channel} parameter is not valid.
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: The format of {channel} parameter is not valid.
+        404:
+          description: Channel {channel} not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Channel Not Found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{channel} not found"
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}/blocks:
+    parameters:
+      - schema:
+          type: string
+        name: channel
+        in: path
+        required: true
+        description: Fabric channel name.
+    get:
+      tags:
+        - Hyperledger Fabric
+      summary: Get blocks
+      description: |
+        Returns a list of blocks of the channel {channel}. By default API returns the last 10 (or
+        less) blocks.
+      operationId: get-ledger-bc-fabric-v2-channel-blocks
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        200:
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    description: List of blocks.
+                    items:
+                      $ref: "#/components/schemas/block"
+                  links:
+                    $ref: "#/components/schemas/links"
+                  total:
+                    type: integer
+                    description: Total number of pages in a collection.
+                  pageSize:
+                    type: integer
+                    description: Number of items to be return per page.
+              examples:
+                Get Blocks:
+                  value:
+                    items:
+                      - blockNum: 1
+                        txCount: 1
+                        dataHash: 990ebf9a62d7d995aa126fa675139059ed96ac0b57dae8e2277c0cb744563dfc
+                        blockHash: 5c8c30b5ab69fe0c267a3d37aa3cbf2d7358288395cdaa35f520fb162861404f
+                        preHash: 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
+                        txHash:
+                          - f76ec19619ed05df3d97baf44ccf332547c6bf8197bf9470be0094ab1ef292a3
+                        channelName: ebsichannel
+                        createdTime: "2020-03-23T15:26:16.236Z"
+                      - blockNum: 2
+                        txCount: 1
+                        dataHash: 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
+                        blockHash: def8746428f0d8cc45b9b2993a847130e851a15661935330bc191b6858b63a77
+                        preHash: af44ccf332547c6bf8197bf9470be0094ab151a15661935330bc191b6858b63a77
+                        txHash:
+                          - 42d78c9ead6759a293c2aaa78c453c13fcc3c764cc325f2fd58255c5eba1a686
+                        channelName: ebsichannel
+                        createdTime: "2020-03-23T15:26:16.236Z"
+                    total: 13
+                    pageSize: 2
+                    links:
+                      first: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2
+                      prev: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2
+                      next: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2
+                      last: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=13&page[size]=2
+        400:
+          description: Bad request the format of {channel} parameter is not valid
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: The format of {channel} parameter is not valid
+        404:
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Channel Not Found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{channel} parameter not found"
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}/blocks/{blockNumber}:
+    parameters:
+      - schema:
+          type: string
+        name: channel
+        in: path
+        required: true
+        description: Fabric channel name.
+      - schema:
+          type: integer
+        name: blockNumber
+        in: path
+        required: true
+        description: Block number.
+    get:
+      summary: Get block by number
+      description: Returns block for the specified channel and block number
+      operationId: get-ledger-bc-fabric-v2-channel-block-number
+      tags:
+        - Hyperledger Fabric
+      responses:
+        200:
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/block"
+              examples:
+                Get Block 15:
+                  value:
+                    blockNum: 15
+                    txCount: 1
+                    dataHash: 990ebf9a62d7d995aa126fa675139059ed96ac0b57dae8e2277c0cb744563dfc
+                    blockHash: 5c8c30b5ab69fe0c267a3d37aa3cbf2d7358288395cdaa35f520fb162861404f
+                    preHash: 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
+                    txHash:
+                      - f76ec19619ed05df3d97baf44ccf332547c6bf8197bf9470be0094ab1ef292a3
+                    channelName: ebsichannel
+                    createdTime: "2020-03-23T15:26:16.236Z"
+        400:
+          description: |
+            Bad request the format of {channel} or {blockNumber}  parameter is
+            not valid
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: "The format of {channel} parameter is not valid"
+        404:
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Channel Not Found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{channel} parameter not found"
+                Block Not Found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{blockNumber} parameter not found"
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}/transactions:
+    parameters:
+      - schema:
+          type: string
+        name: channel
+        in: path
+        required: true
+        description: Fabric channel name
+    get:
+      tags:
+        - Hyperledger Fabric
+      summary: Get transactions
+      description: Returns the last 10 (or less) transactions of the channel
+      operationId: get-ledger-bc-fabric-v2-channel-txs
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        200:
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pageSize:
+                    type: integer
+                    description: Number of items to be return per page.
+                  total:
+                    type: integer
+                    description: Total number of pages in a collection.
+                  links:
+                    $ref: "#/components/schemas/links"
+                  items:
+                    type: array
+                    description: List of transactions
+                    items:
+                      $ref: "#/components/schemas/transaction"
+              examples:
+                Transaction List:
+                  value:
+                    items:
+                      - txHash: 10f75d8ead6759a293c2aaa78c453c13fcc3c764cc325f2fd58255c5eba1a686
+                        validationCode: VALID
+                        payloadProposalHash: def8746428f0d8cc45b9b2993a847130e851a15661935330bc191b6858b63a77
+                        creatorMspId: EbsiNode1MSP
+                        endorserMspId: EbsiNode1MSP,EbsiNode2MSP,EbsiNode3MSP
+                        chaincodeName: taxudchaincode
+                        type: ENDORSER_TRANSACTION
+                        createdAt: "2020-03-23T13:30:20.103Z"
+                        channelName: ebsichannel
+                      - txHash: 42d78c9ead6759a293c2aaa78c453c13fcc3c764cc325f2fd58255c5eba1a686
+                        validationCode: INVALID
+                        payloadProposalHash: def8746428f0d8cc45b9b2993a847130e851a15661935330bc191b6858b63a77
+                        creatorMspId: EbsiNode1MSP
+                        endorserMspId: EbsiNode1MSP,EbsiNode2MSP,EbsiNode3MSP
+                        chaincodeName: taxudchaincode
+                        type: ENDORSER_TRANSACTION
+                        createdAt: "2020-03-23T13:30:20.103Z"
+                        channelName: ebsichannel
+                    total: 13
+                    pageSize: 2
+                    links:
+                      first: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2
+                      prev: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2
+                      next: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2
+                      last: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=13&page[size]=2
+        400:
+          description: Bad request the format of {channel} parameter is not valid
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: The format of {channel} parameter is not valid
+        404:
+          description: Channel not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Channel Not Found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{channel} parameter not found"
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}/transactions/{transactionId}:
+    parameters:
+      - schema:
+          type: string
+        name: channel
+        in: path
+        required: true
+        description: Fabric channel name
+      - schema:
+          type: string
+        name: transactionId
+        in: path
+        required: true
+        description: transaction identifier
+    get:
+      tags:
+        - Hyperledger Fabric
+      summary: Get transaction details
+      description: Return transaction details
+      operationId: get-ledger-bc-fabric-v2-channel-tx-id
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/transaction"
+              examples:
+                Transaction:
+                  value:
+                    txHash: ca926ad2367b0f194ab6acccfa331a35c45575eb4874d518e4b355d2a808acc7
+                    validationCode: VALID
+                    payloadProposalHash: 008df9b7662d2dd1baeeda1dbdf428f72f7b823953a1bc1ff9c6afdc689fb648
+                    creatorMspId: EbsiNode1MSP
+                    endorserMspId: EbsiNode1MSP,EbsiNode2MSP,EbsiNode3MSP
+                    chaincodeName: taxudchaincode
+                    type: ENDORSER_TRANSACTION
+                    createdAt: "2020-03-23T13:30:20.103Z"
+                    channelName: ebsichannel
+        400:
+          description: |
+            Bad request the format of {channel} or {transactionId} parameter
+            is not valid
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {transactionId} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: The format of {transactionId} parameter is not valid
+        404:
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Channel Not Found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{channel} parameter not found"
+                Transaction Not Found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "{transactionId} parameter not found"
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
 components:
   securitySchemes:
     bearerAuth:
@@ -744,45 +706,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    SessionsRequest:
-      title: Sessions Request
-      description: Request for OAuth 2.0 JWT bearer assertion grant.
-      required:
-        - grantType
-        - assertion
-      type: object
-      properties:
-        grantType:
-          description: |
-            OAuth 2.0 grant type. Must be set to
-            urn:ietf:params:oauth:grant-type:jwt-bearer
-          type: string
-          example: "urn:ietf:params:oauth:grant-type:jwt-bearer"
-        assertion:
-          type: string
-          description: Self-signed JWT
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-    SessionsResponse:
-      title: Sessions Response
-      description: Authentication JWT
-      type: object
-      properties:
-        accessToken:
-          description: Authentication JWT to access the API.
-          type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-        tokenType:
-          description: Type of the authentication token. Supported type "bearer".
-          type: string
-          example: Bearer
-        expiresIn:
-          description: JWT expiration in seconds.
-          type: integer
-          example: 900
-        issuedAt:
-          description: "Time of JWT issuance. Format: unix timestamp"
-          type: string
-          example: "1467841035013"
     BesuResponse:
       title: Besu Response
       type: object
@@ -795,7 +718,11 @@ components:
           type: integer
         result:
           description: Result of the call
-          type: object
+          oneOf:
+            - type: array
+            - type: boolean
+            - type: object
+            - type: string
     channel:
       title: Hyperledger Fabric Channel
       type: string
@@ -807,9 +734,9 @@ components:
       type: object
       x-examples:
         Not Enough Credit:
-          type: "https://example.com/probs/out-of-credit"
+          type: https://example.com/probs/out-of-credit
           title: You do not have enough credit.
-          detail: "Your current balance is 30, but that costs 50."
+          detail: Your current balance is 30, but that costs 50.
           instance: /account/12345/msgs/abc
       properties:
         type:
@@ -818,7 +745,7 @@ components:
           description: |
             An absolute URI that identifies the problem type. When dereferenced,
             it SHOULD provide human-readable documentation for the problem type.
-          default: "about:blank"
+          default: about:blank
         title:
           type: string
           description: |
@@ -855,7 +782,7 @@ components:
           dataHash: 990ebf9a62d7d995aa126fa675139059ed96ac0b57dae8e2277c0cb744563dfc
           blockHash: 5c8c30b5ab69fe0c267a3d37aa3cbf2d7358288395cdaa35f520fb162861404f
           preHash: 0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555
-          txhash:
+          txHash:
             - f76ec19619ed05df3d97baf44ccf332547c6bf8197bf9470be0094ab1ef292a3
           channelName: ebsichannel
           createdTime: "2020-03-23T15:26:16.236Z"
@@ -896,7 +823,7 @@ components:
           validationCode: VALID
           payloadProposalHash: def8746428f0d8cc45b9b2993a847130e851a15661935330bc191b6858b63a77
           creatorMspId: EbsiNode1MSP
-          endorserMspId: "EbsiNode1MSP,EbsiNode2MSP,EbsiNode3MSP"
+          endorserMspId: EbsiNode1MSP,EbsiNode2MSP,EbsiNode3MSP
           chaincodeName: taxudchaincode
           type: ENDORSER_TRANSACTION
           createdAt: "2020-03-23T13:30:20.103Z"
@@ -933,25 +860,28 @@ components:
       title: Links
       type: object
       properties:
+        self:
+          type: string
+          description: URI of the current page
         last:
           type: string
-          description: " URI of the last page"
+          description: URI of the last page
         prev:
           type: string
-          description: " URI of the previous page"
+          description: URI of the previous page
         next:
           type: string
-          description: " URI of the next page"
+          description: URI of the next page
         first:
           type: string
-          description: " URI of the first page"
+          description: URI of the first page
       description: links model used for pagination
       x-examples:
         Links:
-          first: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2"
-          prev: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2"
-          next: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2"
-          last: "/ledger/v1/blockchains/fabric/channels/ebsichannel/transactions?page[after]=13&page[size]=2"
+          first: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2
+          prev: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2
+          next: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2
+          last: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=13&page[size]=2
   examples:
     BesuPermissions:
       value:
@@ -988,23 +918,13 @@ components:
         title: Invalid Token
         status: 400
         detail: Token has expired. Max age of a token is 15 min.
-    IssuerNotFound:
-      value:
-        title: Issuer Not Found
-        status: 400
-        detail: Issuer not found in the trusted apps registry.
-    NotFound:
-      value:
-        title: Not Found
-        status: 404
-        detail: Not found.
     InternalError:
       value:
         title: Internal Server Error
         status: 500
         detail: The server encountered an internal error and was unable to complete your request.
 servers:
-  - url: "http://localhost"
+  - url: http://localhost
     description: Local Computer Environment
-  - url: "https://api.ebsi.xyz"
+  - url: https://api.test.ebsi.xyz
     description: EBSI Testing Environment

@@ -3,30 +3,24 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
-               sh 'yarn install --frozen-lockfile'
-            }
-        }
-        stage('Audit dependencies') {
-            steps {
-                sh 'yarn run audit'
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn install --frozen-lockfile'
+                    sh 'yarn run audit'
+                }
             }
         }
         stage('Lint') {
             steps {
-                sh 'yarn lint'
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn lint'
+                }
             }
         }
         stage('Unit test') {
-            environment {
-                EBSI_ENV="local"
-                BESU_ADDRESS_NOTARY="0x21b38942aA9BC992482627f63814Ffa06DA7e500"
-                API_PRIVATE_KEY=credentials('API_LEDGER_PRIVATE_KEY')
-                // only for e2e test
-                //TEST_APP_NAME="ebsi-wallet"
-                //TEST_APP_PRIVATE_KEY=credentials('TEST_APP_PRIVATE_KEY')
-            }
             steps {
-                sh 'yarn run test:unit'
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn test:ci'
+                }
             }
         }
         stage('SonarQube Analysis') {

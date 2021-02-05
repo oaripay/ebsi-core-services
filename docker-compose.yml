@@ -3,13 +3,8 @@ version: "3.7"
 services:
   ledger-api:
     build: .
+    env_file:
+      - .env
+      - .env.local
     ports:
-      - "${PORT}:${PORT}"
-    environment:
-      - EBSI_ENV=${EBSI_ENV}
-      - API_PRIVATE_KEY=${API_PRIVATE_KEY}
-      - BESU_ADDRESS_NOTARY=${BESU_ADDRESS_NOTARY}
-      - FABRIC_USERNAME=${FABRIC_USERNAME}
-      - FABRIC_PASSWORD=${FABRIC_PASSWORD}
-    volumes:
-      - ./peerOrganizations:/api/peerOrganizations
+      - "${API_PORT:-3000}:${API_PORT:-3000}"
