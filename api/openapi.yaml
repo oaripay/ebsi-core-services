@@ -114,7 +114,7 @@ paths:
                         - "0x1234567890123456789012345678901234567890123456789012345678901234"
                       timestampData:
                         - "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
-                      versionInfo: "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
+                      versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to insertRecordOwner:
                 value:
@@ -149,7 +149,7 @@ paths:
                         - "0x1234567890123456789012345678901234567890123456789012345678901234"
                       timestampData:
                         - "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
-                      versionInfo: "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
+                      versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to appendRecordVersionHashes:
                 value:
@@ -158,14 +158,14 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       recordId: "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
-                      versionId: "0xab43267890123456789012345678901fa4567890123456789012345678904589"
+                      versionId: 0
                       hashAlgorithmIds:
                         - 0
                       hashValues:
                         - "0x1234567890123456789012345678901234567890123456789012345678901234"
                       timestampData:
                         - "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
-                      versionInfo: "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
+                      versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to detachRecordVersionHash:
                 value:
@@ -174,7 +174,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       recordId: "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
-                      versionId: "0xab43267890123456789012345678901fa4567890123456789012345678904589"
+                      versionId: 0
                       hashValue: "0x1234567890123456789012345678901234567890123456789012345678901234"
                   id: 1
               Build tx to insertRecordVersionInfo:
@@ -184,8 +184,8 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       recordId: "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
-                      versionId: "0xab43267890123456789012345678901fa4567890123456789012345678904589"
-                      versionInfo: "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
+                      versionId: 0
+                      versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Send Transaction:
                 value:

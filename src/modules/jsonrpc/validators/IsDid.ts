@@ -1,9 +1,11 @@
 import { registerDecorator } from "class-validator";
 
+export const IS_DID = "isDid";
+
 export function IsDid() {
   return (object: unknown, propertyName: string): void => {
     registerDecorator({
-      name: "isDid",
+      name: IS_DID,
       target: object.constructor,
       propertyName,
       validator: {
@@ -18,5 +20,3 @@ export function IsDid() {
     });
   };
 }
-
-export default { IsDid };

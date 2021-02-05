@@ -9,6 +9,7 @@ import {
   ArgsTimestampHashes,
   ArgsTimestampRecordHashes,
   ArgsDetachRecordVersionHash,
+  ArgsInsertRecordVersionInfo,
   RequestInsertHashAlgorithmDto,
   RequestUpdateHashAlgorithmDto,
   RequestSignedTransactionDto,
@@ -17,6 +18,7 @@ import {
   RequestTimestampRecordVersionHashesDto,
   RequestDetachRecordVersionHashDto,
   RequestInsertRecordOwnerDto,
+  RequestInsertRecordVersionInfoDto,
   SignedTransactionParam,
   UnsignedTransaction,
   ArgsInsertRecordOwner,
@@ -293,6 +295,13 @@ export class JsonRpcService {
         );
         break;
       }
+      case "insertRecordVersionInfo": {
+        await validateClass(
+          ArgsInsertRecordVersionInfo,
+          (args as unknown) as ArgsInsertRecordVersionInfo
+        );
+        break;
+      }
       case "detachRecordVersionHash": {
         await validateClass(
           ArgsDetachRecordVersionHash,
@@ -440,6 +449,27 @@ export class JsonRpcService {
       const data = this.timestampContract.interface.encodeFunctionData(
         "insertRecordOwner",
         [recordId, ownerId, notBefore, notAfter]
+      );
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertRecordVersionInfo(
+    body: RequestInsertRecordVersionInfoDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertRecordVersionInfoDto, body);
+
+      const { from, recordId, versionId, versionInfo } = body.params[0];
+
+      const data = this.timestampContract.interface.encodeFunctionData(
+        "insertRecordVersionInfo",
+        [recordId, versionId, versionInfo]
       );
       return await this.buildTransaction(from, data);
     } catch (err) {

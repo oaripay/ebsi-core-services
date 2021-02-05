@@ -20,6 +20,7 @@ import {
   DetachRecordVersionHashParam,
   InsertRecordOwnerParam,
   InsertHashAlgorithmParam,
+  InsertRecordVersionInfoParam,
   TimestampHashesParam,
   TimestampRecordHashesParam,
   TimestampRecordVersionHashesParam,
@@ -46,6 +47,8 @@ type JsonRpcParams =
   | TimestampHashesParam
   | DetachRecordVersionHashParam
   | InsertRecordOwnerParam
+  | TimestampRecordHashesParam
+  | InsertRecordVersionInfoParam
   | TimestampRecordVersionHashesParam
   | TimestampRecordHashesParam;
 
@@ -303,8 +306,9 @@ describe("JsonRpc Module", () => {
     "updateHashAlgorithm",
     "timestampHashes",
     "timestampRecordHashes",
-    "detachRecordVersionHash",
     "insertRecordOwner",
+    "insertRecordVersionInfo",
+    "detachRecordVersionHash",
     "timestampRecordVersionHashes",
   ])("/jsonrpc with method %s", (method: string) => {
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
@@ -388,6 +392,24 @@ describe("JsonRpc Module", () => {
             notBefore: 1042,
             notAfter: 1021201545,
           } as InsertRecordOwnerParam;
+          break;
+        }
+        case "insertRecordVersionInfo": {
+          recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [signer.address, blockNumber, firstHashValue]
+            )
+          );
+          param = {
+            from: signer.address,
+            recordId,
+            versionId: 0,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as InsertRecordVersionInfoParam;
           break;
         }
         case "timestampRecordVersionHashes": {
@@ -565,6 +587,19 @@ describe("JsonRpc Module", () => {
             notBefore: 1042,
             notAfter: 1021201545,
           } as InsertRecordOwnerParam;
+          break;
+        }
+        case "insertRecordVersionInfo": {
+          param = {
+            from: signer.address,
+            recordId:
+              "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
+            versionId: 0,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as InsertRecordVersionInfoParam;
           break;
         }
         default:
@@ -763,7 +798,7 @@ describe("JsonRpc Module", () => {
           } as unknown) as DetachRecordVersionHashParam;
 
           expectedErrorMessage1 =
-            "property params[0].versionId has failed the following constraints: isInt";
+            "property params[0].versionId has failed the following constraints: min, isInt";
 
           param2 = ({
             from: signer.address,
@@ -854,7 +889,7 @@ describe("JsonRpc Module", () => {
           } as unknown) as InsertRecordOwnerParam;
 
           expectedErrorMessage2 =
-            "property params[0].notBefore has failed the following constraints: isInt";
+            "property params[0].notBefore has failed the following constraints: min, isInt";
 
           param3 = ({
             from: signer.address,
@@ -865,6 +900,50 @@ describe("JsonRpc Module", () => {
 
           expectedErrorMessage3 =
             "property params[0].recordId has failed the following constraints: isHexadecimal";
+          break;
+        }
+        case "insertRecordVersionInfo": {
+          param1 = {
+            from: signer.address,
+            recordId:
+              "0x123456789012345678901234567890123456789012345678901234567890123X",
+            versionId: 0,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as InsertRecordVersionInfoParam;
+
+          expectedErrorMessage1 =
+            "property params[0].recordId has failed the following constraints: isHexadecimal";
+
+          param2 = {
+            from: signer.address,
+            recordId:
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            versionId: -1,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as InsertRecordVersionInfoParam;
+
+          expectedErrorMessage2 =
+            "property params[0].versionId has failed the following constraints: min";
+
+          param3 = {
+            from: signer.address,
+            recordId:
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            versionId: 0,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 42 }),
+              "utf8"
+            ).toString("hex")}f`,
+          } as InsertRecordVersionInfoParam;
+
+          expectedErrorMessage3 =
+            "property params[0].versionInfo has failed the following constraints: isHexadecimalJSON";
           break;
         }
         default:
@@ -1092,6 +1171,28 @@ describe("JsonRpc Module", () => {
             notBefore: 1042,
             notAfter: 1021201545,
           } as InsertRecordOwnerParam;
+
+          break;
+        }
+        case "insertRecordVersionInfo": {
+          const versionInfo = `0x${Buffer.from(
+            JSON.stringify({ test: 42 }),
+            "utf8"
+          ).toString("hex")}`;
+
+          param1 = {
+            from: signer.address,
+            recordId: firstHashValue,
+            versionId: 0,
+            versionInfo,
+          } as InsertRecordVersionInfoParam;
+
+          param2 = {
+            from: signer.address,
+            recordId: firstHashValue,
+            versionId: 1,
+            versionInfo,
+          } as InsertRecordVersionInfoParam;
 
           break;
         }

@@ -22,6 +22,7 @@ import {
   TimestampRecordVersionHashesParam,
   DetachRecordVersionHashParam,
   InsertRecordOwnerParam,
+  InsertRecordVersionInfoParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
@@ -37,7 +38,8 @@ type JsonRpcParams =
   | TimestampRecordHashesParam
   | TimestampRecordVersionHashesParam
   | DetachRecordVersionHashParam
-  | InsertRecordOwnerParam;
+  | InsertRecordOwnerParam
+  | InsertRecordVersionInfoParam;
 
 describe("Records (e2e)", () => {
   let app: INestApplication;
@@ -45,6 +47,7 @@ describe("Records (e2e)", () => {
   let adminTestWallet: ethers.Wallet;
   let blockNumber = 0;
   const firstHashValue = `0x${crypto.randomBytes(32).toString("hex")}`;
+
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -139,8 +142,9 @@ describe("Records (e2e)", () => {
   describe.each([
     "timestampRecordHashes",
     "timestampRecordVersionHashes",
-    "detachRecordVersionHash",
     "insertRecordOwner",
+    "insertRecordVersionInfo",
+    "detachRecordVersionHash",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
     it("should work", async () => {
       expect.assertions(5);
@@ -195,6 +199,25 @@ describe("Records (e2e)", () => {
           } as InsertRecordOwnerParam;
           break;
         }
+        case "insertRecordVersionInfo": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [adminTestWallet.address, blockNumber, firstHashValue]
+            )
+          );
+
+          param = {
+            from: adminTestWallet.address,
+            recordId,
+            versionId: 0,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as InsertRecordVersionInfoParam;
+          break;
+        }
         case "timestampRecordVersionHashes": {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
@@ -202,6 +225,7 @@ describe("Records (e2e)", () => {
               [adminTestWallet.address, blockNumber, firstHashValue]
             )
           );
+
           param = {
             from: adminTestWallet.address,
             recordId,
@@ -216,6 +240,7 @@ describe("Records (e2e)", () => {
             ],
             versionInfo: `0x${crypto.randomBytes(10).toString("hex")}`,
           } as TimestampRecordHashesParam;
+
           break;
         }
         default:
