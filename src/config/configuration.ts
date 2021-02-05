@@ -42,7 +42,7 @@ export const loadConfig = (): ApiConfig => {
 
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
-    apiUrlPrefix: process.env.API_URL_PREFIX || "",
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/ledger/v2",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     besuRpcNode:
       process.env.BESU_RPC_NODE || defaultConfig[EBSI_ENV].BESU_RPC_NODE,
@@ -66,7 +66,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .valid("development", "production", "test")
       .default("development"),
     API_PORT: Joi.string().default("3000"),
-    API_URL_PREFIX: Joi.string().required(),
+    API_URL_PREFIX: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
