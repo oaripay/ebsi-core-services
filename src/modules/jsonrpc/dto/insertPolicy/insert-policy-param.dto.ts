@@ -1,6 +1,6 @@
 import { IsBase64, IsString, IsEthereumAddress } from "class-validator";
 
-export default class Param {
+export class InsertPolicyParam {
   @IsEthereumAddress()
   from: string;
 
@@ -10,3 +10,5 @@ export default class Param {
   @IsBase64()
   policy: string;
 }
+
+export default InsertPolicyParam;

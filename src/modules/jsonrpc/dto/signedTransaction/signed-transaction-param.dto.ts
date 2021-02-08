@@ -1,9 +1,8 @@
 import { Equals, Contains, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
+import { UnsignedTransaction } from "./unsigned-transaction.dto";
 
-import UnsignedTransaction from "./unsigned-transaction.dto";
-
-export default class Param {
+export class SignedTransactionParam {
   @Equals("eth")
   protocol: string;
 
@@ -23,3 +22,5 @@ export default class Param {
   @Contains("0x")
   signedRawTransaction: string;
 }
+
+export default SignedTransactionParam;

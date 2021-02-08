@@ -11,10 +11,11 @@ import {
   BadRequestError,
 } from "@cef-ebsi/problem-details-errors";
 import { FastifyReply } from "fastify";
+import { AxiosError } from "axios";
 import { InvalidRequestJsonRpcError } from "../modules/jsonrpc/errors";
 
 @Catch()
-export default class AllExceptionsFilter implements ExceptionFilter {
+export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
   catch(
@@ -33,6 +34,7 @@ export default class AllExceptionsFilter implements ExceptionFilter {
         .type("application/problem+json")
         .send(JsonRpcError.toJSON());
     }
+
     if (err instanceof ProblemDetailsError) {
       problemError = err;
     } else if (err instanceof BadRequestException) {
@@ -49,12 +51,41 @@ export default class AllExceptionsFilter implements ExceptionFilter {
         detail,
       });
     } else {
+      if ((err as AxiosError).isAxiosError) {
+        // Properly log error, https://github.com/axios/axios#handling-errors
+        const error = err as AxiosError<unknown>;
+        this.logger.error("Axios error intercepted.", error.stack);
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          this.logger.error({
+            data: error.response.data,
+            status: error.response.status,
+            headers: error.response.headers as unknown,
+          });
+        } else if (error.request) {
+          // The request was made but no response was received
+          // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+          // http.ClientRequest in node.js
+          this.logger.error({
+            request: error.request as unknown,
+          });
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          this.logger.error({
+            message: error.message,
+          });
+        }
+
+        this.logger.error(error.toJSON());
+      } else {
+        this.logger.error(err.message, err.stack);
+      }
+
       problemError = new InternalServerError(undefined, {
         detail:
           "The server encountered an internal error and was unable to complete your request",
       });
-
-      this.logger.error(err.message, err.stack);
     }
 
     this.logger.debug(
@@ -67,3 +98,5 @@ export default class AllExceptionsFilter implements ExceptionFilter {
       .send(problemError.toJSON());
   }
 }
+
+export default AllExceptionsFilter;

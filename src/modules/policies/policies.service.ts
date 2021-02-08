@@ -3,32 +3,32 @@ import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { PolicyRevisions } from "./policies.interface";
 import LedgerService from "../../shared/services/ledger.service";
-import { TrustedIssuersRegistryContract } from "../../shared/types/trusted-issuers-registry.interface";
+import { Tir } from "../../contracts";
 import { generateMultihash } from "../../shared/utils/multihash.utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 @Injectable()
-export default class PoliciesService {
+export class PoliciesService {
   private readonly logger = new Logger(PoliciesService.name);
 
-  private tirContract: TrustedIssuersRegistryContract;
+  private tirContract: Tir;
 
   constructor(
     private ledgerService: LedgerService,
     private configService: ConfigService
   ) {
-    this.tirContract = (this.ledgerService.getContract() as unknown) as TrustedIssuersRegistryContract;
+    this.tirContract = this.ledgerService.getContract();
   }
 
   async getPolicies(
     page: number,
     pageSize: number
-  ): ReturnType<TrustedIssuersRegistryContract["getPolicies"]> {
+  ): ReturnType<Tir["getPolicies"]> {
     return this.tirContract.getPolicies(page, pageSize);
   }
 
   async getPolicy(policyId: string): Promise<[string, string]> {
-    let policy: AsyncReturnType<TrustedIssuersRegistryContract["getPolicy"]>;
+    let policy: AsyncReturnType<Tir["getPolicy"]>;
 
     try {
       // Preserve case! Don't lowercase the policyId
@@ -55,9 +55,7 @@ export default class PoliciesService {
     page: number,
     pageSize: number
   ): Promise<PolicyRevisions> {
-    let revisions: AsyncReturnType<
-      TrustedIssuersRegistryContract["getPolicyRevisions"]
-    >;
+    let revisions: AsyncReturnType<Tir["getPolicyRevisions"]>;
 
     try {
       revisions = await this.tirContract.getPolicyRevisions(
@@ -75,9 +73,7 @@ export default class PoliciesService {
       this.tirContract.getPolicyByHash(hash)
     );
 
-    let policies: AsyncReturnType<
-      TrustedIssuersRegistryContract["getPolicyByHash"]
-    >[];
+    let policies: AsyncReturnType<Tir["getPolicyByHash"]>[];
 
     try {
       policies = await Promise.all(getPoliciesByRevisions);
@@ -95,3 +91,5 @@ export default class PoliciesService {
     };
   }
 }
+
+export default PoliciesService;

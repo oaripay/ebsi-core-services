@@ -1,7 +1,7 @@
 import { IsLowercase, IsHexadecimal } from "class-validator";
-import IsDid from "../../types/IsDid";
+import IsDid from "../../validators/IsDid";
 
-export default class ArgsInsertAdministrator {
+export class ArgsInsertAdministrator {
   @IsDid()
   @IsLowercase()
   did: string;
@@ -9,3 +9,5 @@ export default class ArgsInsertAdministrator {
   @IsHexadecimal()
   attributeData: string;
 }
+
+export default ArgsInsertAdministrator;

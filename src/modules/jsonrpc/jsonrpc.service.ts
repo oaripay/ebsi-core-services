@@ -1,26 +1,28 @@
 import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { ethers } from "ethers";
-import { Agent, Scope } from "@cef-ebsi/app-jwt";
 import { ConfigService } from "@nestjs/config";
 import LedgerService from "../../shared/services/ledger.service";
-import RequestInsertIssuerDto from "./dto/insertIssuer/request-insert-issuer.dto";
-import RequestUpdateIssuerDto from "./dto/updateIssuer/request-update-issuer.dto";
-import RequestInsertAdministratorDto from "./dto/insertAdministrator/request-insert-administrator.dto";
-import RequestUpdateAdministratorDto from "./dto/updateAdministrator/request-update-administrator.dto";
-import RequestInsertPolicyDto from "./dto/insertPolicy/request-insert-policy.dto";
-import RequestSignedTransactionDto from "./dto/signedTransaction/request-signed-transaction.dto";
-import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
-import JsonRpcResponseObject from "./types/jsonrpc.interface";
+import {
+  RequestInsertAdministratorDto,
+  RequestUpdateAdministratorDto,
+  RequestInsertIssuerDto,
+  RequestUpdateIssuerDto,
+  RequestInsertPolicyDto,
+  RequestUpdatePolicyDto,
+  RequestSignedTransactionDto,
+  UnsignedTransaction,
+  SignedTransactionParam,
+  ArgsInsertIssuer,
+  ArgsUpdateIssuer,
+  ArgsInsertAdministrator,
+  ArgsUpdateAdministrator,
+  ArgsInsertPolicy,
+  ArgsUpdatePolicy,
+} from "./dto";
+import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
-import { TrustedIssuersRegistryContract } from "../../shared/types/trusted-issuers-registry.interface";
-import ParamSignedTransaction from "./dto/signedTransaction/param.dto";
-import ArgsInsertIssuer from "./dto/signedTransaction/args-insert-issuer.dto";
-import ArgsUpdateIssuer from "./dto/signedTransaction/args-update-issuer.dto";
-import ArgsInsertAdministrator from "./dto/signedTransaction/args-insert-administrator.dto";
-import ArgsUpdateAdministrator from "./dto/signedTransaction/args-update-administrator.dto";
-import ArgsInsertPolicy from "./dto/signedTransaction/args-insert-policy.dto";
-import ArgsUpdatePolicy from "./dto/signedTransaction/args-update-policy.dto";
+import { Tir } from "../../contracts";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
@@ -28,16 +30,6 @@ import {
   checkHash,
 } from "./jsonrpc.utils";
 import { prefixWith0x } from "../../shared/utils";
-
-interface AxiosResponseSessions {
-  status: number;
-  data: {
-    accessToken: string;
-    tokenType: string;
-    expiresIn: number;
-    issuedAt: number;
-  };
-}
 
 interface AxiosResponseJsonRpc {
   status: number;
@@ -53,18 +45,14 @@ interface AxiosErrorResponse {
 }
 
 @Injectable()
-export default class JsonRpcService {
+export class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
 
   private ethersProvider:
     | ethers.providers.Provider
     | ethers.providers.JsonRpcProvider;
 
-  private tirContract: TrustedIssuersRegistryContract;
-
-  private tirAddress: string;
-
-  private tirInterface: ethers.utils.Interface;
+  private tirContract: Tir;
 
   private chainId: string = null;
 
@@ -77,63 +65,17 @@ export default class JsonRpcService {
     private ledgerService: LedgerService
   ) {
     this.tirContract = this.ledgerService.getContract();
-    this.tirAddress = this.ledgerService.getAddress();
-    this.tirInterface = this.ledgerService.getInterface();
-    this.ethersProvider = this.ledgerService.getProvider();
-  }
-
-  async createSession(): Promise<void> {
-    const agent = new Agent(
-      Scope.COMPONENT,
-      this.configService.get<string>("apiPrivateKey"),
-      {
-        issuer: "trusted-issuers-registry",
-      }
-    );
-    const requestToken = (await agent.createRequestPayload(
-      "ebsi-ledger"
-    )) as string;
-    const url = `${this.configService.get<string>("ledger")}/sessions`;
-    try {
-      const response: AxiosResponseSessions = await axios.post(
-        url,
-        requestToken
-      );
-      this.accessToken = response.data.accessToken;
-      this.expAccessToken =
-        Number(response.data.issuedAt) + Number(response.data.expiresIn);
-    } catch (error) {
-      this.logger.error("Error creating new session with ledger api");
-      this.logger.error((error as Error).message);
-      this.logger.error((error as Error).stack);
-      throw new Error(
-        "Error checking session: A new session with ledger api could not be established"
-      );
-    }
-  }
-
-  isAccessTokenExpired(): boolean {
-    return (
-      !this.accessToken ||
-      !this.expAccessToken ||
-      Date.now() > this.expAccessToken * 1000
-    );
-  }
-
-  async checkSession(): Promise<void> {
-    if (this.isAccessTokenExpired()) await this.createSession();
   }
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
-      const { chainId } = await this.ethersProvider.getNetwork();
+      const { chainId } = await this.tirContract.provider.getNetwork();
       this.chainId = ethers.BigNumber.from(chainId).toHexString();
     }
     return this.chainId;
   }
 
   async callBesuAuth(method: string, params: unknown[]): Promise<unknown> {
-    await this.checkSession();
     const url = `${this.configService.get<string>("ledger")}/blockchains/besu`;
     const data = { jsonrpc: "2.0", method, params, id: 1 };
     const opts = {
@@ -178,12 +120,12 @@ export default class JsonRpcService {
       await this.tirContract.getAdministrator(did);
     } catch (e) {
       throw new Error(
-        `Administrator ${did} was not found in the Trusted Issuer Registry`
+        `Administrator ${did} was not found in the Trusted Issuers Registry`
       );
     }
   }
 
-  async verifyTransaction(param: ParamSignedTransaction): Promise<string> {
+  async verifyTransaction(param: SignedTransactionParam): Promise<string> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
 
     const unsignedTx = formatEthersUnsignedTransaction(unsignedTransaction);
@@ -216,15 +158,16 @@ export default class JsonRpcService {
         `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`
       );
 
-    if (unsignedTransaction.to !== this.tirAddress)
+    if (unsignedTransaction.to !== this.tirContract.address)
       throw new Error(
-        `Invalid unsignedTransaction.to. Expected ${this.tirAddress}. Received ${unsignedTransaction.to}`
+        `Invalid unsignedTransaction.to. Expected ${this.tirContract.address}. Received ${unsignedTransaction.to}`
       );
 
     // verify function and parameters enconded in unsignedTransaction.data
-    const { args, functionFragment } = this.tirInterface.parseTransaction(
-      unsignedTransaction
-    );
+    const {
+      args,
+      functionFragment,
+    } = this.tirContract.interface.parseTransaction(unsignedTransaction);
 
     switch (functionFragment.name) {
       case "insertAdministrator": {
@@ -280,15 +223,14 @@ export default class JsonRpcService {
 
   async buildTransaction(
     from: string,
-    scFunction: string,
-    params: (string | Buffer)[]
+    params: string
   ): Promise<UnsignedTransaction> {
-    const nonceInt = await this.ethersProvider.getTransactionCount(from);
+    const nonceInt = await this.tirContract.provider.getTransactionCount(from);
 
     const unsignedTransaction: UnsignedTransaction = {
       from,
-      to: this.tirAddress,
-      data: this.tirInterface.encodeFunctionData(scFunction, params),
+      to: this.tirContract.address,
+      data: params,
       value: "0x0",
       nonce: ethers.BigNumber.from(nonceInt).toHexString(),
       chainId: await this.getChainId(),
@@ -322,8 +264,11 @@ export default class JsonRpcService {
       const { from, did, attribute } = body.params[0];
       const bufferAttribute = Buffer.from(attribute.body, "base64");
       checkHash(bufferAttribute, attribute.hash);
-      const data = [did.toLowerCase(), bufferAttribute];
-      return await this.buildTransaction(from, "insertAdministrator", data);
+      const data = this.tirContract.interface.encodeFunctionData(
+        "insertAdministrator",
+        [did.toLowerCase(), bufferAttribute]
+      );
+      return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;
@@ -350,7 +295,13 @@ export default class JsonRpcService {
         // using updateAdministrator function (did, attributeData)
         functionSig = "updateAdministrator(string,bytes)";
       }
-      return await this.buildTransaction(from, functionSig, data);
+      const encodedData = this.tirContract.interface.encodeFunctionData(
+        functionSig,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        data
+      );
+      return await this.buildTransaction(from, encodedData);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;
@@ -367,8 +318,11 @@ export default class JsonRpcService {
       const { from, did, attribute } = body.params[0];
       const bufferAttribute = Buffer.from(attribute.body, "base64");
       checkHash(bufferAttribute, attribute.hash);
-      const data = [did.toLowerCase(), bufferAttribute];
-      return await this.buildTransaction(from, "insertIssuer", data);
+      const data = this.tirContract.interface.encodeFunctionData(
+        "insertIssuer",
+        [did.toLowerCase(), bufferAttribute]
+      );
+      return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;
@@ -395,7 +349,13 @@ export default class JsonRpcService {
         // using updateIssuer function (did, attributeData)
         functionSig = "updateIssuer(string,bytes)";
       }
-      return await this.buildTransaction(from, functionSig, data);
+      const encodedData = this.tirContract.interface.encodeFunctionData(
+        functionSig,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        data
+      );
+      return await this.buildTransaction(from, encodedData);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;
@@ -403,8 +363,7 @@ export default class JsonRpcService {
     }
   }
 
-  async buildTransactionPolicy(
-    scFunction: string,
+  async buildTransactionInsertPolicy(
     body: RequestInsertPolicyDto,
     id?: number | string
   ): Promise<UnsignedTransaction> {
@@ -412,8 +371,31 @@ export default class JsonRpcService {
       await validateClass(RequestInsertPolicyDto, body);
       const { from, policy, policyId } = body.params[0];
       const bufferPolicy = Buffer.from(policy, "base64");
-      const data = [policyId, bufferPolicy];
-      return await this.buildTransaction(from, scFunction, data);
+      const data = this.tirContract.interface.encodeFunctionData(
+        "insertPolicy",
+        [policyId, bufferPolicy]
+      );
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdatePolicy(
+    body: RequestUpdatePolicyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdatePolicyDto, body);
+      const { from, policy, policyId } = body.params[0];
+      const bufferPolicy = Buffer.from(policy, "base64");
+      const data = this.tirContract.interface.encodeFunctionData(
+        "updatePolicy",
+        [policyId, bufferPolicy]
+      );
+      return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;
@@ -433,9 +415,9 @@ export default class JsonRpcService {
 
       await this.checkWritePermission(signer);
 
-      return this.callBesuAuth("eth_sendRawTransaction", [
+      return (await this.callBesuAuth("eth_sendRawTransaction", [
         request.signedRawTransaction,
-      ]) as Promise<string>;
+      ])) as string;
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;
@@ -443,3 +425,5 @@ export default class JsonRpcService {
     }
   }
 }
+
+export default JsonRpcService;

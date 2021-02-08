@@ -1,7 +1,7 @@
 import { Module, Logger } from "@nestjs/common";
 import { ApiConfigModule } from "../../config/configuration";
-import PoliciesController from "./policies.controller";
-import PoliciesService from "./policies.service";
+import { PoliciesController } from "./policies.controller";
+import { PoliciesService } from "./policies.service";
 import LedgerService from "../../shared/services/ledger.service";
 
 @Module({
@@ -9,4 +9,6 @@ import LedgerService from "../../shared/services/ledger.service";
   controllers: [PoliciesController],
   providers: [Logger, PoliciesService, LedgerService],
 })
-export default class PoliciesModule {}
+export class PoliciesModule {}
+
+export default PoliciesModule;

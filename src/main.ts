@@ -6,10 +6,10 @@ import {
 import { ValidationPipe, NestMiddleware } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { fastifyHelmet } from "fastify-helmet";
-import AppModule from "./app.module";
-import AllExceptionsFilter from "./filters/http-exception.filter";
+import { AppModule } from "./app.module";
+import { AllExceptionsFilter } from "./filters/http-exception.filter";
 import { createLogger, consoleTransport } from "./logger/logger";
-import { ConfigObject } from "./config/configuration";
+import { ApiConfig } from "./config/configuration";
 
 async function bootstrap() {
   const fastifyAdapter = new FastifyAdapter();
@@ -23,7 +23,7 @@ async function bootstrap() {
     { logger }
   );
 
-  const configService = app.get<ConfigService<ConfigObject>>(ConfigService);
+  const configService = app.get<ConfigService<ApiConfig>>(ConfigService);
   const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
   const port = configService.get<number>("apiPort");
   const logLevel = configService.get<string>("logLevel");

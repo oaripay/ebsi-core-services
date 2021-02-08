@@ -20,8 +20,25 @@ paths:
     get:
       tags:
         - Trusted Issuers Registry
+      operationId: get-trusted-issuers-registry-v2-administrators
       summary: List of trusted administrators
       description: Returns a list of trusted administrators
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
       responses:
         "200":
           description: Success
@@ -90,27 +107,11 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-issuers-registry-v2-administrators
-      parameters:
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
   "/trusted-issuers-registry/v2/administrators/{did}":
     get:
       tags:
         - Trusted Issuers Registry
+      operationId: get-trusted-issuers-registry-v2-administrators-did
       summary: Get administrator by its Decentralized Identifier
       description: Returns a trusted administrator by its decentralized identifier
       parameters:
@@ -164,13 +165,35 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-administrator
   "/trusted-issuers-registry/v2/administrators/{did}/attributes":
     get:
       tags:
         - Trusted Issuers Registry
+      operationId: get-trusted-issuers-registry-v2-administrators-did-attributes
       summary: List the attributes of an administrator
       description: Returns a list of attributes for a given administrator
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          required: true
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
       responses:
         "200":
           description: Success
@@ -248,33 +271,11 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-issuers-registry-v2-administrators-did-attributes
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-          required: true
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
   "/trusted-issuers-registry/v2/administrators/{did}/attributes/{attributeId}":
     get:
       tags:
         - Trusted Issuers Registry
+      operationId: get-trusted-issuers-registry-v2-administrators-did-attributes-attributeid
       summary: Get a specific attribute
       description: Returns the corresponding attribute of a given administrator
       parameters:
@@ -334,14 +335,42 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-issuers-registry-v2-administrators-did-attributes-attributeid
   ? "/trusted-issuers-registry/v2/administrators/{did}/attributes/{attributeId}/revisions"
   : get:
       tags:
         - Trusted Issuers Registry
+      operationId: get-trusted-issuers-registry-v2-administrators-did-attributes-attributeid-revisions
       summary: List the revisions of an attribute
       description: |
         Returns a list of revisions for a given attribute attached to a given administrator.
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          required: true
+        - name: attributeId
+          in: path
+          schema:
+            type: string
+          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+          required: true
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
       responses:
         "200":
           description: Success
@@ -413,20 +442,14 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-issuers-registry-v2-administrators-did-attributes-attributeid-revisions
+  /trusted-issuers-registry/v2/issuers:
+    get:
+      tags:
+        - Trusted Issuers Registry
+      operationId: get-trusted-issuers-registry-v2-issuers
+      summary: List of trusted issuers
+      description: Returns a list of trusted issuers
       parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-          required: true
-        - name: attributeId
-          in: path
-          schema:
-            type: string
-          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-          required: true
         - in: query
           name: page[before]
           schema:
@@ -442,12 +465,6 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
-  /trusted-issuers-registry/v2/issuers:
-    get:
-      tags:
-        - Trusted Issuers Registry
-      summary: List of trusted issuers
-      description: Returns a list of trusted issuers
       responses:
         "200":
           description: Success
@@ -507,27 +524,11 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-issuers-registry-v2-issuers
-      parameters:
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
   "/trusted-issuers-registry/v2/issuers/{did}":
     get:
       tags:
         - Trusted Issuers Registry
+      operationId: get-trusted-issuers-registry-v2-issuers-issuer
       summary: Get issuer by its Decentralized Identifier
       description: Returns a trusted issuer by its decentralized identifier
       parameters:
@@ -581,13 +582,35 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-issuer
   "/trusted-issuers-registry/v2/issuers/{did}/attributes":
     get:
       tags:
         - Trusted Issuers Registry
+      operationId: get-trusted-issuers-registry-v2-issuers-did-attributes
       summary: List of trusted issuers
       description: Returns a list of trusted issuers
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          required: true
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
       responses:
         "200":
           description: Success
@@ -665,33 +688,11 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-issuers-registry-v2-issuers-did-attributes
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-          required: true
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
   "/trusted-issuers-registry/v2/issuers/{did}/attributes/{attributeId}":
     get:
       tags:
         - Trusted Issuers Registry
+      operationId: get-trusted-issuers-registry-v2-issuers-did-attributes-attributeid
       summary: Get issuer by its Decentralized Identifier
       description: Returns a trusted issuer by its decentralized identifier
       parameters:
@@ -751,13 +752,41 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-issuers-registry-v2-issuers-did-attributes-attributeid
   ? "/trusted-issuers-registry/v2/issuers/{did}/attributes/{attributeId}/revisions"
   : get:
       tags:
         - Trusted Issuers Registry
+      operationId: get-trusted-issuers-registry-v2-issuers-did-attributes-attributeid-revisions
       summary: List of trusted issuers
       description: Returns a list of trusted issuers
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          required: true
+        - name: attributeId
+          in: path
+          schema:
+            type: string
+          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+          required: true
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
       responses:
         "200":
           description: Success
@@ -829,42 +858,13 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-issuers-registry-v2-issuers-did-attributes-attributeid-revisions
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-          required: true
-        - name: attributeId
-          in: path
-          schema:
-            type: string
-          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-          required: true
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
   /trusted-issuers-registry/v2/policies:
     get:
       tags:
         - Trusted Issuers Registry
+      operationId: get-trusted-issuers-registry-v2-policies
       summary: Get all policies
       description: Get all policies. Endpoint returns a paginated list of items.
-      operationId: get-trusted-issuers-registry-v2-policies
       parameters:
         - in: query
           name: page[before]
@@ -953,9 +953,9 @@ paths:
     get:
       tags:
         - Trusted Issuers Registry
+      operationId: get-trusted-issuers-registry-v2-policy
       summary: Get policy by its ID
       description: Returns a trusted policiy by its ID
-      operationId: get-trusted-issuers-registry-v2-policy
       parameters:
         - name: policyId
           in: path
@@ -1010,9 +1010,9 @@ paths:
     get:
       tags:
         - Trusted Issuers Registry
+      operationId: get-trusted-issuers-registry-v2-policy-revisions
       summary: Get policy revisions
       description: Paginated list of policy revisions.
-      operationId: get-trusted-issuers-registry-v2-policy-revisions
       parameters:
         - name: policyId
           in: path
@@ -1110,9 +1110,9 @@ paths:
 
   /trusted-issuers-registry/v2/jsonrpc:
     post:
-      operationId: post-ledger-v2-blockchains-besu
       tags:
         - Trusted Issuers Registry
+      operationId: post-ledger-v2-blockchains-besu
       summary: Helper APIs
       description: |
         Helper APIs that assist the construction of blockchain transactions for TIR SC operations,
@@ -1158,92 +1158,80 @@ paths:
               Build tx to insert administrator:
                 value:
                   jsonrpc: "2.0"
+                  id: 1
                   method: insertAdministrator
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attribute:
-                        {
-                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
-                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-                        }
-                  id: 1
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                        hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
               Build tx to add a new attribute to an administrator:
                 value:
                   jsonrpc: "2.0"
+                  id: 1
                   method: updatetAdministrator
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attribute:
-                        {
-                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
-                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-                        }
-                  id: 1
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                        hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
               Build tx to update an attribute of an administrator:
                 value:
                   jsonrpc: "2.0"
+                  id: 1
                   method: updatetAdministrator
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attribute:
-                        {
-                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
-                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-                        }
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                        hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
-                  id: 1
               Build tx to insert issuer:
                 value:
                   jsonrpc: "2.0"
+                  id: 1
                   method: insertIssuer
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attribute:
-                        {
-                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
-                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-                        }
-                  id: 1
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                        hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
               Build tx to insert policy:
                 value:
                   jsonrpc: "2.0"
+                  id: 1
                   method: insertPolicy
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       policyId: test-policiy-1
                       policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
-                  id: 1
               Build tx to add a new attribute to an issuer:
                 value:
                   jsonrpc: "2.0"
+                  id: 1
                   method: updatetIssuer
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attribute:
-                        {
-                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
-                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-                        }
-                  id: 1
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                        hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
               Build tx to update an attribute of an issuer:
                 value:
                   jsonrpc: "2.0"
+                  id: 1
                   method: updatetIssuer
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attribute:
-                        {
-                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
-                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-                        }
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                        hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
-                  id: 1
               Build tx to insert a policy:
                 value:
                   jsonrpc: "2.0"

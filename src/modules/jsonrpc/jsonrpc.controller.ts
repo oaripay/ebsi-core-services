@@ -1,14 +1,17 @@
 import { Controller, Body, Post, HttpCode } from "@nestjs/common";
-import JsonRpcService from "./jsonrpc.service";
-import JsonRpcDto from "./dto/jsonrpc.dto";
+import { JsonRpcService } from "./jsonrpc.service";
 import { InvalidRequestJsonRpcError } from "./errors";
-import JsonRpcResponseObject from "./types/jsonrpc.interface";
-import RequestInsertAdministratorDto from "./dto/insertAdministrator/request-insert-administrator.dto";
-import RequestUpdateAdministratorDto from "./dto/updateAdministrator/request-update-administrator.dto";
-import RequestInsertIssuerDto from "./dto/insertIssuer/request-insert-issuer.dto";
-import RequestUpdateIssuerDto from "./dto/updateIssuer/request-update-issuer.dto";
-import RequestInsertPolicyDto from "./dto/insertPolicy/request-insert-policy.dto";
-import RequestSignedTransaction from "./dto/signedTransaction/request-signed-transaction.dto";
+import { JsonRpcResponseObject } from "./jsonrpc.interface";
+import {
+  JsonRpcDto,
+  RequestInsertAdministratorDto,
+  RequestUpdateAdministratorDto,
+  RequestInsertIssuerDto,
+  RequestUpdateIssuerDto,
+  RequestInsertPolicyDto,
+  RequestUpdatePolicyDto,
+  RequestSignedTransactionDto,
+} from "./dto";
 
 function jsonRpcResponse(
   result: unknown,
@@ -18,7 +21,7 @@ function jsonRpcResponse(
 }
 
 @Controller("/jsonrpc")
-export default class AppController {
+export class JsonRpcController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
   @HttpCode(200)
@@ -54,18 +57,23 @@ export default class AppController {
         );
         return jsonRpcResponse(transaction, id);
       }
-      case "insertPolicy":
-      case "updatePolicy": {
-        const transaction = await this.jsonRpcService.buildTransactionPolicy(
-          method,
+      case "insertPolicy": {
+        const transaction = await this.jsonRpcService.buildTransactionInsertPolicy(
           body as RequestInsertPolicyDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "updatePolicy": {
+        const transaction = await this.jsonRpcService.buildTransactionUpdatePolicy(
+          body as RequestUpdatePolicyDto,
           id
         );
         return jsonRpcResponse(transaction, id);
       }
       case "signedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(
-          body as RequestSignedTransaction,
+          body as RequestSignedTransactionDto,
           id
         );
         return jsonRpcResponse(result, id);
@@ -78,3 +86,5 @@ export default class AppController {
     }
   }
 }
+
+export default JsonRpcController;

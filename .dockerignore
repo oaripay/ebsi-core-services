@@ -8,3 +8,7 @@
 !tsconfig.json
 !yarn.lock
 !src
+!submodules/trusted-issuers-registry-ethereum-sc/contracts
+!submodules/trusted-issuers-registry-ethereum-sc/package.json
+!submodules/trusted-issuers-registry-ethereum-sc/yarn.lock
+!submodules/trusted-issuers-registry-ethereum-sc/truffle-config.js

@@ -1,9 +1,11 @@
 import { IsString, IsHexadecimal } from "class-validator";
 
-export default class ArgsInsertPolicy {
+export class ArgsInsertPolicy {
   @IsString()
   policyId: string;
 
   @IsHexadecimal()
   policyData: string;
 }
+
+export default ArgsInsertPolicy;

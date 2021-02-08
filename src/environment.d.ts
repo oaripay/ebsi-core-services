@@ -12,6 +12,7 @@ declare global {
       BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: string;
       DOMAIN?: string;
       LEDGER?: string;
+      HEALTH_CHECK?: string;
     }
   }
 }

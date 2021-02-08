@@ -6,10 +6,10 @@ import {
   ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
-import IsDid from "../../types/IsDid";
+import IsDid from "../../validators/IsDid";
 import Attribute from "./attribute.dto";
 
-export default class Param {
+export class UpdateIssuerParam {
   @IsEthereumAddress()
   from: string;
 
@@ -25,3 +25,5 @@ export default class Param {
   @IsHexadecimal()
   prevAttributeHash: string;
 }
+
+export default UpdateIssuerParam;

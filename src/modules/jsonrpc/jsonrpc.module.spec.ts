@@ -14,181 +14,206 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import JsonRpcModule from "./jsonrpc.module";
-import JsonRpcResponseObject from "./types/jsonrpc.interface";
-import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
-import paramInsertAdministrator from "./dto/insertAdministrator/param.dto";
-import paramUpdateAdministrator from "./dto/updateAdministrator/param.dto";
-import paramInsertIssuer from "./dto/insertIssuer/param.dto";
-import paramUpdateIssuer from "./dto/updateIssuer/param.dto";
-import paramInsertPolicy from "./dto/insertPolicy/param.dto";
-import AllExceptionsFilter from "../../filters/http-exception.filter";
+import { JsonRpcModule } from "./jsonrpc.module";
+import { JsonRpcResponseObject } from "./jsonrpc.interface";
+import { JsonRpcService } from "./jsonrpc.service";
 import {
-  mockTirContract,
-  dummyData,
-  jsonlds,
-} from "../../../tests/utils/mockTirContract";
-import { ledgerWorking } from "../../../tests/utils/mockAxios";
+  UnsignedTransaction,
+  InsertAdministratorParam,
+  UpdateAdministratorParam,
+  InsertIssuerParam,
+  UpdateIssuerParam,
+  InsertPolicyParam,
+  UpdatePolicyParam,
+} from "./dto";
+import { AttributeObject } from "../administrators/administrators.interface";
+import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
-import TrustedIssuersRegistry from "../../contracts/TrustedIssuerRegistry.json";
-import { loadConfig } from "../../config/configuration";
+import { Tir, Tir__factory } from "../../contracts";
+import { setupTestEnv } from "../../../tests/utils/tir";
 
 interface SupertestJsonRpcResponse {
   status: number;
   body: JsonRpcResponseObject;
 }
 
-function createParamInsertAdministrator(
-  from: string
-): paramInsertAdministrator {
-  const did = `did:ebsi:test-${new Date().toISOString()}`;
-  const json = {
-    // any object here
-    any: "Any attribute here",
-    type: "credential",
-    data: crypto.randomBytes(16).toString("hex"),
-  };
-  const data = Buffer.from(JSON.stringify(json));
-  const dataBase64 = data.toString("base64");
-  const dataHash = ethers.utils.sha256(data);
-  const attribute = {
-    body: dataBase64,
-    hash: dataHash,
-  };
-  return {
-    from,
-    did,
-    attribute,
-  };
-}
+type JsonRpcParams =
+  | InsertAdministratorParam
+  | UpdateAdministratorParam
+  | InsertIssuerParam
+  | UpdateIssuerParam
+  | InsertPolicyParam
+  | UpdatePolicyParam;
 
-function createParamInsertIssuer(from: string): paramInsertIssuer {
-  return createParamInsertAdministrator(from);
-}
-
-function createParamUpdateAdministrator(
-  from: string,
-  updateAttribute?: boolean,
-  prevAttributeHash?: string
-): paramUpdateAdministrator {
-  const did = "did:ebsi:0x02";
-  const json = {
-    // any object here
-    any: "Any attribute here",
-    type: "credential",
-    data: crypto.randomBytes(16).toString("hex"),
-  };
-
-  const data = Buffer.from(JSON.stringify(json));
-  const dataBase64 = data.toString("base64");
-  const dataHash = ethers.utils.sha256(data);
-  const attribute = {
-    body: dataBase64,
-    hash: dataHash,
-  };
-
-  const param = {
-    from,
-    did,
-    attribute,
-  } as paramUpdateAdministrator;
-
-  // check if we are creating a new attribute or we are updating an attribute
-  if (updateAttribute) {
-    if (prevAttributeHash) {
-      // forcing a specific attribute id to update
-      param.prevAttributeHash = prevAttributeHash;
-    } else {
-      // taking one attribute id from the dummy data
-      const [prevAttribute] = dummyData[did];
-      const bufferPrevAttribute = Buffer.from(JSON.stringify(prevAttribute));
-      const hash = ethers.utils.sha256(bufferPrevAttribute);
-      param.prevAttributeHash = hash;
-    }
-  }
-
-  return param;
-}
-
-function createParamUpdateIssuer(
-  from: string,
-  updateAttribute?: boolean,
-  prevAttributeHash?: string
-): paramUpdateIssuer {
-  return createParamUpdateAdministrator(
-    from,
-    updateAttribute,
-    prevAttributeHash
-  );
-}
-
-function createParamPolicy(from: string): paramInsertPolicy {
-  const policyId = `policy-test-${new Date().toISOString()}`;
-  const json = {
-    // any object here
-    any: "Any attribute here",
-    type: "credential",
-    data: crypto.randomBytes(16).toString("hex"),
-  };
-  const data = Buffer.from(JSON.stringify(json));
-  const policy = data.toString("base64");
-  return {
-    from,
-    policyId,
-    policy,
-  };
-}
-
-function createParam(
-  method: string,
-  from: string,
-  updateAttribute?: boolean,
-  prevAttributeHash?: string
-) {
-  switch (method) {
-    case "insertIssuer":
-      return createParamInsertIssuer(from);
-    case "updateIssuer":
-      return createParamUpdateIssuer(from, updateAttribute, prevAttributeHash);
-    case "insertAdministrator":
-      return createParamInsertAdministrator(from);
-    case "updateAdministrator":
-      return createParamUpdateAdministrator(
-        from,
-        updateAttribute,
-        prevAttributeHash
-      );
-    case "insertPolicy":
-    case "updatePolicy":
-      return createParamPolicy(from);
-    default:
-      throw new Error(`Test Error: Invalid method ${method}`);
-  }
-}
-
-jest.setTimeout(20000);
-jest.spyOn(axios, "post").mockImplementation(ledgerWorking);
-jest.spyOn(ethers, "Contract").mockImplementation(mockTirContract);
-jest
-  .spyOn(ethers.providers.JsonRpcProvider.prototype, "getTransactionCount")
-  .mockImplementation(
-    (address: string): Promise<number> => {
-      if (!address.startsWith("0x"))
-        throw new Error("network does not support ENS");
-      return Promise.resolve(0);
-    }
-  );
-jest
-  .spyOn(ethers.providers.JsonRpcProvider.prototype, "getNetwork")
-  .mockImplementation(() => {
-    return Promise.resolve({ chainId: 6971, name: "test-chain" });
-  });
+jest.setTimeout(90000);
 
 describe("JsonRpc Module", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let tirContract: Tir;
+  let administrators: ethers.Wallet[];
+  let jsonRpcService: JsonRpcService;
+  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+
+  const createAdministrator = (wallet: ethers.Wallet) => {
+    const did = `did:ebsi:${wallet.address.toLowerCase()}`;
+    const json = {
+      // any object here
+      any: "Any attribute here",
+      type: "credential",
+      data: crypto.randomBytes(16).toString("hex"),
+    };
+    const data = Buffer.from(JSON.stringify(json));
+    const dataBase64 = data.toString("base64");
+    const dataHash = ethers.utils.sha256(data).slice(2);
+    const attribute: AttributeObject = {
+      body: dataBase64,
+      hash: dataHash,
+    };
+
+    return { did, attribute };
+  };
+
+  const createIssuer = () => {
+    const wallet = ethers.Wallet.createRandom();
+    return createAdministrator(wallet);
+  };
+
+  function createPolicy() {
+    const policyId = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
+    const json = {
+      // any object here
+      any: "Any attribute here",
+      type: "credential",
+      data: crypto.randomBytes(16).toString("hex"),
+    };
+    const data = Buffer.from(JSON.stringify(json));
+    const policy = data.toString("base64");
+    return {
+      policyId,
+      policy,
+    };
+  }
+
+  const newAdminWallet = ethers.Wallet.createRandom();
+  const adminV1 = createAdministrator(newAdminWallet);
+  const adminV2 = createAdministrator(newAdminWallet);
+  const adminV3 = createAdministrator(newAdminWallet);
+  const issuerV1 = createIssuer();
+  const issuerV2 = createIssuer();
+  const issuerV3 = createIssuer();
+  const policy1 = createPolicy();
+  const policy2 = createPolicy();
+
+  function createParam(
+    method: string,
+    signer: ethers.Wallet,
+    updateAttribute: boolean,
+    tamper = false
+  ) {
+    let param: JsonRpcParams;
+
+    switch (method) {
+      case "insertAdministrator": {
+        // create a new administrator and add attribute1
+        param = {
+          attribute: tamper ? adminV2.attribute : adminV1.attribute,
+          did: adminV1.did.toLowerCase(),
+          from: signer.address,
+        } as InsertAdministratorParam;
+        break;
+      }
+      case "updateAdministrator": {
+        if (updateAttribute) {
+          // update attribute1: change it to attribute3
+          param = {
+            attribute: tamper ? adminV2.attribute : adminV3.attribute,
+            did: adminV1.did.toLowerCase(),
+            from: signer.address,
+            prevAttributeHash: adminV1.attribute.hash,
+          } as UpdateAdministratorParam;
+        } else {
+          // updateAdministrator: add attribute2
+          param = {
+            attribute: tamper ? adminV3.attribute : adminV2.attribute,
+            did: adminV1.did.toLowerCase(),
+            from: signer.address,
+          } as UpdateAdministratorParam;
+        }
+        break;
+      }
+      case "insertIssuer": {
+        // create a new administrator and add attribute1
+        param = {
+          attribute: issuerV1.attribute,
+          did: tamper ? issuerV2.did.toLowerCase() : issuerV1.did.toLowerCase(),
+          from: signer.address,
+        } as InsertIssuerParam;
+        break;
+      }
+      case "updateIssuer": {
+        if (updateAttribute) {
+          // update attribute1: change it to attribute3
+          param = {
+            attribute: issuerV3.attribute,
+            did: tamper
+              ? issuerV2.did.toLowerCase()
+              : issuerV1.did.toLowerCase(),
+            from: signer.address,
+            prevAttributeHash: issuerV1.attribute.hash,
+          } as UpdateIssuerParam;
+        } else {
+          // updateIssuer: add attribute2
+          param = {
+            attribute: issuerV2.attribute,
+            did: tamper
+              ? issuerV2.did.toLowerCase()
+              : issuerV1.did.toLowerCase(),
+            from: signer.address,
+          } as UpdateIssuerParam;
+        }
+        break;
+      }
+      case "insertPolicy": {
+        param = {
+          from: signer.address,
+          policyId: tamper ? policy2.policyId : policy1.policyId,
+          policy: policy1.policy,
+        } as InsertPolicyParam;
+        break;
+      }
+      case "updatePolicy": {
+        param = {
+          from: signer.address,
+          policyId: tamper ? policy2.policyId : policy1.policyId,
+          policy: policy2.policy,
+        } as UpdatePolicyParam;
+        break;
+      }
+      default:
+        throw new Error(`Test Error: Invalid method ${method}`);
+    }
+
+    return param;
+  }
 
   beforeAll(async () => {
+    // Spin up test blockchain (ganache)
+    testEnv = await setupTestEnv({
+      administratorsTotal: 1,
+      policiesTotal: 0,
+      policiesRevisionsTotal: 0,
+      issuersTotal: 2, // create 2 random issuers
+    });
+
+    tirContract = testEnv.tirContract;
+    administrators = testEnv.administrators;
+
+    // Mock TIR contract
+    jest.spyOn(Tir__factory, "connect").mockImplementation(() => tirContract);
+
+    // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [JsonRpcModule],
     }).compile();
@@ -205,6 +230,35 @@ describe("JsonRpc Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
+
+    // Make sure we never use axios.post in tests ;-)
+    jest.spyOn(axios, "post").mockImplementation(() => {
+      throw new Error("Forgot to mock an axios call?");
+    });
+
+    // Instead of calling EBSI Ledger API, use tirContract directly
+    const signer = administrators[0];
+    jest
+      .spyOn(jsonRpcService, "callBesuAuth")
+      .mockImplementation(async (_method: string, params: unknown[]) => {
+        if (_method === "eth_sendRawTransaction") {
+          const tx = await tirContract
+            .connect(signer)
+            .provider.sendTransaction(params[0] as string);
+
+          return tx.hash;
+        }
+
+        if (_method === "eth_estimateGas") {
+          return tirContract.provider.estimateGas(
+            params[0] as ethers.providers.TransactionRequest
+          );
+        }
+
+        return Promise.reject(new Error("Unknown method"));
+      });
   });
 
   afterAll(async () => {
@@ -227,15 +281,16 @@ describe("JsonRpc Module", () => {
     expect(response.status).toBe(400);
   });
 
-  it("should throw an error when sendTransaction is trying to use an invalid function", async () => {
+  it("should throw an error when sendTransaction is used with a wrong chainId", async () => {
     expect.assertions(2);
     const wallet = ethers.Wallet.createRandom();
-    const tirInterface = new ethers.utils.Interface(TrustedIssuersRegistry.abi);
+
     const transaction = {
       from: wallet.address,
-      to: loadConfig().besuTrustedIssuersRegistryAddress,
-      // trying to call the function getIssuer
-      data: tirInterface.encodeFunctionData("getIssuer", ["did"]),
+      to: tirContract.address,
+      data: tirContract.interface.encodeFunctionData("getAdministrator", [
+        "did",
+      ]),
       value: "0x00",
       nonce: "0x00",
       chainId: "0x1b3b",
@@ -267,14 +322,16 @@ describe("JsonRpc Module", () => {
         ],
         id: "45",
       });
+
+    const { chainId } = await tirContract.provider.getNetwork();
+    const actualChainId = ethers.BigNumber.from(chainId).toHexString();
+
     expect(responseSend.body).toStrictEqual({
       jsonrpc: "2.0",
       id: "45",
       error: {
         code: -32600,
-        message: expect.stringContaining(
-          "The function name getIssuer can not be used in this context"
-        ) as string,
+        message: `Invalid unsignedTransaction.chainId. Expected ${actualChainId}. Received 0x1b3b`,
       },
     });
     expect(responseSend.status).toBe(400);
@@ -284,7 +341,15 @@ describe("JsonRpc Module", () => {
     expect.assertions(3);
     const wallet = ethers.Wallet.createRandom();
 
-    const data = Buffer.from(JSON.stringify(jsonlds[0]));
+    const data = Buffer.from(
+      JSON.stringify({
+        "@context": {
+          name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
+          description: "http://tir-api-test.org/description",
+        },
+        name: "alice",
+      })
+    );
     const dataBase64 = data.toString("base64");
     const dataHash = ethers.utils.sha256(data);
 
@@ -292,10 +357,10 @@ describe("JsonRpc Module", () => {
       .post("/jsonrpc")
       .send({
         jsonrpc: "2.0",
-        method: "insertIssuer",
+        method: "insertAdministrator",
         params: [
           {
-            from: wallet.address, // this address is not in the TIR
+            from: wallet.address, // this address is not in the TAR
             did: "did:ebsi:1",
             attribute: {
               body: dataBase64,
@@ -305,13 +370,17 @@ describe("JsonRpc Module", () => {
         ],
         id: 231,
       });
+
     expect(responseBuild.status).toBe(200);
+
     const transaction = responseBuild.body.result as UnsignedTransaction;
 
     const uTx = formatEthersUnsignedTransaction(
       JSON.parse(JSON.stringify(transaction))
     );
+
     uTx.chainId = Number(uTx.chainId);
+
     const sgnTx = await wallet.signTransaction(uTx);
     const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
@@ -339,7 +408,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          `Administrator did:ebsi:${wallet.address.toLowerCase()} was not found in the Trusted Issuer Registry`
+          `Administrator did:ebsi:${wallet.address.toLowerCase()} was not found in the Trusted Issuers Registry`
         ) as string,
       },
     });
@@ -386,11 +455,9 @@ describe("JsonRpc Module", () => {
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
       expect.assertions(4);
 
-      const wallet = new ethers.Wallet(
-        "0xf327a0b21cc9c380cbd3fdb6841b3f6a2be13ad864fc1b1acdd6863b8d45d964"
-      );
+      const signer = administrators[0];
+      const param: JsonRpcParams = createParam(method, signer, updateAttribute);
 
-      const param = createParam(method, wallet.address, updateAttribute);
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
         .send({
@@ -421,8 +488,9 @@ describe("JsonRpc Module", () => {
         JSON.parse(JSON.stringify(unsignedTransaction))
       );
       uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await wallet.signTransaction(uTx);
+      const sgnTx = await signer.signTransaction(uTx);
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
       const responseSend = await request(server)
         .post("/jsonrpc")
         .send({
@@ -450,9 +518,9 @@ describe("JsonRpc Module", () => {
 
     it("should accept a request without id", async () => {
       expect.assertions(2);
-      const wallet = ethers.Wallet.createRandom();
+      const signer = administrators[0];
 
-      const param = createParam(method, wallet.address, updateAttribute);
+      const param = createParam(method, signer, updateAttribute);
 
       const responseBuild = await request(server)
         .post("/jsonrpc")
@@ -473,11 +541,11 @@ describe("JsonRpc Module", () => {
 
     it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
       expect.assertions(6);
+      const signer = administrators[0];
 
-      const from = "0xde020FB144Bc3239C1446EB9dE73706A47D5929b";
-      const param1 = createParam(method, from, updateAttribute);
-      const param2 = createParam(method, from, updateAttribute);
-      const param3 = createParam(method, from, updateAttribute);
+      const param1 = createParam(method, signer, updateAttribute);
+      const param2 = createParam(method, signer, updateAttribute);
+      const param3 = createParam(method, signer, updateAttribute);
 
       let expectedErrorMessage1;
       let expectedErrorMessage2;
@@ -487,11 +555,11 @@ describe("JsonRpc Module", () => {
         case "insertAdministrator":
         case "updateIssuer":
         case "updateAdministrator":
-          delete (param1 as paramInsertIssuer).attribute;
+          delete (param1 as InsertIssuerParam).attribute;
           expectedErrorMessage1 =
             "property params[0].attribute has failed the following constraints: isObject";
 
-          delete (param2 as paramInsertIssuer).did;
+          delete (param2 as InsertIssuerParam).did;
           expectedErrorMessage2 =
             "property params[0].did has failed the following constraints: isDid";
 
@@ -501,11 +569,11 @@ describe("JsonRpc Module", () => {
           break;
         case "insertPolicy":
         case "updatePolicy":
-          delete (param1 as paramInsertPolicy).policy;
+          delete (param1 as InsertPolicyParam).policy;
           expectedErrorMessage1 =
             "property params[0].policy has failed the following constraints: isBase64";
 
-          delete (param2 as paramInsertPolicy).policyId;
+          delete (param2 as InsertPolicyParam).policyId;
           expectedErrorMessage2 =
             "property params[0].policyId has failed the following constraints: isString";
 
@@ -577,11 +645,11 @@ describe("JsonRpc Module", () => {
 
     it("should throw an error when the unsignedTransaction has been tampered", async () => {
       expect.assertions(6);
-      const wallet1 = ethers.Wallet.createRandom();
+      const wallet1 = administrators[0];
       const wallet2 = ethers.Wallet.createRandom();
 
-      const param1 = createParam(method, wallet1.address, updateAttribute);
-      const param2 = createParam(method, wallet2.address, updateAttribute);
+      const param1 = createParam(method, wallet1, updateAttribute);
+      const param2 = createParam(method, wallet1, updateAttribute, true);
 
       const responseBuild1: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -643,7 +711,7 @@ describe("JsonRpc Module", () => {
       expect(responseSend1.status).toBe(400);
 
       // tampering "from"
-      transaction1.from = transaction2.from;
+      transaction1.from = wallet2.address.toLowerCase();
       const responseSend2 = await request(server)
         .post("/jsonrpc")
         .send({
@@ -666,9 +734,7 @@ describe("JsonRpc Module", () => {
         id: "46",
         error: {
           code: -32600,
-          message: expect.stringContaining(
-            "does not match with unsignedTransaction.from"
-          ) as string,
+          message: `The signer of the transaction (${wallet1.address.toLowerCase()}) does not match with unsignedTransaction.from (${wallet2.address.toLowerCase()}) `,
         },
       });
       expect(responseSend1.status).toBe(400);

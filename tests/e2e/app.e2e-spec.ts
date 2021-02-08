@@ -11,8 +11,8 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
-import AppModule from "../../src/app.module";
-import AllExceptionsFilter from "../../src/filters/http-exception.filter";
+import { AppModule } from "../../src/app.module";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 
 describe("App Module (e2e)", () => {
   let app: INestApplication;
@@ -40,7 +40,12 @@ describe("App Module (e2e)", () => {
   it(`(GET) /health`, async () => {
     expect.assertions(2);
     const response = await request(server).get("/health");
-    expect(response.text).toStrictEqual("ok");
+    expect(response.body).toStrictEqual({
+      details: { "ebsi-apis": { status: "up" } },
+      error: {},
+      info: { "ebsi-apis": { status: "up" } },
+      status: "ok",
+    });
     expect(response.status).toBe(200);
   });
 });

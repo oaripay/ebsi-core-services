@@ -3,13 +3,13 @@ import {
   PolicyRevisions,
   PolicyResponseObject,
 } from "./policies.interface";
-import { TrustedIssuersRegistryContract } from "../../shared/types/trusted-issuers-registry.interface";
+import { Tir } from "../../contracts";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatPolicies(
-  policies: AsyncReturnType<TrustedIssuersRegistryContract["getPolicies"]>,
+  policies: AsyncReturnType<Tir["getPolicies"]>,
   page: number,
   pageSize: number,
   baseUrl: string

@@ -14,15 +14,15 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { loadConfig } from "../../src/config/configuration";
-import AppModule from "../../src/app.module";
-import AllExceptionsFilter from "../../src/filters/http-exception.filter";
+import { AppModule } from "../../src/app.module";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import {
   AttributeObject,
   IdLink,
   DidLink,
   IssuerResponseObject,
 } from "../../src/modules/issuers/issuers.interface";
-import JsonRpcResponseObject from "../../src/modules/jsonrpc/types/jsonrpc.interface";
+import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { prefixWith0x } from "../../src/shared/utils";

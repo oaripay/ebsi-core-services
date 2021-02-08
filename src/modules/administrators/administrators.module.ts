@@ -1,7 +1,7 @@
 import { Module, Logger } from "@nestjs/common";
 import { ApiConfigModule } from "../../config/configuration";
-import AdministratorsController from "./administrators.controller";
-import AdministratorsService from "./administrators.service";
+import { AdministratorsController } from "./administrators.controller";
+import { AdministratorsService } from "./administrators.service";
 import LedgerService from "../../shared/services/ledger.service";
 
 @Module({
@@ -9,4 +9,6 @@ import LedgerService from "../../shared/services/ledger.service";
   controllers: [AdministratorsController],
   providers: [Logger, AdministratorsService, LedgerService],
 })
-export default class AdministratorsModule {}
+export class AdministratorsModule {}
+
+export default AdministratorsModule;

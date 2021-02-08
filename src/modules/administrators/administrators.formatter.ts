@@ -1,13 +1,11 @@
 import { AttributeObject, IdLink, DidLink } from "./administrators.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
-import { TrustedIssuersRegistryContract } from "../../shared/types/trusted-issuers-registry.interface";
+import { Tir } from "../../contracts";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatAdministrators(
-  administrators: AsyncReturnType<
-    TrustedIssuersRegistryContract["getAdministrators"]
-  >,
+  administrators: AsyncReturnType<Tir["getAdministrators"]>,
   page: number,
   pageSize: number,
   baseUrl: string

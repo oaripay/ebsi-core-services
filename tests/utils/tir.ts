@@ -1,0 +1,207 @@
+import crypto from "crypto";
+import { ethers } from "ethers";
+import ganache from "ganache-core";
+import { range } from "rxjs";
+import { mergeMap, toArray } from "rxjs/operators";
+import { Tir, Tir__factory } from "../../src/contracts";
+// Pagination Lib is ignored by TypeChain...
+import {
+  abi,
+  bytecode,
+} from "../../submodules/trusted-issuers-registry-ethereum-sc/build/contracts/Pagination.json";
+
+interface PolicyObject {
+  policyId: string;
+  policyData: unknown;
+  policyHash: string;
+}
+
+interface IssuerObject {
+  did: string;
+  attributeData: Buffer;
+}
+
+export async function deployTirContract(
+  ethersProvider: ethers.providers.Web3Provider
+): Promise<Tir> {
+  const owner = ethersProvider.getSigner();
+
+  // Deploy libs
+  const paginationFactory = new ethers.ContractFactory(abi, bytecode, owner);
+  const paginationAddress = (await paginationFactory.deploy()).address;
+
+  const tirContract = await new Tir__factory(
+    {
+      __Pagination____________________________: paginationAddress,
+    },
+    owner
+  ).deploy();
+
+  return tirContract;
+}
+
+export async function insertAdmin(
+  contract: Tir,
+  adminAddress: string
+): Promise<ethers.ContractTransaction> {
+  const adminDid = `did:ebsi:${adminAddress.toLowerCase()}`;
+  const bufferAttribute = Buffer.from(
+    JSON.stringify({
+      "@context": {
+        name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
+        description: "http://tir-api-test.org/description",
+      },
+      name: `test-${adminDid}`,
+    })
+  );
+
+  return contract.insertAdministrator(adminDid, bufferAttribute);
+}
+
+export async function insertIssuer(contract: Tir): Promise<IssuerObject> {
+  const wallet = ethers.Wallet.createRandom();
+  const issuerDid = `did:ebsi:${wallet.address.toLowerCase()}`;
+  const bufferAttribute = Buffer.from(
+    JSON.stringify({
+      "@context": {
+        name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
+        description: "http://tir-api-test.org/description",
+      },
+      name: `test-${issuerDid}`,
+    })
+  );
+
+  await contract.insertIssuer(issuerDid, bufferAttribute);
+
+  return {
+    did: issuerDid,
+    attributeData: bufferAttribute,
+  };
+}
+
+export async function insertPolicy(contract: Tir): Promise<PolicyObject> {
+  const policyId = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
+
+  const policyData = {
+    // any object here
+    any: "Any attribute here",
+    type: "credential",
+    data: crypto.randomBytes(16).toString("hex"),
+  };
+
+  const policyBuffer = Buffer.from(JSON.stringify(policyData));
+  const policyHash = ethers.utils.sha256(policyBuffer);
+
+  await contract.insertPolicy(policyId, policyBuffer);
+
+  return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
+}
+
+export async function updatePolicy(
+  contract: Tir,
+  policyId: string
+): Promise<PolicyObject> {
+  const policyData = {
+    // any object here
+    any: "Any attribute here",
+    type: "credential",
+    data: crypto.randomBytes(16).toString("hex"),
+  };
+
+  const policyBuffer = Buffer.from(JSON.stringify(policyData));
+  const policyHash = ethers.utils.sha256(policyBuffer);
+
+  await contract.updatePolicy(policyId, policyBuffer);
+
+  return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
+}
+
+export interface SetupOptions {
+  administratorsTotal?: number;
+  policiesTotal?: number;
+  policiesRevisionsTotal?: number;
+  issuersTotal?: number;
+}
+
+export async function setupTestEnv(
+  opts: SetupOptions = {
+    administratorsTotal: 1,
+    policiesTotal: 0,
+    policiesRevisionsTotal: 1,
+    issuersTotal: 0,
+  }
+): Promise<{
+  provider: ethers.providers.Web3Provider;
+  tirContract: Tir;
+  administrators: ethers.Wallet[];
+  policies: PolicyObject[];
+  policyRevisions: { [x: string]: PolicyObject[] };
+  issuers: IssuerObject[];
+}> {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
+
+  // Deploy contract
+  const tirContract = await deployTirContract(ethersProvider);
+
+  // Insert fake data
+
+  // Create as many admins as requested
+  const createAdminWallet = async () => {
+    // Create random wallet and connect it so we can use it later to send transactions
+    const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
+    await insertAdmin(tirContract, wallet.address);
+    return wallet;
+  };
+
+  const administrators = await range(0, opts.administratorsTotal)
+    .pipe(mergeMap(createAdminWallet), toArray())
+    .toPromise();
+
+  const policyRevisions = {};
+
+  // Create as many policies as requested
+  const createPolicy = async () => {
+    const policy = await insertPolicy(tirContract);
+
+    const createRevision = async () =>
+      updatePolicy(tirContract, policy.policyId);
+
+    // For each policy, add revisions
+    policyRevisions[policy.policyId] = [
+      // The first revision is the policy itself
+      policy,
+      // Then, we add new revisions
+      ...(await range(0, opts.policiesRevisionsTotal - 1)
+        .pipe(mergeMap(createRevision), toArray())
+        .toPromise()),
+    ];
+
+    return policy;
+  };
+
+  const policies =
+    opts.policiesRevisionsTotal >= 1
+      ? await range(0, opts.policiesTotal)
+          .pipe(mergeMap(createPolicy), toArray())
+          .toPromise()
+      : [];
+
+  // Create as many issuers as requested
+  const createIssuer = async () => insertIssuer(tirContract);
+
+  const issuers = await range(0, opts.issuersTotal)
+    .pipe(mergeMap(createIssuer), toArray())
+    .toPromise();
+
+  // Return test env variables
+  return {
+    provider: ethersProvider,
+    tirContract,
+    administrators,
+    policies,
+    policyRevisions,
+    issuers,
+  };
+}

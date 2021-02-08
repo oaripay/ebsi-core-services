@@ -1,6 +1,20 @@
 node {
     stage('Clone repo') {
-        checkout scm
+        checkout([
+          $class: 'GitSCM',
+          branches: scm.branches,
+          doGenerateSubmoduleConfigurations: false,
+          extensions: [[
+              $class: 'SubmoduleOption',
+              disableSubmodules: false,
+              parentCredentials: true,
+              recursiveSubmodules: true,
+              reference: '',
+              trackingSubmodules: false
+          ]],
+          submoduleCfg: [],
+          userRemoteConfigs: scm.userRemoteConfigs
+      ])
     }
     stage('Unit test') {
         withCredentials([string(credentialsId: 'APP_PRIVATE_KEY_TRUSTED_ISSUERS', variable: 'API_PRIVATE_KEY')]) {

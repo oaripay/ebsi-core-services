@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
-import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
-import * as TrustedIssuersRegistry from "../../contracts/TrustedIssuerRegistry.json";
-import { TrustedIssuersRegistryContract } from "../types/trusted-issuers-registry.interface";
+import { ethers } from "ethers";
+import { ApiConfig } from "../../config/configuration";
+import { Tir, Tir__factory } from "../../contracts";
 import { prefixWith0x } from "../utils";
 
 @Injectable()
@@ -13,13 +13,11 @@ export default class LedgerService {
     | ethers.providers.Provider
     | ethers.providers.JsonRpcProvider;
 
-  private tirContract: TrustedIssuersRegistryContract;
+  private tirContract: Tir;
 
   private tirAddress: string;
 
-  private tirInterface: ethers.utils.Interface;
-
-  constructor(private configService: ConfigService) {
+  constructor(private configService: ConfigService<ApiConfig>) {
     this.ethersProvider = new ethers.providers.JsonRpcProvider(
       `${this.configService.get<string>("ledger")}/blockchains/besu`
     );
@@ -29,34 +27,14 @@ export default class LedgerService {
       this.ethersProvider
     );
 
-    this.tirInterface = new ethers.utils.Interface(TrustedIssuersRegistry.abi);
     this.tirAddress = this.configService.get<string>(
       "besuTrustedIssuersRegistryAddress"
     );
 
-    const tirContractWithoutWallet = new ethers.Contract(
-      this.tirAddress,
-      TrustedIssuersRegistry.abi,
-      this.ethersProvider
-    );
-    this.tirContract = (tirContractWithoutWallet.connect(
-      this.ethersWallet
-    ) as unknown) as TrustedIssuersRegistryContract;
+    this.tirContract = Tir__factory.connect(this.tirAddress, this.ethersWallet);
   }
 
-  getContract(): TrustedIssuersRegistryContract {
+  getContract(): Tir {
     return this.tirContract;
-  }
-
-  getAddress(): string {
-    return this.tirAddress;
-  }
-
-  getInterface(): ethers.utils.Interface {
-    return this.tirInterface;
-  }
-
-  getProvider(): ethers.providers.Provider | ethers.providers.JsonRpcProvider {
-    return this.ethersProvider;
   }
 }

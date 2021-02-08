@@ -1,20 +1,23 @@
 import * as ClassValidator from "class-validator";
 import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
-import UnsignedTransaction from "./dto/signedTransaction/unsigned-transaction.dto";
+import {
+  UnsignedTransaction,
+  RequestInsertAdministratorDto,
+  RequestUpdateAdministratorDto,
+  RequestInsertIssuerDto,
+  RequestUpdateIssuerDto,
+  RequestInsertPolicyDto,
+  RequestUpdatePolicyDto,
+  RequestSignedTransactionDto,
+  ArgsInsertAdministrator,
+  ArgsUpdateAdministrator,
+  ArgsInsertIssuer,
+  ArgsUpdateIssuer,
+  ArgsInsertPolicy,
+  ArgsUpdatePolicy,
+} from "./dto";
 import { prefixWith0x } from "../../shared/utils";
-import RequestInsertIssuerDto from "./dto/insertIssuer/request-insert-issuer.dto";
-import RequestUpdateIssuerDto from "./dto/updateIssuer/request-update-issuer.dto";
-import RequestInsertAdministratorDto from "./dto/insertAdministrator/request-insert-administrator.dto";
-import RequestUpdateAdministratorDto from "./dto/updateAdministrator/request-update-administrator.dto";
-import RequestInsertPolicyDto from "./dto/insertPolicy/request-insert-policy.dto";
-import RequestSignedTransactionDto from "./dto/signedTransaction/request-signed-transaction.dto";
-import ArgsInsertIssuer from "./dto/signedTransaction/args-insert-issuer.dto";
-import ArgsUpdateIssuer from "./dto/signedTransaction/args-update-issuer.dto";
-import ArgsInsertAdministrator from "./dto/signedTransaction/args-insert-administrator.dto";
-import ArgsUpdateAdministrator from "./dto/signedTransaction/args-update-administrator.dto";
-import ArgsInsertPolicy from "./dto/signedTransaction/args-insert-policy.dto";
-import ArgsUpdatePolicy from "./dto/signedTransaction/args-update-policy.dto";
 
 type JsonRpcDtos =
   | RequestInsertIssuerDto
@@ -22,6 +25,7 @@ type JsonRpcDtos =
   | RequestInsertAdministratorDto
   | RequestUpdateAdministratorDto
   | RequestInsertPolicyDto
+  | RequestUpdatePolicyDto
   | RequestSignedTransactionDto
   | ArgsInsertIssuer
   | ArgsUpdateIssuer

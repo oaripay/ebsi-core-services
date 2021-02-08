@@ -14,9 +14,9 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { loadConfig } from "../../src/config/configuration";
-import AppModule from "../../src/app.module";
-import AllExceptionsFilter from "../../src/filters/http-exception.filter";
-import JsonRpcResponseObject from "../../src/modules/jsonrpc/types/jsonrpc.interface";
+import { AppModule } from "../../src/app.module";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { prefixWith0x } from "../../src/shared/utils";
@@ -266,7 +266,7 @@ describe("Policies (e2e)", () => {
               "/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=10"
             ) as string,
             next: expect.stringContaining(
-              "/trusted-issuers-registry/v2/policies?page[after]=2&page[size]=10"
+              "/trusted-issuers-registry/v2/policies?page[after]="
             ) as string,
             last: expect.stringContaining(
               "/trusted-issuers-registry/v2/policies?page[after]="

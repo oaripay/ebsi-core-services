@@ -1,19 +1,17 @@
 import { ethers } from "ethers";
 import { formatIssuers, formatAttributes } from "./issuers.formatter";
 import { AttributeObject } from "./issuers.interface";
-import { TrustedIssuersRegistryContract } from "../../shared/types/trusted-issuers-registry.interface";
+import { Tir } from "../../contracts";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatIssuers", () => {
-  const issuers: AsyncReturnType<
-    TrustedIssuersRegistryContract["getIssuers"]
-  > = {
+  const issuers = {
     prev: ethers.BigNumber.from("1"),
     next: ethers.BigNumber.from("3"),
     items: ["0x001", "0x002", "0x003"],
     total: ethers.BigNumber.from("42"),
     howMany: ethers.BigNumber.from("3"),
-  };
+  } as AsyncReturnType<Tir["getIssuers"]>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);

@@ -1,7 +1,7 @@
 import { IsLowercase, IsHexadecimal, IsOptional } from "class-validator";
-import IsDid from "../../types/IsDid";
+import IsDid from "../../validators/IsDid";
 
-export default class ArgsUpdateAdministrator {
+export class ArgsUpdateAdministrator {
   @IsDid()
   @IsLowercase()
   did: string;
@@ -13,3 +13,5 @@ export default class ArgsUpdateAdministrator {
   @IsHexadecimal()
   prevAttributeHash: string;
 }
+
+export default ArgsUpdateAdministrator;

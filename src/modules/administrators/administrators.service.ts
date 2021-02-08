@@ -6,27 +6,27 @@ import {
   AttributeObject,
   AdministratorResponseObject,
 } from "./administrators.interface";
-import { TrustedIssuersRegistryContract } from "../../shared/types/trusted-issuers-registry.interface";
+import { Tir } from "../../contracts";
 import { prefixWith0x } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 @Injectable()
-export default class AdministratorsService {
+export class AdministratorsService {
   private readonly logger = new Logger(AdministratorsService.name);
 
-  private tirContract: TrustedIssuersRegistryContract;
+  private tirContract: Tir;
 
   constructor(
     private ledgerService: LedgerService,
     private configService: ConfigService
   ) {
-    this.tirContract = (this.ledgerService.getContract() as unknown) as TrustedIssuersRegistryContract;
+    this.tirContract = this.ledgerService.getContract();
   }
 
   async getAdministrators(
     page: number,
     pageSize: number
-  ): ReturnType<TrustedIssuersRegistryContract["getAdministrators"]> {
+  ): ReturnType<Tir["getAdministrators"]> {
     return this.tirContract.getAdministrators(page, pageSize);
   }
 
@@ -35,7 +35,7 @@ export default class AdministratorsService {
     const hash = prefixWith0x(attributeId);
 
     let attributeByHash: AsyncReturnType<
-      TrustedIssuersRegistryContract["getAdministratorAttributeByHash"]
+      Tir["getAdministratorAttributeByHash"]
     >;
 
     try {
@@ -146,3 +146,5 @@ export default class AdministratorsService {
     return { revisions, total: revisionHashes.total.toNumber() };
   }
 }
+
+export default AdministratorsService;

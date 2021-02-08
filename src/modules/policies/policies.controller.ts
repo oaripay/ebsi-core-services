@@ -1,17 +1,17 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import PoliciesService from "./policies.service";
+import { PoliciesService } from "./policies.service";
 import { formatPolicies, formatRevisions } from "./policies.formatter";
 import { PolicyResponseObject, PolicyLink } from "./policies.interface";
 import PaginationQuery from "../../shared/dto/pagination-query";
 import { PaginatedList } from "../../shared/interfaces";
-import { ConfigObject } from "../../config/configuration";
+import { ApiConfig } from "../../config/configuration";
 
 @Controller("/policies")
-export default class PoliciesController {
+export class PoliciesController {
   constructor(
     private policiesService: PoliciesService,
-    private configService: ConfigService<ConfigObject>
+    private configService: ConfigService<ApiConfig>
   ) {}
 
   @Get("")
@@ -77,3 +77,5 @@ export default class PoliciesController {
     );
   }
 }
+
+export default PoliciesController;

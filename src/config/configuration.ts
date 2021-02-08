@@ -2,7 +2,7 @@ import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
 
 // List here all the values that will be returned by the config factory
-export interface ConfigObject {
+export interface ApiConfig {
   adminTestPrivateKey: string;
   apiPort: number;
   apiPrivateKey: string;
@@ -11,44 +11,51 @@ export interface ConfigObject {
   domain: string;
   ledger: string;
   besuTrustedIssuersRegistryAddress: string;
+  externalEBSIApiHealthCheck: string;
 }
 
 const defaultConfig = {
   local: {
     DOMAIN: "https://api.test.intebsi.xyz",
-    LEDGER: "https://api.test.intebsi.xyz/ledger/v1",
+    LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
     LOG_LEVEL: "debug",
+    HEALTH_CHECK: `https://api.test.intebsi.xyz/docs/`,
   },
   test: {
     DOMAIN: "https://api.test.intebsi.xyz",
-    LEDGER: "https://api.test.intebsi.xyz/ledger/v1",
+    LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
     LOG_LEVEL: "info",
+    HEALTH_CHECK: `https://api.test.intebsi.xyz/docs/`,
   },
   pilot: {
     DOMAIN: "https://api.pilot.ebsi.xyz",
-    LEDGER: "https://api.pilot.ebsi.xyz/ledger/v1",
+    LEDGER: "https://api.pilot.ebsi.xyz/ledger/v2",
     LOG_LEVEL: "warn",
+    HEALTH_CHECK: `https://api.pilot.ebsi.xyz/docs/`,
   },
   prod: {
     DOMAIN: "https://api.prod.ebsi.xyz",
-    LEDGER: "https://api.prod.ebsi.xyz/ledger/v1",
+    LEDGER: "https://api.prod.ebsi.xyz/ledger/v2",
     LOG_LEVEL: "error",
+    HEALTH_CHECK: `https://api.prod.ebsi.xyz/docs/`,
   },
 };
 
-export const loadConfig = (): ConfigObject => {
+export const loadConfig = (): ApiConfig => {
   const { EBSI_ENV } = process.env;
 
   return {
     adminTestPrivateKey: process.env.ADMIN_TEST_PRIVATE_KEY || "",
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
-    apiUrlPrefix: process.env.API_URL_PREFIX || "",
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-issuers-registry/v2",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     ledger: process.env.LEDGER || defaultConfig[EBSI_ENV].LEDGER,
     besuTrustedIssuersRegistryAddress:
       process.env.BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS,
+    externalEBSIApiHealthCheck:
+      process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
   };
 };
 
@@ -68,7 +75,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_PRIVATE_KEY: Joi.string().required(),
-    API_URL_PREFIX: Joi.string().required(),
+    API_URL_PREFIX: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -79,6 +86,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     // TIR specific variables
     ADMIN_TEST_PRIVATE_KEY: Joi.string(),
+    HEALTH_CHECK: Joi.string(),
     BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: Joi.string().required(),
     DOMAIN: Joi.string(),
     LEDGER: Joi.string(),

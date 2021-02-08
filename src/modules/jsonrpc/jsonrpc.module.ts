@@ -1,7 +1,7 @@
 import { Module, Logger } from "@nestjs/common";
 import { ApiConfigModule } from "../../config/configuration";
-import JsonRpcController from "./jsonrpc.controller";
-import JsonRpcService from "./jsonrpc.service";
+import { JsonRpcController } from "./jsonrpc.controller";
+import { JsonRpcService } from "./jsonrpc.service";
 import LedgerService from "../../shared/services/ledger.service";
 
 @Module({
@@ -9,4 +9,6 @@ import LedgerService from "../../shared/services/ledger.service";
   controllers: [JsonRpcController],
   providers: [Logger, JsonRpcService, LedgerService],
 })
-export default class JsonRpcModule {}
+export class JsonRpcModule {}
+
+export default JsonRpcModule;

@@ -1,6 +1,6 @@
 import request from "supertest";
 import { loadConfig } from "../../src/config/configuration";
-import JsonRpcResponseObject from "../../src/modules/jsonrpc/types/jsonrpc.interface";
+import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -19,7 +19,7 @@ export const waitToBeMined = async (
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const responseReceipt: SupertestJsonRpcResponse = await request(domain)
-      .post("/ledger/v1/blockchains/besu")
+      .post("/ledger/v2/blockchains/besu")
       .send({
         jsonrpc: "2.0",
         method: "eth_getTransactionReceipt",

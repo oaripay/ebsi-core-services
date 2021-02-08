@@ -1,19 +1,17 @@
 import { ethers } from "ethers";
 import { formatPolicies, formatRevisions } from "./policies.formatter";
-import { TrustedIssuersRegistryContract } from "../../shared/types/trusted-issuers-registry.interface";
+import { Tir } from "../../contracts";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import PoliciesService from "./policies.service";
+import { PoliciesService } from "./policies.service";
 
 describe("formatPolicies", () => {
-  const policies: AsyncReturnType<
-    TrustedIssuersRegistryContract["getPolicies"]
-  > = {
+  const policies = {
     prev: ethers.BigNumber.from("1"),
     next: ethers.BigNumber.from("3"),
     items: ["policy-1:with/specialChars", "policy-2", "policy-3"],
     total: ethers.BigNumber.from("42"),
     howMany: ethers.BigNumber.from("3"),
-  };
+  } as AsyncReturnType<Tir["getPolicies"]>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);

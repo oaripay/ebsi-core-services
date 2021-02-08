@@ -1,7 +1,7 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
-import AdministratorsService from "./administrators.service";
+import { AdministratorsService } from "./administrators.service";
 import {
   formatAdministrators,
   formatAttributes,
@@ -16,13 +16,13 @@ import {
 } from "./administrators.interface";
 import PaginationQuery from "../../shared/dto/pagination-query";
 import { PaginatedList } from "../../shared/interfaces";
-import { ConfigObject } from "../../config/configuration";
+import { ApiConfig } from "../../config/configuration";
 
 @Controller("/administrators")
-export default class AdministratorsController {
+export class AdministratorsController {
   constructor(
     private administratorsService: AdministratorsService,
-    private configService: ConfigService<ConfigObject>
+    private configService: ConfigService<ApiConfig>
   ) {}
 
   @Get("")
@@ -136,3 +136,5 @@ export default class AdministratorsController {
     );
   }
 }
+
+export default AdministratorsController;

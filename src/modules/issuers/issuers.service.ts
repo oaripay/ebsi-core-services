@@ -3,27 +3,27 @@ import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import LedgerService from "../../shared/services/ledger.service";
 import { AttributeObject, IssuerResponseObject } from "./issuers.interface";
-import { TrustedIssuersRegistryContract } from "../../shared/types/trusted-issuers-registry.interface";
+import { Tir } from "../../contracts";
 import { prefixWith0x } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 @Injectable()
-export default class IssuersService {
+export class IssuersService {
   private readonly logger = new Logger(IssuersService.name);
 
-  private tirContract: TrustedIssuersRegistryContract;
+  private tirContract: Tir;
 
   constructor(
     private ledgerService: LedgerService,
     private configService: ConfigService
   ) {
-    this.tirContract = (this.ledgerService.getContract() as unknown) as TrustedIssuersRegistryContract;
+    this.tirContract = this.ledgerService.getContract();
   }
 
   async getIssuers(
     page: number,
     pageSize: number
-  ): ReturnType<TrustedIssuersRegistryContract["getIssuers"]> {
+  ): ReturnType<Tir["getIssuers"]> {
     return this.tirContract.getIssuers(page, pageSize);
   }
 
@@ -31,9 +31,7 @@ export default class IssuersService {
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
 
-    let attributeByHash: AsyncReturnType<
-      TrustedIssuersRegistryContract["getIssuerAttributeByHash"]
-    >;
+    let attributeByHash: AsyncReturnType<Tir["getIssuerAttributeByHash"]>;
 
     try {
       attributeByHash = await this.tirContract.getIssuerAttributeByHash(hash);
@@ -139,3 +137,5 @@ export default class IssuersService {
     return { revisions, total: revisionHashes.total.toNumber() };
   }
 }
+
+export default IssuersService;
