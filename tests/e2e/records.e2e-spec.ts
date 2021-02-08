@@ -20,6 +20,7 @@ import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interfa
 import {
   TimestampRecordHashesParam,
   TimestampRecordVersionHashesParam,
+  AppendRecordVersionHashesParam,
   DetachRecordVersionHashParam,
   InsertRecordOwnerParam,
   InsertRecordVersionInfoParam,
@@ -37,6 +38,7 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | TimestampRecordHashesParam
   | TimestampRecordVersionHashesParam
+  | AppendRecordVersionHashesParam
   | DetachRecordVersionHashParam
   | InsertRecordOwnerParam
   | InsertRecordVersionInfoParam;
@@ -160,10 +162,17 @@ describe("Records (e2e)", () => {
               `0x${crypto.randomBytes(32).toString("hex")}`,
             ],
             timestampData: [
-              `0x${crypto.randomBytes(32).toString("hex")}`,
-              `0x${crypto.randomBytes(32).toString("hex")}`,
+              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                "hex"
+              )}`,
+              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
+                "hex"
+              )}`,
             ],
-            versionInfo: `0x${crypto.randomBytes(10).toString("hex")}`,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8"
+            ).toString("hex")}`,
           } as TimestampRecordHashesParam;
           break;
         }
@@ -235,12 +244,51 @@ describe("Records (e2e)", () => {
               `0x${crypto.randomBytes(32).toString("hex")}`,
             ],
             timestampData: [
-              `0x${crypto.randomBytes(32).toString("hex")}`,
+              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                "hex"
+              )}`,
+              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
+                "hex"
+              )}`,
+            ],
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as TimestampRecordVersionHashesParam;
+          break;
+        }
+        case "appendRecordVersionHashes": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [adminTestWallet.address, blockNumber, firstHashValue]
+            )
+          );
+          param = {
+            from: adminTestWallet.address,
+            recordId,
+            versionId: 0,
+            hashAlgorithmIds: [0, 0],
+            hashValues: [
+              firstHashValue,
               `0x${crypto.randomBytes(32).toString("hex")}`,
             ],
-            versionInfo: `0x${crypto.randomBytes(10).toString("hex")}`,
-          } as TimestampRecordHashesParam;
-
+            timestampData: [
+              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                "hex"
+              )}`,
+              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
+                "hex"
+              )}`,
+              // `0x${crypto.randomBytes(32).toString("hex")}`,
+              // `0x${crypto.randomBytes(32).toString("hex")}`,
+            ],
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as AppendRecordVersionHashesParam;
           break;
         }
         default:

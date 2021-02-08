@@ -88,8 +88,14 @@ describe("Timestamp (e2e)", () => {
                 `0x${crypto.randomBytes(32).toString("hex")}`,
               ],
               timestampData: [
-                `0x${crypto.randomBytes(32).toString("hex")}`,
-                `0x${crypto.randomBytes(32).toString("hex")}`,
+                `0x${Buffer.from(
+                  JSON.stringify({ test: 742 }),
+                  "utf8"
+                ).toString("hex")}`,
+                `0x${Buffer.from(
+                  JSON.stringify({ test: 842 }),
+                  "utf8"
+                ).toString("hex")}`,
               ],
             } as TimestampHashesParam;
             break;

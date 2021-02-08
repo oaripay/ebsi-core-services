@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   timestamp-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api:test_ebsiint-2557-insert-record-version-info_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api:test_ebsiint-2559-append-record-version-hashes_v2.0.0
     build: ../..

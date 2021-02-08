@@ -16,6 +16,7 @@ import {
   RequestTimestampHashesDto,
   RequestTimestampRecordHashesDto,
   RequestTimestampRecordVersionHashesDto,
+  RequestAppendRecordVersionHashesDto,
   RequestDetachRecordVersionHashDto,
   RequestInsertRecordOwnerDto,
   RequestInsertRecordVersionInfoDto,
@@ -23,6 +24,7 @@ import {
   UnsignedTransaction,
   ArgsInsertRecordOwner,
   ArgsTimestampRecordVersionHashes,
+  ArgsAppendRecordVersionHashes,
 } from "./dto";
 import {
   AxiosResponseSessions,
@@ -285,6 +287,13 @@ export class JsonRpcService {
         await validateClass(
           ArgsTimestampRecordVersionHashes,
           (args as unknown) as ArgsTimestampRecordVersionHashes
+        );
+        break;
+      }
+      case "appendRecordVersionHashes": {
+        await validateClass(
+          ArgsAppendRecordVersionHashes,
+          (args as unknown) as ArgsAppendRecordVersionHashes
         );
         break;
       }
@@ -557,6 +566,43 @@ export class JsonRpcService {
     }
   }
 
+  async buildTransactionAppendRecordVersionHashes(
+    body: RequestAppendRecordVersionHashesDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestAppendRecordVersionHashesDto, body);
+
+      const {
+        from,
+        recordId,
+        versionId,
+        hashAlgorithmIds,
+        hashValues,
+        timestampData,
+        versionInfo,
+      } = body.params[0];
+
+      const data = this.timestampContract.interface.encodeFunctionData(
+        "appendRecordVersionHashes",
+        [
+          recordId,
+          versionId,
+          hashAlgorithmIds,
+          hashValues,
+          timestampData,
+          versionInfo,
+        ]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
   async sendTransaction(
     body: RequestSignedTransactionDto,
     id?: number | string
@@ -568,10 +614,10 @@ export class JsonRpcService {
       const { signer, functionName } = await this.verifyTransaction(request);
 
       await this.checkWritePermission(functionName, signer);
-
-      return this.callBesuAuth("eth_sendRawTransaction", [
+      const res = (await this.callBesuAuth("eth_sendRawTransaction", [
         request.signedRawTransaction,
-      ]) as Promise<string>;
+      ])) as string;
+      return res;
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;

@@ -10,6 +10,7 @@ import {
   RequestTimestampHashesDto,
   RequestTimestampRecordHashesDto,
   RequestTimestampRecordVersionHashesDto,
+  RequestAppendRecordVersionHashesDto,
   RequestDetachRecordVersionHashDto,
   RequestInsertRecordOwnerDto,
   RequestInsertRecordVersionInfoDto,
@@ -62,6 +63,13 @@ export default class AppController {
       case "timestampRecordVersionHashes": {
         const result = await this.jsonRpcService.buildTransactionTimestampRecordVersionHashes(
           body as RequestTimestampRecordVersionHashesDto,
+          id
+        );
+        return jsonRpcResponse(result, id);
+      }
+      case "appendRecordVersionHashes": {
+        const result = await this.jsonRpcService.buildTransactionAppendRecordVersionHashes(
+          body as RequestAppendRecordVersionHashesDto,
           id
         );
         return jsonRpcResponse(result, id);
