@@ -19,6 +19,7 @@ import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   DetachRecordVersionHashParam,
   InsertRecordOwnerParam,
+  RevokeRecordOwnerParam,
   InsertHashAlgorithmParam,
   InsertRecordVersionInfoParam,
   TimestampHashesParam,
@@ -47,6 +48,7 @@ type JsonRpcParams =
   | UpdateHashAlgorithmParam
   | TimestampHashesParam
   | DetachRecordVersionHashParam
+  | RevokeRecordOwnerParam
   | InsertRecordOwnerParam
   | TimestampRecordHashesParam
   | InsertRecordVersionInfoParam
@@ -105,11 +107,6 @@ describe("JsonRpc Module", () => {
     // Make sure we never use axios.post in tests ;-)
     jest.spyOn(axios, "post").mockImplementation(() => {
       throw new Error("Forgot to mock an axios call?");
-    });
-
-    // Mock JsonRpcService (prevent calling EBSI Ledger API)
-    jest.spyOn(jsonRpcService, "createSession").mockImplementation(async () => {
-      return Promise.resolve();
     });
 
     // Instead of calling EBSI Ledger API, use timestampContract directly
@@ -309,6 +306,7 @@ describe("JsonRpc Module", () => {
     "timestampHashes",
     "timestampRecordHashes",
     "insertRecordOwner",
+    "revokeRecordOwner",
     "insertRecordVersionInfo",
     "detachRecordVersionHash",
     "timestampRecordVersionHashes",
@@ -402,6 +400,20 @@ describe("JsonRpc Module", () => {
             notBefore: 1042,
             notAfter: 1021201545,
           } as InsertRecordOwnerParam;
+          break;
+        }
+        case "revokeRecordOwner": {
+          recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [signer.address, blockNumber, firstHashValue]
+            )
+          );
+          param = {
+            from: signer.address,
+            recordId,
+            ownerId: "owner",
+          } as RevokeRecordOwnerParam;
           break;
         }
         case "insertRecordVersionInfo": {
@@ -663,6 +675,15 @@ describe("JsonRpc Module", () => {
             notBefore: 1042,
             notAfter: 1021201545,
           } as InsertRecordOwnerParam;
+          break;
+        }
+        case "revokeRecordOwner": {
+          param = {
+            from: signer.address,
+            recordId:
+              "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
+            ownerId: "owner",
+          } as RevokeRecordOwnerParam;
           break;
         }
         case "insertRecordVersionInfo": {
@@ -993,7 +1014,7 @@ describe("JsonRpc Module", () => {
           } as unknown) as AppendRecordVersionHashesParam;
 
           expectedErrorMessage1 =
-            "property params[0].versionId has failed the following constraints: isInt";
+            "property params[0].versionId has failed the following constraints: min, isInt";
 
           param2 = ({
             from: signer.address,
@@ -1065,6 +1086,35 @@ describe("JsonRpc Module", () => {
             notBefore: 1,
             notAfter: 12,
           } as unknown) as InsertRecordOwnerParam;
+
+          expectedErrorMessage3 =
+            "property params[0].recordId has failed the following constraints: isHexadecimal";
+          break;
+        }
+        case "revokeRecordOwner": {
+          param1 = ({
+            from: signer.address,
+            recordId:
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+            ownerId: 0,
+          } as unknown) as RevokeRecordOwnerParam;
+
+          expectedErrorMessage1 =
+            "property params[0].ownerId has failed the following constraints: isString";
+
+          param2 = ({
+            from: signer.address,
+            recordId:
+              "0x1234567890123456789012345678901234567890123456789012345678901234",
+          } as unknown) as RevokeRecordOwnerParam;
+
+          expectedErrorMessage2 =
+            "property params[0].ownerId has failed the following constraints: isString";
+
+          param3 = ({
+            from: signer.address,
+            ownerId: "owner",
+          } as unknown) as RevokeRecordOwnerParam;
 
           expectedErrorMessage3 =
             "property params[0].recordId has failed the following constraints: isHexadecimal";
@@ -1404,6 +1454,21 @@ describe("JsonRpc Module", () => {
             notBefore: 1042,
             notAfter: 1021201545,
           } as InsertRecordOwnerParam;
+
+          break;
+        }
+        case "revokeRecordOwner": {
+          param1 = {
+            from: signer.address,
+            recordId: firstHashValue,
+            ownerId: "owner",
+          } as RevokeRecordOwnerParam;
+
+          param2 = {
+            from: signer.address,
+            recordId: firstHashValue,
+            ownerId: "ownerchanged",
+          } as RevokeRecordOwnerParam;
 
           break;
         }

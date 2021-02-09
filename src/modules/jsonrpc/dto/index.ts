@@ -7,5 +7,6 @@ export * from "./timestampRecordHashes";
 export * from "./timestampRecordVersionHashes";
 export * from "./appendRecordVersionHashes";
 export * from "./detachRecordVersionHash";
+export * from "./revokeRecordOwner";
 export * from "./insertRecordOwner";
 export * from "./insertRecordVersionInfo";

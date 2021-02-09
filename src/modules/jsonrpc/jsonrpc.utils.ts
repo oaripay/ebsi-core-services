@@ -18,6 +18,8 @@ import {
   ArgsDetachRecordVersionHash,
   ArgsInsertRecordOwner,
   RequestInsertRecordOwnerDto,
+  ArgsRevokeRecordOwner,
+  RequestRevokeRecordOwnerDto,
   ArgsInsertRecordVersionInfo,
   RequestInsertRecordVersionInfoDto,
 } from "./dto";
@@ -60,12 +62,14 @@ type JsonRpcDtos =
   | RequestAppendRecordVersionHashesDto
   | RequestDetachRecordVersionHashDto
   | RequestInsertRecordOwnerDto
+  | RequestRevokeRecordOwnerDto
   | RequestInsertRecordVersionInfoDto
   | ArgsInsertHashAlgorithm
   | ArgsUpdateHashAlgorithm
   | ArgsTimestampHashes
   | ArgsDetachRecordVersionHash
   | ArgsInsertRecordOwner
+  | ArgsRevokeRecordOwner
   | ArgsTimestampRecordHashes
   | ArgsInsertRecordVersionInfo;
 

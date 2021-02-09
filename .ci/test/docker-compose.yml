@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   timestamp-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api:test_ebsiint-2561-get-hash-algos_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api:test_ebsiint-2556-revoke-record-owner_v2.0.0
     build: ../..

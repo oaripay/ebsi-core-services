@@ -13,6 +13,7 @@ import {
   RequestAppendRecordVersionHashesDto,
   RequestDetachRecordVersionHashDto,
   RequestInsertRecordOwnerDto,
+  RequestRevokeRecordOwnerDto,
   RequestInsertRecordVersionInfoDto,
 } from "./dto";
 
@@ -70,6 +71,13 @@ export default class AppController {
       case "appendRecordVersionHashes": {
         const result = await this.jsonRpcService.buildTransactionAppendRecordVersionHashes(
           body as RequestAppendRecordVersionHashesDto,
+          id
+        );
+        return jsonRpcResponse(result, id);
+      }
+      case "revokeRecordOwner": {
+        const result = await this.jsonRpcService.buildTransactionRevokeRecordOwner(
+          body as RequestRevokeRecordOwnerDto,
           id
         );
         return jsonRpcResponse(result, id);

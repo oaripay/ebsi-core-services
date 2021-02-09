@@ -24,6 +24,7 @@ import {
   DetachRecordVersionHashParam,
   InsertRecordOwnerParam,
   InsertRecordVersionInfoParam,
+  RevokeRecordOwnerParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
@@ -40,6 +41,7 @@ type JsonRpcParams =
   | TimestampRecordVersionHashesParam
   | AppendRecordVersionHashesParam
   | DetachRecordVersionHashParam
+  | RevokeRecordOwnerParam
   | InsertRecordOwnerParam
   | InsertRecordVersionInfoParam;
 
@@ -145,6 +147,7 @@ describe("Records (e2e)", () => {
     "timestampRecordHashes",
     "timestampRecordVersionHashes",
     "insertRecordOwner",
+    "revokeRecordOwner",
     "insertRecordVersionInfo",
     "detachRecordVersionHash",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
@@ -206,6 +209,20 @@ describe("Records (e2e)", () => {
             notBefore,
             notAfter: notBefore + 1000000,
           } as InsertRecordOwnerParam;
+          break;
+        }
+        case "revokeRecordOwner": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [adminTestWallet.address, blockNumber, firstHashValue]
+            )
+          );
+          param = {
+            from: adminTestWallet.address,
+            recordId,
+            ownerId: "myownerid",
+          } as RevokeRecordOwnerParam;
           break;
         }
         case "insertRecordVersionInfo": {

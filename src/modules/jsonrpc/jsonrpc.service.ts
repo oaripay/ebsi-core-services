@@ -1,7 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { ethers } from "ethers";
-import { Agent, Scope } from "@cef-ebsi/app-jwt";
 import { ConfigService } from "@nestjs/config";
 import {
   ArgsInsertHashAlgorithm,
@@ -19,18 +18,16 @@ import {
   RequestAppendRecordVersionHashesDto,
   RequestDetachRecordVersionHashDto,
   RequestInsertRecordOwnerDto,
+  RequestRevokeRecordOwnerDto,
   RequestInsertRecordVersionInfoDto,
   SignedTransactionParam,
   UnsignedTransaction,
   ArgsInsertRecordOwner,
+  ArgsRevokeRecordOwner,
   ArgsTimestampRecordVersionHashes,
   ArgsAppendRecordVersionHashes,
 } from "./dto";
-import {
-  AxiosResponseSessions,
-  AxiosResponseJsonRpc,
-  AxiosErrorResponse,
-} from "./jsonrpc.interface";
+import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
 import {
   formatEthersUnsignedTransaction,
@@ -64,51 +61,6 @@ export class JsonRpcService {
     this.tarContract = this.ledgerService.getTarContract();
   }
 
-  async createSession(): Promise<void> {
-    const agent = new Agent(
-      Scope.COMPONENT,
-      this.configService.get<string>("apiPrivateKey"),
-      {
-        issuer: "timestamp",
-      }
-    );
-    const requestToken = (await agent.createRequestPayload(
-      "ebsi-ledger"
-    )) as string;
-    const url = `${this.configService.get<string>("ledger")}/sessions`;
-    try {
-      const response: AxiosResponseSessions = await axios.post(
-        url,
-        requestToken
-      );
-      this.accessToken = response.data.accessToken;
-      this.expAccessToken =
-        Number(response.data.issuedAt) + Number(response.data.expiresIn);
-    } catch (error) {
-      this.logger.error("Error creating new session with ledger api");
-      if ((error as AxiosErrorResponse).response) {
-        this.logger.error((error as AxiosErrorResponse).response.data);
-      }
-      this.logger.error((error as Error).message);
-      this.logger.error((error as Error).stack);
-      throw new Error(
-        "Error checking session: A new session with ledger api could not be established"
-      );
-    }
-  }
-
-  isAccessTokenExpired(): boolean {
-    return (
-      !this.accessToken ||
-      !this.expAccessToken ||
-      Date.now() > this.expAccessToken * 1000
-    );
-  }
-
-  async checkSession(): Promise<void> {
-    if (this.isAccessTokenExpired()) await this.createSession();
-  }
-
   async getChainId(): Promise<string> {
     if (!this.chainId) {
       const { chainId } = await this.timestampContract.provider.getNetwork();
@@ -122,7 +74,6 @@ export class JsonRpcService {
   }
 
   async callBesuAuth(method: string, params: unknown[]): Promise<unknown> {
-    await this.checkSession();
     const url = `${this.configService.get<string>("ledger")}/blockchains/besu`;
     const data = { jsonrpc: "2.0", method, params, id: 1 };
     const opts = {
@@ -304,6 +255,13 @@ export class JsonRpcService {
         );
         break;
       }
+      case "revokeRecordOwner": {
+        await validateClass(
+          ArgsRevokeRecordOwner,
+          (args as unknown) as ArgsRevokeRecordOwner
+        );
+        break;
+      }
       case "insertRecordVersionInfo": {
         await validateClass(
           ArgsInsertRecordVersionInfo,
@@ -458,6 +416,27 @@ export class JsonRpcService {
       const data = this.timestampContract.interface.encodeFunctionData(
         "insertRecordOwner",
         [recordId, ownerId, notBefore, notAfter]
+      );
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionRevokeRecordOwner(
+    body: RequestRevokeRecordOwnerDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestRevokeRecordOwnerDto, body);
+
+      const { from, recordId, ownerId } = body.params[0];
+
+      const data = this.timestampContract.interface.encodeFunctionData(
+        "revokeRecordOwner",
+        [recordId, ownerId]
       );
       return await this.buildTransaction(from, data);
     } catch (err) {

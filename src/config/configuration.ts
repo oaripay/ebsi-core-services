@@ -21,25 +21,25 @@ const defaultConfig = {
   local: {
     LOG_LEVEL: "debug",
     DOMAIN: "https://api.test.intebsi.xyz",
-    LEDGER: "https://api.test.intebsi.xyz/ledger/v1",
+    LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
     HEALTH_CHECK: `https://api.test.intebsi.xyz/docs/`,
   },
   test: {
     LOG_LEVEL: "info",
-    DOMAIN: "https://api.intebsi.xyz",
-    LEDGER: "https://api.intebsi.xyz/ledger/v1",
-    HEALTH_CHECK: `https://api.intebsi.xyz/docs/`,
+    DOMAIN: "https://api.test.intebsi.xyz",
+    LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
+    HEALTH_CHECK: `https://api.test.intebsi.xyz/docs/`,
   },
   pilot: {
     LOG_LEVEL: "warn",
     DOMAIN: "https://api.pilot.ebsi.xyz",
-    LEDGER: "https://api.pilot.ebsi.xyz/ledger/v1",
+    LEDGER: "https://api.pilot.ebsi.xyz/ledger/v2",
     HEALTH_CHECK: `https://api.pilot.ebsi.xyz/docs/`,
   },
   prod: {
     LOG_LEVEL: "error",
     DOMAIN: "https://api.prod.ebsi.xyz",
-    LEDGER: "https://api.prod.ebsi.xyz/ledger/v1",
+    LEDGER: "https://api.prod.ebsi.xyz/ledger/v2",
     HEALTH_CHECK: `https://api.prod.ebsi.xyz/docs/`,
   },
 };

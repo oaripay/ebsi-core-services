@@ -19,7 +19,7 @@ export const waitToBeMined = async (
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     const responseReceipt: SupertestJsonRpcResponse = await request(domain)
-      .post("/ledger/v1/blockchains/besu")
+      .post("/ledger/v2/blockchains/besu")
       .send({
         jsonrpc: "2.0",
         method: "eth_getTransactionReceipt",
