@@ -580,7 +580,7 @@ describe("trusted application registry", () => {
       );
     });
     it("should update sucessfully", async () => {
-      expect.assertions(4);
+      expect.assertions(6);
       const name = "Ledger API";
       const domain = 1;
       const appAdministrator =
@@ -636,6 +636,13 @@ describe("trusted application registry", () => {
       });
       expect(updatedApp.name).toStrictEqual(newName);
       expect(updatedApp.domain.eq(new BN(0))).toBe(true);
+
+      const updatedAppName = await implV0.getAppByName(newName, {
+        from: acc1,
+      });
+      expect(updatedAppName.applicationId).toStrictEqual(publicKeyId);
+      expect(updatedAppName.domain.eq(new BN(0))).toBe(true);
+
       expectEvent(receiptUpdate, "ApplicationUpdated", {
         newName: web3.utils.keccak256(newName),
         oldName: web3.utils.keccak256(name),

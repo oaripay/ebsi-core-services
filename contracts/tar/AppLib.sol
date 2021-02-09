@@ -452,6 +452,7 @@ library AppLib {
         apps.appStore[applicationId].domain = domain;
         string memory oldName = apps.appStore[applicationId].applicationName;
         apps.appStore[applicationId].applicationName = name;
+        apps.nameToId[name] = apps.nameToId[oldName];
         emit ApplicationUpdated(
             applicationId,
             oldName,
