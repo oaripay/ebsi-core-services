@@ -25,9 +25,8 @@ import {
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { TimestampLink } from "../../src/modules/timestamps/timestamps.interface";
 import { ApiConfig } from "../../src/config/configuration";
-import { prefixWith0x } from "../../src/shared/utils";
+import { prefixWith0x, multibase64Encode } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
-import { multibase64Encode } from "../../src/modules/timestamps/timestamps.utils";
 
 interface SupertestJsonRpcResponse {
   status: number;

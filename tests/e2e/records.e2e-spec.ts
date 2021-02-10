@@ -27,9 +27,12 @@ import {
   RevokeRecordOwnerParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { RecordLink } from "../../src/modules/records/records.interface";
+import {
+  InfoObject,
+  RecordLink,
+} from "../../src/modules/records/records.interface";
 import { ApiConfig } from "../../src/config/configuration";
-import { prefixWith0x } from "../../src/shared/utils";
+import { prefixWith0x, multibase64Encode } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 
 interface SupertestJsonRpcResponse {
@@ -129,7 +132,9 @@ describe("Records (e2e)", () => {
     it("should throw an error if the record is not found", async () => {
       expect.assertions(2);
 
-      const recordId = `0x${crypto.randomBytes(32).toString("hex")}`;
+      const recordId = multibase64Encode(
+        `0x${crypto.randomBytes(32).toString("hex")}`
+      );
 
       const response = await request(server).get(`/records/${recordId}`);
 
@@ -140,6 +145,75 @@ describe("Records (e2e)", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe("GET /records/{recordId}/versions", () => {
+    const getFirstRecordId = async () => {
+      const respRecords = await request(server).get("/records");
+      const { recordId } = (respRecords.body as {
+        items: RecordLink[];
+      }).items[0];
+      return recordId;
+    };
+
+    it("should return a paginated collection of versions", async () => {
+      expect.assertions(2);
+
+      const recordId = await getFirstRecordId();
+
+      const response = await request(server).get(
+        `/records/${recordId}/versions`
+      );
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/records/${recordId}/versions?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=`
+          ) as string,
+          last: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=`
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /records/{recordId}/versions/{versionId}", () => {
+    const getFirstRecordId = async () => {
+      const respRecords = await request(server).get("/records");
+      const { recordId } = (respRecords.body as {
+        items: RecordLink[];
+      }).items[0];
+      return recordId;
+    };
+
+    it("should return a specific version", async () => {
+      expect.assertions(2);
+
+      const recordId = await getFirstRecordId();
+
+      const response = await request(server).get(
+        `/records/${recordId}/versions/0`
+      );
+
+      expect(response.body).toStrictEqual({
+        hashes: expect.arrayContaining([]) as string[],
+        info: expect.arrayContaining([]) as InfoObject[],
+      });
+      expect(response.status).toBe(200);
     });
   });
 

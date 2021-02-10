@@ -10,3 +10,17 @@ export interface RecordResponseObject {
   lastVersionTimestamps: string[];
   totalVersions: number;
 }
+
+export interface VersionLink {
+  versionId: number;
+  href: string;
+}
+
+export interface InfoObject {
+  [x: string]: unknown;
+}
+
+export interface RecordVersionResponseObject {
+  hashes: string[];
+  info: InfoObject[];
+}

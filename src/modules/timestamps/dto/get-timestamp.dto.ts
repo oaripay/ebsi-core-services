@@ -1,4 +1,4 @@
-import { IsMultibase64urlEncoded } from "../validators";
+import { IsMultibase64urlEncoded } from "../../../shared/validators";
 
 export class GetTimestampDto {
   @IsMultibase64urlEncoded()

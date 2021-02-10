@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
-import { formatRecords } from "./records.formatter";
+import { formatRecords, formatRecordVersions } from "./records.formatter";
+import { multibase64Encode } from "../../shared/utils";
 import { Timestamp } from "../../contracts/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
@@ -23,12 +24,12 @@ describe("formatRecords", () => {
     ).toStrictEqual({
       items: [
         {
-          recordId: "0x123",
-          href: "/0x123",
+          recordId: multibase64Encode("0x123"),
+          href: `/${multibase64Encode("0x123")}`,
         },
         {
-          recordId: "0x345",
-          href: "/0x345",
+          recordId: multibase64Encode("0x345"),
+          href: `/${multibase64Encode("0x345")}`,
         },
       ],
       links: {
@@ -40,6 +41,41 @@ describe("formatRecords", () => {
       pageSize,
       self: `?page[after]=${page}&page[size]=${pageSize}?test=true`,
       total: 42,
+    });
+  });
+});
+
+describe("formatRecordVersions", () => {
+  const totalVersions = 20;
+
+  it("should format record versions", () => {
+    expect.assertions(1);
+
+    const page = 3;
+    const pageSize = 2;
+
+    expect(
+      formatRecordVersions(totalVersions, page, pageSize, "", "?test=true")
+    ).toStrictEqual({
+      items: [
+        {
+          versionId: 4,
+          href: "/4",
+        },
+        {
+          versionId: 5,
+          href: "/5",
+        },
+      ],
+      links: {
+        first: `?page[after]=1&page[size]=${pageSize}?test=true`,
+        last: `?page[after]=10&page[size]=${pageSize}?test=true`,
+        next: `?page[after]=${page + 1}&page[size]=${pageSize}?test=true`,
+        prev: `?page[after]=${page - 1}&page[size]=${pageSize}?test=true`,
+      },
+      pageSize,
+      self: `?page[after]=${page}&page[size]=${pageSize}?test=true`,
+      total: totalVersions,
     });
   });
 });

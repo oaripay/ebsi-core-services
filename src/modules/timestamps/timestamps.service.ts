@@ -6,7 +6,7 @@ import LedgerService from "../../shared/services/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { Timestamp } from "../../contracts/timestamp";
 import { TimestampResponseObject } from "./timestamps.interface";
-import { multibase64Decode, multihashEncode } from "./timestamps.utils";
+import { multibase64Decode, multihashEncode } from "../../shared/utils";
 
 @Injectable()
 export default class TimestampsService {

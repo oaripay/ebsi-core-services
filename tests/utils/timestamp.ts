@@ -130,7 +130,10 @@ export async function insertRecord(
   const timestampData = Array(3)
     .fill(0)
     .map(() => `0x${crypto.randomBytes(4).toString("hex")}`);
-  const versionInfo = `0x${crypto.randomBytes(10).toString("hex")}`;
+  const versionInfo = `0x${Buffer.from(
+    JSON.stringify({ test: "my test" }),
+    "utf8"
+  ).toString("hex")}`;
   await contract.timestampRecordHashes(
     hashAlgorithmIds,
     hashValues,

@@ -1,7 +1,6 @@
-import { IsHexadecimal, Length } from "class-validator";
+import { IsMultibase64urlEncoded } from "../../../shared/validators";
 
 export default class GetRecordDto {
-  @IsHexadecimal()
-  @Length(66, 66)
+  @IsMultibase64urlEncoded()
   recordId: string;
 }

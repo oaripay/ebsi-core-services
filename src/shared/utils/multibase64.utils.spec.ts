@@ -2,7 +2,7 @@ import {
   multibase64Decode,
   multibase64Encode,
   multihashEncode,
-} from "./timestamps.utils";
+} from "./multibase64.utils";
 
 describe("multibase64Encode", () => {
   it("should produce the expected result", () => {

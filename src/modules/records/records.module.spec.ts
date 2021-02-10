@@ -13,7 +13,6 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { RecordsModule } from "./records.module";
-import { RecordLink } from "./records.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Tar } from "../../contracts/trusted-apps-registry/Tar";
 import { Tar__factory } from "../../contracts/trusted-apps-registry/factories/Tar__factory";
@@ -21,6 +20,8 @@ import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
 import { setupTestEnvTar } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { InfoObject, RecordLink } from "./records.interface";
+import { multibase64Encode } from "../../shared/utils";
 
 jest.setTimeout(90000);
 
@@ -285,7 +286,8 @@ describe("Records Module", () => {
     it("should throw an error if the record is not found", async () => {
       expect.assertions(2);
 
-      const recordId = `0x${crypto.randomBytes(32).toString("hex")}`;
+      const recordIdDecoded = `0x${crypto.randomBytes(32).toString("hex")}`;
+      const recordId = multibase64Encode(recordIdDecoded);
 
       const response = await request(server).get(`/records/${recordId}`);
 
@@ -293,6 +295,248 @@ describe("Records Module", () => {
         title: "Record Not Found",
         status: 404,
         detail: `Record ${recordId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw an error if the record id is not a valid multibase64url value", async () => {
+      expect.assertions(2);
+
+      const recordId = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      const response = await request(server).get(`/records/${recordId}`);
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["recordId must be multi-base64url encoded"]',
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+  });
+
+  describe("GET /records/{recordId}/versions", () => {
+    const getFirstRecordId = async () => {
+      const respRecords = await request(server).get("/records");
+      const { recordId } = (respRecords.body as {
+        items: RecordLink[];
+      }).items[0];
+      return recordId;
+    };
+
+    it("should return a paginated collection of versions", async () => {
+      expect.assertions(3);
+
+      const recordId = await getFirstRecordId();
+
+      const response = await request(server).get(
+        `/records/${recordId}/versions`
+      );
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/records/${recordId}/versions?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 1,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect((response.body as { items: string[] }).items).toHaveLength(1);
+      expect(response.status).toBe(200);
+    });
+
+    it("should handle the pagination properly", async () => {
+      expect.assertions(12);
+
+      const recordId = await getFirstRecordId();
+
+      const response1 = await request(server).get(
+        `/records/${recordId}/versions?page[size]=2`
+      );
+      expect(response1.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/records/${recordId}/versions?page[after]=1&page[size]=2`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 1,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+          ) as string,
+          prev: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+          ) as string,
+          next: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+          ) as string,
+          last: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+          ) as string,
+        },
+      });
+      expect((response1.body as { items: string }).items).toHaveLength(1);
+      expect(response1.status).toBe(200);
+
+      // next page
+      const response2 = await request(server).get(
+        `/records/${recordId}/versions?page[after]=2&page[size]=2`
+      );
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/records/${recordId}/versions?page[after]=2&page[size]=2`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 1,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+          ) as string,
+          prev: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+          ) as string,
+          next: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+          ) as string,
+          last: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+          ) as string,
+        },
+      });
+      expect((response2.body as { items: string }).items).toHaveLength(0);
+      expect(response2.status).toBe(200);
+
+      // big page
+      const response3 = await request(server).get(
+        `/records/${recordId}/versions?page[after]=100&page[size]=2`
+      );
+      expect(response3.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/records/${recordId}/versions?page[after]=100&page[size]=2`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 1,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+          ) as string,
+          prev: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+          ) as string,
+          next: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+          ) as string,
+          last: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+          ) as string,
+        },
+      });
+      expect((response3.body as { items: string }).items).toHaveLength(0);
+      expect(response3.status).toBe(200);
+
+      // page["after"] defined but page["size"] undefined
+      const response4 = await request(server).get(
+        `/records/${recordId}/versions?page[after]=1`
+      );
+      expect(response4.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/records/${recordId}/versions?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 1,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect((response4.body as { items: string }).items).toHaveLength(1);
+      expect(response4.status).toBe(200);
+    });
+  });
+
+  describe("GET /records/{recordId}/versions/{versionId}", () => {
+    const getFirstRecordId = async () => {
+      const respRecords = await request(server).get("/records");
+      const { recordId } = (respRecords.body as {
+        items: RecordLink[];
+      }).items[0];
+      return recordId;
+    };
+
+    it("should return a specific version", async () => {
+      expect.assertions(2);
+
+      const recordId = await getFirstRecordId();
+
+      const response = await request(server).get(
+        `/records/${recordId}/versions/0`
+      );
+
+      expect(response.body).toStrictEqual({
+        hashes: expect.arrayContaining([]) as string[],
+        info: expect.arrayContaining([]) as InfoObject[],
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the version is not found", async () => {
+      expect.assertions(4);
+
+      const recordId = await getFirstRecordId();
+      const versionId = 800;
+
+      let response = await request(server).get(
+        `/records/${recordId}/versions/${versionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Version Not Found",
+        status: 404,
+        detail: `Version ${versionId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+
+      const randomRecordId = multibase64Encode(
+        `0x${crypto.randomBytes(32).toString("hex")}`
+      );
+
+      response = await request(server).get(
+        `/records/${randomRecordId}/versions/${versionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Version Not Found",
+        status: 404,
+        detail: `Version ${versionId} not found`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);

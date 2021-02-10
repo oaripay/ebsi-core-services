@@ -23,7 +23,7 @@ import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
 import { setupTestEnvTar } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { multibase64Encode, multihashEncode } from "./timestamps.utils";
+import { multibase64Encode, multihashEncode } from "../../shared/utils";
 
 jest.setTimeout(90000);
 

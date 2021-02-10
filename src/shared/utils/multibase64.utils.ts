@@ -1,6 +1,6 @@
 import multibase from "multibase";
 import multihash from "multihashes";
-import { remove0xPrefix } from "../../shared/utils";
+import { remove0xPrefix } from "./strings.utils";
 
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder();

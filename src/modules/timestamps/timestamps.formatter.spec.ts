@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { formatTimestamps } from "./timestamps.formatter";
-import { multibase64Encode } from "./timestamps.utils";
+import { multibase64Encode } from "../../shared/utils";
 import { Timestamp } from "../../contracts/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 

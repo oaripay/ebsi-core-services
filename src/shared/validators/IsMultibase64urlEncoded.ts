@@ -1,5 +1,5 @@
 import { ValidateBy, ValidationOptions, buildMessage } from "class-validator";
-import { multibase64Decode } from "../timestamps.utils";
+import { multibase64Decode } from "../utils/multibase64.utils";
 
 export const IS_MULTIBASE64URL_ENCODED = "isMultibase64urlEncoded";
 

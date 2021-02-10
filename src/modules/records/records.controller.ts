@@ -1,14 +1,21 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import RecordsService from "./records.service";
-import { formatRecords } from "./records.formatter";
-import { RecordLink, RecordResponseObject } from "./records.interface";
+import { formatRecords, formatRecordVersions } from "./records.formatter";
+import {
+  RecordLink,
+  RecordResponseObject,
+  RecordVersionResponseObject,
+  VersionLink,
+} from "./records.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 import { Timestamp } from "../../contracts/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import GetRecordsDto from "./dto/get-records.dto";
 import GetRecordDto from "./dto/get-record.dto";
+import GetRecordVersionsDto from "./dto/get-record-versions.dto";
+import GetRecordVersionDto from "./dto/get-record-version.dto";
 
 @Controller("/records")
 export default class RecordsController {
@@ -57,5 +64,33 @@ export default class RecordsController {
   ): Promise<RecordResponseObject> {
     const { recordId } = params;
     return this.recordsService.getRecord(recordId);
+  }
+
+  @Get("/:recordId/versions")
+  async getRecordVersions(
+    @Param() params: GetRecordDto,
+    @Query() query: GetRecordVersionsDto
+  ): Promise<PaginatedList<VersionLink>> {
+    const { recordId } = params;
+    const totalVersions = await this.recordsService.getRecordVersions(recordId);
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/records/${recordId}/versions`;
+
+    return formatRecordVersions(
+      totalVersions,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl
+    );
+  }
+
+  @Get("/:recordId/versions/:versionId")
+  async getRecordVersion(
+    @Param() params: GetRecordVersionDto
+  ): Promise<RecordVersionResponseObject> {
+    const { recordId, versionId } = params;
+    return this.recordsService.getRecordVersion(recordId, versionId);
   }
 }

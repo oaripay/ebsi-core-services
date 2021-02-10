@@ -315,6 +315,338 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  "/timestamp/v2/records":
+    get:
+      tags:
+        - Timestamp API
+      operationId: get-timestamp-v2-records
+      summary: List of records
+      description: Returns a list of records
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to records
+                  items:
+                    type: array
+                    description: List of records
+                    items:
+                      type: object
+                      properties:
+                        recordId:
+                          type: string
+                          description: ID of the record
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.test.ebsi.xyz/timestamp/v2/records?page[after]=3&page[size]=2
+                    items:
+                      - recordId: "0x123456"
+                        href: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456
+                      - recordId: "0x987654"
+                        href: https://api.test.ebsi.xyz/timestamp/v2/records/0x987654
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.test.ebsi.xyz/timestamp/v2/records?page[after]=1&page[size]=2
+                      prev: https://api.test.ebsi.xyz/timestamp/v2/records?page[after]=2&page[size]=2
+                      next: https://api.test.ebsi.xyz/timestamp/v2/records?page[after]=4&page[size]=2
+                      last: https://api.test.ebsi.xyz/timestamp/v2/records?page[after]=62&page[size]=2
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  "/timestamp/v2/records/{recordId}":
+    get:
+      tags:
+        - Timestamp API
+      operationId: get-timestamp-v2-records-record-id
+      summary: Get record by its ID
+      description: Returns a record by its ID
+      parameters:
+        - in: path
+          name: recordId
+          schema:
+            type: string
+          description: Record ID
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Record"
+              examples:
+                Success:
+                  value:
+                    ownerIds:
+                      - "0x62165ec5d61..."
+                      - "0x654dv561165..."
+                      - "0x56e87f15a16..."
+                    revokedOnwerIds:
+                      - "0xa1565165ef1..."
+                    firstVersionTimestamps:
+                      - "0x1659411f..."
+                    lastVersionTimestamps:
+                      - "0x984651fa..."
+                    totalVersions: 4
+        "400":
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {versionId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {versionId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Hash algortihm Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  "/timestamp/v2/records/{recordId}/versions":
+    get:
+      tags:
+        - Timestamp API
+      operationId: get-timestamp-v2-records-record-id-versions
+      summary: List of record versions
+      description: Returns a list of record versions
+      parameters:
+        - in: path
+          name: recordId
+          schema:
+            type: string
+          description: Record ID
+          required: true
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to versions
+                  items:
+                    type: array
+                    description: List of versions
+                    items:
+                      type: object
+                      properties:
+                        versionId:
+                          type: number
+                          description: ID of the version
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions?page[after]=3&page[size]=2
+                    items:
+                      - versionId: 0
+                        href: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions/0
+                      - versionId: 1
+                        href: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions/1
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions?page[after]=1&page[size]=2
+                      prev: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions?page[after]=2&page[size]=2
+                      next: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions?page[after]=4&page[size]=2
+                      last: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions?page[after]=62&page[size]=2
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  "/timestamp/v2/records/{recordId}/versions/{versionId}":
+    get:
+      tags:
+        - Timestamp API
+      operationId: get-timestamp-v2-records-record-id-versions-version-id
+      summary: Get version its ID
+      description: Returns a version by its ID
+      parameters:
+        - in: path
+          name: recordId
+          schema:
+            type: string
+          description: Record ID
+          required: true
+        - in: path
+          name: versionId
+          schema:
+            type: string
+          example: "0"
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Version"
+              examples:
+                Success:
+                  value:
+                    hashes:
+                      - "0x62165ec5d61..."
+                      - "0x654dv561165..."
+                      - "0x56e87f15a16..."
+                    info:
+                      - {
+                          "@context": "https://json-ld.org/contexts/person.jsonld",
+                          "@id": "http://dbpedia.org/resource/John_Lennon",
+                          "name": "John Lennon",
+                          "born": "1940-10-09",
+                          "spouse": "http://dbpedia.org/resource/Cynthia_Lennon",
+                        }
+                      - {
+                          "@context": "https://json-ld.org/contexts/person.jsonld",
+                          "@id": "http://dbpedia.org/resource/John_Lennon",
+                          "name": "John Lennon",
+                          "born": "1940-10-09",
+                          "spouse": "http://dbpedia.org/resource/Cynthia_Lennon",
+                        }
+        "400":
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {versionId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {versionId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Hash algortihm Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /timestamp/v2/jsonrpc:
     post:
       operationId: post-timestamp-v2-jsonrpc
@@ -617,6 +949,47 @@ components:
         status:
           type: string
           description: Status of the algorithm (active, revoked).
+    Record:
+      title: Record
+      type: object
+      properties:
+        ownerIds:
+          description: A list of record owners/controllers
+          type: array
+          items:
+            type: string
+        revokedOnwerIds:
+          description: A list of revoked owners/controllers
+          type: array
+          items:
+            type: string
+        firstVersionTimestamps:
+          description: A list of the first version timestamps
+          type: array
+          items:
+            type: string
+        lastVersionTimestamps:
+          description: A list of the last version timestamps
+          type: array
+          items:
+            type: string
+        totalVersions:
+          description: A total number of versions
+          type: number
+    Version:
+      title: Version
+      type: object
+      properties:
+        hashes:
+          type: array
+          items:
+            type: string
+          description: A list of timestamped version hashes
+        info:
+          type: array
+          items:
+            type: object
+          description: A list of info objects (should be JSON-LD)
     Timestamp:
       title: Timestamp information
       type: object

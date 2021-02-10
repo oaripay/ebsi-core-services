@@ -1,7 +1,6 @@
 import { TimestampLink } from "./timestamps.interface";
-import { multibase64Encode } from "./timestamps.utils";
 import { PaginatedList } from "../../shared/interfaces";
-import { paginate } from "../../shared/utils";
+import { paginate, multibase64Encode } from "../../shared/utils";
 import { Timestamp } from "../../contracts/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
