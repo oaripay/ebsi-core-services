@@ -3,26 +3,38 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
-               sh 'yarn install --frozen-lockfile'
-            }
-        }
-        stage('Audit dependencies') {
-            steps {
-                sh 'yarn run audit'
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn install --frozen-lockfile'
+                    sh 'yarn run audit'
+                }
             }
         }
         stage('Lint') {
             steps {
-                sh 'yarn lint'
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn lint'
+                }
             }
         }
-        stage('Unit test') {
+        stage('Unit tests') {
             environment {
-                EBSI_ENV="local"
                 API_PRIVATE_KEY=credentials('API_STORAGE_PRIVATE_KEY')
             }
             steps {
-                sh 'yarn run test:unit'
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn test:ci'
+                }
+            }
+        }
+        stage ('Lint Dockerfile') {
+            agent {
+                docker {
+                    image 'hadolint/hadolint:latest-debian'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh 'hadolint Dockerfile'
             }
         }
         stage('SonarQube Analysis') {
@@ -41,6 +53,9 @@ pipeline {
     post {
         always {
             cleanWs()
+            dir("${env.WORKSPACE}@script") {
+                deleteDir()
+            }
         }
     }
 }

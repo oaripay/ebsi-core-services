@@ -1,6 +1,0 @@
-version: "3.7"
-
-services:
-  storage-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/storage-api:development_ebsiint-2593-set-test-env_v1.0.0
-    build: ../..

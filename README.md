@@ -2,41 +2,38 @@
 
 # Storage API
 
-Storage API is a Core Service of the EBSI platform providing access to the Off-chain Storage services of the lower layer Chain & Storage. This API provides read and write storage capabilities of files, Key-Value, and notifications (notifications only for wallet).
+The Storage API is a GENERIC supporting Core Service of the EBSI platform providing access to the Off-chain Storage services of the lower layer Chain & Storage, but will limit in terms of storage capacity, as EBSI Project doesn't have the vocation of being a storage cloud provider.
 
-File Storage API provides read and write files capabilities to off-chain distributed storage in v1 and, in the future, to off-chain private (local) storage and off-chain external storage trusted providers.
+This API provides read and write storage capabilities of files and Key-Value for multiple storage systems:
 
-- Data stored: uuid, filename, hash, binary data (max size 16MB)
+- File Storage API: provides CRUD operations for files in the off-chain distributed storage.
+- Key-Value Storage API: provides CRUD operations for Key-Value (with data value in JSON format) in the off-chain distributed storage.
 
-Key-Value Storage API provides capabilities to save Key-Value (with data value in JSON format) in the off-chain distributed storage for v1.
+It also has a special JSON-RPC endpoint that serves as a proxy between Core APIs and the distributed storage. Only the Storage API has direct access to distributed storage infrastructure (Cassandra for v2.0).
 
-- Data stored: key (max size 256 bytes), value (max size 1MB)
+## Table of Contents
 
-Notification Storage API provides capabilities to store notifications in the off-chain distributed storage for v1. This API is used by the wallet in order to handle notifications.
+1. [Getting started](#getting-started)
+2. [Linting](#linting)
+3. [Auditing the dependencies](#auditing-the-dependencies)
+4. [Testing](#testing)
+5. [Load testing with k6](#load-testing-with-k6)
+6. [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
+7. [Cutting a new release](#cutting-a-new-release)
+8. [Troubleshooting](#troubleshooting)
+9. [License](#license)
 
-## Installation
+## Getting started
 
-Clone the repository and move to the project directory
+You can choose to run the project locally with your own Node.js environment, or you can use Docker Compose to run it.
 
-```sh
-git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/storage-api.git
-```
+First, create an `.env.local` file locally. You can duplicate the content of `.env` or only set the variables that you want to change.
 
-Create a .env file with the private key used in the API:
+Please note that you need to fill the `API_PRIVATE_KEY` and `ADMIN_TEST_PRIVATE_KEY` environment variable with secp256k1 elliptic curve private keys in hexadecimal.
 
-```
-API_PRIVATE_KEY=023e3d80808...
-```
+You must at least set `API_PRIVATE_KEY` and `EBSI_ENV` to run the API. For e2e testing, you must also set `ADMIN_TEST_PRIVATE_KEY`.
 
-This private key can be generated using ethers: https://docs.ethers.io/ethers.js/html/api-wallet.html or just taking a random string of 64 characters in hex format.
-
-Define the enviroment (local, integration, development, production):
-
-```
-EBSI_ENV=integration
-```
-
-Define consistency desired for read/write operations in cassandra (this api is not using lightweight transactions).
+You can also define consistency desired for read/write operations in cassandra (this API is not using lightweight transactions).
 
 ```
 CONSISTENCY=one
@@ -48,17 +45,47 @@ There are 10 possible values for consistency and serial consistency.
 - **one**. Returns a response from the closest replica, as determined by the snitch.
 - **two**. Returns the most recent data from two of the closest replicas.
 - **three**. Returns the most recent data from three of the closest replicas.
-- **quorum**. Reading: Returns the record with the most recent timestamp after a quorum of replicas has responded regardless of data center. Writing: A write must be written to the commit log and memory table on a quorum of replica nodes.
-- **all**. Reading: Returns the record with the most recent timestamp after all replicas have responded. The read operation will fail if a replica does not respond. Writing: A write must be written to the commit log and memory table on all replica nodes in the cluster for that row.
-- **localQuorum**. Reading: Returns the record with the most recent timestamp once a quorum of replicas in the current data center as the coordinator node has reported. Writing: A write must be written to the commit log and memory table on a quorum of replica nodes in the same data center as the coordinator node. Avoids latency of inter-data center communication.
+- **quorum**. Reading: Returns the record with the most recent storage after a quorum of replicas has responded regardless of data center. Writing: A write must be written to the commit log and memory table on a quorum of replica nodes.
+- **all**. Reading: Returns the record with the most recent storage after all replicas have responded. The read operation will fail if a replica does not respond. Writing: A write must be written to the commit log and memory table on all replica nodes in the cluster for that row.
+- **localQuorum**. Reading: Returns the record with the most recent storage once a quorum of replicas in the current data center as the coordinator node has reported. Writing: A write must be written to the commit log and memory table on a quorum of replica nodes in the same data center as the coordinator node. Avoids latency of inter-data center communication.
 - **eachQuorum**. Reading: Returns the record once a quorum of replicas in each data center of the cluster has responded. Writing: Strong consistency. A write must be written to the commit log and memtable on a quorum of replica nodes in all data centers.
 - **localOne**. Similar to One but only within the DC the coordinator is in.
 
-For building, you can choose to build with Docker (recommended) or to build from source directly.
+### Run the project locally
 
-### Build with docker
+Install the required libraries and packages dependencies:
 
-Run:
+```sh
+yarn install
+```
+
+Run the development server:
+
+```sh
+yarn start
+```
+
+This command starts the web app at http://localhost:3000
+
+The development server can also be started in Live-reload mode with: `yarn start:dev`. Every time you make a change, the server will automatically restart after compiling the code.
+
+You can create a production build with:
+
+```sh
+yarn build
+```
+
+And then you can serve the production build with:
+
+```sh
+yarn start:prod
+```
+
+You can now open http://localhost:3000/storage/v2/health. If everything's working correctly, then you should see `"status":"ok"`.
+
+### Run with Docker
+
+After creating the `.env.local` file, run:
 
 ```sh
 docker-compose up --build
@@ -90,33 +117,93 @@ create keyspace ebsi_integration with replication = { 'class':'NetworkTopologySt
 
 The API connects with this keyspace and create the tables automatically.
 
-The API will be accesible at http://localhost:8080
+Check http://localhost:3000/storage/v2/health to see if it's working.
 
-### Build from source
+## Linting
 
-Install libraries and dependencies:
-
-```sh
-yarn install
-```
-
-Edit `./src/config.js` to define the connection with cassandra. By default it will try to access the container "cassandradb" or "localhost".
-
-Start the API:
+You can lint the files (ESLint, OpenAPI, tsc) and run Prettier with one command:
 
 ```sh
-yarn run start
+yarn lint
 ```
 
-The API will be accesible at http://localhost:8080
+Or you can run the different linters independently:
 
-## Tests
+### ESLint
 
-Tests for File Storage, Key Value Storage, and Notification Storage and their connection with Cassandra. Create an `.env` file using `.env.example` and update the corresponding values.
+```sh
+yarn lint:eslint
+```
 
-For e2e tests, TEST_APP_NAME and TEST_APP_PRIVATE_KEY need to be a valid app registered in the Trusted App Registry.
+or with yarn:
 
-Before launching the tests run cassandra using the docker in the tests folder:
+```sh
+yarn eslint . --ext .js,.ts
+```
+
+Run eslint and precommit rules:
+
+```sh
+.git/hooks/pre-commit
+```
+
+### OpenAPI
+
+```sh
+yarn lint:openapi
+```
+
+### Prettier
+
+```sh
+yarn lint:prettier
+```
+
+or with yarn:
+
+```sh
+yarn prettier . --check
+```
+
+### tsc
+
+```sh
+yarn lint:tsc
+```
+
+or with yarn:
+
+```sh
+yarn tsc --noEmit --incremental false
+```
+
+### Extra: lint Dockerfile
+
+You can run [hadolint](https://github.com/hadolint/hadolint) locally to lint your Dockerfile:
+
+```sh
+docker run --rm -i hadolint/hadolint < Dockerfile
+```
+
+## Auditing the dependencies
+
+Using [audit-ci](https://github.com/IBM/audit-ci) (this is the one we run during CI):
+
+```sh
+yarn run audit
+```
+
+Or using Yarn's built-in `audit`command, to get more information:
+
+```sh
+yarn audit
+```
+
+## Testing
+
+Reminder: you need to set `ADMIN_TEST_PRIVATE_KEY`, `TEST_APP_NAME` and `TEST_APP_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests! `TEST_APP_NAME` and `TEST_APP_PRIVATE_KEY` need to be a valid app registered in the Trusted Apps Registry.
+
+Before launching the e2e tests, make sure to run Cassandra using the docker-compose.yml in the tests folder:
 
 ```sh
 cd tests
@@ -141,28 +228,34 @@ And finally define the keyspace:
 create keyspace ebsi_integration with replication = {'class':'SimpleStrategy','replication_factor':1};
 ```
 
-Now, launch the unit tests and e2e tests:
+To run all the tests, type:
 
 ```sh
-yarn run test
+yarn test
 ```
 
-To connect with a local API for e2e testing, run:
+If you want to get the code coverage, use the `--coverage` parameter:
 
 ```sh
-EBSI_ENV=local EBSI_API=http://localhost:8080 yarn run test
+yarn test --coverage
 ```
 
-To run only unit tests (cassandra container is not necessary):
+Run the unit tests only (you don't need to start Cassandra for them):
 
 ```sh
-yarn run test:unit
+yarn test:unit
 ```
 
-To run only integration tests, launch cassandra and run:
+Run the end-to-end tests only:
 
 ```sh
-yarn run test:e2e
+yarn test:e2e
+```
+
+In CI environments, we use a dedicated command that runs unit tests and automatically generates the code coverage and report for SonarQube:
+
+```sh
+yarn test:ci
 ```
 
 ### Test consistency level in a network
@@ -199,20 +292,87 @@ EBSI_ENV=local CONSITENCY=localQuorum yarn test:e2e
 
 Using this consistency the API will only accept the confirmation of the datacenter `datacenter1`, which is the local datacenter defined in the api.
 
-### Troubleshooting
+## Load testing with k6
 
-If a node crashes try to restart it again. If you see the error `Not marking nodes down due to local pause` this is probably related to limitations in the hardware. Create a network with only 2 nodes and try again.
+All the commands described below are run from the root folder.
+
+In order to run the tests, you must start a local server and, in parallel, run k6.
+
+### Start the API server
+
+If you have installed all the dependencies locally, run:
+
+```sh
+yarn build
+yarn start:prod
+```
+
+Or if you prefer using Docker Compose:
+
+```sh
+docker-compose up --build
+```
+
+### Run the tests
+
+If you have [installed k6 locally](https://k6.io/docs/getting-started/installation), run:
+
+```sh
+k6 run tests/k6/script.js --no-usage-report
+```
+
+If you prefer to use Docker, first make sure to download the docker image:
+
+```sh
+docker pull loadimpact/k6
+```
+
+Then, run the tests:
+
+```sh
+docker run -i loadimpact/k6 run -e API_HOSTNAME=host.docker.internal --no-usage-report - <tests/k6/script.js
+```
+
+## Serving the OpenAPI specification locally
+
+You can check the OpenAPI definition in a beautiful UI generated by Redoc with the following command:
+
+```sh
+yarn start:openapi
+```
+
+## Cutting a new release
+
+Create a new release from the `staging` branch, when the code has been tested.
+
+Check the version bump and changelog generation with:
+
+```sh
+yarn release --dry-run
+```
+
+If the output looks good, run the command without `--dry-run`:
+
+```sh
+yarn release
+```
+
+Note: if you are releasing the first version of the code, set the version in `package.json` manually, then run `yarn release --first-release`.
+
+Check the changes, commit the code with the message `"chore: release {{currentTag}}"` and push it.
+
+After the `staging` branch has been merged to `main`, create the corresponding tag on `main`, e.g. `v1.2.3`.
+
+## Troubleshooting
+
+If a node crashes, try to restart it again. If you see the error `Not marking nodes down due to local pause` this is probably related to limitations in the hardware. Create a network with only 2 nodes and try again.
 
 Refs:
 
 - https://support.datastax.com/hc/en-us/articles/360002677617-FAQ-What-does-FailureDetector-Not-marking-nodes-down-due-to-local-pause-mean-
 - https://docs.datastax.com/en/dse-planning/doc/planning/capacityPlanning.html
 
-## OpenAPI documentation
-
-You can read the documentation at https://api.intebsi.xyz/docs/?urls.primaryName=Storage%20API
-
-## Licensing
+## License
 
 Copyright (c) 2019 European Commission
 Licensed under the EUPL, Version 1.2 or - as soon they will be approved by the European Commission - subsequent versions of the EUPL (the "Licence");
