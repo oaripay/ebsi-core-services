@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -22,6 +21,7 @@ import {
   UpdateHashAlgorithmParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
+import { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
@@ -100,10 +100,11 @@ describe("HashAlgorithms (e2e)", () => {
     it("should return a specific hash algorithm", async () => {
       expect.assertions(2);
 
-      const respRecords = await request(server).get("/hash-algorithms");
-      const { hashAlgorithmId } = (respRecords.body as {
-        items: Array<{ hashAlgorithmId: string }>;
+      const respHashAlgorithms = await request(server).get("/hash-algorithms");
+      const { hashAlgorithmId } = (respHashAlgorithms.body as {
+        items: HashAlgorithmLink[];
       }).items[0];
+
       const response = await request(server).get(
         `/hash-algorithms/${hashAlgorithmId}`
       );
@@ -145,12 +146,25 @@ describe("HashAlgorithms (e2e)", () => {
 
         let params: JsonRpcParams = null;
 
+        const validHashAlgorithms = [
+          "sha1",
+          "sha2-256",
+          "sha2-512",
+          "sha3-512",
+          "sha3-384",
+          "sha3-256",
+          "sha3-224",
+        ];
+
         switch (method) {
           case "insertHashAlgorithm": {
             params = {
               from: adminTestWallet.address,
               outputLength: 256,
-              ianaName: `sha-256-${crypto.randomBytes(16).toString("hex")}`,
+              ianaName:
+                validHashAlgorithms[
+                  Math.floor(Math.random() * validHashAlgorithms.length)
+                ],
               oid: "2.16.840.1.101.3.4.2.1",
               status: 1,
             } as InsertHashAlgorithmParam;
@@ -162,8 +176,11 @@ describe("HashAlgorithms (e2e)", () => {
               from: adminTestWallet.address,
               hashAlgorithmId: 1,
               outputLength: 256,
-              ianaName: `sha-256-${crypto.randomBytes(16).toString("hex")}`,
-              oid: "2.16.840.1.101.3.4.2.1",
+              ianaName:
+                validHashAlgorithms[
+                  Math.floor(Math.random() * validHashAlgorithms.length)
+                ],
+              oid: "2.16.840.1.101.3.4.2.2",
               status: 1,
             } as UpdateHashAlgorithmParam;
             break;

@@ -23,9 +23,11 @@ import {
   TimestampHashesParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
+import { TimestampLink } from "../../src/modules/timestamps/timestamps.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
+import { multibase64Encode } from "../../src/modules/timestamps/timestamps.utils";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -67,6 +69,74 @@ describe("Timestamp (e2e)", () => {
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("adminTestPrivateKey"))
     );
+  });
+
+  describe("GET /timestamps", () => {
+    it("should return a paginated collection of timestamps", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/timestamps");
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/timestamps?page[after]=1&page[size]=10"
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/timestamps?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/timestamps?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining("/timestamps?page[after]=") as string,
+          last: expect.stringContaining("/timestamps?page[after]=") as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /timestamps/{timestampId}", () => {
+    it("should return a specific record", async () => {
+      expect.assertions(2);
+
+      const respTimestamps = await request(server).get("/timestamps");
+
+      const { timestampId } = (respTimestamps.body as {
+        items: TimestampLink[];
+      }).items[0];
+
+      const response = await request(server).get(`/timestamps/${timestampId}`);
+
+      expect(response.body).toStrictEqual({
+        blockNumber: expect.any(Number) as number,
+        data: expect.stringContaining("0x") as string,
+        hash: expect.any(String) as string,
+        timestampedBy: expect.stringContaining("0x") as string,
+        transactionHash: expect.stringContaining("0x") as string,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the record is not found", async () => {
+      expect.assertions(2);
+
+      const timestampId = multibase64Encode(
+        `0x${crypto.randomBytes(32).toString("hex")}`
+      );
+
+      const response = await request(server).get(`/timestamps/${timestampId}`);
+
+      expect(response.body).toStrictEqual({
+        title: "Timestamp Not Found",
+        status: 404,
+        detail: `Timestamp ${timestampId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call

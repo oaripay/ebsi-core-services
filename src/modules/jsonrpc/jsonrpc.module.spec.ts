@@ -821,7 +821,7 @@ describe("JsonRpc Module", () => {
           } as unknown) as TimestampHashesParam;
 
           expectedErrorMessage1 =
-            "property params[0].hashAlgorithmIds has failed the following constraints: isInt";
+            "property params[0].hashAlgorithmIds has failed the following constraints: min, isInt";
 
           param2 = ({
             from: signer.address,
@@ -866,7 +866,7 @@ describe("JsonRpc Module", () => {
           } as unknown) as TimestampRecordHashesParam;
 
           expectedErrorMessage1 =
-            "property params[0].hashAlgorithmIds has failed the following constraints: isInt";
+            "property params[0].hashAlgorithmIds has failed the following constraints: min, isInt";
 
           param2 = ({
             from: signer.address,
@@ -954,7 +954,7 @@ describe("JsonRpc Module", () => {
           } as unknown) as TimestampRecordVersionHashesParam;
 
           expectedErrorMessage1 =
-            "property params[0].hashAlgorithmIds has failed the following constraints: isInt";
+            "property params[0].hashAlgorithmIds has failed the following constraints: min, isInt";
 
           param2 = ({
             from: signer.address,

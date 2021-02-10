@@ -5,6 +5,7 @@ import { ApiConfigModule } from "./config/configuration";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { HashAlgorithmsModule } from "./modules/hash-algorithms/hash-algorithms.module";
 import { RecordsModule } from "./modules/records/records.module";
+import { TimestampsModule } from "./modules/timestamps/timestamps.module";
 import { HealthController } from "./health.controller";
 
 @Module({
@@ -14,6 +15,7 @@ import { HealthController } from "./health.controller";
     JsonRpcModule,
     HashAlgorithmsModule,
     RecordsModule,
+    TimestampsModule,
   ],
   controllers: [HealthController],
   providers: [ConfigService],

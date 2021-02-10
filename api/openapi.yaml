@@ -164,6 +164,157 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /timestamp/v2/timestamps:
+    get:
+      tags:
+        - Timestamp API
+      operationId: get-timestamp-v2-timestamps
+      summary: List of timestamps
+      description: Returns a list of timestamps
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to timestamps
+                  items:
+                    type: array
+                    description: List of timestamps
+                    items:
+                      type: object
+                      properties:
+                        timestampId:
+                          type: string
+                          description: Multi-base64url encoded sha256(hash)
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.test.ebsi.xyz/timestamp/v2/timestamps?page[after]=3&page[size]=2
+                    items:
+                      - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                        href: https://api.test.ebsi.xyz/timestamp/v2/timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                      - timestampId: uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
+                        href: https://api.test.ebsi.xyz/timestamp/v2/timestamps/uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.test.ebsi.xyz/timestamp/v2/timestamps?page[after]=1&page[size]=2
+                      prev: https://api.test.ebsi.xyz/timestamp/v2/timestamps?page[after]=2&page[size]=2
+                      next: https://api.test.ebsi.xyz/timestamp/v2/timestamps?page[after]=4&page[size]=2
+                      last: https://api.test.ebsi.xyz/timestamp/v2/timestamps?page[after]=62&page[size]=2
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  "/timestamp/v2/timestamps/{timestampId}":
+    get:
+      tags:
+        - Timestamp API
+      operationId: get-timestamp-v2-timestamps-timestampId
+      summary: Get timestamp by its ID
+      description: Returns a timestamp by its ID
+      parameters:
+        - name: timestampId
+          in: path
+          schema:
+            type: string
+          example: uMHhlODRhMzdhMmFiNGZkZGExYTFkMzE4MzAwODY5OWNhNzAyOWE0ZWNmNTAzMWY3Mzg3OGI3OGIyNWM2OGU4M2Jl
+          description: Multi-base64url encoded timestamp ID
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Timestamp"
+              examples:
+                Success:
+                  value:
+                    hash: "0x123"
+                    timestampedBy: "0x456"
+                    blockNumber: 12
+                    transactionHash: "0x789"
+                    data: "0xabc"
+        "400":
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {timestampId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {timestampId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Hash algortihm Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /timestamp/v2/jsonrpc:
     post:
       operationId: post-timestamp-v2-jsonrpc
@@ -466,6 +617,25 @@ components:
         status:
           type: string
           description: Status of the algorithm (active, revoked).
+    Timestamp:
+      title: Timestamp information
+      type: object
+      properties:
+        hash:
+          description: Timestamped hash (multi-hash, base64 multi-encoded)
+          type: string
+        timestampedBy:
+          description: Address of the transaction signer that timestamped the information.
+          type: string
+        blockNumber:
+          description: Number of the block in which the hash has been timestamped.
+          type: integer
+        transactionHash:
+          description: Hash of the transaction/transaction id.
+          type: string
+        data:
+          description: Additional timestamp data (bytes, serialized JSON-LD)
+          type: string
     Links:
       title: Links
       type: object

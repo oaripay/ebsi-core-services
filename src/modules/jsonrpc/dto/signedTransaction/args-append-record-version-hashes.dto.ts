@@ -10,6 +10,7 @@ export class ArgsAppendRecordVersionHashes {
   versionId: number;
 
   @IsInt({ each: true })
+  @Min(0, { each: true })
   hashAlgorithmIds: number[];
 
   @IsHexadecimal({ each: true })

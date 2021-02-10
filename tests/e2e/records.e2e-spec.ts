@@ -27,6 +27,7 @@ import {
   RevokeRecordOwnerParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
+import { RecordLink } from "../../src/modules/records/records.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
@@ -111,7 +112,7 @@ describe("Records (e2e)", () => {
 
       const respRecords = await request(server).get("/records");
       const { recordId } = (respRecords.body as {
-        items: Array<{ recordId: string }>;
+        items: RecordLink[];
       }).items[0];
       const response = await request(server).get(`/records/${recordId}`);
 

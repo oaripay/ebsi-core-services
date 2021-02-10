@@ -7,7 +7,6 @@
 !tsconfig.production.json
 !tsconfig.json
 !yarn.lock
-!scripts
 !src
 src/contracts
 !submodules/timestamp-ethereum-sc/contracts

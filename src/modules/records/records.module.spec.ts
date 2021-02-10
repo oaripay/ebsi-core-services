@@ -13,6 +13,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { RecordsModule } from "./records.module";
+import { RecordLink } from "./records.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Tar } from "../../contracts/trusted-apps-registry/Tar";
 import { Tar__factory } from "../../contracts/trusted-apps-registry/factories/Tar__factory";
@@ -264,9 +265,11 @@ describe("Records Module", () => {
       expect.assertions(2);
 
       const respRecords = await request(server).get("/records");
+
       const { recordId } = (respRecords.body as {
-        items: Array<{ recordId: string }>;
+        items: RecordLink[];
       }).items[0];
+
       const response = await request(server).get(`/records/${recordId}`);
 
       expect(response.body).toStrictEqual({

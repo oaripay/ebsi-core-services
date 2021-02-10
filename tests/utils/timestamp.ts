@@ -16,12 +16,19 @@ interface HashAlgorithmObject {
   oid: string;
   status: number;
 }
+
 interface RecordObject {
   recordId: string;
   hashAlgorithmIds: number[];
   hashValues: string[];
   timestampData: string[];
   versionInfo: string;
+}
+
+interface HashObect {
+  hashAlgorithmIds: number[];
+  hashValues: string[];
+  timestampData: string[];
 }
 
 export async function deployTimestampContract(
@@ -85,11 +92,22 @@ export async function deployTimestampContract(
   return TimestampContract;
 }
 
+const validHashAlgorithms = [
+  "sha1",
+  "sha2-256",
+  "sha2-512",
+  "sha3-512",
+  "sha3-384",
+  "sha3-256",
+  "sha3-224",
+];
+
 export async function insertHashAlgorithm(
   contract: Timestamp
 ): Promise<HashAlgorithmObject> {
   const outputLength = 20;
-  const ianaName = `algo-${crypto.randomBytes(4).toString("hex")}`;
+  const ianaName =
+    validHashAlgorithms[Math.floor(Math.random() * validHashAlgorithms.length)];
   const oid = "oid-test";
   const status = 1;
   await contract.insertHashAlgorithm(outputLength, ianaName, oid, status);
@@ -135,21 +153,38 @@ export async function insertRecord(
   };
 }
 
+export async function insertHash(contract: Timestamp): Promise<HashObect> {
+  const hashAlgorithmIds = [0];
+  const hashValues = [`0x${crypto.randomBytes(4).toString("hex")}`];
+  const timestampData = [`0x${crypto.randomBytes(4).toString("hex")}`];
+
+  await contract.timestampHashes(hashAlgorithmIds, hashValues, timestampData);
+
+  return {
+    hashAlgorithmIds,
+    hashValues,
+    timestampData,
+  };
+}
+
 export interface SetupOptions {
   hashAlgorithmsTotal?: number;
   recordsTotal?: number;
+  hashesTotal?: number;
 }
 
 export async function setupTestEnv(
   opts: SetupOptions = {
     hashAlgorithmsTotal: 1,
     recordsTotal: 1,
+    hashesTotal: 0,
   }
 ): Promise<{
   provider: ethers.providers.Web3Provider;
   timestampContract: Timestamp;
   hashAlgorithms: HashAlgorithmObject[];
   records: RecordObject[];
+  hashes: HashObect[];
 }> {
   const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
   const sender = await ethersProvider.getSigner().getAddress();
@@ -171,11 +206,18 @@ export async function setupTestEnv(
       .map(() => insertRecord(timestampContract, sender))
   );
 
+  const hashes = await Promise.all(
+    Array(opts.hashesTotal)
+      .fill(0)
+      .map(() => insertHash(timestampContract))
+  );
+
   // Return test env variables
   return {
     provider: ethersProvider,
     timestampContract,
     hashAlgorithms,
     records,
+    hashes,
   };
 }
