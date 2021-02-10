@@ -80,8 +80,6 @@ contract TimestampDetailed is Initializable, TimestampStorage {
         view
         returns (
             TimestampStorage.Hash memory hash,
-            // uint256 hashAlgorithm,
-            //  bytes memory hashValue,
             address timestampedBy,
             uint256 blockNumber,
             bytes memory data
@@ -89,5 +87,22 @@ contract TimestampDetailed is Initializable, TimestampStorage {
     {
         Timestamps storage ts = timestampStorage();
         return ts.getTimestamp(hashValue);
+    }
+
+    /**
+     * @dev returns the timestamp by timestampId (sha256(hashvalue)). The timestamp is stored in the timestampsStore.
+     */
+    function getTimestampById(bytes32 timestampId)
+        public
+        view
+        returns (
+            TimestampStorage.Hash memory hash,
+            address timestampedBy,
+            uint256 blockNumber,
+            bytes memory data
+        )
+    {
+        Timestamps storage ts = timestampStorage();
+        return ts.getTimestampById(timestampId);
     }
 }

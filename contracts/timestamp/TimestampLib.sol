@@ -96,8 +96,6 @@ library TimestampLib {
         public
         view
         returns (
-            //uint256 hashAlgorithm,
-            //bytes memory hashValue,
             TimestampStorage.Hash memory hash,
             address timestampedBy,
             uint256 blockNumber,
@@ -107,11 +105,37 @@ library TimestampLib {
         require(hashValue.length > 0, "hash empty");
         bytes32 tsId = sha256(hashValue);
         require(ts.timestampsStore[tsId].data.length > 0, "timestamp unknown");
-        // hashAlgorithm = ts.timestampsStore[tsId].hash.algorithm;
-        // hashValue = ts.timestampsStore[tsId].hash.value;
         hash = ts.timestampsStore[tsId].hash;
         blockNumber = ts.timestampsStore[tsId].blockNumber;
         timestampedBy = ts.timestampsStore[tsId].timestampedBy;
         data = ts.timestampsStore[tsId].data;
+    }
+
+    /**
+     * @dev returns the timestamp by timestampId (sha256(hashvalue)). The timestamp is stored in the timestampsStore.
+     */
+    function getTimestampById(
+        TimestampStorage.Timestamps storage ts,
+        bytes32 timestampId
+    )
+        public
+        view
+        returns (
+            TimestampStorage.Hash memory hash,
+            address timestampedBy,
+            uint256 blockNumber,
+            bytes memory data
+        )
+    {
+        require(timestampId != bytes32(0), "tsId empty");
+
+        require(
+            ts.timestampsStore[timestampId].data.length > 0,
+            "timestamp unknown"
+        );
+        hash = ts.timestampsStore[timestampId].hash;
+        blockNumber = ts.timestampsStore[timestampId].blockNumber;
+        timestampedBy = ts.timestampsStore[timestampId].timestampedBy;
+        data = ts.timestampsStore[timestampId].data;
     }
 }

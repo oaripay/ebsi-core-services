@@ -90,6 +90,49 @@ describe("Timestamp Hashes", function () {
   it("getTimestamp should revert if hash is empty", async function () {
     await expect(ts.getTimestamp([])).to.be.revertedWith("hash empty");
   });
+  it("getTimestampById should succeed", async function () {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
+    const blockNumber = await ethers.provider.getBlockNumber();
+    await ts.timestampHashes(
+      [0, 1, 2],
+      [hash1, hash2, hash3],
+      [
+        ethers.utils.toUtf8Bytes("btc"),
+        ethers.utils.toUtf8Bytes("new"),
+        ethers.utils.toUtf8Bytes("ath"),
+      ]
+    );
+    const r1 = await ts.getTimestampById(ethers.utils.sha256(hash1));
+    expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
+    expect(r1.hash.algorithm).to.equal(0);
+    expect(r1.timestampedBy).to.equal(signers[0].address);
+    expect(r1.data).to.equal(
+      ethers.utils.hexlify(ethers.utils.toUtf8Bytes("btc"))
+    );
+    expect(r1.blockNumber).to.equal(blockNumber + 1);
+    const r3 = await ts.getTimestampById(ethers.utils.sha256(hash3));
+    expect(r3.hash.value).to.equal(ethers.utils.hexlify(hash3));
+    expect(r3.hash.algorithm).to.equal(2);
+    expect(r3.timestampedBy).to.equal(signers[0].address);
+    expect(r3.data).to.equal(
+      ethers.utils.hexlify(ethers.utils.toUtf8Bytes("ath"))
+    );
+    expect(r3.blockNumber).to.equal(blockNumber + 1);
+  });
+  it("getTimestampById should revert if timestampID is unknown", async function () {
+    await expect(
+      ts.getTimestampById(
+        ethers.utils.sha256(ethers.utils.toUtf8Bytes("unknow?"))
+      )
+    ).to.be.revertedWith("timestamp unknown");
+  });
+  it("getTimestgetTimestampByIdamp should revert if timestampId is empty", async function () {
+    await expect(
+      ts.getTimestampById(ethers.constants.HashZero)
+    ).to.be.revertedWith("tsId empty");
+  });
   it("timestampHashes should failed if > 3", async function () {
     await expect(
       ts.timestampHashes(
