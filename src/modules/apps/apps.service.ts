@@ -29,6 +29,58 @@ export default class AppsService {
     this.tarContract = this.ledgerService.getContract();
   }
 
+  async getPage(
+    fnName: string,
+    params: string[],
+    page: number
+  ): Promise<{ items: unknown[]; total: ethers.BigNumber }> {
+    switch (fnName) {
+      case "getAppAdministratorIds": {
+        const { items, total } = await this.tarContract.getAppAdministratorIds(
+          params[0],
+          page,
+          50
+        );
+        return { items, total };
+      }
+      case "getAppPublicKeyIds": {
+        const { items, total } = await this.tarContract.getAppPublicKeyIds(
+          params[0],
+          page,
+          50
+        );
+        return { items, total };
+      }
+      case "getAppInfoIds": {
+        const { items, total } = await this.tarContract.getAppInfoIds(
+          params[0],
+          page,
+          50
+        );
+        return { items, total };
+      }
+      default:
+        throw new Error(`TAR function ${fnName} not implemented`);
+    }
+  }
+
+  async getAllPages(fnName: string, params: string[]): Promise<unknown> {
+    const { items, total } = await this.getPage(fnName, params, 1);
+    const lastPage = Math.ceil(total.toNumber() / 50);
+    const promisesNextPages = Array.from(
+      { length: lastPage - 1 },
+      (x, i) => i + 2
+    ).map(async (i) => {
+      const { items: pagItems } = await this.getPage(fnName, params, i);
+      return pagItems;
+    });
+    const itemsNextPages = await Promise.all(promisesNextPages);
+    itemsNextPages.forEach((pagItems) => {
+      items.splice(items.length, 0, ...pagItems);
+    });
+    return items;
+  }
+
   async getApps(page: number, pageSize: number): ReturnType<Tar["getApps"]> {
     return this.tarContract.getApps(page, pageSize);
   }
@@ -56,18 +108,50 @@ export default class AppsService {
 
     const [name, domain] = app;
 
+    const administrators = (await this.getAllPages("getAppAdministratorIds", [
+      appId,
+    ])) as string[];
+    const publicKeyIds = (await this.getAllPages("getAppPublicKeyIds", [
+      appId,
+    ])) as string[];
+    const publicKeys = await Promise.all(
+      publicKeyIds.map(async (publicKeyId) => {
+        const { publicKey } = await this.tarContract.getPublicKey(publicKeyId);
+        return Buffer.from(publicKey.slice(2), "hex").toString("base64");
+      })
+    );
+    const infoIds = (await this.getAllPages("getAppInfoIds", [
+      appId,
+    ])) as string[];
+    let info = {};
+    if (infoIds.length > 0) {
+      const infoBytes = await this.tarContract.getAppInfoByInfoId(
+        infoIds[infoIds.length - 1]
+      );
+      const infoStr = Buffer.from(infoBytes.slice(2), "hex").toString("utf8");
+      info = JSON.parse(infoStr) as { [x: string]: unknown };
+    }
+    const authorizationItems = await this.getAllAuthorizations(appId);
+    const authorizations = await Promise.all(
+      authorizationItems.map(async (auth) =>
+        this.getAuthorization(appId, auth.authorizationId)
+      )
+    );
+
     return {
-      id: appId,
+      applicationId: appId,
       name,
       domain: domainName[domain],
+      administrators,
+      publicKeys,
+      info,
+      authorizations,
     };
   }
 
-  async getAuthorizations(
-    resourceApplicationId: string,
-    page: number,
-    pageSize: number
-  ): Promise<{ items: AuthorizationItemObject[]; total: number }> {
+  async getAllAuthorizations(
+    resourceApplicationId: string
+  ): Promise<AuthorizationItemObject[]> {
     let authorizedAppsIds: AsyncReturnType<Tar["getAuthorizedAppsIds"]>;
     try {
       // TODO on SC: remove require when there are no authorizations
@@ -154,6 +238,17 @@ export default class AppsService {
     const authorizations: AuthorizationItemObject[] = [];
     allAppAuths.forEach((itemsAuth: AuthorizationItemObject[]) =>
       authorizations.push(...itemsAuth)
+    );
+    return authorizations;
+  }
+
+  async getAuthorizations(
+    resourceApplicationId: string,
+    page: number,
+    pageSize: number
+  ): Promise<{ items: AuthorizationItemObject[]; total: number }> {
+    const authorizations = await this.getAllAuthorizations(
+      resourceApplicationId
     );
     return {
       items: authorizations.slice(pageSize * (page - 1), pageSize * page),

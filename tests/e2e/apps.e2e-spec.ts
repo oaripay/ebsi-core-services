@@ -1,4 +1,5 @@
 import { ethers } from "ethers";
+import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -33,6 +34,7 @@ import {
   AppResponseObject,
   AppLink,
   AuthorizationLink,
+  AuthorizationResponseObject,
 } from "../../src/modules/apps/apps.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
@@ -78,18 +80,25 @@ describe("Apps (e2e)", () => {
   let ledgerService: LedgerService;
   let adminTestWallet: ethers.Wallet;
 
-  const createApp = () => {
-    return {
-      name: `test-app-${new Date().toISOString()}`,
-      domain: "ebsi",
-      appAdministrator: `did:ebsi:some-admin-${new Date().toISOString()}`,
-      publicKey: `my public key - ${new Date().toISOString()}`,
-      status: "active",
-      notBefore: Math.trunc(Date.now() / 1000),
-      notAfter: Math.trunc(Date.now() / 1000) + 365 * 24 * 60 * 60,
-    };
+  const publicKeyRaw = `-----BEGIN ${crypto.randomBytes(12).toString("hex")}`;
+  const publicKeyBuffer = Buffer.from(publicKeyRaw, "utf8");
+  // const publicKeyBase64 = publicKeyBuffer.toString("base64");
+  const publicKeyId = ethers.utils.sha256(publicKeyBuffer);
+  const applicationId = publicKeyId;
+  const info = {
+    someData: Date.now(),
   };
-  const newApp = createApp();
+  const infoHex = `0x${Buffer.from(JSON.stringify(info)).toString("hex")}`;
+
+  const newApp = {
+    name: `test-app-${new Date().toISOString()}`,
+    domain: 0,
+    appAdministrator: `did:ebsi:some-admin-${new Date().toISOString()}`,
+    publicKey: `0x${publicKeyBuffer.toString("hex")}`,
+    status: 0,
+    notBefore: Math.trunc(Date.now() / 1000),
+    notAfter: Math.trunc(Date.now() / 1000) + 365 * 24 * 60 * 60,
+  };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -160,7 +169,8 @@ describe("Apps (e2e)", () => {
       const responseApps: SupertestAppsResponse = await request(server).get(
         "/apps"
       );
-      const appName = responseApps.body.items[0].name;
+      const lastOne = responseApps.body.items.length - 1;
+      const appName = responseApps.body.items[lastOne].name;
       const response: SupertestAppsResponse = await request(server).get(
         `/apps?name=${appName}`
       );
@@ -198,23 +208,23 @@ describe("Apps (e2e)", () => {
       const responseApps: SupertestAppsResponse = await request(server).get(
         "/apps"
       );
-      const publicKeyId = responseApps.body.items[0].id;
+      const publicKeyId0 = responseApps.body.items[0].id;
       const response: SupertestAppsResponse = await request(server).get(
-        `/apps?public_key_id=${publicKeyId}`
+        `/apps?public_key_id=${publicKeyId0}`
       );
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
+          `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
         total: expect.any(Number) as number,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
+            `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
           ) as string,
           prev: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
+            `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
           ) as string,
           next: expect.stringContaining(
             "/trusted-apps-registry/v2/apps?page[after]="
@@ -234,29 +244,29 @@ describe("Apps (e2e)", () => {
       const responseApps: SupertestAppsResponse = await request(server).get(
         "/apps"
       );
-      const applicationId = responseApps.body.items[0].id;
+      const applicationId0 = responseApps.body.items[0].id;
       const response: SupertestAuthorizationsResponse = await request(
         server
-      ).get(`/apps/${applicationId}/authorizations`);
+      ).get(`/apps/${applicationId0}/authorizations`);
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/trusted-apps-registry/v2/apps/${applicationId}/authorizations?page[after]=1&page[size]=10`
+          `/trusted-apps-registry/v2/apps/${applicationId0}/authorizations?page[after]=1&page[size]=10`
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
         total: expect.any(Number) as number,
         pageSize: expect.any(Number) as number,
         links: {
           first: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps/${applicationId}/authorizations?page[after]=1&page[size]=10`
+            `/trusted-apps-registry/v2/apps/${applicationId0}/authorizations?page[after]=1&page[size]=10`
           ) as string,
           prev: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps/${applicationId}/authorizations?page[after]=1&page[size]=10`
+            `/trusted-apps-registry/v2/apps/${applicationId0}/authorizations?page[after]=1&page[size]=10`
           ) as string,
           next: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps/${applicationId}/authorizations?page[after]=`
+            `/trusted-apps-registry/v2/apps/${applicationId0}/authorizations?page[after]=`
           ) as string,
           last: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps/${applicationId}/authorizations?page[after]=`
+            `/trusted-apps-registry/v2/apps/${applicationId0}/authorizations?page[after]=`
           ) as string,
         },
       });
@@ -322,9 +332,15 @@ describe("Apps (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        id,
+        applicationId: id,
         name,
         domain: expect.any(String) as string,
+        administrators: expect.arrayContaining([]) as string[],
+        authorizations: expect.arrayContaining(
+          []
+        ) as AuthorizationResponseObject[],
+        info: expect.any(Object) as { [x: string]: unknown },
+        publicKeys: expect.arrayContaining([]) as string[],
       });
       expect(response.status).toBe(200);
     });
@@ -359,8 +375,6 @@ describe("Apps (e2e)", () => {
       expect.assertions(2);
 
       let param: JsonRpcParams = null;
-      const publickeyBytes = Buffer.from(newApp.publicKey, "utf8");
-      const publicKeyId = ethers.utils.sha256(publickeyBytes);
 
       switch (method) {
         case "insertApp": {
@@ -373,14 +387,14 @@ describe("Apps (e2e)", () => {
         case "insertAppAdministrator":
           param = {
             from: adminTestWallet.address,
-            applicationId: publicKeyId,
+            applicationId,
             administratorId: "did:ebsi:0x00123",
           } as InsertAppAdministratorParam;
           break;
         case "deleteAppAdministrator":
           param = {
             from: adminTestWallet.address,
-            applicationId: publicKeyId,
+            applicationId,
             administratorId: "did:ebsi:0x00123",
           } as DeleteAppAdministratorParam;
           break;
@@ -388,15 +402,13 @@ describe("Apps (e2e)", () => {
           param = {
             from: adminTestWallet.address,
             applicationId: publicKeyId,
-            info: {
-              someData: Date.now(),
-            },
+            info: infoHex,
           } as InsertAppInfoParam;
           break;
         case "insertRevocation": {
           param = {
             from: adminTestWallet.address,
-            applicationId: publicKeyId,
+            applicationId,
             revokedBy: "did:ebsi:0x001F",
             notBefore: Date.now() + 10000000,
           } as InsertRevocationParam;
@@ -408,8 +420,8 @@ describe("Apps (e2e)", () => {
             name: newApp.name,
             authorizedAppName: newApp.name,
             iss: "did:ebsi:0x001F",
-            permissions: "cru",
-            status: "active",
+            permissions: 12,
+            status: 0,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAuthorizationParam;
@@ -420,14 +432,14 @@ describe("Apps (e2e)", () => {
             from: adminTestWallet.address,
             applicationId: publicKeyId,
             name: `test-app-updated-${new Date().toISOString()}`,
-            domain: "external",
+            domain: 1,
           } as UpdateAppParam;
           break;
         case "updateAppPublicKey":
           param = {
             from: adminTestWallet.address,
             publicKeyId,
-            status: "revoked",
+            status: 2,
             notAfter: 1709926740,
           } as UpdateAppPublicKeyParam;
           break;
@@ -478,9 +490,6 @@ describe("Apps (e2e)", () => {
       expect.assertions(5);
 
       let param: JsonRpcParams = null;
-      // this public key is created with the first "insertApp" call
-      const publickeyBytes = Buffer.from(newApp.publicKey, "utf8");
-      const publicKeyId = ethers.utils.sha256(publickeyBytes);
 
       switch (method) {
         case "insertApp": {
@@ -494,30 +503,28 @@ describe("Apps (e2e)", () => {
         case "insertAppAdministrator":
           param = {
             from: adminTestWallet.address,
-            applicationId: publicKeyId,
+            applicationId,
             administratorId: "did:ebsi:0x00123",
           } as InsertAppAdministratorParam;
           break;
         case "deleteAppAdministrator":
           param = {
             from: adminTestWallet.address,
-            applicationId: publicKeyId,
+            applicationId,
             administratorId: "did:ebsi:0x00123",
           } as DeleteAppAdministratorParam;
           break;
         case "insertAppInfo":
           param = {
             from: adminTestWallet.address,
-            applicationId: publicKeyId,
-            info: {
-              someData: Date.now(),
-            },
+            applicationId,
+            info: infoHex,
           } as InsertAppInfoParam;
           break;
         case "insertRevocation": {
           param = {
             from: adminTestWallet.address,
-            applicationId: publicKeyId,
+            applicationId,
             revokedBy: "did:ebsi:0x001F",
             notBefore: Date.now() + 10000000,
           } as InsertRevocationParam;
@@ -529,8 +536,8 @@ describe("Apps (e2e)", () => {
             name: newApp.name,
             authorizedAppName: newApp.name, // Fun fact: "authorizedAppName" can be the same as "name" cc @ben
             iss: "did:ebsi:0x001F",
-            permissions: "cru",
-            status: "active",
+            permissions: 12,
+            status: 0,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAuthorizationParam;
@@ -539,7 +546,7 @@ describe("Apps (e2e)", () => {
         case "updateAuthorization": {
           // Dynamically get the authorizationId that we've just inserted
           const appId = ethers.utils.sha256(
-            Buffer.from(newApp.publicKey, "utf8")
+            Buffer.from(newApp.publicKey.slice(2), "hex")
           );
           const authorizationId = (
             await ledgerService
@@ -550,8 +557,8 @@ describe("Apps (e2e)", () => {
           param = {
             from: adminTestWallet.address,
             authorizationId,
-            permissions: "cru",
-            status: "active",
+            permissions: 12,
+            status: 0,
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as UpdateAuthorizationParam;
           break;
@@ -560,17 +567,19 @@ describe("Apps (e2e)", () => {
           // update app
           param = {
             from: adminTestWallet.address,
-            applicationId: publicKeyId,
+            applicationId,
             name: `test-app-updated-${new Date().toISOString()}`,
-            domain: "external",
+            domain: 1,
           } as UpdateAppParam;
           break;
         case "insertAppPublicKey":
           param = {
             from: adminTestWallet.address,
-            applicationId: publicKeyId,
-            publicKey: `another public key - ${new Date().toISOString()}`,
-            status: "revoked",
+            applicationId,
+            publicKey: `0x${Buffer.from(
+              `another public key - ${new Date().toISOString()}`
+            ).toString("hex")}`,
+            status: 2,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppPublicKeyParam;
@@ -582,7 +591,7 @@ describe("Apps (e2e)", () => {
           param = {
             from: adminTestWallet.address,
             publicKeyId,
-            status: "revoked",
+            status: 2,
             notAfter: Date.now(),
           } as UpdateAppPublicKeyParam;
           break;
@@ -673,7 +682,7 @@ describe("Apps (e2e)", () => {
             permissions: {
               create: "true",
               read: "true",
-              update: "true",
+              update: "false",
               delete: "false",
             },
             status: "active",

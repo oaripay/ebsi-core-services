@@ -1,23 +1,9 @@
-import {
-  IsEthereumAddress,
-  IsHexadecimal,
-  IsEnum,
-  IsString,
-} from "class-validator";
-import { Domain } from "../shared/enums";
+import { IsEthereumAddress } from "class-validator";
+import { ArgsUpdateApp } from "../signedTransaction";
 
-export class UpdateAppParam {
+export class UpdateAppParam extends ArgsUpdateApp {
   @IsEthereumAddress()
   from: string;
-
-  @IsHexadecimal()
-  applicationId: string;
-
-  @IsString()
-  name: string;
-
-  @IsEnum(Domain)
-  domain: Domain;
 }
 
 export default { UpdateAppParam };

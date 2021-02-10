@@ -1,14 +1,9 @@
-import { IsEthereumAddress, IsBase64, IsString } from "class-validator";
+import { IsEthereumAddress } from "class-validator";
+import { ArgsUpdatePolicy } from "../signedTransaction";
 
-export class UpdatePolicyParam {
+export class UpdatePolicyParam extends ArgsUpdatePolicy {
   @IsEthereumAddress()
   from: string;
-
-  @IsString()
-  policyId: string;
-
-  @IsBase64()
-  policy: string;
 }
 
 export default { UpdatePolicyParam };

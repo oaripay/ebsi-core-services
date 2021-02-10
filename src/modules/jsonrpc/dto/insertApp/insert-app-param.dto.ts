@@ -1,38 +1,9 @@
-import {
-  IsEthereumAddress,
-  IsString,
-  IsEnum,
-  IsInt,
-  Min,
-} from "class-validator";
-import { Status, Domain } from "../shared/enums";
+import { IsEthereumAddress } from "class-validator";
+import { ArgsInsertApp } from "../signedTransaction";
 
-export class InsertAppParam {
+export class InsertAppParam extends ArgsInsertApp {
   @IsEthereumAddress()
   from: string;
-
-  @IsString()
-  name: string;
-
-  @IsEnum(Domain)
-  domain: Domain;
-
-  @IsString()
-  appAdministrator: string;
-
-  @IsString()
-  publicKey: string;
-
-  @IsEnum(Status)
-  status: Status;
-
-  @IsInt()
-  @Min(0)
-  notBefore: number;
-
-  @IsInt()
-  @Min(0)
-  notAfter: number;
 }
 
 export default { InsertAppParam };

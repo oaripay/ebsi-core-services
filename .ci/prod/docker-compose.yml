@@ -3,4 +3,4 @@ version: "3.7"
 services:
   trusted-apps-registry:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry:prod_ebsiint-2642-update-ci-conf_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry:prod_ebsiint-2666-fix-jsonrpc-and-get-app-id_v2.0.0

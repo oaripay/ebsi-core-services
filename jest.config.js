@@ -1,7 +1,7 @@
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
-  testTimeout: 30000,
+  testTimeout: 60000,
   rootDir: ".",
   roots: ["<rootDir>/src/", "<rootDir>/tests/"],
   testMatch: ["**/?(*.|*-)+(spec|test).ts"],

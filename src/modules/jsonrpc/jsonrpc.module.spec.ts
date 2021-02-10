@@ -89,8 +89,9 @@ describe("JsonRpc Module", () => {
       body: dataBase64,
       hash: dataHash,
     };
+    const attributeData = `0x${data.toString("hex")}`;
 
-    return { did, attribute };
+    return { did, attribute, attributeData };
   };
 
   function createPolicy() {
@@ -102,10 +103,10 @@ describe("JsonRpc Module", () => {
       data: crypto.randomBytes(16).toString("hex"),
     };
     const data = Buffer.from(JSON.stringify(json));
-    const policy = data.toString("base64");
+    const policyData = `0x${data.toString("hex")}`;
     return {
       policyId,
-      policy,
+      policyData,
     };
   }
 
@@ -275,8 +276,7 @@ describe("JsonRpc Module", () => {
         name: "alice",
       })
     );
-    const dataBase64 = data.toString("base64");
-    const dataHash = ethers.utils.sha256(data);
+    const attributeData = `0x${data.toString("hex")}`;
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
@@ -287,10 +287,7 @@ describe("JsonRpc Module", () => {
           {
             from: wallet.address, // this address is not in the TAR
             did: "did:ebsi:1",
-            attribute: {
-              body: dataBase64,
-              hash: dataHash,
-            },
+            attributeData,
           },
         ],
         id: 231,
@@ -395,6 +392,15 @@ describe("JsonRpc Module", () => {
       const appPublicKey = "this is a public key";
       const publickeyBytes = Buffer.from(appPublicKey, "utf8");
       const publicKeyId = ethers.utils.sha256(publickeyBytes);
+      const publicKeyHex = `0x${publickeyBytes.toString("hex")}`;
+
+      const appInfo = {
+        data1: "my data",
+      };
+      const appInfoHex = `0x${Buffer.from(
+        JSON.stringify(appInfo),
+        "utf8"
+      ).toString("hex")}`;
 
       // Get pre-existing apps
       const { apps } = testEnv;
@@ -403,8 +409,8 @@ describe("JsonRpc Module", () => {
         name: apps[0].name,
         authorizedAppName: apps[1].name,
         iss: "did:ebsi:0x001F",
-        permissions: "cru",
-        status: "active",
+        permissions: 12,
+        status: 1,
         notBefore: Date.now(),
         notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
       };
@@ -415,10 +421,10 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             name: "App1",
-            domain: "ebsi",
+            domain: 0,
             appAdministrator: "did:ebsi:0x001F",
-            publicKey: appPublicKey,
-            status: "active",
+            publicKey: publicKeyHex,
+            status: 1,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppParam;
@@ -445,15 +451,13 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             applicationId: publicKeyId,
-            info: {
-              data1: "data",
-            },
+            info: appInfoHex,
           } as InsertAppInfoParam;
           break;
         case "insertAdministrator": {
           // create a new administrator and add attribute1
           param = {
-            attribute: adminV1.attribute,
+            attributeData: adminV1.attributeData,
             did: did.toLowerCase(),
             from: signer.address,
           } as InsertAdministratorParam;
@@ -463,7 +467,7 @@ describe("JsonRpc Module", () => {
           if (updateAttribute) {
             // update attribute1: change it to attribute3
             param = {
-              attribute: adminV3.attribute,
+              attributeData: adminV3.attributeData,
               did: did.toLowerCase(),
               from: signer.address,
               prevAttributeHash: adminV1.attribute.hash,
@@ -471,7 +475,7 @@ describe("JsonRpc Module", () => {
           } else {
             // updateIssuer: add attribute2
             param = {
-              attribute: adminV2.attribute,
+              attributeData: adminV2.attributeData,
               did: did.toLowerCase(),
               from: signer.address,
             } as UpdateAdministratorParam;
@@ -483,7 +487,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             applicationId: publicKeyId,
             name: "App1-v2",
-            domain: "ebsi",
+            domain: 0,
           } as UpdateAppParam;
           break;
         }
@@ -522,8 +526,8 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             authorizationId,
-            permissions: "cru",
-            status: "active",
+            permissions: 12,
+            status: 1,
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as UpdateAuthorizationParam;
           break;
@@ -532,8 +536,8 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             applicationId: publicKeyId,
-            publicKey: "another public key",
-            status: "active",
+            publicKey: `0x${crypto.randomBytes(12).toString("hex")}`,
+            status: 1,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppPublicKeyParam;
@@ -543,7 +547,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             publicKeyId,
-            status: "revoked",
+            status: 2,
             notAfter: Date.now(),
           } as UpdateAppPublicKeyParam;
           break;
@@ -552,7 +556,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             policyId: policy1.policyId,
-            policy: policy1.policy,
+            policyData: policy1.policyData,
           } as InsertPolicyParam;
           break;
         }
@@ -560,7 +564,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             policyId: policy1.policyId,
-            policy: policy2.policy,
+            policyData: policy2.policyData,
           } as UpdatePolicyParam;
           break;
         }
@@ -639,16 +643,25 @@ describe("JsonRpc Module", () => {
 
       const publicKey = "this is a public key";
       const publicKeyId = ethers.utils.sha256(Buffer.from(publicKey, "utf8"));
+      const publicKeyHex = `0x${Buffer.from(publicKey).toString("hex")}`;
+
+      const appInfo = {
+        data1: "my data",
+      };
+      const appInfoHex = `0x${Buffer.from(
+        JSON.stringify(appInfo),
+        "utf8"
+      ).toString("hex")}`;
 
       switch (method) {
         case "insertApp": {
           param = {
             from: signer.address,
             name: "App1",
-            domain: "ebsi",
+            domain: 0,
             appAdministrator: "did:ebsi:0x001F",
-            publicKey: appPublicKey,
-            status: "active",
+            publicKey: publicKeyHex,
+            status: 1,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppParam;
@@ -675,16 +688,14 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             applicationId: publicKeyId,
-            info: {
-              data1: "data",
-            },
+            info: appInfoHex,
           } as InsertAppInfoParam;
           break;
         case "insertAdministrator":
         case "updateAdministrator": {
           // create a new administrator and add attribute1
           param = {
-            attribute: adminV1.attribute,
+            attributeData: adminV1.attributeData,
             did: adminV1.did.toLowerCase(),
             from: signer.address,
           } as InsertAdministratorParam;
@@ -695,7 +706,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             policyId: policy1.policyId,
-            policy: policy1.policy,
+            policyData: policy1.policyData,
           } as InsertPolicyParam;
           break;
         }
@@ -704,7 +715,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             applicationId: publicKeyId,
             name: "new-name",
-            domain: "ebsi",
+            domain: 1,
           } as UpdateAppParam;
           break;
         case "insertRevocation": {
@@ -724,8 +735,8 @@ describe("JsonRpc Module", () => {
             name: apps[0].name,
             authorizedAppName: apps[1].name,
             iss: "did:ebsi:0x001F",
-            permissions: "cru",
-            status: "active",
+            permissions: 9,
+            status: 1,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAuthorizationParam;
@@ -736,8 +747,8 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             authorizationId:
               "0x8bdd58e4f558d893144de376fc7c87a8aaef26ba8aabb2b2c7a8c022d1c88a31", // a valid, random ID
-            permissions: "cru",
-            status: "active",
+            permissions: 10,
+            status: 1,
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as UpdateAuthorizationParam;
           break;
@@ -746,8 +757,8 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             applicationId: publicKeyId,
-            publicKey: "another public key",
-            status: "active",
+            publicKey: publicKeyHex,
+            status: 1,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppPublicKeyParam;
@@ -757,7 +768,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             publicKeyId,
-            status: "revoked",
+            status: 2,
             notAfter: Date.now(),
           } as UpdateAppPublicKeyParam;
           break;
@@ -797,6 +808,15 @@ describe("JsonRpc Module", () => {
       let expectedErrorMessage3;
 
       const appPublicKey = "this is a public key";
+      const publicKeyHex = `0x${Buffer.from(appPublicKey).toString("hex")}`;
+
+      const appInfo = {
+        data1: "my data",
+      };
+      const appInfoHex = `0x${Buffer.from(
+        JSON.stringify(appInfo),
+        "utf8"
+      ).toString("hex")}`;
 
       // Get pre-existing apps
       const { apps } = testEnv;
@@ -805,10 +825,10 @@ describe("JsonRpc Module", () => {
         case "insertApp": {
           param1 = {
             from: signer.address,
-            domain: "ebsi",
+            domain: 0,
             appAdministrator: "did:ebsi:0x001F",
-            publicKey: appPublicKey,
-            status: "active",
+            publicKey: publicKeyHex,
+            status: 2,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppParam;
@@ -819,24 +839,24 @@ describe("JsonRpc Module", () => {
           param2 = ({
             from: signer.address,
             name: "App1",
-            domain: "unknown domain",
+            domain: 45,
             appAdministrator: "did:ebsi:0x001F",
-            publicKey: appPublicKey,
-            status: "active",
+            publicKey: publicKeyHex,
+            status: 2,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as unknown) as InsertAppParam;
 
           expectedErrorMessage2 =
-            "property params[0].domain has failed the following constraints: isEnum";
+            "property params[0].domain has failed the following constraints: max";
 
           param3 = {
             from: signer.address,
             name: "App1",
-            domain: "ebsi",
+            domain: 0,
             appAdministrator: "did:ebsi:0x001F",
             publicKey: appPublicKey,
-            status: "active",
+            status: 1,
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppParam;
 
@@ -908,9 +928,7 @@ describe("JsonRpc Module", () => {
           // insert info to an app
           param1 = ({
             from: signer.address,
-            info: {
-              data1: "data",
-            },
+            info: appInfoHex,
           } as unknown) as InsertAppInfoParam;
 
           expectedErrorMessage1 =
@@ -924,7 +942,7 @@ describe("JsonRpc Module", () => {
           } as InsertAppInfoParam;
 
           expectedErrorMessage2 =
-            "property params[0].info has failed the following constraints: isObject";
+            "property params[0].info has failed the following constraints: isHexadecimal";
 
           // insert info to an app
           param3 = ({
@@ -935,30 +953,29 @@ describe("JsonRpc Module", () => {
           } as unknown) as InsertAppInfoParam;
 
           expectedErrorMessage3 =
-            "property params[0].info has failed the following constraints: isObject";
+            "property params[0].info has failed the following constraints: isHexadecimal";
           break;
         case "insertAdministrator":
         case "updateAdministrator": {
           param1 = {
-            ...adminV1,
+            did: adminV1.did,
             from: signer.address,
           } as InsertAdministratorParam;
 
-          delete param1.attribute;
-
           expectedErrorMessage1 =
-            "property params[0].attribute has failed the following constraints: isObject";
+            "property params[0].attributeData has failed the following constraints: isHexadecimal";
 
           param2 = {
             from: signer.address,
-            attribute: adminV1.attribute,
+            attributeData: adminV1.attributeData,
           } as InsertAdministratorParam;
 
           expectedErrorMessage2 =
-            "property params[0].did has failed the following constraints: isDid";
+            "property params[0].did has failed the following constraints: isLowercase, isDid";
 
           param3 = {
-            ...adminV3,
+            did: adminV1.did,
+            attributeData: adminV1.attributeData,
             from: "bad address",
           } as InsertAdministratorParam;
 
@@ -972,24 +989,24 @@ describe("JsonRpc Module", () => {
             applicationId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
             name: "new-name",
-            domain: "bad domain",
+            domain: 45,
           } as unknown) as UpdateAppParam;
 
           param2 = {
             from: signer.address,
             name: "new-name",
-            domain: "ebsi",
+            domain: 0,
           } as UpdateAppParam;
 
           param3 = {
             from: signer.address,
             applicationId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-            domain: "ebsi",
+            domain: 0,
           } as UpdateAppParam;
 
           expectedErrorMessage1 =
-            "property params[0].domain has failed the following constraints: isEnum";
+            "property params[0].domain has failed the following constraints: max";
           expectedErrorMessage2 =
             "property params[0].applicationId has failed the following constraints: isHexadecimal";
           expectedErrorMessage3 =
@@ -1038,22 +1055,22 @@ describe("JsonRpc Module", () => {
             name: apps[0].name,
             authorizedAppName: apps[1].name,
             iss: "did:ebsi:0x001F",
-            permissions: "test",
-            status: "active",
+            permissions: 45,
+            status: 0,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAuthorizationParam;
 
           expectedErrorMessage1 =
-            "property params[0].permissions has failed the following constraints: matches";
+            "property params[0].permissions has failed the following constraints: max";
 
           param2 = {
             from: signer.address,
             name: apps[0].name,
             authorizedAppName: apps[1].name,
             iss: "invalid iss",
-            permissions: "cru",
-            status: "active",
+            permissions: 12,
+            status: 0,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAuthorizationParam;
@@ -1066,22 +1083,22 @@ describe("JsonRpc Module", () => {
             name: apps[0].name,
             authorizedAppName: apps[1].name,
             iss: "did:ebsi:0x001F",
-            permissions: "cru",
-            status: "unknown",
+            permissions: 10,
+            status: 45,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as unknown) as InsertAuthorizationParam;
 
           expectedErrorMessage3 =
-            "property params[0].status has failed the following constraints: isEnum";
+            "property params[0].status has failed the following constraints: max";
           break;
         }
         case "updateAuthorization": {
           param1 = {
             from: signer.address,
             authorizationId: "t42",
-            permissions: "cru",
-            status: "active",
+            permissions: 12,
+            status: 0,
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as UpdateAuthorizationParam;
 
@@ -1092,25 +1109,25 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             authorizationId:
               "0x8bdd58e4f558d893144de376fc7c87a8aaef26ba8aabb2b2c7a8c022d1c88a31",
-            permissions: "test",
-            status: "active",
+            permissions: 45,
+            status: 0,
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as UpdateAuthorizationParam;
 
           expectedErrorMessage2 =
-            "property params[0].permissions has failed the following constraints: matches";
+            "property params[0].permissions has failed the following constraints: max";
 
           param3 = ({
             from: signer.address,
             authorizationId:
               "0x8bdd58e4f558d893144de376fc7c87a8aaef26ba8aabb2b2c7a8c022d1c88a31",
-            permissions: "cru",
-            status: "broken",
+            permissions: 12,
+            status: 45,
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as unknown) as UpdateAuthorizationParam;
 
           expectedErrorMessage3 =
-            "property params[0].status has failed the following constraints: isEnum";
+            "property params[0].status has failed the following constraints: max";
 
           break;
         }
@@ -1118,8 +1135,8 @@ describe("JsonRpc Module", () => {
           param1 = {
             from: signer.address,
             applicationId: "x",
-            publicKey: "another public key",
-            status: "active",
+            publicKey: publicKeyHex,
+            status: 0,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppPublicKeyParam;
@@ -1132,20 +1149,20 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            publicKey: "another public key",
-            status: "unknown",
+            publicKey: `0x${crypto.randomBytes(12).toString("hex")}`,
+            status: 45,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as unknown) as InsertAppPublicKeyParam;
 
           expectedErrorMessage2 =
-            "property params[0].status has failed the following constraints: isEnum";
+            "property params[0].status has failed the following constraints: max";
 
           param3 = {
             from: signer.address,
-            applicationId: "0",
-            publicKey: "another public key",
-            status: "active",
+            applicationId: "0x1234",
+            publicKey: `0x${crypto.randomBytes(12).toString("hex")}`,
+            status: 0,
             notBefore: -1,
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppPublicKeyParam;
@@ -1158,7 +1175,7 @@ describe("JsonRpc Module", () => {
           param1 = {
             from: signer.address,
             publicKeyId: "bad id",
-            status: "revoked",
+            status: 2,
             notAfter: Date.now(),
           } as UpdateAppPublicKeyParam;
 
@@ -1173,13 +1190,13 @@ describe("JsonRpc Module", () => {
           } as UpdateAppPublicKeyParam;
 
           expectedErrorMessage2 =
-            "property params[0].status has failed the following constraints: isEnum";
+            "property params[0].status has failed the following constraints: max, min, isInt";
 
           param3 = {
             from: signer.address,
             publicKeyId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-            status: "revoked",
+            status: 2,
           } as UpdateAppPublicKeyParam;
 
           expectedErrorMessage3 =
@@ -1205,9 +1222,9 @@ describe("JsonRpc Module", () => {
           expectedErrorMessage1 =
             "property params[0].policyId has failed the following constraints: isString";
 
-          delete param2.policy;
+          delete param2.policyData;
           expectedErrorMessage2 =
-            "property params[0].policy has failed the following constraints: isBase64";
+            "property params[0].policyData has failed the following constraints: isHexadecimal";
 
           param3.from = "bad address";
           expectedErrorMessage3 =
@@ -1285,6 +1302,15 @@ describe("JsonRpc Module", () => {
       let param2: JsonRpcParams;
 
       const appPublicKey = "this is a public key";
+      const publicKeyHex = `0x${Buffer.from(appPublicKey).toString("hex")}`;
+
+      const appInfo = {
+        data1: "my data",
+      };
+      const appInfoHex = `0x${Buffer.from(
+        JSON.stringify(appInfo),
+        "utf8"
+      ).toString("hex")}`;
 
       // Get pre-existing apps
       const { apps } = testEnv;
@@ -1294,20 +1320,20 @@ describe("JsonRpc Module", () => {
           param1 = {
             from: signer.address,
             name: "App1",
-            domain: "ebsi",
+            domain: 0,
             appAdministrator: "did:ebsi:0x001F",
-            publicKey: appPublicKey,
-            status: "active",
+            publicKey: publicKeyHex,
+            status: 1,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppParam;
           param2 = {
             from: signer.address,
             name: "App2",
-            domain: "ebsi",
+            domain: 1,
             appAdministrator: "did:ebsi:0x001A",
-            publicKey: "this is a public key",
-            status: "active",
+            publicKey: publicKeyHex,
+            status: 2,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppParam;
@@ -1350,17 +1376,13 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             applicationId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-            info: {
-              data1: "data",
-            },
+            info: appInfoHex,
           } as InsertAppInfoParam;
           param2 = {
             from: signer.address,
             applicationId:
-              "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d4",
-            info: {
-              data1: "data2",
-            },
+              "0x24a454c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d4",
+            info: appInfoHex,
           } as InsertAppInfoParam;
           break;
         case "insertAdministrator":
@@ -1400,7 +1422,7 @@ describe("JsonRpc Module", () => {
             applicationId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
             name: "App1-v2",
-            domain: "ebsi",
+            domain: 0,
           } as UpdateAppParam;
 
           param2 = {
@@ -1408,7 +1430,7 @@ describe("JsonRpc Module", () => {
             applicationId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
             name: "App1-v2.1",
-            domain: "ebsi",
+            domain: 0,
           } as UpdateAppParam;
           break;
         }
@@ -1418,8 +1440,8 @@ describe("JsonRpc Module", () => {
             name: apps[0].name,
             authorizedAppName: apps[1].name,
             iss: "did:ebsi:0x001F",
-            permissions: "cru",
-            status: "active",
+            permissions: 12,
+            status: 0,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAuthorizationParam;
@@ -1428,8 +1450,8 @@ describe("JsonRpc Module", () => {
             name: apps[0].name,
             authorizedAppName: apps[1].name,
             iss: "did:ebsi:0x001F",
-            permissions: "cru",
-            status: "revoked",
+            permissions: 12,
+            status: 1,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAuthorizationParam;
@@ -1440,16 +1462,16 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             authorizationId:
               "0x8bdd58e4f558d893144de376fc7c87a8aaef26ba8aabb2b2c7a8c022d1c88a31",
-            permissions: "cru",
-            status: "active",
+            permissions: 12,
+            status: 0,
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as UpdateAuthorizationParam;
           param2 = {
             from: signer.address,
             authorizationId:
               "0x8bdd58e4f558d893144de376fc7c87a8aaef26ba8aabb2b2c7a8c022d1c88a31",
-            permissions: "cru",
-            status: "revoked",
+            permissions: 12,
+            status: 2,
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as UpdateAuthorizationParam;
           break;
@@ -1460,8 +1482,8 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            publicKey: "another public key",
-            status: "active",
+            publicKey: `0x${crypto.randomBytes(12).toString("hex")}`,
+            status: 0,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppPublicKeyParam;
@@ -1470,8 +1492,8 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            publicKey: "another public key",
-            status: "revoked",
+            publicKey: `0x${crypto.randomBytes(12).toString("hex")}`,
+            status: 1,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppPublicKeyParam;
@@ -1482,14 +1504,14 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             publicKeyId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-            status: "active",
+            status: 0,
             notAfter: Date.now(),
           } as UpdateAppPublicKeyParam;
           param2 = {
             from: signer.address,
             publicKeyId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-            status: "revoked",
+            status: 1,
             notAfter: Date.now(),
           } as UpdateAppPublicKeyParam;
           break;

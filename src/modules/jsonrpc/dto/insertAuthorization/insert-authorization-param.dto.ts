@@ -1,41 +1,9 @@
-import {
-  IsEthereumAddress,
-  IsString,
-  IsEnum,
-  IsInt,
-  Matches,
-  Min,
-} from "class-validator";
-import { IsDid } from "../../validators";
-import { Status } from "../shared/enums";
+import { IsEthereumAddress } from "class-validator";
+import { ArgsInsertAuthorization } from "../signedTransaction";
 
-export class InsertAuthorizationParam {
+export class InsertAuthorizationParam extends ArgsInsertAuthorization {
   @IsEthereumAddress()
   from: string;
-
-  @IsString()
-  name: string;
-
-  @IsString()
-  authorizedAppName: string;
-
-  @IsDid()
-  iss: string;
-
-  @IsEnum(Status)
-  status: Status;
-
-  @IsString()
-  @Matches(/^[crud]{0,4}$/)
-  permissions: string;
-
-  @IsInt()
-  @Min(0)
-  notBefore: number;
-
-  @IsInt()
-  @Min(0)
-  notAfter: number;
 }
 
 export default { InsertAuthorizationParam };

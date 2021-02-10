@@ -1,16 +1,9 @@
-import { IsEthereumAddress, IsHexadecimal, IsObject } from "class-validator";
+import { IsEthereumAddress } from "class-validator";
+import { ArgsInsertAppInfo } from "../signedTransaction";
 
-export class InsertAppInfoParam {
+export class InsertAppInfoParam extends ArgsInsertAppInfo {
   @IsEthereumAddress()
   from: string;
-
-  @IsHexadecimal()
-  applicationId: string;
-
-  @IsObject()
-  info: {
-    [x: string]: unknown;
-  };
 }
 
 export default { InsertAppInfoParam };

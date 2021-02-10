@@ -1,15 +1,9 @@
-import { IsEthereumAddress, IsHexadecimal } from "class-validator";
-import { IsDid } from "../../validators";
+import { IsEthereumAddress } from "class-validator";
+import { ArgsDeleteAppAdministrator } from "../signedTransaction";
 
-export class DeleteAppAdministratorParam {
+export class DeleteAppAdministratorParam extends ArgsDeleteAppAdministrator {
   @IsEthereumAddress()
   from: string;
-
-  @IsHexadecimal()
-  applicationId: string;
-
-  @IsDid()
-  administratorId: string;
 }
 
 export default { DeleteAppAdministratorParam };

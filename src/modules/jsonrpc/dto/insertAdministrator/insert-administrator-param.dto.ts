@@ -1,19 +1,9 @@
-import { IsEthereumAddress, IsObject, ValidateNested } from "class-validator";
-import { Type } from "class-transformer";
-import { IsDid } from "../../validators";
-import { Attribute } from "../shared/attribute.dto";
+import { IsEthereumAddress } from "class-validator";
+import { ArgsInsertAdministrator } from "../signedTransaction";
 
-export class InsertAdministratorParam {
+export class InsertAdministratorParam extends ArgsInsertAdministrator {
   @IsEthereumAddress()
   from: string;
-
-  @IsDid()
-  did: string;
-
-  @IsObject()
-  @ValidateNested()
-  @Type(() => Attribute)
-  attribute: Attribute;
 }
 
 export default { InsertAdministratorParam };

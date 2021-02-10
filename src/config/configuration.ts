@@ -12,28 +12,33 @@ export interface ApiConfig {
   logLevel: string;
   ledger: string;
   adminTestPrivateKey: string;
+  externalEBSIApiHealthCheck: string;
 }
 
 // Example of default values to be used, depending on the environment
 const defaultConfig = {
   local: {
     DOMAIN: "https://api.test.intebsi.xyz",
-    LEDGER: "https://api.test.intebsi.xyz/ledger/v1",
+    LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
+    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LOG_LEVEL: "debug",
   },
   test: {
     DOMAIN: "https://api.test.intebsi.xyz",
-    LEDGER: "https://api.test.intebsi.xyz/ledger/v1",
+    LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
+    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LOG_LEVEL: "info",
   },
   pilot: {
     DOMAIN: "https://api.pilot.ebsi.xyz",
-    LEDGER: "https://api.pilot.ebsi.xyz/ledger/v1",
+    LEDGER: "https://api.pilot.ebsi.xyz/ledger/v2",
+    HEALTH_CHECK: "https://api.pilot.ebsi.xyz/docs/",
     LOG_LEVEL: "warn",
   },
   prod: {
     DOMAIN: "https://api.prod.ebsi.xyz",
-    LEDGER: "https://api.prod.ebsi.xyz/ledger/v1",
+    LEDGER: "https://api.prod.ebsi.xyz/ledger/v2",
+    HEALTH_CHECK: "https://api.prod.ebsi.xyz/docs/",
     LOG_LEVEL: "error",
   },
 };
@@ -54,6 +59,8 @@ export const loadConfig = (): ApiConfig => {
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     ledger: process.env.LEDGER || defaultConfig[EBSI_ENV].LEDGER,
+    externalEBSIApiHealthCheck:
+      process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
   };
 };
 
@@ -87,5 +94,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     AUTH_EXPIRE_TIME: Joi.string(),
     DOMAIN: Joi.string().uri(),
     LEDGER: Joi.string().uri(),
+    HEALTH_CHECK: Joi.string(),
   }),
 });

@@ -1,10 +1,11 @@
 import { IsHexadecimal } from "class-validator";
+import { IsHexadecimalJSON } from "../../validators";
 
 export class ArgsInsertAppInfo {
   @IsHexadecimal()
   applicationId: string;
 
-  @IsHexadecimal()
+  @IsHexadecimalJSON()
   info: string;
 }
 

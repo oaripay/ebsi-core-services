@@ -13,14 +13,18 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { AppsModule } from "./apps.module";
-import { AppLink, AuthorizationLink } from "./apps.interface";
+import {
+  AppLink,
+  AuthorizationLink,
+  AuthorizationResponseObject,
+} from "./apps.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Tar__factory } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { PaginatedList } from "../../shared/interfaces";
 
-jest.setTimeout(150000);
+jest.setTimeout(300000);
 
 interface SupertestAppsResponse {
   status: number;
@@ -407,18 +411,28 @@ describe("Apps Module", () => {
 
       // Get first app
       const { apps } = testEnv;
-      const { publicKey, name, domain } = apps[0];
+      const {
+        publicKey,
+        name,
+        domain,
+        appAdministrator,
+        applicationId,
+        info,
+      } = apps[0];
       const domainName = ["ebsi", "external"][domain];
-
-      const applicationId = ethers.utils.sha256(Buffer.from(publicKey, "utf8"));
-      // Get last revision of this app
 
       const response = await request(server).get(`/apps/${applicationId}`);
 
       expect(response.body).toStrictEqual({
-        id: applicationId,
+        applicationId,
         name,
         domain: domainName,
+        administrators: [appAdministrator],
+        authorizations: expect.arrayContaining(
+          []
+        ) as AuthorizationResponseObject[],
+        info,
+        publicKeys: [Buffer.from(publicKey, "utf8").toString("base64")],
       });
       expect(response.status).toBe(200);
     });

@@ -62,21 +62,19 @@ describe("Administrators (e2e)", () => {
   let adminTestWallet: ethers.Wallet;
 
   const createAdministrator = () => {
-    const did = `did:ebsi:test-${new Date().toISOString()}`;
+    const did = `did:ebsi:test-${new Date().toISOString()}`.toLowerCase();
     const json = {
       // any object here
       any: "Any attribute here",
       type: "credential",
       data: crypto.randomBytes(16).toString("hex"),
     };
-    const data = Buffer.from(JSON.stringify(json));
-    const dataBase64 = data.toString("base64");
-    const dataHash = ethers.utils.sha256(data).slice(2);
+    const buffer = Buffer.from(JSON.stringify(json));
     const attribute = {
-      body: dataBase64,
-      hash: dataHash,
+      body: buffer.toString("base64"),
+      hash: ethers.utils.sha256(buffer).slice(2),
+      data: `0x${buffer.toString("hex")}`,
     };
-
     return { did, attribute };
   };
   const newAdministrator = createAdministrator();
@@ -403,7 +401,7 @@ describe("Administrators (e2e)", () => {
             {
               from: adminTestWallet.address,
               did,
-              attribute,
+              attributeData: attribute.data,
               ...(prevAttributeHash && { prevAttributeHash }),
             },
           ],
@@ -440,27 +438,50 @@ describe("Administrators (e2e)", () => {
       expect.assertions(5);
 
       const { did } = newAdministrator;
-      let attribute: AttributeObject;
+      let attributeData: string;
       let prevAttributeHash: string = null;
       let expectedAttributes = [];
 
       switch (method) {
         case "insertAdministrator": {
           // create a new administrator and add attribute1
-          attribute = attribute1;
-          expectedAttributes = [attribute1];
+          attributeData = attribute1.data;
+          expectedAttributes = [
+            {
+              body: attribute1.body,
+              hash: attribute1.hash,
+            },
+          ];
           break;
         }
         case "updateAdministrator": {
           if (updateAttribute) {
             // update attribute1: change it to attribute3
-            attribute = attribute3;
+            attributeData = attribute3.data;
             prevAttributeHash = attribute1.hash;
-            expectedAttributes = [attribute3, attribute2];
+            expectedAttributes = [
+              {
+                body: attribute3.body,
+                hash: attribute3.hash,
+              },
+              {
+                body: attribute2.body,
+                hash: attribute2.hash,
+              },
+            ];
           } else {
             // updateIssuer: add attribute2
-            attribute = attribute2;
-            expectedAttributes = [attribute1, attribute2];
+            attributeData = attribute2.data;
+            expectedAttributes = [
+              {
+                body: attribute1.body,
+                hash: attribute1.hash,
+              },
+              {
+                body: attribute2.body,
+                hash: attribute2.hash,
+              },
+            ];
           }
           break;
         }
@@ -477,13 +498,12 @@ describe("Administrators (e2e)", () => {
             {
               from: adminTestWallet.address,
               did,
-              attribute,
+              attributeData,
               ...(prevAttributeHash && { prevAttributeHash }),
             },
           ],
           id: 231,
         });
-
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(JSON.stringify(unsignedTransaction))

@@ -15,6 +15,7 @@ export class ArgsUpdateAuthorization {
   permissions: number;
 
   @IsInt()
+  @Min(0)
   notAfter: number;
 }
 

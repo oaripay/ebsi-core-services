@@ -1,37 +1,44 @@
+import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ConfigModule } from "@nestjs/config";
-import { TerminusModule } from "@nestjs/terminus";
-import { HealthController } from "./health.controller";
+import { INestApplication, Logger, ValidationPipe } from "@nestjs/common";
+import {
+  NestFastifyApplication,
+  FastifyAdapter,
+} from "@nestjs/platform-fastify";
+import { FastifyInstance } from "fastify";
+import { AppModule } from "./app.module";
+import { AllExceptionsFilter } from "./filters/http-exception.filter";
 
 describe("HealthController", () => {
-  let healthController: HealthController;
+  let app: INestApplication;
 
-  beforeEach(async () => {
-    const moduleRef: TestingModule = await Test.createTestingModule({
-      imports: [
-        ConfigModule.forRoot({
-          envFilePath: [".env.test.local", ".env.test", ".env.local", ".env"],
-        }),
-        TerminusModule,
-      ],
-      controllers: [HealthController],
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule],
     }).compile();
-
-    healthController = moduleRef.get<HealthController>(HealthController);
+    Logger.overrideLogger(false);
+    app = moduleFixture.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter()
+    );
+    app.useGlobalFilters(new AllExceptionsFilter());
+    app.useGlobalPipes(new ValidationPipe());
+    await app.init();
+    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
   });
 
   describe("check", () => {
     it("should return 'ok'", async () => {
-      expect.assertions(1);
-
-      // TODO: mock Terminus
-
-      expect(await healthController.check()).toStrictEqual({
+      expect.assertions(2);
+      const url = `/health`;
+      const response = await request(app.getHttpServer()).get(url);
+      expect(response.body).toStrictEqual({
         details: { "ebsi-apis": { status: "up" } },
         error: {},
         info: { "ebsi-apis": { status: "up" } },
         status: "ok",
       });
+
+      expect(response.status).toBe(200);
     });
   });
 });

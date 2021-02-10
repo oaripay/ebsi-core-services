@@ -33,7 +33,6 @@ import {
   ArgsInsertAuthorization,
   ArgsUpdateAuthorization,
 } from "./dto";
-import { prefixWith0x } from "../../shared/utils";
 
 type JsonRpcDtos =
   | RequestDeleteAppAdministratorDto
@@ -104,28 +103,4 @@ export const validateClass = async (
   if (errors.length > 0) {
     throw new Error(errors.toString());
   }
-};
-
-export const checkHash = (buffer: Buffer, hash: string): void => {
-  const expectedHash = ethers.utils.sha256(buffer);
-  if (prefixWith0x(hash) !== expectedHash)
-    throw new Error(
-      `Invalid issuer.attribute.hash. Received: ${prefixWith0x(
-        hash
-      )}. Expected: ${expectedHash}`
-    );
-};
-
-// Convert string permissions (e.g. "crud") into integer (e.g. 15)
-export const computePermissions = (permissions: string): number => {
-  const operations: { [x: string]: number } = {
-    c: 8,
-    r: 4,
-    u: 2,
-    d: 1,
-  };
-
-  return Object.keys(operations)
-    .map((op) => (permissions.indexOf(op) >= 0 ? operations[op] : 0))
-    .reduce((acc, val) => acc + val, 0);
 };

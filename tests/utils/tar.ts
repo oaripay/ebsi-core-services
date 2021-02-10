@@ -32,6 +32,10 @@ interface AppObject {
   status: number;
   notBefore: number;
   notAfter: number;
+  applicationId: string;
+  info: {
+    [x: string]: unknown;
+  };
 }
 
 interface AuthorizationObject {
@@ -157,11 +161,21 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
   const domain = 0; // "ebsi"
   const appAdministrator = "did:ebsi:0x001F";
   const publicKey = `pubkey-${crypto.randomBytes(8).toString("hex")}`;
+  const applicationId = ethers.utils.sha256(Buffer.from(publicKey, "utf8"));
   const status = 0; // "active"
   const notBefore = Date.now();
   const notAfter = Date.now() + 365 * 24 * 60 * 60 * 1000;
+  const info = {
+    someNumber: Date.now(),
+    someString: crypto.randomBytes(12).toString("hex"),
+    someObject: {
+      x: "x",
+      one: 1,
+    },
+  };
 
   const bufferPublicKey = Buffer.from(publicKey, "utf8");
+  const bufferInfo = Buffer.from(JSON.stringify(info), "utf8");
 
   await contract.insertApp(
     name,
@@ -173,6 +187,8 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
     notAfter
   );
 
+  await contract.insertAppInfo(applicationId, bufferInfo);
+
   return {
     name,
     domain,
@@ -181,6 +197,8 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
     status,
     notBefore,
     notAfter,
+    applicationId,
+    info,
   };
 }
 
@@ -293,27 +311,26 @@ export async function setupTestEnv(
     .pipe(mergeMap(createApp), toArray())
     .toPromise();
 
-  const authorizations = await Promise.all(
-    apps.map((app) =>
-      Promise.all(
-        apps.map(
-          async (app2): Promise<[AuthorizationObject, AuthorizationObject]> => {
-            const auth1 = await insertAuthorization(
-              tarContract,
-              app.name,
-              app2.name
-            );
-            const auth2 = await insertAuthorization(
-              tarContract,
-              app.name,
-              app2.name
-            );
-            return [auth1, auth2];
-          }
-        )
-      )
-    )
-  );
+  const authorizations = [];
+  /* eslint-disable no-await-in-loop */
+  for (let i = 0; i < apps.length; i += 1) {
+    const authsApp = [];
+    for (let j = 0; j < apps.length; j += 1) {
+      const auth1 = await insertAuthorization(
+        tarContract,
+        apps[i].name,
+        apps[j].name
+      );
+      const auth2 = await insertAuthorization(
+        tarContract,
+        apps[i].name,
+        apps[j].name
+      );
+      authsApp.push([auth1, auth2]);
+    }
+    authorizations.push(authsApp);
+  }
+  /* eslint-enable no-await-in-loop */
 
   // Return test env variables
   return {

@@ -1,15 +1,9 @@
-import { IsEthereumAddress, IsHexadecimal } from "class-validator";
-import { IsDid } from "../../validators";
+import { IsEthereumAddress } from "class-validator";
+import { ArgsInsertAppAdministrator } from "../signedTransaction";
 
-export class InsertAppAdministratorParam {
+export class InsertAppAdministratorParam extends ArgsInsertAppAdministrator {
   @IsEthereumAddress()
   from: string;
-
-  @IsHexadecimal()
-  applicationId: string;
-
-  @IsDid()
-  administratorId: string;
 }
 
 export default { InsertAppAdministratorParam };

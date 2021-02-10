@@ -1,25 +1,9 @@
-import {
-  IsEthereumAddress,
-  IsHexadecimal,
-  IsEnum,
-  IsInt,
-  Min,
-} from "class-validator";
-import { Status } from "../shared/enums";
+import { IsEthereumAddress } from "class-validator";
+import { ArgsUpdateAppPublicKey } from "../signedTransaction";
 
-export class UpdateAppPublicKeyParam {
+export class UpdateAppPublicKeyParam extends ArgsUpdateAppPublicKey {
   @IsEthereumAddress()
   from: string;
-
-  @IsHexadecimal()
-  publicKeyId: string;
-
-  @IsEnum(Status)
-  status: Status;
-
-  @IsInt()
-  @Min(0)
-  notAfter: number;
 }
 
 export default { UpdateAppPublicKeyParam };

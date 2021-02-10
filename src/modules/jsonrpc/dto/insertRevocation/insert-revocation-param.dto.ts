@@ -1,19 +1,9 @@
-import { IsEthereumAddress, IsHexadecimal, IsInt, Min } from "class-validator";
-import { IsDid } from "../../validators";
+import { IsEthereumAddress } from "class-validator";
+import { ArgsInsertRevocation } from "../signedTransaction";
 
-export class InsertRevocationParam {
+export class InsertRevocationParam extends ArgsInsertRevocation {
   @IsEthereumAddress()
   from: string;
-
-  @IsHexadecimal()
-  applicationId: string;
-
-  @IsDid()
-  revokedBy: string;
-
-  @IsInt()
-  @Min(0)
-  notBefore: number;
 }
 
 export default { InsertRevocationParam };

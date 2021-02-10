@@ -83,7 +83,7 @@ paths:
                     type: integer
                     description: Number of items to be returned per page
                   links:
-                    $ref: "#/components/schemas/links"
+                    $ref: "#/components/schemas/Links"
               examples:
                 Success:
                   value:
@@ -135,7 +135,7 @@ paths:
           in: path
           schema:
             type: string
-          example: test-app-1
+          example: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
           required: true
       responses:
         "200":
@@ -143,13 +143,36 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/app"
+                $ref: "#/components/schemas/App"
               examples:
                 Success:
                   value:
-                    id: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+                    applicationId: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
                     name: test-app-1
                     domain: ebsi
+                    administrators:
+                      - "did:ebsi:0x8031E8E4Df0d53bee9d4E78049aE74329905A288"
+                      - "did:ebsi:0x4713e2C59DB9411e71e39C85c5De8613E744dA5a"
+                    publicKeys:
+                      - LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0t...
+                      - LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0t...
+                    info:
+                      { data1: "data 1", data2: "data 2", anyField: "any data" }
+                    authorizations:
+                      - authorizationId: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+                        resourceApplicationId: "0x125b1838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0845"
+                        requesterApplicationId: "0xca451838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d1234"
+                        resourceApplicationName: test-app-1
+                        requesterApplicationName: test-app-2
+                        iss: did:ebsi:0xeD82f3e166D72d47a687cD4b182710a21F431485
+                        permissions:
+                          create: "true"
+                          read: "true"
+                          update: "false"
+                          delete: "false"
+                        status: active
+                        notBefore: 1610699786
+                        notAfter: 2610699786
         "400":
           description: Bad Request
           content:
@@ -217,7 +240,7 @@ paths:
                     type: integer
                     description: Number of items to be returned per page
                   links:
-                    $ref: "#/components/schemas/links"
+                    $ref: "#/components/schemas/Links"
               examples:
                 Success:
                   value:
@@ -323,7 +346,7 @@ paths:
                     type: integer
                     description: Number of items to be returned per page
                   links:
-                    $ref: "#/components/schemas/links"
+                    $ref: "#/components/schemas/Links"
               examples:
                 Success:
                   value:
@@ -389,7 +412,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/authorization"
+                $ref: "#/components/schemas/Authorization"
               examples:
                 Success:
                   value:
@@ -457,7 +480,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/administrator"
+                $ref: "#/components/schemas/Administrator"
               examples:
                 Success:
                   value:
@@ -531,7 +554,7 @@ paths:
                     type: integer
                     description: Number of items to be returned per page
                   links:
-                    $ref: "#/components/schemas/links"
+                    $ref: "#/components/schemas/Links"
               examples:
                 Success:
                   value:
@@ -626,7 +649,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/attributeDetails"
+                $ref: "#/components/schemas/AttributeDetails"
               examples:
                 Success:
                   value:
@@ -687,7 +710,7 @@ paths:
                     type: array
                     description: Array of attribute objects sorted chronologically
                     items:
-                      $ref: "#/components/schemas/attribute"
+                      $ref: "#/components/schemas/Attribute"
                   total:
                     type: integer
                     description: Total number of results
@@ -695,7 +718,7 @@ paths:
                     type: integer
                     description: Number of items to be returned per page
                   links:
-                    $ref: "#/components/schemas/links"
+                    $ref: "#/components/schemas/Links"
               examples:
                 Success:
                   value:
@@ -825,7 +848,7 @@ paths:
                     type: integer
                     description: Number of items to be returned per page
                   links:
-                    $ref: "#/components/schemas/links"
+                    $ref: "#/components/schemas/Links"
               examples:
                 Success:
                   value:
@@ -883,7 +906,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/policy"
+                $ref: "#/components/schemas/Policy"
               examples:
                 Success:
                   value:
@@ -964,7 +987,7 @@ paths:
                     type: array
                     description: List of policies
                     items:
-                      $ref: "#/components/schemas/policy"
+                      $ref: "#/components/schemas/Policy"
                   total:
                     type: integer
                     description: Total number of items in a collection
@@ -972,7 +995,7 @@ paths:
                     type: integer
                     description: Number of items to be returned per page
                   links:
-                    $ref: "#/components/schemas/links"
+                    $ref: "#/components/schemas/Links"
               examples:
                 Success:
                   value:
@@ -1087,11 +1110,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
-                      attribute:
-                        {
-                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
-                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-                        }
+                      attributeData: "0x68946e6565d6516..."
                   id: 1
               Build tx to insertApp:
                 value:
@@ -1100,11 +1119,10 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       name: "my app"
-                      domain: "ebsi"
+                      domain: 1
                       appAdministrator: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
-                      publicKey: |
-                        -----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZI...IqA==\n-----END PUBLIC KEY-----
-                      status: "active"
+                      publicKey: "0x219846541f63165e651651ca231..."
+                      status: 1
                       notBefore: 1609926740
                       notAfter: 1709926740
                   id: 1
@@ -1124,7 +1142,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      info: { anyField: info data }
+                      info: "JSON string in hex format"
                   id: 1
               Build tx to insertAppPublicKey:
                 value:
@@ -1133,9 +1151,8 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      publicKey: |
-                        -----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZI...IqA==\n-----END PUBLIC KEY-----
-                      status: "suspended"
+                      publicKey: "0x219846541f63165e651651ca231..."
+                      status: 2
                       notBefore: 1609926740
                       notAfter: 1709926740
                   id: 1
@@ -1148,8 +1165,8 @@ paths:
                       name: "app1"
                       authorizedAppName: "app2"
                       iss: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
-                      status: "active"
-                      permissions: "crud"
+                      status: 1
+                      permissions: 15
                       notBefore: 1609926740
                       notAfter: 1709926740
                   id: 1
@@ -1159,8 +1176,8 @@ paths:
                   method: insertPolicy
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      appId: test-policy-1
-                      app: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
+                      policyId: test-policy-1
+                      policyData: "0x1234567890..."
                   id: 1
               Build tx to insertRevocation:
                 value:
@@ -1179,11 +1196,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
-                      attribute:
-                        {
-                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
-                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-                        }
+                      attributeData: "0x68946e6565d6516..."
                   id: 1
               Build tx to updateAdministrator (update attribute):
                 value:
@@ -1192,11 +1205,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
-                      attribute:
-                        {
-                          body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9,
-                          hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-                        }
+                      attributeData: "0x68946e6565d6516..."
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
                   id: 1
               Build tx to updateApp:
@@ -1207,7 +1216,7 @@ paths:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
                       name: "new name"
-                      domain: "external"
+                      domain: 2
                   id: 1
               Build tx to updateAppPublicKey:
                 value:
@@ -1216,7 +1225,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       publicKeyId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      status: "revoked"
+                      status: 2
                       notAfter: 1709926740
                   id: 1
               Build tx to updateAuthorization:
@@ -1226,8 +1235,8 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       authorizationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      status: "active"
-                      permissions: "crud"
+                      status: 1
+                      permissions: 15
                       notAfter: 1709926740
                   id: 1
               Build tx to updatePolicy:
@@ -1236,8 +1245,8 @@ paths:
                   method: updatePolicy
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      appId: test-policy-1
-                      app: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
+                      policyId: test-policy-1
+                      policyData: "0x1234567890..."
                   id: 1
               Send Transaction:
                 value:
@@ -1341,7 +1350,7 @@ components:
           description: |
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
-    links:
+    Links:
       title: Links
       type: object
       properties:
@@ -1364,7 +1373,7 @@ components:
           prev: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=2&page[size]=2
           next: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=4&page[size]=2
           last: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=13&page[size]=2
-    attribute:
+    Attribute:
       title: Attribute
       type: object
       description: Attribute
@@ -1374,7 +1383,7 @@ components:
           description: sha256 hash of the payload
         body:
           description: Base64 encoded content
-    attributeDetails:
+    AttributeDetails:
       title: attributeDetails
       type: object
       description: Attribute Details
@@ -1383,8 +1392,8 @@ components:
           type: string
           description: DID of the attribute owner
         attribute:
-          $ref: "#/components/schemas/attribute"
-    administrator:
+          $ref: "#/components/schemas/Attribute"
+    Administrator:
       title: Administrator
       type: object
       description: Name of the administrator
@@ -1396,7 +1405,7 @@ components:
           type: array
           description: Array of attributes
           items:
-            $ref: "#/components/schemas/attribute"
+            $ref: "#/components/schemas/Attribute"
     JsonRpcResponse:
       title: Json Rpc Response
       type: object
@@ -1412,12 +1421,12 @@ components:
           oneOf:
             - type: object
             - type: string
-    app:
+    App:
       title: App
       type: object
       description: App data model
       properties:
-        id:
+        applicationId:
           type: string
           description: Unique app ID
         name:
@@ -1425,8 +1434,23 @@ components:
           description: App name
         domain:
           type: string
-          description: domain (ebsi or external)
-    authorization:
+          description: domain
+          enum: ["ebsi", "external"]
+        administrators:
+          type: array
+          items:
+            type: string
+        publicKeys:
+          type: array
+          items:
+            type: string
+        info:
+          type: object
+        authorizations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Authorization"
+    Authorization:
       description: Authorization data model
       type: object
       properties:
@@ -1477,7 +1501,7 @@ components:
         notAfter:
           description: Date and time after the authorization must be considered invalid.
           type: number
-    policy:
+    Policy:
       title: Policy
       type: object
       description: Policy data model

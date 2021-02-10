@@ -1,9 +1,3 @@
-export interface AppResponseObject {
-  id: string;
-  name: string;
-  domain: string;
-}
-
 export interface AppLink {
   id: string;
   name: string;
@@ -54,4 +48,16 @@ export interface AuthorizationResponseObject {
   status: string;
   notBefore: number;
   notAfter: number;
+}
+
+export interface AppResponseObject {
+  applicationId: string;
+  name: string;
+  domain: string;
+  administrators: string[];
+  publicKeys: string[];
+  info: {
+    [x: string]: unknown;
+  };
+  authorizations: AuthorizationResponseObject[];
 }
