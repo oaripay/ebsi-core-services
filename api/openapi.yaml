@@ -495,75 +495,6 @@ paths:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /storage/v2/stores/distributed/files/{hash}:
-    delete:
-      tags:
-        - File Storage
-      operationId: delete-storage-v2-stores-distributed-files-hash
-      summary: Delete file
-      description: Delete file by hash
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: hash
-          in: path
-          schema:
-            type: string
-          example: "0xbe5b5152fcd01b6bf53f149bfd1493a49ec5e8ae94cc4c29a81563eea0e347f4"
-          required: true
-      responses:
-        204:
-          description: File deleted
-        400:
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Invalid {store,hash} Parameter:
-                  value:
-                    title: Bad request
-                    status: 400
-                    detail: The format of the {store,hash} parameter is not valid
-        401:
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Unauthorized:
-                  $ref: "#/components/examples/Unauthorized"
-        403:
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Forbidden:
-                  $ref: "#/components/examples/Forbidden"
-        404:
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Not Found:
-                  value:
-                    title: Not found
-                    status: 404
-                    detail: "{store,hash} parameter not found"
-        500:
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
     get:
       tags:
         - File Storage
@@ -748,6 +679,75 @@ paths:
                     title: Key Too Large
                     status: 414
                     detail: The key size exceeds the limit of 256 bytes
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+    delete:
+      tags:
+        - File Storage
+      operationId: delete-storage-v2-stores-distributed-files-hash
+      summary: Delete file
+      description: Delete file by hash
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: hash
+          in: path
+          schema:
+            type: string
+          example: "0xbe5b5152fcd01b6bf53f149bfd1493a49ec5e8ae94cc4c29a81563eea0e347f4"
+          required: true
+      responses:
+        204:
+          description: File deleted
+        400:
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {store,hash} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: The format of the {store,hash} parameter is not valid
+        401:
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Unauthorized:
+                  $ref: "#/components/examples/Unauthorized"
+        403:
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Forbidden:
+                  $ref: "#/components/examples/Forbidden"
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Not Found:
+                  value:
+                    title: Not found
+                    status: 404
+                    detail: "{store,hash} parameter not found"
         500:
           description: Internal Server Error
           content:

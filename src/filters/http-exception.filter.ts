@@ -14,6 +14,7 @@ import {
 } from "@cef-ebsi/problem-details-errors";
 import { FastifyReply } from "fastify";
 import { AxiosError } from "axios";
+import { InvalidRequestJsonRpcError } from "../modules/jsonrpc/errors";
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -22,6 +23,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
   catch(err: Error, host: ArgumentsHost): FastifyReply {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
+
+    if (err instanceof InvalidRequestJsonRpcError) {
+      const JsonRpcError = err;
+      this.logger.debug(JsonRpcError.toString());
+      return response
+        .code(JsonRpcError.status)
+        .type("application/problem+json")
+        .send(JsonRpcError.toJSON());
+    }
 
     let problemError: ProblemDetailsError;
 

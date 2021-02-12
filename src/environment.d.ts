@@ -9,6 +9,35 @@ declare global {
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOMAIN?: string;
       HEALTH_CHECK?: string;
+      CASSANDRA_USER: string;
+      CASSANDRA_PASSWORD: string;
+      CASSANDRA_CONSISTENCY_READ?:
+        | "any"
+        | "one"
+        | "two"
+        | "three"
+        | "quorum"
+        | "all"
+        | "localQuorum"
+        | "eachQuorum"
+        | "serial"
+        | "localSerial"
+        | "localOne";
+      CASSANDRA_CONSISTENCY_WRITE?:
+        | "any"
+        | "one"
+        | "two"
+        | "three"
+        | "quorum"
+        | "all"
+        | "localQuorum"
+        | "eachQuorum"
+        | "serial"
+        | "localSerial"
+        | "localOne";
+      CASSANDRA_CONTACT_POINTS?: string;
+      CASSANDRA_LOCAL_DATACENTER?: string;
+      CASSANDRA_KEYSPACE?: string;
     }
   }
 }

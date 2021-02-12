@@ -7,3 +7,5 @@ services:
     ports:
       - "7000:7000"
       - "9042:9042"
+    volumes:
+      - ./cassandra.yaml:/etc/cassandra/cassandra.yaml

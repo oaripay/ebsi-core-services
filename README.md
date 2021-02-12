@@ -85,37 +85,11 @@ You can now open http://localhost:3000/storage/v2/health. If everything's workin
 
 ### Run with Docker
 
-After creating the `.env.local` file, run:
+Make sure you have an instance of cassandra running and configure the connection by creating the `.env.local` file (for testing purposes see Testing section). Then, run:
 
 ```sh
 docker-compose up --build
 ```
-
-Create the keyspace in Cassandra. First: enter into the container:
-
-```sh
-docker exec -it cassandradb bash
-```
-
-Enter into the cassandra command line:
-
-```sh
-cqlsh
-```
-
-And finally define the keyspace:
-
-```sh
-create keyspace ebsi_integration with replication = {'class':'SimpleStrategy','replication_factor':1};
-```
-
-For testing purposes, set `replication_factor` to 1, because there is only 1 node. For production, it is recommended to use `NetworkTopologyStrategy` with a `replication_factor` of 3.
-
-```sh
-create keyspace ebsi_integration with replication = { 'class':'NetworkTopologyStrategy', 'datacenter1' : 3, 'datacenter2': 3};
-```
-
-The API connects with this keyspace and create the tables automatically.
 
 Check http://localhost:3000/storage/v2/health to see if it's working.
 
@@ -210,22 +184,11 @@ cd tests
 docker-compose up --build
 ```
 
-Create the keyspace in Cassandra. First, enter into the container:
+Create the keyspace and tables:
 
 ```sh
-docker exec -it cassandradb_test bash
-```
-
-Enter to the cassandra command line:
-
-```sh
-cqlsh
-```
-
-And finally define the keyspace:
-
-```sh
-create keyspace ebsi_integration with replication = {'class':'SimpleStrategy','replication_factor':1};
+cd ..
+yarn configure:cassandra
 ```
 
 To run all the tests, type:
