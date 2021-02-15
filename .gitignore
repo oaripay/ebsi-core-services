@@ -6,5 +6,5 @@ src
 build
 *.log
 *log
-all.sol
 .secret*
+deployments

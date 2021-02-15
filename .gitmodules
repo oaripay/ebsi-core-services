@@ -1,0 +1,24 @@
+[submodule "contracts/proxy-ethereum-sc"]
+	path = contracts/proxy-ethereum-sc
+	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/proxy-ethereum-sc.git
+  branch = develop
+[submodule "contracts/timestamp-ethereum-sc"]
+	path = contracts/timestamp-ethereum-sc
+	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/timestamp-ethereum-sc.git
+  branch = develop
+[submodule "contracts/trusted-apps-registry-ethereum-sc"]
+	path = contracts/trusted-apps-registry-ethereum-sc
+	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-apps-registry-ethereum-sc.git
+	branch = develop
+[submodule "contracts/trusted-issuers-registry-ethereum-sc"]
+	path = contracts/trusted-issuers-registry-ethereum-sc
+	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-issuers-registry-ethereum-sc.git
+	branch = develop
+[submodule "contracts/trusted-schemas-registry-ethereum-sc"]
+	path = contracts/trusted-schemas-registry-ethereum-sc
+	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-schemas-registry-ethereum-sc.git
+	branch = develop
+[submodule "contracts/trusted-sc-registry-ethereum-sc"]
+	path = contracts/trusted-sc-registry-ethereum-sc
+	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-sc-registry-ethereum-sc.git
+	branch = develop

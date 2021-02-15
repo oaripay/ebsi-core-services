@@ -7,10 +7,12 @@
 ## Table of Contents
 
 1. [Getting started](#Getting)
-2. [Building](#Building)
-3. [Deployment](#Deployment)
-4. [Testing](#Testing)
-5. [Licensing](#Licensing)
+2. [Compiling](#Compiling)
+3. [Run tasks](#Run-tasks)
+4. [Deployment](#Deployment)
+5. [Scripts](#Scripts)
+6. [Hardhat console](#Hardhat-console)
+7. [Licensing](#Licensing)
 
 ## Getting started
 
@@ -26,7 +28,13 @@ Install dependencies:
 yarn install
 ```
 
-## Building
+retrieve the submodules
+
+```
+git submodule update --init --recursive
+```
+
+## Compiling
 
 Compile the smart contracts:
 
@@ -34,35 +42,84 @@ Compile the smart contracts:
 yarn run compile
 ```
 
+this will create an `artifcats` folder with all the information related to the smart contracts
+and `src/types`,`src/abi` folder for the typechain object representing the contracts.
+
+## Run tasks
+
 To verify the accounts that will be used by hardhat
 
 ```sh
 npx hardhat accounts
 ```
 
+To verify the chainId that will be used by hardhat
+
+```sh
+npx hardhat --network local chainId
+```
+
+To get the lastest block number on the specified network
+
+```sh
+npx hardhat --network local blockNumber
+```
+
+To get some inforamtion about a transaction
+
+```sh
+npx hardhat --network local tx --hash 0xd0f11a38650c987063b689b5384ae17e6506fbd179e50e47a84111695331302ds
+```
+
+for the complete list of available tasks run
+
+```sh
+npx hardhat
+```
+
 ## Deployment
 
 To deploy the smart contracts on a network defined in the `hardhat.config.ts`
-
-```sh
-npx hardhat run --network <your-network> scripts/deployment.ts
-```
+use the `--tag` option to specify the deployment script that you want to run. The tag is exported at the end of the deployment file e.g. `func.tags = ["Timestamp"];`
 
 Note that by default smart contracts will be deployed locally using hardhat development node.
 
-## Testing
-
-### Requirements:
-
-- node 14.15 (use nvm)
-
-### Launch all tests
+Deployment scripts are located in the `scripts/deployment` folder
 
 ```sh
-yarn run test
+npx hardhat --network ebsi deploy --tags OwnedUpgradeabilityProxy --gasprice 0
 ```
 
-if you experience some timeout issues try running tests one by one
+running deployment script will add information about deployment like the smart contract addresses per network inside the `deployments` folder
+
+if you want to deploy again the smart contract add the `--reset` option
+
+```sh
+npx hardhat --network local deploy --tags Timestamp  --gasprice 0 --reset
+```
+
+## Scripts
+
+you can run scripts with the following command `hardhat --network <networkName> run <script>`.
+Scripts are located in the `scripts` folder.
+
+e.g.
+
+```sh
+npx hardhat --network local run ./scripts/proxy/changeOwnership.ts
+```
+
+# Hardhat console
+
+Hardhat comes built-in with an interactive JavaScript console. You can use it by running npx hardhat console. Anything that has been injected into the Hardhat Runtime Environment will be available in the global scope.
+
+Hardhat's console supports await top-level await (i.e. `console.log(await web3.eth.getBalance()`).
+
+you can also launch it on a specific network
+
+```sh
+npx hardhat --network local console
+```
 
 ## Licensing
 

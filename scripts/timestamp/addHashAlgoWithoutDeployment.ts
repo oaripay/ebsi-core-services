@@ -4,6 +4,7 @@
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 import { ethers } from "hardhat";
+import { Timestamp } from "src/types/Timestamp";
 
 async function main() {
   // Hardhat always runs the compile task when running scripts with its command
@@ -25,24 +26,24 @@ async function main() {
       RecordLib: "0xE65d87135cA2e45C705581CcACDe55CFD1A78AD4",
     },
   });
-  const ts = await contractFactory.attach(proxyAddress);
-
+  const ts = contractFactory.attach(proxyAddress) as Timestamp;
   console.log(
     `deployer:${deployer.address}
-     admin:${admin.address}
-     version:${ts.version()}`
+     admin:${admin.address}`
   );
   const initialVersion = await ts.version();
   console.log(initialVersion);
   console.log("initialVersion:", initialVersion.toString());
 
   // add hashAlgo
-  await ts.insertHashAlgorithm(256, "SHA256", "oid", 1);
-  await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1);
-  await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1);
+  await (await ts.insertHashAlgorithm(256, "SHA256", "oid", 1)).wait(1);
+  await (await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1)).wait(1);
+  await (await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1)).wait(1);
   const halgo = await ts.getHashAlgorithmById(1);
   console.log(
-    `halgorithm ${halgo.ianaName} oid:${halgo.oid} length:${halgo.outputLength} status:${halgo.status}`
+    `halgorithm ${halgo.ianaName} oid:${
+      halgo.oid
+    } length:${halgo.outputLength.toString()} status:${halgo.status}`
   );
 }
 
