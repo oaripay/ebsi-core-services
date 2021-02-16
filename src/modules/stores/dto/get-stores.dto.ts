@@ -1,4 +1,4 @@
-import PaginationQuery from "../../../shared/dto/pagination-query";
+import { PaginationQuery } from "../../../shared/dto";
 
 export class GetStoresDto extends PaginationQuery {}
 

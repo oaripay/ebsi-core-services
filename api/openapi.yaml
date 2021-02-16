@@ -876,26 +876,19 @@ paths:
                     items:
                       $ref: "#/components/schemas/key"
                   links:
-                    $ref: "#/components/schemas/Links"
+                    $ref: "#/components/schemas/CassandraLinks"
                   pageSize:
                     type: integer
                     description: Number of items to be returned per page
-                  total:
-                    type: integer
-                    description: Total number of pages in a collection
               examples:
                 Success:
                   value:
                     items:
                       - key1
                       - key2
-                    total: 13
                     pageSize: 2
                     links:
-                      first: /storage/v2/stores/distributed/key-values?page[after]=1&page[size]=2
-                      prev: /storage/v2/stores/distributed/key-values?page[after]=2&page[size]=2
                       next: /storage/v2/stores/distributed/key-values?page[after]=4&page[size]=2
-                      last: /storage/v2/stores/distributed/key-values?page[after]=7&page[size]=2
         400:
           description: Bad request
           content:
@@ -1354,6 +1347,17 @@ components:
           prev: /storage/v2/stores?page[after]=2&page[size]=2
           next: /storage/v2/stores?page[after]=4&page[size]=2
           last: /storage/v2/stores?page[after]=13&page[size]=2
+    CassandraLinks:
+      title: Cassandra Links
+      type: object
+      properties:
+        next:
+          type: string
+          description: URI of the next page
+      description: Links model used for pagination with Cassandra
+      x-examples:
+        Links:
+          next: /storage/v2/stores?page[after]=4&page[size]=abc123
     fileStoreResponse:
       title: File Store Response
       type: object

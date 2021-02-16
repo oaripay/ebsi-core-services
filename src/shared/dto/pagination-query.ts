@@ -1,7 +1,7 @@
 import { IsNumber, Min, Max } from "class-validator";
 import { Type } from "class-transformer";
 
-export default class PaginationQuery {
+export class PaginationQuery {
   @IsNumber()
   @Min(1)
   @Max(50)
@@ -13,3 +13,5 @@ export default class PaginationQuery {
   @Type(() => Number)
   "page[after]" = 1;
 }
+
+export default PaginationQuery;

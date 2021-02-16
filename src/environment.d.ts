@@ -9,6 +9,7 @@ declare global {
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOMAIN?: string;
       HEALTH_CHECK?: string;
+      ENCRYPTION_SECRET: string;
       CASSANDRA_USER: string;
       CASSANDRA_PASSWORD: string;
       CASSANDRA_CONSISTENCY_READ?:

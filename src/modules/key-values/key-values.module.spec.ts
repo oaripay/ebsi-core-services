@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -12,7 +13,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import jsonwebtoken from "jsonwebtoken";
-import { mapping } from "cassandra-driver";
+import { mapping, Client } from "cassandra-driver";
 import { KeyValuesModule } from "./key-values.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { KeyValueModel } from "./models/key-value.model";
@@ -31,6 +32,7 @@ describe("Key-Values Module", () => {
   const mockedAppUsageFind = jest.fn();
   const mockedAppUsageInsert = jest.fn();
   const mockedAppUsageUpdate = jest.fn();
+  const mockedCassandraClientExecute = jest.fn();
 
   beforeAll(async () => {
     jest
@@ -53,13 +55,24 @@ describe("Key-Values Module", () => {
         } as Partial<mapping.ModelMapper<KeyValueModel>>;
       });
 
+    jest
+      .spyOn(Client.prototype, "execute")
+      .mockImplementation(mockedCassandraClientExecute);
+
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [KeyValuesModule],
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter({
+        // By default, maxParamLength=100 but we allow keys to be up to 256 bytes, thus we need to allow more chars
+        // https://www.fastify.io/docs/latest/Server/#maxparamlength
+        maxParamLength: 400,
+        // By default, bodyLimit=1048576 (1MB)
+        // https://www.fastify.io/docs/latest/Server/#bodylimit
+        bodyLimit: 10 * 1024 * 1024,
+      })
     );
 
     // Turn off logger
@@ -79,6 +92,141 @@ describe("Key-Values Module", () => {
   afterAll(async () => {
     await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
     await app.close();
+  });
+
+  describe(`GET ${BASE_URL}`, () => {
+    it("should return the keys associated to the DID", async () => {
+      expect.assertions(3);
+
+      const did = "0x123";
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      //
+      mockedCassandraClientExecute.mockImplementation(() => ({
+        pageState: "abc",
+        rows: [
+          { key: "key1", did, value: "value1" },
+          { key: "key2", did, value: "value2" },
+          { key: "key3", did, value: "value3" },
+        ],
+      }));
+
+      const response = await request(server)
+        .get(`${BASE_URL}`)
+        .auth(token, { type: "bearer" })
+        .send();
+
+      expect(
+        mockedCassandraClientExecute
+      ).toHaveBeenCalledWith(
+        "select key from key_value_storage where did = ?",
+        ["0x123"],
+        { fetchSize: 10, prepare: true }
+      );
+      expect(response.body).toStrictEqual({
+        items: ["key1", "key2", "key3"],
+        links: {
+          next: expect.stringMatching(
+            /^https:\/\/api\.test\.intebsi\.xyz\/storage\/v2\/stores\/distributed\/key-values\?page\[after\]=.*&page\[size\]=10/
+          ) as string,
+        },
+        pageSize: 10,
+        self:
+          "https://api.test.intebsi.xyz/storage/v2/stores/distributed/key-values?page[size]=10",
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe(`GET ${BASE_URL}/{key}`, () => {
+    // We already check the JWT in `PUT ${BASE_URL}/{key}`, no need to repeat these tests here
+    it("should throw a 404 when the key doesn't exist", async () => {
+      expect.assertions(3);
+
+      const did = "0x123";
+      const key = "test";
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      // Simulate: the record can't be found
+      mockedKeyValueFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return null;
+          },
+        });
+      });
+
+      const response = await request(server)
+        .get(`${BASE_URL}/${key}`)
+        .auth(token, { type: "bearer" })
+        .send();
+
+      expect(mockedKeyValueFind).toHaveBeenCalledWith({ did, key });
+      expect(response.body).toStrictEqual({
+        detail: "key not found",
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return the value corresponding to the key", async () => {
+      expect.assertions(3);
+
+      const did = "0x123";
+      const key = "test";
+      const value = "value";
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      // Simulate: the record can't be found
+      mockedKeyValueFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return { did, key, value };
+          },
+        });
+      });
+
+      const response = await request(server)
+        .get(`${BASE_URL}/${key}`)
+        .auth(token, { type: "bearer" })
+        .send();
+
+      expect(mockedKeyValueFind).toHaveBeenCalledWith({ did, key });
+      expect(response.text).toStrictEqual(value);
+      expect(response.status).toBe(200);
+    });
   });
 
   describe(`PUT ${BASE_URL}/{key}`, () => {
@@ -178,6 +326,157 @@ describe("Key-Values Module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(400);
+    });
+
+    it("should throw an error 400 if the key is too long", async () => {
+      expect.assertions(2);
+
+      const key = crypto.randomBytes(129).toString("hex"); // 129 * 2 = 258 > 256
+      const value = "value";
+      const did = "0x123";
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      const response = await request(server)
+        .put(`${BASE_URL}/${key}`)
+        .auth(token, { type: "bearer" })
+        // because superagent automatically serializes the value sent
+        // e.g. "value" -> "\"value\"", when the content-type is json or form
+        // we use "text/plain" to avoid serialization
+        .type("text/plain")
+        .send(value);
+
+      expect(response.body).toStrictEqual({
+        detail: '["key\'s byte length must fall into (1, 256) range"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error 404 if the key exceeds the server's limit of 400 chars", async () => {
+      expect.assertions(2);
+
+      const key = crypto.randomBytes(201).toString("hex"); // 201 * 2 = 402 > 400 that we've set in FastifyAdapter
+      const value = "value";
+      const did = "0x123";
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      const response = await request(server)
+        .put(`${BASE_URL}/${key}`)
+        .auth(token, { type: "bearer" })
+        // because superagent automatically serializes the value sent
+        // e.g. "value" -> "\"value\"", when the content-type is json or form
+        // we use "text/plain" to avoid serialization
+        .type("text/plain")
+        .send(value);
+
+      // This is fastify's response
+      expect(response.body).toStrictEqual({
+        detail: expect.stringContaining(
+          "Cannot PUT /stores/distributed/key-values/"
+        ) as string,
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw an error 413 if the payload exceeds the defined limit of 5 MiB", async () => {
+      expect.assertions(2);
+
+      const key = "key";
+      const value = crypto.randomBytes(3 * 1024 * 1024).toString("hex"); // 6MiB > 5MiB
+      const did = "0x123";
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      const response = await request(server)
+        .put(`${BASE_URL}/${key}`)
+        .auth(token, { type: "bearer" })
+        // because superagent automatically serializes the value sent
+        // e.g. "value" -> "\"value\"", when the content-type is json or form
+        // we use "text/plain" to avoid serialization
+        .type("text/plain")
+        .send(value);
+
+      expect(response.body).toStrictEqual({
+        detail: expect.stringContaining(
+          "Max size for 'value' is 5242880 bytes. Received "
+        ) as string,
+        status: 413,
+        title: "Payload Too Large",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(413);
+    });
+
+    it("should throw an error 500 if the payload exceeds the server's limit", async () => {
+      expect.assertions(2);
+
+      const key = "key";
+      const value = crypto.randomBytes(6 * 1024 * 1024).toString("hex"); // 12MiB > 10MiB that we've set in FastifyAdapter
+      const did = "0x123";
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      const response = await request(server)
+        .put(`${BASE_URL}/${key}`)
+        .auth(token, { type: "bearer" })
+        // because superagent automatically serializes the value sent
+        // e.g. "value" -> "\"value\"", when the content-type is json or form
+        // we use "text/plain" to avoid serialization
+        .type("text/plain")
+        .send(value);
+
+      // This is fastify's response
+      expect(response.body).toStrictEqual({
+        detail:
+          "The server encountered an internal error and was unable to complete your request",
+        status: 500,
+        title: "Internal Server Error",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(500);
     });
 
     it("should return the expected key-value pair", async () => {

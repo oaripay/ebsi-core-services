@@ -1,23 +1,19 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Injectable, OnApplicationBootstrap, Logger } from "@nestjs/common";
-import { mapping } from "cassandra-driver";
-// import jsonpatch from "fast-json-patch";
-// import querystring from "querystring";
+import { ConfigService } from "@nestjs/config";
+import {
+  BadRequestError,
+  InternalServerError,
+} from "@cef-ebsi/problem-details-errors";
+import { mapping, types } from "cassandra-driver";
 import { CassandraService } from "../cassandra/cassandra.service";
 import { KeyValueModel } from "./models/key-value.model";
-import {
-  ExcessiveAppUsageError,
-  KeyTooLargeError,
-  ValueTooLargeError,
-} from "./errors";
+import { ExcessiveAppUsageError } from "./errors";
 import { AppUsageRepository } from "./app-usage.repository";
-import { lengthInBytes } from "../../shared/utils";
+import { ApiConfig } from "../../config/configuration";
+import { lengthInBytes, encrypt, decrypt } from "../../shared/utils";
 
 const TABLE_KEY_VALUE_STORAGE = "key_value_storage";
-const MAX_SIZE_KEY = 256; // 256 bytes
-const MAX_SIZE_VALUE = 5 * 1024 * 1024; // 5 MB
 const MAX_APP_USAGE = 1024 * 1024 * 1024; // 1GB
-// const DEFAULT_PAGE_SIZE = 10;
 
 @Injectable()
 export class KeyValuesRepository implements OnApplicationBootstrap {
@@ -26,11 +22,12 @@ export class KeyValuesRepository implements OnApplicationBootstrap {
   keyValueMapper: mapping.ModelMapper<KeyValueModel>;
 
   constructor(
+    private configService: ConfigService<ApiConfig>,
     private cassandraService: CassandraService,
     private appUsageRepository: AppUsageRepository
   ) {}
 
-  onApplicationBootstrap() {
+  onApplicationBootstrap(): void {
     const mappingOptions: mapping.MappingOptions = {
       models: {
         KeyValue: {
@@ -45,11 +42,6 @@ export class KeyValuesRepository implements OnApplicationBootstrap {
       .forModel("KeyValue");
   }
 
-  async getRecord(did: string, key: string) {
-    const result = await this.keyValueMapper.find({ did, key });
-    return result.first();
-  }
-
   private async setAppUsage(
     did: string,
     didAppUsageInBytes: number,
@@ -60,30 +52,91 @@ export class KeyValuesRepository implements OnApplicationBootstrap {
       : this.appUsageRepository.updateAppUsage(did, `${didAppUsageInBytes}`);
   }
 
+  async getKeyValue(did: string, key: string): Promise<KeyValueModel> {
+    const result = await this.keyValueMapper.find({ did, key });
+    return result.first();
+  }
+
+  async getKeyValues(
+    did: string,
+    requestedPageState: string,
+    pageSize: number
+  ): Promise<{ items: string[]; pageState: string }> {
+    const query = `select key from ${TABLE_KEY_VALUE_STORAGE} where did = ?`;
+    const params = [did];
+
+    const opts: { [x: string]: unknown } = {
+      prepare: true,
+      fetchSize: pageSize,
+    };
+
+    // Note: The page state token can be manipulated to retrieve other results within the same
+    // column family, so it is not safe to expose it to the users in plain text.
+    // https://docs.datastax.com/en/developer/nodejs-driver/4.6/features/paging/
+    if (requestedPageState) {
+      try {
+        // Decrypt pageState
+        opts.pageState = decrypt(
+          requestedPageState,
+          this.configService.get("encryptionSecret")
+        );
+      } catch (e) {
+        this.logger.error((e as Error).message, (e as Error).stack);
+        throw new BadRequestError(BadRequestError.defaultTitle, {
+          detail: "Invalid page[after] parameter",
+        });
+      }
+    }
+
+    let result: types.ResultSet;
+
+    try {
+      result = await this.cassandraService
+        .getClient()
+        .execute(query, params, opts);
+    } catch (e) {
+      this.logger.error((e as Error).message, (e as Error).stack);
+      if ((e as Error).message.includes("Invalid value for the paging state")) {
+        throw new BadRequestError(BadRequestError.defaultTitle, {
+          detail: "Invalid page[after] parameter",
+        });
+      }
+      throw new InternalServerError();
+    }
+
+    const { pageState: rawPageState, rows } = result;
+
+    let encryptedPageState = "";
+    if (rawPageState) {
+      // Encrypt page state
+      encryptedPageState = encrypt(
+        rawPageState,
+        this.configService.get("encryptionSecret")
+      );
+    }
+
+    const items = rows.map(
+      (r): string => ((r as unknown) as KeyValueModel).key
+    );
+
+    return {
+      items,
+      pageState: encryptedPageState,
+    };
+  }
+
   async setKey(
     did: string,
     key: string,
     value: string
   ): Promise<{ operation: "insert" | "update" }> {
-    if (key.length > MAX_SIZE_KEY) {
-      throw new KeyTooLargeError(
-        `Max size for 'key' is ${MAX_SIZE_KEY} bytes. Received ${key.length}`
-      );
-    }
-
-    if (value.length > MAX_SIZE_VALUE) {
-      throw new ValueTooLargeError(
-        `Max size for 'value' is ${MAX_SIZE_VALUE} bytes. Received ${value.length}`
-      );
-    }
-
     const doc = {
       did,
       key,
       value,
     };
 
-    const currentRecord = await this.getRecord(did, key);
+    const currentRecord = await this.getKeyValue(did, key);
     const isNewRecord = currentRecord === null;
     const currentAppUsage = await this.appUsageRepository.getAppUsage(did);
     const isNewApp = currentAppUsage === null;
@@ -122,26 +175,8 @@ export class KeyValuesRepository implements OnApplicationBootstrap {
   }
 
   /*
-  async getKey(key) {
-    const record = await this.getRecord(key);
-    if (!record)
-      throw new NotFoundError(NotFoundError.defaultTitle, {
-        detail: "key not found",
-      });
-    const value = record.value;
-
-    // convert to JSON if it is the case
-    let value;
-    try {
-      value = JSON.parse(value);
-    } catch (error) {
-      value = value;
-    }
-    return value;
-  }
-
   async deleteKey(key) {
-    const record = await this.getRecord(key);
+    const record = await this.getKeyValue(key);
     if (!record)
       throw new NotFoundError(NotFoundError.defaultTitle, {
         detail: "key not found",
@@ -156,78 +191,6 @@ export class KeyValuesRepository implements OnApplicationBootstrap {
       logger.error(result);
       throw new Error(`Bad response from cassandra when deleting a key`);
     }
-  }
-
-  async patchKey(key, patch) {
-    const value = await this.getKey(key);
-    if (typeof value !== "object")
-      throw new BadRequestError(BadRequestError.defaultTitle, {
-        detail: `The key to be patched is not a JSON but a ${typeof value}`,
-      });
-
-    let newValue;
-    try {
-      newValue = jsonpatch.applyPatch(value, patch).newDocument;
-    } catch (error) {
-      throw new BadRequestError(BadRequestError.defaultTitle, {
-        detail: `Impossible to apply patch: ${error.message}`,
-      });
-    }
-
-    const { result } = await this.setKey(key, newValue, true);
-
-    return result[key];
-  }
-
-  buildLink(after, size) {
-    const query = {};
-
-    if (size && size !== DEFAULT_PAGE_SIZE) query["page[size]"] = size;
-    if (after) query["page[after]"] = after;
-
-    return `/storage/v1/stores/distributed/key-values?${querystring.stringify(
-      query
-    )}`;
-  }
-
-  async getListKeys(q) {
-    let pageSize = DEFAULT_PAGE_SIZE;
-    let pageAfter;
-    if (q && q.page) {
-      const { page } = q;
-      if (page.size) pageSize = parseInt(page.size, 10);
-      if (page.after) pageAfter = page.after;
-    }
-
-    const query = `select key from ${TABLE_KEY_VALUE_STORAGE}`;
-    const params = [];
-
-    const opts: { [x: string]: unknown } = {
-      prepare: true,
-      fetchSize: pageSize,
-    };
-
-    if (pageAfter) opts.pageState = pageAfter;
-    const result = await this.cassandraService
-      .getClient()
-      .execute(query, params, opts);
-    const { pageState } = result;
-
-    const items = result.rows.map((r): unknown => r.key);
-
-    const links: { [x: string]: string } = {
-      first: this.buildLink(null, pageSize),
-    };
-
-    if (pageState) links.next = this.buildLink(pageState, pageSize);
-    else links.last = this.buildLink(pageAfter, pageSize);
-
-    return {
-      items,
-      total: items.length,
-      pageSize,
-      links,
-    };
   }
   */
 }

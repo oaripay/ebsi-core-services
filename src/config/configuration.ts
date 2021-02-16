@@ -8,6 +8,7 @@ export interface ApiConfig {
   logLevel: string;
   domain: string;
   externalEbsiApiHealthCheck: string;
+  encryptionSecret: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -51,6 +52,7 @@ export const loadConfig = (): ApiConfig => {
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    encryptionSecret: process.env.ENCRYPTION_SECRET,
   };
 };
 
@@ -80,6 +82,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     DOMAIN: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
+    ENCRYPTION_SECRET: Joi.string().required(),
     // Storage specific variables
     CASSANDRA_USER: Joi.string().required(),
     CASSANDRA_PASSWORD: Joi.string().required(),

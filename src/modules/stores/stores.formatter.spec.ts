@@ -2,7 +2,7 @@ import { formatStores } from "./stores.formatter";
 import { STORES } from "./stores.constants";
 
 describe("formatStores", () => {
-  it("should use the values returned by the smart contract (except pageSize)", () => {
+  it("should paginate the list of stores", () => {
     expect.assertions(1);
 
     const page = 3;

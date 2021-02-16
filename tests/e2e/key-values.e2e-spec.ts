@@ -21,7 +21,10 @@ describe("Key-Values (e2e)", () => {
   let server: HttpServer;
 
   const key = `key-${crypto.randomBytes(16).toString("hex")}`;
+  const key2 = `key-${crypto.randomBytes(16).toString("hex")}`;
+  const key3 = `key-${crypto.randomBytes(16).toString("hex")}`;
   const value = `value-${crypto.randomBytes(16).toString("hex")}`;
+  const value2 = `value-${crypto.randomBytes(16).toString("hex")}`;
   const did = "0x123";
 
   beforeAll(async () => {
@@ -169,8 +172,6 @@ describe("Key-Values (e2e)", () => {
     it("should update the key-value pair", async () => {
       expect.assertions(2);
 
-      const value2 = `value-${crypto.randomBytes(16).toString("hex")}`;
-
       const token = jsonwebtoken.sign(
         {
           did,
@@ -194,6 +195,164 @@ describe("Key-Values (e2e)", () => {
       expect(response.body).toStrictEqual({
         [key]: value2,
       });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe(`GET ${BASE_URL}`, () => {
+    beforeAll(async () => {
+      // Insert 2 more key-values for the next tests
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      await request(server)
+        .put(`${BASE_URL}/${key2}`)
+        .auth(token, { type: "bearer" })
+        .type("text/plain")
+        .send(value);
+
+      await request(server)
+        .put(`${BASE_URL}/${key3}`)
+        .auth(token, { type: "bearer" })
+        .type("text/plain")
+        .send(value);
+    });
+
+    it("should return the keys associated to the DID", async () => {
+      expect.assertions(3);
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      const response = await request(server)
+        .get(`${BASE_URL}?page[size]=2`)
+        .auth(token, { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        items: expect.arrayContaining([
+          expect.stringContaining("key-"),
+        ]) as string[],
+        links: {
+          next: expect.stringMatching(
+            /^https:\/\/api\.test\.intebsi\.xyz\/storage\/v2\/stores\/distributed\/key-values\?page\[after\]=.*&page\[size\]=2/
+          ) as string,
+        },
+        pageSize: 2,
+        self:
+          "https://api.test.intebsi.xyz/storage/v2/stores/distributed/key-values?page[size]=2",
+      });
+      expect((response.body as { items: string[] }).items).toHaveLength(2);
+      expect(response.status).toBe(200);
+    });
+
+    it("should be able to navigate to the next page", async () => {
+      expect.assertions(2);
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      const response = await request(server)
+        .get(`${BASE_URL}?page[size]=2`)
+        .auth(token, { type: "bearer" })
+        .send();
+
+      const nextLink = new URL(
+        (response.body as { links: { next: string } }).links.next
+      );
+
+      // Go to next page
+      const nextPageUrl = `${BASE_URL}${nextLink.search}`;
+      const nextPageResponse = await request(server)
+        .get(nextPageUrl)
+        .auth(token, { type: "bearer" })
+        .send();
+
+      expect(nextPageResponse.body).toStrictEqual({
+        items: expect.arrayContaining([
+          expect.stringContaining("key-"),
+        ]) as string[],
+        links: expect.anything() as unknown,
+        pageSize: 2,
+        self: expect.stringContaining(nextPageUrl) as string,
+      });
+      expect(nextPageResponse.status).toBe(200);
+    });
+  });
+
+  describe(`GET ${BASE_URL}/{key}`, () => {
+    it("should throw a 404 when the key doesn't exist", async () => {
+      expect.assertions(2);
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      const response = await request(server)
+        .get(`${BASE_URL}/wrong-key`)
+        .auth(token, { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        detail: "key not found",
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return the value corresponding to the key", async () => {
+      expect.assertions(2);
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      const response = await request(server)
+        .get(`${BASE_URL}/${key}`)
+        .auth(token, { type: "bearer" })
+        .send();
+
+      expect(response.text).toStrictEqual(value2);
       expect(response.status).toBe(200);
     });
   });
