@@ -1,13 +1,13 @@
 import { Module, Logger } from "@nestjs/common";
 import { ApiConfigModule } from "../../config/configuration";
-import JsonRpcController from "./jsonrpc.controller";
+import { JsonRpcController } from "./jsonrpc.controller";
 import { JsonRpcService } from "./jsonrpc.service";
-import CassandraService from "../../shared/services/cassandra.service";
+import { CassandraModule } from "../cassandra/cassandra.module";
 
 @Module({
-  imports: [ApiConfigModule],
+  imports: [ApiConfigModule, CassandraModule],
   controllers: [JsonRpcController],
-  providers: [Logger, JsonRpcService, CassandraService],
+  providers: [Logger, JsonRpcService],
 })
 export class JsonRpcModule {}
 

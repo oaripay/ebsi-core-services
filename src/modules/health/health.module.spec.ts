@@ -6,6 +6,8 @@ import {
   HttpServer,
   Logger,
 } from "@nestjs/common";
+import { HealthIndicatorResult, HttpHealthIndicator } from "@nestjs/terminus";
+import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
@@ -13,10 +15,13 @@ import {
 } from "@nestjs/platform-fastify";
 import { HealthModule } from "./health.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
+import { ApiConfig } from "../../config/configuration";
 
 describe("Health Module", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let httpHealthIndicator: HttpHealthIndicator;
+  let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
     // Start server
@@ -36,6 +41,12 @@ describe("Health Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    httpHealthIndicator = moduleFixture.get<HttpHealthIndicator>(
+      HttpHealthIndicator
+    );
+
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
   });
 
   afterAll(async () => {
@@ -45,17 +56,28 @@ describe("Health Module", () => {
 
   describe("GET /health", () => {
     it("should return status ok", async () => {
-      expect.assertions(2);
+      expect.assertions(3);
+
+      const status = { "ebsi-apis": { status: "up" } } as HealthIndicatorResult;
+
+      const spy = jest
+        .spyOn(httpHealthIndicator, "pingCheck")
+        .mockImplementation(() => {
+          return Promise.resolve(status);
+        });
 
       const response = await request(server).get("/health").send();
 
+      expect(spy).toHaveBeenCalledWith(
+        "ebsi-apis",
+        configService.get("externalEbsiApiHealthCheck")
+      );
       expect(response.body).toStrictEqual({
-        details: { "ebsi-apis": { status: "up" } },
+        details: status,
         error: {},
-        info: { "ebsi-apis": { status: "up" } },
+        info: status,
         status: "ok",
       });
-
       expect(response.status).toBe(200);
     });
   });

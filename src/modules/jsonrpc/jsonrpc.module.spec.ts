@@ -14,16 +14,16 @@ import {
 import { Client, types } from "cassandra-driver";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { loadConfig } from "../../config/configuration";
+import { CassandraService } from "../cassandra/cassandra.service";
 
 jest.mock("cassandra-driver");
-
-const { consistency } = loadConfig().cassandraOptions;
 
 describe("JsonRpc Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let mockCassandra: jest.SpyInstance;
+  let cassandraService: CassandraService;
+
   beforeAll(async () => {
     // Mock Cassandra
     mockCassandra = jest.spyOn(Client.prototype, "execute");
@@ -51,6 +51,8 @@ describe("JsonRpc Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    cassandraService = moduleFixture.get<CassandraService>(CassandraService);
   });
 
   afterAll(async () => {
@@ -157,8 +159,8 @@ describe("JsonRpc Module", () => {
       const [query, ...params] = args;
       const options = {
         consistency: query.startsWith("select")
-          ? consistency.read
-          : consistency.write,
+          ? cassandraService.getConsistency().read
+          : cassandraService.getConsistency().write,
         prepare: true,
       };
       expect(mockCassandra).toHaveBeenCalledWith(query, params, options);

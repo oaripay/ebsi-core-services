@@ -11,8 +11,8 @@ function jsonRpcResponse(
   return { jsonrpc: "2.0", id: id ?? null, result };
 }
 
-@Controller("stores/distributed/jsonrpc")
-export default class AppController {
+@Controller("/stores/distributed/jsonrpc")
+export class JsonRpcController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
   @HttpCode(200)
@@ -35,3 +35,5 @@ export default class AppController {
     }
   }
 }
+
+export default JsonRpcController;

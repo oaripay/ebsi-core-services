@@ -28,6 +28,8 @@ describe("/storage/v2 (generic tests)", () => {
 
     Logger.overrideLogger(false);
 
+    app.useGlobalFilters(new AllExceptionsFilter());
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
   });

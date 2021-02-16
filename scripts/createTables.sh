@@ -23,7 +23,7 @@ docker exec -t $CONTAINER bash -c "cqlsh -u cassandra -p cassandra -e \"create t
 ;\""
 
 echo creating table app_usage
-docker exec -t $CONTAINER bash -c "cqlsh -u cassandra -p cassandra -e \"create table $CASSANDRA_KEYSPACE.app_usage (did text, numberBytes text, primary key(did));\""
+docker exec -t $CONTAINER bash -c "cqlsh -u cassandra -p cassandra -e \"create table $CASSANDRA_KEYSPACE.app_usage (did text, number_bytes text, primary key(did));\""
 
 echo creating table notification_storage
 docker exec -t $CONTAINER bash -c "cqlsh -u cassandra -p cassandra -e \"create table $CASSANDRA_KEYSPACE.notification_storage (id uuid, sender text, receiver text, message text, primary key(id));\""

@@ -19,6 +19,7 @@ import { AppModule } from "../../src/app.module";
 describe("JsonRpc Module", () => {
   let app: INestApplication;
   let server: HttpServer;
+
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],

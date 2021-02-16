@@ -1,23 +1,13 @@
 import { ConfigModule } from "@nestjs/config";
-import cassandra, { DseClientOptions, types } from "cassandra-driver";
 import Joi from "joi";
 
 // List here all the values that will be returned by the config factory
-export interface CassandraConsistency {
-  read: types.consistencies;
-  write: types.consistencies;
-}
-export interface CassandraOptions {
-  connection: DseClientOptions;
-  consistency: CassandraConsistency;
-}
 export interface ApiConfig {
   apiPort: number;
   apiUrlPrefix: string;
   logLevel: string;
   domain: string;
   externalEbsiApiHealthCheck: string;
-  cassandraOptions: CassandraOptions;
 }
 
 // Example of default values to be used, depending on the environment
@@ -61,33 +51,6 @@ export const loadConfig = (): ApiConfig => {
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
-    cassandraOptions: {
-      connection: {
-        contactPoints: (process.env.CASSANDRA_CONTACT_POINTS &&
-          process.env.CASSANDRA_CONTACT_POINTS.split(",")) || [
-          "cassandradb",
-          "localhost",
-        ],
-        localDataCenter:
-          process.env.CASSANDRA_LOCAL_DATACENTER || "datacenter1",
-        keyspace:
-          process.env.CASSANDRA_KEYSPACE || defaultConfig[EBSI_ENV].KEYSPACE,
-        authProvider: new cassandra.auth.PlainTextAuthProvider(
-          process.env.CASSANDRA_USER,
-          process.env.CASSANDRA_PASSWORD
-        ),
-      },
-      consistency: {
-        read:
-          (process.env.CASSANDRA_CONSISTENCY_READ &&
-            types.consistencies[process.env.CASSANDRA_CONSISTENCY_READ]) ||
-          types.consistencies.two,
-        write:
-          (process.env.CASSANDRA_CONSISTENCY_WRITE &&
-            types.consistencies[process.env.CASSANDRA_CONSISTENCY_WRITE]) ||
-          types.consistencies.two,
-      },
-    },
   };
 };
 

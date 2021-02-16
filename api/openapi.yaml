@@ -966,7 +966,7 @@ paths:
         description: "Any string. Size limit: 1MB"
       responses:
         200:
-          description: Object created
+          description: Object updated
           content:
             application/json:
               schema:
@@ -981,7 +981,7 @@ paths:
                   value:
                     "{key}": "{stored value}"
         201:
-          description: Object updated
+          description: Object created
           content:
             application/json:
               schema:
