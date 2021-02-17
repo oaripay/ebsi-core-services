@@ -50,31 +50,31 @@ and `src/types`,`src/abi` folder for the typechain object representing the contr
 To verify the accounts that will be used by hardhat
 
 ```sh
-npx hardhat accounts
+yarn hardhat accounts
 ```
 
 To verify the chainId that will be used by hardhat
 
 ```sh
-npx hardhat --network local chainId
+yarn hardhat --network local chainId
 ```
 
 To get the lastest block number on the specified network
 
 ```sh
-npx hardhat --network local blockNumber
+yarn hardhat --network local blockNumber
 ```
 
 To get some inforamtion about a transaction
 
 ```sh
-npx hardhat --network local tx --hash 0xd0f11a38650c987063b689b5384ae17e6506fbd179e50e47a84111695331302ds
+yarn hardhat --network local tx --hash 0xd0f11a38650c987063b689b5384ae17e6506fbd179e50e47a84111695331302ds
 ```
 
 for the complete list of available tasks run
 
 ```sh
-npx hardhat
+yarn hardhat
 ```
 
 ## Deployment
@@ -87,7 +87,7 @@ Note that by default smart contracts will be deployed locally using hardhat deve
 Deployment scripts are located in the `scripts/deployment` folder
 
 ```sh
-npx hardhat --network ebsi deploy --tags OwnedUpgradeabilityProxy --gasprice 0
+yarn hardhat --network ebsi deploy --tags OwnedUpgradeabilityProxy --gasprice 0
 ```
 
 running deployment script will add information about deployment like the smart contract addresses per network inside the `deployments` folder
@@ -95,7 +95,7 @@ running deployment script will add information about deployment like the smart c
 if you want to deploy again the smart contract add the `--reset` option
 
 ```sh
-npx hardhat --network local deploy --tags Timestamp  --gasprice 0 --reset
+yarn hardhat --network local deploy --tags Timestamp  --gasprice 0 --reset
 ```
 
 ## Scripts
@@ -106,19 +106,27 @@ Scripts are located in the `scripts` folder.
 e.g.
 
 ```sh
-npx hardhat --network local run ./scripts/proxy/changeOwnership.ts
+yarn hardhat --network local run ./scripts/proxy/changeOwnership.ts
+```
+
+### Update Apps
+
+To create or update apps in the Trusted Apps Registry go to the folder `scripts/trusted-apps-registry`, create a copy of `apps.example.ts` with the name it `apps.ts`, and define the Apps to be inserted or updated. Then run:
+
+```sh
+yarn hardhat --network local run scripts/trusted-apps-registry/updateApps.ts
 ```
 
 # Hardhat console
 
-Hardhat comes built-in with an interactive JavaScript console. You can use it by running npx hardhat console. Anything that has been injected into the Hardhat Runtime Environment will be available in the global scope.
+Hardhat comes built-in with an interactive JavaScript console. You can use it by running yarn hardhat console. Anything that has been injected into the Hardhat Runtime Environment will be available in the global scope.
 
 Hardhat's console supports await top-level await (i.e. `console.log(await web3.eth.getBalance()`).
 
 you can also launch it on a specific network
 
 ```sh
-npx hardhat --network local console
+yarn hardhat --network local console
 ```
 
 ## Licensing

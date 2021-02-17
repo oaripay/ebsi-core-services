@@ -8,3 +8,4 @@ build
 *log
 .secret*
 deployments
+scripts/trusted-apps-registry/apps.ts
