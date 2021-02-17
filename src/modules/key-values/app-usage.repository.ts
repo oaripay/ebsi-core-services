@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { Injectable, OnApplicationBootstrap, Logger } from "@nestjs/common";
 import { mapping } from "cassandra-driver";
 import { CassandraService } from "../cassandra/cassandra.service";
@@ -14,7 +13,7 @@ export class AppUsageRepository implements OnApplicationBootstrap {
 
   constructor(private cassandraService: CassandraService) {}
 
-  onApplicationBootstrap() {
+  onApplicationBootstrap(): void {
     const mappingOptions: mapping.MappingOptions = {
       models: {
         AppUsage: {
@@ -29,27 +28,30 @@ export class AppUsageRepository implements OnApplicationBootstrap {
       .forModel("AppUsage");
   }
 
-  async getAppUsage(did: string) {
+  async getAppUsage(did: string): Promise<AppUsageModel> {
     const result = await this.appUsageMapper.find({ did });
     return result.first();
   }
 
-  async insertAppUsage(did: string, numberBytes: string) {
-    const doc = {
-      did,
-      numberBytes,
-    };
-
-    return this.appUsageMapper.insert(doc);
+  async insertAppUsage(
+    appUsage: AppUsageModel
+  ): Promise<mapping.Result<AppUsageModel>> {
+    return this.appUsageMapper.insert(appUsage);
   }
 
-  async updateAppUsage(did: string, numberBytes: string) {
-    const doc = {
-      did,
-      numberBytes,
-    };
+  async updateAppUsage(
+    appUsage: AppUsageModel
+  ): Promise<mapping.Result<AppUsageModel>> {
+    return this.appUsageMapper.update(appUsage);
+  }
 
-    return this.appUsageMapper.update(doc);
+  async setAppUsage(
+    appUsage: AppUsageModel,
+    isNewAppUsage: boolean
+  ): Promise<mapping.Result<AppUsageModel>> {
+    return isNewAppUsage
+      ? this.insertAppUsage(appUsage)
+      : this.updateAppUsage(appUsage);
   }
 }
 

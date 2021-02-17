@@ -3,6 +3,7 @@ import {
   Response,
   Get,
   Put,
+  Delete,
   Param,
   Query,
   Body,
@@ -12,7 +13,12 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { FastifyReply } from "fastify";
 import { KeyValuesService } from "./key-values.service";
-import { GetKeyValuesQuery, GetKeyValueParams, PutKeyValueParams } from "./dto";
+import {
+  DeleteKeyValueParams,
+  GetKeyValuesQuery,
+  GetKeyValueParams,
+  PutKeyValueParams,
+} from "./dto";
 import { formatKeys } from "./key-values.formatter";
 import { ApiConfig } from "../../config/configuration";
 import { JwtAuthGuard } from "../auth/guards";
@@ -86,6 +92,19 @@ export class KeyValuesController {
       .code(isNew ? 201 : 200)
       .type("application/json")
       .send(keyValue);
+  }
+
+  @HttpCode(204)
+  @UseGuards(JwtAuthGuard)
+  @Delete("/:key")
+  async deleteKeyValue(
+    @Param() params: DeleteKeyValueParams,
+    @User() user: UserInfo
+  ): Promise<void> {
+    const { key } = params;
+    const { did } = user;
+
+    await this.keyValuesService.deleteKeyValue({ did, key });
   }
 }
 

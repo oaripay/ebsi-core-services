@@ -29,9 +29,11 @@ describe("Key-Values Module", () => {
   const mockedKeyValueFind = jest.fn();
   const mockedKeyValueInsert = jest.fn();
   const mockedKeyValueUpdate = jest.fn();
+  const mockedKeyValueRemove = jest.fn();
   const mockedAppUsageFind = jest.fn();
   const mockedAppUsageInsert = jest.fn();
   const mockedAppUsageUpdate = jest.fn();
+  const mockedAppUsageRemove = jest.fn();
   const mockedCassandraClientExecute = jest.fn();
 
   beforeAll(async () => {
@@ -45,6 +47,7 @@ describe("Key-Values Module", () => {
             find: mockedAppUsageFind,
             insert: mockedAppUsageInsert,
             update: mockedAppUsageUpdate,
+            remove: mockedAppUsageRemove,
           } as Partial<mapping.ModelMapper<KeyValueModel>>;
         }
 
@@ -52,6 +55,7 @@ describe("Key-Values Module", () => {
           find: mockedKeyValueFind,
           insert: mockedKeyValueInsert,
           update: mockedKeyValueUpdate,
+          remove: mockedKeyValueRemove,
         } as Partial<mapping.ModelMapper<KeyValueModel>>;
       });
 
@@ -183,7 +187,7 @@ describe("Key-Values Module", () => {
 
       expect(mockedKeyValueFind).toHaveBeenCalledWith({ did, key });
       expect(response.body).toStrictEqual({
-        detail: "key not found",
+        detail: "Key not found",
         status: 404,
         title: "Not Found",
         type: "about:blank",
@@ -209,7 +213,7 @@ describe("Key-Values Module", () => {
         }
       );
 
-      // Simulate: the record can't be found
+      // Simulate: the record can be found
       mockedKeyValueFind.mockImplementation(() => {
         return Promise.resolve({
           first() {
@@ -655,6 +659,105 @@ describe("Key-Values Module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(400);
+    });
+  });
+
+  describe(`DELETE ${BASE_URL}/{key}`, () => {
+    // We already check the JWT in `PUT ${BASE_URL}/{key}`, no need to repeat these tests here
+    it("should throw a 404 when the key doesn't exist", async () => {
+      expect.assertions(3);
+
+      const did = "0x123";
+      const key = "test";
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      // Simulate: the record can't be found
+      mockedKeyValueFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return null;
+          },
+        });
+      });
+
+      const response = await request(server)
+        .delete(`${BASE_URL}/${key}`)
+        .auth(token, { type: "bearer" })
+        .send();
+
+      expect(mockedKeyValueFind).toHaveBeenCalledWith({ did, key });
+      expect(response.body).toStrictEqual({
+        detail: "Key not found",
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return 204 when the key-value is removed", async () => {
+      expect.assertions(6);
+
+      const did = "0x123";
+      const key = "test";
+      const value = "value";
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      // Simulate: the record can be found
+      mockedKeyValueFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return { did, key, value };
+          },
+        });
+      });
+
+      // Simulate: the DID owner has stored some data already
+      mockedAppUsageFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return {
+              did,
+              numberBytes: `${42 * 1024 * 1024}`,
+            };
+          },
+        });
+      });
+
+      const response = await request(server)
+        .delete(`${BASE_URL}/${key}`)
+        .auth(token, { type: "bearer" })
+        .send();
+
+      expect(mockedKeyValueFind).toHaveBeenCalledWith({ did, key });
+      expect(mockedKeyValueRemove).toHaveBeenCalledWith({ did, key });
+      expect(mockedAppUsageFind).toHaveBeenCalledWith({ did });
+      expect(mockedAppUsageUpdate).toHaveBeenCalledWith({
+        did,
+        numberBytes: `${42 * 1024 * 1024 - lengthInBytes(value)}`,
+      });
+      expect(response.text).toStrictEqual("");
+      expect(response.status).toBe(204);
     });
   });
 });

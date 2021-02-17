@@ -325,7 +325,7 @@ describe("Key-Values (e2e)", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        detail: "key not found",
+        detail: "Key not found",
         status: 404,
         title: "Not Found",
         type: "about:blank",
@@ -354,6 +354,73 @@ describe("Key-Values (e2e)", () => {
 
       expect(response.text).toStrictEqual(value2);
       expect(response.status).toBe(200);
+    });
+  });
+
+  describe(`DELETE ${BASE_URL}/{key}`, () => {
+    it("should throw a 404 when the key doesn't exist", async () => {
+      expect.assertions(2);
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      const response = await request(server)
+        .delete(`${BASE_URL}/wrong-key`)
+        .auth(token, { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        detail: "Key not found",
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return 204 when the key-value is removed", async () => {
+      expect.assertions(4);
+
+      const token = jsonwebtoken.sign(
+        {
+          did,
+        },
+        "secret",
+        {
+          audience: "storage-api",
+          issuer: "authorization-api",
+        }
+      );
+
+      const response = await request(server)
+        .delete(`${BASE_URL}/${key}`)
+        .auth(token, { type: "bearer" })
+        .send();
+
+      expect(response.text).toStrictEqual("");
+      expect(response.status).toBe(204);
+
+      // Check if GET works
+      const getResponse = await request(server)
+        .get(`${BASE_URL}/${key}`)
+        .auth(token, { type: "bearer" })
+        .send();
+
+      expect(getResponse.body).toStrictEqual({
+        detail: "Key not found",
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(getResponse.status).toBe(404);
     });
   });
 });
