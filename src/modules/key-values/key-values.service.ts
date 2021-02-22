@@ -5,13 +5,19 @@ import {
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
 import { types } from "cassandra-driver";
-import { KeyValuesRepository, PAGE_STATE_ERROR } from "./key-values.repository";
-import { KeyValueModel } from "./models/key-value.model";
-import { AppUsageRepository } from "./app-usage.repository";
+import {
+  AppUsageRepository,
+  KeyValuesRepository,
+} from "../cassandra/repositories";
+import { KeyValueModel } from "../cassandra/models";
+import { CASSANDRA_EXCEPTIONS } from "../cassandra/cassandra.constants";
 import { PutKeyValuesResponseObject } from "./key-values.interface";
-import { ValueTooLargeError, ExcessiveAppUsageError } from "./errors";
+import {
+  ExcessiveAppUsageError,
+  ValueTooLargeError,
+} from "../../shared/errors";
 import { ApiConfig } from "../../config/configuration";
-import { lengthInBytes, encrypt, decrypt } from "../../shared/utils";
+import { byteLength, encrypt, decrypt } from "../../shared/utils";
 
 const MAX_SIZE_VALUE = 5 * 1024 * 1024; // 5 MB
 const MAX_APP_USAGE = 1024 * 1024 * 1024; // 1GB
@@ -59,7 +65,10 @@ export class KeyValuesService {
         pageSize
       );
     } catch (e) {
-      if (e instanceof Error && e.message.includes(PAGE_STATE_ERROR)) {
+      if (
+        e instanceof Error &&
+        e.message.includes(CASSANDRA_EXCEPTIONS.PAGE_STATE_ERROR)
+      ) {
         throw new BadRequestError(BadRequestError.defaultTitle, {
           detail: "Invalid page[after] parameter",
         });
@@ -120,7 +129,7 @@ export class KeyValuesService {
       value,
     };
 
-    const bytesLength = lengthInBytes(value);
+    const bytesLength = byteLength(value);
 
     if (bytesLength > MAX_SIZE_VALUE) {
       throw new ValueTooLargeError(
@@ -140,11 +149,11 @@ export class KeyValuesService {
       : parseInt(currentAppUsage.numberBytes, 10);
 
     if (isNewKeyValue) {
-      didAppUsageInBytes += lengthInBytes(value);
+      didAppUsageInBytes += byteLength(value);
     } else {
       // Calculate length difference between old value and new value (in bytes)
       didAppUsageInBytes +=
-        lengthInBytes(value) - lengthInBytes(currentKeyValue.value);
+        byteLength(value) - byteLength(currentKeyValue.value);
     }
 
     if (didAppUsageInBytes >= MAX_APP_USAGE) {
@@ -186,8 +195,7 @@ export class KeyValuesService {
       ? 0
       : Math.max(
           0,
-          parseInt(currentAppUsage.numberBytes, 10) -
-            lengthInBytes(keyValue.value)
+          parseInt(currentAppUsage.numberBytes, 10) - byteLength(keyValue.value)
         );
 
     await Promise.all([

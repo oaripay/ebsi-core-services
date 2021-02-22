@@ -1,15 +1,15 @@
 import { Module, Logger } from "@nestjs/common";
 import { ApiConfigModule } from "../../config/configuration";
-import { KeyValuesController } from "./key-values.controller";
-import { KeyValuesService } from "./key-values.service";
+import { FilesController } from "./files.controller";
+import { FilesService } from "./files.service";
 import { AuthModule } from "../auth/auth.module";
 import { CassandraModule } from "../cassandra/cassandra.module";
 
 @Module({
   imports: [ApiConfigModule, AuthModule, CassandraModule],
-  controllers: [KeyValuesController],
-  providers: [Logger, KeyValuesService],
+  controllers: [FilesController],
+  providers: [Logger, FilesService],
 })
-export class KeyValuesModule {}
+export class FilesModule {}
 
-export default KeyValuesModule;
+export default FilesModule;

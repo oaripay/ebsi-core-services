@@ -1,12 +1,10 @@
 import { Injectable, OnApplicationBootstrap, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { mapping, types, QueryOptions } from "cassandra-driver";
-import { CassandraService } from "../cassandra/cassandra.service";
-import { KeyValueModel } from "./models/key-value.model";
-import { ApiConfig } from "../../config/configuration";
+import { CassandraService } from "../cassandra.service";
+import { KeyValueModel } from "../models/key-value.model";
+import { CASSANDRA_EXCEPTIONS } from "../cassandra.constants";
 
 const TABLE_KEY_VALUE_STORAGE = "key_value_storage";
-export const PAGE_STATE_ERROR = "Invalid PageState";
 
 @Injectable()
 export class KeyValuesRepository implements OnApplicationBootstrap {
@@ -14,10 +12,7 @@ export class KeyValuesRepository implements OnApplicationBootstrap {
 
   keyValueMapper: mapping.ModelMapper<KeyValueModel>;
 
-  constructor(
-    private configService: ConfigService<ApiConfig>,
-    private cassandraService: CassandraService
-  ) {}
+  constructor(private cassandraService: CassandraService) {}
 
   onApplicationBootstrap(): void {
     const mappingOptions: mapping.MappingOptions = {
@@ -66,7 +61,7 @@ export class KeyValuesRepository implements OnApplicationBootstrap {
     } catch (e) {
       this.logger.error((e as Error).message, (e as Error).stack);
       if ((e as Error).message.includes("Invalid value for the paging state")) {
-        throw new Error(PAGE_STATE_ERROR);
+        throw new Error(CASSANDRA_EXCEPTIONS.PAGE_STATE_ERROR);
       }
       throw e;
     }

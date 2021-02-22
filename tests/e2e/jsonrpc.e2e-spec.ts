@@ -2,12 +2,7 @@ import request from "supertest";
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
 import { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
@@ -15,9 +10,10 @@ import {
 } from "@nestjs/platform-fastify";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { AppModule } from "../../src/app.module";
+import { fastifyAdapterConfig } from "../../src/config/server.config";
 
 describe("JsonRpc Module", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let server: HttpServer;
 
   beforeAll(async () => {
@@ -26,7 +22,7 @@ describe("JsonRpc Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(fastifyAdapterConfig)
     );
 
     // Turn off logger

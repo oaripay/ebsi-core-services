@@ -1,12 +1,7 @@
 import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
 import { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
@@ -16,15 +11,15 @@ import jsonwebtoken from "jsonwebtoken";
 import { mapping, Client } from "cassandra-driver";
 import { KeyValuesModule } from "./key-values.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { KeyValueModel } from "./models/key-value.model";
-import { lengthInBytes } from "../../shared/utils";
+import { AppUsageModel, KeyValueModel } from "../cassandra/models";
+import { byteLength } from "../../shared/utils";
 
 const BASE_URL = "/stores/distributed/key-values";
 
 jest.mock("cassandra-driver");
 
 describe("Key-Values Module", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let server: HttpServer;
   const mockedKeyValueFind = jest.fn();
   const mockedKeyValueInsert = jest.fn();
@@ -48,7 +43,7 @@ describe("Key-Values Module", () => {
             insert: mockedAppUsageInsert,
             update: mockedAppUsageUpdate,
             remove: mockedAppUsageRemove,
-          } as Partial<mapping.ModelMapper<KeyValueModel>>;
+          } as Partial<mapping.ModelMapper<AppUsageModel>>;
         }
 
         return {
@@ -533,7 +528,7 @@ describe("Key-Values Module", () => {
       expect(mockedKeyValueInsert).toHaveBeenCalledWith({ did, key, value });
       expect(mockedAppUsageInsert).toHaveBeenCalledWith({
         did,
-        numberBytes: `${lengthInBytes(value)}`,
+        numberBytes: `${byteLength(value)}`,
       });
       expect(response.body).toStrictEqual({ [key]: value });
       expect(response.status).toBe(201);
@@ -593,9 +588,7 @@ describe("Key-Values Module", () => {
       expect(mockedKeyValueUpdate).toHaveBeenCalledWith({ did, key, value });
       expect(mockedAppUsageUpdate).toHaveBeenCalledWith({
         did,
-        numberBytes: `${
-          1337 + lengthInBytes(value) - lengthInBytes(previousValue)
-        }`,
+        numberBytes: `${1337 + byteLength(value) - byteLength(previousValue)}`,
       });
       expect(response.body).toStrictEqual({ [key]: value });
       expect(response.status).toBe(200);
@@ -754,7 +747,7 @@ describe("Key-Values Module", () => {
       expect(mockedAppUsageFind).toHaveBeenCalledWith({ did });
       expect(mockedAppUsageUpdate).toHaveBeenCalledWith({
         did,
-        numberBytes: `${42 * 1024 * 1024 - lengthInBytes(value)}`,
+        numberBytes: `${42 * 1024 * 1024 - byteLength(value)}`,
       });
       expect(response.text).toStrictEqual("");
       expect(response.status).toBe(204);

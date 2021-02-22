@@ -1,11 +1,6 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
 import { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
@@ -19,7 +14,7 @@ import { CassandraService } from "../cassandra/cassandra.service";
 jest.mock("cassandra-driver");
 
 describe("JsonRpc Module", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let server: HttpServer;
   let mockCassandra: jest.SpyInstance;
   let cassandraService: CassandraService;

@@ -4,6 +4,7 @@ import { ApiConfigModule } from "./config/configuration";
 import { HealthModule } from "./modules/health/health.module";
 import { KeyValuesModule } from "./modules/key-values/key-values.module";
 import { StoresModule } from "./modules/stores/stores.module";
+import { FilesModule } from "./modules/files/files.module";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 
 @Module({
@@ -12,6 +13,7 @@ import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
     HealthModule,
     StoresModule,
     KeyValuesModule,
+    FilesModule,
     JsonRpcModule,
   ],
   providers: [ConfigService],

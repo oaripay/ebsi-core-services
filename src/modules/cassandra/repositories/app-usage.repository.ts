@@ -1,7 +1,7 @@
 import { Injectable, OnApplicationBootstrap, Logger } from "@nestjs/common";
 import { mapping } from "cassandra-driver";
-import { CassandraService } from "../cassandra/cassandra.service";
-import { AppUsageModel } from "./models/app-usage.model";
+import { CassandraService } from "../cassandra.service";
+import { AppUsageModel } from "../models/app-usage.model";
 
 const TABLE_APP_USAGE = "app_usage";
 

@@ -1,11 +1,6 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -14,9 +9,10 @@ import { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { STORES } from "../../src/modules/stores/stores.constants";
+import { fastifyAdapterConfig } from "../../src/config/server.config";
 
 describe("Stores (e2e)", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let server: HttpServer;
 
   beforeAll(async () => {
@@ -25,7 +21,7 @@ describe("Stores (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(fastifyAdapterConfig)
     );
 
     // Turn off logger

@@ -1,11 +1,6 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
 import { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
@@ -15,7 +10,7 @@ import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
 
 describe("App Module", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let server: HttpServer;
 
   beforeAll(async () => {

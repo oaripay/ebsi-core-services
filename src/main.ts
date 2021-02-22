@@ -6,21 +6,18 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
 import { fastifyHelmet } from "fastify-helmet";
+import fastifyMultipart from "fastify-multipart";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
 import { createLogger, consoleTransport } from "./logger/logger";
 import { ApiConfig } from "./config/configuration";
+import {
+  fastifyMultipartConfig,
+  fastifyAdapterConfig,
+} from "./config/server.config";
 
 async function bootstrap(): Promise<void> {
-  const fastifyAdapter = new FastifyAdapter({
-    // By default, maxParamLength=100 but we allow keys to be up to 256 bytes, thus we need to allow more chars
-    // https://www.fastify.io/docs/latest/Server/#maxparamlength
-    maxParamLength: 400,
-    // By default, bodyLimit=1048576 (1MiB)
-    // https://www.fastify.io/docs/latest/Server/#bodylimit
-    // We increase the limit to 5MiB
-    bodyLimit: 5 * 1024 * 1024,
-  });
+  const fastifyAdapter = new FastifyAdapter(fastifyAdapterConfig);
   fastifyAdapter.enableCors({ methods: "*" });
 
   const logger = createLogger();
@@ -59,6 +56,7 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix(apiUrlPrefix);
 
   await app.register(fastifyHelmet);
+  await app.register(fastifyMultipart, fastifyMultipartConfig);
 
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe({ transform: true }));

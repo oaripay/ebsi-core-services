@@ -419,8 +419,8 @@ paths:
                   description: File to upload
                   format: binary
                 metadata:
-                  type: object
-                  description: File Metadata
+                  type: string
+                  description: File Metadata (stringified JSON)
         required: true
       responses:
         201:

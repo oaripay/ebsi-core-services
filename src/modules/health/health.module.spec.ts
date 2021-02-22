@@ -1,11 +1,6 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
 import { HealthIndicatorResult, HttpHealthIndicator } from "@nestjs/terminus";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
@@ -18,7 +13,7 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { ApiConfig } from "../../config/configuration";
 
 describe("Health Module", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let server: HttpServer;
   let httpHealthIndicator: HttpHealthIndicator;
   let configService: ConfigService<ApiConfig>;

@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, HttpServer, ValidationPipe } from "@nestjs/common";
+import { HttpServer, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -11,13 +11,14 @@ import { Logger } from "@nestjs/common/services/logger.service";
 import jsonwebtoken from "jsonwebtoken";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import { fastifyAdapterConfig } from "../../src/config/server.config";
 
 jest.setTimeout(60000);
 
 const BASE_URL = "/stores/distributed/key-values";
 
 describe("Key-Values (e2e)", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let server: HttpServer;
 
   const key = `key-${crypto.randomBytes(16).toString("hex")}`;
@@ -25,7 +26,7 @@ describe("Key-Values (e2e)", () => {
   const key3 = `key-${crypto.randomBytes(16).toString("hex")}`;
   const value = `value-${crypto.randomBytes(16).toString("hex")}`;
   const value2 = `value-${crypto.randomBytes(16).toString("hex")}`;
-  const did = "0x123";
+  const did = `0x${crypto.randomBytes(32).toString("hex")}`;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -33,7 +34,7 @@ describe("Key-Values (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(fastifyAdapterConfig)
     );
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe());
