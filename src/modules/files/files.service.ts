@@ -1,16 +1,23 @@
 import crypto from "crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { BadRequestError } from "@cef-ebsi/problem-details-errors";
-import { PostFileResponseObject } from "./files.interface";
+import {
+  BadRequestError,
+  NotFoundError,
+  InternalServerError,
+} from "@cef-ebsi/problem-details-errors";
+import { types } from "cassandra-driver";
+import { PostFileResponseObject, FileMetadata } from "./files.interface";
 import { AppUsageRepository, FilesRepository } from "../cassandra/repositories";
+import { CASSANDRA_EXCEPTIONS } from "../cassandra/cassandra.constants";
+import { FileModel } from "../cassandra/models";
 import {
   ExcessiveAppUsageError,
   ValueTooLargeError,
 } from "../../shared/errors";
 import { ApiConfig } from "../../config/configuration";
 import { PostFileBody } from "./dto";
-import { byteLength } from "../../shared/utils";
+import { byteLength, decrypt, encrypt } from "../../shared/utils";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_METADATA_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -25,6 +32,121 @@ export class FilesService {
     private filesRepository: FilesRepository,
     private appUsageRepository: AppUsageRepository
   ) {}
+
+  async getFiles(
+    did: string,
+    requestedPageState: string,
+    pageSize: number
+  ): Promise<{ hashes: string[]; pageState: string }> {
+    // Note: The page state token can be manipulated to retrieve other results within the same
+    // column family, so it is not safe to expose it to the users in plain text.
+    // https://docs.datastax.com/en/developer/nodejs-driver/4.6/features/paging/
+    let decryptedPageState = "";
+    if (requestedPageState) {
+      try {
+        // Decrypt pageState
+        decryptedPageState = decrypt(
+          requestedPageState,
+          this.configService.get("encryptionSecret")
+        );
+      } catch (e) {
+        this.logger.error((e as Error).message, (e as Error).stack);
+        throw new BadRequestError(BadRequestError.defaultTitle, {
+          detail: "Invalid page[after] parameter",
+        });
+      }
+    }
+
+    let result: types.ResultSet;
+
+    try {
+      result = await this.filesRepository.getFiles(
+        did,
+        decryptedPageState,
+        pageSize
+      );
+    } catch (e) {
+      if (
+        e instanceof Error &&
+        e.message.includes(CASSANDRA_EXCEPTIONS.PAGE_STATE_ERROR)
+      ) {
+        throw new BadRequestError(BadRequestError.defaultTitle, {
+          detail: "Invalid page[after] parameter",
+        });
+      }
+      throw e;
+    }
+
+    const { pageState: rawPageState, rows } = result;
+
+    const items = rows.map((r): string => ((r as unknown) as FileModel).hash);
+
+    let encryptedPageState = "";
+    if (rawPageState) {
+      // Encrypt page state
+      encryptedPageState = encrypt(
+        rawPageState,
+        this.configService.get("encryptionSecret")
+      );
+    }
+
+    return { hashes: items, pageState: encryptedPageState };
+  }
+
+  async getFile({
+    did,
+    hash,
+  }: {
+    did: string;
+    hash: string;
+  }): Promise<{ filename: string; mimetype: string; data: Buffer }> {
+    const file = await this.filesRepository.getFile({ did, hash });
+
+    if (!file) {
+      throw new NotFoundError(NotFoundError.defaultTitle, {
+        detail: "File not found",
+      });
+    }
+
+    const parsedMetadata = JSON.parse(file.metadata) as FileMetadata;
+
+    return {
+      filename: parsedMetadata.filename,
+      mimetype: parsedMetadata.mimetype,
+      data: file.data,
+    };
+  }
+
+  async getFileMetadata({
+    did,
+    hash,
+  }: {
+    did: string;
+    hash: string;
+  }): Promise<FileMetadata> {
+    const file = await this.filesRepository.getFile({ did, hash });
+
+    if (!file) {
+      throw new NotFoundError(NotFoundError.defaultTitle, {
+        detail: "File not found",
+      });
+    }
+
+    try {
+      return JSON.parse(file.metadata) as FileMetadata;
+    } catch (e) {
+      this.logger.error(
+        `Unable to parse metadata of file [${did}, ${hash}].\nMetadata: ${
+          file.metadata
+        }\n${(e as Error).message}.`,
+        (e as Error).stack
+      );
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail:
+          "There was an error while parsing the requested file's metadata.",
+      });
+    }
+  }
 
   async postFile(
     did: string,
@@ -52,22 +174,34 @@ export class FilesService {
       );
     }
 
-    const metadata = body.metadata.value || "{}";
+    const inputMetadata = body.metadata.value || "{}";
 
-    const metadataByteLength = byteLength(metadata);
+    let parsedMetadata: FileMetadata = {};
+    try {
+      parsedMetadata = JSON.parse(inputMetadata) as FileMetadata;
+    } catch (e) {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "Invalid metadata. It must be a stringified JSON document.",
+      });
+    }
+
+    // Fill metadata with filename and mimetype (if available)
+    if (!parsedMetadata.filename && body.file.filename) {
+      parsedMetadata.filename = body.file.filename;
+    }
+
+    if (!parsedMetadata.mimetype && body.file.mimetype) {
+      parsedMetadata.mimetype = body.file.mimetype;
+    }
+
+    const finalMetadata = JSON.stringify(parsedMetadata);
+
+    const metadataByteLength = byteLength(finalMetadata);
 
     if (metadataByteLength > MAX_METADATA_SIZE) {
       throw new ValueTooLargeError(
         `Max size for 'metadata' is ${MAX_METADATA_SIZE} bytes. Received ${metadataByteLength}`
       );
-    }
-
-    try {
-      JSON.parse(metadata);
-    } catch (e) {
-      throw new BadRequestError(BadRequestError.defaultTitle, {
-        detail: "Invalid metadata. It must be a stringified JSON document.",
-      });
     }
 
     // Compute SHA3-256 hash of the file data
@@ -105,7 +239,7 @@ export class FilesService {
         did,
         hash,
         data: file,
-        metadata,
+        metadata: finalMetadata,
       }),
       this.appUsageRepository.setAppUsage(
         { did, numberBytes: `${didAppUsageInBytes}` },
