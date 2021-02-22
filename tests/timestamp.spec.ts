@@ -2,11 +2,11 @@ import { ethers, waffle } from "hardhat";
 import { Contract, Signer } from "ethers";
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import StringManipArtifact from "../artifacts/contracts/utils/StringManip.sol/StringManip.json";
+import StringManipArtifact from "../artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol/StringManip.json";
 
 const { deployContract } = waffle;
 
-describe("Timestamp Hashes", function () {
+describe("Timestamp Hashes", () => {
   let ts: Contract;
   let signers: SignerWithAddress[];
   beforeEach(async () => {
@@ -51,7 +51,7 @@ describe("Timestamp Hashes", function () {
     await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1);
     await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1);
   });
-  it("getTimestamp should succeed", async function () {
+  it("getTimestamp should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -82,15 +82,15 @@ describe("Timestamp Hashes", function () {
     );
     expect(r3.blockNumber).to.equal(blockNumber + 1);
   });
-  it("getTimestamp should revert if hash is unknown", async function () {
+  it("getTimestamp should revert if hash is unknown", async () => {
     await expect(
       ts.getTimestamp(ethers.utils.toUtf8Bytes("unknow?"))
     ).to.be.revertedWith("timestamp unknown");
   });
-  it("getTimestamp should revert if hash is empty", async function () {
+  it("getTimestamp should revert if hash is empty", async () => {
     await expect(ts.getTimestamp([])).to.be.revertedWith("hash empty");
   });
-  it("getTimestampById should succeed", async function () {
+  it("getTimestampById should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -121,19 +121,19 @@ describe("Timestamp Hashes", function () {
     );
     expect(r3.blockNumber).to.equal(blockNumber + 1);
   });
-  it("getTimestampById should revert if timestampID is unknown", async function () {
+  it("getTimestampById should revert if timestampID is unknown", async () => {
     await expect(
       ts.getTimestampById(
         ethers.utils.sha256(ethers.utils.toUtf8Bytes("unknow?"))
       )
     ).to.be.revertedWith("timestamp unknown");
   });
-  it("getTimestgetTimestampByIdamp should revert if timestampId is empty", async function () {
+  it("getTimestgetTimestampByIdamp should revert if timestampId is empty", async () => {
     await expect(
       ts.getTimestampById(ethers.constants.HashZero)
     ).to.be.revertedWith("tsId empty");
   });
-  it("timestampHashes should failed if > 3", async function () {
+  it("timestampHashes should failed if > 3", async () => {
     await expect(
       ts.timestampHashes(
         [0, 1, 2, 3],
@@ -202,7 +202,7 @@ describe("Timestamp Hashes", function () {
       )
     ).to.be.revertedWith("timestampData>3");
   });
-  it("timestampHashes should failed for unknown hash algo", async function () {
+  it("timestampHashes should failed for unknown hash algo", async () => {
     await expect(
       ts.timestampHashes(
         [7, 1, 2],
@@ -219,7 +219,7 @@ describe("Timestamp Hashes", function () {
       )
     ).to.be.revertedWith("hashAlgo unknown");
   });
-  it("timestampHashes should failed for empty value and hash", async function () {
+  it("timestampHashes should failed for empty value and hash", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1)).to.emit(
       ts,
       "AddNewHashAlgo"
@@ -259,7 +259,7 @@ describe("Timestamp Hashes", function () {
       []
     );
   });
-  it("timestampHashes should succeed", async function () {
+  it("timestampHashes should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -280,7 +280,7 @@ describe("Timestamp Hashes", function () {
       ethers.utils.sha256(hash3),
     ]);
   });
-  it("getTimestamps should failed with wrong page and pageSize", async function () {
+  it("getTimestamps should failed with wrong page and pageSize", async () => {
     const resTsIds: string[] = [];
     for (let i = 1; i < 12; i += 1) {
       const data = `SHA-${i}`;
@@ -305,7 +305,7 @@ describe("Timestamp Hashes", function () {
     // pagesize > 50 should revert
     await expect(ts.getTimestamps(1, 51)).to.be.revertedWith("PSize not <= 50");
   });
-  it("getTimestamps should succeed", async function () {
+  it("getTimestamps should succeed", async () => {
     const resTsIds: string[] = [];
     for (let i = 1; i < 12; i += 1) {
       const data = `SHA-${i}`;

@@ -1,7 +1,7 @@
 module.exports = {
   root: true,
   extends: [
-    "airbnb-base",
+    "airbnb-typescript/base",
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended",
     "prettier/@typescript-eslint",
@@ -16,14 +16,13 @@ module.exports = {
   parserOptions: {
     project: "./tsconfig.eslint.json",
   },
+  ignorePatterns: ["**/contracts/bootstrap-ethereum-sc"],
   rules: {
     // we use it for scripts
     "no-console": "off",
     // we use it for tests
-    "func-names": "off",
-    // we use it for tests
     "import/no-extraneous-dependencies": "off",
     // we use it for tests
-    "no-unused-expressions": "off",
+    "@typescript-eslint/no-unused-expressions": "off",
   },
 };

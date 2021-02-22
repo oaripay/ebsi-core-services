@@ -2,11 +2,11 @@ import { ethers, waffle } from "hardhat";
 import { Contract, Signer } from "ethers";
 import { expect } from "chai";
 
-import StringManipArtifact from "../artifacts/contracts/utils/StringManip.sol/StringManip.json";
+import StringManipArtifact from "../artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol/StringManip.json";
 
 const { deployContract } = waffle;
 
-describe("Hash Algorithm", function () {
+describe("Hash Algorithm", () => {
   let ts: Contract;
 
   beforeEach(async () => {
@@ -43,7 +43,7 @@ describe("Hash Algorithm", function () {
     expect(initialVersion).to.equal(42);
     expect(ts.address).to.properAddress;
   });
-  it("getHashAlgorithmById should succeed", async function () {
+  it("getHashAlgorithmById should succeed", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid256", 1)).to.emit(
       ts,
       "AddNewHashAlgo"
@@ -68,12 +68,12 @@ describe("Hash Algorithm", function () {
     expect(receipt3.oid).to.equal("oid3");
     expect(receipt3.status).to.equal(1);
   });
-  it("getHashAlgorithmById should revert if hash is unknown", async function () {
+  it("getHashAlgorithmById should revert if hash is unknown", async () => {
     await expect(ts.getHashAlgorithmById(0)).to.be.revertedWith(
       "hashAlgo unknown"
     );
   });
-  it("insertHashAlgorithm should revert for incorrect parameters", async function () {
+  it("insertHashAlgorithm should revert for incorrect parameters", async () => {
     await expect(
       ts.insertHashAlgorithm(0, "SHA256", "oid", 1)
     ).to.be.revertedWith("outputLength==0");
@@ -87,7 +87,7 @@ describe("Hash Algorithm", function () {
       ts.insertHashAlgorithm(1, "SHA256", "oid", 0)
     ).to.be.revertedWith("status==0");
   });
-  it("insertHashAlgorithm should work", async function () {
+  it("insertHashAlgorithm should work", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1))
       .to.emit(ts, "AddNewHashAlgo")
       .withArgs(0, "SHA256", "SHA256", 256, "oid", 1);
@@ -101,7 +101,7 @@ describe("Hash Algorithm", function () {
     expect(receipt.status).to.equal(1);
   });
 
-  it("updateHashAlgorithm should revert for incorrect parameters", async function () {
+  it("updateHashAlgorithm should revert for incorrect parameters", async () => {
     await expect(
       ts.updateHashAlgorithm(0, 0, "SHA256", "oid", 1)
     ).to.be.revertedWith("outputLength==0");
@@ -118,7 +118,7 @@ describe("Hash Algorithm", function () {
       ts.updateHashAlgorithm(0, 1, "SHA256", "oid", 1)
     ).to.be.revertedWith("hashAlgorithmId unknown");
   });
-  it("updateHashAlgorithm should work", async function () {
+  it("updateHashAlgorithm should work", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1)).to.emit(
       ts,
       "AddNewHashAlgo"
@@ -143,7 +143,7 @@ describe("Hash Algorithm", function () {
     expect(updated.status).to.equal(2);
   });
 
-  it("getHashAlgorithms should failed with wrong page and pageSize", async function () {
+  it("getHashAlgorithms should failed with wrong page and pageSize", async () => {
     const resHashIds: number[] = [];
     for (let i = 1; i < 12; i += 1) {
       const name = `SHA-${i}`;
@@ -168,7 +168,7 @@ describe("Hash Algorithm", function () {
     );
   });
 
-  it("getHashAlgorithms should work with correct page and pageSize", async function () {
+  it("getHashAlgorithms should work with correct page and pageSize", async () => {
     const resHashIds: number[] = [];
     for (let i = 1; i < 12; i += 1) {
       const name = `SHA-${i}`;

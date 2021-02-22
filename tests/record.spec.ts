@@ -2,11 +2,11 @@ import { ethers, waffle } from "hardhat";
 import { Contract, Signer } from "ethers";
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import StringManipArtifact from "../artifacts/contracts/utils/StringManip.sol/StringManip.json";
+import StringManipArtifact from "../artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol/StringManip.json";
 
 const { deployContract } = waffle;
 
-describe("Record Hashes", function () {
+describe("Record Hashes", () => {
   let ts: Contract;
   let signers: SignerWithAddress[];
   beforeEach(async () => {
@@ -50,7 +50,7 @@ describe("Record Hashes", function () {
     await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1);
     await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1);
   });
-  it("timestampVersionHashes should failed if > 3", async function () {
+  it("timestampVersionHashes should failed if > 3", async () => {
     await expect(
       ts.timestampVersionHashes(
         ethers.utils.toUtf8Bytes("versionHash"),
@@ -125,7 +125,7 @@ describe("Record Hashes", function () {
       )
     ).to.be.revertedWith("timestampData>3");
   });
-  it("timestampVersionHashes should failed for unknown hash algo", async function () {
+  it("timestampVersionHashes should failed for unknown hash algo", async () => {
     await expect(
       ts.timestampVersionHashes(
         ethers.utils.toUtf8Bytes("versionHash"),
@@ -144,7 +144,7 @@ describe("Record Hashes", function () {
       )
     ).to.be.revertedWith("hashAlgo unknown");
   });
-  it("timestampVersionHashes should failed if record doesn't exists", async function () {
+  it("timestampVersionHashes should failed if record doesn't exists", async () => {
     await expect(
       ts.timestampVersionHashes(
         [89],
@@ -159,7 +159,7 @@ describe("Record Hashes", function () {
       )
     ).to.be.revertedWith("wrong record count");
   });
-  it("timestampVersionHashes should failed for empty value and hash", async function () {
+  it("timestampVersionHashes should failed for empty value and hash", async () => {
     await expect(
       ts.timestampVersionHashes(
         ethers.utils.toUtf8Bytes("versionHash"),
@@ -236,8 +236,8 @@ describe("Record Hashes", function () {
         []
       );
   });
-  // TODO it("timestampVersionHashes should failed for too many records", async function () {});
-  it("timestampVersionHashes should failed for empty records", async function () {
+  // TODO it("timestampVersionHashes should failed for too many records", async   () => {});
+  it("timestampVersionHashes should failed for empty records", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -255,7 +255,7 @@ describe("Record Hashes", function () {
       )
     ).to.be.revertedWith("wrong record count");
   });
-  it("timestampVersionHashes should failed for two records", async function () {
+  it("timestampVersionHashes should failed for two records", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -319,7 +319,7 @@ describe("Record Hashes", function () {
       )
     ).to.be.revertedWith("wrong record count");
   });
-  it("timestampVersionHashes should succeed", async function () {
+  it("timestampVersionHashes should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -393,7 +393,7 @@ describe("Record Hashes", function () {
     );
   });
 
-  it("timestampRecordHashes should failed if hash algo and values length are different", async function () {
+  it("timestampRecordHashes should failed if hash algo and values length are different", async () => {
     await expect(
       ts.timestampRecordHashes(
         [0, 1],
@@ -417,7 +417,7 @@ describe("Record Hashes", function () {
       )
     ).to.be.revertedWith("hashvalue/algo count mismatch");
   });
-  it("timestampRecordHashes should failed if > 3", async function () {
+  it("timestampRecordHashes should failed if > 3", async () => {
     await expect(
       ts.timestampRecordHashes(
         [0, 1, 2, 3],
@@ -489,7 +489,7 @@ describe("Record Hashes", function () {
       )
     ).to.be.revertedWith("timestampData>3");
   });
-  it("timestampRecordHashes should failed for unknown hash algo", async function () {
+  it("timestampRecordHashes should failed for unknown hash algo", async () => {
     await expect(
       ts.timestampRecordHashes(
         [7, 1, 2],
@@ -507,7 +507,7 @@ describe("Record Hashes", function () {
       )
     ).to.be.revertedWith("hashAlgo unknown");
   });
-  it("timestampRecordHashes should failed for empty value and hash", async function () {
+  it("timestampRecordHashes should failed for empty value and hash", async () => {
     await expect(
       ts.timestampRecordHashes(
         [0, 1, 2],
@@ -539,7 +539,7 @@ describe("Record Hashes", function () {
     const ids = await ts.getRecordIds(1, 10);
     expect(ids.items).to.have.length(1);
   });
-  it("timestampRecordHashes should suceed with same info twice because recordId contains blocknumber", async function () {
+  it("timestampRecordHashes should suceed with same info twice because recordId contains blocknumber", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -555,7 +555,7 @@ describe("Record Hashes", function () {
       ethers.utils.toUtf8Bytes("info: btc to the moon")
     );
   });
-  it("timestampRecordHashes should succeed", async function () {
+  it("timestampRecordHashes should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -603,7 +603,7 @@ describe("Record Hashes", function () {
     expect(firstTsIds.items).to.deep.equal([recordId]);
   });
 
-  it("timestampRecordVersionHashes should failed if > 3", async function () {
+  it("timestampRecordVersionHashes should failed if > 3", async () => {
     await expect(
       ts.timestampRecordVersionHashes(
         ethers.utils.sha256(ethers.utils.toUtf8Bytes("recordId")),
@@ -678,7 +678,7 @@ describe("Record Hashes", function () {
       )
     ).to.be.revertedWith("timestampData>3");
   });
-  it("timestampRecordVersionHashes should failed for unknown hash algo", async function () {
+  it("timestampRecordVersionHashes should failed for unknown hash algo", async () => {
     await expect(
       ts.timestampRecordVersionHashes(
         ethers.utils.sha256(ethers.utils.toUtf8Bytes("recordId")),
@@ -697,7 +697,7 @@ describe("Record Hashes", function () {
       )
     ).to.be.revertedWith("hashAlgo unknown");
   });
-  it("timestampRecordVersionHashes should failed if record doesn't exists", async function () {
+  it("timestampRecordVersionHashes should failed if record doesn't exists", async () => {
     await expect(
       ts.timestampRecordVersionHashes(
         ethers.utils.sha256([89]),
@@ -712,7 +712,7 @@ describe("Record Hashes", function () {
       )
     ).to.be.revertedWith("record unknown");
   });
-  it("timestampRecordVersionHashes should failed for empty value and hash", async function () {
+  it("timestampRecordVersionHashes should failed for empty value and hash", async () => {
     await expect(
       ts.timestampRecordVersionHashes(
         ethers.utils.sha256(ethers.utils.toUtf8Bytes("recordId")),
@@ -789,7 +789,7 @@ describe("Record Hashes", function () {
       .to.emit(ts, "RecordedHashes")
       .withArgs(recordId, tsids, ethers.constants.HashZero);
   });
-  it("timestampRecordVersionHashes should succeed", async function () {
+  it("timestampRecordVersionHashes should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -887,7 +887,7 @@ describe("Record Hashes", function () {
     expect(vd1.next).to.equal(1);
   });
 
-  it("getRecord should failed with wrong recordId", async function () {
+  it("getRecord should failed with wrong recordId", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
 
     // pagesize = 0 should revert
@@ -899,7 +899,7 @@ describe("Record Hashes", function () {
       "record unknown"
     );
   });
-  it("getRecord should succeed", async function () {
+  it("getRecord should succeed", async () => {
     const hash1Value = ethers.utils.toUtf8Bytes(`value-1`);
     const hash2Value = ethers.utils.toUtf8Bytes(`value-2`);
     const hash3Value = ethers.utils.toUtf8Bytes(`value-3`);
@@ -977,7 +977,7 @@ describe("Record Hashes", function () {
     expect(r2.totalVersions).to.equal(2);
   });
 
-  it("getRecordIds should failed with wrong page and pageSize", async function () {
+  it("getRecordIds should failed with wrong page and pageSize", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -999,7 +999,7 @@ describe("Record Hashes", function () {
     // pagesize > 50 should revert
     await expect(ts.getRecordIds(1, 51)).to.be.revertedWith("PSize not <= 50");
   });
-  it("getRecordIds should succeed", async function () {
+  it("getRecordIds should succeed", async () => {
     const recIds: string[] = [];
     for (let i = 1; i < 12; i += 1) {
       const hash1Value = ethers.utils.toUtf8Bytes(`value-1-${i}`);
@@ -1059,7 +1059,7 @@ describe("Record Hashes", function () {
     expect(r1.next).to.equal(1);
   });
 
-  it("getRecordIdsByFirstVersionHash should failed with wrong hash, page and pageSize", async function () {
+  it("getRecordIdsByFirstVersionHash should failed with wrong hash, page and pageSize", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -1091,7 +1091,7 @@ describe("Record Hashes", function () {
       ts.getRecordIdsByFirstVersionHash([], 1, 51)
     ).to.be.revertedWith("hashValue empty");
   });
-  it("getRecordIdsByFirstVersionHash should succeed", async function () {
+  it("getRecordIdsByFirstVersionHash should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -1145,7 +1145,7 @@ describe("Record Hashes", function () {
     expect(firstTsIds2.next).to.equal(1);
   });
 
-  it("getRecordVersion should succeed", async function () {
+  it("getRecordVersion should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -1244,7 +1244,7 @@ describe("Record Hashes", function () {
     expect(vd1.prev).to.equal(1);
     expect(vd1.next).to.equal(1);
   });
-  it("getRecordVersion should failed with wrong recordId, page or pageSize", async function () {
+  it("getRecordVersion should failed with wrong recordId, page or pageSize", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -1286,13 +1286,13 @@ describe("Record Hashes", function () {
     );
   });
 
-  it("getRecordVersionInfo should failed with empty versionInfoId", async function () {
+  it("getRecordVersionInfo should failed with empty versionInfoId", async () => {
     //  should revert
     await expect(
       ts.getRecordVersionInfo(ethers.constants.HashZero)
     ).to.be.revertedWith("versionInfoId empty");
   });
-  it("getRecordVersionInfo should succeed", async function () {
+  it("getRecordVersionInfo should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -1340,7 +1340,7 @@ describe("Record Hashes", function () {
     expect(infoPrime).to.equal(ethers.utils.hexlify(versionInfoprime));
   });
 
-  it("appendRecordVersionHashes should failed with empty recordId", async function () {
+  it("appendRecordVersionHashes should failed with empty recordId", async () => {
     //  should revert
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
 
@@ -1358,7 +1358,7 @@ describe("Record Hashes", function () {
       )
     ).to.be.revertedWith("recordId empty");
   });
-  it("appendRecordVersionHashes should failed for unknown recordId or versionId", async function () {
+  it("appendRecordVersionHashes should failed for unknown recordId or versionId", async () => {
     //  should revert
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     await expect(
@@ -1403,7 +1403,7 @@ describe("Record Hashes", function () {
       )
     ).to.be.revertedWith("record/version unknown");
   });
-  it("appendRecordVersionHashes should succeed", async function () {
+  it("appendRecordVersionHashes should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -1496,7 +1496,7 @@ describe("Record Hashes", function () {
     expect(vd1.howMany).to.equal(0);
   });
 
-  it("insertRecordVersionInfo should failed with empty recordId or versionInfo", async function () {
+  it("insertRecordVersionInfo should failed with empty recordId or versionInfo", async () => {
     //  should revert
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
 
@@ -1507,7 +1507,7 @@ describe("Record Hashes", function () {
       ts.insertRecordVersionInfo(ethers.utils.sha256(hash1), 0, [])
     ).to.be.revertedWith("versionInfo empty");
   });
-  it("insertRecordVersionInfo should failed for unknown recordId or versionId", async function () {
+  it("insertRecordVersionInfo should failed for unknown recordId or versionId", async () => {
     //  should revert
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const versionInfo = ethers.utils.toUtf8Bytes("second one");
@@ -1536,7 +1536,7 @@ describe("Record Hashes", function () {
       ts.insertRecordVersionInfo(recordId, 1, versionInfo)
     ).to.be.revertedWith("record/version unknown");
   });
-  it("insertRecordVersionInfo should succeed", async function () {
+  it("insertRecordVersionInfo should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -1605,7 +1605,7 @@ describe("Record Hashes", function () {
     expect(vd1.howMany).to.equal(0);
   });
 
-  it("detachRecordVersionHash should succeed with only one tsId in the version", async function () {
+  it("detachRecordVersionHash should succeed with only one tsId in the version", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     let blockNumber = await ethers.provider.getBlockNumber();
     blockNumber += 1;
@@ -1653,7 +1653,7 @@ describe("Record Hashes", function () {
     expect(vd1.howMany).to.equal(0);
   });
 
-  it("getRecordIdsByOwnerId should failed with wrong recordId, OwnerId, page or pageSize", async function () {
+  it("getRecordIdsByOwnerId should failed with wrong recordId, OwnerId, page or pageSize", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -1687,7 +1687,7 @@ describe("Record Hashes", function () {
     );
   });
 
-  it("getRecordIdsByOwnerId should succeed", async function () {
+  it("getRecordIdsByOwnerId should succeed", async () => {
     const hash1Value = ethers.utils.toUtf8Bytes(`value-1`);
     const hash2Value = ethers.utils.toUtf8Bytes(`value-2`);
     const hash3Value = ethers.utils.toUtf8Bytes(`value-3`);
@@ -1765,7 +1765,7 @@ describe("Record Hashes", function () {
     expect(r2.totalVersions).to.equal(2);
   });
 
-  it("revokeRecordOwner should failed with wrong recordId, OwnerId ", async function () {
+  it("revokeRecordOwner should failed with wrong recordId, OwnerId ", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -1806,7 +1806,7 @@ describe("Record Hashes", function () {
     ).to.be.revertedWith("ownerId unknown");
   });
 
-  it("revokeRecordOwner should work", async function () {
+  it("revokeRecordOwner should work", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -1877,7 +1877,7 @@ describe("Record Hashes", function () {
     expect(inf1.revoked).to.be.true;
   });
 
-  it("insertRecordOwner should failed with wrong date, recordId, OwnerId ", async function () {
+  it("insertRecordOwner should failed with wrong date, recordId, OwnerId ", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -1928,7 +1928,7 @@ describe("Record Hashes", function () {
     ).to.be.revertedWith("date incorrect");
   });
 
-  it("insertRecordOwner should work ", async function () {
+  it("insertRecordOwner should work ", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -1977,7 +1977,7 @@ describe("Record Hashes", function () {
     expect(r2.totalVersions).to.equal(1);
   });
 
-  it("getRecordOwnerInfo should failed with wrong recordId, OwnerId ", async function () {
+  it("getRecordOwnerInfo should failed with wrong recordId, OwnerId ", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");
@@ -2014,7 +2014,7 @@ describe("Record Hashes", function () {
     ).to.be.revertedWith("record unknown");
   });
 
-  it("getRecordOwnerInfo should work", async function () {
+  it("getRecordOwnerInfo should work", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
     const hash3 = ethers.utils.toUtf8Bytes("38862f7");

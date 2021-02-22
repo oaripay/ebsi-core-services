@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
 import "./RecordStorage.sol";
-import "../utils/Pagination.sol";
-import "../utils/StringManip.sol";
+import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "../bootstrap-ethereum-sc/contracts/utils/StringManip.sol";
 import "./TimestampLib.sol";
 import "./TimestampStorage.sol";
-import "../utils/SafeAddArray.sol";
+import "../bootstrap-ethereum-sc/contracts/utils/SafeAddArray.sol";
 
 library RecordLib {
     using Pagination for bytes32[];
