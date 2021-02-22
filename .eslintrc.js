@@ -6,6 +6,7 @@ module.exports = {
     "plugin:jest/style",
     "plugin:prettier/recommended",
   ],
+  ignorePatterns: ["**/contracts/bootstrap-ethereum-sc"],
   globals: {
     // truffle globals
     artifacts: true,
