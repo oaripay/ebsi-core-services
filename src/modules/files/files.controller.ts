@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Delete,
   Param,
   Query,
   Request,
@@ -19,6 +20,7 @@ import { ApiConfig } from "../../config/configuration";
 import { JwtAuthGuard } from "../auth/guards";
 import { User, UserInfo } from "../auth/decorators";
 import {
+  DeleteFileParams,
   GetFileParams,
   GetFileMetadataParams,
   GetFilesQuery,
@@ -116,6 +118,19 @@ export class FilesController {
     const { body } = req as { body: PostFileBody };
 
     return this.filesService.postFile(did, body);
+  }
+
+  @HttpCode(204)
+  @UseGuards(JwtAuthGuard)
+  @Delete("/:hash")
+  async deleteFile(
+    @Param() params: DeleteFileParams,
+    @User() user: UserInfo
+  ): Promise<void> {
+    const { hash } = params;
+    const { did } = user;
+
+    await this.filesService.deleteFile({ did, hash });
   }
 }
 

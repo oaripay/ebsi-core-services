@@ -75,6 +75,16 @@ export class FilesRepository implements OnApplicationBootstrap {
   async insertFile(file: FileModel): Promise<mapping.Result<FileModel>> {
     return this.fileMapper.insert(file);
   }
+
+  async deleteFile({
+    did,
+    hash,
+  }: {
+    did: string;
+    hash: string;
+  }): Promise<void> {
+    await this.fileMapper.remove({ did, hash });
+  }
 }
 
 export default FilesRepository;

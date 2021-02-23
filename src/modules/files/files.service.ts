@@ -249,6 +249,41 @@ export class FilesService {
 
     return { hash, function: "sha3-256" };
   }
+
+  async deleteFile({
+    did,
+    hash,
+  }: {
+    did: string;
+    hash: string;
+  }): Promise<void> {
+    const file = await this.filesRepository.getFile({ did, hash });
+
+    if (!file) {
+      throw new NotFoundError(NotFoundError.defaultTitle, {
+        detail: "File not found",
+      });
+    }
+
+    const currentAppUsage = await this.appUsageRepository.getAppUsage(did);
+    const isNewAppUsage = currentAppUsage === null;
+    const didAppUsageInBytes = isNewAppUsage
+      ? 0
+      : Math.max(
+          0,
+          parseInt(currentAppUsage.numberBytes, 10) -
+            byteLength(file.data) -
+            byteLength(file.metadata)
+        );
+
+    await Promise.all([
+      this.filesRepository.deleteFile({ did, hash }),
+      this.appUsageRepository.setAppUsage(
+        { did, numberBytes: `${didAppUsageInBytes}` },
+        isNewAppUsage
+      ),
+    ]);
+  }
 }
 
 export default FilesService;

@@ -31,6 +31,18 @@ describe("Key-Values Module", () => {
   const mockedAppUsageRemove = jest.fn();
   const mockedCassandraClientExecute = jest.fn();
 
+  const did = `0x${crypto.randomBytes(32).toString("hex")}`;
+  const validToken = jsonwebtoken.sign(
+    {
+      did,
+    },
+    "secret",
+    {
+      audience: "storage-api",
+      issuer: "authorization-api",
+    }
+  );
+
   beforeAll(async () => {
     jest
       .spyOn(mapping.Mapper.prototype, "forModel")
@@ -97,20 +109,6 @@ describe("Key-Values Module", () => {
     it("should return the keys associated to the DID", async () => {
       expect.assertions(3);
 
-      const did = "0x123";
-
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
-      //
       mockedCassandraClientExecute.mockImplementation(() => ({
         pageState: "abc",
         rows: [
@@ -122,14 +120,14 @@ describe("Key-Values Module", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .send();
 
       expect(
         mockedCassandraClientExecute
       ).toHaveBeenCalledWith(
         "select key from key_value_storage where did = ?",
-        ["0x123"],
+        [did],
         { fetchSize: 10, prepare: true }
       );
       expect(response.body).toStrictEqual({
@@ -152,19 +150,7 @@ describe("Key-Values Module", () => {
     it("should throw a 404 when the key doesn't exist", async () => {
       expect.assertions(3);
 
-      const did = "0x123";
       const key = "test";
-
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
 
       // Simulate: the record can't be found
       mockedKeyValueFind.mockImplementation(() => {
@@ -177,7 +163,7 @@ describe("Key-Values Module", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .send();
 
       expect(mockedKeyValueFind).toHaveBeenCalledWith({ did, key });
@@ -193,33 +179,21 @@ describe("Key-Values Module", () => {
     it("should return the value corresponding to the key", async () => {
       expect.assertions(3);
 
-      const did = "0x123";
       const key = "test";
       const value = "value";
-
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
 
       // Simulate: the record can be found
       mockedKeyValueFind.mockImplementation(() => {
         return Promise.resolve({
           first() {
-            return { did, key, value };
+            return { did, key, value } as KeyValueModel;
           },
         });
       });
 
       const response = await request(server)
         .get(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .send();
 
       expect(mockedKeyValueFind).toHaveBeenCalledWith({ did, key });
@@ -332,22 +306,10 @@ describe("Key-Values Module", () => {
 
       const key = crypto.randomBytes(129).toString("hex"); // 129 * 2 = 258 > 256
       const value = "value";
-      const did = "0x123";
-
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
 
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -368,22 +330,10 @@ describe("Key-Values Module", () => {
 
       const key = crypto.randomBytes(201).toString("hex"); // 201 * 2 = 402 > 400 that we've set in FastifyAdapter
       const value = "value";
-      const did = "0x123";
-
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
 
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -407,22 +357,10 @@ describe("Key-Values Module", () => {
 
       const key = "key";
       const value = crypto.randomBytes(3 * 1024 * 1024).toString("hex"); // 6MiB > 5MiB
-      const did = "0x123";
-
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
 
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -445,22 +383,10 @@ describe("Key-Values Module", () => {
 
       const key = "key";
       const value = crypto.randomBytes(6 * 1024 * 1024).toString("hex"); // 12MiB > 10MiB that we've set in FastifyAdapter
-      const did = "0x123";
-
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
 
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -483,7 +409,6 @@ describe("Key-Values Module", () => {
 
       const key = "test";
       const value = "value";
-      const did = "0x123";
 
       // Simulate: the record can't be found
       mockedKeyValueFind.mockImplementation(() => {
@@ -503,20 +428,9 @@ describe("Key-Values Module", () => {
         });
       });
 
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -540,13 +454,12 @@ describe("Key-Values Module", () => {
       const key = "test"; // reuse the previous key
       const previousValue = "value";
       const value = "longer value"; // use a new value
-      const did = "0x123";
 
       // Simulate: the record can be found
       mockedKeyValueFind.mockImplementation(() => {
         return Promise.resolve({
           first() {
-            return { did, key, value: previousValue };
+            return { did, key, value: previousValue } as KeyValueModel;
           },
         });
       });
@@ -563,20 +476,9 @@ describe("Key-Values Module", () => {
         });
       });
 
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -600,13 +502,12 @@ describe("Key-Values Module", () => {
       const key = "test"; // reuse the previous key
       const previousValue = "value";
       const value = "longer value"; // use a new value
-      const did = "0x123";
 
       // Simulate: the record can be found
       mockedKeyValueFind.mockImplementation(() => {
         return Promise.resolve({
           first() {
-            return { did, key, value: previousValue };
+            return { did, key, value: previousValue } as KeyValueModel;
           },
         });
       });
@@ -623,20 +524,9 @@ describe("Key-Values Module", () => {
         });
       });
 
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -660,19 +550,7 @@ describe("Key-Values Module", () => {
     it("should throw a 404 when the key doesn't exist", async () => {
       expect.assertions(3);
 
-      const did = "0x123";
       const key = "test";
-
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
 
       // Simulate: the record can't be found
       mockedKeyValueFind.mockImplementation(() => {
@@ -685,7 +563,7 @@ describe("Key-Values Module", () => {
 
       const response = await request(server)
         .delete(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .send();
 
       expect(mockedKeyValueFind).toHaveBeenCalledWith({ did, key });
@@ -701,26 +579,14 @@ describe("Key-Values Module", () => {
     it("should return 204 when the key-value is removed", async () => {
       expect.assertions(6);
 
-      const did = "0x123";
       const key = "test";
       const value = "value";
-
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
 
       // Simulate: the record can be found
       mockedKeyValueFind.mockImplementation(() => {
         return Promise.resolve({
           first() {
-            return { did, key, value };
+            return { did, key, value } as KeyValueModel;
           },
         });
       });
@@ -739,7 +605,7 @@ describe("Key-Values Module", () => {
 
       const response = await request(server)
         .delete(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .send();
 
       expect(mockedKeyValueFind).toHaveBeenCalledWith({ did, key });

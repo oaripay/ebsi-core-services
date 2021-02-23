@@ -28,6 +28,17 @@ describe("Key-Values (e2e)", () => {
   const value2 = `value-${crypto.randomBytes(16).toString("hex")}`;
   const did = `0x${crypto.randomBytes(32).toString("hex")}`;
 
+  const validToken = jsonwebtoken.sign(
+    {
+      did,
+    },
+    "secret",
+    {
+      audience: "storage-api",
+      issuer: "authorization-api",
+    }
+  );
+
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -115,20 +126,9 @@ describe("Key-Values (e2e)", () => {
 
       const badValue = { value: 3 };
 
-      const token = jsonwebtoken.sign(
-        {
-          did: "0x123",
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .type("json")
         .send(badValue);
 
@@ -144,20 +144,9 @@ describe("Key-Values (e2e)", () => {
     it("should return the expected key-value pair", async () => {
       expect.assertions(2);
 
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -173,20 +162,9 @@ describe("Key-Values (e2e)", () => {
     it("should update the key-value pair", async () => {
       expect.assertions(2);
 
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -203,26 +181,15 @@ describe("Key-Values (e2e)", () => {
   describe(`GET ${BASE_URL}`, () => {
     beforeAll(async () => {
       // Insert 2 more key-values for the next tests
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
       await request(server)
         .put(`${BASE_URL}/${key2}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .type("text/plain")
         .send(value);
 
       await request(server)
         .put(`${BASE_URL}/${key3}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .type("text/plain")
         .send(value);
     });
@@ -230,20 +197,9 @@ describe("Key-Values (e2e)", () => {
     it("should return the keys associated to the DID", async () => {
       expect.assertions(3);
 
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
       const response = await request(server)
         .get(`${BASE_URL}?page[size]=2`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -266,20 +222,9 @@ describe("Key-Values (e2e)", () => {
     it("should be able to navigate to the next page", async () => {
       expect.assertions(2);
 
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
       const response = await request(server)
         .get(`${BASE_URL}?page[size]=2`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .send();
 
       const nextLink = new URL(
@@ -290,7 +235,7 @@ describe("Key-Values (e2e)", () => {
       const nextPageUrl = `${BASE_URL}${nextLink.search}`;
       const nextPageResponse = await request(server)
         .get(nextPageUrl)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .send();
 
       expect(nextPageResponse.body).toStrictEqual({
@@ -309,20 +254,9 @@ describe("Key-Values (e2e)", () => {
     it("should throw a 404 when the key doesn't exist", async () => {
       expect.assertions(2);
 
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
       const response = await request(server)
         .get(`${BASE_URL}/wrong-key`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -337,20 +271,9 @@ describe("Key-Values (e2e)", () => {
     it("should return the value corresponding to the key", async () => {
       expect.assertions(2);
 
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
       const response = await request(server)
         .get(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .send();
 
       expect(response.text).toStrictEqual(value2);
@@ -362,20 +285,9 @@ describe("Key-Values (e2e)", () => {
     it("should throw a 404 when the key doesn't exist", async () => {
       expect.assertions(2);
 
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
       const response = await request(server)
         .delete(`${BASE_URL}/wrong-key`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -390,20 +302,9 @@ describe("Key-Values (e2e)", () => {
     it("should return 204 when the key-value is removed", async () => {
       expect.assertions(4);
 
-      const token = jsonwebtoken.sign(
-        {
-          did,
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
-
       const response = await request(server)
         .delete(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .send();
 
       expect(response.text).toStrictEqual("");
@@ -412,7 +313,7 @@ describe("Key-Values (e2e)", () => {
       // Check if GET works
       const getResponse = await request(server)
         .get(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth(validToken, { type: "bearer" })
         .send();
 
       expect(getResponse.body).toStrictEqual({

@@ -495,4 +495,66 @@ describe("Files (e2e)", () => {
       expect(response.status).toBe(200);
     });
   });
+
+  describe(`DELETE ${BASE_URL}/{hash}`, () => {
+    it("should throw a 400 when the hash is malformed", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .get(`${BASE_URL}/wrong-hash/metadata`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        detail: '["hash must be a hexadecimal number"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw a 404 when the hash doesn't exist", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .get(`${BASE_URL}/0x${crypto.randomBytes(16).toString("hex")}/metadata`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        detail: "File not found",
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return 204 when the hash-value is removed", async () => {
+      expect.assertions(4);
+
+      const response = await request(server)
+        .delete(`${BASE_URL}/${hash3}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(response.text).toStrictEqual("");
+      expect(response.status).toBe(204);
+
+      // Check if GET works
+      const getResponse = await request(server)
+        .get(`${BASE_URL}/${hash3}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(getResponse.body).toStrictEqual({
+        detail: "File not found",
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(getResponse.status).toBe(404);
+    });
+  });
 });

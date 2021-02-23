@@ -569,7 +569,7 @@ describe("Files Module", () => {
       mockedFileFind.mockImplementation(() => {
         return Promise.resolve({
           first() {
-            return { did, hash, data: file, metadata };
+            return { did, hash, data: file, metadata } as FileModel;
           },
         });
       });
@@ -709,6 +709,110 @@ describe("Files Module", () => {
         hash,
       });
       expect(response.status).toBe(201);
+    });
+  });
+
+  describe(`DELETE ${BASE_URL}/{hash}`, () => {
+    it("should throw an error 400 when the hash is not hexadecimal", async () => {
+      expect.assertions(2);
+
+      const hash = "test";
+
+      const response = await request(server)
+        .delete(`${BASE_URL}/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        detail: '["hash must be a hexadecimal number"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw a 404 when the hash doesn't exist", async () => {
+      expect.assertions(3);
+
+      const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
+
+      // Simulate: the record can't be found
+      mockedFileFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return null;
+          },
+        });
+      });
+
+      const response = await request(server)
+        .delete(`${BASE_URL}/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
+      expect(response.body).toStrictEqual({
+        detail: "File not found",
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return 204 when the hash-value is removed", async () => {
+      expect.assertions(6);
+
+      const file = crypto.randomBytes(256);
+      const metadata = JSON.stringify({
+        test: "test",
+      });
+
+      // Compute SHA3-256 hash of the file data
+      const hash = `0x${crypto
+        .createHash("sha3-256")
+        .update(file)
+        .digest()
+        .toString("hex")}`;
+
+      // Simulate: the record can be found
+      mockedFileFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return { did, hash, data: file, metadata } as FileModel;
+          },
+        });
+      });
+
+      // Simulate: the DID owner has stored some data already
+      mockedAppUsageFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return {
+              did,
+              numberBytes: `${42 * 1024 * 1024}`,
+            };
+          },
+        });
+      });
+
+      const response = await request(server)
+        .delete(`${BASE_URL}/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
+      expect(mockedFileRemove).toHaveBeenCalledWith({ did, hash });
+      expect(mockedAppUsageFind).toHaveBeenCalledWith({ did });
+      expect(mockedAppUsageUpdate).toHaveBeenCalledWith({
+        did,
+        numberBytes: `${
+          42 * 1024 * 1024 - byteLength(file) - byteLength(metadata)
+        }`,
+      });
+      expect(response.text).toStrictEqual("");
+      expect(response.status).toBe(204);
     });
   });
 });
