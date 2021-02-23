@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.7.0;
+pragma solidity ^0.8.0;
 
 contract TirStorage {
     // The state variables we care about.
-    bytes32 public constant TIR_DIAMOND_STORAGE_POSITION = keccak256(
-        "diamond.standard.tir.storage"
-    );
+    bytes32 public constant TIR_DIAMOND_STORAGE_POSITION =
+        keccak256("diamond.standard.tir.storage");
 
     struct Tir {
         string[] dids;

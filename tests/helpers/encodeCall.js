@@ -1,4 +1,4 @@
-const {web3} = require("@openzeppelin/test-environment");
+const { web3 } = require("@openzeppelin/test-environment");
 
 function encodeCall(name, inputs, values) {
   return web3.eth.abi.encodeFunctionCall(

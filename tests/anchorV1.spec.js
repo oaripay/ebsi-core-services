@@ -1,5 +1,5 @@
-const {expectRevert} = require("@openzeppelin/test-helpers");
-const {accounts, contract, web3} = require("@openzeppelin/test-environment");
+const { expectRevert } = require("@openzeppelin/test-helpers");
+const { accounts, contract, web3 } = require("@openzeppelin/test-environment");
 const encodeCall = require("./helpers/encodeCall");
 
 const Anchor = contract.fromArtifact("Anchor");
@@ -14,7 +14,7 @@ describe("anchorV1", () => {
       expect.assertions(0);
       const [proxyOwner, anchorOwner] = accounts;
       const implV0 = await Anchor.new();
-      const proxy = await OwnedUpgradeabilityProxy.new({from: proxyOwner});
+      const proxy = await OwnedUpgradeabilityProxy.new({ from: proxyOwner });
       const fs = [];
       for (let i = 0; i < 32; i += 1) {
         fs.push(web3.utils.fromAscii(`20160528${i}`));
@@ -51,7 +51,7 @@ describe("anchorV1", () => {
       });
 
       const implV1 = await AnchorV1.new();
-      await proxy.upgradeTo(implV1.address, {from: proxyOwner});
+      await proxy.upgradeTo(implV1.address, { from: proxyOwner });
 
       anchor = await AnchorV1.at(proxy.address);
       await expectRevert.unspecified(
@@ -75,7 +75,7 @@ describe("anchorV1", () => {
       expect.assertions(32);
       const [proxyOwner, anchorOwner] = accounts;
       const implV0 = await Anchor.new();
-      const proxy = await OwnedUpgradeabilityProxy.new({from: proxyOwner});
+      const proxy = await OwnedUpgradeabilityProxy.new({ from: proxyOwner });
       const fs = [];
       for (let i = 0; i < 32; i += 1) {
         fs.push(web3.utils.fromAscii(`20160528${i}`));
@@ -112,7 +112,7 @@ describe("anchorV1", () => {
       });
 
       const implV1 = await AnchorV1.new();
-      await proxy.upgradeTo(implV1.address, {from: proxyOwner});
+      await proxy.upgradeTo(implV1.address, { from: proxyOwner });
 
       anchor = await AnchorV1.at(proxy.address);
       const results = [];
@@ -132,7 +132,7 @@ describe("anchorV1", () => {
       const [proxyOwner, anchorOwner, owner] = accounts;
       const from = owner;
       const implV0 = await Anchor.new();
-      const proxy = await OwnedUpgradeabilityProxy.new({from: proxyOwner});
+      const proxy = await OwnedUpgradeabilityProxy.new({ from: proxyOwner });
       const fs = [];
       for (let i = 0; i < 32; i += 1) {
         fs.push(web3.utils.fromAscii(`20160528${i}`));
@@ -169,7 +169,7 @@ describe("anchorV1", () => {
       });
 
       const implV1 = await AnchorV1.new();
-      await proxy.upgradeTo(implV1.address, {from: proxyOwner});
+      await proxy.upgradeTo(implV1.address, { from: proxyOwner });
 
       anchor = await AnchorV1.at(proxy.address);
       const r = [];
@@ -177,8 +177,8 @@ describe("anchorV1", () => {
         r.push(web3.utils.fromAscii(`yolo${i}`));
       }
 
-      await anchor.setRole(r, {from});
-      const l = await anchor.getRole(0, {from});
+      await anchor.setRole(r, { from });
+      const l = await anchor.getRole(0, { from });
       for (let i = 0; i < 32; i += 1) {
         expect(web3.utils.hexToUtf8(l[i])).toStrictEqual(`yolo${i}`);
       }

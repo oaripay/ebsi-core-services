@@ -100,6 +100,13 @@ Once the proxy deployed with an actual implementation it is possible to update t
 - `upgradeTo(address newImplementation) ` which upgrade the backing implementation of the proxy. `newImplementation` is the address of the new implementation.
 - `upgradeToAndCall(address newImplementation, bytes calldata data)` which upgrade the backing implementation of the proxy and call a function on the new implementation. This is useful to initialize the proxied contract. `newImplementation` is the address of the new implementation. `Data` is data to send as msg.data in the low level call. It should include the signature and the parameters of the function to be called, as described in https://solidity.readthedocs.io/en/v0.4.24/abi-spec.html#function-selector-and-argument-encoding.
 
+```sh
+node migrations/helpers/changeProxyImplementation.js {proxy SC address} {new implementation address}
+...
+--Transfer Implementation from 0x6a7157c287f07b8c5B635Aa661D0FF466d1327Bc to 0x3a452867204D691c3ee4db21A1C72F6765a96Bf8
+...
+```
+
 ## Design
 
 We are using a proxy contract to be able to deploy a new version at the same address.

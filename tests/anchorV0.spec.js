@@ -1,5 +1,5 @@
-const {expectRevert} = require("@openzeppelin/test-helpers");
-const {accounts, contract, web3} = require("@openzeppelin/test-environment");
+const { expectRevert } = require("@openzeppelin/test-helpers");
+const { accounts, contract, web3 } = require("@openzeppelin/test-environment");
 const encodeCall = require("./helpers/encodeCall");
 
 const OwnedUpgradeabilityProxy = contract.fromArtifact(
@@ -13,7 +13,7 @@ describe("anchorV0", () => {
       expect.assertions(0);
       const [proxyOwner, anchorOwner] = accounts;
       const implV0 = await Anchor.new();
-      const proxy = await OwnedUpgradeabilityProxy.new({from: proxyOwner});
+      const proxy = await OwnedUpgradeabilityProxy.new({ from: proxyOwner });
       const fs = [];
       for (let i = 0; i < 32; i += 1) {
         fs.push(web3.utils.fromAscii(`20160528${i}`));
@@ -72,7 +72,7 @@ describe("anchorV0", () => {
       expect.assertions(32);
       const [proxyOwner, anchorOwner] = accounts;
       const implV0 = await Anchor.new();
-      const proxy = await OwnedUpgradeabilityProxy.new({from: proxyOwner});
+      const proxy = await OwnedUpgradeabilityProxy.new({ from: proxyOwner });
       const fs = [];
       for (let i = 0; i < 32; i += 1) {
         fs.push(web3.utils.fromAscii(`20160528${i}`));

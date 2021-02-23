@@ -5,7 +5,7 @@ const fs = require("fs");
 const { exit } = require("process");
 
 const mnemonic = fs.readFileSync(".secret.mnemonic").toString().trim();
-const [contractAddress, newProxyAdmin] = process.argv.slice(2);
+const [contractAddress, newProxyImplementation] = process.argv.slice(2);
 const nodeURL = `http://localhost:8545`;
 console.log(`-----------NodeRL:${nodeURL}${os.EOL}`);
 const prov = new HDWalletProvider(mnemonic, nodeURL);
@@ -39,10 +39,10 @@ const getImplementation = (adminAddress) => {
   return contract.methods.implementation().call({ from: adminAddress });
 };
 
-const transferOwnership = (newAdmin, curAdmin) => {
+const transferImplementation = (admin, newImpl) => {
   const contract = new Contract(jsonInterface.abi, contractAddress);
-  return contract.methods.changeAdmin(newAdmin).send({
-    from: curAdmin,
+  return contract.methods.upgradeTo(newImpl).send({
+    from: admin,
     gasPrice,
   });
 };
@@ -63,9 +63,12 @@ getBalances(proxyAdmin).then(async (balance) => {
   );
 
   console.log(
-    `--Transfer Ownership from ${proxyAdmin} to ${newProxyAdmin} ${os.EOL}`
+    `--Transfer Implementation from ${currentImplementation} to ${newProxyImplementation} ${os.EOL}`
   );
-  const receipt = await transferOwnership(newProxyAdmin, proxyAdmin);
+  const receipt = await transferImplementation(
+    proxyAdmin,
+    newProxyImplementation
+  );
   console.log(`receipt : ${JSON.stringify(receipt)}${os.EOL}`);
   exit(0);
 });

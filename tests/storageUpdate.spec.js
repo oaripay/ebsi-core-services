@@ -2,7 +2,7 @@ const {
   expectRevert, // Assertions for emitted events
 } = require("@openzeppelin/test-helpers");
 
-const {accounts, contract} = require("@openzeppelin/test-environment");
+const { accounts, contract } = require("@openzeppelin/test-environment");
 
 const Pagination = contract.fromArtifact("Pagination");
 const Tir = contract.fromArtifact("Tir");
@@ -77,7 +77,7 @@ describe("upgrade and call new version struct", () => {
       anotherAccount,
       anchorOwner,
     ] = accounts;
-    const {proxy, tir, tirV1, implV1, implV2, tirV2} = await setupProxy(
+    const { proxy, tir, tirV1, implV1, implV2, tirV2 } = await setupProxy(
       initializeData(anchorOwner),
       proxyOwner,
       proxyAdmin,
@@ -89,12 +89,12 @@ describe("upgrade and call new version struct", () => {
       from: proxyAdmin,
     });
     expect(adm).toStrictEqual(proxyAdmin);
-    const v0 = await tir.version.call({from: anotherAccount});
-    const v1 = await tirV1.version.call({from: anotherAccount});
+    const v0 = await tir.version.call({ from: anotherAccount });
+    const v1 = await tirV1.version.call({ from: anotherAccount });
 
     expect(v0).toStrictEqual(v1);
 
-    await proxy.upgradeTo(implV1.address, {from: proxyAdmin});
+    await proxy.upgradeTo(implV1.address, { from: proxyAdmin });
 
     const did = "did";
     await tir.pushDid(did, {
@@ -106,7 +106,7 @@ describe("upgrade and call new version struct", () => {
     });
     expect(dids).toStrictEqual(["did"]);
 
-    await proxy.upgradeTo(implV2.address, {from: proxyAdmin});
+    await proxy.upgradeTo(implV2.address, { from: proxyAdmin });
     await tirV2.setMessage("1", {
       from: anotherAccount,
     });
@@ -186,12 +186,12 @@ describe("upgrade and call new version struct", () => {
       from: proxyAdmin,
     });
     expect(adm).toStrictEqual(proxyAdmin);
-    const v0 = await tir.version.call({from: anotherAccount});
-    const v1 = await tirV1.version.call({from: anotherAccount});
+    const v0 = await tir.version.call({ from: anotherAccount });
 
+    const v1 = await tirV1.version.call({ from: anotherAccount });
     expect(v0).toStrictEqual(v1);
 
-    await proxy.upgradeTo(implV1.address, {from: proxyAdmin});
+    await proxy.upgradeTo(implV1.address, { from: proxyAdmin });
 
     const did = "did";
 
@@ -203,28 +203,32 @@ describe("upgrade and call new version struct", () => {
     });
     expect(firstDid).toStrictEqual(["did"]);
 
-    await proxy.upgradeTo(implV2Breaking.address, {from: proxyAdmin});
+    await proxy.upgradeTo(implV2Breaking.address, {
+      from: proxyAdmin,
+    });
     const message = `incredibillylongmesagmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggesylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesaggeincredibilylongmesagges`;
+    await proxy.implementation({ from: proxyAdmin });
 
-    await tirV2Breaking.setMessage(message, {
-      from: anotherAccount,
-    });
-    const msg = await tirV2Breaking.getMessage.call({
-      from: anotherAccount,
-    });
-    expect(msg).toStrictEqual(message);
+    await expectRevert.unspecified(
+      tirV2Breaking.setMessage(message, {
+        from: anotherAccount,
+      })
+    );
+    await expectRevert.unspecified(
+      tirV2Breaking.getMessage.call({
+        from: anotherAccount,
+      })
+    );
     const dids2 = await tirV2Breaking.getDids2({
       from: anotherAccount,
     });
     expect(dids2).toStrictEqual([]);
-
     await tirV2Breaking.pushDid2("did2", {
       from: anotherAccount,
     });
-    await expectRevert.unspecified(
-      tirV1.getDids({
-        from: anotherAccount,
-      })
-    );
+    const secondDid = await tirV1.getDids({
+      from: anotherAccount,
+    });
+    expect(firstDid).toStrictEqual(secondDid);
   });
 });

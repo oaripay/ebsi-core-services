@@ -1,6 +1,6 @@
-const {constants, expectRevert} = require("@openzeppelin/test-helpers");
+const { constants, expectRevert } = require("@openzeppelin/test-helpers");
 
-const {accounts, contract, web3} = require("@openzeppelin/test-environment");
+const { accounts, contract, web3 } = require("@openzeppelin/test-environment");
 
 const Tir = contract.fromArtifact("Tir");
 const TirV1 = contract.fromArtifact("TirV1");
@@ -53,7 +53,7 @@ const setupProxy = async (initializeDataString, proxyOwner, proxyAdmin) => {
   await proxy.initialize(implV0.address, proxyAdmin, initializeDataString, {
     from: proxyOwner,
   });
-  return {proxy, implV0, implV1, tir, tirV1};
+  return { proxy, implV0, implV1, tir, tirV1 };
 };
 
 describe("ownedUpgradeabilityProxy", () => {
@@ -61,14 +61,14 @@ describe("ownedUpgradeabilityProxy", () => {
     it("has an admin", async () => {
       expect.assertions(1);
       const [proxyOwner, tirOperator, proxyAdmin, anchorOwner] = accounts;
-      const {proxy} = await setupProxy(
+      const { proxy } = await setupProxy(
         initializeData(anchorOwner),
         proxyOwner,
         proxyAdmin,
         tirOperator,
         anchorOwner
       );
-      const owner = await proxy.admin.call({from: proxyAdmin});
+      const owner = await proxy.admin.call({ from: proxyAdmin });
       expect(owner).toStrictEqual(proxyAdmin);
     });
   });
@@ -86,7 +86,7 @@ describe("transferOwnership", () => {
           anotherAccount,
           anchorOwner,
         ] = accounts;
-        const {proxy} = await setupProxy(
+        const { proxy } = await setupProxy(
           initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -95,11 +95,11 @@ describe("transferOwnership", () => {
         );
         const newOwner = anotherAccount;
         const from = proxyAdmin;
-        const curowner = await proxy.admin.call({from});
+        const curowner = await proxy.admin.call({ from });
         expect(curowner).toStrictEqual(proxyAdmin);
-        await proxy.changeAdmin(newOwner, {from: proxyAdmin}); // transfer admin to newOwner(anotherAccount)
+        await proxy.changeAdmin(newOwner, { from: proxyAdmin }); // transfer admin to newOwner(anotherAccount)
 
-        const owner = await proxy.admin.call({from: newOwner});
+        const owner = await proxy.admin.call({ from: newOwner });
         expect(owner).toStrictEqual(newOwner);
       });
 
@@ -112,7 +112,7 @@ describe("transferOwnership", () => {
           anotherAccount,
           anchorOwner,
         ] = accounts;
-        const {proxy} = await setupProxy(
+        const { proxy } = await setupProxy(
           initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -121,7 +121,7 @@ describe("transferOwnership", () => {
         );
         const newOwner = anotherAccount;
         const from = proxyAdmin;
-        const {logs} = await proxy.changeAdmin(newOwner, {
+        const { logs } = await proxy.changeAdmin(newOwner, {
           from,
         });
 
@@ -142,7 +142,7 @@ describe("transferOwnership", () => {
           anotherAccount,
           anchorOwner,
         ] = accounts;
-        const {proxy, implV1} = await setupProxy(
+        const { proxy, implV1 } = await setupProxy(
           initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -154,7 +154,7 @@ describe("transferOwnership", () => {
         });
 
         await expectRevert.unspecified(
-          proxy.changeAdmin(anotherAccount, {from: tirOperator})
+          proxy.changeAdmin(anotherAccount, { from: tirOperator })
         );
       });
     });
@@ -169,7 +169,7 @@ describe("transferOwnership", () => {
           anotherAccount,
           anchorOwner,
         ] = accounts;
-        const {proxy, implV1} = await setupProxy(
+        const { proxy, implV1 } = await setupProxy(
           initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -181,7 +181,7 @@ describe("transferOwnership", () => {
           from: proxyAdmin,
         });
         await expectRevert.unspecified(
-          proxy.changeAdmin(anotherAccount, {from: anotherAccount})
+          proxy.changeAdmin(anotherAccount, { from: anotherAccount })
         );
       });
     });
@@ -191,7 +191,7 @@ describe("transferOwnership", () => {
     it("reverts", async () => {
       expect.assertions(0);
       const [proxyOwner, tirOperator, proxyAdmin, anchorOwner] = accounts;
-      const {proxy} = await setupProxy(
+      const { proxy } = await setupProxy(
         initializeData(anchorOwner),
         proxyOwner,
         proxyAdmin,
@@ -200,7 +200,7 @@ describe("transferOwnership", () => {
       );
       const newOwner = constants.ZERO_ADDRESS;
       await expectRevert.unspecified(
-        proxy.changeAdmin(newOwner, {from: proxyAdmin})
+        proxy.changeAdmin(newOwner, { from: proxyAdmin })
       );
     });
   });
@@ -211,7 +211,7 @@ describe("implementation", () => {
     it("returns the given implementation", async () => {
       expect.assertions(1);
       const [proxyOwner, tirOperator, proxyAdmin, anchorOwner] = accounts;
-      const {proxy, implV0} = await setupProxy(
+      const { proxy, implV0 } = await setupProxy(
         initializeData(anchorOwner),
         proxyOwner,
         proxyAdmin,
@@ -227,7 +227,7 @@ describe("implementation", () => {
     it("can't be initialized twice", async () => {
       expect.assertions(1);
       const [proxyOwner, tirOperator, proxyAdmin, anchorOwner] = accounts;
-      const {proxy, implV0, implV1} = await setupProxy(
+      const { proxy, implV0, implV1 } = await setupProxy(
         initializeData(anchorOwner),
         proxyOwner,
         proxyAdmin,
@@ -271,7 +271,7 @@ describe("upgrade", () => {
           const implV0 = await Tir.new();
 
           await expectRevert(
-            proxy.upgradeTo(implV0.address, {from: proxyAdmin}),
+            proxy.upgradeTo(implV0.address, { from: proxyAdmin }),
             "Can't fallback admin not set"
           );
         });
@@ -288,16 +288,16 @@ describe("upgrade", () => {
               ,
               anchorOwner,
             ] = accounts;
-            const {proxy, implV1} = await setupProxy(
+            const { proxy, implV1 } = await setupProxy(
               initializeData(anchorOwner),
               proxyOwner,
               proxyAdmin,
               tirOperator,
               anchorOwner
             );
-            await proxy.upgradeTo(implV1.address, {from: proxyAdmin});
+            await proxy.upgradeTo(implV1.address, { from: proxyAdmin });
             await expectRevert(
-              proxy.upgradeTo(implV1.address, {from: proxyAdmin}),
+              proxy.upgradeTo(implV1.address, { from: proxyAdmin }),
               "implementation is the same"
             );
           });
@@ -313,14 +313,14 @@ describe("upgrade", () => {
               ,
               anchorOwner,
             ] = accounts;
-            const {proxy, implV1} = await setupProxy(
+            const { proxy, implV1 } = await setupProxy(
               initializeData(anchorOwner),
               proxyOwner,
               proxyAdmin,
               tirOperator,
               anchorOwner
             );
-            await proxy.upgradeTo(implV1.address, {from: proxyAdmin});
+            await proxy.upgradeTo(implV1.address, { from: proxyAdmin });
 
             const implementation = await proxy.implementation.call({
               from: proxyAdmin,
@@ -342,7 +342,7 @@ describe("upgrade", () => {
           anotherAccount,
           anchorOwner,
         ] = accounts;
-        const {proxy, implV1} = await setupProxy(
+        const { proxy, implV1 } = await setupProxy(
           initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -351,7 +351,7 @@ describe("upgrade", () => {
         );
 
         await expectRevert.unspecified(
-          proxy.upgradeTo(implV1.address, {from: anotherAccount})
+          proxy.upgradeTo(implV1.address, { from: anotherAccount })
         );
       });
     });
@@ -361,7 +361,7 @@ describe("upgrade", () => {
     it("reverts", async () => {
       expect.assertions(0);
       const [proxyOwner, tirOperator, proxyAdmin, anchorOwner] = accounts;
-      const {proxy, implV1} = await setupProxy(
+      const { proxy, implV1 } = await setupProxy(
         initializeData(anchorOwner),
         proxyOwner,
         proxyAdmin,
@@ -369,7 +369,7 @@ describe("upgrade", () => {
         anchorOwner
       );
 
-      await proxy.upgradeTo(implV1.address, {from: proxyAdmin});
+      await proxy.upgradeTo(implV1.address, { from: proxyAdmin });
       await expectRevert(
         proxy.upgradeTo(constants.ZERO_ADDRESS, {
           from: proxyAdmin,
@@ -392,7 +392,7 @@ describe("upgrade and call", () => {
           anotherAccount,
           anchorOwner,
         ] = accounts;
-        const {proxy, tir, tirV1, implV1} = await setupProxy(
+        const { proxy, tir, tirV1, implV1 } = await setupProxy(
           initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -404,12 +404,12 @@ describe("upgrade and call", () => {
           from: proxyAdmin,
         });
         expect(adm).toStrictEqual(proxyAdmin);
-        const v0 = await tir.version.call({from: anotherAccount});
-        const v1 = await tirV1.version.call({from: anotherAccount});
+        const v0 = await tir.version.call({ from: anotherAccount });
+        const v1 = await tirV1.version.call({ from: anotherAccount });
 
         expect(v0).toStrictEqual(v1);
 
-        await proxy.upgradeTo(implV1.address, {from: proxyAdmin});
+        await proxy.upgradeTo(implV1.address, { from: proxyAdmin });
 
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
@@ -433,7 +433,7 @@ describe("upgrade and call", () => {
           anotherAccount,
           anchorOwner,
         ] = accounts;
-        const {proxy, implV1, tirV1} = await setupProxy(
+        const { proxy, implV1, tirV1 } = await setupProxy(
           initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -445,7 +445,7 @@ describe("upgrade and call", () => {
           from: proxyAdmin,
         });
 
-        const v2 = await tirV1.version.call({from: anotherAccount});
+        const v2 = await tirV1.version.call({ from: anotherAccount });
 
         expect(web3.utils.toDecimal(v2).toString()).toStrictEqual(
           initializeDataV1Version
@@ -467,7 +467,7 @@ describe("upgrade and call", () => {
           anotherAccount,
           anchorOwner,
         ] = accounts;
-        const {proxy, implV1} = await setupProxy(
+        const { proxy, implV1 } = await setupProxy(
           initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -488,7 +488,7 @@ describe("upgrade and call", () => {
     it("reverts", async () => {
       expect.assertions(0);
       const [proxyOwner, tirOperator, proxyAdmin, anchorOwner] = accounts;
-      const {proxy} = await setupProxy(
+      const { proxy } = await setupProxy(
         initializeData(anchorOwner),
         proxyOwner,
         proxyAdmin,
@@ -500,7 +500,7 @@ describe("upgrade and call", () => {
         proxy.upgradeToAndCall(
           constants.ZERO_ADDRESS,
           initializeData(anchorOwner),
-          {from: proxyAdmin}
+          { from: proxyAdmin }
         ),
         "implementation must be contract"
       );
@@ -521,7 +521,7 @@ describe("delegatecall", () => {
       const tir = await Tir.at(proxy.address);
 
       await expectRevert(
-        tir.version.call({from: anotherAccount}),
+        tir.version.call({ from: anotherAccount }),
         "Can't fallback admin not set"
       );
     });
@@ -538,7 +538,7 @@ describe("delegatecall", () => {
           anotherAccount,
           anchorOwner,
         ] = accounts;
-        const {tir, tirV1} = await setupProxy(
+        const { tir, tirV1 } = await setupProxy(
           initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -558,14 +558,14 @@ describe("delegatecall", () => {
       it("fails when trying to call an unknown function of the current implementation", async () => {
         expect.assertions(0);
         const [proxyOwner, tirOperator, proxyAdmin, , anchorOwner] = accounts;
-        const {tirV1} = await setupProxy(
+        const { tirV1 } = await setupProxy(
           initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
           tirOperator,
           anchorOwner
         );
-        await expectRevert.unspecified(tirV1.getDidLast({from: tirOperator}));
+        await expectRevert.unspecified(tirV1.getDidLast({ from: tirOperator }));
       });
     });
     describe("when there was another upgrade", () => {
@@ -578,7 +578,7 @@ describe("delegatecall", () => {
           anotherAccount,
           anchorOwner,
         ] = accounts;
-        const {proxy, implV1, tir, tirV1} = await setupProxy(
+        const { proxy, implV1, tir, tirV1 } = await setupProxy(
           initializeData(anchorOwner),
           proxyOwner,
           proxyAdmin,
@@ -586,7 +586,7 @@ describe("delegatecall", () => {
           anchorOwner
         );
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
-        await proxy.upgradeTo(implV1.address, {from: proxyAdmin});
+        await proxy.upgradeTo(implV1.address, { from: proxyAdmin });
 
         await tir.pushDid(did, {
           from: anotherAccount,

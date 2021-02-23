@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.7.0;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../../utils/upgradeability/Initializable.sol";
-import "../../utils/pausable/Pausable.sol";
+import "../../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+import "../../bootstrap-ethereum-sc/contracts/utils/pausable/Pausable.sol";
 import "./TirDetailed.sol";
 
 /**
