@@ -1,0 +1,7 @@
+{
+  "moduleFileExtensions": ["js", "json"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testTimeout": 600000,
+  "testRegex": ".e2e-spec.js$"
+}
