@@ -90,6 +90,7 @@ describe("Files (e2e)", () => {
   afterAll(async () => {
     await app.close();
   });
+
   describe(`POST ${BASE_URL}`, () => {
     it("should throw an error if there's no JWT", async () => {
       expect.assertions(2);
@@ -492,6 +493,159 @@ describe("Files (e2e)", () => {
         mimetype: "text/plain",
         ...metadata1,
       });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe(`PATCH ${BASE_URL}/{hash}`, () => {
+    it("should throw an error 400 when the hash is not hexadecimal", async () => {
+      expect.assertions(2);
+
+      const hash = "test";
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send({});
+
+      expect(response.body).toStrictEqual({
+        detail: '["hash must be a hexadecimal number"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error 400 when the payload is not an array", async () => {
+      expect.assertions(2);
+
+      const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send({});
+
+      expect(response.body).toStrictEqual({
+        detail: "Validation failed (parsable array expected)",
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error 400 when the patch payload is not valid", async () => {
+      expect.assertions(2);
+
+      const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send([
+          {
+            op: "unknown",
+            // "path" <- missing
+          },
+        ]);
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["op must match /add|remove|replace/ regular expression","path must match /^\\\\/metadata/ regular expression","path must be a string","path should not be empty"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw a 400 when the content-type is not correctly set", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash1}`)
+        .auth(validToken, { type: "bearer" })
+        .send([]);
+
+      expect(response.body).toStrictEqual({
+        detail:
+          "The request's Content-Type must be 'application/json-patch+json'",
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw a 404 when the hash doesn't exist", async () => {
+      expect.assertions(2);
+
+      const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash}`)
+        .type("application/json-patch+json")
+        .auth(validToken, { type: "bearer" })
+        .send([]);
+
+      expect(response.body).toStrictEqual({
+        detail: "File not found",
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return 400 when the patch path is not is not valid", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash1}`)
+        .type("application/json-patch+json")
+        .auth(validToken, { type: "bearer" })
+        .send([
+          {
+            op: "add",
+            path: "/metadata/-///t+T*$",
+            value: 42,
+          },
+        ]);
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        type: "about:blank",
+        detail: "patch operation is not valid",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return the new metadata when the patch works", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash1}`)
+        .type("application/json-patch+json")
+        .auth(validToken, { type: "bearer" })
+        .send([
+          {
+            op: "add",
+            path: "/metadata/new-prop",
+            value: "new-value",
+          },
+        ]);
+
+      const expectedMetadata = {
+        ...metadata1,
+        filename: "file.txt",
+        mimetype: "text/plain",
+        "new-prop": "new-value",
+      };
+
+      expect(response.body).toStrictEqual(expectedMetadata);
       expect(response.status).toBe(200);
     });
   });

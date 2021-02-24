@@ -1,14 +1,18 @@
 import {
   Controller,
   Get,
+  Patch,
   Post,
   Delete,
+  Body,
+  Headers,
   Param,
   Query,
   Request,
   Response,
   UseGuards,
   HttpCode,
+  ParseArrayPipe,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { FastifyRequest, FastifyReply } from "fastify";
@@ -24,6 +28,8 @@ import {
   GetFileParams,
   GetFileMetadataParams,
   GetFilesQuery,
+  PatchFileBody,
+  PatchFileParams,
   PostFileBody,
 } from "./dto";
 import { PaginatedList } from "../../shared/interfaces";
@@ -118,6 +124,28 @@ export class FilesController {
     const { body } = req as { body: PostFileBody };
 
     return this.filesService.postFile(did, body);
+  }
+
+  @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
+  @Patch("/:hash")
+  async patchFile(
+    @Param() params: PatchFileParams,
+    @Headers("content-type") contentType: string,
+    @Body(new ParseArrayPipe({ items: PatchFileBody })) patch: PatchFileBody[],
+    @User() user: UserInfo
+  ): Promise<FileMetadata> {
+    if (contentType !== "application/json-patch+json") {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail:
+          "The request's Content-Type must be 'application/json-patch+json'",
+      });
+    }
+
+    const { hash } = params;
+    const { did } = user;
+
+    return this.filesService.patchFile({ did, hash }, patch);
   }
 
   @HttpCode(204)

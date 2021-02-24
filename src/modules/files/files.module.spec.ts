@@ -13,6 +13,8 @@ import { mapping, Client } from "cassandra-driver";
 import { FilesModule } from "./files.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { AppUsageModel, FileModel } from "../cassandra/models";
+import { FilesRepository } from "../cassandra/repositories";
+import { CassandraService } from "../cassandra/cassandra.service";
 import { fastifyMultipartConfig } from "../../config/server.config";
 import { byteLength } from "../../shared/utils";
 
@@ -23,6 +25,9 @@ jest.mock("cassandra-driver");
 describe("Files Module", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
+  let filesRepository: FilesRepository;
+  let cassandraService: CassandraService;
+
   const mockedFileFind = jest.fn();
   const mockedFileInsert = jest.fn();
   const mockedFileUpdate = jest.fn();
@@ -98,6 +103,9 @@ describe("Files Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    filesRepository = moduleFixture.get<FilesRepository>(FilesRepository);
+    cassandraService = moduleFixture.get<CassandraService>(CassandraService);
   });
 
   afterEach(() => {
@@ -147,12 +155,14 @@ describe("Files Module", () => {
         .auth(validToken, { type: "bearer" })
         .send();
 
-      expect(
-        mockedCassandraClientExecute
-      ).toHaveBeenCalledWith(
+      expect(mockedCassandraClientExecute).toHaveBeenCalledWith(
         "select hash from file_storage where did = ?",
         [did],
-        { fetchSize: 10, prepare: true }
+        {
+          fetchSize: 10,
+          prepare: true,
+          consistency: cassandraService.getConsistency().read,
+        }
       );
       expect(response.body).toStrictEqual({
         items: rows.map((row) => row.hash),
@@ -709,6 +719,389 @@ describe("Files Module", () => {
         hash,
       });
       expect(response.status).toBe(201);
+    });
+  });
+
+  describe(`PATCH ${BASE_URL}/{hash}`, () => {
+    it("should throw an error 400 when the hash is not hexadecimal", async () => {
+      expect.assertions(2);
+
+      const hash = "test";
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send({});
+
+      expect(response.body).toStrictEqual({
+        detail: '["hash must be a hexadecimal number"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error 400 when the payload is not an array", async () => {
+      expect.assertions(2);
+
+      const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send({});
+
+      expect(response.body).toStrictEqual({
+        detail: "Validation failed (parsable array expected)",
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error 400 when the patch payload is not valid", async () => {
+      expect.assertions(2);
+
+      const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send([
+          {
+            op: "unknown",
+            // "path" <- missing
+          },
+        ]);
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["op must match /add|remove|replace/ regular expression","path must match /^\\\\/metadata/ regular expression","path must be a string","path should not be empty"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw a 400 when the content-type is not correctly set", async () => {
+      expect.assertions(2);
+
+      const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send([]);
+
+      expect(response.body).toStrictEqual({
+        detail:
+          "The request's Content-Type must be 'application/json-patch+json'",
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw a 404 when the hash doesn't exist", async () => {
+      expect.assertions(3);
+
+      const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
+
+      // Simulate: the record can't be found
+      mockedFileFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return null;
+          },
+        });
+      });
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash}`)
+        .type("application/json-patch+json")
+        .auth(validToken, { type: "bearer" })
+        .send([]);
+
+      expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
+      expect(response.body).toStrictEqual({
+        detail: "File not found",
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return 400 when the patch path is not is not valid", async () => {
+      expect.assertions(2);
+
+      const file = crypto.randomBytes(256);
+      const storedMetadata = {
+        test: "test",
+        filename: "test.txt",
+        mimetype: "text/plain",
+      };
+      const metadata = JSON.stringify(storedMetadata);
+
+      // Compute SHA3-256 hash of the file data
+      const hash = `0x${crypto
+        .createHash("sha3-256")
+        .update(file)
+        .digest()
+        .toString("hex")}`;
+
+      // Simulate: the record can be found
+      mockedFileFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return { did, hash, data: file, metadata } as FileModel;
+          },
+        });
+      });
+
+      const currentStorage = 42 * 1024 * 1024;
+
+      // Simulate: the DID owner has stored some data already
+      mockedAppUsageFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return {
+              did,
+              numberBytes: `${currentStorage}`,
+            };
+          },
+        });
+      });
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash}`)
+        .type("application/json-patch+json")
+        .auth(validToken, { type: "bearer" })
+        .send([
+          {
+            op: "add",
+            path: "/metadata/-///t+T*$",
+            value: 42,
+          },
+        ]);
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        type: "about:blank",
+        detail: "patch operation is not valid",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if no app usage can be found", async () => {
+      expect.assertions(4);
+
+      const file = crypto.randomBytes(256);
+      const storedMetadata = {
+        test: "test",
+        filename: "test.txt",
+        mimetype: "text/plain",
+      };
+      const metadata = JSON.stringify(storedMetadata);
+
+      // Compute SHA3-256 hash of the file data
+      const hash = `0x${crypto
+        .createHash("sha3-256")
+        .update(file)
+        .digest()
+        .toString("hex")}`;
+
+      // Simulate: the record can be found
+      mockedFileFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return { did, hash, data: file, metadata } as FileModel;
+          },
+        });
+      });
+
+      // Simulate: the DID owner has not stored any data (which should not be possible...)
+      mockedAppUsageFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return null;
+          },
+        });
+      });
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash}`)
+        .type("application/json-patch+json")
+        .auth(validToken, { type: "bearer" })
+        .send([
+          {
+            op: "add",
+            path: "/metadata/new-prop",
+            value: "new-value",
+          },
+        ]);
+
+      expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
+      expect(mockedAppUsageFind).toHaveBeenCalledWith({ did });
+      expect(response.body).toStrictEqual({
+        detail: "File not found",
+        status: 500,
+        title: "Internal Server Error",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(500);
+    });
+
+    it("should throw an error when the max app size is reached", async () => {
+      expect.assertions(4);
+
+      const file = crypto.randomBytes(256);
+      const storedMetadata = {
+        test: "test",
+        filename: "test.txt",
+        mimetype: "text/plain",
+      };
+      const metadata = JSON.stringify(storedMetadata);
+
+      // Compute SHA3-256 hash of the file data
+      const hash = `0x${crypto
+        .createHash("sha3-256")
+        .update(file)
+        .digest()
+        .toString("hex")}`;
+
+      // Simulate: the record can be found
+      mockedFileFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return { did, hash, data: file, metadata } as FileModel;
+          },
+        });
+      });
+
+      const currentStorage = 1024 * 1024 * 1024 - 1; // almost full
+
+      // Simulate: the DID owner has stored some data already
+      mockedAppUsageFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return {
+              did,
+              numberBytes: `${currentStorage}`,
+            };
+          },
+        });
+      });
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash}`)
+        .type("application/json-patch+json")
+        .auth(validToken, { type: "bearer" })
+        .send([
+          {
+            op: "add",
+            path: "/metadata/new-prop",
+            value: "new-value",
+          },
+        ]);
+
+      expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
+      expect(mockedAppUsageFind).toHaveBeenCalledWith({ did });
+      expect(response.body).toStrictEqual({
+        detail: "App exceeds the allowed space of 1GB",
+        status: 400,
+        title: "Excessive app usage",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return the new metadata when the patch works", async () => {
+      expect.assertions(6);
+
+      const file = crypto.randomBytes(256);
+      const storedMetadata = {
+        test: "test",
+        filename: "test.txt",
+        mimetype: "text/plain",
+      };
+      const metadata = JSON.stringify(storedMetadata);
+
+      // Compute SHA3-256 hash of the file data
+      const hash = `0x${crypto
+        .createHash("sha3-256")
+        .update(file)
+        .digest()
+        .toString("hex")}`;
+
+      // Simulate: the record can be found
+      mockedFileFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return { did, hash, data: file, metadata } as FileModel;
+          },
+        });
+      });
+
+      const currentStorage = 42 * 1024 * 1024;
+
+      // Simulate: the DID owner has stored some data already
+      mockedAppUsageFind.mockImplementation(() => {
+        return Promise.resolve({
+          first() {
+            return {
+              did,
+              numberBytes: `${currentStorage}`,
+            };
+          },
+        });
+      });
+
+      const expectedMetadata = {
+        ...storedMetadata,
+        "new-prop": "new-value",
+      };
+      const stringifiedExpectedMetadata = JSON.stringify(expectedMetadata);
+
+      const updateFileMetadataSpy = jest
+        .spyOn(filesRepository, "updateFileMetadata")
+        .mockImplementationOnce(() => Promise.resolve());
+
+      const response = await request(server)
+        .patch(`${BASE_URL}/${hash}`)
+        .type("application/json-patch+json")
+        .auth(validToken, { type: "bearer" })
+        .send([
+          {
+            op: "add",
+            path: "/metadata/new-prop",
+            value: "new-value",
+          },
+        ]);
+
+      expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
+      expect(updateFileMetadataSpy).toHaveBeenCalledWith({
+        did,
+        hash,
+        data: file,
+        metadata: stringifiedExpectedMetadata,
+      });
+      expect(mockedAppUsageFind).toHaveBeenCalledWith({ did });
+      expect(mockedAppUsageUpdate).toHaveBeenCalledWith({
+        did,
+        numberBytes: `${
+          currentStorage -
+          byteLength(metadata) +
+          byteLength(stringifiedExpectedMetadata)
+        }`,
+      });
+      expect(response.body).toStrictEqual(expectedMetadata);
+      expect(response.status).toBe(200);
     });
   });
 

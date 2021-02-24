@@ -49,6 +49,7 @@ export class KeyValuesRepository implements OnApplicationBootstrap {
     const params = [did];
 
     const opts: QueryOptions = {
+      consistency: this.cassandraService.getConsistency().read,
       prepare: true,
       fetchSize: pageSize,
       ...(requestedPageState && { pageState: requestedPageState }),

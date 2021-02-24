@@ -1,9 +1,7 @@
 import { Injectable, OnApplicationBootstrap, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { mapping, types, QueryOptions } from "cassandra-driver";
 import { CassandraService } from "../cassandra.service";
 import { FileModel } from "../models/file.model";
-import { ApiConfig } from "../../../config/configuration";
 import { CASSANDRA_EXCEPTIONS } from "../cassandra.constants";
 
 const TABLE_FILE_STORAGE = "file_storage";
@@ -14,10 +12,7 @@ export class FilesRepository implements OnApplicationBootstrap {
 
   fileMapper: mapping.ModelMapper<FileModel>;
 
-  constructor(
-    private configService: ConfigService<ApiConfig>,
-    private cassandraService: CassandraService
-  ) {}
+  constructor(private cassandraService: CassandraService) {}
 
   onApplicationBootstrap(): void {
     const mappingOptions: mapping.MappingOptions = {
@@ -54,6 +49,7 @@ export class FilesRepository implements OnApplicationBootstrap {
     const params = [did];
 
     const opts: QueryOptions = {
+      consistency: this.cassandraService.getConsistency().read,
       prepare: true,
       fetchSize: pageSize,
       ...(requestedPageState && { pageState: requestedPageState }),
@@ -74,6 +70,18 @@ export class FilesRepository implements OnApplicationBootstrap {
 
   async insertFile(file: FileModel): Promise<mapping.Result<FileModel>> {
     return this.fileMapper.insert(file);
+  }
+
+  async updateFileMetadata(file: FileModel): Promise<void> {
+    const query = `update ${TABLE_FILE_STORAGE} set metadata = ? where did = ? and hash = ?`;
+    const params = [file.metadata, file.did, file.hash];
+
+    const opts: QueryOptions = {
+      consistency: this.cassandraService.getConsistency().write,
+      prepare: true,
+    };
+
+    await this.cassandraService.getClient().execute(query, params, opts);
   }
 
   async deleteFile({

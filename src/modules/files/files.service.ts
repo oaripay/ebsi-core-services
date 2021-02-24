@@ -7,6 +7,7 @@ import {
   InternalServerError,
 } from "@cef-ebsi/problem-details-errors";
 import { types } from "cassandra-driver";
+import jsonpatch, { Operation } from "fast-json-patch";
 import { PostFileResponseObject, FileMetadata } from "./files.interface";
 import { AppUsageRepository, FilesRepository } from "../cassandra/repositories";
 import { CASSANDRA_EXCEPTIONS } from "../cassandra/cassandra.constants";
@@ -16,7 +17,7 @@ import {
   ValueTooLargeError,
 } from "../../shared/errors";
 import { ApiConfig } from "../../config/configuration";
-import { PostFileBody } from "./dto";
+import { PatchFileBody, PostFileBody } from "./dto";
 import { byteLength, decrypt, encrypt } from "../../shared/utils";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -248,6 +249,85 @@ export class FilesService {
     ]);
 
     return { hash, function: "sha3-256" };
+  }
+
+  async patchFile(
+    {
+      did,
+      hash,
+    }: {
+      did: string;
+      hash: string;
+    },
+    patch: PatchFileBody[]
+  ): Promise<FileMetadata> {
+    const file = await this.filesRepository.getFile({ did, hash });
+
+    if (!file) {
+      throw new NotFoundError(NotFoundError.defaultTitle, {
+        detail: "File not found",
+      });
+    }
+
+    const existingMetadata = {
+      metadata: {
+        ...JSON.parse(file.metadata),
+      } as FileMetadata,
+    };
+
+    const patchErrors = jsonpatch.validate(
+      patch as Operation[],
+      existingMetadata
+    );
+
+    if (patchErrors) {
+      this.logger.error(patchErrors, patchErrors.stack);
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "patch operation is not valid",
+      });
+    }
+
+    const newMetadata = jsonpatch.applyPatch(
+      existingMetadata,
+      patch as Operation[],
+      false,
+      false
+    ).newDocument.metadata;
+
+    const stringifiedNewMetadata = JSON.stringify(newMetadata);
+
+    const currentAppUsage = await this.appUsageRepository.getAppUsage(did);
+    if (currentAppUsage === null) {
+      this.logger.error(
+        "Tried to patch a file's metadata, but couldn't find existing app usage"
+      );
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: "File not found",
+      });
+    }
+
+    const byteDiff =
+      byteLength(stringifiedNewMetadata) - byteLength(file.metadata);
+    const didAppUsageInBytes =
+      parseInt(currentAppUsage.numberBytes, 10) + byteDiff;
+
+    if (didAppUsageInBytes >= MAX_APP_USAGE) {
+      throw new ExcessiveAppUsageError("App exceeds the allowed space of 1GB");
+    }
+
+    // Store file
+    await Promise.all([
+      this.filesRepository.updateFileMetadata({
+        ...file,
+        metadata: stringifiedNewMetadata,
+      }),
+      this.appUsageRepository.setAppUsage(
+        { did, numberBytes: `${didAppUsageInBytes}` },
+        false
+      ),
+    ]);
+
+    return newMetadata;
   }
 
   async deleteFile({

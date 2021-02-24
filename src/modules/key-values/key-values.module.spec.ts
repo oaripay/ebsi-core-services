@@ -12,6 +12,7 @@ import { mapping, Client } from "cassandra-driver";
 import { KeyValuesModule } from "./key-values.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { AppUsageModel, KeyValueModel } from "../cassandra/models";
+import { CassandraService } from "../cassandra/cassandra.service";
 import { byteLength } from "../../shared/utils";
 
 const BASE_URL = "/stores/distributed/key-values";
@@ -21,6 +22,7 @@ jest.mock("cassandra-driver");
 describe("Key-Values Module", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
+  let cassandraService: CassandraService;
   const mockedKeyValueFind = jest.fn();
   const mockedKeyValueInsert = jest.fn();
   const mockedKeyValueUpdate = jest.fn();
@@ -94,6 +96,8 @@ describe("Key-Values Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    cassandraService = moduleFixture.get<CassandraService>(CassandraService);
   });
 
   afterEach(() => {
@@ -123,12 +127,14 @@ describe("Key-Values Module", () => {
         .auth(validToken, { type: "bearer" })
         .send();
 
-      expect(
-        mockedCassandraClientExecute
-      ).toHaveBeenCalledWith(
+      expect(mockedCassandraClientExecute).toHaveBeenCalledWith(
         "select key from key_value_storage where did = ?",
         [did],
-        { fetchSize: 10, prepare: true }
+        {
+          fetchSize: 10,
+          prepare: true,
+          consistency: cassandraService.getConsistency().read,
+        }
       );
       expect(response.body).toStrictEqual({
         items: ["key1", "key2", "key3"],
