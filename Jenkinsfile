@@ -1,31 +1,26 @@
-pipeline {
-    agent any
-    stages {
-         stage('Node Agent') {
-            agent {
-                docker {
-                    image 'node:14.15.1'
-                    args '-u root:sudo'
-                    reuseNode true
-                }
+node {
+    stage('Clone repo') {
+        checkout([
+          $class: 'GitSCM',
+          branches: scm.branches,
+          doGenerateSubmoduleConfigurations: false,
+          extensions: [[
+              $class: 'SubmoduleOption',
+              disableSubmodules: false,
+              parentCredentials: true,
+              recursiveSubmodules: true,
+              reference: '',
+              trackingSubmodules: false
+          ]],
+          submoduleCfg: [],
+          userRemoteConfigs: scm.userRemoteConfigs
+      ])
+    }
+    stage('Unit test') {
+            nodejs(nodeJSInstallationName: '14.15.4') {
+                sh 'yarn install --frozen-lockfile'
+                sh 'yarn lint'
+                sh 'yarn test'
             }
-            stages {
-                stage('Setup') {
-                    steps {
-                        sh 'yarn install --frozen-lockfile'
-                    }
-                }
-                stage('Lint') {
-                    steps {
-                        sh 'yarn lint'
-                    }
-                }
-                stage('Unit tests') {
-                    steps {
-                        sh 'yarn test'
-                    }
-                }
-            }
-        }
     }
 }

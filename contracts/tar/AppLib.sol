@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.7.5;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "./AppStorage.sol";
-import "../utils/Pagination.sol";
+import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./AppStoreLib.sol";
 
 library AppLib {

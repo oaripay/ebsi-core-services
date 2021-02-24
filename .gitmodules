@@ -1,0 +1,4 @@
+[submodule "contracts/bootstrap-ethereum-sc"]
+	path = contracts/bootstrap-ethereum-sc
+	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/bootstrap-ethereum-sc
+  branch = main

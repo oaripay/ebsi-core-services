@@ -13,6 +13,7 @@ module.exports = {
     assert: true,
     web3: true,
   },
+  ignorePatterns: ["**/contracts/bootstrap-ethereum-sc"],
   rules: {
     "no-console": "off",
   },
