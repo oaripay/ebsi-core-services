@@ -13,10 +13,13 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     from: deployer,
     log: true,
   });
-  const stringManip = await deployments.deploy("StringManip", {
-    from: deployer,
-    log: true,
-  });
+  const stringManip = await deployments.deploy(
+    "contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol:StringManip",
+    {
+      from: deployer,
+      log: true,
+    }
+  );
   const recordLib = await deployments.deploy("RecordLib", {
     from: deployer,
     log: true,

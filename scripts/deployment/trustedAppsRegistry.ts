@@ -11,7 +11,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   };
 
   const pagination = await deployments.deploy(
-    "contracts/trusted-apps-registry-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
+    "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
     opts
   );
   const optsPagination = {

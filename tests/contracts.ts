@@ -1,10 +1,10 @@
 import { deployments } from "hardhat";
 
-describe("Token", () => {
+describe("deployments", () => {
   beforeEach(async () => {
     await deployments.fixture();
   });
-  it("testing 1 2 3", async () => {
+  it("timestamp and proxy", async () => {
     const ts = await deployments.get("Timestamp"); // Token is available because the fixture was executed
     console.log(`Timestamp:${ts.address}`);
     const proxy = await deployments.get("OwnedUpgradeabilityProxy");
