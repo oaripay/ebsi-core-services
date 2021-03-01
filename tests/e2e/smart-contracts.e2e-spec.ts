@@ -19,7 +19,6 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { InsertLedgerInfoParam } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { GetLedgersResponse } from "../../src/modules/ledgers/ledgers.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
@@ -31,7 +30,7 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams = InsertLedgerInfoParam;
 
-describe("Ledgers (e2e)", () => {
+describe("Smart contracts (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
@@ -63,91 +62,25 @@ describe("Ledgers (e2e)", () => {
     );
   });
 
-  // eslint-disable-next-line jest/no-disabled-tests
-  describe.skip("GET /ledgers", () => {
-    it("should return a paginated collection of ledgers", async () => {
-      expect.assertions(2);
-
-      const response = await request(server).get("/ledgers");
-      expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/ledgers?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: expect.any(Number) as number,
-        pageSize: 10,
-        links: {
-          first: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining("/ledgers?page[after]=") as string,
-          last: expect.stringContaining("/ledgers?page[after]=") as string,
-        },
-      });
-      expect(response.status).toBe(200);
-    });
-  });
-
-  // eslint-disable-next-line jest/no-disabled-tests
-  describe.skip("GET /ledgers/{ledgerInfoId}", () => {
-    it("should return a specific hash algorithm", async () => {
-      expect.assertions(2);
-
-      const respLedgers = await request(server).get("/ledgers");
-      const { ledgerInfoId } = (respLedgers.body as {
-        items: GetLedgersResponse[];
-      }).items[0];
-
-      const response = await request(server).get(`/ledgers/${ledgerInfoId}`);
-
-      expect(response.body).toStrictEqual({
-        ianaName: expect.any(String) as string,
-        oid: expect.any(String) as string,
-        outputLengthBits: expect.any(Number) as number,
-        status: expect.any(String) as string,
-      });
-      expect(response.status).toBe(200);
-    });
-
-    it("should throw an error if the hash algorithm is not found", async () => {
-      expect.assertions(2);
-
-      const ledgerInfoId = Math.floor(Math.random() * 10000) + 10000; // some random number between 10,000 and 20,000
-
-      const response = await request(server).get(`/ledgers/${ledgerInfoId}`);
-
-      expect(response.body).toStrictEqual({
-        title: "Hash algorithm Not Found",
-        status: 404,
-        detail: `Hash algorithm ${ledgerInfoId} not found`,
-        type: "about:blank",
-      });
-      expect(response.status).toBe(404);
-    });
-  });
-
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertLedgerInfo"])(
+  describe.each(["insertSmartContractInfo"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should work", async () => {
         expect.assertions(5);
 
         let params: JsonRpcParams = null;
-        const name = `ledger-name-${crypto.randomBytes(8).toString("hex")}`;
 
         switch (method) {
-          case "insertLedgerInfo": {
+          case "insertSmartContractInfo": {
+            const name = `sc-name-${crypto.randomBytes(8).toString("hex")}`;
             params = {
               from: adminTestWallet.address,
               name,
               info: `0x${Buffer.from(
                 JSON.stringify({
                   "@context": "https://ebsi.com",
-                  type: "Ledger",
+                  type: "SmartContract",
                   name,
                 })
               ).toString("hex")}`,

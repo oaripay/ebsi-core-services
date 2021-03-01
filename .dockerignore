@@ -13,4 +13,4 @@ src/contracts
 !submodules/trusted-ledgers-sc-registry-ethereum-sc/contracts
 !submodules/trusted-ledgers-sc-registry-ethereum-sc/package.json
 !submodules/trusted-ledgers-sc-registry-ethereum-sc/yarn.lock
-!submodules/trusted-ledgers-sc-registry-ethereum-sc/truffle-config.js
+!submodules/trusted-ledgers-sc-registry-ethereum-sc/hardhat.config.ts

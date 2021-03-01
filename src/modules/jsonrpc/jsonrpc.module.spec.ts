@@ -16,7 +16,11 @@ import {
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
-import { UnsignedTransaction, InsertLedgerInfoParam } from "./dto";
+import {
+  UnsignedTransaction,
+  InsertLedgerInfoParam,
+  InsertSmartContractInfoParam,
+} from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import {
@@ -31,7 +35,7 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertLedgerInfoParam;
+type JsonRpcParams = InsertLedgerInfoParam | InsertSmartContractInfoParam;
 
 jest.setTimeout(90000);
 
@@ -205,7 +209,7 @@ describe("JsonRpc Module", () => {
 
   // Tests to be repeated for every method
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertLedgerInfo"])(
+  describe.each(["insertLedgerInfo", "insertSmartContractInfo"])(
     "/jsonrpc with method %s",
     (method: string) => {
       it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
@@ -228,6 +232,20 @@ describe("JsonRpc Module", () => {
                 })
               ).toString("hex")}`,
             } as InsertLedgerInfoParam;
+            break;
+          }
+          case "insertSmartContractInfo": {
+            param = {
+              from: signer.address,
+              name: "smart-contract-name",
+              info: `0x${Buffer.from(
+                JSON.stringify({
+                  "@context": "https://ebsi.com",
+                  type: "SmartContract",
+                  name: "smart-contract-name",
+                })
+              ).toString("hex")}`,
+            } as InsertSmartContractInfoParam;
             break;
           }
           default:
@@ -315,6 +333,20 @@ describe("JsonRpc Module", () => {
             } as InsertLedgerInfoParam;
             break;
           }
+          case "insertSmartContractInfo": {
+            param = {
+              from: signer.address,
+              name: "smart-contract-name",
+              info: `0x${Buffer.from(
+                JSON.stringify({
+                  "@context": "https://ebsi.com",
+                  type: "SmartContract",
+                  name: "smart-contract-name",
+                })
+              ).toString("hex")}`,
+            } as InsertSmartContractInfoParam;
+            break;
+          }
           default:
             throw new Error(`Test Error: Invalid method ${method}`);
         }
@@ -380,6 +412,41 @@ describe("JsonRpc Module", () => {
               name: "ledger-name",
               info: "0x1234",
             } as InsertLedgerInfoParam;
+
+            expectedErrorMessage3 =
+              "property params[0].info has failed the following constraints: isHexadecimalJSON";
+            break;
+          }
+          case "insertSmartContractInfo": {
+            param1 = ({
+              from: signer.address,
+              name: 123,
+              info: `0x${Buffer.from(
+                JSON.stringify({
+                  "@context": "https://ebsi.com",
+                  type: "SmartContract",
+                  name: "smart-contract-name",
+                })
+              ).toString("hex")}`,
+            } as unknown) as InsertSmartContractInfoParam;
+
+            expectedErrorMessage1 =
+              "property params[0].name has failed the following constraints: isString";
+
+            param2 = {
+              from: signer.address,
+              name: "smart-contract-name",
+              info: "some random string",
+            } as InsertSmartContractInfoParam;
+
+            expectedErrorMessage2 =
+              "property params[0].info has failed the following constraints: isHexadecimalJSON";
+
+            param3 = {
+              from: signer.address,
+              name: "smart-contract-name",
+              info: "0x1234",
+            } as InsertSmartContractInfoParam;
 
             expectedErrorMessage3 =
               "property params[0].info has failed the following constraints: isHexadecimalJSON";
@@ -483,6 +550,33 @@ describe("JsonRpc Module", () => {
 
             break;
           }
+          case "insertSmartContractInfo": {
+            param1 = {
+              from: signer.address,
+              name: "smart-contract-name",
+              info: `0x${Buffer.from(
+                JSON.stringify({
+                  "@context": "https://ebsi.com",
+                  type: "SmartContract",
+                  name: "smart-contract-name",
+                })
+              ).toString("hex")}`,
+            } as InsertSmartContractInfoParam;
+
+            param2 = {
+              from: signer.address,
+              name: "smart-contract-name-2",
+              info: `0x${Buffer.from(
+                JSON.stringify({
+                  "@context": "https://ebsi.com",
+                  type: "SmartContract",
+                  name: "smart-contract-name",
+                })
+              ).toString("hex")}`,
+            } as InsertSmartContractInfoParam;
+
+            break;
+          }
           default:
             throw new Error(`Test Error: Invalid method ${method}`);
         }
@@ -495,6 +589,7 @@ describe("JsonRpc Module", () => {
             params: [param1],
             id: 231,
           });
+
         expect(responseBuild1.status).toBe(200);
         const transaction1 = responseBuild1.body.result as UnsignedTransaction;
 
