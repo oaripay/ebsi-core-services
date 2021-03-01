@@ -21,6 +21,7 @@ import {
   InsertLedgerInfoParam,
   InsertSmartContractInfoParam,
   UpdateSmartContractInfoByIdParam,
+  UpdateSmartContractInfoByNameParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -39,7 +40,8 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | InsertLedgerInfoParam
   | InsertSmartContractInfoParam
-  | UpdateSmartContractInfoByIdParam;
+  | UpdateSmartContractInfoByIdParam
+  | UpdateSmartContractInfoByNameParam;
 
 jest.setTimeout(90000);
 
@@ -217,6 +219,7 @@ describe("JsonRpc Module", () => {
     "insertLedgerInfo",
     "insertSmartContractInfo",
     "updateSmartContractInfoById",
+    "updateSmartContractInfoByName",
   ])("/jsonrpc with method %s", (method: string) => {
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
       expect.assertions(4);
@@ -276,6 +279,20 @@ describe("JsonRpc Module", () => {
               })
             ).toString("hex")}`,
           } as UpdateSmartContractInfoByIdParam;
+          break;
+        }
+        case "updateSmartContractInfoByName": {
+          param = {
+            from: signer.address,
+            name: "smart-contract-name",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-new-name-2",
+              })
+            ).toString("hex")}`,
+          } as UpdateSmartContractInfoByNameParam;
           break;
         }
         default:
@@ -399,6 +416,20 @@ describe("JsonRpc Module", () => {
               })
             ).toString("hex")}`,
           } as UpdateSmartContractInfoByIdParam;
+          break;
+        }
+        case "updateSmartContractInfoByName": {
+          param = {
+            from: signer.address,
+            name: "smart-contract-name",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-new-name-2",
+              })
+            ).toString("hex")}`,
+          } as UpdateSmartContractInfoByNameParam;
           break;
         }
         default:
@@ -546,6 +577,42 @@ describe("JsonRpc Module", () => {
             smartContractInfoId: id,
             info: "0x1234",
           } as UpdateSmartContractInfoByIdParam;
+
+          expectedErrorMessage3 =
+            "property params[0].info has failed the following constraints: isHexadecimalJSON";
+
+          break;
+        }
+        case "updateSmartContractInfoByName": {
+          param1 = ({
+            from: signer.address,
+            name: 123,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-new-name-2",
+              })
+            ).toString("hex")}`,
+          } as unknown) as UpdateSmartContractInfoByNameParam;
+
+          expectedErrorMessage1 =
+            "property params[0].name has failed the following constraints: isString";
+
+          param2 = {
+            from: signer.address,
+            name: "smart-contract-name",
+            info: "some random string",
+          } as UpdateSmartContractInfoByNameParam;
+
+          expectedErrorMessage2 =
+            "property params[0].info has failed the following constraints: isHexadecimalJSON";
+
+          param3 = {
+            from: signer.address,
+            name: "smart-contract-name",
+            info: "0x1234",
+          } as UpdateSmartContractInfoByNameParam;
 
           expectedErrorMessage3 =
             "property params[0].info has failed the following constraints: isHexadecimalJSON";
@@ -711,6 +778,33 @@ describe("JsonRpc Module", () => {
               })
             ).toString("hex")}`,
           } as UpdateSmartContractInfoByIdParam;
+          break;
+        }
+        case "updateSmartContractInfoByName": {
+          param1 = {
+            from: signer.address,
+            name: "smart-contract-name",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-new-name-2",
+              })
+            ).toString("hex")}`,
+          } as UpdateSmartContractInfoByNameParam;
+
+          param2 = {
+            from: signer.address,
+            name: "smart-contract-name-2",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-new-name-2",
+              })
+            ).toString("hex")}`,
+          } as UpdateSmartContractInfoByNameParam;
+
           break;
         }
         default:

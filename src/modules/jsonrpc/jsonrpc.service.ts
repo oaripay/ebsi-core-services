@@ -12,6 +12,8 @@ import {
   ArgsInsertSmartContractInfo,
   RequestUpdateSmartContractInfoByIdDto,
   ArgsUpdateSmartContractInfoById,
+  RequestUpdateSmartContractInfoByNameDto,
+  ArgsUpdateSmartContractInfoByName,
 } from "./dto";
 import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
@@ -159,6 +161,13 @@ export class JsonRpcService {
         );
         break;
       }
+      case "updateSmartContractInfoByName": {
+        await validateClass(
+          ArgsUpdateSmartContractInfoByName,
+          (args as unknown) as ArgsUpdateSmartContractInfoByName
+        );
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -265,6 +274,28 @@ export class JsonRpcService {
       const data = this.ledgerScRegistryContract.interface.encodeFunctionData(
         "updateSmartContractInfoById",
         [smartContractInfoId, info]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateSmartContractInfoByName(
+    body: RequestUpdateSmartContractInfoByNameDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateSmartContractInfoByNameDto, body);
+
+      const { from, name, info } = body.params[0];
+
+      const data = this.ledgerScRegistryContract.interface.encodeFunctionData(
+        "updateSmartContractInfoByName",
+        [name, info]
       );
 
       return await this.buildTransaction(from, data);
