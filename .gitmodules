@@ -26,3 +26,7 @@
 	path = contracts/bootstrap-ethereum-sc
 	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/bootstrap-ethereum-sc
 	branch = main
+[submodule "contracts/trusted-ledgers-sc-registry-ethereum-sc"]
+	path = contracts/trusted-ledgers-sc-registry-ethereum-sc
+	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-ledgers-sc-registry-ethereum-sc
+	branch = develop

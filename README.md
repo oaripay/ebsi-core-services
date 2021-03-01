@@ -30,8 +30,8 @@ yarn install
 
 retrieve the submodules
 
-```
-git submodule update --init --recursive
+```sh
+git submodule update --init --recursive --remote
 ```
 
 ## Compiling
