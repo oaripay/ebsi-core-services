@@ -8,6 +8,8 @@ import {
   RequestInsertLedgerInfoDto,
   ArgsInsertSmartContractInfo,
   RequestInsertSmartContractInfoDto,
+  ArgsUpdateSmartContractInfoById,
+  RequestUpdateSmartContractInfoByIdDto,
 } from "./dto";
 
 export function formatEthersUnsignedTransaction(
@@ -43,7 +45,9 @@ type JsonRpcDtos =
   | ArgsInsertLedgerInfo
   | RequestInsertLedgerInfoDto
   | ArgsInsertSmartContractInfo
-  | RequestInsertSmartContractInfoDto;
+  | RequestInsertSmartContractInfoDto
+  | ArgsUpdateSmartContractInfoById
+  | RequestUpdateSmartContractInfoByIdDto;
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,

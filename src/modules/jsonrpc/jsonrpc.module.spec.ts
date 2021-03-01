@@ -20,6 +20,7 @@ import {
   UnsignedTransaction,
   InsertLedgerInfoParam,
   InsertSmartContractInfoParam,
+  UpdateSmartContractInfoByIdParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -35,7 +36,10 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertLedgerInfoParam | InsertSmartContractInfoParam;
+type JsonRpcParams =
+  | InsertLedgerInfoParam
+  | InsertSmartContractInfoParam
+  | UpdateSmartContractInfoByIdParam;
 
 jest.setTimeout(90000);
 
@@ -209,471 +213,602 @@ describe("JsonRpc Module", () => {
 
   // Tests to be repeated for every method
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertLedgerInfo", "insertSmartContractInfo"])(
-    "/jsonrpc with method %s",
-    (method: string) => {
-      it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
-        expect.assertions(4);
+  describe.each([
+    "insertLedgerInfo",
+    "insertSmartContractInfo",
+    "updateSmartContractInfoById",
+  ])("/jsonrpc with method %s", (method: string) => {
+    it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
+      expect.assertions(4);
 
-        let param: JsonRpcParams = null;
+      let param: JsonRpcParams = null;
 
-        const signer = ethers.Wallet.createRandom();
+      const signer = ethers.Wallet.createRandom();
 
-        switch (method) {
-          case "insertLedgerInfo": {
-            param = {
-              from: signer.address,
-              name: "ledger-name",
-              info: `0x${Buffer.from(
-                JSON.stringify({
-                  "@context": "https://ebsi.com",
-                  type: "Ledger",
-                  name: "ledger-name",
-                })
-              ).toString("hex")}`,
-            } as InsertLedgerInfoParam;
-            break;
-          }
-          case "insertSmartContractInfo": {
-            param = {
-              from: signer.address,
-              name: "smart-contract-name",
-              info: `0x${Buffer.from(
-                JSON.stringify({
-                  "@context": "https://ebsi.com",
-                  type: "SmartContract",
-                  name: "smart-contract-name",
-                })
-              ).toString("hex")}`,
-            } as InsertSmartContractInfoParam;
-            break;
-          }
-          default:
-            throw new Error(`Test Error: Invalid method ${method}`);
+      switch (method) {
+        case "insertLedgerInfo": {
+          param = {
+            from: signer.address,
+            name: "ledger-name",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+              })
+            ).toString("hex")}`,
+          } as InsertLedgerInfoParam;
+          break;
         }
+        case "insertSmartContractInfo": {
+          param = {
+            from: signer.address,
+            name: "smart-contract-name",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-name",
+              })
+            ).toString("hex")}`,
+          } as InsertSmartContractInfoParam;
+          break;
+        }
+        case "updateSmartContractInfoById": {
+          const id = ethers.utils.sha256(
+            Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-name",
+              })
+            )
+          );
 
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param],
-            id: 231,
-          });
+          param = {
+            from: signer.address,
+            smartContractInfoId: id,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-new-name",
+              })
+            ).toString("hex")}`,
+          } as UpdateSmartContractInfoByIdParam;
+          break;
+        }
+        default:
+          throw new Error(`Test Error: Invalid method ${method}`);
+      }
 
-        expect(responseBuild.body).toStrictEqual({
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
           jsonrpc: "2.0",
+          method,
+          params: [param],
           id: 231,
-          result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
-            from: param.from,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: "0x0",
-          },
         });
-        expect(responseBuild.status).toBe(200);
 
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction))
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await signer.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        result: {
+          chainId: expect.any(String) as string,
+          data: expect.any(String) as string,
+          from: param.from,
+          gasLimit: expect.any(String) as string,
+          gasPrice: expect.any(String) as string,
+          nonce: expect.any(String) as string,
+          to: expect.any(String) as string,
+          value: "0x0",
+        },
+      });
+      expect(responseBuild.status).toBe(200);
 
-        const responseSend = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method: "signedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
-              },
-            ],
-            id: "45",
-          });
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await signer.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
-        expect(responseSend.body).toStrictEqual({
+      const responseSend = await request(server)
+        .post("/jsonrpc")
+        .send({
           jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
           id: "45",
-          result: expect.any(String) as string,
         });
-        expect(responseSend.status).toBe(200);
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        result: expect.any(String) as string,
       });
+      expect(responseSend.status).toBe(200);
+    });
 
-      it("should accept a request without id", async () => {
-        expect.assertions(2);
+    it("should accept a request without id", async () => {
+      expect.assertions(2);
 
-        const signer = ethers.Wallet.createRandom();
+      const signer = ethers.Wallet.createRandom();
 
-        let param: JsonRpcParams = null;
+      let param: JsonRpcParams = null;
 
-        switch (method) {
-          case "insertLedgerInfo": {
-            param = {
-              from: signer.address,
-              name: "ledger-name",
-              info: `0x${Buffer.from(
-                JSON.stringify({
-                  "@context": "https://ebsi.com",
-                  type: "Ledger",
-                  name: "ledger-name",
-                })
-              ).toString("hex")}`,
-            } as InsertLedgerInfoParam;
-            break;
-          }
-          case "insertSmartContractInfo": {
-            param = {
-              from: signer.address,
-              name: "smart-contract-name",
-              info: `0x${Buffer.from(
-                JSON.stringify({
-                  "@context": "https://ebsi.com",
-                  type: "SmartContract",
-                  name: "smart-contract-name",
-                })
-              ).toString("hex")}`,
-            } as InsertSmartContractInfoParam;
-            break;
-          }
-          default:
-            throw new Error(`Test Error: Invalid method ${method}`);
+      switch (method) {
+        case "insertLedgerInfo": {
+          param = {
+            from: signer.address,
+            name: "ledger-name",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+              })
+            ).toString("hex")}`,
+          } as InsertLedgerInfoParam;
+          break;
         }
+        case "insertSmartContractInfo": {
+          param = {
+            from: signer.address,
+            name: "smart-contract-name",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-name",
+              })
+            ).toString("hex")}`,
+          } as InsertSmartContractInfoParam;
+          break;
+        }
+        case "updateSmartContractInfoById": {
+          const id = ethers.utils.sha256(
+            Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-name",
+              })
+            )
+          );
 
-        const responseBuild = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param],
-            // no id defined
-          });
+          param = {
+            from: signer.address,
+            smartContractInfoId: id,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-new-name",
+              })
+            ).toString("hex")}`,
+          } as UpdateSmartContractInfoByIdParam;
+          break;
+        }
+        default:
+          throw new Error(`Test Error: Invalid method ${method}`);
+      }
 
-        expect(responseBuild.body).toStrictEqual({
+      const responseBuild = await request(server)
+        .post("/jsonrpc")
+        .send({
           jsonrpc: "2.0",
-          id: null,
-          result: expect.objectContaining({}) as unknown,
+          method,
+          params: [param],
+          // no id defined
         });
-        expect(responseBuild.status).toBe(200);
+
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: null,
+        result: expect.objectContaining({}) as unknown,
       });
+      expect(responseBuild.status).toBe(200);
+    });
 
-      it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
-        expect.assertions(6);
+    it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
+      expect.assertions(6);
 
-        const signer = ethers.Wallet.createRandom();
+      const signer = ethers.Wallet.createRandom();
 
-        let param1: JsonRpcParams = null;
-        let param2: JsonRpcParams = null;
-        let param3: JsonRpcParams = null;
+      let param1: JsonRpcParams = null;
+      let param2: JsonRpcParams = null;
+      let param3: JsonRpcParams = null;
 
-        let expectedErrorMessage1;
-        let expectedErrorMessage2;
-        let expectedErrorMessage3;
+      let expectedErrorMessage1;
+      let expectedErrorMessage2;
+      let expectedErrorMessage3;
 
-        switch (method) {
-          case "insertLedgerInfo": {
-            param1 = ({
-              from: signer.address,
-              name: 123,
-              info: `0x${Buffer.from(
-                JSON.stringify({
-                  "@context": "https://ebsi.com",
-                  type: "Ledger",
-                  name: "ledger-name",
-                })
-              ).toString("hex")}`,
-            } as unknown) as InsertLedgerInfoParam;
+      switch (method) {
+        case "insertLedgerInfo": {
+          param1 = ({
+            from: signer.address,
+            name: 123,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+              })
+            ).toString("hex")}`,
+          } as unknown) as InsertLedgerInfoParam;
 
-            expectedErrorMessage1 =
-              "property params[0].name has failed the following constraints: isString";
+          expectedErrorMessage1 =
+            "property params[0].name has failed the following constraints: isString";
 
-            param2 = {
-              from: signer.address,
-              name: "ledger-name",
-              info: "some random string",
-            } as InsertLedgerInfoParam;
+          param2 = {
+            from: signer.address,
+            name: "ledger-name",
+            info: "some random string",
+          } as InsertLedgerInfoParam;
 
-            expectedErrorMessage2 =
-              "property params[0].info has failed the following constraints: isHexadecimalJSON";
+          expectedErrorMessage2 =
+            "property params[0].info has failed the following constraints: isHexadecimalJSON";
 
-            param3 = {
-              from: signer.address,
-              name: "ledger-name",
-              info: "0x1234",
-            } as InsertLedgerInfoParam;
+          param3 = {
+            from: signer.address,
+            name: "ledger-name",
+            info: "0x1234",
+          } as InsertLedgerInfoParam;
 
-            expectedErrorMessage3 =
-              "property params[0].info has failed the following constraints: isHexadecimalJSON";
-            break;
-          }
-          case "insertSmartContractInfo": {
-            param1 = ({
-              from: signer.address,
-              name: 123,
-              info: `0x${Buffer.from(
-                JSON.stringify({
-                  "@context": "https://ebsi.com",
-                  type: "SmartContract",
-                  name: "smart-contract-name",
-                })
-              ).toString("hex")}`,
-            } as unknown) as InsertSmartContractInfoParam;
-
-            expectedErrorMessage1 =
-              "property params[0].name has failed the following constraints: isString";
-
-            param2 = {
-              from: signer.address,
-              name: "smart-contract-name",
-              info: "some random string",
-            } as InsertSmartContractInfoParam;
-
-            expectedErrorMessage2 =
-              "property params[0].info has failed the following constraints: isHexadecimalJSON";
-
-            param3 = {
-              from: signer.address,
-              name: "smart-contract-name",
-              info: "0x1234",
-            } as InsertSmartContractInfoParam;
-
-            expectedErrorMessage3 =
-              "property params[0].info has failed the following constraints: isHexadecimalJSON";
-            break;
-          }
-          default:
-            throw new Error(`Test Error: Invalid method ${method}`);
+          expectedErrorMessage3 =
+            "property params[0].info has failed the following constraints: isHexadecimalJSON";
+          break;
         }
+        case "insertSmartContractInfo": {
+          param1 = ({
+            from: signer.address,
+            name: 123,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-name",
+              })
+            ).toString("hex")}`,
+          } as unknown) as InsertSmartContractInfoParam;
 
-        const response1 = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param1],
-            id: 231,
-          });
+          expectedErrorMessage1 =
+            "property params[0].name has failed the following constraints: isString";
 
-        expect(response1.body).toStrictEqual({
+          param2 = {
+            from: signer.address,
+            name: "smart-contract-name",
+            info: "some random string",
+          } as InsertSmartContractInfoParam;
+
+          expectedErrorMessage2 =
+            "property params[0].info has failed the following constraints: isHexadecimalJSON";
+
+          param3 = {
+            from: signer.address,
+            name: "smart-contract-name",
+            info: "0x1234",
+          } as InsertSmartContractInfoParam;
+
+          expectedErrorMessage3 =
+            "property params[0].info has failed the following constraints: isHexadecimalJSON";
+          break;
+        }
+        case "updateSmartContractInfoById": {
+          const id = ethers.utils.sha256(
+            Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-name",
+              })
+            )
+          );
+
+          param1 = {
+            from: signer.address,
+            smartContractInfoId: "random string",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-new-name",
+              })
+            ).toString("hex")}`,
+          } as UpdateSmartContractInfoByIdParam;
+
+          expectedErrorMessage1 =
+            "property params[0].smartContractInfoId has failed the following constraints: isHexadecimal";
+
+          param2 = {
+            from: signer.address,
+            smartContractInfoId: id,
+            info: "some random string",
+          } as UpdateSmartContractInfoByIdParam;
+
+          expectedErrorMessage2 =
+            "property params[0].info has failed the following constraints: isHexadecimalJSON";
+
+          param3 = {
+            from: signer.address,
+            smartContractInfoId: id,
+            info: "0x1234",
+          } as UpdateSmartContractInfoByIdParam;
+
+          expectedErrorMessage3 =
+            "property params[0].info has failed the following constraints: isHexadecimalJSON";
+
+          break;
+        }
+        default:
+          throw new Error(`Test Error: Invalid method ${method}`);
+      }
+
+      const response1 = await request(server)
+        .post("/jsonrpc")
+        .send({
           jsonrpc: "2.0",
+          method,
+          params: [param1],
           id: 231,
-          error: {
-            code: -32600,
-            message: expect.stringContaining(expectedErrorMessage1) as string,
-          },
         });
-        expect(response1.status).toBe(400);
 
-        const response2 = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param2],
-            id: 231,
-          });
-
-        expect(response2.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          error: {
-            code: -32600,
-            message: expect.stringContaining(expectedErrorMessage2) as string,
-          },
-        });
-        expect(response2.status).toBe(400);
-
-        const response3 = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param3],
-            id: 231,
-          });
-
-        expect(response3.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          error: {
-            code: -32600,
-            message: expect.stringContaining(expectedErrorMessage3) as string,
-          },
-        });
-        expect(response3.status).toBe(400);
+      expect(response1.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        error: {
+          code: -32600,
+          message: expect.stringContaining(expectedErrorMessage1) as string,
+        },
       });
+      expect(response1.status).toBe(400);
 
-      it("should throw an error when the unsignedTransaction has been tampered", async () => {
-        expect.assertions(6);
-
-        const signer = ethers.Wallet.createRandom();
-
-        let param1: JsonRpcParams;
-        let param2: JsonRpcParams;
-
-        switch (method) {
-          case "insertLedgerInfo": {
-            param1 = {
-              from: signer.address,
-              name: "ledger-name",
-              info: `0x${Buffer.from(
-                JSON.stringify({
-                  "@context": "https://ebsi.com",
-                  type: "Ledger",
-                  name: "ledger-name",
-                })
-              ).toString("hex")}`,
-            } as InsertLedgerInfoParam;
-
-            param2 = {
-              from: signer.address,
-              name: "ledger-name-2",
-              info: `0x${Buffer.from(
-                JSON.stringify({
-                  "@context": "https://ebsi.com",
-                  type: "Ledger",
-                  name: "ledger-name",
-                })
-              ).toString("hex")}`,
-            } as InsertLedgerInfoParam;
-
-            break;
-          }
-          case "insertSmartContractInfo": {
-            param1 = {
-              from: signer.address,
-              name: "smart-contract-name",
-              info: `0x${Buffer.from(
-                JSON.stringify({
-                  "@context": "https://ebsi.com",
-                  type: "SmartContract",
-                  name: "smart-contract-name",
-                })
-              ).toString("hex")}`,
-            } as InsertSmartContractInfoParam;
-
-            param2 = {
-              from: signer.address,
-              name: "smart-contract-name-2",
-              info: `0x${Buffer.from(
-                JSON.stringify({
-                  "@context": "https://ebsi.com",
-                  type: "SmartContract",
-                  name: "smart-contract-name",
-                })
-              ).toString("hex")}`,
-            } as InsertSmartContractInfoParam;
-
-            break;
-          }
-          default:
-            throw new Error(`Test Error: Invalid method ${method}`);
-        }
-
-        const responseBuild1: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param1],
-            id: 231,
-          });
-
-        expect(responseBuild1.status).toBe(200);
-        const transaction1 = responseBuild1.body.result as UnsignedTransaction;
-
-        const responseBuild2: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param2],
-            id: 232,
-          });
-        expect(responseBuild2.status).toBe(200);
-        const transaction2 = responseBuild2.body.result as UnsignedTransaction;
-
-        const randomSigner = ethers.Wallet.createRandom();
-
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(transaction1))
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx1 = await randomSigner.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx1);
-
-        // Tampering signatures
-        const responseSend1 = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method: "signedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction: transaction2,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx1,
-              },
-            ],
-            id: "45",
-          });
-        expect(responseSend1.body).toStrictEqual({
+      const response2 = await request(server)
+        .post("/jsonrpc")
+        .send({
           jsonrpc: "2.0",
+          method,
+          params: [param2],
+          id: 231,
+        });
+
+      expect(response2.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        error: {
+          code: -32600,
+          message: expect.stringContaining(expectedErrorMessage2) as string,
+        },
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param3],
+          id: 231,
+        });
+
+      expect(response3.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        error: {
+          code: -32600,
+          message: expect.stringContaining(expectedErrorMessage3) as string,
+        },
+      });
+      expect(response3.status).toBe(400);
+    });
+
+    it("should throw an error when the unsignedTransaction has been tampered", async () => {
+      expect.assertions(6);
+
+      const signer = ethers.Wallet.createRandom();
+
+      let param1: JsonRpcParams;
+      let param2: JsonRpcParams;
+
+      switch (method) {
+        case "insertLedgerInfo": {
+          param1 = {
+            from: signer.address,
+            name: "ledger-name",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+              })
+            ).toString("hex")}`,
+          } as InsertLedgerInfoParam;
+
+          param2 = {
+            from: signer.address,
+            name: "ledger-name-2",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+              })
+            ).toString("hex")}`,
+          } as InsertLedgerInfoParam;
+
+          break;
+        }
+        case "insertSmartContractInfo": {
+          param1 = {
+            from: signer.address,
+            name: "smart-contract-name",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-name",
+              })
+            ).toString("hex")}`,
+          } as InsertSmartContractInfoParam;
+
+          param2 = {
+            from: signer.address,
+            name: "smart-contract-name-2",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-name",
+              })
+            ).toString("hex")}`,
+          } as InsertSmartContractInfoParam;
+
+          break;
+        }
+        case "updateSmartContractInfoById": {
+          const id = ethers.utils.sha256(
+            Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-name",
+              })
+            )
+          );
+
+          param1 = {
+            from: signer.address,
+            smartContractInfoId: id,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-new-name",
+              })
+            ).toString("hex")}`,
+          } as UpdateSmartContractInfoByIdParam;
+
+          param2 = {
+            from: signer.address,
+            smartContractInfoId: id,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "SmartContract",
+                name: "smart-contract-new-name-alt",
+              })
+            ).toString("hex")}`,
+          } as UpdateSmartContractInfoByIdParam;
+          break;
+        }
+        default:
+          throw new Error(`Test Error: Invalid method ${method}`);
+      }
+
+      const responseBuild1: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param1],
+          id: 231,
+        });
+
+      expect(responseBuild1.status).toBe(200);
+      const transaction1 = responseBuild1.body.result as UnsignedTransaction;
+
+      const responseBuild2: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param2],
+          id: 232,
+        });
+      expect(responseBuild2.status).toBe(200);
+      const transaction2 = responseBuild2.body.result as UnsignedTransaction;
+
+      const randomSigner = ethers.Wallet.createRandom();
+
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(transaction1))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx1 = await randomSigner.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx1);
+
+      // Tampering signatures
+      const responseSend1 = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction: transaction2,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx1,
+            },
+          ],
           id: "45",
-          error: {
-            code: -32600,
-            message: expect.stringContaining(
-              "does not match with the signedRawTransaction"
-            ) as string,
-          },
         });
-        expect(responseSend1.status).toBe(400);
+      expect(responseSend1.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        error: {
+          code: -32600,
+          message: expect.stringContaining(
+            "does not match with the signedRawTransaction"
+          ) as string,
+        },
+      });
+      expect(responseSend1.status).toBe(400);
 
-        // Tampering "from"
-        transaction1.from = transaction2.from;
-        const responseSend2 = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method: "signedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction: transaction1,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx1,
-              },
-            ],
-            id: "46",
-          });
-        expect(responseSend2.body).toStrictEqual({
+      // Tampering "from"
+      transaction1.from = transaction2.from;
+      const responseSend2 = await request(server)
+        .post("/jsonrpc")
+        .send({
           jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction: transaction1,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx1,
+            },
+          ],
           id: "46",
-          error: {
-            code: -32600,
-            message: expect.stringContaining(
-              "does not match with unsignedTransaction.from"
-            ) as string,
-          },
         });
-        expect(responseSend1.status).toBe(400);
+      expect(responseSend2.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "46",
+        error: {
+          code: -32600,
+          message: expect.stringContaining(
+            "does not match with unsignedTransaction.from"
+          ) as string,
+        },
       });
-    }
-  );
+      expect(responseSend1.status).toBe(400);
+    });
+  });
 });

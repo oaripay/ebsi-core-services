@@ -17,7 +17,10 @@ import { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
-import { InsertLedgerInfoParam } from "../../src/modules/jsonrpc/dto";
+import {
+  InsertLedgerInfoParam,
+  UpdateSmartContractInfoByIdParam,
+} from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
@@ -28,12 +31,15 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertLedgerInfoParam;
+type JsonRpcParams = InsertLedgerInfoParam | UpdateSmartContractInfoByIdParam;
 
 describe("Smart contracts (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
+  let scName: string;
+  let scInfo: Buffer;
+  let scInfoId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -60,10 +66,21 @@ describe("Smart contracts (e2e)", () => {
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("adminTestPrivateKey"))
     );
+
+    // Create test data
+    scName = `sc-name-${crypto.randomBytes(8).toString("hex")}`;
+    scInfo = Buffer.from(
+      JSON.stringify({
+        "@context": "https://ebsi.com",
+        type: "SmartContract",
+        name: scName,
+      })
+    );
+    scInfoId = ethers.utils.sha256(scInfo);
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertSmartContractInfo"])(
+  describe.each(["insertSmartContractInfo", "updateSmartContractInfoById"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should work", async () => {
@@ -73,18 +90,25 @@ describe("Smart contracts (e2e)", () => {
 
         switch (method) {
           case "insertSmartContractInfo": {
-            const name = `sc-name-${crypto.randomBytes(8).toString("hex")}`;
             params = {
               from: adminTestWallet.address,
-              name,
+              name: scName,
+              info: `0x${scInfo.toString("hex")}`,
+            } as InsertLedgerInfoParam;
+            break;
+          }
+          case "updateSmartContractInfoById": {
+            params = {
+              from: adminTestWallet.address,
+              smartContractInfoId: scInfoId,
               info: `0x${Buffer.from(
                 JSON.stringify({
                   "@context": "https://ebsi.com",
                   type: "SmartContract",
-                  name,
+                  newProp: "newValue",
                 })
               ).toString("hex")}`,
-            } as InsertLedgerInfoParam;
+            } as UpdateSmartContractInfoByIdParam;
             break;
           }
           default:
@@ -151,6 +175,7 @@ describe("Smart contracts (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(responseSend.body.result as string);
+
         expect(receipt.status).toBe("0x1");
       });
     }
