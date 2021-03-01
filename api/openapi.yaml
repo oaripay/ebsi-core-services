@@ -1,0 +1,392 @@
+openapi: 3.0.3
+info:
+  title: Trusted Ledgers & Smart Contracts Registry API
+  description: |
+    Trusted Ledgers & Smart Contracts Registry (TLSCR) API is an EBSI core service. It enables us
+    to interact with the Trusted Ledgers & Smart Contracts Registry - Smart Contract to
+    - list the trusted smart contract,
+    - list the trusted ledgers (on the long term a network of trusted ledger compliant with EBSI
+    rules)
+    - obtain Smart Contract and Ledger information,
+    - optionally it helps to construct unsigned transactions for the operations.
+  version: 1.0.0
+  termsOfService: /docs/terms
+  contact:
+    name: EBSI Support
+    url: https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi
+  license:
+    name: EUPL-1.2
+    url: https://joinup.ec.europa.eu/page/eupl-text-11-12
+tags:
+  - name: Trusted Ledgers & Smart Contracts Registry API
+    description: List trusted Ledgers and Smart Contracts
+paths:
+  /trusted-ledgers-smart-contracts-registry/v1/ledgers:
+    get:
+      tags:
+        - Trusted Ledgers & Smart Contracts Registry API
+      summary: Get all ledgers
+      description: Get all ledgers. Endpoint returns a paginated list of items.
+      operationId: get-trusted-ledgers-smart-contracts-registry-v1-ledgers
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: Filter results by ledger name.
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection.
+                  items:
+                    type: array
+                    description: List of ledgers
+                    items:
+                      $ref: "#/components/schemas/LedgerInfoLinks"
+                  total:
+                    type: integer
+                    description: Total number of items accross all pages.
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=3&page[size]=2
+                    items:
+                      - ledgerInfoId: "{base64url encoded ledger id}"
+                        href: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers/{base64url encoded ledger id}
+                      - ledgerInfoId: "{base64url encoded ledger id}"
+                        href: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers/{base64url encoded ledger id}
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=62&page[size]=2
+        400:
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        500:
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /trusted-ledgers-smart-contracts-registry/v1/ledgers/{ledgerInfoId}:
+    get:
+      tags:
+        - Trusted Ledgers & Smart Contracts Registry API
+      summary: Get ledger by its ID
+      description: Returns a trusted ledger info by its ID
+      operationId: get-trusted-ledgers-smart-contracts-registry-v1-ledger
+      parameters:
+        - name: ledgerInfoId
+          in: path
+          schema:
+            type: string
+          example: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+              examples:
+                Success:
+                  value:
+                    name: EBSI-ethereum
+        400:
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {appId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {appId} parameter is not valid
+        404:
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /trusted-ledgers-smart-contracts-registry/v1/jsonrpc:
+    post:
+      operationId: post-trusted-ledgers-smart-contracts-registry-v2-jsonrpc
+      tags:
+        - Trusted Ledgers & Smart Contracts Registry API
+      summary: Helper APIs
+      description: |
+        Helper APIs that assist the construction of blockchain transactions and interaction with
+        the ledger (Write operation on ledger).
+      requestBody:
+        required: true
+        description: |
+          The body follows the
+          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+
+          It requires the following fields:
+
+          - **jsonrpc**: Must be exactly '2.0'
+          - **method**: Method to be invoked. Possible values: insertLedgerInfo
+          - **params**: Array of parameters
+          - **id**: Identifier stablished by the client
+        content:
+          application/json:
+            schema:
+              required:
+                - jsonrpc
+                - id
+                - method
+                - params
+              type: object
+              properties:
+                jsonrpc:
+                  description: Must be exactly '2.0'
+                  type: string
+                method:
+                  description: Method that needs to be invoked
+                  type: string
+                params:
+                  description: Array of parameters
+                  type: array
+                  items:
+                    type: object
+                id:
+                  description: Identifier established by the client
+                  type: integer
+                  example: 1
+            examples:
+              Build tx to insertLedgerInfo:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertLedgerInfo
+                  id: 1
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      name: EBSI Ethereum
+                      info: "0x227B2274657374223A2274657374227D22"
+              Send Transaction:
+                value:
+                  jsonrpc: "2.0"
+                  method: signedTransaction
+                  id: 1
+                  params:
+                    - protocol: eth
+                      unsignedTransaction:
+                        from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                        data: "0x0000..."
+                        nonce: "0x00"
+                        chainId: "0x1b3b"
+                        gasLimit: "0x10000"
+                        gasPrice: "0x00"
+                        value: "0x00"
+                      r: "0x..."
+                      s: "0x..."
+                      v: "0x..."
+                      signedRawTransaction: "--- signed raw transaction ---"
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonRpcResponse"
+              examples:
+                Build tx:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                      data: "0x0000..."
+                      nonce: "0x00"
+                      chainId: "0x1b3b"
+                      gasLimit: "0x10000"
+                      gasPrice: "0x00"
+                      value: "0x00"
+                Send Transaction:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
+        "400":
+          description: Bad request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Request:
+                  $ref: "#/components/examples/BadRequest"
+components:
+  schemas:
+    Problem:
+      description: A Problem Details object (RFC 7807)
+      type: object
+      x-examples:
+        Not Enough Credit:
+          type: https://example.com/probs/out-of-credit
+          title: You do not have enough credit.
+          detail: Your current balance is 30, but that costs 50.
+          instance: /account/12345/msgs/abc
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type.
+          default: about:blank
+        title:
+          type: string
+          description: |
+            A short summary of the problem type.
+          example: Internal Server Error
+        status:
+          type: integer
+          format: int32
+          description: |
+            The HTTP status code generated by the origin server for this occurrence of the problem.
+          minimum: 400
+          maximum: 600
+          exclusiveMaximum: true
+          example: 500
+        detail:
+          type: string
+          description: |
+            A human readable explanation specific to this occurrence of the problem.
+          example: Connection timeout
+        instance:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereferenced.
+    Links:
+      title: Links
+      type: object
+      description: Links model used for pagination.
+      properties:
+        first:
+          type: string
+          description: Hyperlink to the first page.
+        prev:
+          type: string
+          description: Hyperlink to the previous page.
+        next:
+          type: string
+          description: Hyperlink to the next page.
+        last:
+          type: string
+          description: Hyperlink to the last page.
+      x-examples:
+        Links:
+          first: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=1&page[size]=2
+          prev: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=2&page[size]=2
+          next: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=4&page[size]=2
+          last: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=13&page[size]=2
+    JsonRpcResponse:
+      title: Json Rpc Response
+      type: object
+      properties:
+        jsonrpc:
+          description: Must be exactly '2.0'
+          type: string
+        id:
+          description: Same identifier established by the client in the call
+          type: integer
+        result:
+          description: Result of the call
+          oneOf:
+            - type: object
+            - type: string
+    LedgerInfoLinks:
+      title: Ledger information
+      description: Ledger information data model as returned by the REST APIs.
+      type: object
+      properties:
+        ledgerInfoId:
+          type: string
+          description: base64url encoded Ledger Info ID.
+        href:
+          type: string
+          description: URL to the LedgerInfo resource.
+  examples:
+    BadRequest:
+      value:
+        title: Bad Request
+        status: 400
+        detail: Bad request
+    NotFound:
+      value:
+        title: Not found
+        status: 404
+        detail: Not found
+    InternalError:
+      value:
+        title: Internal error
+        status: 500
+        detail: Internal error
+servers:
+  - url: http://localhost
+    description: Local Computer Environment
+  - url: https://api.ebsi.xyz
+    description: EBSI Testing Environment

@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+  trusted-ledgers-sc-registry-api:
+    build: .
+    env_file:
+      - .env
+      - .env.local
+    ports:
+      - "${API_PORT:-3000}:${API_PORT:-3000}"
