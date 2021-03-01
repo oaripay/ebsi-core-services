@@ -22,6 +22,7 @@ import {
   InsertSmartContractInfoParam,
   UpdateSmartContractInfoByIdParam,
   UpdateSmartContractInfoByNameParam,
+  UpdateSmartContractNameParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -41,7 +42,8 @@ type JsonRpcParams =
   | InsertLedgerInfoParam
   | InsertSmartContractInfoParam
   | UpdateSmartContractInfoByIdParam
-  | UpdateSmartContractInfoByNameParam;
+  | UpdateSmartContractInfoByNameParam
+  | UpdateSmartContractNameParam;
 
 jest.setTimeout(90000);
 
@@ -220,6 +222,7 @@ describe("JsonRpc Module", () => {
     "insertSmartContractInfo",
     "updateSmartContractInfoById",
     "updateSmartContractInfoByName",
+    "updateSmartContractName",
   ])("/jsonrpc with method %s", (method: string) => {
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
       expect.assertions(4);
@@ -293,6 +296,14 @@ describe("JsonRpc Module", () => {
               })
             ).toString("hex")}`,
           } as UpdateSmartContractInfoByNameParam;
+          break;
+        }
+        case "updateSmartContractName": {
+          param = {
+            from: signer.address,
+            oldName: "smart-contract-name",
+            newName: "smart-contract-name-new",
+          } as UpdateSmartContractNameParam;
           break;
         }
         default:
@@ -430,6 +441,14 @@ describe("JsonRpc Module", () => {
               })
             ).toString("hex")}`,
           } as UpdateSmartContractInfoByNameParam;
+          break;
+        }
+        case "updateSmartContractName": {
+          param = {
+            from: signer.address,
+            oldName: "smart-contract-name",
+            newName: "smart-contract-name-new",
+          } as UpdateSmartContractNameParam;
           break;
         }
         default:
@@ -619,6 +638,35 @@ describe("JsonRpc Module", () => {
 
           break;
         }
+        case "updateSmartContractName": {
+          param1 = ({
+            from: signer.address,
+            oldName: 123,
+            newName: "smart-contract-name-new",
+          } as unknown) as UpdateSmartContractNameParam;
+
+          expectedErrorMessage1 =
+            "property params[0].oldName has failed the following constraints: isString";
+
+          param2 = ({
+            from: signer.address,
+            oldName: "smart-contract-name",
+            newName: 123,
+          } as unknown) as UpdateSmartContractNameParam;
+
+          expectedErrorMessage2 =
+            "property params[0].newName has failed the following constraints: isString";
+
+          param3 = {
+            from: signer.address,
+            newName: "smart-contract-name-new",
+          } as UpdateSmartContractNameParam;
+
+          expectedErrorMessage3 =
+            "property params[0].oldName has failed the following constraints: isString";
+
+          break;
+        }
         default:
           throw new Error(`Test Error: Invalid method ${method}`);
       }
@@ -805,6 +853,20 @@ describe("JsonRpc Module", () => {
             ).toString("hex")}`,
           } as UpdateSmartContractInfoByNameParam;
 
+          break;
+        }
+        case "updateSmartContractName": {
+          param1 = {
+            from: signer.address,
+            oldName: "smart-contract-name",
+            newName: "smart-contract-name-new",
+          } as UpdateSmartContractNameParam;
+
+          param2 = {
+            from: signer.address,
+            oldName: "smart-contract-name",
+            newName: "smart-contract-name-new-2",
+          } as UpdateSmartContractNameParam;
           break;
         }
         default:

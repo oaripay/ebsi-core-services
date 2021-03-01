@@ -9,6 +9,7 @@ import {
   RequestInsertSmartContractInfoDto,
   RequestUpdateSmartContractInfoByIdDto,
   RequestUpdateSmartContractInfoByNameDto,
+  RequestUpdateSmartContractNameDto,
 } from "./dto";
 
 function jsonRpcResponse(
@@ -51,6 +52,13 @@ export default class AppController {
       case "updateSmartContractInfoByName": {
         const result = await this.jsonRpcService.buildTransactionUpdateSmartContractInfoByName(
           body as RequestUpdateSmartContractInfoByNameDto,
+          id
+        );
+        return jsonRpcResponse(result, id);
+      }
+      case "updateSmartContractName": {
+        const result = await this.jsonRpcService.buildTransactionUpdateSmartContractName(
+          body as RequestUpdateSmartContractNameDto,
           id
         );
         return jsonRpcResponse(result, id);

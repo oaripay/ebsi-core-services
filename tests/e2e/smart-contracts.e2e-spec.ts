@@ -21,6 +21,7 @@ import {
   InsertLedgerInfoParam,
   UpdateSmartContractInfoByIdParam,
   UpdateSmartContractInfoByNameParam,
+  UpdateSmartContractNameParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
@@ -35,13 +36,15 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | InsertLedgerInfoParam
   | UpdateSmartContractInfoByIdParam
-  | UpdateSmartContractInfoByNameParam;
+  | UpdateSmartContractInfoByNameParam
+  | UpdateSmartContractNameParam;
 
 describe("Smart contracts (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
   let scName: string;
+  let scName2: string;
   let scInfo: Buffer;
   let scInfoId: string;
 
@@ -73,6 +76,7 @@ describe("Smart contracts (e2e)", () => {
 
     // Create test data
     scName = `sc-name-${crypto.randomBytes(8).toString("hex")}`;
+    scName2 = `sc-name-${crypto.randomBytes(8).toString("hex")}`;
     scInfo = Buffer.from(
       JSON.stringify({
         "@context": "https://ebsi.com",
@@ -88,6 +92,7 @@ describe("Smart contracts (e2e)", () => {
     "insertSmartContractInfo",
     "updateSmartContractInfoById",
     "updateSmartContractInfoByName",
+    "updateSmartContractName",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
     it("should work", async () => {
       expect.assertions(5);
@@ -129,6 +134,14 @@ describe("Smart contracts (e2e)", () => {
               })
             ).toString("hex")}`,
           } as UpdateSmartContractInfoByNameParam;
+          break;
+        }
+        case "updateSmartContractName": {
+          params = {
+            from: adminTestWallet.address,
+            oldName: scName,
+            newName: scName2,
+          } as UpdateSmartContractNameParam;
           break;
         }
         default:
