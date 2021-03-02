@@ -43,7 +43,7 @@ export function useRegistryContractHook() {
       authorizedAppName: string,
       calldata: string,
       status: number,
-      operations: number,
+      permissions: number,
       notBefore: number,
       notAfter: number
     ) => {
@@ -52,7 +52,7 @@ export function useRegistryContractHook() {
         authorizedAppName,
         calldata,
         status,
-        operations,
+        permissions,
         notBefore,
         notAfter
       );

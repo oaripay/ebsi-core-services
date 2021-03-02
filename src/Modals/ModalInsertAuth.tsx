@@ -31,7 +31,7 @@ export default function ModalInsertAuth(): ReactElement {
             "authorizedAppName",
             "iss",
             "status",
-            "operations",
+            "permissions",
             "notBefore",
             "notAfter",
           ])
@@ -40,7 +40,7 @@ export default function ModalInsertAuth(): ReactElement {
               "authorizedAppName",
               "iss",
               "status",
-              "operations",
+              "permissions",
               "notBefore",
               "notAfter",
             ]);
@@ -61,7 +61,7 @@ export default function ModalInsertAuth(): ReactElement {
               insertAuthFields.authorizedAppName,
               insertAuthFields.iss,
               insertAuthFields.status,
-              insertAuthFields.operations,
+              insertAuthFields.permissions,
               insertAuthFields.notBefore,
               insertAuthFields.notAfter
             )
@@ -96,6 +96,7 @@ export default function ModalInsertAuth(): ReactElement {
           form={form}
           initialValues={{
             status: 1,
+            permissions: 0,
           }}
         >
           <Row>
@@ -137,13 +138,30 @@ export default function ModalInsertAuth(): ReactElement {
           <Row>
             <Col lg={24}>
               <Form.Item
-                label="Operations"
-                name="operations"
+                label="Permissions"
+                name="permissions"
                 rules={[
-                  { required: true, message: "Please input operations!" },
+                  { required: true, message: "Please input permissions!" },
                 ]}
               >
-                <Input />
+                <Select style={{ width: "100%" }}>
+                  <Select.Option value={0}>none</Select.Option>
+                  <Select.Option value={1}>d</Select.Option>
+                  <Select.Option value={2}>u</Select.Option>
+                  <Select.Option value={3}>ud</Select.Option>
+                  <Select.Option value={4}>r</Select.Option>
+                  <Select.Option value={5}>rd</Select.Option>
+                  <Select.Option value={6}>ru</Select.Option>
+                  <Select.Option value={7}>rud</Select.Option>
+                  <Select.Option value={8}>c</Select.Option>
+                  <Select.Option value={9}>cd</Select.Option>
+                  <Select.Option value={10}>cu</Select.Option>
+                  <Select.Option value={11}>cud</Select.Option>
+                  <Select.Option value={12}>cr</Select.Option>
+                  <Select.Option value={13}>crd</Select.Option>
+                  <Select.Option value={14}>cru</Select.Option>
+                  <Select.Option value={15}>crud</Select.Option>
+                </Select>
               </Form.Item>
             </Col>
           </Row>

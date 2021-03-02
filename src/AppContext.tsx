@@ -12,7 +12,7 @@ export type AppContextType = {
   setEditModal: (params: any) => void;
   setInsertPublicKeyModal: (params: any) => void;
   editModal: { show: boolean; data: any };
-  insertPublicKeyModal: { show: boolean; data: any };
+  insertPublicKeyModal: { show: boolean; data: any; appId: string };
   setAuthorizedAppsModal: (params: any) => void;
   authorizedAppsModal: { show: boolean; data: any };
   metamask: {};

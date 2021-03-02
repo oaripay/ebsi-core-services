@@ -1,4 +1,4 @@
-import React, { ReactElement, useContext } from "react";
+import React, { ReactElement, useContext, useEffect } from "react";
 import {
   Col,
   DatePicker,
@@ -19,6 +19,12 @@ export default function ModalInsertPublicKey(): ReactElement {
 
   const { insertAppPublicKey } = useRegistryContractHook();
   const appCtx = useContext(AppContext);
+
+  useEffect(() => {
+    form.setFieldsValue({
+      appId: appCtx.insertPublicKeyModal.appId,
+    });
+  }, [appCtx.insertPublicKeyModal.appId]);
 
   return (
     <Modal
@@ -43,11 +49,21 @@ export default function ModalInsertPublicKey(): ReactElement {
               "notAfter",
             ]);
 
+            let publicKeyFormatted;
+
+            try {
+              publicKeyFormatted = ethers.utils.formatBytes32String(
+                fields.publicKey
+              );
+            } catch (ex) {
+              publicKeyFormatted = fields.publicKey;
+            }
+
             const insertPubKeyFields: any = {
               ...fields,
               notBefore: fields.notBefore.unix(),
               notAfter: fields.notAfter.unix(),
-              publicKey: ethers.utils.formatBytes32String(fields.publicKey),
+              publicKey: publicKeyFormatted,
             };
 
             appCtx.setInsertPublicKeyModal({
@@ -63,6 +79,7 @@ export default function ModalInsertPublicKey(): ReactElement {
               insertPubKeyFields.notAfter
             )
               .then(() => {
+                form.resetFields();
                 notification.info({
                   message: "Transaction",
                   description: (

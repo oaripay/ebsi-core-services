@@ -1,8 +1,10 @@
 export const config = {
-  PROVIDER: process.env.REACT_APP_PROVIDER || "http://127.0.0.1:8545",
+  PROVIDER:
+    process.env.REACT_APP_PROVIDER ||
+    "https://api.test.intebsi.xyz/ledger/v1/blockchains/besu",
   REGISTRY_ADDRESS:
     process.env.REACT_APP_REGISTRY_ADDRESS ||
-    "0xC505fE2E1a87FdAA7a5fd2559C237848d3820e3d",
+    "0x4d06b562588cb61616959806726c5d9f060b0f21",
   NOTIFICATION_URL:
     process.env.REACT_APP_TAW_TX_URI || "/raw-transaction-signatures",
   REDIRECT_URL: process.env.REACT_APP_REDIRECT_URL || "http://localhost:3000",

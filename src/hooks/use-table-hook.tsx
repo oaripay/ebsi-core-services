@@ -81,6 +81,7 @@ export function useTableHook() {
                 onClick={() => {
                   appCtx.setInsertPublicKeyModal({
                     show: true,
+                    appId: params.id,
                   });
                 }}
               >
