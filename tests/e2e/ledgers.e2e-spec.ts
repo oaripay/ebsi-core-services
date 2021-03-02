@@ -20,6 +20,7 @@ import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interfa
 import {
   InsertLedgerInfoParam,
   UpdateLedgerInfoByIdParam,
+  UpdateLedgerInfoByNameParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { GetLedgersResponse } from "../../src/modules/ledgers/ledgers.interface";
@@ -32,7 +33,10 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertLedgerInfoParam | UpdateLedgerInfoByIdParam;
+type JsonRpcParams =
+  | InsertLedgerInfoParam
+  | UpdateLedgerInfoByIdParam
+  | UpdateLedgerInfoByNameParam;
 
 describe("Ledgers (e2e)", () => {
   let app: INestApplication;
@@ -144,106 +148,122 @@ describe("Ledgers (e2e)", () => {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertLedgerInfo", "updateLedgerInfoById"])(
-    "/jsonrpc - send transaction for %s",
-    (method: string) => {
-      it("should work", async () => {
-        expect.assertions(5);
+  describe.each([
+    "insertLedgerInfo",
+    "updateLedgerInfoById",
+    "updateLedgerInfoByName",
+  ])("/jsonrpc - send transaction for %s", (method: string) => {
+    it("should work", async () => {
+      expect.assertions(5);
 
-        let params: JsonRpcParams = null;
+      let params: JsonRpcParams = null;
 
-        switch (method) {
-          case "insertLedgerInfo": {
-            params = {
-              from: adminTestWallet.address,
-              name: ledgerName,
-              info: `0x${ledgerInfo.toString("hex")}`,
-            } as InsertLedgerInfoParam;
-            break;
-          }
-          case "updateLedgerInfoById": {
-            const id = ethers.utils.sha256(ledgerInfo);
-
-            params = {
-              from: adminTestWallet.address,
-              ledgerInfoId: id,
-              info: `0x${Buffer.from(
-                JSON.stringify({
-                  "@context": "https://ebsi.com",
-                  type: "Ledger",
-                  name: "ledger-name",
-                  newProp: "new value",
-                })
-              ).toString("hex")}`,
-            } as UpdateLedgerInfoByIdParam;
-            break;
-          }
-          default:
-            throw new Error(`Test Error: Invalid method ${method}`);
-        }
-
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [params],
-            id: 231,
-          });
-
-        expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
+      switch (method) {
+        case "insertLedgerInfo": {
+          params = {
             from: adminTestWallet.address,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: expect.any(String) as string,
-          },
-        });
-        expect(responseBuild.status).toBe(200);
+            name: ledgerName,
+            info: `0x${ledgerInfo.toString("hex")}`,
+          } as InsertLedgerInfoParam;
+          break;
+        }
+        case "updateLedgerInfoById": {
+          const id = ethers.utils.sha256(ledgerInfo);
 
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction))
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await adminTestWallet.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+          params = {
+            from: adminTestWallet.address,
+            ledgerInfoId: id,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+                newProp: "new value",
+              })
+            ).toString("hex")}`,
+          } as UpdateLedgerInfoByIdParam;
+          break;
+        }
+        case "updateLedgerInfoByName": {
+          params = {
+            from: adminTestWallet.address,
+            name: ledgerName,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+                newProp2: "new value2",
+              })
+            ).toString("hex")}`,
+          } as UpdateLedgerInfoByNameParam;
+          break;
+        }
+        default:
+          throw new Error(`Test Error: Invalid method ${method}`);
+      }
 
-        const responseSend: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method: "signedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
-              },
-            ],
-            id: "45",
-          });
-
-        expect(responseSend.body).toStrictEqual({
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
           jsonrpc: "2.0",
-          id: "45",
-          result: expect.any(String) as string,
+          method,
+          params: [params],
+          id: 231,
         });
-        expect(responseSend.status).toBe(200);
 
-        // wait to be mined
-        const receipt = await waitToBeMined(responseSend.body.result as string);
-        expect(receipt.status).toBe("0x1");
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        result: {
+          chainId: expect.any(String) as string,
+          data: expect.any(String) as string,
+          from: adminTestWallet.address,
+          gasLimit: expect.any(String) as string,
+          gasPrice: expect.any(String) as string,
+          nonce: expect.any(String) as string,
+          to: expect.any(String) as string,
+          value: expect.any(String) as string,
+        },
       });
-    }
-  );
+      expect(responseBuild.status).toBe(200);
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await adminTestWallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        result: expect.any(String) as string,
+      });
+      expect(responseSend.status).toBe(200);
+
+      // wait to be mined
+      const receipt = await waitToBeMined(responseSend.body.result as string);
+      expect(receipt.status).toBe("0x1");
+    });
+  });
 });

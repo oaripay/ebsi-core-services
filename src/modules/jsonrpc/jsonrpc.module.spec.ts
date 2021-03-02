@@ -24,6 +24,7 @@ import {
   UpdateSmartContractInfoByNameParam,
   UpdateSmartContractNameParam,
   UpdateLedgerInfoByIdParam,
+  UpdateLedgerInfoByNameParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -42,6 +43,7 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | InsertLedgerInfoParam
   | UpdateLedgerInfoByIdParam
+  | UpdateLedgerInfoByNameParam
   | InsertSmartContractInfoParam
   | UpdateSmartContractInfoByIdParam
   | UpdateSmartContractInfoByNameParam
@@ -222,6 +224,7 @@ describe("JsonRpc Module", () => {
   describe.each([
     "insertLedgerInfo",
     "updateLedgerInfoById",
+    "updateLedgerInfoByName",
     "insertSmartContractInfo",
     "updateSmartContractInfoById",
     "updateSmartContractInfoByName",
@@ -272,6 +275,21 @@ describe("JsonRpc Module", () => {
               })
             ).toString("hex")}`,
           } as UpdateLedgerInfoByIdParam;
+          break;
+        }
+        case "updateLedgerInfoByName": {
+          param = {
+            from: signer.address,
+            name: "ledger-name",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+                newProp2: "new value2",
+              })
+            ).toString("hex")}`,
+          } as UpdateLedgerInfoByNameParam;
           break;
         }
         case "insertSmartContractInfo": {
@@ -442,6 +460,21 @@ describe("JsonRpc Module", () => {
               })
             ).toString("hex")}`,
           } as UpdateLedgerInfoByIdParam;
+          break;
+        }
+        case "updateLedgerInfoByName": {
+          param = {
+            from: signer.address,
+            name: "ledger-name",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+                newProp2: "new value2",
+              })
+            ).toString("hex")}`,
+          } as UpdateLedgerInfoByNameParam;
           break;
         }
         case "insertSmartContractInfo": {
@@ -619,6 +652,41 @@ describe("JsonRpc Module", () => {
           expectedErrorMessage3 =
             "property params[0].info has failed the following constraints: isHexadecimalJSON";
           break;
+        }
+        case "updateLedgerInfoByName": {
+          param1 = ({
+            from: signer.address,
+            name: 123,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+                newProp2: "new value2",
+              })
+            ).toString("hex")}`,
+          } as unknown) as UpdateLedgerInfoByNameParam;
+
+          expectedErrorMessage1 =
+            "property params[0].name has failed the following constraints: isString";
+
+          param2 = {
+            from: signer.address,
+            name: "ledger-name",
+            info: "some random string",
+          } as UpdateLedgerInfoByNameParam;
+
+          expectedErrorMessage2 =
+            "property params[0].info has failed the following constraints: isHexadecimalJSON";
+
+          param3 = {
+            from: signer.address,
+            name: "ledger-name",
+            info: "0x1234",
+          } as UpdateLedgerInfoByNameParam;
+
+          expectedErrorMessage3 =
+            "property params[0].info has failed the following constraints: isHexadecimalJSON";
 
           break;
         }
@@ -902,6 +970,35 @@ describe("JsonRpc Module", () => {
               })
             ).toString("hex")}`,
           } as UpdateLedgerInfoByIdParam;
+
+          break;
+        }
+        case "updateLedgerInfoByName": {
+          param1 = {
+            from: signer.address,
+            name: "ledger-name",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+                newProp2: "new value2",
+              })
+            ).toString("hex")}`,
+          } as UpdateLedgerInfoByNameParam;
+
+          param2 = {
+            from: signer.address,
+            name: "ledger-name-2",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+                newProp2: "new value2",
+              })
+            ).toString("hex")}`,
+          } as UpdateLedgerInfoByNameParam;
 
           break;
         }

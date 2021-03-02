@@ -3,6 +3,7 @@ export * from "./signedTransaction";
 export * from "./insertLedgerInfo";
 export * from "./insertSmartContractInfo";
 export * from "./updateLedgerInfoById";
+export * from "./updateLedgerInfoByName";
 export * from "./updateSmartContractInfoById";
 export * from "./updateSmartContractInfoByName";
 export * from "./updateSmartContractName";

@@ -232,6 +232,15 @@ paths:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       ledgerInfoId: "0x94df19c1c654f4bca27545c2ab06647bb96356c4b771a6af0aa54b7bb8f6ffb7"
                       info: "0x227B2274657374223A2274657374227D22"
+              Build tx to updateLedgerInfoByName:
+                value:
+                  jsonrpc: "2.0"
+                  method: updateLedgerInfoByName
+                  id: 1
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      name: EBSI Ethereum
+                      info: "0x227B2274657374223A2274657374227D22"
               Build tx to insertSmartContractInfo:
                 value:
                   jsonrpc: "2.0"

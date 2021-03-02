@@ -7,6 +7,7 @@ import {
   RequestSignedTransactionDto,
   RequestInsertLedgerInfoDto,
   RequestUpdateLedgerInfoByIdDto,
+  RequestUpdateLedgerInfoByNameDto,
   RequestInsertSmartContractInfoDto,
   RequestUpdateSmartContractInfoByIdDto,
   RequestUpdateSmartContractInfoByNameDto,
@@ -39,6 +40,13 @@ export default class AppController {
       case "updateLedgerInfoById": {
         const result = await this.jsonRpcService.buildTransactionUpdateLedgerInfoById(
           body as RequestUpdateLedgerInfoByIdDto,
+          id
+        );
+        return jsonRpcResponse(result, id);
+      }
+      case "updateLedgerInfoByName": {
+        const result = await this.jsonRpcService.buildTransactionUpdateLedgerInfoByName(
+          body as RequestUpdateLedgerInfoByNameDto,
           id
         );
         return jsonRpcResponse(result, id);
