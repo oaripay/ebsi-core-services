@@ -25,6 +25,7 @@ import {
   UpdateSmartContractNameParam,
   UpdateLedgerInfoByIdParam,
   UpdateLedgerInfoByNameParam,
+  UpdateLedgerNameParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -44,6 +45,7 @@ type JsonRpcParams =
   | InsertLedgerInfoParam
   | UpdateLedgerInfoByIdParam
   | UpdateLedgerInfoByNameParam
+  | UpdateLedgerNameParam
   | InsertSmartContractInfoParam
   | UpdateSmartContractInfoByIdParam
   | UpdateSmartContractInfoByNameParam
@@ -225,6 +227,7 @@ describe("JsonRpc Module", () => {
     "insertLedgerInfo",
     "updateLedgerInfoById",
     "updateLedgerInfoByName",
+    "updateLedgerName",
     "insertSmartContractInfo",
     "updateSmartContractInfoById",
     "updateSmartContractInfoByName",
@@ -290,6 +293,14 @@ describe("JsonRpc Module", () => {
               })
             ).toString("hex")}`,
           } as UpdateLedgerInfoByNameParam;
+          break;
+        }
+        case "updateLedgerName": {
+          param = {
+            from: signer.address,
+            oldName: "ledger-name",
+            newName: "ledger-name-new",
+          } as UpdateLedgerNameParam;
           break;
         }
         case "insertSmartContractInfo": {
@@ -475,6 +486,14 @@ describe("JsonRpc Module", () => {
               })
             ).toString("hex")}`,
           } as UpdateLedgerInfoByNameParam;
+          break;
+        }
+        case "updateLedgerName": {
+          param = {
+            from: signer.address,
+            oldName: "ledger-name",
+            newName: "ledger-name-new",
+          } as UpdateLedgerNameParam;
           break;
         }
         case "insertSmartContractInfo": {
@@ -687,6 +706,35 @@ describe("JsonRpc Module", () => {
 
           expectedErrorMessage3 =
             "property params[0].info has failed the following constraints: isHexadecimalJSON";
+
+          break;
+        }
+        case "updateLedgerName": {
+          param1 = ({
+            from: signer.address,
+            oldName: 123,
+            newName: "ledger-name-new",
+          } as unknown) as UpdateLedgerNameParam;
+
+          expectedErrorMessage1 =
+            "property params[0].oldName has failed the following constraints: isString";
+
+          param2 = ({
+            from: signer.address,
+            oldName: "ledger-name",
+            newName: 123,
+          } as unknown) as UpdateLedgerNameParam;
+
+          expectedErrorMessage2 =
+            "property params[0].newName has failed the following constraints: isString";
+
+          param3 = {
+            from: signer.address,
+            newName: "ledger-name-new",
+          } as UpdateLedgerNameParam;
+
+          expectedErrorMessage3 =
+            "property params[0].oldName has failed the following constraints: isString";
 
           break;
         }
@@ -1000,6 +1048,20 @@ describe("JsonRpc Module", () => {
             ).toString("hex")}`,
           } as UpdateLedgerInfoByNameParam;
 
+          break;
+        }
+        case "updateLedgerName": {
+          param1 = {
+            from: signer.address,
+            oldName: "ledger-name",
+            newName: "ledger-name-new",
+          } as UpdateLedgerNameParam;
+
+          param2 = {
+            from: signer.address,
+            oldName: "ledger-name",
+            newName: "ledger-name-new-2",
+          } as UpdateLedgerNameParam;
           break;
         }
         case "insertSmartContractInfo": {

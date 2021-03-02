@@ -21,6 +21,7 @@ import {
   InsertLedgerInfoParam,
   UpdateLedgerInfoByIdParam,
   UpdateLedgerInfoByNameParam,
+  UpdateLedgerNameParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { GetLedgersResponse } from "../../src/modules/ledgers/ledgers.interface";
@@ -36,13 +37,15 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | InsertLedgerInfoParam
   | UpdateLedgerInfoByIdParam
-  | UpdateLedgerInfoByNameParam;
+  | UpdateLedgerInfoByNameParam
+  | UpdateLedgerNameParam;
 
 describe("Ledgers (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
   let ledgerName: string;
+  let ledgerName2: string;
   let ledgerInfo: Buffer;
 
   beforeAll(async () => {
@@ -72,6 +75,7 @@ describe("Ledgers (e2e)", () => {
     );
 
     ledgerName = `ledger-name-${crypto.randomBytes(8).toString("hex")}`;
+    ledgerName2 = `ledger-name-${crypto.randomBytes(8).toString("hex")}`;
     ledgerInfo = Buffer.from(
       JSON.stringify({
         "@context": "https://ebsi.com",
@@ -152,6 +156,7 @@ describe("Ledgers (e2e)", () => {
     "insertLedgerInfo",
     "updateLedgerInfoById",
     "updateLedgerInfoByName",
+    "updateLedgerName",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
     it("should work", async () => {
       expect.assertions(5);
@@ -197,6 +202,14 @@ describe("Ledgers (e2e)", () => {
               })
             ).toString("hex")}`,
           } as UpdateLedgerInfoByNameParam;
+          break;
+        }
+        case "updateLedgerName": {
+          params = {
+            from: adminTestWallet.address,
+            oldName: ledgerName,
+            newName: ledgerName2,
+          } as UpdateLedgerNameParam;
           break;
         }
         default:
