@@ -23,6 +23,7 @@ import {
   UpdateSmartContractInfoByIdParam,
   UpdateSmartContractInfoByNameParam,
   UpdateSmartContractNameParam,
+  UpdateLedgerInfoByIdParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -40,12 +41,13 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams =
   | InsertLedgerInfoParam
+  | UpdateLedgerInfoByIdParam
   | InsertSmartContractInfoParam
   | UpdateSmartContractInfoByIdParam
   | UpdateSmartContractInfoByNameParam
   | UpdateSmartContractNameParam;
 
-jest.setTimeout(90000);
+jest.setTimeout(120000);
 
 describe("JsonRpc Module", () => {
   let app: INestApplication;
@@ -219,6 +221,7 @@ describe("JsonRpc Module", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each([
     "insertLedgerInfo",
+    "updateLedgerInfoById",
     "insertSmartContractInfo",
     "updateSmartContractInfoById",
     "updateSmartContractInfoByName",
@@ -244,6 +247,31 @@ describe("JsonRpc Module", () => {
               })
             ).toString("hex")}`,
           } as InsertLedgerInfoParam;
+          break;
+        }
+        case "updateLedgerInfoById": {
+          const id = ethers.utils.sha256(
+            Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+              })
+            )
+          );
+
+          param = {
+            from: signer.address,
+            ledgerInfoId: id,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+                newProp: "new value",
+              })
+            ).toString("hex")}`,
+          } as UpdateLedgerInfoByIdParam;
           break;
         }
         case "insertSmartContractInfo": {
@@ -391,6 +419,31 @@ describe("JsonRpc Module", () => {
           } as InsertLedgerInfoParam;
           break;
         }
+        case "updateLedgerInfoById": {
+          const id = ethers.utils.sha256(
+            Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+              })
+            )
+          );
+
+          param = {
+            from: signer.address,
+            ledgerInfoId: id,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+                newProp: "new value",
+              })
+            ).toString("hex")}`,
+          } as UpdateLedgerInfoByIdParam;
+          break;
+        }
         case "insertSmartContractInfo": {
           param = {
             from: signer.address,
@@ -519,6 +572,54 @@ describe("JsonRpc Module", () => {
 
           expectedErrorMessage3 =
             "property params[0].info has failed the following constraints: isHexadecimalJSON";
+          break;
+        }
+        case "updateLedgerInfoById": {
+          const id = ethers.utils.sha256(
+            Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+              })
+            )
+          );
+
+          param1 = {
+            from: signer.address,
+            ledgerInfoId: "some random string",
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+                newProp: "new value",
+              })
+            ).toString("hex")}`,
+          } as UpdateLedgerInfoByIdParam;
+
+          expectedErrorMessage1 =
+            "property params[0].ledgerInfoId has failed the following constraints: isHexadecimal";
+
+          param2 = {
+            from: signer.address,
+            ledgerInfoId: id,
+            info: "some random string",
+          } as UpdateLedgerInfoByIdParam;
+
+          expectedErrorMessage2 =
+            "property params[0].info has failed the following constraints: isHexadecimalJSON";
+
+          param3 = {
+            from: signer.address,
+            ledgerInfoId: id,
+            info: "0x1234",
+          } as UpdateLedgerInfoByIdParam;
+
+          expectedErrorMessage3 =
+            "property params[0].info has failed the following constraints: isHexadecimalJSON";
+          break;
+
           break;
         }
         case "insertSmartContractInfo": {
@@ -762,6 +863,45 @@ describe("JsonRpc Module", () => {
               })
             ).toString("hex")}`,
           } as InsertLedgerInfoParam;
+
+          break;
+        }
+        case "updateLedgerInfoById": {
+          const id = ethers.utils.sha256(
+            Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+              })
+            )
+          );
+
+          param1 = {
+            from: signer.address,
+            ledgerInfoId: id,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+                newProp: "new value",
+              })
+            ).toString("hex")}`,
+          } as UpdateLedgerInfoByIdParam;
+
+          param2 = {
+            from: signer.address,
+            ledgerInfoId: id,
+            info: `0x${Buffer.from(
+              JSON.stringify({
+                "@context": "https://ebsi.com",
+                type: "Ledger",
+                name: "ledger-name",
+                newProp: "new value 2",
+              })
+            ).toString("hex")}`,
+          } as UpdateLedgerInfoByIdParam;
 
           break;
         }

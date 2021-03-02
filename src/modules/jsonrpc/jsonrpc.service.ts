@@ -8,6 +8,8 @@ import {
   UnsignedTransaction,
   ArgsInsertLedgerInfo,
   RequestInsertLedgerInfoDto,
+  RequestUpdateLedgerInfoByIdDto,
+  ArgsUpdateLedgerInfoById,
   RequestInsertSmartContractInfoDto,
   ArgsInsertSmartContractInfo,
   RequestUpdateSmartContractInfoByIdDto,
@@ -149,6 +151,13 @@ export class JsonRpcService {
         );
         break;
       }
+      case "updateLedgerInfoById": {
+        await validateClass(
+          ArgsUpdateLedgerInfoById,
+          (args as unknown) as ArgsUpdateLedgerInfoById
+        );
+        break;
+      }
       case "insertSmartContractInfo": {
         await validateClass(
           ArgsInsertSmartContractInfo,
@@ -239,6 +248,28 @@ export class JsonRpcService {
       const data = this.ledgerScRegistryContract.interface.encodeFunctionData(
         "insertLedgerInfo",
         [name, info]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateLedgerInfoById(
+    body: RequestUpdateLedgerInfoByIdDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateLedgerInfoByIdDto, body);
+
+      const { from, ledgerInfoId, info } = body.params[0];
+
+      const data = this.ledgerScRegistryContract.interface.encodeFunctionData(
+        "updateLedgerInfoById",
+        [ledgerInfoId, info]
       );
 
       return await this.buildTransaction(from, data);

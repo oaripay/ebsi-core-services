@@ -17,7 +17,10 @@ import { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
-import { InsertLedgerInfoParam } from "../../src/modules/jsonrpc/dto";
+import {
+  InsertLedgerInfoParam,
+  UpdateLedgerInfoByIdParam,
+} from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { GetLedgersResponse } from "../../src/modules/ledgers/ledgers.interface";
 import { ApiConfig } from "../../src/config/configuration";
@@ -29,12 +32,14 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertLedgerInfoParam;
+type JsonRpcParams = InsertLedgerInfoParam | UpdateLedgerInfoByIdParam;
 
 describe("Ledgers (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
+  let ledgerName: string;
+  let ledgerInfo: Buffer;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -60,6 +65,15 @@ describe("Ledgers (e2e)", () => {
 
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("adminTestPrivateKey"))
+    );
+
+    ledgerName = `ledger-name-${crypto.randomBytes(8).toString("hex")}`;
+    ledgerInfo = Buffer.from(
+      JSON.stringify({
+        "@context": "https://ebsi.com",
+        type: "Ledger",
+        name: ledgerName,
+      })
     );
   });
 
@@ -130,28 +144,38 @@ describe("Ledgers (e2e)", () => {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertLedgerInfo"])(
+  describe.each(["insertLedgerInfo", "updateLedgerInfoById"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should work", async () => {
         expect.assertions(5);
 
         let params: JsonRpcParams = null;
-        const name = `ledger-name-${crypto.randomBytes(8).toString("hex")}`;
 
         switch (method) {
           case "insertLedgerInfo": {
             params = {
               from: adminTestWallet.address,
-              name,
+              name: ledgerName,
+              info: `0x${ledgerInfo.toString("hex")}`,
+            } as InsertLedgerInfoParam;
+            break;
+          }
+          case "updateLedgerInfoById": {
+            const id = ethers.utils.sha256(ledgerInfo);
+
+            params = {
+              from: adminTestWallet.address,
+              ledgerInfoId: id,
               info: `0x${Buffer.from(
                 JSON.stringify({
                   "@context": "https://ebsi.com",
                   type: "Ledger",
-                  name,
+                  name: "ledger-name",
+                  newProp: "new value",
                 })
               ).toString("hex")}`,
-            } as InsertLedgerInfoParam;
+            } as UpdateLedgerInfoByIdParam;
             break;
           }
           default:
