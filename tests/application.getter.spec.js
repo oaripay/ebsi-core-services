@@ -1,6 +1,7 @@
 const {
   BN, // Big Number support
   time,
+  constants,
   expectRevert,
   expectEvent, // Assertions for emitted events
 } = require("@openzeppelin/test-helpers");
@@ -72,7 +73,7 @@ describe("trusted application registry", () => {
     it("should failed if app not registered", async () => {
       expect.assertions(0);
       const publickey = `publickey0`;
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const appId = ethers.utils.sha256(publickeyBytes);
       await expectRevert(
         implV0.getAppAdministratorIds.call(appId, 1, 1, {
@@ -84,7 +85,7 @@ describe("trusted application registry", () => {
     it("should failed if appId is empty", async () => {
       expect.assertions(0);
       await expectRevert(
-        implV0.getAppAdministratorIds.call([], 1, 1, {
+        implV0.getAppAdministratorIds.call(constants.ZERO_BYTES32, 1, 1, {
           from: acc1,
         }),
         "appId empty"
@@ -97,7 +98,7 @@ describe("trusted application registry", () => {
       const appAdministrator = `did:ebsi:0xadmin`;
 
       const publickey = `publickey0`;
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -146,7 +147,7 @@ describe("trusted application registry", () => {
       const appAdministrator = `did:ebsi:0xadmin`;
 
       const publickey = `publickey0`;
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -242,7 +243,7 @@ describe("trusted application registry", () => {
     it("should revert for an empty infoId", async () => {
       expect.assertions(0);
       await expectRevert(
-        implV0.getAppInfoByInfoId([], {
+        implV0.getAppInfoByInfoId(constants.ZERO_BYTES32, {
           from: acc1,
         }),
         "infoId empty"
@@ -251,7 +252,7 @@ describe("trusted application registry", () => {
     it("should revert for a not existing info", async () => {
       expect.assertions(0);
       const info = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-      const infoBytes = web3.utils.hexToBytes(web3.utils.toHex(info));
+      const infoBytes = web3.utils.toHex(info);
       const infoId = ethers.utils.sha256(infoBytes);
       await expectRevert(
         implV0.getAppInfoByInfoId(infoId, {
@@ -267,7 +268,7 @@ describe("trusted application registry", () => {
       const appAdministrator =
         "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
       const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -298,7 +299,7 @@ describe("trusted application registry", () => {
       const appAdministrator =
         "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
       const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -318,7 +319,7 @@ describe("trusted application registry", () => {
 
       const info =
         "important info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss out ";
-      const infoBytes = web3.utils.hexToBytes(web3.utils.toHex(info));
+      const infoBytes = web3.utils.toHex(info);
       const infoId = ethers.utils.sha256(infoBytes);
       await implV0.insertAppInfo(appId, infoBytes, {
         from: acc1,
@@ -333,7 +334,7 @@ describe("trusted application registry", () => {
     it("should failed if app not registered", async () => {
       expect.assertions(0);
       const publickey = `publickey0`;
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const appId = ethers.utils.sha256(publickeyBytes);
       await expectRevert(
         implV0.getAppInfoIds.call(appId, 1, 1, {
@@ -345,7 +346,7 @@ describe("trusted application registry", () => {
     it("should failed if appId is empty", async () => {
       expect.assertions(0);
       await expectRevert(
-        implV0.getAppInfoIds.call([], 1, 1, {
+        implV0.getAppInfoIds.call(constants.ZERO_BYTES32, 1, 1, {
           from: acc1,
         }),
         "appId empty"
@@ -358,7 +359,7 @@ describe("trusted application registry", () => {
       const appAdministrator = `did:ebsi:0xadmin`;
 
       const publickey = `publickey0`;
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -407,7 +408,7 @@ describe("trusted application registry", () => {
       const appAdministrator = `did:ebsi:0xadmin`;
 
       const publickey = `publickey0`;
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -428,7 +429,7 @@ describe("trusted application registry", () => {
       let resInfoIds = [];
       for (let i = 0; i < 11; i += 1) {
         const info = `info-${i}`;
-        const infoBytes = web3.utils.hexToBytes(web3.utils.toHex(info));
+        const infoBytes = web3.utils.toHex(info);
         const infoId = ethers.utils.sha256(infoBytes);
 
         // INSERT SHOULD BE DONE IN ORDER !!!
@@ -486,7 +487,7 @@ describe("trusted application registry", () => {
     it("should failed if appid is empty", async () => {
       expect.assertions(0);
       await expectRevert(
-        implV0.getAppPublicKeyIds.call([], 1, 1, {
+        implV0.getAppPublicKeyIds.call(constants.ZERO_BYTES32, 1, 1, {
           from: acc1,
         }),
         "appId empty"
@@ -495,7 +496,7 @@ describe("trusted application registry", () => {
     it("should failed if app not registered", async () => {
       expect.assertions(0);
       const publickey = `publickey0`;
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const appId = ethers.utils.sha256(publickeyBytes);
       await expectRevert(
         implV0.getAppPublicKeyIds.call(appId, 1, 1, {
@@ -511,7 +512,7 @@ describe("trusted application registry", () => {
       const appAdministrator = `did:ebsi:0xadmin`;
 
       const publickey = `publickey0`;
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -559,7 +560,7 @@ describe("trusted application registry", () => {
       const appAdministrator = `did:ebsi:0xadmin`;
 
       const publickey = `publickey0`;
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -605,9 +606,7 @@ describe("trusted application registry", () => {
         const newNotBefore = (await time.latest()).add(time.duration.weeks(2));
         const newNotAfter = newNotBefore.add(time.duration.years(2));
         const newPublickey = `pubkey${i}`;
-        const newPublickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(newPublickey)
-        );
+        const newPublickeyBytes = web3.utils.toHex(newPublickey);
         const newPublicKeyId = ethers.utils.sha256(newPublickeyBytes);
 
         // INSERT SHOULD BE DONE IN ORDER !!!
@@ -678,7 +677,7 @@ describe("trusted application registry", () => {
     it("should revert for an empty appId", async () => {
       expect.assertions(0);
       await expectRevert(
-        implV0.getAppById([], {
+        implV0.getAppById(constants.ZERO_BYTES32, {
           from: acc1,
         }),
         "appId empty"
@@ -687,7 +686,7 @@ describe("trusted application registry", () => {
     it("should revert for an unknown app", async () => {
       expect.assertions(0);
       const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const appId = ethers.utils.sha256(publickeyBytes);
       await expectRevert(
         implV0.getAppById(appId, {
@@ -703,7 +702,7 @@ describe("trusted application registry", () => {
       const appAdministrator =
         "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
       const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -742,7 +741,7 @@ describe("trusted application registry", () => {
     it("should revert for an empty appId", async () => {
       expect.assertions(0);
       await expectRevert(
-        implV0.getAppInfo([], {
+        implV0.getAppInfo(constants.ZERO_BYTES32, {
           from: acc1,
         }),
         "appId empty"
@@ -751,7 +750,7 @@ describe("trusted application registry", () => {
     it("should revert for an unknown app", async () => {
       expect.assertions(0);
       const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const appId = ethers.utils.sha256(publickeyBytes);
       await expectRevert(
         implV0.getAppInfo(appId, {
@@ -767,7 +766,7 @@ describe("trusted application registry", () => {
       const appAdministrator =
         "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
       const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -798,7 +797,7 @@ describe("trusted application registry", () => {
       const appAdministrator =
         "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
       const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -818,7 +817,7 @@ describe("trusted application registry", () => {
 
       const info =
         "important info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss outimportant info that you don't want to miss out ";
-      const infoBytes = web3.utils.hexToBytes(web3.utils.toHex(info));
+      const infoBytes = web3.utils.toHex(info);
       await implV0.insertAppInfo(appId, infoBytes, {
         from: acc1,
       });
@@ -832,7 +831,7 @@ describe("trusted application registry", () => {
     it("should revert for an empty pubKeyId", async () => {
       expect.assertions(0);
       await expectRevert(
-        implV0.getAppByPublicKeyId([], {
+        implV0.getAppByPublicKeyId(constants.ZERO_BYTES32, {
           from: acc1,
         }),
         "pubKeyId null"
@@ -841,7 +840,7 @@ describe("trusted application registry", () => {
     it("should revert for an unknown app", async () => {
       expect.assertions(0);
       const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const publicKey = ethers.utils.sha256(publickeyBytes);
       await expectRevert(
         implV0.getAppByPublicKeyId(publicKey, {
@@ -857,7 +856,7 @@ describe("trusted application registry", () => {
       const appAdministrator =
         "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
       const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -896,9 +895,7 @@ describe("trusted application registry", () => {
       const newNotBefore = (await time.latest()).add(time.duration.weeks(2));
       const newNotAfter = newNotBefore.add(time.duration.years(2));
       const newPublickey = "this is a brand new pubKey haters gonna hate";
-      const newPublickeyBytes = web3.utils.hexToBytes(
-        web3.utils.toHex(newPublickey)
-      );
+      const newPublickeyBytes = web3.utils.toHex(newPublickey);
       const newPublicKeyId = ethers.utils.sha256(newPublickeyBytes);
       await implV0.insertAppPublicKey(
         publicKeyId,
@@ -950,7 +947,7 @@ describe("trusted application registry", () => {
         "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
       const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -1020,9 +1017,7 @@ describe("trusted application registry", () => {
         const appAdministrator = `did:ebsi:0xadmin${i}`;
 
         const publickey = `publickey${i}`;
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(publickey)
-        );
+        const publickeyBytes = web3.utils.toHex(publickey);
         const status = 0;
         // eslint-disable-next-line no-await-in-loop
         const notBefore = (await time.latest()).add(time.duration.weeks(1));
@@ -1075,7 +1070,7 @@ describe("trusted application registry", () => {
     it("should revert for an empty pubKeyId", async () => {
       expect.assertions(0);
       await expectRevert(
-        implV0.getPublicKey([], {
+        implV0.getPublicKey(constants.ZERO_BYTES32, {
           from: acc1,
         }),
         "pubKeyId null"
@@ -1084,7 +1079,7 @@ describe("trusted application registry", () => {
     it("should revert for an unknown app", async () => {
       expect.assertions(0);
       const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const publicKey = ethers.utils.sha256(publickeyBytes);
       await expectRevert(
         implV0.getPublicKey(publicKey, {
@@ -1100,7 +1095,7 @@ describe("trusted application registry", () => {
       const appAdministrator =
         "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
       const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-      const publickeyBytes = web3.utils.hexToBytes(web3.utils.toHex(publickey));
+      const publickeyBytes = web3.utils.toHex(publickey);
       const status = 0;
       const notBefore = (await time.latest()).add(time.duration.weeks(1));
       const notAfter = notBefore.add(time.duration.years(1));
@@ -1141,9 +1136,7 @@ describe("trusted application registry", () => {
       const newNotBefore = (await time.latest()).add(time.duration.weeks(2));
       const newNotAfter = newNotBefore.add(time.duration.years(2));
       const newPublickey = "this is a brand new pubKey haters gonna hate";
-      const newPublickeyBytes = web3.utils.hexToBytes(
-        web3.utils.toHex(newPublickey)
-      );
+      const newPublickeyBytes = web3.utils.toHex(newPublickey);
       const newPublicKeyId = ethers.utils.sha256(newPublickeyBytes);
       await implV0.insertAppPublicKey(
         publicKeyId,

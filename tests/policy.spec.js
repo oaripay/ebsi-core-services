@@ -76,7 +76,7 @@ describe("trusted policy registry", () => {
           ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798"
         );
         const attribute1v0Hash = ethers.utils.sha256(attribute1v0);
-        const inputdata = web3.utils.hexToBytes(attribute1v0);
+        const inputdata = web3.utils.toHex(attribute1v0);
         await implV0.insertPolicy(policyId, inputdata, {
           from: acc1,
         });
@@ -86,7 +86,7 @@ describe("trusted policy registry", () => {
         const attr2Data = web3.utils.toHex(
           "attr2:dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798"
         );
-        const inputAttr2Data = web3.utils.hexToBytes(attr2Data);
+        const inputAttr2Data = web3.utils.toHex(attr2Data);
         const attr2DataHash = ethers.utils.sha256(attr2Data);
         await implV0.insertPolicy(policyId2, inputAttr2Data, {
           from: acc1,
@@ -125,7 +125,7 @@ describe("trusted policy registry", () => {
         // update policyId  1
         const attribute1v1 = web3.utils.toHex("newData");
         const attribute1v1Hash = ethers.utils.sha256(attribute1v1);
-        const inputdataV1 = web3.utils.hexToBytes(attribute1v1);
+        const inputdataV1 = web3.utils.toHex(attribute1v1);
         await implV0.updatePolicy(policyId, inputdataV1, {
           from: acc1,
         });
@@ -163,16 +163,14 @@ describe("trusted policy registry", () => {
       it("should failed with wrong page size", async () => {
         expect.assertions(0);
         const did = `didi`;
-        const firstinputdata = web3.utils.hexToBytes(
-          web3.utils.toHex("data-update-0")
-        );
+        const firstinputdata = web3.utils.toHex("data-update-0");
         const didFirstInputHash = ethers.utils.sha256(firstinputdata);
         await implV0.insertPolicy(did, firstinputdata, {
           from: acc1,
         });
         for (let i = 1; i < 11; i += 1) {
           const data = `data-update-${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.methods["updatePolicy(string,bytes)"](did, inputdata, {
@@ -206,15 +204,13 @@ describe("trusted policy registry", () => {
       it("should work", async () => {
         expect.assertions(17);
         const did = `didi`;
-        const firstinputdata = web3.utils.hexToBytes(
-          web3.utils.toHex("data-update-0")
-        );
+        const firstinputdata = web3.utils.toHex("data-update-0");
         await implV0.insertPolicy(did, firstinputdata, {
           from: acc1,
         });
         for (let i = 1; i < 11; i += 1) {
           const data = `data-update-${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.methods["updatePolicy(string,bytes)"](did, inputdata, {
@@ -293,7 +289,7 @@ describe("trusted policy registry", () => {
         const data = web3.utils.toHex(
           ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798"
         );
-        const inputdata = web3.utils.hexToBytes(data);
+        const inputdata = web3.utils.toHex(data);
 
         const dataHash = ethers.utils.sha256(data);
         const receipt = await implV0.insertPolicy(policyId, inputdata, {
@@ -314,7 +310,7 @@ describe("trusted policy registry", () => {
         expect(res1[0]).toStrictEqual(data);
         expect(res1[1]).toStrictEqual(dataHash);
         const data2 = web3.utils.toHex(",NewData798");
-        const inputdata2 = web3.utils.hexToBytes(data2);
+        const inputdata2 = web3.utils.toHex(data2);
 
         await expectRevert(
           implV0.insertPolicy(policyId, inputdata2, {
@@ -332,7 +328,7 @@ describe("trusted policy registry", () => {
         );
         const attribute1v0Hash = ethers.utils.sha256(attribute1v0);
 
-        const inputdata = web3.utils.hexToBytes(attribute1v0);
+        const inputdata = web3.utils.toHex(attribute1v0);
         const receipt = await implV0.insertPolicy(policyId, inputdata, {
           from: acc1,
         });
@@ -347,7 +343,7 @@ describe("trusted policy registry", () => {
         const attr2Data = web3.utils.toHex(
           "attr2:dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798"
         );
-        const inputAttr2Data = web3.utils.hexToBytes(attr2Data);
+        const inputAttr2Data = web3.utils.toHex(attr2Data);
         const attr2DataHash = ethers.utils.sha256(attr2Data);
         const receipt2 = await implV0.insertPolicy(policyId2, inputAttr2Data, {
           from: acc1,
@@ -409,7 +405,7 @@ describe("trusted policy registry", () => {
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.insertPolicy(did, inputdata, {
@@ -444,7 +440,7 @@ describe("trusted policy registry", () => {
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.insertPolicy(did, inputdata, {
@@ -507,7 +503,7 @@ describe("trusted policy registry", () => {
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.insertPolicy(did, inputdata, {
@@ -518,14 +514,14 @@ describe("trusted policy registry", () => {
         for (let i = 0; i < 4; i += 1) {
           const did = `${i}`;
           const data = `modifieddata${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.updatePolicy(did, inputdata, {
             from: acc1,
           });
           const dataV2 = `modifieddata${i}V2`;
-          const inputdataV2 = web3.utils.hexToBytes(web3.utils.toHex(dataV2));
+          const inputdataV2 = web3.utils.toHex(dataV2);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.updatePolicy(did, inputdataV2, {
@@ -535,7 +531,7 @@ describe("trusted policy registry", () => {
 
         for (let i = 0; i < 11; i += 1) {
           const data = `data${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           const policyData = await implV0.getPolicyByHash(
@@ -549,7 +545,7 @@ describe("trusted policy registry", () => {
 
         for (let i = 0; i < 4; i += 1) {
           const data = `modifieddata${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           const policyData = await implV0.getPolicyByHash(
@@ -560,7 +556,7 @@ describe("trusted policy registry", () => {
           );
           expect(policyData).toStrictEqual(web3.utils.toHex(data));
           const dataV2 = `modifieddata${i}V2`;
-          const inputdataV2 = web3.utils.hexToBytes(web3.utils.toHex(dataV2));
+          const inputdataV2 = web3.utils.toHex(dataV2);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           const policyDataV2 = await implV0.getPolicyByHash(
@@ -590,7 +586,7 @@ describe("trusted policy registry", () => {
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.insertPolicy(did, inputdata, {
@@ -601,14 +597,14 @@ describe("trusted policy registry", () => {
         for (let i = 0; i < 4; i += 1) {
           const did = `${i}`;
           const data = `modifieddata${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.updatePolicy(did, inputdata, {
             from: acc1,
           });
           const dataV2 = `modifieddata${i}V2`;
-          const inputdataV2 = web3.utils.hexToBytes(web3.utils.toHex(dataV2));
+          const inputdataV2 = web3.utils.toHex(dataV2);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.updatePolicy(did, inputdataV2, {
@@ -619,13 +615,13 @@ describe("trusted policy registry", () => {
         for (let i = 0; i < 4; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
 
           const dataV1 = `modifieddata${i}`;
-          const inputdataV1 = web3.utils.hexToBytes(web3.utils.toHex(dataV1));
+          const inputdataV1 = web3.utils.toHex(dataV1);
 
           const dataV2 = `modifieddata${i}V2`;
-          const inputdataV2 = web3.utils.hexToBytes(web3.utils.toHex(dataV2));
+          const inputdataV2 = web3.utils.toHex(dataV2);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           const policyRevs = await implV0.getPolicyRevisions(did, 1, 10, {
@@ -646,7 +642,7 @@ describe("trusted policy registry", () => {
         for (let i = 4; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           const policyRevs = await implV0.getPolicyRevisions(did, 1, 10, {

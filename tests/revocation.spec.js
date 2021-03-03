@@ -1,6 +1,7 @@
 const {
   BN, // Big Number support
   time,
+  constants,
   expectRevert,
   expectEvent, // Assertions for emitted events
 } = require("@openzeppelin/test-helpers");
@@ -74,9 +75,7 @@ describe("trusted application registry", () => {
       it("should revert for an unknown app", async () => {
         expect.assertions(0);
         const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(publickey)
-        );
+        const publickeyBytes = web3.utils.toHex(publickey);
         const appId = ethers.utils.sha256(publickeyBytes);
         const notBefore = (await time.latest()).add(time.duration.weeks(1));
         await expectRevert(
@@ -90,13 +89,18 @@ describe("trusted application registry", () => {
         expect.assertions(0);
         const notBefore = (await time.latest()).add(time.duration.weeks(1));
         await expectRevert(
-          implV0.insertRevocation([], "did:Administrator", notBefore, {
-            from: acc1,
-          }),
+          implV0.insertRevocation(
+            constants.ZERO_BYTES32,
+            "did:Administrator",
+            notBefore,
+            {
+              from: acc1,
+            }
+          ),
           "appId empty"
         );
         await expectRevert(
-          implV0.insertRevocation([12], "", notBefore, {
+          implV0.insertRevocation(ethers.utils.sha256([12]), "", notBefore, {
             from: acc1,
           }),
           "revokedBy empty"
@@ -112,9 +116,7 @@ describe("trusted application registry", () => {
         const appAdministrator =
           "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(applicationPublickey)
-        );
+        const publickeyBytes = web3.utils.toHex(applicationPublickey);
         const status = 0;
         const notBefore = (await time.latest()).add(time.duration.weeks(1));
         const notAfter = notBefore.add(time.duration.years(1));
@@ -169,9 +171,7 @@ describe("trusted application registry", () => {
         const appAdministrator =
           "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(applicationPublickey)
-        );
+        const publickeyBytes = web3.utils.toHex(applicationPublickey);
         const status = 0;
         const notBefore = (await time.latest()).add(time.duration.weeks(1));
         const notAfter = notBefore.add(time.duration.years(1));
@@ -218,13 +218,13 @@ describe("trusted application registry", () => {
         expect.assertions(0);
 
         await expectRevert(
-          implV0.getRevocation([], {
+          implV0.getRevocation(constants.ZERO_BYTES32, {
             from: acc1,
           }),
           "appId empty"
         );
         await expectRevert(
-          implV0.getRevocation([12], {
+          implV0.getRevocation(ethers.utils.sha256([12]), {
             from: acc1,
           }),
           "revocation unknown"
@@ -240,9 +240,7 @@ describe("trusted application registry", () => {
         const appAdministrator =
           "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(applicationPublickey)
-        );
+        const publickeyBytes = web3.utils.toHex(applicationPublickey);
         const status = 0;
         const notBefore = (await time.latest()).add(time.duration.weeks(1));
         const notAfter = notBefore.add(time.duration.years(1));
@@ -288,9 +286,7 @@ describe("trusted application registry", () => {
         // Create app
         const app2Administrator = "did:ebsi:0xapp2admin";
 
-        const app2pubkeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(app2Publickey)
-        );
+        const app2pubkeyBytes = web3.utils.toHex(app2Publickey);
         const notBefore2 = (await time.latest()).add(time.duration.weeks(1));
         const notAfter2 = notBefore.add(time.duration.years(1));
 

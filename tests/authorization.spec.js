@@ -1,6 +1,7 @@
 const {
   BN, // Big Number support
   time,
+  constants,
   expectRevert,
   expectEvent, // Assertions for emitted events
 } = require("@openzeppelin/test-helpers");
@@ -80,9 +81,7 @@ describe("trusted application registry", () => {
           "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
         const publickey = "dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(publickey)
-        );
+        const publickeyBytes = web3.utils.toHex(publickey);
         const status = 0;
         const notBefore = (await time.latest()).add(time.duration.weeks(1));
         const notAfter = notBefore.add(time.duration.years(1));
@@ -154,9 +153,7 @@ describe("trusted application registry", () => {
         const appAdministrator =
           "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(applicationPublickey)
-        );
+        const publickeyBytes = web3.utils.toHex(applicationPublickey);
         const status = 0;
         const notBefore = (await time.latest()).add(time.duration.weeks(1));
         const notAfter = notBefore.add(time.duration.years(1));
@@ -176,8 +173,8 @@ describe("trusted application registry", () => {
         const publicKeyId = ethers.utils.sha256(publickeyBytes);
 
         // Create authorized app
-        const authorizedPublickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(authorizedApplicationPublickey)
+        const authorizedPublickeyBytes = web3.utils.toHex(
+          authorizedApplicationPublickey
         );
         await implV0.insertApp(
           authorizedApplicationName,
@@ -268,9 +265,7 @@ describe("trusted application registry", () => {
         const appAdministrator =
           "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(applicationPublickey)
-        );
+        const publickeyBytes = web3.utils.toHex(applicationPublickey);
         const status = 0;
         const notBefore = (await time.latest()).add(time.duration.weeks(1));
         const notAfter = notBefore.add(time.duration.years(1));
@@ -300,8 +295,8 @@ describe("trusted application registry", () => {
           notAfter,
         });
         // Create authorized app
-        const authorizedPublickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(authorizedApplicationPublickey)
+        const authorizedPublickeyBytes = web3.utils.toHex(
+          authorizedApplicationPublickey
         );
         const insertAuthAppRcpt = await implV0.insertApp(
           authorizedApplicationName,
@@ -395,19 +390,21 @@ describe("trusted application registry", () => {
         const notAfter = (await time.latest()).add(time.duration.weeks(1));
         const permissions = 15;
         await expectRevert(
-          implV0.updateAuthorization([], status, permissions, notAfter, {
-            from: acc1,
-          }),
+          implV0.updateAuthorization(
+            constants.ZERO_BYTES32,
+            status,
+            permissions,
+            notAfter,
+            {
+              from: acc1,
+            }
+          ),
           "auth null"
         );
 
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex("dlkjdskljd")
-        );
+        const publickeyBytes = web3.utils.toHex("dlkjdskljd");
         const publicKeyId = ethers.utils.sha256(publickeyBytes);
-        const authPublicKeyIdBytes = web3.utils.hexToBytes(
-          web3.utils.toHex("dlkjssssdskljd")
-        );
+        const authPublicKeyIdBytes = web3.utils.toHex("dlkjssssdskljd");
         const authPublicKeyId = ethers.utils.sha256(authPublicKeyIdBytes);
         const newAuthorizationId = ethers.utils.sha256(
           web3.eth.abi.encodeParameters(
@@ -441,9 +438,7 @@ describe("trusted application registry", () => {
         const appAdministrator =
           "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(applicationPublickey)
-        );
+        const publickeyBytes = web3.utils.toHex(applicationPublickey);
         const status = 0;
         const notBefore = (await time.latest()).add(time.duration.weeks(1));
         const notAfter = notBefore.add(time.duration.years(1));
@@ -473,8 +468,8 @@ describe("trusted application registry", () => {
           notAfter,
         });
         // Create authorized app
-        const authorizedPublickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(authorizedApplicationPublickey)
+        const authorizedPublickeyBytes = web3.utils.toHex(
+          authorizedApplicationPublickey
         );
         const insertAuthAppRcpt = await implV0.insertApp(
           authorizedApplicationName,
@@ -604,8 +599,8 @@ describe("trusted application registry", () => {
         expect.assertions(0);
         const authorizedApplicationPublickey = "dStoreItMergEiIt564649798";
         // Create authorized app
-        const authorizedPublickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(authorizedApplicationPublickey)
+        const authorizedPublickeyBytes = web3.utils.toHex(
+          authorizedApplicationPublickey
         );
         const authPublicKeyId = ethers.utils.sha256(authorizedPublickeyBytes);
         const unknownAuthorizationId = ethers.utils.sha256(
@@ -638,9 +633,7 @@ describe("trusted application registry", () => {
         const appAdministrator =
           "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(applicationPublickey)
-        );
+        const publickeyBytes = web3.utils.toHex(applicationPublickey);
         const status = 0;
         const notBefore = (await time.latest()).add(time.duration.weeks(1));
         const notAfter = notBefore.add(time.duration.years(1));
@@ -670,8 +663,8 @@ describe("trusted application registry", () => {
           notAfter,
         });
         // Create authorized app
-        const authorizedPublickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(authorizedApplicationPublickey)
+        const authorizedPublickeyBytes = web3.utils.toHex(
+          authorizedApplicationPublickey
         );
         const insertAuthAppRcpt = await implV0.insertApp(
           authorizedApplicationName,
@@ -779,9 +772,7 @@ describe("trusted application registry", () => {
         expect.assertions(0);
         const appPubKey = "dStoreItMergEiIt564649798";
         // Create authorized app
-        const appPubKeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(appPubKey)
-        );
+        const appPubKeyBytes = web3.utils.toHex(appPubKey);
         const unknownAppId = ethers.utils.sha256(appPubKeyBytes);
         await expectRevert(
           implV0.getAuthorizations(unknownAppId, unknownAppId, 1, 1, {
@@ -790,7 +781,7 @@ describe("trusted application registry", () => {
           "appId unknown"
         );
         await expectRevert(
-          implV0.getAuthorizations([], unknownAppId, 1, 1, {
+          implV0.getAuthorizations(constants.ZERO_BYTES32, unknownAppId, 1, 1, {
             from: acc1,
           }),
           "appId empty"
@@ -799,13 +790,9 @@ describe("trusted application registry", () => {
       it("getauthorizations should return empty when no authorized app", async () => {
         expect.assertions(5);
         const publickey = `data0`;
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(publickey)
-        );
+        const publickeyBytes = web3.utils.toHex(publickey);
         const authPublickey = `auth-data0`;
-        const authPublickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(authPublickey)
-        );
+        const authPublickeyBytes = web3.utils.toHex(authPublickey);
         const authorizedAppId = ethers.utils.sha256(authPublickeyBytes);
 
         const applicationName = "Ledger API";
@@ -852,13 +839,9 @@ describe("trusted application registry", () => {
       it("getauthorizations should failed with wrong page size", async () => {
         expect.assertions(0);
         const publickey = `data0`;
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(publickey)
-        );
+        const publickeyBytes = web3.utils.toHex(publickey);
         const authPublickey = `auth-data0`;
-        const authPublickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(authPublickey)
-        );
+        const authPublickeyBytes = web3.utils.toHex(authPublickey);
 
         const applicationId = ethers.utils.sha256(publickeyBytes);
         const authorizedAppId = ethers.utils.sha256(authPublickeyBytes);
@@ -898,14 +881,10 @@ describe("trusted application registry", () => {
 
         const applicationName = `0`;
         const publickey = `data0`;
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(publickey)
-        );
+        const publickeyBytes = web3.utils.toHex(publickey);
         const authAppName = `auth-0`;
         const authPublickey = `auth-data0`;
-        const authPublickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(authPublickey)
-        );
+        const authPublickeyBytes = web3.utils.toHex(authPublickey);
         await implV0.insertApp(
           applicationName,
           domain,
@@ -1062,9 +1041,7 @@ describe("trusted application registry", () => {
         const permissions = 15;
         const applicationName = `0`;
         const publickey = `data0`;
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(publickey)
-        );
+        const publickeyBytes = web3.utils.toHex(publickey);
         await implV0.insertApp(
           applicationName,
           domain,
@@ -1081,9 +1058,7 @@ describe("trusted application registry", () => {
         for (let i = 0; i < 11; i += 1) {
           const curAppName = `auth-${i}`;
           const curPublickey = `auth-data${i}`;
-          const curPublickeyBytes = web3.utils.hexToBytes(
-            web3.utils.toHex(curPublickey)
-          );
+          const curPublickeyBytes = web3.utils.toHex(curPublickey);
 
           // eslint-disable-next-line no-await-in-loop
           await implV0.insertApp(
@@ -1105,9 +1080,7 @@ describe("trusted application registry", () => {
           const curAuthAppName = `auth-${i}`;
           const curIss = `issdata-${i}`;
           const curPublickey = `auth-data${i}`;
-          const authPublickeyBytes = web3.utils.hexToBytes(
-            web3.utils.toHex(curPublickey)
-          );
+          const authPublickeyBytes = web3.utils.toHex(curPublickey);
           const authorizedAppId = ethers.utils.sha256(authPublickeyBytes);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
@@ -1191,9 +1164,7 @@ describe("trusted application registry", () => {
         expect.assertions(0);
         const appPubKey = "dStoreItMergEiIt564649798";
         // Create authorized app
-        const appPubKeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(appPubKey)
-        );
+        const appPubKeyBytes = web3.utils.toHex(appPubKey);
         const unknownAppId = ethers.utils.sha256(appPubKeyBytes);
         await expectRevert(
           implV0.getAuthorizedAppsIds(unknownAppId, 1, 1, {
@@ -1202,7 +1173,7 @@ describe("trusted application registry", () => {
           "appId unknown"
         );
         await expectRevert(
-          implV0.getAuthorizedAppsIds([], 1, 1, {
+          implV0.getAuthorizedAppsIds(constants.ZERO_BYTES32, 1, 1, {
             from: acc1,
           }),
           "appId empty"
@@ -1218,9 +1189,7 @@ describe("trusted application registry", () => {
         const appAdministrator =
           "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
-        const publickeyBytes = web3.utils.hexToBytes(
-          web3.utils.toHex(applicationPublickey)
-        );
+        const publickeyBytes = web3.utils.toHex(applicationPublickey);
         const status = 0;
         const notBefore = (await time.latest()).add(time.duration.weeks(1));
         const notAfter = notBefore.add(time.duration.years(1));

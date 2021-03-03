@@ -76,7 +76,7 @@ describe("trusted application registry", () => {
         // insert did and attribute1v0
         const attribute1v0 =
           ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(attribute1v0));
+        const inputdata = web3.utils.toHex(attribute1v0);
         await implV0.insertAdministrator(did, inputdata, {
           from: acc1,
         });
@@ -95,15 +95,13 @@ describe("trusted application registry", () => {
         // insert did and attribute1v0
         const attribute1v0 =
           ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(attribute1v0));
+        const inputdata = web3.utils.toHex(attribute1v0);
         await implV0.insertAdministrator(did, inputdata, {
           from: acc1,
         });
         const firstAttrHash = ethers.utils.sha256(inputdata);
         const attribute1v1 = "yoloyouuuu";
-        const inputNewData = web3.utils.hexToBytes(
-          web3.utils.toHex(attribute1v1)
-        );
+        const inputNewData = web3.utils.toHex(attribute1v1);
         const attr1v1Hash = ethers.utils.sha256(inputNewData);
 
         // update the attribute1 to v1
@@ -120,10 +118,7 @@ describe("trusted application registry", () => {
         // add new attribute2
         const attr2Data =
           "attr2:dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputAttr2Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr2Data)
-        );
-
+        const inputAttr2Data = web3.utils.toHex(attr2Data);
         const attr2Hash = ethers.utils.sha256(inputAttr2Data);
 
         // as we overload update administrator we need to go through methods to test
@@ -142,10 +137,7 @@ describe("trusted application registry", () => {
         expect(res1).toStrictEqual([attr1v1Hash, attr2Hash]);
         // add a second version to attribute2
         const attr2v1Data = "attr2v1:somedata";
-        const inputAttr2v1Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr2v1Data)
-        );
-
+        const inputAttr2v1Data = web3.utils.toHex(attr2v1Data);
         const attr2v1Hash = ethers.utils.sha256(inputAttr2v1Data);
         await implV0.methods["updateAdministrator(string,bytes,bytes32)"](
           did,
@@ -163,9 +155,7 @@ describe("trusted application registry", () => {
 
         // add a thrid version to attribute1
         const attr1v2Data = "attr1v2:someotherdata";
-        const inputAttr1v2Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr1v2Data)
-        );
+        const inputAttr1v2Data = web3.utils.toHex(attr1v2Data);
         const attr1v2Hash = ethers.utils.sha256(inputAttr1v2Data);
         await implV0.methods["updateAdministrator(string,bytes,bytes32)"](
           did,
@@ -183,9 +173,7 @@ describe("trusted application registry", () => {
 
         // add a third attribute
         const attr3v0Data = "attr3v0:someotherdata";
-        const inputAttr3v0Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr3v0Data)
-        );
+        const inputAttr3v0Data = web3.utils.toHex(attr3v0Data);
         await implV0.methods["updateAdministrator(string,bytes)"](
           did,
           inputAttr3v0Data,
@@ -206,15 +194,13 @@ describe("trusted application registry", () => {
         // insert did and attribute1v0
         const attribute1v0 =
           ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(attribute1v0));
+        const inputdata = web3.utils.toHex(attribute1v0);
         await implV0.insertAdministrator(did, inputdata, {
           from: acc1,
         });
         const attr1v0Hash = ethers.utils.sha256(inputdata);
         const attribute1v1 = "yoloyouuuu";
-        const inputNewData = web3.utils.hexToBytes(
-          web3.utils.toHex(attribute1v1)
-        );
+        const inputNewData = web3.utils.toHex(attribute1v1);
         const attr1v1Hash = ethers.utils.sha256(inputNewData);
         // update the attribute1 to v1
         await implV0.methods["updateAdministrator(string,bytes,bytes32)"](
@@ -228,9 +214,7 @@ describe("trusted application registry", () => {
         // add new attribute2
         const attr2Data =
           "attr2:dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputAttr2Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr2Data)
-        );
+        const inputAttr2Data = web3.utils.toHex(attr2Data);
         const attr2v0Hash = ethers.utils.sha256(inputAttr2Data);
         // as we overload update administrator we need to go through methods to test
         await implV0.methods["updateAdministrator(string,bytes)"](
@@ -243,9 +227,7 @@ describe("trusted application registry", () => {
 
         // add a second version to attribute2
         const attr2v1Data = "attr2v1:somedata";
-        const inputAttr2v1Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr2v1Data)
-        );
+        const inputAttr2v1Data = web3.utils.toHex(attr2v1Data);
         const attr2v1Hash = ethers.utils.sha256(inputAttr2v1Data);
         await implV0.methods["updateAdministrator(string,bytes,bytes32)"](
           did,
@@ -257,9 +239,7 @@ describe("trusted application registry", () => {
         );
         // add a thrid version to attribute1
         const attr1v2Data = "attr1v2:someotherdata";
-        const inputAttr1v2Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr1v2Data)
-        );
+        const inputAttr1v2Data = web3.utils.toHex(attr1v2Data);
         const attr1v2Hash = ethers.utils.sha256(inputAttr1v2Data);
         await implV0.methods["updateAdministrator(string,bytes,bytes32)"](
           did,
@@ -271,9 +251,7 @@ describe("trusted application registry", () => {
         );
         // add a third attribute
         const attr3v0Data = "attr3v0:someotherdata";
-        const inputAttr3v0Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr3v0Data)
-        );
+        const inputAttr3v0Data = web3.utils.toHex(attr3v0Data);
         await implV0.methods["updateAdministrator(string,bytes)"](
           did,
           inputAttr3v0Data,
@@ -360,7 +338,7 @@ describe("trusted application registry", () => {
         // insert did and attribute1v0
         const attribute1v0 =
           ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(attribute1v0));
+        const inputdata = web3.utils.toHex(attribute1v0);
         await implV0.insertAdministrator(did, inputdata, {
           from: acc1,
         });
@@ -368,7 +346,7 @@ describe("trusted application registry", () => {
         // calling getAttributeHistory with attr1v0Hash, attr1v1Hash or attr1v2Hash should return the same array
         await expectRevert(
           implV0.getAdministratorAttributeRevisions.call(
-            web3.utils.hexToBytes(web3.utils.toHex("notexistinghash")),
+            web3.utils.toHex("notexistinghash"),
             1,
             10,
             {
@@ -384,7 +362,7 @@ describe("trusted application registry", () => {
         // insert did and attribute1v0
         const attribute1v0 =
           ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(attribute1v0));
+        const inputdata = web3.utils.toHex(attribute1v0);
         await implV0.insertAdministrator(did, inputdata, {
           from: acc1,
         });
@@ -392,7 +370,7 @@ describe("trusted application registry", () => {
         // calling getAttributeHistory with attr1v0Hash, attr1v1Hash or attr1v2Hash should return the same array
         await expectRevert(
           implV0.getAdministratorAttributeByHash.call(
-            web3.utils.hexToBytes(web3.utils.toHex("notexistinghash")),
+            web3.utils.toHex("notexistinghash"),
             {
               from: acc1,
             }
@@ -406,17 +384,13 @@ describe("trusted application registry", () => {
         // insert did and attribute1v0
         const attribute1v0 =
           ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputAttr1v0Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attribute1v0)
-        );
+        const inputAttr1v0Data = web3.utils.toHex(attribute1v0);
         await implV0.insertAdministrator(did, inputAttr1v0Data, {
           from: acc1,
         });
         const attr1v0Hash = ethers.utils.sha256(inputAttr1v0Data);
         const attribute1v1 = "yoloyouuuu";
-        const inputAttr1v1Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attribute1v1)
-        );
+        const inputAttr1v1Data = web3.utils.toHex(attribute1v1);
         const attr1v1Hash = ethers.utils.sha256(inputAttr1v1Data);
         // update the attribute1 to v1
         await implV0.methods["updateAdministrator(string,bytes,bytes32)"](
@@ -429,9 +403,7 @@ describe("trusted application registry", () => {
         );
         // add a thrid version to attribute1
         const attribute1v2 = "attr1v2:someotherdata";
-        const inputAttr1v2Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attribute1v2)
-        );
+        const inputAttr1v2Data = web3.utils.toHex(attribute1v2);
         const attr1v2Hash = ethers.utils.sha256(inputAttr1v2Data);
 
         await implV0.methods["updateAdministrator(string,bytes,bytes32)"](
@@ -446,9 +418,7 @@ describe("trusted application registry", () => {
         const did2 = "did:ebsi:0x324565465fd455646545464564654";
         const did2Attr1v0 =
           "attr2:dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputDid2Attr1v0 = web3.utils.hexToBytes(
-          web3.utils.toHex(did2Attr1v0)
-        );
+        const inputDid2Attr1v0 = web3.utils.toHex(did2Attr1v0);
         const did2Attr1v0Hash = ethers.utils.sha256(inputDid2Attr1v0);
 
         // as we overload update administrator we need to go through methods to test
@@ -458,9 +428,7 @@ describe("trusted application registry", () => {
 
         // add a second version to attribute2
         const did2Attr1v1 = "attr2v1:somedata";
-        const inputDid2Attr1v1 = web3.utils.hexToBytes(
-          web3.utils.toHex(did2Attr1v1)
-        );
+        const inputDid2Attr1v1 = web3.utils.toHex(did2Attr1v1);
         const did2Attr1v1Hash = ethers.utils.sha256(inputDid2Attr1v1);
 
         await implV0.methods["updateAdministrator(string,bytes,bytes32)"](
@@ -543,16 +511,14 @@ describe("trusted application registry", () => {
       it("should failed with wrong page size", async () => {
         expect.assertions(0);
         const did = `didi`;
-        const firstinputdata = web3.utils.hexToBytes(
-          web3.utils.toHex("data-update-0")
-        );
+        const firstinputdata = web3.utils.toHex("data-update-0");
         const didFirstInputHash = ethers.utils.sha256(firstinputdata);
         await implV0.insertAdministrator(did, firstinputdata, {
           from: acc1,
         });
         for (let i = 1; i < 11; i += 1) {
           const data = `data-update-${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.methods["updateAdministrator(string,bytes,bytes32)"](
@@ -606,16 +572,14 @@ describe("trusted application registry", () => {
       it("should work", async () => {
         expect.assertions(18);
         const did = `didi`;
-        const firstinputdata = web3.utils.hexToBytes(
-          web3.utils.toHex("data-update-0")
-        );
+        const firstinputdata = web3.utils.toHex("data-update-0");
         const didFirstInputHash = ethers.utils.sha256(firstinputdata);
         await implV0.insertAdministrator(did, firstinputdata, {
           from: acc1,
         });
         for (let i = 1; i < 11; i += 1) {
           const data = `data-update-${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.methods["updateAdministrator(string,bytes,bytes32)"](
@@ -690,7 +654,7 @@ describe("trusted application registry", () => {
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
         const data = ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+        const inputdata = web3.utils.toHex(data);
         const receipt = await implV0.insertAdministrator(did, inputdata, {
           from: acc1,
         });
@@ -722,7 +686,7 @@ describe("trusted application registry", () => {
         const did1Hash = ethers.utils.sha256(web3.utils.toHex(did1));
 
         const data = ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+        const inputdata = web3.utils.toHex(data);
         // add did1 with inputdata
         const receipt = await implV0.insertAdministrator(did1, inputdata, {
           from: acc1,
@@ -764,7 +728,7 @@ describe("trusted application registry", () => {
         const did1Hash = ethers.utils.sha256(web3.utils.toHex(did1));
 
         const data = ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+        const inputdata = web3.utils.toHex(data);
         const receipt = await implV0.insertAdministrator(did1, inputdata, {
           from: acc1,
         });
@@ -794,7 +758,7 @@ describe("trusted application registry", () => {
         const did2Hash = ethers.utils.sha256(web3.utils.toHex(did2));
 
         const data2 = "dfsq5dsq4654d6s4f65sd4fsd654f6f4sd64f64s6f4sd6";
-        const inputdata2 = web3.utils.hexToBytes(web3.utils.toHex(data2));
+        const inputdata2 = web3.utils.toHex(data2);
         const receipt2 = await implV0.insertAdministrator(did2, inputdata2, {
           from: acc1,
         });
@@ -827,7 +791,7 @@ describe("trusted application registry", () => {
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
         const data = ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+        const inputdata = web3.utils.toHex(data);
         const receipt = await implV0.insertAdministrator(did, inputdata, {
           from: acc1,
         });
@@ -857,7 +821,7 @@ describe("trusted application registry", () => {
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.insertAdministrator(did, inputdata, {
@@ -893,7 +857,7 @@ describe("trusted application registry", () => {
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;
-          const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+          const inputdata = web3.utils.toHex(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           await implV0.insertAdministrator(did, inputdata, {
@@ -947,7 +911,7 @@ describe("trusted application registry", () => {
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
         const data = ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+        const inputdata = web3.utils.toHex(data);
         const receipt = await implV0.insertAdministrator(did, inputdata, {
           from: acc1,
         });
@@ -963,7 +927,7 @@ describe("trusted application registry", () => {
           attributesCount: new BN(1),
         });
         const newData = "yoloyouuuu";
-        const inputNewData = web3.utils.hexToBytes(web3.utils.toHex(newData));
+        const inputNewData = web3.utils.toHex(newData);
         const newAttrHash = ethers.utils.sha256(inputNewData);
 
         const res = await implV0.methods[
@@ -985,7 +949,7 @@ describe("trusted application registry", () => {
         expect.assertions(0);
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const data = ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+        const inputdata = web3.utils.toHex(data);
 
         // Event assertions can verify that the arguments are the expected ones
 
@@ -1002,7 +966,7 @@ describe("trusted application registry", () => {
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
         const data = ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+        const inputdata = web3.utils.toHex(data);
         const receipt = await implV0.insertAdministrator(did, inputdata, {
           from: acc1,
         });
@@ -1022,7 +986,7 @@ describe("trusted application registry", () => {
         const didHash2 = ethers.utils.sha256(web3.utils.toHex(did2));
 
         const data2 = "whateverkhfkjsh89798";
-        const inputdata2 = web3.utils.hexToBytes(web3.utils.toHex(data2));
+        const inputdata2 = web3.utils.toHex(data2);
         const receipt2 = await implV0.insertAdministrator(did2, inputdata2, {
           from: acc1,
         });
@@ -1055,7 +1019,7 @@ describe("trusted application registry", () => {
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
         const data = ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+        const inputdata = web3.utils.toHex(data);
         const receipt = await implV0.insertAdministrator(did, inputdata, {
           from: acc1,
         });
@@ -1088,7 +1052,7 @@ describe("trusted application registry", () => {
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
         const data = ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputdata = web3.utils.hexToBytes(web3.utils.toHex(data));
+        const inputdata = web3.utils.toHex(data);
         const receipt = await implV0.insertAdministrator(did, inputdata, {
           from: acc1,
         });
@@ -1104,7 +1068,7 @@ describe("trusted application registry", () => {
           attributesCount: new BN(1),
         });
         const newData = "yoloyouuuu";
-        const inputNewData = web3.utils.hexToBytes(web3.utils.toHex(newData));
+        const inputNewData = web3.utils.toHex(newData);
         const newAttrHash = ethers.utils.sha256(inputNewData);
         await expectRevert(
           implV0.methods["updateAdministrator(string,bytes,bytes32)"](
@@ -1125,9 +1089,7 @@ describe("trusted application registry", () => {
 
         const attr1Data =
           "attr1:dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputAttr1Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr1Data)
-        );
+        const inputAttr1Data = web3.utils.toHex(attr1Data);
         const receipt = await implV0.insertAdministrator(did, inputAttr1Data, {
           from: acc1,
         });
@@ -1143,9 +1105,7 @@ describe("trusted application registry", () => {
           attributesCount: new BN(1),
         });
         const attr1NewData = "yoloyouuuu";
-        const attr1InputNewData = web3.utils.hexToBytes(
-          web3.utils.toHex(attr1NewData)
-        );
+        const attr1InputNewData = web3.utils.toHex(attr1NewData);
         const attr1NewAttrHash = ethers.utils.sha256(attr1InputNewData);
         const res = await implV0.methods[
           "updateAdministrator(string,bytes,bytes32)"
@@ -1166,9 +1126,7 @@ describe("trusted application registry", () => {
         // -------------Second Attributes-------------------
         const attr2Data =
           "attr2:dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputAttr2Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr2Data)
-        );
+        const inputAttr2Data = web3.utils.toHex(attr2Data);
         // as we overload update administrator we need to go through methods to test
         const receipt2 = await implV0.methods[
           "updateAdministrator(string,bytes)"
@@ -1190,10 +1148,7 @@ describe("trusted application registry", () => {
 
         // const attr2NewAttrHash = ethers.utils.sha256(attr1NewData);
         // same data than attr1 v2
-        const attr2InputNewData = web3.utils.hexToBytes(
-          web3.utils.toHex(attr1NewData)
-        );
-
+        const attr2InputNewData = web3.utils.toHex(attr1NewData);
         await expectRevert(
           implV0.methods["updateAdministrator(string,bytes,bytes32)"](
             did,
@@ -1206,9 +1161,7 @@ describe("trusted application registry", () => {
           "attr exist"
         );
         // same data than attr1 v1
-        const attr2InputNewData2 = web3.utils.hexToBytes(
-          web3.utils.toHex(attr1Data)
-        );
+        const attr2InputNewData2 = web3.utils.toHex(attr1Data);
         await expectRevert(
           implV0.methods["updateAdministrator(string,bytes,bytes32)"](
             did,
@@ -1228,9 +1181,7 @@ describe("trusted application registry", () => {
 
         const attr1Data =
           "attr1:dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputAttr1Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr1Data)
-        );
+        const inputAttr1Data = web3.utils.toHex(attr1Data);
         const receipt = await implV0.insertAdministrator(did, inputAttr1Data, {
           from: acc1,
         });
@@ -1246,9 +1197,7 @@ describe("trusted application registry", () => {
           attributesCount: new BN(1),
         });
         const attr1NewData = "yoloyouuuu";
-        const attr1InputNewData = web3.utils.hexToBytes(
-          web3.utils.toHex(attr1NewData)
-        );
+        const attr1InputNewData = web3.utils.toHex(attr1NewData);
         const attr1NewAttrHash = ethers.utils.sha256(attr1InputNewData);
         const res = await implV0.methods[
           "updateAdministrator(string,bytes,bytes32)"
@@ -1269,10 +1218,7 @@ describe("trusted application registry", () => {
         // -------------Second Attributes-------------------
         const attr2Data =
           "attr2:dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputAttr2Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr2Data)
-        );
-
+        const inputAttr2Data = web3.utils.toHex(attr2Data);
         // as we overload update administrator we need to go through methods to test
         const receipt2 = await implV0.methods[
           "updateAdministrator(string,bytes)"
@@ -1292,9 +1238,7 @@ describe("trusted application registry", () => {
         });
 
         const attr2NewData = "Newjhkhjyoloyouuuu";
-        const attr2InputNewData = web3.utils.hexToBytes(
-          web3.utils.toHex(attr2NewData)
-        );
+        const attr2InputNewData = web3.utils.toHex(attr2NewData);
         const attr2NewAttrHash = ethers.utils.sha256(attr2InputNewData);
         const res2 = await implV0.methods[
           "updateAdministrator(string,bytes,bytes32)"
@@ -1313,9 +1257,7 @@ describe("trusted application registry", () => {
         });
 
         const attr2NewDataV3 = "VeryNewjhkhjyoloyouuuu";
-        const attr2InputNewDataV3 = web3.utils.hexToBytes(
-          web3.utils.toHex(attr2NewDataV3)
-        );
+        const attr2InputNewDataV3 = web3.utils.toHex(attr2NewDataV3);
         const attr2NewAttrHashV3 = ethers.utils.sha256(attr2InputNewDataV3);
         const res3 = await implV0.methods[
           "updateAdministrator(string,bytes,bytes32)"
@@ -1379,9 +1321,7 @@ describe("trusted application registry", () => {
 
         const attr1Data =
           "attr1:dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputAttr1Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr1Data)
-        );
+        const inputAttr1Data = web3.utils.toHex(attr1Data);
         const receipt = await implV0.insertAdministrator(did, inputAttr1Data, {
           from: acc1,
         });
@@ -1397,9 +1337,7 @@ describe("trusted application registry", () => {
           attributesCount: new BN(1),
         });
         const attr1NewData = "yoloyouuuu";
-        const attr1InputNewData = web3.utils.hexToBytes(
-          web3.utils.toHex(attr1NewData)
-        );
+        const attr1InputNewData = web3.utils.toHex(attr1NewData);
         const attr1NewAttrHash = ethers.utils.sha256(attr1InputNewData);
         const res = await implV0.methods[
           "updateAdministrator(string,bytes,bytes32)"
@@ -1419,10 +1357,7 @@ describe("trusted application registry", () => {
         // -------------Second Attributes-------------------
         const attr2Data =
           "attr2:dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
-        const inputAttr2Data = web3.utils.hexToBytes(
-          web3.utils.toHex(attr2Data)
-        );
-
+        const inputAttr2Data = web3.utils.toHex(attr2Data);
         // as we overload update administrator we need to go through methods to test
         const receipt2 = await implV0.methods[
           "updateAdministrator(string,bytes)"
@@ -1444,9 +1379,7 @@ describe("trusted application registry", () => {
         });
 
         const attr2NewData = "Newjhkhjyoloyouuuu";
-        const attr2InputNewData = web3.utils.hexToBytes(
-          web3.utils.toHex(attr2NewData)
-        );
+        const attr2InputNewData = web3.utils.toHex(attr2NewData);
         const attr2NewAttrHash = ethers.utils.sha256(attr2InputNewData);
         const res2 = await implV0.methods[
           "updateAdministrator(string,bytes,bytes32)"
@@ -1469,7 +1402,7 @@ describe("trusted application registry", () => {
         const did2Hash = ethers.utils.sha256(web3.utils.toHex(did2));
 
         const data2 = "dfsq5dsq4654d6s4f65sd4fsd654f6f4sd64f64s6f4sd6";
-        const inputdata2 = web3.utils.hexToBytes(web3.utils.toHex(data2));
+        const inputdata2 = web3.utils.toHex(data2);
         const receiptDid2 = await implV0.insertAdministrator(did2, inputdata2, {
           from: acc1,
         });
@@ -1496,9 +1429,7 @@ describe("trusted application registry", () => {
         expect(attributeVersions2.items[0]).toStrictEqual(firstAttrHash2);
 
         const did2AttributNewData = "VeryNewjhkhjyoloyouuuu";
-        const did2InputNewData = web3.utils.hexToBytes(
-          web3.utils.toHex(did2AttributNewData)
-        );
+        const did2InputNewData = web3.utils.toHex(did2AttributNewData);
         const did2AttributNewDataHash = ethers.utils.sha256(did2InputNewData);
         const res3 = await implV0.methods[
           "updateAdministrator(string,bytes,bytes32)"
