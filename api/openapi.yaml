@@ -4,7 +4,7 @@ info:
   description: |
     Authorisation service is an EBSI core service that manages the user,
     legal entities and component authentication.
-  version: 2.0.0
+  version: 1.0.0
   termsOfService: "/docs/terms"
   contact:
     name: "EBSI Support"

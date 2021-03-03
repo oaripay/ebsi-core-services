@@ -9,7 +9,8 @@ declare global {
       API_URL_PREFIX?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       LEDGER?: string;
-      TRUSTED_APPS_REGISTRY_CONTRACT_ADDR: string;
+      TRUSTED_APPS_REGISTRY?: string;
+      APPLICATION_ID: string;
       DOMAIN?: string;
       HEALTH_CHECK?: string;
       APP_TEST_NAME?: string;

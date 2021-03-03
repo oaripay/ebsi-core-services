@@ -7,7 +7,8 @@ export interface ApiConfig {
   apiPrivateKey: string;
   apiUrlPrefix: string;
   authExpireTime: number;
-  tarContractAddr: string;
+  trustedAppsRegistry: string;
+  applicationId: string;
   domain: string;
   logLevel: string;
   appTestName: string;
@@ -20,21 +21,28 @@ const defaultConfig = {
   local: {
     LOG_LEVEL: "debug",
     DOMAIN: "https://api.test.intebsi.xyz",
+    TRUSTED_APPS_REGISTRY:
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v2",
     HEALTH_CHECK: `https://api.test.intebsi.xyz/docs/`,
   },
   test: {
     LOG_LEVEL: "info",
     DOMAIN: "https://api.test.intebsi.xyz",
+    TRUSTED_APPS_REGISTRY:
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v2",
     HEALTH_CHECK: `https://api.test.intebsi.xyz/docs/`,
   },
   pilot: {
     LOG_LEVEL: "warn",
     DOMAIN: "https://api.pilot.ebsi.xyz",
+    TRUSTED_APPS_REGISTRY:
+      "https://api.pilot.ebsi.xyz/trusted-apps-registry/v2",
     HEALTH_CHECK: `https://api.pilot.ebsi.xyz/docs/`,
   },
   prod: {
     LOG_LEVEL: "error",
     DOMAIN: "https://api.prod.ebsi.xyz",
+    TRUSTED_APPS_REGISTRY: "https://api.prod.ebsi.xyz/trusted-apps-registry/v2",
     HEALTH_CHECK: `https://api.prod.ebsi.xyz/docs/`,
   },
 };
@@ -46,11 +54,14 @@ export const loadConfig = (): ApiConfig => {
   const { EBSI_ENV } = process.env;
 
   return {
-    authExpireTime: parseInt(process.env.AUTH_EXPIRE_TIME, 10) || 60, // minutes
+    authExpireTime: parseInt(process.env.AUTH_EXPIRE_TIME, 10) || 900, // seconds
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiUrlPrefix: process.env.API_URL_PREFIX || "",
-    tarContractAddr: process.env.TRUSTED_APPS_REGISTRY_CONTRACT_ADDR,
+    trustedAppsRegistry:
+      process.env.TRUSTED_APPS_REGISTRY ||
+      defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY,
+    applicationId: process.env.APPLICATION_ID,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     externalEBSIApiHealthCheck:
@@ -87,7 +98,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     // Authorisation specific variables
     DOMAIN: Joi.string().uri(),
-    TRUSTED_APPS_REGISTRY_CONTRACT_ADDR: Joi.string(),
+    TRUSTED_APPS_REGISTRY: Joi.string(),
+    APPLICATION_ID: Joi.string().required(),
     HEALTH_CHECK: Joi.string(),
     APP_TEST_NAME: Joi.string(),
     APP_TEST_PRIVATE_KEY: Joi.string(),
