@@ -24,7 +24,6 @@ import {
   UpdateLedgerNameParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { GetLedgersResponse } from "../../src/modules/ledgers/ledgers.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
@@ -46,7 +45,9 @@ describe("Ledgers (e2e)", () => {
   let adminTestWallet: ethers.Wallet;
   let ledgerName: string;
   let ledgerName2: string;
+  let rawLedgerInfo: Record<string, unknown>;
   let ledgerInfo: Buffer;
+  let ledgerInfoId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -76,79 +77,13 @@ describe("Ledgers (e2e)", () => {
 
     ledgerName = `ledger-name-${crypto.randomBytes(8).toString("hex")}`;
     ledgerName2 = `ledger-name-${crypto.randomBytes(8).toString("hex")}`;
-    ledgerInfo = Buffer.from(
-      JSON.stringify({
-        "@context": "https://ebsi.com",
-        type: "Ledger",
-        name: ledgerName,
-      })
-    );
-  });
-
-  // eslint-disable-next-line jest/no-disabled-tests
-  describe.skip("GET /ledgers", () => {
-    it("should return a paginated collection of ledgers", async () => {
-      expect.assertions(2);
-
-      const response = await request(server).get("/ledgers");
-      expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/ledgers?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: expect.any(Number) as number,
-        pageSize: 10,
-        links: {
-          first: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining("/ledgers?page[after]=") as string,
-          last: expect.stringContaining("/ledgers?page[after]=") as string,
-        },
-      });
-      expect(response.status).toBe(200);
-    });
-  });
-
-  // eslint-disable-next-line jest/no-disabled-tests
-  describe.skip("GET /ledgers/{ledgerInfoId}", () => {
-    it("should return a specific hash algorithm", async () => {
-      expect.assertions(2);
-
-      const respLedgers = await request(server).get("/ledgers");
-      const { ledgerInfoId } = (respLedgers.body as {
-        items: GetLedgersResponse[];
-      }).items[0];
-
-      const response = await request(server).get(`/ledgers/${ledgerInfoId}`);
-
-      expect(response.body).toStrictEqual({
-        ianaName: expect.any(String) as string,
-        oid: expect.any(String) as string,
-        outputLengthBits: expect.any(Number) as number,
-        status: expect.any(String) as string,
-      });
-      expect(response.status).toBe(200);
-    });
-
-    it("should throw an error if the hash algorithm is not found", async () => {
-      expect.assertions(2);
-
-      const ledgerInfoId = Math.floor(Math.random() * 10000) + 10000; // some random number between 10,000 and 20,000
-
-      const response = await request(server).get(`/ledgers/${ledgerInfoId}`);
-
-      expect(response.body).toStrictEqual({
-        title: "Hash algorithm Not Found",
-        status: 404,
-        detail: `Hash algorithm ${ledgerInfoId} not found`,
-        type: "about:blank",
-      });
-      expect(response.status).toBe(404);
-    });
+    rawLedgerInfo = {
+      "@context": "https://ebsi.com",
+      type: "Ledger",
+      name: ledgerName,
+    };
+    ledgerInfo = Buffer.from(JSON.stringify(rawLedgerInfo));
+    ledgerInfoId = ethers.utils.sha256(ledgerInfo);
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -173,11 +108,9 @@ describe("Ledgers (e2e)", () => {
           break;
         }
         case "updateLedgerInfoById": {
-          const id = ethers.utils.sha256(ledgerInfo);
-
           params = {
             from: adminTestWallet.address,
-            ledgerInfoId: id,
+            ledgerInfoId,
             info: `0x${Buffer.from(
               JSON.stringify({
                 "@context": "https://ebsi.com",
@@ -197,7 +130,7 @@ describe("Ledgers (e2e)", () => {
               JSON.stringify({
                 "@context": "https://ebsi.com",
                 type: "Ledger",
-                name: "ledger-name",
+                name: ledgerName2,
                 newProp2: "new value2",
               })
             ).toString("hex")}`,
@@ -277,6 +210,133 @@ describe("Ledgers (e2e)", () => {
       // wait to be mined
       const receipt = await waitToBeMined(responseSend.body.result as string);
       expect(receipt.status).toBe("0x1");
+    });
+  });
+
+  describe("GET /ledgers", () => {
+    it("should return a paginated collection of ledgers", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/ledgers");
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/ledgers?page[after]=1&page[size]=10"
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining("/ledgers?page[after]=") as string,
+          last: expect.stringContaining("/ledgers?page[after]=") as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should return the ledgers corresponding to a specific name", async () => {
+      expect.assertions(4);
+
+      // If we give a wrong name
+      const response = await request(server).get("/ledgers?name=wrong-name");
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
+        ) as string,
+        items: [],
+        total: 0,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
+          ) as string,
+          prev: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
+          ) as string,
+          next: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
+          ) as string,
+          last: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+
+      // If we pass an existing name
+      const response2 = await request(server).get(
+        `/ledgers?name=${ledgerName2}`
+      );
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/ledgers?page[after]=1&page[size]=10&name=${ledgerName2}`
+        ) as string,
+        items: [
+          {
+            ledgerInfoId,
+            href: expect.stringContaining(`/ledgers/${ledgerInfoId}`) as string,
+          },
+        ],
+        total: 1,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/ledgers?page[after]=1&page[size]=10&name=${ledgerName2}`
+          ) as string,
+          prev: expect.stringContaining(
+            `/ledgers?page[after]=1&page[size]=10&name=${ledgerName2}`
+          ) as string,
+          next: expect.stringContaining(
+            `/ledgers?page[after]=1&page[size]=10&name=${ledgerName2}`
+          ) as string,
+          last: expect.stringContaining(
+            `/ledgers?page[after]=1&page[size]=10&name=${ledgerName2}`
+          ) as string,
+        },
+      });
+      expect(response2.status).toBe(200);
+    });
+  });
+
+  describe("GET /ledgers/{ledgerInfoId}", () => {
+    it("should return a specific ledger info", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get(`/ledgers/${ledgerInfoId}`);
+
+      expect(response.body).toStrictEqual({
+        ...rawLedgerInfo,
+        name: ledgerName2,
+        newProp2: "new value2",
+      });
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/ld+json"));
+    });
+
+    it("should throw an error if the ledger info is not found", async () => {
+      expect.assertions(3);
+
+      const fakeId = Math.floor(Math.random() * 10000) + 10000; // some random number between 10,000 and 20,000
+
+      const response = await request(server).get(`/ledgers/${fakeId}`);
+
+      expect(response.body).toStrictEqual({
+        title: "Ledger Not Found",
+        status: 404,
+        detail: `Ledger ${fakeId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
   });
 });

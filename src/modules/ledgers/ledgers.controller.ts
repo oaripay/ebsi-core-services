@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param } from "@nestjs/common";
+import { Controller, Get, Query, Param, Header } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { LedgersService } from "./ledgers.service";
 import { formatLedgers } from "./ledgers.formatter";
@@ -32,11 +32,13 @@ export class LedgersController {
       ledgers,
       query["page[after]"],
       query["page[size]"],
-      baseUrl
+      baseUrl,
+      query.name
     );
   }
 
   @Get("/:ledgerInfoId")
+  @Header("Content-Type", "application/ld+json")
   async getLedger(@Param() params: GetLedgerParams): Promise<unknown> {
     const { ledgerInfoId } = params;
     return this.ledgersService.getLedger(ledgerInfoId);

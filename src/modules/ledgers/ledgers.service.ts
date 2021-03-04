@@ -3,6 +3,7 @@ import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { ContractService } from "../../shared/services/contract.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerSCRegistry } from "../../contracts/trusted-ledgers-sc";
+import { LedgerInfoIdsList } from "./ledgers.interface";
 
 @Injectable()
 export class LedgersService {
@@ -18,13 +19,34 @@ export class LedgersService {
     page: number,
     pageSize: number,
     name?: string
-  ): ReturnType<LedgerSCRegistry["getLedgerInfoIds"]> {
+  ): Promise<LedgerInfoIdsList> {
     if (name) {
-      // TODO: filter results by name
-      // await this.ledgerScRegistryContract.getLatestLedgerInfoByLedgerName(name);
+      try {
+        const ledger = await this.ledgerScRegistryContract.getLedgerInfoIdByName(
+          name
+        );
+
+        return {
+          items: [ledger],
+          total: ledger ? 1 : 0,
+        };
+      } catch (e) {
+        return {
+          items: [],
+          total: 0,
+        };
+      }
     }
 
-    return this.ledgerScRegistryContract.getLedgerInfoIds(page, pageSize);
+    const result = await this.ledgerScRegistryContract.getLedgerInfoIds(
+      page,
+      pageSize
+    );
+
+    return {
+      items: result.items,
+      total: result.total.toNumber(),
+    };
   }
 
   async getLedger(ledgerInfoId: string): Promise<unknown> {

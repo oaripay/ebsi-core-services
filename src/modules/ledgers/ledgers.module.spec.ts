@@ -214,7 +214,7 @@ describe("Ledgers Module", () => {
     });
 
     it("should throw a Bad Request for bad pagination", async () => {
-      expect.assertions(8);
+      expect.assertions(12);
 
       const response1 = await request(server).get("/ledgers?page[size]=100");
       expect(response1.body).toStrictEqual({
@@ -224,6 +224,9 @@ describe("Ledgers Module", () => {
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
+      expect(
+        (response1.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
       const response2 = await request(server).get("/ledgers?page[size]=0");
       expect(response2.body).toStrictEqual({
@@ -233,6 +236,9 @@ describe("Ledgers Module", () => {
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
+      expect(
+        (response2.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
       const response3 = await request(server).get("/ledgers?page[after]=0");
       expect(response3.body).toStrictEqual({
@@ -242,6 +248,9 @@ describe("Ledgers Module", () => {
         type: "about:blank",
       });
       expect(response3.status).toBe(400);
+      expect(
+        (response3.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
       const response4 = await request(server).get("/ledgers?page[after]=abc");
       expect(response4.body).toStrictEqual({
@@ -252,12 +261,82 @@ describe("Ledgers Module", () => {
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
+      expect(
+        (response4.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should return the ledgers corresponding to a specific name", async () => {
+      expect.assertions(4);
+
+      // If we give a wrong name
+      const response = await request(server).get("/ledgers?name=wrong-name");
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
+        ) as string,
+        items: [],
+        total: 0,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
+          ) as string,
+          prev: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
+          ) as string,
+          next: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
+          ) as string,
+          last: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+
+      const { ledgers } = testEnv;
+
+      // If we pass an existing name
+      const response2 = await request(server).get(
+        `/ledgers?name=${ledgers[0].ledgerName}`
+      );
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/ledgers?page[after]=1&page[size]=10"
+        ) as string,
+        items: [
+          {
+            ledgerInfoId: ledgers[0].ledgerInfoId,
+            href: expect.stringContaining(
+              `/ledgers/${ledgers[0].ledgerInfoId}`
+            ) as string,
+          },
+        ],
+        total: 1,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10"
+          ) as string,
+          last: expect.stringContaining(
+            "/ledgers?page[after]=1&page[size]=10"
+          ) as string,
+        },
+      });
+      expect(response2.status).toBe(200);
     });
   });
 
   describe("GET /ledgers/{ledgerInfoId}", () => {
     it("should throw an error if the ledger ID is not hexadecimal", async () => {
-      expect.assertions(2);
+      expect.assertions(3);
 
       const response = await request(server).get("/ledgers/no-ledger");
 
@@ -268,10 +347,13 @@ describe("Ledgers Module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
     it("should throw an error if the ledger is not found", async () => {
-      expect.assertions(2);
+      expect.assertions(3);
 
       const ledgerInfoId = crypto.randomBytes(32).toString("hex");
       const response = await request(server).get(`/ledgers/0x${ledgerInfoId}`);
@@ -283,10 +365,13 @@ describe("Ledgers Module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
     it("should return a specific ledger", async () => {
-      expect.assertions(2);
+      expect.assertions(3);
 
       const ledger = testEnv.ledgers[0];
 
@@ -296,6 +381,9 @@ describe("Ledgers Module", () => {
 
       expect(response.body).toStrictEqual(ledger.ledgerInfo);
       expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/ld+json"));
     });
   });
 });

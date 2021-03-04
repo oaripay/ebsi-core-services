@@ -1,24 +1,20 @@
-import { ethers } from "ethers";
 import { formatLedgers } from "./ledgers.formatter";
-import { LedgerSCRegistry } from "../../contracts/trusted-ledgers-sc";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { LedgerInfoIdsList } from "./ledgers.interface";
 
 describe("formatLedgers", () => {
-  const ledgers = {
+  const ledgers: LedgerInfoIdsList = {
     items: ["ledger-id", "ledger-id-2"],
-    total: ethers.BigNumber.from("42"),
-    howMany: ethers.BigNumber.from("2"),
-    prev: ethers.BigNumber.from("0"),
-    next: ethers.BigNumber.from("0"),
-  } as AsyncReturnType<LedgerSCRegistry["getLedgerInfoIds"]>;
+    total: 42,
+  };
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);
 
     const page = 3;
     const pageSize = 2;
+    const name = "test";
 
-    expect(formatLedgers(ledgers, page, pageSize, "")).toStrictEqual({
+    expect(formatLedgers(ledgers, page, pageSize, "", name)).toStrictEqual({
       items: [
         {
           ledgerInfoId: "ledger-id",
@@ -30,13 +26,13 @@ describe("formatLedgers", () => {
         },
       ],
       links: {
-        first: `?page[after]=1&page[size]=${pageSize}`,
-        last: `?page[after]=21&page[size]=${pageSize}`,
-        next: `?page[after]=${page + 1}&page[size]=${pageSize}`,
-        prev: `?page[after]=${page - 1}&page[size]=${pageSize}`,
+        first: `?page[after]=1&page[size]=${pageSize}&name=${name}`,
+        last: `?page[after]=21&page[size]=${pageSize}&name=${name}`,
+        next: `?page[after]=${page + 1}&page[size]=${pageSize}&name=${name}`,
+        prev: `?page[after]=${page - 1}&page[size]=${pageSize}&name=${name}`,
       },
       pageSize,
-      self: `?page[after]=${page}&page[size]=${pageSize}`,
+      self: `?page[after]=${page}&page[size]=${pageSize}&name=${name}`,
       total: 42,
     });
   });
