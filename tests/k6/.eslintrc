@@ -5,7 +5,7 @@
     "plugin:jest/recommended",
     "plugin:jest/style",
     "plugin:prettier/recommended",
-    "prettier/@typescript-eslint"
+    "prettier"
   ],
   "rules": {
     "import/no-unresolved": ["error", { "ignore": ["^k6"] }]

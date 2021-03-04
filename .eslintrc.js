@@ -7,7 +7,7 @@ module.exports = {
     "plugin:jest/recommended",
     "plugin:jest/style",
     "plugin:prettier/recommended",
-    "prettier/@typescript-eslint",
+    "prettier",
   ],
   parserOptions: {
     project: "./tsconfig.eslint.json",

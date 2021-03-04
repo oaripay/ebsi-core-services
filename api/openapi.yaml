@@ -732,7 +732,7 @@ paths:
                       hashValues:
                         - "0x1234567890123456789012345678901234567890123456789012345678901234"
                       timestampData:
-                        - "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
+                        - "0x7b2274657374223a3834327d"
                   id: 1
               Build tx to timestampRecordHashes:
                 value:
@@ -745,7 +745,7 @@ paths:
                       hashValues:
                         - "0x1234567890123456789012345678901234567890123456789012345678901234"
                       timestampData:
-                        - "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
+                        - "0x7b2274657374223a3834327d"
                       versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to insertRecordOwner:
@@ -780,7 +780,7 @@ paths:
                       hashValues:
                         - "0x1234567890123456789012345678901234567890123456789012345678901234"
                       timestampData:
-                        - "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
+                        - "0x7b2274657374223a3834327d"
                       versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to appendRecordVersionHashes:
@@ -796,7 +796,7 @@ paths:
                       hashValues:
                         - "0x1234567890123456789012345678901234567890123456789012345678901234"
                       timestampData:
-                        - "0xec45567890123456789012345678901fa456789012345678901234567890abfe"
+                        - "0x7b2274657374223a3834327d"
                       versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to detachRecordVersionHash:

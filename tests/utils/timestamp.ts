@@ -43,7 +43,7 @@ export async function deployTimestampContract(
   const recordLibAddress = (
     await new RecordLib__factory(
       {
-        __$8147b76a27e37c94a969b90d63cdae8dcb$__: stringManipLibAddress,
+        __$03a3ed36080dbf419ca536faa0da0f57a5$__: stringManipLibAddress,
       },
       owner
     ).deploy()
