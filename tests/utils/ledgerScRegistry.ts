@@ -15,6 +15,13 @@ interface LedgerInfoObject {
   ledgerInfoId: string;
 }
 
+interface SmartContractInfoObject {
+  smartContractName: string;
+  smartContractInfo: unknown;
+  serializedSmartContractInfo: Buffer;
+  smartContractInfoId: string;
+}
+
 export async function deployLedgerScRegistryContract(
   ethersProvider: ethers.providers.Web3Provider
 ): Promise<LedgerSCRegistry> {
@@ -73,9 +80,6 @@ export async function insertLedgerInfo(
     name: ledgerName,
   };
 
-  // TODO: base64url?
-  // Waiting for an answer on the specs
-  // https://ec.europa.eu/cefdigital/wiki/pages/viewpage.action?pageId=253561464&focusedCommentId=351536573#comment-351536573
   const serializedLedgerInfo = Buffer.from(JSON.stringify(ledgerInfo));
 
   await contract.insertLedgerInfo(ledgerName, serializedLedgerInfo);
@@ -90,18 +94,50 @@ export async function insertLedgerInfo(
   };
 }
 
+export async function insertSmartContractInfo(
+  contract: LedgerSCRegistry
+): Promise<SmartContractInfoObject> {
+  const smartContractName = `sc-${crypto.randomBytes(16).toString("hex")}`;
+  const smartContractInfo = {
+    "@context": "https://ebsi.com",
+    type: "SmartContract",
+    name: smartContractName,
+  };
+
+  const serializedSmartContractInfo = Buffer.from(
+    JSON.stringify(smartContractInfo)
+  );
+
+  await contract.insertSmartContractInfo(
+    smartContractName,
+    serializedSmartContractInfo
+  );
+
+  const smartContractInfoId = ethers.utils.sha256(serializedSmartContractInfo);
+
+  return {
+    smartContractName,
+    smartContractInfo,
+    serializedSmartContractInfo,
+    smartContractInfoId,
+  };
+}
+
 export interface SetupOptions {
   ledgersTotal?: number;
+  smartContractsTotal?: number;
 }
 
 export async function setupTestEnv(
   opts: SetupOptions = {
     ledgersTotal: 1,
+    smartContractsTotal: 1,
   }
 ): Promise<{
   provider: ethers.providers.Web3Provider;
   ledgerScRegistryContract: LedgerSCRegistry;
   ledgers: LedgerInfoObject[];
+  smartContracts: SmartContractInfoObject[];
 }> {
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -119,10 +155,17 @@ export async function setupTestEnv(
       .map(() => insertLedgerInfo(ledgerScRegistryContract))
   );
 
+  const smartContracts = await Promise.all(
+    Array(opts.smartContractsTotal)
+      .fill(0)
+      .map(() => insertSmartContractInfo(ledgerScRegistryContract))
+  );
+
   // Return test env variables
   return {
     provider: ethersProvider,
     ledgerScRegistryContract,
     ledgers,
+    smartContracts,
   };
 }

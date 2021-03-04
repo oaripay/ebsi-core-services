@@ -47,6 +47,7 @@ describe("Smart contracts (e2e)", () => {
   let scName2: string;
   let scInfo: Buffer;
   let scInfoId: string;
+  let rawScInfo: Record<string, unknown>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -77,13 +78,12 @@ describe("Smart contracts (e2e)", () => {
     // Create test data
     scName = `sc-name-${crypto.randomBytes(8).toString("hex")}`;
     scName2 = `sc-name-${crypto.randomBytes(8).toString("hex")}`;
-    scInfo = Buffer.from(
-      JSON.stringify({
-        "@context": "https://ebsi.com",
-        type: "SmartContract",
-        name: scName,
-      })
-    );
+    rawScInfo = {
+      "@context": "https://ebsi.com",
+      type: "SmartContract",
+      name: scName,
+    };
+    scInfo = Buffer.from(JSON.stringify(rawScInfo));
     scInfoId = ethers.utils.sha256(scInfo);
   });
 
@@ -130,6 +130,7 @@ describe("Smart contracts (e2e)", () => {
               JSON.stringify({
                 "@context": "https://ebsi.com",
                 type: "SmartContract",
+                name: scName2,
                 newProp2: "newValue2",
               })
             ).toString("hex")}`,
@@ -209,6 +210,143 @@ describe("Smart contracts (e2e)", () => {
       // wait to be mined
       const receipt = await waitToBeMined(responseSend.body.result as string);
       expect(receipt.status).toBe("0x1");
+    });
+  });
+
+  describe("GET /smart-contracts", () => {
+    it("should return a paginated collection of smart contracts", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/smart-contracts");
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/smart-contracts?page[after]=1&page[size]=10"
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/smart-contracts?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/smart-contracts?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining(
+            "/smart-contracts?page[after]="
+          ) as string,
+          last: expect.stringContaining(
+            "/smart-contracts?page[after]="
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should return the smart contracts corresponding to a specific name", async () => {
+      expect.assertions(4);
+
+      // If we give a wrong name
+      const response = await request(server).get(
+        "/smart-contracts?name=wrong-name"
+      );
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
+        ) as string,
+        items: [],
+        total: 0,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
+          ) as string,
+          prev: expect.stringContaining(
+            "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
+          ) as string,
+          next: expect.stringContaining(
+            "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
+          ) as string,
+          last: expect.stringContaining(
+            "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+
+      // If we pass an existing name
+      const response2 = await request(server).get(
+        `/smart-contracts?name=${scName2}`
+      );
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/smart-contracts?page[after]=1&page[size]=10&name=${scName2}`
+        ) as string,
+        items: [
+          {
+            smartContractInfoId: scInfoId,
+            href: expect.stringContaining(
+              `/smart-contracts/${scInfoId}`
+            ) as string,
+          },
+        ],
+        total: 1,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/smart-contracts?page[after]=1&page[size]=10&name=${scName2}`
+          ) as string,
+          prev: expect.stringContaining(
+            `/smart-contracts?page[after]=1&page[size]=10&name=${scName2}`
+          ) as string,
+          next: expect.stringContaining(
+            `/smart-contracts?page[after]=1&page[size]=10&name=${scName2}`
+          ) as string,
+          last: expect.stringContaining(
+            `/smart-contracts?page[after]=1&page[size]=10&name=${scName2}`
+          ) as string,
+        },
+      });
+      expect(response2.status).toBe(200);
+    });
+  });
+
+  describe("GET /smart-contracts/{smartContractInfoId}", () => {
+    it("should return a specific smart contract", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get(
+        `/smart-contracts/${scInfoId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        ...rawScInfo,
+        name: scName2,
+        newProp2: "newValue2",
+      });
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/ld+json"));
+    });
+
+    it("should throw an error if the smart contract is not found", async () => {
+      expect.assertions(3);
+
+      const fakeId = `0x${crypto.randomBytes(16).toString("hex")}`;
+
+      const response = await request(server).get(`/smart-contracts/${fakeId}`);
+
+      expect(response.body).toStrictEqual({
+        title: "Smart Contract Not Found",
+        status: 404,
+        detail: `Smart contract ${fakeId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
   });
 });

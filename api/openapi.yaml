@@ -114,7 +114,7 @@ paths:
     get:
       tags:
         - Trusted Ledgers & Smart Contracts Registry API
-      summary: Get ledger by its ID
+      summary: Get ledger info by its ID
       description: Returns a trusted ledger info by its ID
       operationId: get-trusted-ledgers-smart-contracts-registry-v1-ledger
       parameters:
@@ -144,11 +144,157 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Invalid {appId} Parameter:
+                Invalid {ledgerInfoId} Parameter:
                   value:
                     title: Bad Request
                     status: 400
-                    detail: The format of {appId} parameter is not valid
+                    detail: The format of {ledgerInfoId} parameter is not valid
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /trusted-ledgers-smart-contracts-registry/v1/smart-contracts:
+    get:
+      tags:
+        - Trusted Ledgers & Smart Contracts Registry API
+      summary: Get all smart contracts
+      description: Get all smart contracts. Endpoint returns a paginated list of items.
+      operationId: get-trusted-ledgers-smart-contracts-registry-v1-smart-contracts
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+        - in: query
+          name: name
+          schema:
+            type: string
+          description: Filter results by smart contract name.
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection.
+                  items:
+                    type: array
+                    description: List of ledgers
+                    items:
+                      $ref: "#/components/schemas/SmartContractInfoLinks"
+                  total:
+                    type: integer
+                    description: Total number of items accross all pages.
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts?page[after]=3&page[size]=2
+                    items:
+                      - smartContractInfoId: "0x01c3cac97d2eea66fd35eefc4a14407ee24a5b4070df29248f22e32b63a6ae05"
+                        href: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x01c3cac97d2eea66fd35eefc4a14407ee24a5b4070df29248f22e32b63a6ae05
+                      - smartContractInfoId: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+                        href: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts-contracts?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=62&page[size]=2
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  ? /trusted-ledgers-smart-contracts-registry/v1/smart-contracts/{smartContractInfoId}
+  : get:
+      tags:
+        - Trusted Ledgers & Smart Contracts Registry API
+      summary: Get smart contract info by its ID
+      description: Returns a trusted smart contracts info by its ID
+      operationId: get-trusted-ledgers-smart-contracts-registry-v1-smart-contract
+      parameters:
+        - name: smartContractInfoId
+          in: path
+          schema:
+            type: string
+          example: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/ld+json:
+              schema:
+                type: object
+              examples:
+                Success:
+                  value:
+                    "@context": https://ebsi.com
+                    type: SmartContractInfo
+                    name: SC name
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {smartContractInfoId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {smartContractInfoId} parameter is not valid
         404:
           description: Not found
           content:
@@ -426,8 +572,8 @@ components:
             - type: object
             - type: string
     LedgerInfoLinks:
-      title: Ledger information
-      description: Ledger information data model as returned by the REST APIs.
+      title: Ledger information links
+      description: Links to ledger information as returned by the REST APIs.
       type: object
       properties:
         ledgerInfoId:
@@ -436,6 +582,17 @@ components:
         href:
           type: string
           description: URL to the LedgerInfo resource.
+    SmartContractInfoLinks:
+      title: Smart contract information links
+      description: Links to smart contract information as returned by the REST APIs.
+      type: object
+      properties:
+        smartContractInfoId:
+          type: string
+          description: Hexadecimal smart contract info ID.
+        href:
+          type: string
+          description: URL to the SmartContractInfo resource.
   examples:
     BadRequest:
       value:
