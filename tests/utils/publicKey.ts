@@ -1,13 +1,19 @@
 import crypto from "crypto";
-import parseJwk from "jose/jwk/parse";
+import parseJwk, { JWK } from "jose/jwk/parse";
 import { ec as EC } from "elliptic";
 import { ethers } from "ethers";
+import KeyEncoder from "key-encoder";
+
+const keyEncoder = new KeyEncoder("secp256k1");
 
 export interface PublicKey {
   publicKeyObject: crypto.KeyObject;
   publicKeyPem: string;
   publicKeyHex: string;
   publicKeyId: string;
+  jwk: JWK;
+  address: string;
+  did: string;
 }
 
 export function hex2base64url(dataHex: string): string {
@@ -30,15 +36,13 @@ export async function getPublicKey(_privateKey: string): Promise<PublicKey> {
   const ec = new EC("secp256k1");
   const privKey = ec.keyFromPrivate(privateKey);
   const pubPoint = privKey.getPublic();
-  const publicKey = await parseJwk(
-    {
-      kty: "EC",
-      crv: "secp256k1",
-      x: hex2base64url(pubPoint.getX().toString("hex")),
-      y: hex2base64url(pubPoint.getY().toString("hex")),
-    },
-    "ES256K"
-  );
+  const jwk: JWK = {
+    kty: "EC",
+    crv: "secp256k1",
+    x: hex2base64url(pubPoint.getX().toString("hex")),
+    y: hex2base64url(pubPoint.getY().toString("hex")),
+  };
+  const publicKey = await parseJwk(jwk, "ES256K");
   const publicKeyObject = publicKey as crypto.KeyObject;
   const publicKeyPem = publicKeyObject
     .export({
@@ -46,30 +50,17 @@ export async function getPublicKey(_privateKey: string): Promise<PublicKey> {
       format: "pem",
     })
     .toString();
-  const publicKeyHex = `0x${Buffer.from(publicKeyPem, "utf8").toString("hex")}`;
+  const publicKeyHex = keyEncoder.encodePublic(publicKeyPem, "pem", "raw");
   const publicKeyId = getPublicKeyId(publicKeyPem);
+  const address = ethers.utils.computeAddress(`0x${publicKeyHex}`);
+  const did = `did:ebsi:${address.toLowerCase()}`;
   return {
     publicKeyObject,
     publicKeyPem,
     publicKeyHex,
     publicKeyId,
+    jwk,
+    address,
+    did,
   };
-}
-
-export async function createKeys(): Promise<{
-  privateKey: string;
-  publicKey: PublicKey;
-}> {
-  /* eslint-disable no-await-in-loop */
-  for (let i = 0; i < 100; i += 1) {
-    const privateKey = crypto.randomBytes(32).toString("hex");
-    try {
-      const publicKey = await getPublicKey(privateKey);
-      return { privateKey, publicKey };
-    } catch (error) {
-      if (i === 99) throw error;
-    }
-  }
-  /* eslint-enable no-await-in-loop */
-  throw new Error("Error creating a key pair");
 }

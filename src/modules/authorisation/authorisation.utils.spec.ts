@@ -1,45 +1,45 @@
+import crypto from "crypto";
 import { ethers } from "ethers";
-import { decrypt, encrypt, getPublicKeyHex } from "./authorisation.utils";
-import { createKeys } from "../../../tests/utils/publicKey";
+import {
+  decrypt,
+  encrypt,
+  getPrivateKeyHex,
+  getPublicKeyHex,
+  generateKeys,
+} from "./authorisation.utils";
 
 describe("Utils", () => {
-  it("should get the public key hex", () => {
-    expect.assertions(1);
-    const appPrivateKey =
-      "0xbba54f4bfd84afc6a8b0724b7ce2684034933f696ff57213c1e7b2140015c757";
-    const appPublicKey =
-      "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUV6a1ozSktaR0pIL2l0dkRzVlVvbHkvekVGNURvOWxBTgptVG1uc3J6aEtHMWhxM2xEdU9qRVIwOUxWYTZQSFRvK3dhNW9aN2llZW1QaFhxQzF1YkFrMHc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K";
-    const wallet = new ethers.Wallet(appPrivateKey);
-    const publicKeyHex = getPublicKeyHex(appPublicKey);
+  it("should get the private key hex and public key hex", async () => {
+    expect.assertions(2);
+    const { publicKey, privateKey } = await generateKeys("ES256K");
+    const privateKeyHex = await getPrivateKeyHex(privateKey);
+    const publicKeyHex = getPublicKeyHex(publicKey);
+    const wallet = new ethers.Wallet(`0x${privateKeyHex}`);
+
+    expect(privateKeyHex).toHaveLength(64);
     expect(publicKeyHex).toBe(wallet.publicKey.slice(2));
   });
 
-  it("should encrypt a message + nonce using the public key of the recipient", async () => {
-    expect.assertions(1);
-    const { privateKey, publicKey } = await createKeys();
-    const { publicKeyPem } = publicKey;
-    const publicKeyApiPemBase64 = Buffer.from(publicKeyPem).toString("base64");
+  describe.each(["ES256K", "ES256", "RS256", "EdDSA"])("Alg %s", (alg) => {
+    it("should encrypt an message + nonce using the public key of the client", async () => {
+      expect.assertions(1);
+      const keys = await generateKeys(alg);
+      let publicKey: crypto.KeyObject;
+      let privateKey: crypto.KeyObject;
 
-    const message = "this is the access token";
-    const nonce = "this is a nonce provided by the user";
-    const privateKeyRecipient =
-      "0xbba54f4bfd84afc6a8b0724b7ce2684034933f696ff57213c1e7b2140015c757";
-    const publicKeyRecipient =
-      "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUZZd0VBWUhLb1pJemowQ0FRWUZLNEVFQUFvRFFnQUV6a1ozSktaR0pIL2l0dkRzVlVvbHkvekVGNURvOWxBTgptVG1uc3J6aEtHMWhxM2xEdU9qRVIwOUxWYTZQSFRvK3dhNW9aN2llZW1QaFhxQzF1YkFrMHc9PQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K";
-    const encrypted = await encrypt(
-      privateKey,
-      message,
-      nonce,
-      publicKeyRecipient
-    );
+      if (alg === "EdDSA") {
+        publicKey = keys.publicKeyEncryption;
+        privateKey = keys.privateKeyEncryption;
+      } else {
+        publicKey = keys.publicKey;
+        privateKey = keys.privateKey;
+      }
+      const payload = { test: "test" };
+      const encrypted = await encrypt(alg, payload, publicKey);
 
-    // decrypt
-    const messageRecovered = await decrypt(
-      privateKeyRecipient,
-      encrypted,
-      nonce,
-      publicKeyApiPemBase64
-    );
-    expect(messageRecovered).toBe(message);
+      // decrypt
+      const payloadDecrypted = await decrypt(alg, privateKey, encrypted);
+      expect(payloadDecrypted).toStrictEqual(payload);
+    });
   });
 });

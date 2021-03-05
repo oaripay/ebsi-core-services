@@ -6,7 +6,8 @@ import jwtVerify from "jose/jwt/verify";
 import { BadRequestError } from "@cef-ebsi/problem-details-errors";
 import { createJwt, SimpleSigner, decodeJwt } from "@cef-ebsi/did-jwt";
 import base64url from "base64url";
-import { JWTHeader, JWTOptions } from "@cef-ebsi/did-jwt/dist/types";
+import parseJwk, { JWK } from "jose/jwk/parse";
+import { JWTOptions } from "@cef-ebsi/did-jwt/dist/types";
 import querystring from "querystring";
 import { ethers } from "ethers";
 import { ApiConfig } from "../../config/configuration";
@@ -15,9 +16,10 @@ import {
   Ake1SigPayload,
   AuthenticationRequestResponse,
   TrustedAppResponse,
+  JWTHeader,
   JWTPayload,
 } from "./authorisation.interface";
-import { encrypt, getAddress } from "./authorisation.utils";
+import { encrypt } from "./authorisation.utils";
 
 function prefix0x(value: string): string {
   return value.startsWith("0x") ? value : `0x${value}`;
@@ -99,7 +101,11 @@ export class AuthorisationService {
 
   async validateClientAssertion(
     assertion: string
-  ): Promise<{ header: JWTHeader; payload: JWTPayload; publicKey: string }> {
+  ): Promise<{
+    header: JWTHeader;
+    payload: JWTPayload;
+    publicKey: crypto.KeyObject;
+  }> {
     const { header, payload } = decodeJwt(assertion);
 
     // check header
@@ -123,7 +129,7 @@ export class AuthorisationService {
       });
 
     // validate the signature using the available public keys
-    let publicKey: string;
+    let publicKey: crypto.KeyObject;
     const validations = await Promise.all(
       publicKeys.map(async (publicKeyPemBase64) => {
         const publicKeyPem = Buffer.from(publicKeyPemBase64, "base64").toString(
@@ -132,7 +138,7 @@ export class AuthorisationService {
         const publicKeyObject = crypto.createPublicKey(publicKeyPem);
         try {
           await jwtVerify(assertion, publicKeyObject);
-          publicKey = publicKeyPemBase64;
+          publicKey = publicKeyObject;
           return true;
         } catch (error) {
           return false;
@@ -159,15 +165,116 @@ export class AuthorisationService {
     return { header, payload: payload as JWTPayload, publicKey };
   }
 
-  async oauth2Session(
-    clientPayload: JWTPayload,
-    publicKeyRecipient: string,
-    kid?: string
+  async validateIdToken(
+    idToken: string
+  ): Promise<{
+    header: JWTHeader;
+    payload: JWTPayload;
+    publicKey: crypto.KeyObject;
+    publicKeyEncryption?: crypto.KeyObject;
+  }> {
+    const jwtDecoded = decodeJwt(idToken);
+    const { header, payload } = jwtDecoded;
+    const allowedAlgs = ["RS256", "ES256", "ES256K", "EdDSA"];
+
+    // check header
+    if (
+      !allowedAlgs.includes(header.alg) ||
+      header.typ !== "JWT" ||
+      !header.kid
+    )
+      throw new BadRequestError("Invalid Id Token", {
+        detail: "Invalid JWT header",
+      });
+
+    if (
+      !payload.iss ||
+      !payload.sub ||
+      !payload.aud ||
+      !payload.exp ||
+      !payload.iat ||
+      !payload.sub_jwk ||
+      !payload.sub_did_verification_method_uri ||
+      !payload.nonce ||
+      !payload.claims
+    )
+      throw new BadRequestError("Invalid Id Token", {
+        detail:
+          "The payload should contain iss, sub, aud, exp, iat, sub_jwk, sub_did_verification_method_uri, nonce, and claims",
+      });
+
+    /* TODO:
+       - check state and nonce
+       - check if the DID is registered in the DID Registry
+       - validate Verifiable Authorisation in claims
+     */
+
+    let publicKey: crypto.KeyObject;
+    try {
+      const subJwk = Array.isArray(payload.sub_jwk)
+        ? (payload.sub_jwk.find(
+            (jwk: JWK) => !jwk.use || jwk.use === "sig"
+          ) as JWK)
+        : (payload.sub_jwk as JWK);
+      publicKey = (await parseJwk(subJwk, header.alg)) as crypto.KeyObject;
+    } catch (error) {
+      throw new BadRequestError("Invalid Id Token", {
+        detail: `Invalid sub_jwk: ${(error as Error).message}`,
+      });
+    }
+
+    let publicKeyEncryption: crypto.KeyObject;
+    if (header.alg === "EdDSA") {
+      try {
+        const subJwk = Array.isArray(payload.sub_jwk)
+          ? (payload.sub_jwk.find(
+              (jwk: JWK) => !jwk.use || jwk.use === "enc"
+            ) as JWK)
+          : (payload.sub_jwk as JWK);
+        if (subJwk.crv.toUpperCase() !== "X25519")
+          throw new Error(
+            `Expected jwk with crv:X25519. Received crv:${subJwk.crv}`
+          );
+        publicKeyEncryption = (await parseJwk(
+          subJwk,
+          header.alg
+        )) as crypto.KeyObject;
+      } catch (error) {
+        throw new BadRequestError("Invalid Id Token", {
+          detail: `Invalid sub_jwk for encryption: ${(error as Error).message}`,
+        });
+      }
+    }
+
+    try {
+      await jwtVerify(idToken, publicKey);
+    } catch (error) {
+      throw new BadRequestError("Invalid Id Token", {
+        detail: "Invalid signature",
+      });
+    }
+
+    return {
+      header,
+      payload: payload as JWTPayload,
+      publicKey,
+      publicKeyEncryption,
+    };
+  }
+
+  async createSession(
+    type: string,
+    tokenDecoded: {
+      header: JWTHeader;
+      payload: JWTPayload;
+      publicKey: crypto.KeyObject;
+      publicKeyEncryption?: crypto.KeyObject;
+    }
   ): Promise<AkeResponse> {
     const payload = {
       iss: API_NAME,
-      sub: clientPayload.iss,
-      aud: clientPayload.aud,
+      sub: tokenDecoded.payload.iss,
+      aud: tokenDecoded.payload.aud,
       exp: Math.trunc(Date.now() / 1000) + this.authExpireTime,
       nonce: crypto.randomBytes(16).toString("base64"),
     };
@@ -177,23 +284,26 @@ export class AuthorisationService {
       this.headerOptions
     );
 
+    const publicKey = tokenDecoded.publicKeyEncryption
+      ? tokenDecoded.publicKeyEncryption
+      : tokenDecoded.publicKey;
     const encryptedAccessToken = await encrypt(
-      this.privateKey,
-      JSON.stringify({
+      tokenDecoded.header.alg,
+      {
         access_token: accessToken,
-        ...(kid && { kid: this.kid }),
-        ...(!kid && { did: this.did }),
-      }),
-      clientPayload.nonce,
-      publicKeyRecipient
+        ...(type === "oauth2" && { kid: this.kid }),
+        ...(type === "siop" && { did: this.did }),
+        nonce: tokenDecoded.payload.nonce,
+      },
+      publicKey
     );
 
     const ake1Sig = await createJwt(
       {
-        ake1_nonce: clientPayload.nonce,
+        ake1_nonce: tokenDecoded.payload.nonce,
         ake1_enc_payload: encryptedAccessToken,
-        kid,
-        ...(!kid && { did: `did:ebsi:${getAddress(publicKeyRecipient)}` }),
+        ...(type === "oauth2" && { kid: tokenDecoded.header.kid }),
+        ...(type === "siop" && { did: tokenDecoded.payload.iss }),
       },
       this.jwtOptions,
       this.headerOptions
@@ -208,8 +318,8 @@ export class AuthorisationService {
       ake1_enc_payload: encryptedAccessToken,
       ake1_sig_payload: ake1SigPayload,
       ake1_jws_detached: ake1JwsDetached,
-      ...(kid && { kid: this.kid }),
-      ...(!kid && { did: this.did }),
+      ...(type === "oauth2" && { kid: this.kid }),
+      ...(type === "siop" && { did: this.did }),
     };
   }
 }

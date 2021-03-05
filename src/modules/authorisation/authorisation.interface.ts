@@ -1,3 +1,5 @@
+import { JWK } from "jose/webcrypto/types";
+
 export interface AuthenticationRequestResponse {
   uri: string;
 }
@@ -53,6 +55,12 @@ export interface TrustedAppResponse {
   status: number;
 }
 
+export interface JWTHeader {
+  alg: string;
+  typ: string;
+  kid?: string;
+}
+
 export interface JWTPayload {
   iss: string;
   sub: string;
@@ -60,5 +68,10 @@ export interface JWTPayload {
   jti: string;
   exp: number;
   iat: number;
+  sub_jwk: JWK | JWK[];
+  sub_did_verification_method_uri: string;
   nonce: string;
+  claims: {
+    [x: string]: unknown;
+  };
 }
