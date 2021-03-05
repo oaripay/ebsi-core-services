@@ -1,6 +1,8 @@
 import {
   GetSmartContractsResponse,
+  GetRevisionsResponse,
   SmartContractInfoIdsList,
+  RevisionsList,
 } from "./smart-contracts.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
@@ -14,9 +16,9 @@ export function formatSmartContracts(
 ): PaginatedList<GetSmartContractsResponse> {
   // Reshape items
   const { total } = smartContracts;
-  const items = smartContracts.items.map((ledger) => ({
-    smartContractInfoId: ledger,
-    href: `${baseUrl}/${ledger}`,
+  const items = smartContracts.items.map((smartContractInfoId) => ({
+    smartContractInfoId,
+    href: `${baseUrl}/${smartContractInfoId}`,
   }));
 
   const extraQuery = name ? `&name=${name}` : "";
@@ -29,6 +31,22 @@ export function formatSmartContracts(
     pageSize,
     extraQuery
   );
+}
+
+export function formatRevisions(
+  revisions: RevisionsList,
+  page: number,
+  pageSize: number,
+  baseUrl: string
+): PaginatedList<GetRevisionsResponse> {
+  // Reshape items
+  const { total } = revisions;
+  const items = revisions.items.map((revisionHash) => ({
+    revisionHash,
+    href: `${baseUrl}/${revisionHash}`,
+  }));
+
+  return paginate<GetRevisionsResponse>(items, baseUrl, total, page, pageSize);
 }
 
 export default formatSmartContracts;

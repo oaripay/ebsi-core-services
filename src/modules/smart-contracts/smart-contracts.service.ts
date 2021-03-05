@@ -3,7 +3,10 @@ import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { ContractService } from "../../shared/services/contract.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerSCRegistry } from "../../contracts/trusted-ledgers-sc";
-import { SmartContractInfoIdsList } from "./smart-contracts.interface";
+import {
+  SmartContractInfoIdsList,
+  RevisionsList,
+} from "./smart-contracts.interface";
 
 @Injectable()
 export class SmartContractsService {
@@ -61,6 +64,73 @@ export class SmartContractsService {
     } catch (error) {
       throw new NotFoundError("Smart Contract Not Found", {
         detail: `Smart contract ${smartContractInfoId} not found`,
+      });
+    }
+
+    const decodedSmartContractInfo = JSON.parse(
+      Buffer.from(smartContractInfo.slice(2), "hex").toString("utf-8")
+    ) as unknown;
+
+    return decodedSmartContractInfo;
+  }
+
+  async getSmartContractRevisions(
+    smartContractInfoId: string,
+    page: number,
+    pageSize: number
+  ): Promise<RevisionsList> {
+    try {
+      await this.ledgerScRegistryContract.getLatestSmartContractInfoById(
+        smartContractInfoId
+      );
+    } catch (error) {
+      throw new NotFoundError("Smart Contract Not Found", {
+        detail: `Smart contract ${smartContractInfoId} not found`,
+      });
+    }
+
+    const result = await this.ledgerScRegistryContract.getSmartContractInfoRevisionIds(
+      smartContractInfoId,
+      page,
+      pageSize
+    );
+
+    return {
+      items: result.items,
+      total: result.total.toNumber(),
+    };
+  }
+
+  async getSmartContractRevision(
+    smartContractInfoId: string,
+    revisionHash: string
+  ): Promise<unknown> {
+    // Make sure it exists
+    try {
+      await this.ledgerScRegistryContract.getLatestSmartContractInfoById(
+        smartContractInfoId
+      );
+    } catch (error) {
+      throw new NotFoundError("Smart Contract Not Found", {
+        detail: `Smart contract ${smartContractInfoId} not found`,
+      });
+    }
+
+    let smartContractInfo: AsyncReturnType<
+      LedgerSCRegistry["getSmartContractInfoByRevisionId"]
+    >;
+
+    try {
+      smartContractInfo = await this.ledgerScRegistryContract.getSmartContractInfoByRevisionId(
+        revisionHash
+      );
+
+      if (!smartContractInfo || smartContractInfo === "0x") {
+        throw new Error("not found");
+      }
+    } catch (error) {
+      throw new NotFoundError("Revision Not Found", {
+        detail: `Revision ${revisionHash} not found`,
       });
     }
 

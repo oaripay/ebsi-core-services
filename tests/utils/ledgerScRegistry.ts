@@ -29,6 +29,13 @@ interface SmartContractInfoObject {
   smartContractInfoId: string;
 }
 
+interface SmartContractInfoRevisionObject {
+  smartContractName: string;
+  smartContractInfo: unknown;
+  serializedSmartContractInfo: Buffer;
+  revisionHash: string;
+}
+
 export async function deployLedgerScRegistryContract(
   ethersProvider: ethers.providers.Web3Provider
 ): Promise<LedgerSCRegistry> {
@@ -156,10 +163,42 @@ export async function insertSmartContractInfo(
   };
 }
 
+export async function insertSmartContractInfoRevisions(
+  contract: LedgerSCRegistry,
+  smartContractInfoId: string
+): Promise<SmartContractInfoRevisionObject> {
+  const smartContractName = `sc-${crypto.randomBytes(16).toString("hex")}`;
+  const smartContractInfo = {
+    "@context": "https://ebsi.com",
+    type: "SmartContract",
+    name: smartContractName,
+    data: `data-${crypto.randomBytes(16).toString("hex")}`,
+  };
+
+  const serializedSmartContractInfo = Buffer.from(
+    JSON.stringify(smartContractInfo)
+  );
+
+  await contract.updateSmartContractInfoById(
+    smartContractInfoId,
+    serializedSmartContractInfo
+  );
+
+  const revisionHash = ethers.utils.sha256(serializedSmartContractInfo);
+
+  return {
+    smartContractName,
+    smartContractInfo,
+    serializedSmartContractInfo,
+    revisionHash,
+  };
+}
+
 export interface SetupOptions {
   ledgersTotal?: number;
   ledgersRevisionsTotal?: number;
   smartContractsTotal?: number;
+  smartContractsRevisionsTotal?: number;
 }
 
 export async function setupTestEnv(
@@ -167,6 +206,7 @@ export async function setupTestEnv(
     ledgersTotal: 1,
     ledgersRevisionsTotal: 1,
     smartContractsTotal: 1,
+    smartContractsRevisionsTotal: 1,
   }
 ): Promise<{
   provider: ethers.providers.Web3Provider;
@@ -174,6 +214,7 @@ export async function setupTestEnv(
   ledgers: LedgerInfoObject[];
   ledgersRevisions: LedgerInfoRevisionObject[];
   smartContracts: SmartContractInfoObject[];
+  smartContractsRevisions: SmartContractInfoRevisionObject[];
 }> {
   const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
 
@@ -210,6 +251,20 @@ export async function setupTestEnv(
       .map(() => insertSmartContractInfo(ledgerScRegistryContract))
   );
 
+  const smartContractsRevisions =
+    opts.smartContractsRevisionsTotal > 1
+      ? await Promise.all(
+          Array(opts.smartContractsRevisionsTotal - 1)
+            .fill(0)
+            .map(() =>
+              insertSmartContractInfoRevisions(
+                ledgerScRegistryContract,
+                smartContracts[0].smartContractInfoId
+              )
+            )
+        )
+      : [];
+
   // Return test env variables
   return {
     provider: ethersProvider,
@@ -217,5 +272,6 @@ export async function setupTestEnv(
     ledgers,
     ledgersRevisions,
     smartContracts,
+    smartContractsRevisions,
   };
 }

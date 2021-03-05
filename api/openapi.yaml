@@ -260,7 +260,7 @@ paths:
   : get:
       tags:
         - Trusted Ledgers & Smart Contracts Registry API
-      summary: Get specific revision
+      summary: Get specific ledger info revision
       description: Returns the revision corresponding to the given hash
       operationId: get-trusted-ledgers-smart-contracts-registry-v1-ledger-revision
       parameters:
@@ -460,6 +460,163 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 SmartContractInfo Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  ? /trusted-ledgers-smart-contracts-registry/v1/smart-contracts/{smartContractInfoId}/revisions
+  : get:
+      tags:
+        - Trusted Ledgers & Smart Contracts Registry API
+      summary: Get revisions of a specific SmartContractInfo
+      description: Returns a list of revisions for a specific SmartContractInfo
+      operationId: get-trusted-ledgers-smart-contracts-registry-v1-smart-contract-revisions
+      parameters:
+        - name: smartContractInfoId
+          in: path
+          schema:
+            type: string
+          example: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection.
+                  items:
+                    type: array
+                    description: List of ledgers
+                    items:
+                      $ref: "#/components/schemas/RevisionLinks"
+                  total:
+                    type: integer
+                    description: Total number of items accross all pages.
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/revisions?page[after]=3&page[size]=2
+                    items:
+                      - revisionHash: "0xa5828585cd96c6b7726973215f97213fdf541c9b04b5a96dbccaacdd0eaceac7"
+                        href: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x01c3cac97d2eea66fd35eefc4a14407ee24a5b4070df29248f22e32b63a6ae05/revisions/0xa5828585cd96c6b7726973215f97213fdf541c9b04b5a96dbccaacdd0eaceac7
+                      - revisionHash: "0x07b193dd970ecc8d78719438f2132fb657b5d93b5f9b6f66b29d19593f850a18"
+                        href: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/revisions/0x07b193dd970ecc8d78719438f2132fb657b5d93b5f9b6f66b29d19593f850a18
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/revisions?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/revisions?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/revisions?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/revisions?page[after]=62&page[size]=2
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {smartContractInfoId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {smartContractInfoId} parameter is not valid
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                LedgerInfo Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  ? /trusted-ledgers-smart-contracts-registry/v1/smart-contracts/{smartContractInfoId}/revisions/{revisionHash}
+  : get:
+      tags:
+        - Trusted Ledgers & Smart Contracts Registry API
+      summary: Get specific smart contract info revision
+      description: Returns the revision corresponding to the given hash
+      operationId: get-trusted-ledgers-smart-contracts-registry-v1-smart-contract-revision
+      parameters:
+        - name: smartContractInfoId
+          in: path
+          schema:
+            type: string
+          example: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+          required: true
+        - name: revisionHash
+          in: path
+          schema:
+            type: string
+          example: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/ld+json:
+              schema:
+                type: object
+              examples:
+                Success:
+                  value:
+                    "@context": https://ebsi.com
+                    type: SmartContractInfo
+                    name: SC name
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {smartContractInfoId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {smartContractInfoId} parameter is not valid
+                Invalid {revisionHash} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {revisionHash} parameter is not valid
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                LedgerInfo Not Found:
                   $ref: "#/components/examples/NotFound"
         500:
           description: Internal Server Error
