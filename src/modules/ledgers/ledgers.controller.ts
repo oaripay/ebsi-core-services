@@ -1,9 +1,14 @@
 import { Controller, Get, Query, Param, Header } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { LedgersService } from "./ledgers.service";
-import { formatLedgers } from "./ledgers.formatter";
-import { GetLedgersResponse } from "./ledgers.interface";
-import { GetLedgerParams, GetLedgersQuery } from "./dto";
+import { formatLedgers, formatRevisions } from "./ledgers.formatter";
+import { GetLedgersResponse, GetRevisionsResponse } from "./ledgers.interface";
+import {
+  GetLedgerParams,
+  GetRevisionParams,
+  GetLedgersQuery,
+  GetRevisionsQuery,
+} from "./dto";
 import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 
@@ -42,6 +47,41 @@ export class LedgersController {
   async getLedger(@Param() params: GetLedgerParams): Promise<unknown> {
     const { ledgerInfoId } = params;
     return this.ledgersService.getLedger(ledgerInfoId);
+  }
+
+  @Get("/:ledgerInfoId/revisions")
+  async getLedgerRevisions(
+    @Query() query: GetRevisionsQuery,
+    @Param() params: GetLedgerParams
+  ): Promise<PaginatedList<GetRevisionsResponse>> {
+    const { ledgerInfoId } = params;
+
+    const revisions = await this.ledgersService.getLedgerRevisions(
+      ledgerInfoId,
+      query["page[after]"],
+      query["page[size]"]
+    );
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/ledgers/${ledgerInfoId}/revisions`;
+
+    return formatRevisions(
+      revisions,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl
+    );
+  }
+
+  @Get("/:ledgerInfoId/revisions/:revisionHash")
+  @Header("Content-Type", "application/ld+json")
+  async getLedgerRevision(
+    @Param() params: GetRevisionParams
+  ): Promise<unknown> {
+    const { ledgerInfoId, revisionHash } = params;
+
+    return this.ledgersService.getLedgerRevision(ledgerInfoId, revisionHash);
   }
 }
 

@@ -48,6 +48,10 @@ describe("Ledgers (e2e)", () => {
   let rawLedgerInfo: Record<string, unknown>;
   let ledgerInfo: Buffer;
   let ledgerInfoId: string;
+  const revisions: {
+    ledgerInfo: { [x: string]: unknown };
+    revisionHash: string;
+  }[] = [];
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -123,17 +127,27 @@ describe("Ledgers (e2e)", () => {
           break;
         }
         case "updateLedgerInfoByName": {
+          const newLedgerInfo = {
+            "@context": "https://ebsi.com",
+            type: "Ledger",
+            name: ledgerName2,
+            newProp2: "new value2",
+          };
+          const serializedLedgerInfo = Buffer.from(
+            JSON.stringify(newLedgerInfo)
+          );
+
+          const revisionHash = ethers.utils.sha256(serializedLedgerInfo);
+
+          revisions.push({
+            ledgerInfo: newLedgerInfo,
+            revisionHash,
+          });
+
           params = {
             from: adminTestWallet.address,
             name: ledgerName,
-            info: `0x${Buffer.from(
-              JSON.stringify({
-                "@context": "https://ebsi.com",
-                type: "Ledger",
-                name: ledgerName2,
-                newProp2: "new value2",
-              })
-            ).toString("hex")}`,
+            info: `0x${serializedLedgerInfo.toString("hex")}`,
           } as UpdateLedgerInfoByNameParam;
           break;
         }
@@ -323,7 +337,7 @@ describe("Ledgers (e2e)", () => {
     it("should throw an error if the ledger info is not found", async () => {
       expect.assertions(3);
 
-      const fakeId = Math.floor(Math.random() * 10000) + 10000; // some random number between 10,000 and 20,000
+      const fakeId = `0x${crypto.randomBytes(16).toString("hex")}`;
 
       const response = await request(server).get(`/ledgers/${fakeId}`);
 
@@ -337,6 +351,370 @@ describe("Ledgers (e2e)", () => {
       expect(
         (response.headers as { "content-type": string })["content-type"]
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+  });
+
+  describe("GET /ledgers/{ledgerInfoId}/revisions", () => {
+    it("should throw an error if the ledger info ID is not hexadecimal", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get(
+        "/ledgers/no-ledger/revisions"
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["ledgerInfoId must be a hexadecimal number"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the ledger info is not found", async () => {
+      expect.assertions(3);
+
+      const fakeId = `0x${crypto.randomBytes(16).toString("hex")}`;
+
+      const response = await request(server).get(
+        `/ledgers/${fakeId}/revisions`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Ledger Not Found",
+        status: 404,
+        detail: `Ledger ${fakeId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should return a paginated collection of ledgers", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get(
+        `/ledgers/${ledgerInfoId}/revisions`
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 3,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect((response.body as { items: string }).items).toHaveLength(3);
+      expect(response.status).toBe(200);
+    });
+
+    it("should handle the pagination properly", async () => {
+      expect.assertions(12);
+
+      const response1 = await request(server).get(
+        `/ledgers/${ledgerInfoId}/revisions?page[size]=2`
+      );
+
+      expect(response1.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=2`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 3,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=2`
+          ) as string,
+          prev: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=2`
+          ) as string,
+          next: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+          last: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+        },
+      });
+      expect((response1.body as { items: string }).items).toHaveLength(2);
+      expect(response1.status).toBe(200);
+
+      // next page
+      const response2 = await request(server).get(
+        `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
+      );
+
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 3,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=2`
+          ) as string,
+          prev: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=2`
+          ) as string,
+          next: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+          last: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+        },
+      });
+      expect((response2.body as { items: string }).items).toHaveLength(1);
+      expect(response2.status).toBe(200);
+
+      // big page
+      const response3 = await request(server).get(
+        `/ledgers/${ledgerInfoId}/revisions?page[after]=100&page[size]=2`
+      );
+
+      expect(response3.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/ledgers/${ledgerInfoId}/revisions?page[after]=100&page[size]=2`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 3,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=2`
+          ) as string,
+          prev: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+          next: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+          last: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+        },
+      });
+      expect((response3.body as { items: string }).items).toHaveLength(0);
+      expect(response3.status).toBe(200);
+
+      // page["after"] defined but page["size"] undefined
+      const response4 = await request(server).get(
+        `/ledgers/${ledgerInfoId}/revisions?page[after]=1`
+      );
+
+      expect(response4.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 3,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect((response4.body as { items: string }).items).toHaveLength(3);
+      expect(response4.status).toBe(200);
+    });
+
+    it("should throw a Bad Request for bad pagination", async () => {
+      expect.assertions(12);
+
+      const response1 = await request(server).get(
+        `/ledgers/${ledgerInfoId}/revisions?page[size]=100`
+      );
+
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be greater than 50"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+      expect(
+        (response1.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      const response2 = await request(server).get(
+        `/ledgers/${ledgerInfoId}/revisions?page[size]=0`
+      );
+
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+      expect(
+        (response2.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      const response3 = await request(server).get(
+        `/ledgers/${ledgerInfoId}/revisions?page[after]=0`
+      );
+
+      expect(response3.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[after] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+      expect(
+        (response3.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      const response4 = await request(server).get(
+        `/ledgers/${ledgerInfoId}/revisions?page[after]=abc`
+      );
+
+      expect(response4.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+      expect(
+        (response4.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+  });
+
+  describe("GET /ledgers/{ledgerInfoId}/revisions/{revisionHash}", () => {
+    it("should throw an error if the ledger info ID is not hexadecimal", async () => {
+      expect.assertions(3);
+
+      const revision = revisions[0];
+
+      const response = await request(server).get(
+        `/ledgers/no-ledger/revisions/${revision.revisionHash}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["ledgerInfoId must be a hexadecimal number"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the ledger info is not found", async () => {
+      expect.assertions(3);
+
+      const fakeId = `0x${crypto.randomBytes(32).toString("hex")}`;
+      const revision = revisions[0];
+
+      const response = await request(server).get(
+        `/ledgers/${fakeId}/revisions/${revision.revisionHash}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Ledger Not Found",
+        status: 404,
+        detail: `Ledger ${fakeId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the revision hash is not hexadecimal", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get(
+        `/ledgers/${ledgerInfoId}/revisions/not-hexadecimal`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["revisionHash must be a hexadecimal number"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the revision is not found", async () => {
+      expect.assertions(3);
+
+      const revisionHash = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      const response = await request(server).get(
+        `/ledgers/${ledgerInfoId}/revisions/${revisionHash}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Revision Not Found",
+        status: 404,
+        detail: `Revision ${revisionHash} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should return the expected revision", async () => {
+      expect.assertions(3);
+
+      const revision = revisions[0];
+
+      const response = await request(server).get(
+        `/ledgers/${ledgerInfoId}/revisions/${revision.revisionHash}`
+      );
+
+      expect(response.body).toStrictEqual(revision.ledgerInfo);
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/ld+json"));
     });
   });
 });

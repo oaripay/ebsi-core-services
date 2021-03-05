@@ -15,6 +15,13 @@ interface LedgerInfoObject {
   ledgerInfoId: string;
 }
 
+interface LedgerInfoRevisionObject {
+  ledgerName: string;
+  ledgerInfo: unknown;
+  serializedLedgerInfo: Buffer;
+  revisionHash: string;
+}
+
 interface SmartContractInfoObject {
   smartContractName: string;
   smartContractInfo: unknown;
@@ -94,6 +101,32 @@ export async function insertLedgerInfo(
   };
 }
 
+export async function insertLedgerInfoRevisions(
+  contract: LedgerSCRegistry,
+  ledgerInfoId: string
+): Promise<LedgerInfoRevisionObject> {
+  const ledgerName = `ledger-${crypto.randomBytes(16).toString("hex")}`;
+  const ledgerInfo = {
+    "@context": "https://ebsi.com",
+    type: "Ledger",
+    name: ledgerName,
+    data: `data-${crypto.randomBytes(16).toString("hex")}`,
+  };
+
+  const serializedLedgerInfo = Buffer.from(JSON.stringify(ledgerInfo));
+
+  await contract.updateLedgerInfoById(ledgerInfoId, serializedLedgerInfo);
+
+  const revisionHash = ethers.utils.sha256(serializedLedgerInfo);
+
+  return {
+    ledgerName,
+    ledgerInfo,
+    serializedLedgerInfo,
+    revisionHash,
+  };
+}
+
 export async function insertSmartContractInfo(
   contract: LedgerSCRegistry
 ): Promise<SmartContractInfoObject> {
@@ -125,22 +158,23 @@ export async function insertSmartContractInfo(
 
 export interface SetupOptions {
   ledgersTotal?: number;
+  ledgersRevisionsTotal?: number;
   smartContractsTotal?: number;
 }
 
 export async function setupTestEnv(
   opts: SetupOptions = {
     ledgersTotal: 1,
+    ledgersRevisionsTotal: 1,
     smartContractsTotal: 1,
   }
 ): Promise<{
   provider: ethers.providers.Web3Provider;
   ledgerScRegistryContract: LedgerSCRegistry;
   ledgers: LedgerInfoObject[];
+  ledgersRevisions: LedgerInfoRevisionObject[];
   smartContracts: SmartContractInfoObject[];
 }> {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
 
   // Deploy contract
@@ -155,6 +189,21 @@ export async function setupTestEnv(
       .map(() => insertLedgerInfo(ledgerScRegistryContract))
   );
 
+  // All the new revisions are added to the first ledgerInfo!
+  const ledgersRevisions =
+    opts.ledgersRevisionsTotal > 1
+      ? await Promise.all(
+          Array(opts.ledgersRevisionsTotal - 1)
+            .fill(0)
+            .map(() =>
+              insertLedgerInfoRevisions(
+                ledgerScRegistryContract,
+                ledgers[0].ledgerInfoId
+              )
+            )
+        )
+      : [];
+
   const smartContracts = await Promise.all(
     Array(opts.smartContractsTotal)
       .fill(0)
@@ -166,6 +215,7 @@ export async function setupTestEnv(
     provider: ethersProvider,
     ledgerScRegistryContract,
     ledgers,
+    ledgersRevisions,
     smartContracts,
   };
 }

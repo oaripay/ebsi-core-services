@@ -1,4 +1,9 @@
-import { GetLedgersResponse, LedgerInfoIdsList } from "./ledgers.interface";
+import {
+  GetLedgersResponse,
+  GetRevisionsResponse,
+  LedgerInfoIdsList,
+  RevisionsList,
+} from "./ledgers.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
 
@@ -26,6 +31,22 @@ export function formatLedgers(
     pageSize,
     extraQuery
   );
+}
+
+export function formatRevisions(
+  revisions: RevisionsList,
+  page: number,
+  pageSize: number,
+  baseUrl: string
+): PaginatedList<GetRevisionsResponse> {
+  // Reshape items
+  const { total } = revisions;
+  const items = revisions.items.map((revisionHash) => ({
+    revisionHash,
+    href: `${baseUrl}/${revisionHash}`,
+  }));
+
+  return paginate<GetRevisionsResponse>(items, baseUrl, total, page, pageSize);
 }
 
 export default formatLedgers;
