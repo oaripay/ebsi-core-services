@@ -42,7 +42,7 @@ library TimestampLib {
             );
             require(hashValues[i].length > 0, "hashValue empty");
             // insert only if it doesn't exist
-            if (ts.timestampsStore[tsId].data.length == 0) {
+            if (ts.timestampsStore[tsId].hash.value.length == 0) {
                 ts.timestampsStore[tsId] = TimestampStorage.Timestamp(
                     TimestampStorage.Hash(hashAlgorithmIds[i], hashValues[i]),
                     msg.sender,
@@ -104,7 +104,10 @@ library TimestampLib {
     {
         require(hashValue.length > 0, "hash empty");
         bytes32 tsId = sha256(hashValue);
-        require(ts.timestampsStore[tsId].data.length > 0, "timestamp unknown");
+        require(
+            ts.timestampsStore[tsId].hash.value.length > 0,
+            "timestamp unknown"
+        );
         hash = ts.timestampsStore[tsId].hash;
         blockNumber = ts.timestampsStore[tsId].blockNumber;
         timestampedBy = ts.timestampsStore[tsId].timestampedBy;
@@ -130,7 +133,7 @@ library TimestampLib {
         require(timestampId != bytes32(0), "tsId empty");
 
         require(
-            ts.timestampsStore[timestampId].data.length > 0,
+            ts.timestampsStore[timestampId].hash.value.length > 0,
             "timestamp unknown"
         );
         hash = ts.timestampsStore[timestampId].hash;

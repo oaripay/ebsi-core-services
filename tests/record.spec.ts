@@ -392,6 +392,64 @@ describe("Record Hashes", () => {
       []
     );
   });
+  it("timestampVersionHashes should succeed with empty data", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
+    await ts.timestampRecordHashes(
+      [0, 1, 2],
+      [hash1, hash2, hash3],
+      [],
+      ethers.utils.toUtf8Bytes("info: btc to the moon")
+    );
+    const tsids = [
+      ethers.utils.sha256(hash1),
+      ethers.utils.sha256(hash2),
+      ethers.utils.sha256(hash3),
+    ];
+    await expect(
+      ts.timestampVersionHashes(
+        hash1,
+        [0, 1, 2],
+        [hash1, hash2, hash3],
+        [],
+        ethers.utils.toUtf8Bytes("info: btc to the moon")
+      )
+    )
+      .to.emit(ts, "TimestampedHashes")
+      .withArgs(
+        tsids,
+        [0, 1, 2],
+        [
+          ethers.utils.hexlify(hash1),
+          ethers.utils.hexlify(hash2),
+          ethers.utils.hexlify(hash3),
+        ],
+        []
+      );
+    const receipt = await ts.getTimestamps(1, 10);
+    expect(receipt.items).to.deep.equal([
+      ethers.utils.sha256(hash1),
+      ethers.utils.sha256(hash2),
+      ethers.utils.sha256(hash3),
+    ]);
+
+    // should work with empty  versionInfo
+    const hash1prime = ethers.utils.toUtf8Bytes("othere40605e6");
+    await ts.timestampRecordHashes(
+      [0, 1, 2],
+      [hash1prime, hash2, hash3],
+      [],
+      ethers.utils.toUtf8Bytes("info: btc to the moon")
+    );
+    await ts.timestampVersionHashes(
+      hash1prime,
+      [0, 1, 2],
+      [hash1prime, hash2, hash3],
+      [],
+      []
+    );
+  });
 
   it("timestampRecordHashes should failed if hash algo and values length are different", async () => {
     await expect(
@@ -582,6 +640,49 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
+        ethers.utils.toUtf8Bytes("info: btc to the moon")
+      )
+    )
+      .to.emit(ts, "RecordedHashes")
+      .withArgs(
+        recordId,
+        tsids,
+        ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon"))
+      );
+    const receipt = await ts.getTimestamps(1, 10);
+    expect(receipt.items).to.deep.equal([
+      ethers.utils.sha256(hash1),
+      ethers.utils.sha256(hash2),
+      ethers.utils.sha256(hash3),
+    ]);
+    const ids = await ts.getRecordIds(1, 10);
+    expect(ids.items).to.have.length(1);
+    const firstTsIds = await ts.getRecordIdsByFirstVersionHash(hash2, 1, 10);
+    expect(firstTsIds.items).to.deep.equal([recordId]);
+  });
+  it("timestampRecordHashes should succeed with empty data", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
+    const tsids = [
+      ethers.utils.sha256(hash1),
+      ethers.utils.sha256(hash2),
+      ethers.utils.sha256(hash3),
+    ];
+    let blockNumber = await ethers.provider.getBlockNumber();
+    blockNumber += 1;
+    //  recordId = sha256(abi.encode(msg.sender, block.number, hashValue));
+    const recordId = ethers.utils.sha256(
+      ethers.utils.defaultAbiCoder.encode(
+        ["address", "uint256", "bytes"],
+        [signers[0].address, blockNumber, hash1]
+      )
+    );
+    await expect(
+      ts.timestampRecordHashes(
+        [0, 1, 2],
+        [hash1, hash2, hash3],
+        [],
         ethers.utils.toUtf8Bytes("info: btc to the moon")
       )
     )
@@ -834,6 +935,95 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("twoprime"),
           ethers.utils.toUtf8Bytes("threeprime"),
         ],
+        versionInfoprime
+      )
+    )
+      .to.emit(ts, "RecordedHashes")
+      .withArgs(recordId, tsids, ethers.utils.sha256(versionInfoprime));
+
+    const receipt = await ts.getTimestamps(1, 10);
+    expect(receipt.items).to.deep.equal([
+      ethers.utils.sha256(hash1),
+      ethers.utils.sha256(hash2),
+      ethers.utils.sha256(hash3),
+      ethers.utils.sha256(hash1prime),
+      ethers.utils.sha256(hash2prime),
+      ethers.utils.sha256(hash3prime),
+    ]);
+    // check that two versions exists
+    const vd0 = await ts.getRecordVersion(recordId, 0, 1, 10);
+    expect(vd0.hashAlgorithmIds).to.have.length(3);
+    expect(vd0.hashAlgorithmIds[0]).to.equal(0);
+    expect(vd0.hashAlgorithmIds[1]).to.equal(1);
+    expect(vd0.hashAlgorithmIds[2]).to.equal(2);
+    expect(vd0.hashValues).to.have.length(3);
+    vd0.hashValues.forEach((el: unknown, id: number) => {
+      expect(el).to.equal(ethers.utils.hexlify(hashValues[id]));
+    });
+    // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
+    expect(vd0.infoIds).to.have.length(1);
+    expect(vd0.infoIds[0]).to.equal(
+      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon"))
+    );
+    expect(vd0.total).to.equal(3);
+    expect(vd0.howMany).to.equal(3);
+    expect(vd0.prev).to.equal(1);
+    expect(vd0.next).to.equal(1);
+
+    const vd1 = await ts.getRecordVersion(recordId, 1, 1, 10);
+    expect(vd1.hashAlgorithmIds).to.have.length(3);
+    expect(vd1.hashAlgorithmIds[0]).to.equal(2);
+    expect(vd1.hashAlgorithmIds[1]).to.equal(0);
+    expect(vd1.hashAlgorithmIds[2]).to.equal(1);
+    expect(vd1.hashValues).to.have.length(3);
+    vd1.hashValues.forEach((el: unknown, id: number) => {
+      expect(el).to.equal(ethers.utils.hexlify(hashPrimeValues[id]));
+    });
+    // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
+    expect(vd1.infoIds).to.have.length(1);
+    expect(vd1.infoIds[0]).to.equal(ethers.utils.sha256(versionInfoprime));
+    expect(vd1.total).to.equal(3);
+    expect(vd1.howMany).to.equal(3);
+    expect(vd1.prev).to.equal(1);
+    expect(vd1.next).to.equal(1);
+  });
+  it("timestampRecordVersionHashes should succeed with empty data", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
+    const hashValues = [hash1, hash2, hash3];
+    let blockNumber = await ethers.provider.getBlockNumber();
+    blockNumber += 1;
+    //  recordId = sha256(abi.encode(msg.sender, block.number, hashValue));
+    const recordId = ethers.utils.sha256(
+      ethers.utils.defaultAbiCoder.encode(
+        ["address", "uint256", "bytes"],
+        [signers[0].address, blockNumber, hash1]
+      )
+    );
+    await ts.timestampRecordHashes(
+      [0, 1, 2],
+      [hash1, hash2, hash3],
+      [],
+      ethers.utils.toUtf8Bytes("info: btc to the moon")
+    );
+
+    const hash1prime = ethers.utils.toUtf8Bytes("othere40605e6");
+    const hash2prime = ethers.utils.toUtf8Bytes("again40605e6");
+    const hash3prime = ethers.utils.toUtf8Bytes("new40605e6");
+    const hashPrimeValues = [hash1prime, hash2prime, hash3prime];
+    const tsids = [
+      ethers.utils.sha256(hash1prime),
+      ethers.utils.sha256(hash2prime),
+      ethers.utils.sha256(hash3prime),
+    ];
+    const versionInfoprime = ethers.utils.toUtf8Bytes("new infon");
+    await expect(
+      ts.timestampRecordVersionHashes(
+        recordId,
+        [2, 0, 1],
+        [hash1prime, hash2prime, hash3prime],
+        [],
         versionInfoprime
       )
     )
@@ -1447,6 +1637,91 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("btcprime"),
           ethers.utils.toUtf8Bytes("new prime"),
         ],
+        versionInfoprime
+      )
+    )
+      .to.emit(ts, "RecordedHashes")
+      .withArgs(recordId, tsids, ethers.utils.sha256(versionInfoprime));
+    hashvalues = [...hashvalues, ...hashvaluesprime];
+    const receipt = await ts.getTimestamps(1, 10);
+    expect(receipt.items).to.deep.equal([
+      ethers.utils.sha256(hash1),
+      ethers.utils.sha256(hash2),
+      ethers.utils.sha256(hash3),
+      ethers.utils.sha256(hash1prime),
+      ethers.utils.sha256(hash2prime),
+    ]);
+
+    const ids = await ts.getRecordIds(1, 10);
+    expect(ids.items).to.have.length(1);
+    expect(ids.items[0]).to.equal(recordId);
+
+    const vd0 = await ts.getRecordVersion(recordId, 0, 1, 10);
+    expect(vd0.hashAlgorithmIds).to.have.length(5);
+    expect(vd0.hashAlgorithmIds[0]).to.equal(0);
+    expect(vd0.hashAlgorithmIds[1]).to.equal(1);
+    expect(vd0.hashAlgorithmIds[2]).to.equal(2);
+    expect(vd0.hashAlgorithmIds[3]).to.equal(2);
+    expect(vd0.hashAlgorithmIds[4]).to.equal(0);
+    expect(vd0.hashValues).to.have.length(5);
+    vd0.hashValues.forEach((el: unknown, id: number) => {
+      expect(el).to.equal(ethers.utils.hexlify(hashvalues[id]));
+    });
+
+    expect(vd0.infoIds).to.have.length(2);
+    expect(vd0.infoIds[0]).to.equal(
+      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon"))
+    );
+    expect(vd0.infoIds[1]).to.equal(ethers.utils.sha256(versionInfoprime));
+    expect(vd0.total).to.equal(5);
+    expect(vd0.howMany).to.equal(5);
+    expect(vd0.prev).to.equal(1);
+    expect(vd0.next).to.equal(1);
+
+    const vd1 = await ts.getRecordVersion(recordId, 1, 1, 10);
+    expect(vd1.hashAlgorithmIds).to.have.length(0);
+    expect(vd1.hashValues).to.have.length(0);
+    expect(vd1.infoIds).to.have.length(0);
+    expect(vd1.total).to.equal(0);
+    expect(vd1.howMany).to.equal(0);
+  });
+  it("appendRecordVersionHashes should succeed with empty data", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
+    let hashvalues = [hash1, hash2, hash3];
+    let blockNumber = await ethers.provider.getBlockNumber();
+    blockNumber += 1;
+    //  recordId = sha256(abi.encode(msg.sender, block.number, hashValue));
+    const recordId = ethers.utils.sha256(
+      ethers.utils.defaultAbiCoder.encode(
+        ["address", "uint256", "bytes"],
+        [signers[0].address, blockNumber, hash1]
+      )
+    );
+
+    await ts.timestampRecordHashes(
+      [0, 1, 2],
+      hashvalues,
+      [],
+      ethers.utils.toUtf8Bytes("info: btc to the moon")
+    );
+
+    const hash1prime = ethers.utils.toUtf8Bytes("e40605e6prime");
+    const hash2prime = ethers.utils.toUtf8Bytes("aa54def9prime");
+    const hashvaluesprime = [hash1prime, hash2prime];
+    const tsids = [
+      ethers.utils.sha256(hash1prime),
+      ethers.utils.sha256(hash2prime),
+    ];
+    const versionInfoprime = ethers.utils.toUtf8Bytes("new info");
+    await expect(
+      ts.appendRecordVersionHashes(
+        recordId,
+        0,
+        [2, 0],
+        hashvaluesprime,
+        [],
         versionInfoprime
       )
     )

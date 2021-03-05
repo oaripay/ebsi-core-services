@@ -82,6 +82,33 @@ describe("Timestamp Hashes", () => {
     );
     expect(r3.blockNumber).to.equal(blockNumber + 1);
   });
+  it("getTimestamp should succeed with empty data", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
+    const blockNumber = await ethers.provider.getBlockNumber();
+    await ts.timestampHashes(
+      [0, 1, 2],
+      [hash1, hash2, hash3],
+      [[], ethers.utils.toUtf8Bytes("new"), []]
+    );
+    const r1 = await ts.getTimestamp(hash1);
+    expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
+    expect(r1.hash.algorithm).to.equal(0);
+    expect(r1.timestampedBy).to.equal(signers[0].address);
+    expect(ethers.utils.hexlify(r1.data)).to.equal(ethers.utils.hexlify([]));
+    expect(r1.blockNumber).to.equal(blockNumber + 1);
+    const r2 = await ts.getTimestamp(hash2);
+    expect(r2.data).to.equal(
+      ethers.utils.hexlify(ethers.utils.toUtf8Bytes("new"))
+    );
+    const r3 = await ts.getTimestamp(hash3);
+    expect(r3.hash.value).to.equal(ethers.utils.hexlify(hash3));
+    expect(r3.hash.algorithm).to.equal(2);
+    expect(r3.timestampedBy).to.equal(signers[0].address);
+    expect(ethers.utils.hexlify(r3.data)).to.equal(ethers.utils.hexlify([]));
+    expect(r3.blockNumber).to.equal(blockNumber + 1);
+  });
   it("getTimestamp should revert if hash is unknown", async () => {
     await expect(
       ts.getTimestamp(ethers.utils.toUtf8Bytes("unknow?"))
@@ -89,6 +116,26 @@ describe("Timestamp Hashes", () => {
   });
   it("getTimestamp should revert if hash is empty", async () => {
     await expect(ts.getTimestamp([])).to.be.revertedWith("hash empty");
+  });
+  it("getTimestampById should succeed with empty data", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
+    const blockNumber = await ethers.provider.getBlockNumber();
+    await ts.timestampHashes([0, 1, 2], [hash1, hash2, hash3], []);
+    const r1 = await ts.getTimestampById(ethers.utils.sha256(hash1));
+    expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
+    expect(r1.hash.algorithm).to.equal(0);
+    expect(r1.timestampedBy).to.equal(signers[0].address);
+    expect(ethers.utils.hexlify(r1.data)).to.equal(ethers.utils.hexlify([]));
+    expect(r1.blockNumber).to.equal(blockNumber + 1);
+
+    const r3 = await ts.getTimestampById(ethers.utils.sha256(hash3));
+    expect(r3.hash.value).to.equal(ethers.utils.hexlify(hash3));
+    expect(r3.hash.algorithm).to.equal(2);
+    expect(r3.timestampedBy).to.equal(signers[0].address);
+    expect(ethers.utils.hexlify(r3.data)).to.equal(ethers.utils.hexlify([]));
+    expect(r3.blockNumber).to.equal(blockNumber + 1);
   });
   it("getTimestampById should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
@@ -280,6 +327,20 @@ describe("Timestamp Hashes", () => {
       ethers.utils.sha256(hash3),
     ]);
   });
+  it("timestampHashes should succeed even with empty data", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
+    await ts.timestampHashes([0, 1, 2], [hash1, hash2, hash3], []);
+
+    const receipt = await ts.getTimestamps(1, 10);
+    expect(receipt.items).to.deep.equal([
+      ethers.utils.sha256(hash1),
+      ethers.utils.sha256(hash2),
+      ethers.utils.sha256(hash3),
+    ]);
+  });
+
   it("getTimestamps should failed with wrong page and pageSize", async () => {
     const resTsIds: string[] = [];
     for (let i = 1; i < 12; i += 1) {
