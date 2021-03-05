@@ -10,20 +10,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     log: true,
   };
 
-  const pagination = await deployments.deploy(
-    "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
-    opts
-  );
-  const optsPagination = {
-    from: deployer,
-    log: true,
-    libraries: {
-      Pagination: pagination.address,
-    },
-  };
-
-  const ledgerLib = await deployments.deploy("LedgerLib", optsPagination);
-  const scLib = await deployments.deploy("SmartContractLib", optsPagination);
+  const ledgerLib = await deployments.deploy("LedgerLib", opts);
+  const scLib = await deployments.deploy("SmartContractLib", opts);
 
   const ts = await deployments.deploy("LedgerSCRegistry", {
     from: deployer,
@@ -41,3 +29,4 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 };
 export default func;
 func.tags = ["LedgerSCRegistry"];
+func.dependencies = ["LedgerLib", "SmartContractLib", "Pagination"];
