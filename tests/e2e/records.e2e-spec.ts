@@ -225,6 +225,7 @@ describe("Records (e2e)", () => {
     "revokeRecordOwner",
     "insertRecordVersionInfo",
     "detachRecordVersionHash",
+    "appendRecordVersionHashes",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
     it("should work", async () => {
       expect.assertions(5);
@@ -254,19 +255,35 @@ describe("Records (e2e)", () => {
           } as TimestampRecordHashesParam;
           break;
         }
-        case "detachRecordVersionHash": {
+        case "timestampRecordVersionHashes": {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
               [adminTestWallet.address, blockNumber, firstHashValue]
             )
           );
+
           param = {
             from: adminTestWallet.address,
             recordId,
-            versionId: 0,
-            hashValue: firstHashValue,
-          } as DetachRecordVersionHashParam;
+            hashAlgorithmIds: [0, 0],
+            hashValues: [
+              firstHashValue,
+              `0x${crypto.randomBytes(32).toString("hex")}`,
+            ],
+            timestampData: [
+              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                "hex"
+              )}`,
+              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
+                "hex"
+              )}`,
+            ],
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as TimestampRecordVersionHashesParam;
           break;
         }
         case "insertRecordOwner": {
@@ -319,35 +336,19 @@ describe("Records (e2e)", () => {
           } as InsertRecordVersionInfoParam;
           break;
         }
-        case "timestampRecordVersionHashes": {
+        case "detachRecordVersionHash": {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
               [adminTestWallet.address, blockNumber, firstHashValue]
             )
           );
-
           param = {
             from: adminTestWallet.address,
             recordId,
-            hashAlgorithmIds: [0, 0],
-            hashValues: [
-              firstHashValue,
-              `0x${crypto.randomBytes(32).toString("hex")}`,
-            ],
-            timestampData: [
-              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
-              )}`,
-              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
-                "hex"
-              )}`,
-            ],
-            versionInfo: `0x${Buffer.from(
-              JSON.stringify({ info: 42 }),
-              "utf8"
-            ).toString("hex")}`,
-          } as TimestampRecordVersionHashesParam;
+            versionId: 0,
+            hashValue: firstHashValue,
+          } as DetachRecordVersionHashParam;
           break;
         }
         case "appendRecordVersionHashes": {
@@ -375,6 +376,162 @@ describe("Records (e2e)", () => {
               )}`,
               // `0x${crypto.randomBytes(32).toString("hex")}`,
               // `0x${crypto.randomBytes(32).toString("hex")}`,
+            ],
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as AppendRecordVersionHashesParam;
+          break;
+        }
+        default:
+          throw new Error(`Test Error: Invalid method ${method}`);
+      }
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param],
+          id: 231,
+        });
+
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        result: {
+          chainId: expect.any(String) as string,
+          data: expect.any(String) as string,
+          from: adminTestWallet.address,
+          gasLimit: expect.any(String) as string,
+          gasPrice: expect.any(String) as string,
+          nonce: expect.any(String) as string,
+          to: expect.any(String) as string,
+          value: expect.any(String) as string,
+        },
+      });
+      expect(responseBuild.status).toBe(200);
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await adminTestWallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        result: expect.any(String) as string,
+      });
+      expect(responseSend.status).toBe(200);
+
+      // wait to be mined
+      const receipt = await waitToBeMined(responseSend.body.result as string);
+      if (method === "timestampRecordHashes") {
+        // we need the blocknumber to be able to compute the recordId
+        // created by timestampRecordHashes
+        blockNumber = parseInt(receipt.blockNumber.substring(2), 16);
+      }
+
+      /** */
+      expect(receipt.status).toBe("0x1");
+    });
+    it("should work with empty data", async () => {
+      expect.assertions(5);
+
+      let param: JsonRpcParams = null;
+      switch (method) {
+        case "timestampRecordHashes": {
+          param = {
+            from: adminTestWallet.address,
+            hashAlgorithmIds: [0, 0],
+            hashValues: [
+              firstHashValue,
+              `0x${crypto.randomBytes(32).toString("hex")}`,
+            ],
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as TimestampRecordHashesParam;
+          break;
+        }
+        case "timestampRecordVersionHashes": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [adminTestWallet.address, blockNumber, firstHashValue]
+            )
+          );
+
+          param = {
+            from: adminTestWallet.address,
+            recordId,
+            hashAlgorithmIds: [0, 0],
+            hashValues: [
+              firstHashValue,
+              `0x${crypto.randomBytes(32).toString("hex")}`,
+            ],
+
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as TimestampRecordVersionHashesParam;
+          break;
+        }
+        case "insertRecordOwner": {
+          expect.assertions(0);
+          return;
+        }
+        case "revokeRecordOwner": {
+          expect.assertions(0);
+          return;
+        }
+        case "insertRecordVersionInfo": {
+          expect.assertions(0);
+          return;
+        }
+        case "detachRecordVersionHash": {
+          expect.assertions(0);
+          return;
+        }
+        case "appendRecordVersionHashes": {
+          const recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [adminTestWallet.address, blockNumber, firstHashValue]
+            )
+          );
+          param = {
+            from: adminTestWallet.address,
+            recordId,
+            versionId: 0,
+            hashAlgorithmIds: [0, 0],
+            hashValues: [
+              firstHashValue,
+              `0x${crypto.randomBytes(32).toString("hex")}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),

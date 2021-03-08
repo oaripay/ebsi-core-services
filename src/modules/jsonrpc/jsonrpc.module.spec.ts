@@ -842,6 +842,7 @@ describe("JsonRpc Module", () => {
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ],
+            timestampData: [`this is not hex`],
           } as unknown) as TimestampHashesParam;
 
           expectedErrorMessage3 =
@@ -891,6 +892,7 @@ describe("JsonRpc Module", () => {
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ],
+            timestampData: [`this is not hex`],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 82 }),
               "utf8"
@@ -983,6 +985,7 @@ describe("JsonRpc Module", () => {
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ],
+            timestampData: [`this is not hex`],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 842 }),
               "utf8"
@@ -1042,6 +1045,7 @@ describe("JsonRpc Module", () => {
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             hashAlgorithmIds: [0],
+            timestampData: [`this is not hex`],
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ],
@@ -1589,6 +1593,151 @@ describe("JsonRpc Module", () => {
         },
       });
       expect(responseSend1.status).toBe(400);
+    });
+  });
+
+  // Tests to be repeated for every method
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  describe.each([
+    "timestampHashes",
+    "timestampRecordHashes",
+    "timestampRecordVersionHashes",
+    "appendRecordVersionHashes",
+  ])("/jsonrpc with method %s", (method: string) => {
+    it("should return a valid unsigned transaction that we can sign and send to signedTransaction even if timestamp data is empty", async () => {
+      expect.assertions(4);
+
+      let param: JsonRpcParams = null;
+
+      const signer = testEnvTar.administrators[0];
+
+      switch (method) {
+        case "timestampHashes": {
+          param = {
+            from: signer.address,
+            hashAlgorithmIds: [0],
+            hashValues: [firstHashValue],
+          } as TimestampHashesParam;
+          break;
+        }
+        case "timestampRecordHashes": {
+          param = {
+            from: signer.address,
+            hashAlgorithmIds: [0],
+            hashValues: [firstHashValue],
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 54 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as TimestampRecordHashesParam;
+          break;
+        }
+
+        case "timestampRecordVersionHashes": {
+          recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [signer.address, blockNumber, firstHashValue]
+            )
+          );
+          param = {
+            from: signer.address,
+            recordId,
+            hashAlgorithmIds: [0],
+            hashValues: [firstHashValue],
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 54 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as TimestampRecordVersionHashesParam;
+          break;
+        }
+        case "appendRecordVersionHashes": {
+          recordId = ethers.utils.sha256(
+            ethers.utils.defaultAbiCoder.encode(
+              ["address", "uint256", "bytes"],
+              [signer.address, blockNumber, firstHashValue]
+            )
+          );
+          param = {
+            from: signer.address,
+            recordId,
+            versionId: 1,
+            hashAlgorithmIds: [0],
+            hashValues: [
+              `0x2234567890123456789012345678901234567890123456789012345678901234`,
+            ],
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 54 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as AppendRecordVersionHashesParam;
+          break;
+        }
+        default:
+          throw new Error(`Test Error: Invalid method ${method}`);
+      }
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param],
+          id: 231,
+        });
+
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        result: {
+          chainId: expect.any(String) as string,
+          data: expect.any(String) as string,
+          from: param.from,
+          gasLimit: expect.any(String) as string,
+          gasPrice: expect.any(String) as string,
+          nonce: expect.any(String) as string,
+          to: expect.any(String) as string,
+          value: "0x0",
+        },
+      });
+      expect(responseBuild.status).toBe(200);
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await signer.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+      // blocknumber needed to compute the recordid
+      if (method === "timestampRecordHashes") {
+        blockNumber = await provider.getBlockNumber();
+      }
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        result: expect.any(String) as string,
+      });
+      expect(responseSend.status).toBe(200);
     });
   });
 });

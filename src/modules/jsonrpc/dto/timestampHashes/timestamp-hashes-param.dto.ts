@@ -1,4 +1,10 @@
-import { IsEthereumAddress, IsInt, IsHexadecimal, Min } from "class-validator";
+import {
+  IsEthereumAddress,
+  IsInt,
+  IsHexadecimal,
+  Min,
+  IsOptional,
+} from "class-validator";
 import { IsHexadecimalJSON } from "../../validators";
 
 export class TimestampHashesParam {
@@ -12,6 +18,7 @@ export class TimestampHashesParam {
   @IsHexadecimal({ each: true })
   hashValues: string[];
 
+  @IsOptional()
   @IsHexadecimalJSON({ each: true })
   timestampData: string[];
 }

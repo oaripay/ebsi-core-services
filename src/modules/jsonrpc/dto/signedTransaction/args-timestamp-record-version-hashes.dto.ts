@@ -1,4 +1,4 @@
-import { IsInt, IsHexadecimal, Min } from "class-validator";
+import { IsInt, IsHexadecimal, Min, IsOptional } from "class-validator";
 import { IsHexadecimalJSON } from "../../validators";
 
 export class ArgsTimestampRecordVersionHashes {
@@ -12,6 +12,7 @@ export class ArgsTimestampRecordVersionHashes {
   @IsHexadecimal({ each: true })
   hashValues: string[];
 
+  @IsOptional()
   @IsHexadecimalJSON({ each: true })
   timestampData: string[];
 

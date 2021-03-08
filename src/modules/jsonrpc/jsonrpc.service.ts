@@ -393,7 +393,7 @@ export class JsonRpcService {
 
       const data = this.timestampContract.interface.encodeFunctionData(
         "timestampHashes",
-        [hashAlgorithmIds, hashValues, timestampData]
+        [hashAlgorithmIds, hashValues, timestampData || []]
       );
 
       return await this.buildTransaction(from, data);
@@ -505,7 +505,7 @@ export class JsonRpcService {
 
       const data = this.timestampContract.interface.encodeFunctionData(
         "timestampRecordHashes",
-        [hashAlgorithmIds, hashValues, timestampData, versionInfo]
+        [hashAlgorithmIds, hashValues, timestampData || [], versionInfo]
       );
 
       return await this.buildTransaction(from, data);
@@ -534,7 +534,13 @@ export class JsonRpcService {
 
       const data = this.timestampContract.interface.encodeFunctionData(
         "timestampRecordVersionHashes",
-        [recordId, hashAlgorithmIds, hashValues, timestampData, versionInfo]
+        [
+          recordId,
+          hashAlgorithmIds,
+          hashValues,
+          timestampData || [],
+          versionInfo,
+        ]
       );
 
       return await this.buildTransaction(from, data);
@@ -569,7 +575,7 @@ export class JsonRpcService {
           versionId,
           hashAlgorithmIds,
           hashValues,
-          timestampData,
+          timestampData || [],
           versionInfo,
         ]
       );

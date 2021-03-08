@@ -1,4 +1,9 @@
-import { IsArray, ValidateNested, IsHexadecimal } from "class-validator";
+import {
+  IsArray,
+  ValidateNested,
+  IsHexadecimal,
+  IsOptional,
+} from "class-validator";
 import { Type } from "class-transformer";
 
 export class ArgsTimestampHashes {
@@ -12,6 +17,7 @@ export class ArgsTimestampHashes {
   @Type(() => String)
   hashValues: string[];
 
+  @IsOptional()
   @IsHexadecimal()
   timestampData: string;
 }
