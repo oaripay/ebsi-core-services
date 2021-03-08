@@ -3,6 +3,9 @@ node {
         checkout scm
     }
     stage('Unit test') {
+        environment {
+                APPLICATION_ID=0x0000000000000000000000000000000000000000000000000000000000000000
+        }
         withCredentials([string(credentialsId: 'API_PRIVATE_KEY', variable: 'API_PRIVATE_KEY')]) {
             nodejs(nodeJSInstallationName: '14.15.4') {
                 sh 'yarn install --frozen-lockfile'
