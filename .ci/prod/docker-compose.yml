@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   storage-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/storage-api:prod_ebsiint-2641-patch-files_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/storage-api:prod_ebsiint-2779-fix-package-json_v2.0.0
     build: ../..
