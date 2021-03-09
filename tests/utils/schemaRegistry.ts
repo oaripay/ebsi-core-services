@@ -5,6 +5,7 @@ import {
   SchemaSCRegistry__factory,
   SchemaLib__factory,
 } from "../../src/contracts/trusted-schemas";
+import PaginationArtifact from "../../submodules/trusted-schemas-registry-ethereum-sc/artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol/Pagination.json";
 
 export async function deployLedgerScRegistryContract(
   ethersProvider: ethers.providers.Web3Provider
@@ -12,6 +13,14 @@ export async function deployLedgerScRegistryContract(
   const owner = ethersProvider.getSigner();
 
   // Deploy libs
+  const paginationAddress = (
+    await new ethers.ContractFactory(
+      PaginationArtifact.abi,
+      PaginationArtifact.bytecode,
+      owner
+    ).deploy()
+  ).address;
+
   const schemaLibAddress = (await new SchemaLib__factory(owner).deploy())
     .address;
 
@@ -41,11 +50,13 @@ export async function deployLedgerScRegistryContract(
     Mapping:
 
     __$b94732ef4516b046ed30cf52af2e344e1f$__ = "contracts/ledger-sc-registry/SchemaLib.sol:SchemaLib"
+    __$515a15b27d7e720e4d91814eed9672e50c$__ = "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination"
   */
 
   const schemasRegistry = await new SchemaSCRegistry__factory(
     {
       __$b94732ef4516b046ed30cf52af2e344e1f$__: schemaLibAddress,
+      __$515a15b27d7e720e4d91814eed9672e50c$__: paginationAddress,
     },
     owner
   ).deploy();

@@ -8,6 +8,8 @@ import {
   UnsignedTransaction,
   ArgsInsertSchema,
   RequestInsertSchemaDto,
+  RequestUpdateSchemaDto,
+  ArgsUpdateSchema,
 } from "./dto";
 import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
@@ -141,6 +143,13 @@ export class JsonRpcService {
         );
         break;
       }
+      case "updateSchema": {
+        await validateClass(
+          ArgsUpdateSchema,
+          (args as unknown) as ArgsUpdateSchema
+        );
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -198,11 +207,33 @@ export class JsonRpcService {
     try {
       await validateClass(RequestInsertSchemaDto, body);
 
-      const { from, schema, metadata } = body.params[0];
+      const { from, schemaId, schema, metadata } = body.params[0];
 
       const data = this.schemaSCRegistryContract.interface.encodeFunctionData(
         "insertSchema",
-        [schema, metadata]
+        [schemaId, schema, metadata]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateSchema(
+    body: RequestUpdateSchemaDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateSchemaDto, body);
+
+      const { from, schemaId, schema, metadata } = body.params[0];
+
+      const data = this.schemaSCRegistryContract.interface.encodeFunctionData(
+        "updateSchema",
+        [schemaId, schema, metadata]
       );
 
       return await this.buildTransaction(from, data);

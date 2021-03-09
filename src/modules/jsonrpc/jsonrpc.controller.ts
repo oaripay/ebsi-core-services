@@ -6,6 +6,7 @@ import {
   JsonRpcDto,
   RequestSignedTransactionDto,
   RequestInsertSchemaDto,
+  RequestUpdateSchemaDto,
 } from "./dto";
 
 function jsonRpcResponse(
@@ -27,6 +28,13 @@ export default class AppController {
       case "insertSchema": {
         const result = await this.jsonRpcService.buildTransactionInsertSchema(
           body as RequestInsertSchemaDto,
+          id
+        );
+        return jsonRpcResponse(result, id);
+      }
+      case "updateSchema": {
+        const result = await this.jsonRpcService.buildTransactionUpdateSchema(
+          body as RequestUpdateSchemaDto,
           id
         );
         return jsonRpcResponse(result, id);

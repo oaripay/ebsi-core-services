@@ -17,7 +17,10 @@ import { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
-import { InsertSchemaParam } from "../../src/modules/jsonrpc/dto";
+import {
+  InsertSchemaParam,
+  UpdateSchemaParam,
+} from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
@@ -30,10 +33,21 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams = InsertSchemaParam;
 
+const randomOid = () =>
+  `1.3.6.1.4.1.${Math.ceil(Math.random() * 2020)}.${Math.ceil(
+    Math.random() * 10
+  )}.${Math.ceil(Math.random() * 250)}.${Math.ceil(
+    Math.random() * 3
+  )}.${Math.ceil(Math.random() * 3)}.${Math.ceil(
+    Math.random() * 3
+  )}.${Math.ceil(Math.random() * 100)}`;
+
 describe("Schemas (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
+
+  const schemaId = `0x${Buffer.from(randomOid()).toString("hex")}`;
 
   const rawSchema = {
     "@context": "https://ebsi.eu",
@@ -44,12 +58,30 @@ describe("Schemas (e2e)", () => {
   const serializedSchema = JSON.stringify(rawSchema);
   const serializedSchemaBuffer = Buffer.from(serializedSchema);
 
+  const rawUpdatedSchema = {
+    "@context": "https://ebsi.eu",
+    type: "Schema",
+    name: "example updated",
+    data: crypto.randomBytes(16).toString("hex"),
+  };
+  const serializedUpdatedSchema = JSON.stringify(rawUpdatedSchema);
+  const serializedSchemaUpdatedBuffer = Buffer.from(serializedUpdatedSchema);
+
   const rawMetadata = {
     meta: "value",
     data: crypto.randomBytes(16).toString("hex"),
   };
   const serializedMetadata = JSON.stringify(rawMetadata);
   const serializedMetadataBuffer = Buffer.from(serializedMetadata);
+
+  const rawUpdatedMetadata = {
+    meta: "value updated",
+    data: crypto.randomBytes(16).toString("hex"),
+  };
+  const serializedUpdatedMetadata = JSON.stringify(rawUpdatedMetadata);
+  const serializedUpdatedMetadataBuffer = Buffer.from(
+    serializedUpdatedMetadata
+  );
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -79,7 +111,7 @@ describe("Schemas (e2e)", () => {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.skip.each(["insertSchema"])(
+  describe.each(["insertSchema", "updateSchema"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should work", async () => {
@@ -91,9 +123,19 @@ describe("Schemas (e2e)", () => {
           case "insertSchema": {
             params = {
               from: adminTestWallet.address,
+              schemaId,
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
             } as InsertSchemaParam;
+            break;
+          }
+          case "updateSchema": {
+            params = {
+              from: adminTestWallet.address,
+              schemaId,
+              schema: `0x${serializedSchemaUpdatedBuffer.toString("hex")}`,
+              metadata: `0x${serializedUpdatedMetadataBuffer.toString("hex")}`,
+            } as UpdateSchemaParam;
             break;
           }
           default: {

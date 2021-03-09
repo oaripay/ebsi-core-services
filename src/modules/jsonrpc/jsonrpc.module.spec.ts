@@ -16,7 +16,11 @@ import {
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
-import { UnsignedTransaction, InsertSchemaParam } from "./dto";
+import {
+  UnsignedTransaction,
+  InsertSchemaParam,
+  UpdateSchemaParam,
+} from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import {
@@ -31,7 +35,7 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertSchemaParam;
+type JsonRpcParams = InsertSchemaParam | UpdateSchemaParam;
 
 jest.setTimeout(120000);
 
@@ -43,6 +47,7 @@ describe("JsonRpc Module", () => {
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let provider: ethers.providers.Web3Provider;
 
+  const schemaId = `0x${Buffer.from("11.11.2011").toString("hex")}`;
   const rawSchema = {
     "@context": "https://ebsi.eu",
     type: "Schema",
@@ -51,11 +56,27 @@ describe("JsonRpc Module", () => {
   const serializedSchema = JSON.stringify(rawSchema);
   const serializedSchemaBuffer = Buffer.from(serializedSchema);
 
+  const rawUpdatedSchema = {
+    "@context": "https://ebsi.eu",
+    type: "Schema",
+    name: "example updated",
+  };
+  const serializedUpdatedSchema = JSON.stringify(rawUpdatedSchema);
+  const serializedUpdatedSchemaBuffer = Buffer.from(serializedUpdatedSchema);
+
   const rawMetadata = {
     meta: "value",
   };
   const serializedMetadata = JSON.stringify(rawMetadata);
   const serializedMetadataBuffer = Buffer.from(serializedMetadata);
+
+  const rawUpdatedMetadata = {
+    meta: "value",
+  };
+  const serializedUpdatedMetadata = JSON.stringify(rawUpdatedMetadata);
+  const serializedUpdatedMetadataBuffer = Buffer.from(
+    serializedUpdatedMetadata
+  );
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -146,7 +167,7 @@ describe("JsonRpc Module", () => {
       to: schemasRegistryContract.address,
       data: schemasRegistryContract.interface.encodeFunctionData(
         "insertSchema",
-        [serializedSchemaBuffer, serializedMetadataBuffer]
+        [schemaId, serializedSchemaBuffer, serializedMetadataBuffer]
       ),
       value: "0x00",
       nonce: "0x00",
@@ -219,7 +240,7 @@ describe("JsonRpc Module", () => {
 
   // Tests to be repeated for every method
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertSchema"])(
+  describe.each(["insertSchema", "updateSchema"])(
     "/jsonrpc with method %s",
     (method: string) => {
       it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
@@ -233,9 +254,19 @@ describe("JsonRpc Module", () => {
           case "insertSchema": {
             param = {
               from: signer.address,
+              schemaId,
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
             } as InsertSchemaParam;
+            break;
+          }
+          case "updateSchema": {
+            param = {
+              from: signer.address,
+              schemaId,
+              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+              metadata: `0x${serializedUpdatedMetadataBuffer.toString("hex")}`,
+            } as UpdateSchemaParam;
             break;
           }
           default: {
@@ -313,9 +344,19 @@ describe("JsonRpc Module", () => {
           case "insertSchema": {
             param = {
               from: signer.address,
+              schemaId,
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
             } as InsertSchemaParam;
+            break;
+          }
+          case "updateSchema": {
+            param = {
+              from: signer.address,
+              schemaId,
+              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+            } as UpdateSchemaParam;
             break;
           }
           default: {
@@ -357,6 +398,7 @@ describe("JsonRpc Module", () => {
           case "insertSchema": {
             param1 = {
               from: signer.address,
+              schemaId,
               schema: "0x1234",
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
             } as InsertSchemaParam;
@@ -366,6 +408,7 @@ describe("JsonRpc Module", () => {
 
             param2 = {
               from: signer.address,
+              schemaId,
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: "0x1234",
             } as InsertSchemaParam;
@@ -375,12 +418,47 @@ describe("JsonRpc Module", () => {
 
             param3 = {
               from: signer.address,
+              schemaId: "11.11.2011",
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
-              metadata: serializedMetadataBuffer.toString("hex"),
+              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
             } as InsertSchemaParam;
 
             expectedErrorMessage3 =
-              "property params[0].metadata has failed the following constraints: matches";
+              "property params[0].schemaId has failed the following constraints: isHexadecimal, matches";
+            break;
+          }
+          case "updateSchema": {
+            param1 = {
+              from: signer.address,
+              schemaId,
+              schema: "0x1234",
+              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+            } as UpdateSchemaParam;
+
+            expectedErrorMessage1 =
+              "property params[0].schema has failed the following constraints: isHexadecimalJSON";
+
+            param2 = {
+              from: signer.address,
+              schemaId,
+              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+              metadata: "0x1234",
+            } as UpdateSchemaParam;
+
+            expectedErrorMessage2 =
+              "property params[0].metadata has failed the following constraints: isHexadecimalJSON";
+
+            param3 = {
+              from: signer.address,
+              schemaId: "11.11.2011",
+              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+            } as UpdateSchemaParam;
+
+            expectedErrorMessage3 =
+              "property params[0].schemaId has failed the following constraints: isHexadecimal, matches";
+            break;
+
             break;
           }
           default: {
@@ -462,17 +540,38 @@ describe("JsonRpc Module", () => {
           case "insertSchema": {
             param1 = {
               from: signer.address,
+              schemaId,
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
             } as InsertSchemaParam;
 
             param2 = {
               from: signer.address,
+              schemaId,
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: `0x${Buffer.from(JSON.stringify(metadata2)).toString(
                 "hex"
               )}`,
             } as InsertSchemaParam;
+
+            break;
+          }
+          case "updateSchema": {
+            param1 = {
+              from: signer.address,
+              schemaId,
+              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+            } as UpdateSchemaParam;
+
+            param2 = {
+              from: signer.address,
+              schemaId,
+              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+              metadata: `0x${Buffer.from(JSON.stringify(metadata2)).toString(
+                "hex"
+              )}`,
+            } as UpdateSchemaParam;
 
             break;
           }
@@ -501,6 +600,7 @@ describe("JsonRpc Module", () => {
             params: [param2],
             id: 232,
           });
+
         expect(responseBuild2.status).toBe(200);
         const transaction2 = responseBuild2.body.result as UnsignedTransaction;
 

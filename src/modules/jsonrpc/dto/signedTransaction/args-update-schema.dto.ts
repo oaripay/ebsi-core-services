@@ -1,7 +1,7 @@
 import { IsHexadecimal, Matches } from "class-validator";
 import { IsHexadecimalJSON } from "../../validators";
 
-export class ArgsInsertSchema {
+export class ArgsUpdateSchema {
   @Matches(/^0x/)
   @IsHexadecimal()
   schemaId: string;
@@ -15,4 +15,4 @@ export class ArgsInsertSchema {
   metadata: string;
 }
 
-export default { ArgsInsertSchema };
+export default { ArgsUpdateSchema };
