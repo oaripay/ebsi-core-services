@@ -149,4 +149,36 @@ library Pagination {
 
         return (items, self, howMany, prev, next);
     }
+
+    function paginate(
+        bytes[] storage self,
+        uint256 page,
+        uint256 pageSize
+    )
+    public
+    view
+    returns (
+        bytes[] memory items,
+        uint256 total,
+        uint256 howMany,
+        uint256 prev,
+        uint256 next
+    )
+    {
+        uint256 cursor;
+        (cursor, howMany, next, prev) = getPaginationParameters(
+            self.length,
+            page,
+            pageSize
+        );
+        items = new bytes[](howMany);
+        if (howMany > 0) {
+            for (uint256 i = 0; i < howMany; i++) {
+                items[i] = self[cursor + i];
+            }
+        }
+
+        return (items, self.length, howMany, prev, next);
+    }
+
 }
