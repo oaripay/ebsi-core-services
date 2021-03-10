@@ -667,7 +667,6 @@ describe("JsonRpc Module", () => {
             params: [param2],
             id: 232,
           });
-
         expect(responseBuild2.status).toBe(200);
         const transaction2 = responseBuild2.body.result as UnsignedTransaction;
 

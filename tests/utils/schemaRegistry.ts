@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { ethers } from "ethers";
 import ganache from "ganache-core";
 import {
@@ -7,7 +8,54 @@ import {
 } from "../../src/contracts/trusted-schemas";
 import PaginationArtifact from "../../submodules/trusted-schemas-registry-ethereum-sc/artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol/Pagination.json";
 
-export async function deployLedgerScRegistryContract(
+interface SchemaObject {
+  schema: unknown;
+  metadata: unknown;
+  serializedSchema: Buffer;
+  serializedMetadata: Buffer;
+  schemaId: string;
+}
+
+const randomOid = () =>
+  `1.3.6.1.4.1.${Math.ceil(Math.random() * 2020)}.${Math.ceil(
+    Math.random() * 10
+  )}.${Math.ceil(Math.random() * 250)}.${Math.ceil(
+    Math.random() * 3
+  )}.${Math.ceil(Math.random() * 3)}.${Math.ceil(
+    Math.random() * 3
+  )}.${Math.ceil(Math.random() * 100)}`;
+
+export async function insertSchema(
+  contract: SchemaSCRegistry
+): Promise<SchemaObject> {
+  const schemaId = `0x${Buffer.from(randomOid()).toString("hex")}`;
+
+  const schema = {
+    "@context": "https://ebsi.com",
+    type: "CustomSchema",
+    data: `data-${crypto.randomBytes(16).toString("hex")}`,
+  };
+
+  const serializedSchema = Buffer.from(JSON.stringify(schema));
+
+  const metadata = {
+    meta: "value",
+    data: `data-${crypto.randomBytes(16).toString("hex")}`,
+  };
+  const serializedMetadata = Buffer.from(JSON.stringify(metadata));
+
+  await contract.insertSchema(schemaId, serializedSchema, serializedMetadata);
+
+  return {
+    schema,
+    metadata,
+    serializedSchema,
+    serializedMetadata,
+    schemaId,
+  };
+}
+
+export async function deploySchemasRegistryContract(
   ethersProvider: ethers.providers.Web3Provider
 ): Promise<SchemaSCRegistry> {
   const owner = ethersProvider.getSigner();
@@ -70,20 +118,37 @@ export async function deployLedgerScRegistryContract(
   return schemasRegistry;
 }
 
-export async function setupTestEnv(): Promise<{
+export interface SetupOptions {
+  schemasTotal?: number;
+}
+
+export async function setupTestEnv(
+  opts: SetupOptions = {
+    schemasTotal: 1,
+  }
+): Promise<{
   provider: ethers.providers.Web3Provider;
   schemasRegistryContract: SchemaSCRegistry;
+  schemas: SchemaObject[];
 }> {
   const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
 
   // Deploy contract
-  const schemasRegistryContract = await deployLedgerScRegistryContract(
+  const schemasRegistryContract = await deploySchemasRegistryContract(
     ethersProvider
+  );
+
+  // Insert fake data
+  const schemas = await Promise.all(
+    Array(opts.schemasTotal)
+      .fill(0)
+      .map(() => insertSchema(schemasRegistryContract))
   );
 
   // Return test env variables
   return {
     provider: ethersProvider,
     schemasRegistryContract,
+    schemas,
   };
 }

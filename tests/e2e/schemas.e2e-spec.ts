@@ -226,4 +226,64 @@ describe("Schemas (e2e)", () => {
       });
     }
   );
+
+  describe("GET /schemas", () => {
+    it("should return a paginated collection of schemas", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/schemas");
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/schemas?page[after]=1&page[size]=10"
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/schemas?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/schemas?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining("/schemas?page[after]=") as string,
+          last: expect.stringContaining("/schemas?page[after]=") as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /schemas/{schemaId}", () => {
+    it("should return a specific schema", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get(`/schemas/${schemaId}`);
+
+      expect(response.body).toStrictEqual(rawSchema);
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/ld+json"));
+    });
+
+    it("should throw an error if the schema is not found", async () => {
+      expect.assertions(3);
+
+      const fakeId = `0x${crypto.randomBytes(16).toString("hex")}`;
+
+      const response = await request(server).get(`/schemas/${fakeId}`);
+
+      expect(response.body).toStrictEqual({
+        title: "Schema Not Found",
+        status: 404,
+        detail: `Schema ${fakeId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+  });
 });

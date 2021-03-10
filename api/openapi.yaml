@@ -25,6 +25,147 @@ tags:
   - name: Trusted Schemas Registry API
     description: List trusted schemas
 paths:
+  /trusted-schemas-registry/v1/schemas:
+    get:
+      tags:
+        - Trusted Schemas Registry API
+      summary: Get all schemas
+      description: Get all schemas. Endpoint returns a paginated list of items.
+      operationId: get-trusted-schemas-registry-v1-schemas
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection.
+                  items:
+                    type: array
+                    description: List of schemas
+                    items:
+                      $ref: "#/components/schemas/SchemaLinks"
+                  total:
+                    type: integer
+                    description: Total number of items accross all pages.
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=3&page[size]=2
+                    items:
+                      - schemaId: schema-abc
+                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc
+                      - schemaId: schema-xyz
+                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-xyz
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=62&page[size]=2
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /trusted-schemas-registry/v1/schemas/{schemaId}:
+    get:
+      tags:
+        - Trusted Schemas Registry API
+      summary: Get schema by its ID
+      description: Returns a trusted schema by its ID
+      operationId: get-trusted-schemas-registry-v1-schema
+      parameters:
+        - name: schemaId
+          in: path
+          schema:
+            type: string
+          example: "{DOI or IOD}"
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/ld+json:
+              schema:
+                type: object
+              examples:
+                Success:
+                  value:
+                    "@context": https://ebsi.com
+                    type: CustomSchema
+                    name: My custom schema
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {schemaId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {schemaId} parameter is not valid
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Schema Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v1/jsonrpc:
     post:
       operationId: post-trusted-schemas-registry-v1-jsonrpc
@@ -210,12 +351,56 @@ components:
           oneOf:
             - type: object
             - type: string
+    Links:
+      title: Links
+      type: object
+      description: Links model used for pagination.
+      properties:
+        first:
+          type: string
+          description: Hyperlink to the first page.
+        prev:
+          type: string
+          description: Hyperlink to the previous page.
+        next:
+          type: string
+          description: Hyperlink to the next page.
+        last:
+          type: string
+          description: Hyperlink to the last page.
+      x-examples:
+        Links:
+          first: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=2
+          prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=2&page[size]=2
+          next: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=4&page[size]=2
+          last: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=13&page[size]=2
+    SchemaLinks:
+      title: Schema links
+      description: Links to schemas as returned by the REST APIs.
+      type: object
+      properties:
+        schemaId:
+          type: string
+          description: Unique schema id (OID or DOI)
+        href:
+          type: string
+          description: Link to the resource.
   examples:
     BadRequest:
       value:
         title: Bad Request
         status: 400
         detail: Bad request
+    NotFound:
+      value:
+        title: Not found
+        status: 404
+        detail: Not found
+    InternalError:
+      value:
+        title: Internal error
+        status: 500
+        detail: Internal error
 servers:
   - url: http://localhost
     description: Local Computer Environment
