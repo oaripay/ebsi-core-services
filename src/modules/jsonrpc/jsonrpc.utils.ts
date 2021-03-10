@@ -6,6 +6,8 @@ import {
   UnsignedTransaction,
   ArgsInsertSchema,
   RequestInsertSchemaDto,
+  ArgsUpdateMetadata,
+  RequestUpdateMetadataDto,
   ArgsUpdateSchema,
   RequestUpdateSchemaDto,
 } from "./dto";
@@ -42,6 +44,8 @@ type JsonRpcDtos =
   | RequestSignedTransactionDto
   | ArgsInsertSchema
   | RequestInsertSchemaDto
+  | ArgsUpdateMetadata
+  | RequestUpdateMetadataDto
   | ArgsUpdateSchema
   | RequestUpdateSchemaDto;
 

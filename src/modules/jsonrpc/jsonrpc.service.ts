@@ -8,6 +8,8 @@ import {
   UnsignedTransaction,
   ArgsInsertSchema,
   RequestInsertSchemaDto,
+  RequestUpdateMetadataDto,
+  ArgsUpdateMetadata,
   RequestUpdateSchemaDto,
   ArgsUpdateSchema,
 } from "./dto";
@@ -150,6 +152,13 @@ export class JsonRpcService {
         );
         break;
       }
+      case "updateMetadata": {
+        await validateClass(
+          ArgsUpdateMetadata,
+          (args as unknown) as ArgsUpdateMetadata
+        );
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -234,6 +243,28 @@ export class JsonRpcService {
       const data = this.schemaSCRegistryContract.interface.encodeFunctionData(
         "updateSchema",
         [schemaId, schema, metadata]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateMetadata(
+    body: RequestUpdateMetadataDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateMetadataDto, body);
+
+      const { from, schemaRevisionId, metadata } = body.params[0];
+
+      const data = this.schemaSCRegistryContract.interface.encodeFunctionData(
+        "updateMetadata",
+        [schemaRevisionId, metadata]
       );
 
       return await this.buildTransaction(from, data);

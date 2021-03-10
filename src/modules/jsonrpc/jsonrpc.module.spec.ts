@@ -19,6 +19,7 @@ import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   UnsignedTransaction,
   InsertSchemaParam,
+  UpdateMetadataParam,
   UpdateSchemaParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
@@ -35,7 +36,10 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertSchemaParam | UpdateSchemaParam;
+type JsonRpcParams =
+  | InsertSchemaParam
+  | UpdateSchemaParam
+  | UpdateMetadataParam;
 
 jest.setTimeout(120000);
 
@@ -69,6 +73,12 @@ describe("JsonRpc Module", () => {
   };
   const serializedMetadata = JSON.stringify(rawMetadata);
   const serializedMetadataBuffer = Buffer.from(serializedMetadata);
+
+  const rawMetadata2 = {
+    meta: "value2",
+  };
+  const serializedMetadata2 = JSON.stringify(rawMetadata2);
+  const serializedMetadataBuffer2 = Buffer.from(serializedMetadata2);
 
   const rawUpdatedMetadata = {
     meta: "value",
@@ -240,7 +250,7 @@ describe("JsonRpc Module", () => {
 
   // Tests to be repeated for every method
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertSchema", "updateSchema"])(
+  describe.each(["insertSchema", "updateSchema", "updateMetadata"])(
     "/jsonrpc with method %s",
     (method: string) => {
       it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
@@ -267,6 +277,14 @@ describe("JsonRpc Module", () => {
               schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedUpdatedMetadataBuffer.toString("hex")}`,
             } as UpdateSchemaParam;
+            break;
+          }
+          case "updateMetadata": {
+            param = {
+              from: signer.address,
+              schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
+              metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+            } as UpdateMetadataParam;
             break;
           }
           default: {
@@ -359,6 +377,14 @@ describe("JsonRpc Module", () => {
             } as UpdateSchemaParam;
             break;
           }
+          case "updateMetadata": {
+            param = {
+              from: signer.address,
+              schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
+              metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+            } as UpdateMetadataParam;
+            break;
+          }
           default: {
             throw new Error(`Test Error: Invalid method ${method}`);
           }
@@ -418,13 +444,12 @@ describe("JsonRpc Module", () => {
 
             param3 = {
               from: signer.address,
-              schemaId: "11.11.2011",
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
-              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+              metadata: serializedMetadataBuffer.toString("hex"),
             } as InsertSchemaParam;
 
             expectedErrorMessage3 =
-              "property params[0].schemaId has failed the following constraints: isHexadecimal, matches";
+              "property params[0].metadata has failed the following constraints: matches";
             break;
           }
           case "updateSchema": {
@@ -458,9 +483,37 @@ describe("JsonRpc Module", () => {
             expectedErrorMessage3 =
               "property params[0].schemaId has failed the following constraints: isHexadecimal, matches";
             break;
+          }
+          case "updateMetadata": {
+            param1 = {
+              from: signer.address,
+              schemaRevisionId: "1234",
+              metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+            } as UpdateMetadataParam;
 
+            expectedErrorMessage1 =
+              "property params[0].schemaRevisionId has failed the following constraints: matches";
+
+            param2 = {
+              from: signer.address,
+              schemaRevisionId: "0x",
+              metadata: "0x1234",
+            } as UpdateMetadataParam;
+
+            expectedErrorMessage2 =
+              "property params[0].metadata has failed the following constraints: isHexadecimalJSON";
+
+            param3 = {
+              from: signer.address,
+              schemaRevisionId: "0x",
+              metadata: serializedMetadataBuffer.toString("hex"),
+            } as UpdateMetadataParam;
+
+            expectedErrorMessage3 =
+              "property params[0].metadata has failed the following constraints: matches";
             break;
           }
+
           default: {
             throw new Error(`Test Error: Invalid method ${method}`);
           }
@@ -573,6 +626,20 @@ describe("JsonRpc Module", () => {
               )}`,
             } as UpdateSchemaParam;
 
+            break;
+          }
+          case "updateMetadata": {
+            param1 = {
+              from: signer.address,
+              schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
+              metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+            } as UpdateMetadataParam;
+
+            param2 = {
+              from: signer.address,
+              schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
+              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+            } as UpdateMetadataParam;
             break;
           }
           default: {

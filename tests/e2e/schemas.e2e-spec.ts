@@ -19,6 +19,7 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import {
   InsertSchemaParam,
+  UpdateMetadataParam,
   UpdateSchemaParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
@@ -31,7 +32,10 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertSchemaParam;
+type JsonRpcParams =
+  | InsertSchemaParam
+  | UpdateSchemaParam
+  | UpdateMetadataParam;
 
 const randomOid = () =>
   `1.3.6.1.4.1.${Math.ceil(Math.random() * 2020)}.${Math.ceil(
@@ -57,6 +61,7 @@ describe("Schemas (e2e)", () => {
   };
   const serializedSchema = JSON.stringify(rawSchema);
   const serializedSchemaBuffer = Buffer.from(serializedSchema);
+  const schemaRevisionId = ethers.utils.sha256(serializedSchemaBuffer);
 
   const rawUpdatedSchema = {
     "@context": "https://ebsi.eu",
@@ -74,6 +79,12 @@ describe("Schemas (e2e)", () => {
   const serializedMetadata = JSON.stringify(rawMetadata);
   const serializedMetadataBuffer = Buffer.from(serializedMetadata);
 
+  const rawMetadata2 = {
+    meta: "value 2",
+    data: crypto.randomBytes(16).toString("hex"),
+  };
+  const serializedMetadata2 = JSON.stringify(rawMetadata2);
+  const serializedMetadataBuffer2 = Buffer.from(serializedMetadata2);
   const rawUpdatedMetadata = {
     meta: "value updated",
     data: crypto.randomBytes(16).toString("hex"),
@@ -111,7 +122,7 @@ describe("Schemas (e2e)", () => {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertSchema", "updateSchema"])(
+  describe.each(["insertSchema", "updateSchema", "updateMetadata"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should work", async () => {
@@ -136,6 +147,14 @@ describe("Schemas (e2e)", () => {
               schema: `0x${serializedSchemaUpdatedBuffer.toString("hex")}`,
               metadata: `0x${serializedUpdatedMetadataBuffer.toString("hex")}`,
             } as UpdateSchemaParam;
+            break;
+          }
+          case "updateMetadata": {
+            params = {
+              from: adminTestWallet.address,
+              schemaRevisionId,
+              metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+            } as UpdateMetadataParam;
             break;
           }
           default: {

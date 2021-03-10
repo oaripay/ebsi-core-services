@@ -21,9 +21,6 @@ export async function deployLedgerScRegistryContract(
     ).deploy()
   ).address;
 
-  const schemaLibAddress = (await new SchemaLib__factory(owner).deploy())
-    .address;
-
   /*
     https://docs.soliditylang.org/en/latest/using-the-compiler.html#library-linking
 
@@ -41,21 +38,30 @@ export async function deployLedgerScRegistryContract(
     const ethers = require("ethers");
     console.log(
       ethers.utils.keccak256(
-        Buffer.from("contracts/ledger-sc-registry/SchemaLib.sol:SchemaLib", "utf-8")
+        Buffer.from("contracts/trusted-schemas-registry/SchemaLib.sol:SchemaLib", "utf-8")
       )
     );
     ```
-    -> 0xb94732ef4516b046ed30cf52af2e344e1f87f538e7af164ac66ef0b166be4461
+    -> 0x88ab2ccec2edd5f1fa8d2957a7a4b5dfb8c55b2964ed57111b971506e0878efa
 
     Mapping:
 
-    __$b94732ef4516b046ed30cf52af2e344e1f$__ = "contracts/ledger-sc-registry/SchemaLib.sol:SchemaLib"
+    __$88ab2ccec2edd5f1fa8d2957a7a4b5dfb8$__ = "contracts/trusted-schemas-registry/SchemaLib.sol:SchemaLib"
     __$515a15b27d7e720e4d91814eed9672e50c$__ = "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination"
   */
 
+  const schemaLibAddress = (
+    await new SchemaLib__factory(
+      {
+        __$515a15b27d7e720e4d91814eed9672e50c$__: paginationAddress,
+      },
+      owner
+    ).deploy()
+  ).address;
+
   const schemasRegistry = await new SchemaSCRegistry__factory(
     {
-      __$b94732ef4516b046ed30cf52af2e344e1f$__: schemaLibAddress,
+      __$88ab2ccec2edd5f1fa8d2957a7a4b5dfb8$__: schemaLibAddress,
       __$515a15b27d7e720e4d91814eed9672e50c$__: paginationAddress,
     },
     owner
