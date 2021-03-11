@@ -1,6 +1,8 @@
 import crypto from "crypto";
 import { ethers } from "ethers";
 import ganache from "ganache-core";
+import { range } from "rxjs";
+import { mergeMap, toArray } from "rxjs/operators";
 import {
   SchemaSCRegistry,
   SchemaSCRegistry__factory,
@@ -118,17 +120,38 @@ export async function deploySchemasRegistryContract(
   return schemasRegistry;
 }
 
+export async function insertAdmin(
+  contract: SchemaSCRegistry,
+  adminAddress: string
+): Promise<ethers.ContractTransaction> {
+  const adminDid = `did:ebsi:${adminAddress.toLowerCase()}`;
+  const bufferAttribute = Buffer.from(
+    JSON.stringify({
+      "@context": {
+        name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
+        description: "http://tar-api-test.org/description",
+      },
+      name: `test-${adminDid}`,
+    })
+  );
+
+  return contract.insertAdministrator(adminDid, bufferAttribute);
+}
+
 export interface SetupOptions {
+  administratorsTotal?: number;
   schemasTotal?: number;
 }
 
 export async function setupTestEnv(
   opts: SetupOptions = {
+    administratorsTotal: 1,
     schemasTotal: 1,
   }
 ): Promise<{
   provider: ethers.providers.Web3Provider;
   schemasRegistryContract: SchemaSCRegistry;
+  administrators: ethers.Wallet[];
   schemas: SchemaObject[];
 }> {
   const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
@@ -138,6 +161,16 @@ export async function setupTestEnv(
     ethersProvider
   );
 
+  const createAdminWallet = async () => {
+    // Create random wallet and connect it so we can use it later to send transactions
+    const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
+    await insertAdmin(schemasRegistryContract, wallet.address);
+    return wallet;
+  };
+
+  const administrators = await range(0, opts.administratorsTotal)
+    .pipe(mergeMap(createAdminWallet), toArray())
+    .toPromise();
   // Insert fake data
   const schemas = await Promise.all(
     Array(opts.schemasTotal)
@@ -149,6 +182,7 @@ export async function setupTestEnv(
   return {
     provider: ethersProvider,
     schemasRegistryContract,
+    administrators,
     schemas,
   };
 }

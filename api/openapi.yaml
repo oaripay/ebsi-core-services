@@ -166,6 +166,97 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /trusted-schemas-registry/v1/administrators:
+    get:
+      tags:
+        - Trusted Apps Registry
+      summary: List of trusted administrators
+      description: Returns a list of trusted administrators
+      operationId: get-trusted-apps-registry-v2-administrators
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to administrators
+                  items:
+                    type: array
+                    description: List of administrators
+                    items:
+                      type: object
+                      properties:
+                        did:
+                          type: string
+                          description: DID of the administrator
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators?page[after]=3&page[size]=10
+                    items:
+                      - did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                      - did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators?page[after]=13&page[size]=10
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
   /trusted-schemas-registry/v1/jsonrpc:
     post:
       operationId: post-trusted-schemas-registry-v1-jsonrpc
