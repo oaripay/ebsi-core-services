@@ -8,8 +8,10 @@ import {
   UnsignedTransaction,
   ArgsInsertAdministrator,
   ArgsInsertSchema,
+  ArgsUpdateAdministrator,
   RequestInsertAdministratorDto,
   RequestInsertSchemaDto,
+  RequestUpdateAdministratorDto,
   RequestUpdateMetadataDto,
   ArgsUpdateMetadata,
   RequestUpdateSchemaDto,
@@ -25,6 +27,7 @@ import {
 import { ContractService } from "../../shared/services/contract.service";
 import { SchemaSCRegistry } from "../../contracts/trusted-schemas";
 import { ApiConfig } from "../../config/configuration";
+import { prefixWith0x } from "../../shared/utils";
 
 @Injectable()
 export class JsonRpcService {
@@ -151,6 +154,13 @@ export class JsonRpcService {
         await validateClass(
           ArgsInsertSchema,
           (args as unknown) as ArgsInsertSchema
+        );
+        break;
+      }
+      case "updateAdministrator": {
+        await validateClass(
+          ArgsUpdateAdministrator,
+          (args as unknown) as ArgsUpdateAdministrator
         );
         break;
       }
@@ -299,6 +309,46 @@ export class JsonRpcService {
       );
 
       return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateAdministrator(
+    body: RequestUpdateAdministratorDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateAdministratorDto, body);
+
+      const { from, did, attributeData, prevAttributeHash } = body.params[0];
+
+      const data = [did.toLowerCase(), attributeData];
+
+      if (prevAttributeHash) {
+        data.push(prefixWith0x(prevAttributeHash));
+      }
+
+      let functionSig;
+
+      if (prevAttributeHash) {
+        // using updateAdministrator function (did, attributeData, lastVersHash)
+        functionSig = "updateAdministrator(string,bytes,bytes32)";
+      } else {
+        // using updateAdministrator function (did, attributeData)
+        functionSig = "updateAdministrator(string,bytes)";
+      }
+
+      const encodedData = this.schemaSCRegistryContract.interface.encodeFunctionData(
+        functionSig,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        data
+      );
+
+      return await this.buildTransaction(from, encodedData);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;

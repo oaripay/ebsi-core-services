@@ -21,6 +21,7 @@ import {
   UnsignedTransaction,
   InsertSchemaParam,
   InsertAdministratorParam,
+  UpdateAdministratorParam,
   UpdateMetadataParam,
   UpdateSchemaParam,
 } from "./dto";
@@ -41,6 +42,7 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | InsertAdministratorParam
   | InsertSchemaParam
+  | UpdateAdministratorParam
   | UpdateSchemaParam
   | UpdateMetadataParam;
 
@@ -72,6 +74,7 @@ describe("JsonRpc Module", () => {
   const newAdminWallet = ethers.Wallet.createRandom();
   const adminV1 = createAdministrator(newAdminWallet);
   const adminV2 = createAdministrator(newAdminWallet);
+  const adminV3 = createAdministrator(newAdminWallet);
 
   const schemaId = `0x${Buffer.from("11.11.2011").toString("hex")}`;
   const rawSchema = {
@@ -275,9 +278,14 @@ describe("JsonRpc Module", () => {
   describe.each([
     "insertAdministrator",
     "insertSchema",
+    "updateAdministrator",
+    "updateAdministrator(test update attribute)",
     "updateSchema",
     "updateMetadata",
-  ])("/jsonrpc with method %s", (method: string) => {
+  ])("/jsonrpc with method %s", (testMethod: string) => {
+    const updateAttribute = testMethod.includes("(test update attribute)");
+    const method = testMethod.replace("(test update attribute)", "");
+
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
       expect.assertions(4);
 
@@ -303,6 +311,27 @@ describe("JsonRpc Module", () => {
             schema: `0x${serializedSchemaBuffer.toString("hex")}`,
             metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
           } as InsertSchemaParam;
+          break;
+        }
+        case "updateAdministrator": {
+          if (updateAttribute) {
+            // update attribute1: change it to attribute3
+            param = {
+              attributeData: adminV3.attributeData,
+              did: did.toLowerCase(),
+              from: signer.address,
+              prevAttributeHash: ethers.utils.sha256(
+                Buffer.from(adminV1.attributeData.slice(2), "hex")
+              ),
+            } as UpdateAdministratorParam;
+          } else {
+            // updateIssuer: add attribute2
+            param = {
+              attributeData: adminV2.attributeData,
+              did: did.toLowerCase(),
+              from: signer.address,
+            } as UpdateAdministratorParam;
+          }
           break;
         }
         case "updateSchema": {
@@ -395,7 +424,6 @@ describe("JsonRpc Module", () => {
 
       switch (method) {
         case "insertAdministrator": {
-          // create a new administrator and add attribute1
           param = {
             attributeData: adminV1.attributeData,
             did: adminV1.did.toLowerCase(),
@@ -410,6 +438,14 @@ describe("JsonRpc Module", () => {
             schema: `0x${serializedSchemaBuffer.toString("hex")}`,
             metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
           } as InsertSchemaParam;
+          break;
+        }
+        case "updateAdministrator": {
+          param = {
+            attributeData: adminV1.attributeData,
+            did: adminV1.did.toLowerCase(),
+            from: signer.address,
+          } as UpdateAdministratorParam;
           break;
         }
         case "updateSchema": {
@@ -584,7 +620,33 @@ describe("JsonRpc Module", () => {
             "property params[0].metadata has failed the following constraints: matches";
           break;
         }
+        case "updateAdministrator": {
+          param1 = {
+            did: adminV1.did,
+            from: signer.address,
+          } as UpdateAdministratorParam;
 
+          expectedErrorMessage1 =
+            "property params[0].attributeData has failed the following constraints: isHexadecimal";
+
+          param2 = {
+            from: signer.address,
+            attributeData: adminV1.attributeData,
+          } as UpdateAdministratorParam;
+
+          expectedErrorMessage2 =
+            "property params[0].did has failed the following constraints: isLowercase, isDid";
+
+          param3 = {
+            did: adminV1.did,
+            attributeData: adminV1.attributeData,
+            from: "bad address",
+          } as UpdateAdministratorParam;
+
+          expectedErrorMessage3 =
+            "property params[0].from has failed the following constraints: isEthereumAddress";
+          break;
+        }
         default: {
           throw new Error(`Test Error: Invalid method ${method}`);
         }
@@ -689,6 +751,17 @@ describe("JsonRpc Module", () => {
             )}`,
           } as InsertSchemaParam;
 
+          break;
+        }
+        case "updateAdministrator": {
+          param1 = {
+            ...adminV1,
+            from: signer.address,
+          } as UpdateAdministratorParam;
+          param2 = {
+            ...adminV2,
+            from: signer.address,
+          } as UpdateAdministratorParam;
           break;
         }
         case "updateSchema": {

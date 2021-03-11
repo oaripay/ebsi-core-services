@@ -3,4 +3,4 @@ version: "3.7"
 services:
   trusted-schemas-registry-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-schemas-registry-api:prod_ebsiint-2045-jsonrpc-insert-administrator_v1.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-schemas-registry-api:prod_ebsiint-2046-jsonrpc-update-administrator_v1.0.0

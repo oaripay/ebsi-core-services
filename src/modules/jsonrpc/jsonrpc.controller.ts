@@ -7,6 +7,7 @@ import {
   RequestSignedTransactionDto,
   RequestInsertAdministratorDto,
   RequestInsertSchemaDto,
+  RequestUpdateAdministratorDto,
   RequestUpdateSchemaDto,
   RequestUpdateMetadataDto,
 } from "./dto";
@@ -40,6 +41,13 @@ export default class AppController {
           id
         );
         return jsonRpcResponse(result, id);
+      }
+      case "updateAdministrator": {
+        const transaction = await this.jsonRpcService.buildTransactionUpdateAdministrator(
+          body as RequestUpdateAdministratorDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
       }
       case "updateSchema": {
         const result = await this.jsonRpcService.buildTransactionUpdateSchema(

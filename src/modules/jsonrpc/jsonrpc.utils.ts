@@ -6,8 +6,10 @@ import {
   UnsignedTransaction,
   ArgsInsertAdministrator,
   ArgsInsertSchema,
+  ArgsUpdateAdministrator,
   RequestInsertSchemaDto,
   RequestInsertAdministratorDto,
+  RequestUpdateAdministratorDto,
   ArgsUpdateMetadata,
   RequestUpdateMetadataDto,
   ArgsUpdateSchema,
@@ -46,8 +48,10 @@ type JsonRpcDtos =
   | RequestSignedTransactionDto
   | ArgsInsertAdministrator
   | ArgsInsertSchema
+  | ArgsUpdateAdministrator
   | RequestInsertAdministratorDto
   | RequestInsertSchemaDto
+  | RequestUpdateAdministratorDto
   | ArgsUpdateMetadata
   | RequestUpdateMetadataDto
   | ArgsUpdateSchema
