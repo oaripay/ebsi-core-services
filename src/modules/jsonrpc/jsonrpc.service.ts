@@ -6,7 +6,9 @@ import {
   RequestSignedTransactionDto,
   SignedTransactionParam,
   UnsignedTransaction,
+  ArgsInsertAdministrator,
   ArgsInsertSchema,
+  RequestInsertAdministratorDto,
   RequestInsertSchemaDto,
   RequestUpdateMetadataDto,
   ArgsUpdateMetadata,
@@ -138,6 +140,13 @@ export class JsonRpcService {
     );
 
     switch (functionFragment.name) {
+      case "insertAdministrator": {
+        await validateClass(
+          ArgsInsertAdministrator,
+          (args as unknown) as ArgsInsertAdministrator
+        );
+        break;
+      }
       case "insertSchema": {
         await validateClass(
           ArgsInsertSchema,
@@ -207,6 +216,28 @@ export class JsonRpcService {
     }
 
     return unsignedTransaction;
+  }
+
+  async buildTransactionInsertAdministrator(
+    body: RequestInsertAdministratorDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertAdministratorDto, body);
+
+      const { from, did, attributeData } = body.params[0];
+
+      const data = this.schemaSCRegistryContract.interface.encodeFunctionData(
+        "insertAdministrator",
+        [did.toLowerCase(), attributeData]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
   }
 
   async buildTransactionInsertSchema(
