@@ -275,8 +275,8 @@ paths:
           It requires the following fields:
 
           - **jsonrpc**: Must be exactly '2.0'
-          - **method**: Method to be invoked. Possible values: 'insertAdministrator', 'insertSchema',
-            'updateSchema', 'updateAdministrator', 'updateMetadata'
+          - **method**: Method to be invoked. Possible values: 'insertAdministrator', 'insertPolicy',
+            'insertSchema', 'updateSchema', 'updateAdministrator', 'updateMetadata'
           - **params**: Array of parameters
           - **id**: Identifier stablished by the client
         content:
@@ -314,6 +314,15 @@ paths:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
                       attributeData: "0x68946e6565d6516..."
+              Build tx to insertPolicy:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertPolicy
+                  id: 1
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      policyId: test-policy-1
+                      policyData: "0x1234567890..."
               Build tx to insertSchema:
                 value:
                   jsonrpc: "2.0"

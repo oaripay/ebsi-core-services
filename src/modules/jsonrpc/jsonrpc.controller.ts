@@ -5,6 +5,7 @@ import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   JsonRpcDto,
   RequestSignedTransactionDto,
+  RequestInsertPolicyDto,
   RequestInsertAdministratorDto,
   RequestInsertSchemaDto,
   RequestUpdateAdministratorDto,
@@ -31,6 +32,13 @@ export default class AppController {
       case "insertAdministrator": {
         const result = await this.jsonRpcService.buildTransactionInsertAdministrator(
           body as RequestInsertAdministratorDto,
+          id
+        );
+        return jsonRpcResponse(result, id);
+      }
+      case "insertPolicy": {
+        const result = await this.jsonRpcService.buildTransactionInsertPolicy(
+          body as RequestInsertPolicyDto,
           id
         );
         return jsonRpcResponse(result, id);

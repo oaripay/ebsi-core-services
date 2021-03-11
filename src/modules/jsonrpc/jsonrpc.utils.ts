@@ -4,6 +4,8 @@ import { ethers } from "ethers";
 import {
   RequestSignedTransactionDto,
   UnsignedTransaction,
+  ArgsInsertPolicy,
+  RequestInsertPolicyDto,
   ArgsInsertAdministrator,
   ArgsInsertSchema,
   ArgsUpdateAdministrator,
@@ -46,6 +48,8 @@ export function formatEthersSignature(
 
 type JsonRpcDtos =
   | RequestSignedTransactionDto
+  | ArgsInsertPolicy
+  | RequestInsertPolicyDto
   | ArgsInsertAdministrator
   | ArgsInsertSchema
   | ArgsUpdateAdministrator
