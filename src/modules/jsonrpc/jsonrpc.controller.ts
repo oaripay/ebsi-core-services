@@ -6,8 +6,9 @@ import {
   JsonRpcDto,
   RequestSignedTransactionDto,
   RequestInsertPolicyDto,
-  RequestInsertAdministratorDto,
   RequestInsertSchemaDto,
+  RequestUpdatePolicyDto,
+  RequestInsertAdministratorDto,
   RequestUpdateAdministratorDto,
   RequestUpdateSchemaDto,
   RequestUpdateMetadataDto,
@@ -46,6 +47,13 @@ export default class AppController {
       case "insertSchema": {
         const result = await this.jsonRpcService.buildTransactionInsertSchema(
           body as RequestInsertSchemaDto,
+          id
+        );
+        return jsonRpcResponse(result, id);
+      }
+      case "updatePolicy": {
+        const result = await this.jsonRpcService.buildTransactionUpdatePolicy(
+          body as RequestUpdatePolicyDto,
           id
         );
         return jsonRpcResponse(result, id);

@@ -10,6 +10,8 @@ import {
   ArgsInsertSchema,
   ArgsUpdateAdministrator,
   RequestInsertSchemaDto,
+  ArgsUpdatePolicy,
+  RequestUpdatePolicyDto,
   RequestInsertAdministratorDto,
   RequestUpdateAdministratorDto,
   ArgsUpdateMetadata,
@@ -55,6 +57,8 @@ type JsonRpcDtos =
   | ArgsUpdateAdministrator
   | RequestInsertAdministratorDto
   | RequestInsertSchemaDto
+  | ArgsUpdatePolicy
+  | RequestUpdatePolicyDto
   | RequestUpdateAdministratorDto
   | ArgsUpdateMetadata
   | RequestUpdateMetadataDto

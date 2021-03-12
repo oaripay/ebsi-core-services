@@ -13,6 +13,8 @@ import {
   ArgsUpdateAdministrator,
   RequestInsertAdministratorDto,
   RequestInsertSchemaDto,
+  ArgsUpdatePolicy,
+  RequestUpdatePolicyDto,
   RequestUpdateAdministratorDto,
   RequestUpdateMetadataDto,
   ArgsUpdateMetadata,
@@ -173,6 +175,13 @@ export class JsonRpcService {
         );
         break;
       }
+      case "updatePolicy": {
+        await validateClass(
+          ArgsUpdatePolicy,
+          (args as unknown) as ArgsUpdatePolicy
+        );
+        break;
+      }
       case "updateSchema": {
         await validateClass(
           ArgsUpdateSchema,
@@ -271,7 +280,6 @@ export class JsonRpcService {
         "insertPolicy",
         [policyId, policyData]
       );
-
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
@@ -294,6 +302,26 @@ export class JsonRpcService {
         [schemaId, schema, metadata]
       );
 
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdatePolicy(
+    body: RequestUpdatePolicyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdatePolicyDto, body);
+      const { from, policyId, policyData } = body.params[0];
+
+      const data = this.schemaSCRegistryContract.interface.encodeFunctionData(
+        "updatePolicy",
+        [policyId, policyData]
+      );
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);

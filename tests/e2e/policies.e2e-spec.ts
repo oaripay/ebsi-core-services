@@ -79,47 +79,50 @@ describe("Policies (e2e)", () => {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertPolicy"])("/jsonrpc - method: %s", (method: string) => {
-    it(`should return a new unsigned transaction`, async () => {
-      expect.assertions(2);
+  describe.each(["insertPolicy", "updatePolicy"])(
+    "/jsonrpc - method: %s",
+    (method: string) => {
+      it(`should return a new unsigned transaction`, async () => {
+        expect.assertions(2);
 
-      const { policyId, policyData } = createPolicy(new Date().toISOString());
+        const { policyId, policyData } = createPolicy(new Date().toISOString());
 
-      const responseBuild: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
-        .send({
+        const responseBuild: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .send({
+            jsonrpc: "2.0",
+            method,
+            params: [
+              {
+                from: adminTestWallet.address,
+                policyId,
+                policyData,
+              },
+            ],
+            id: 231,
+          });
+
+        expect(responseBuild.body).toStrictEqual({
           jsonrpc: "2.0",
-          method,
-          params: [
-            {
-              from: adminTestWallet.address,
-              policyId,
-              policyData,
-            },
-          ],
           id: 231,
+          result: {
+            chainId: expect.any(String) as string,
+            data: expect.any(String) as string,
+            from: adminTestWallet.address,
+            gasLimit: expect.any(String) as string,
+            gasPrice: expect.any(String) as string,
+            nonce: expect.any(String) as string,
+            to: expect.any(String) as string,
+            value: expect.any(String) as string,
+          },
         });
-
-      expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 231,
-        result: {
-          chainId: expect.any(String) as string,
-          data: expect.any(String) as string,
-          from: adminTestWallet.address,
-          gasLimit: expect.any(String) as string,
-          gasPrice: expect.any(String) as string,
-          nonce: expect.any(String) as string,
-          to: expect.any(String) as string,
-          value: expect.any(String) as string,
-        },
+        expect(responseBuild.status).toBe(200);
       });
-      expect(responseBuild.status).toBe(200);
-    });
-  });
+    }
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertPolicy"])(
+  describe.each(["insertPolicy", "updatePolicy"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should insert a new policy", async () => {

@@ -21,6 +21,7 @@ import {
   UnsignedTransaction,
   InsertPolicyParam,
   InsertSchemaParam,
+  UpdatePolicyParam,
   InsertAdministratorParam,
   UpdateAdministratorParam,
   UpdateMetadataParam,
@@ -32,7 +33,10 @@ import {
   SchemaSCRegistry,
   SchemaSCRegistry__factory,
 } from "../../contracts/trusted-schemas";
-import { setupTestEnv } from "../../../tests/utils/schemaRegistry";
+import {
+  PolicyObject,
+  setupTestEnv,
+} from "../../../tests/utils/schemaRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 interface SupertestJsonRpcResponse {
@@ -57,6 +61,7 @@ describe("JsonRpc Module", () => {
   let jsonRpcService: JsonRpcService;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let provider: ethers.providers.Web3Provider;
+  let policies: PolicyObject[];
 
   const createAdministrator = (wallet: ethers.Wallet) => {
     const did = `did:ebsi:${wallet.address.toLowerCase()}`;
@@ -141,6 +146,7 @@ describe("JsonRpc Module", () => {
     schemasRegistryContract = testEnv.schemasRegistryContract;
 
     provider = testEnv.provider;
+    policies = testEnv.policies;
 
     // Mock SchemaSCRegistry and TAR contract
     jest
@@ -300,6 +306,7 @@ describe("JsonRpc Module", () => {
   describe.each([
     "insertAdministrator",
     "insertPolicy",
+    "updatePolicy",
     "insertSchema",
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
@@ -363,6 +370,14 @@ describe("JsonRpc Module", () => {
               from: signer.address,
             } as UpdateAdministratorParam;
           }
+          break;
+        }
+        case "updatePolicy": {
+          param = {
+            from: signer.address,
+            policyId: policies[0].policyId,
+            policyData: policy2.policyData,
+          } as UpdatePolicyParam;
           break;
         }
         case "updateSchema": {
@@ -485,6 +500,14 @@ describe("JsonRpc Module", () => {
             did: adminV1.did.toLowerCase(),
             from: signer.address,
           } as UpdateAdministratorParam;
+          break;
+        }
+        case "updatePolicy": {
+          param = {
+            from: signer.address,
+            policyId: policy1.policyId,
+            policyData: policy1.policyData,
+          } as UpdatePolicyParam;
           break;
         }
         case "updateSchema": {
@@ -713,6 +736,33 @@ describe("JsonRpc Module", () => {
             "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
         }
+        case "updatePolicy": {
+          param1 = {
+            ...policy1,
+            from: signer.address,
+          };
+          param2 = {
+            ...policy2,
+            from: signer.address,
+          };
+          param3 = {
+            ...policy3,
+            from: signer.address,
+          };
+
+          delete param1.policyId;
+          expectedErrorMessage1 =
+            "property params[0].policyId has failed the following constraints: isString";
+
+          delete param2.policyData;
+          expectedErrorMessage2 =
+            "property params[0].policyData has failed the following constraints: isHexadecimal";
+
+          param3.from = "bad address";
+          expectedErrorMessage3 =
+            "property params[0].from has failed the following constraints: isEthereumAddress";
+          break;
+        }
         default: {
           throw new Error(`Test Error: Invalid method ${method}`);
         }
@@ -839,6 +889,17 @@ describe("JsonRpc Module", () => {
             ...adminV2,
             from: signer.address,
           } as UpdateAdministratorParam;
+          break;
+        }
+        case "updatePolicy": {
+          param1 = {
+            ...policy1,
+            from: signer.address,
+          } as InsertPolicyParam;
+          param2 = {
+            ...policy2,
+            from: signer.address,
+          } as InsertPolicyParam;
           break;
         }
         case "updateSchema": {

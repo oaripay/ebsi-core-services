@@ -18,6 +18,12 @@ interface SchemaObject {
   schemaId: string;
 }
 
+export interface PolicyObject {
+  policyId: string;
+  policyData: unknown;
+  policyHash: string;
+}
+
 const randomOid = () =>
   `1.3.6.1.4.1.${Math.ceil(Math.random() * 2020)}.${Math.ceil(
     Math.random() * 10
@@ -55,6 +61,45 @@ export async function insertSchema(
     serializedMetadata,
     schemaId,
   };
+}
+
+export async function insertPolicy(
+  contract: SchemaSCRegistry
+): Promise<PolicyObject> {
+  const policyId = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
+
+  const policyData = {
+    // any object here
+    any: "Any attribute here",
+    type: "credential",
+    data: crypto.randomBytes(16).toString("hex"),
+  };
+
+  const policyBuffer = Buffer.from(JSON.stringify(policyData));
+  const policyHash = ethers.utils.sha256(policyBuffer);
+
+  await contract.insertPolicy(policyId, policyBuffer);
+
+  return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
+}
+
+export async function updatePolicy(
+  contract: SchemaSCRegistry,
+  policyId: string
+): Promise<PolicyObject> {
+  const policyData = {
+    // any object here
+    any: "Any attribute here",
+    type: "credential",
+    data: crypto.randomBytes(16).toString("hex"),
+  };
+
+  const policyBuffer = Buffer.from(JSON.stringify(policyData));
+  const policyHash = ethers.utils.sha256(policyBuffer);
+
+  await contract.updatePolicy(policyId, policyBuffer);
+
+  return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
 }
 
 export async function deploySchemasRegistryContract(
@@ -141,18 +186,23 @@ export async function insertAdmin(
 export interface SetupOptions {
   administratorsTotal?: number;
   schemasTotal?: number;
+  policiesTotal?: number;
+  policiesRevisionsTotal?: number;
 }
 
 export async function setupTestEnv(
   opts: SetupOptions = {
     administratorsTotal: 1,
     schemasTotal: 1,
+    policiesTotal: 1,
+    policiesRevisionsTotal: 1,
   }
 ): Promise<{
   provider: ethers.providers.Web3Provider;
   schemasRegistryContract: SchemaSCRegistry;
   administrators: ethers.Wallet[];
   schemas: SchemaObject[];
+  policies: PolicyObject[];
 }> {
   const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
 
@@ -178,11 +228,41 @@ export async function setupTestEnv(
       .map(() => insertSchema(schemasRegistryContract))
   );
 
+  const policyRevisions = {};
+
+  // Create as many policies as requested
+  const createPolicy = async () => {
+    const policy = await insertPolicy(schemasRegistryContract);
+
+    const createRevision = async () =>
+      updatePolicy(schemasRegistryContract, policy.policyId);
+
+    // For each policy, add revisions
+    policyRevisions[policy.policyId] = [
+      // The first revision is the policy itself
+      policy,
+      // Then, we add new revisions
+      ...(await range(0, opts.policiesRevisionsTotal - 1)
+        .pipe(mergeMap(createRevision), toArray())
+        .toPromise()),
+    ];
+
+    return policy;
+  };
+
+  const policies =
+    opts.policiesRevisionsTotal >= 1
+      ? await range(0, opts.policiesTotal)
+          .pipe(mergeMap(createPolicy), toArray())
+          .toPromise()
+      : [];
+
   // Return test env variables
   return {
     provider: ethersProvider,
     schemasRegistryContract,
     administrators,
     schemas,
+    policies,
   };
 }
