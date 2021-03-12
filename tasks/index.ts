@@ -8,3 +8,4 @@ import "./chainId";
 import "./tx";
 import "./changeImplementation";
 import "./changeOwnership";
+import "./initializeProxy";
