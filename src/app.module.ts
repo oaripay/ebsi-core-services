@@ -4,6 +4,7 @@ import { HealthModule } from "./modules/health/health.module";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { SchemasModule } from "./modules/schemas/schemas.module";
 import { AdministratorsModule } from "./modules/administrators/administrators.module";
+import { PoliciesModule } from "./modules/policies/policies.module";
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { AdministratorsModule } from "./modules/administrators/administrators.mo
     JsonRpcModule,
     SchemasModule,
     AdministratorsModule,
+    PoliciesModule,
   ],
   providers: [],
 })

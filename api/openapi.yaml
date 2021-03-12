@@ -22,13 +22,13 @@ info:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
 tags:
-  - name: Trusted Schemas Registry API
+  - name: Trusted Schemas Registry
     description: List trusted schemas
 paths:
   /trusted-schemas-registry/v1/schemas:
     get:
       tags:
-        - Trusted Schemas Registry API
+        - Trusted Schemas Registry
       summary: Get all schemas
       description: Get all schemas. Endpoint returns a paginated list of items.
       operationId: get-trusted-schemas-registry-v1-schemas
@@ -112,7 +112,7 @@ paths:
   /trusted-schemas-registry/v1/schemas/{schemaId}:
     get:
       tags:
-        - Trusted Schemas Registry API
+        - Trusted Schemas Registry
       summary: Get schema by its ID
       description: Returns a trusted schema by its ID
       operationId: get-trusted-schemas-registry-v1-schema
@@ -169,10 +169,10 @@ paths:
   /trusted-schemas-registry/v1/administrators:
     get:
       tags:
-        - Trusted Apps Registry
+        - Trusted Schemas Registry
       summary: List of trusted administrators
       description: Returns a list of trusted administrators
-      operationId: get-trusted-apps-registry-v2-administrators
+      operationId: get-trusted-schemas-registry-v1-administrators
       responses:
         "200":
           description: Success
@@ -257,11 +257,159 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+  /trusted-schemas-registry/v1/policies:
+    get:
+      tags:
+        - Trusted Schemas Registry
+      summary: Get all policies
+      description: Get all policies. Endpoint returns a paginated list of items.
+      operationId: get-trusted-schemas-registry-v1-policies
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to policies
+                  items:
+                    type: array
+                    description: List of policies
+                    items:
+                      type: object
+                      properties:
+                        policyId:
+                          type: string
+                          description: ID of the policy
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=3&page[size]=2
+                    items:
+                      - policyId: test-policy-1
+                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1
+                      - policyId: test-policy-2
+                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-2
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=62&page[size]=2
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  "/trusted-schemas-registry/v1/policies/{policyId}":
+    get:
+      tags:
+        - Trusted Schemas Registry
+      summary: Get policy by its ID
+      description: Returns a trusted policy by its ID
+      operationId: get-trusted-schemas-registry-v1-policy
+      parameters:
+        - name: policyId
+          in: path
+          schema:
+            type: string
+          example: test-policy-1
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Policy"
+              examples:
+                Success:
+                  value:
+                    policyId: test-policy-1
+                    policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
+                    hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
+        "400":
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {policyId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {policyId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v1/jsonrpc:
     post:
       operationId: post-trusted-schemas-registry-v1-jsonrpc
       tags:
-        - Trusted Schemas Registry API
+        - Trusted Schemas Registry
       summary: Helper APIs
       description: |
         Helper APIs that assist the construction of blockchain transactions and interaction with
@@ -522,6 +670,20 @@ components:
         href:
           type: string
           description: Link to the resource.
+    Policy:
+      title: Policy
+      type: object
+      description: Policy data model
+      properties:
+        policyId:
+          type: string
+          description: Unique policy ID
+        policy:
+          type: string
+          description: Base64 encoded policy
+        hash:
+          type: string
+          description: Hash (multihash) of the policy
   examples:
     BadRequest:
       value:

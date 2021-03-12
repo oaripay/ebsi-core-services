@@ -203,6 +203,7 @@ export async function setupTestEnv(
   administrators: ethers.Wallet[];
   schemas: SchemaObject[];
   policies: PolicyObject[];
+  policyRevisions: { [x: string]: PolicyObject[] };
 }> {
   const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
 
@@ -264,5 +265,6 @@ export async function setupTestEnv(
     administrators,
     schemas,
     policies,
+    policyRevisions,
   };
 }
