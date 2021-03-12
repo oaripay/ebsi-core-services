@@ -4,9 +4,8 @@ pragma experimental ABIEncoderV2;
 
 contract PolicyStorage {
     // The state variables we care about.
-    bytes32 public constant TIR_POLICY_DIAMOND_STORAGE_POSITION = keccak256(
-        "diamond.standard.tir.policy.storage"
-    );
+    bytes32 public constant TIR_POLICY_DIAMOND_STORAGE_POSITION =
+        keccak256("diamond.standard.tir.policy.storage");
 
     struct PolicyDetails {
         bytes32[] revisionHashes; // For a particular policy and a specific Policy id, this is the ordered list of the hashes of all the policy version.

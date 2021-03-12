@@ -4,10 +4,8 @@ import "./AttributeStorage.sol";
 
 contract AdministratorStorage is AttributeStorage {
     // The state variables we care about.
-    bytes32
-        public constant TIR_ADMINISTRATOR_DIAMOND_STORAGE_POSITION = keccak256(
-        "diamond.standard.tir.administrator.storage"
-    );
+    bytes32 public constant TIR_ADMINISTRATOR_DIAMOND_STORAGE_POSITION =
+        keccak256("diamond.standard.tir.administrator.storage");
 
     struct Administrators {
         string[] didStore; // This is a a list of all Domain Administrators/Owners registered DIDs. (This property has been added because on Ethereum SC you can not loop over map)

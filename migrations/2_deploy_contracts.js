@@ -19,13 +19,13 @@ module.exports = async (deployer, network, accounts) => {
   console.log(`Tir Contract deployed at address ${TirSC.address}`);
 
   // Initialize proxy with token address and call initialize function 'initialize' that replace the constructor
-  await tokenSCInstance.initialize(version, {from: admin});
+  await tokenSCInstance.initialize(version, { from: admin });
   console.log(`
   --TIR initialized with:
     ProxyAddress:${tokenSCInstance.address}
     Version:${version} `);
 
   // we verify that indeed calling TIR SC function at the proxy address works
-  const vers = await tokenSCInstance.version({from: admin});
+  const vers = await tokenSCInstance.version({ from: admin });
   console.log(`  ----verification Tir version :${vers}`);
 };

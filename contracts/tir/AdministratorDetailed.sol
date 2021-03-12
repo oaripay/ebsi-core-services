@@ -137,8 +137,8 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         Entity storage iss = ds.administratorStore[did];
         require(iss.attributes.length >= 0, "administrator does not exist");
         // based on the last version hash we can retrive the first version hash for this attribute along with the did
-        bytes32 firstAttrHash = ds.attributeMetadataStore[lastVersHash]
-            .attributeId;
+        bytes32 firstAttrHash =
+            ds.attributeMetadataStore[lastVersHash].attributeId;
         assert(iss.attributesStore[firstAttrHash].revisionHashes.length > 0);
         bytes32 newAttrHash = sha256(attributeData);
         require(
@@ -188,18 +188,19 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         returns (bytes32[] memory)
     {
         Administrators storage ds = administratorStorage();
-        bytes32[] memory attributesFirstHash = ds.administratorStore[did]
-            .attributes;
+        bytes32[] memory attributesFirstHash =
+            ds.administratorStore[did].attributes;
         require(attributesFirstHash.length > 0, "administrator does not exist");
-        bytes32[] memory attributesLastHash = new bytes32[](
-            attributesFirstHash.length
-        );
+        bytes32[] memory attributesLastHash =
+            new bytes32[](attributesFirstHash.length);
         //list all the attributes
         for (uint256 index = 0; index < attributesFirstHash.length; index++) {
             // get all the versions for the current attribute
-            bytes32[] memory versions = ds.administratorStore[did]
-                .attributesStore[attributesFirstHash[index]]
-                .revisionHashes;
+            bytes32[] memory versions =
+                ds.administratorStore[did].attributesStore[
+                    attributesFirstHash[index]
+                ]
+                    .revisionHashes;
 
             //get the last version hash for this attribute
             attributesLastHash[index] = versions[versions.length - 1];
@@ -252,8 +253,8 @@ abstract contract AdministratorDetailed is AdministratorStorage {
         require(page > 0, "Page must be > 0");
         Administrators storage ds = administratorStorage();
         // retrieve first the did and attrId (firstHash of attribute)
-        AttributeMetadata memory am = ds
-            .attributeMetadataStore[anyAttrVersHash];
+        AttributeMetadata memory am =
+            ds.attributeMetadataStore[anyAttrVersHash];
         require(
             keccak256(bytes(am.did)) != keccak256(bytes("")),
             "attribute has not been found"

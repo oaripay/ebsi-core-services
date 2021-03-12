@@ -79,11 +79,11 @@ abstract contract PolicyDetailed is PolicyStorage {
         returns (bytes memory, bytes32)
     {
         Policies storage ds = policyStorage();
-        bytes32[] memory policyRevisionHashes = ds.policyStore[policyId]
-            .revisionHashes;
+        bytes32[] memory policyRevisionHashes =
+            ds.policyStore[policyId].revisionHashes;
         require(policyRevisionHashes.length > 0, "policy does not exist");
-        bytes32 lastHash = policyRevisionHashes[policyRevisionHashes.length -
-            1];
+        bytes32 lastHash =
+            policyRevisionHashes[policyRevisionHashes.length - 1];
         return (ds.revisions[lastHash], lastHash);
     }
 

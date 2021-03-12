@@ -3,9 +3,8 @@ pragma solidity ^0.8.0;
 
 contract TirStorage {
     // The state variables we care about.
-    bytes32 public constant TIR_DIAMOND_STORAGE_POSITION = keccak256(
-        "diamond.standard.tir.storage"
-    );
+    bytes32 public constant TIR_DIAMOND_STORAGE_POSITION =
+        keccak256("diamond.standard.tir.storage");
 
     struct Tir {
         uint256 _version;

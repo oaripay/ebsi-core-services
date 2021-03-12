@@ -1,4 +1,4 @@
-const {accounts, contract, web3} = require("@openzeppelin/test-environment");
+const { accounts, contract, web3 } = require("@openzeppelin/test-environment");
 
 const Tir = contract.fromArtifact("Tir");
 const Pagination = contract.fromArtifact("Pagination");
@@ -13,7 +13,7 @@ describe("pagination", () => {
     const myLibrary = await Pagination.new();
     await Tir.detectNetwork();
     await Tir.link("Pagination", myLibrary.address);
-    const implV0 = await Tir.new({from: acc1});
+    const implV0 = await Tir.new({ from: acc1 });
 
     for (let i = 0; i < 11; i += 1) {
       const did = `${i}`;
@@ -116,7 +116,7 @@ describe("pagination", () => {
     const myLibrary = await Pagination.new();
     await Tir.detectNetwork();
     await Tir.link("Pagination", myLibrary.address);
-    const implV0 = await Tir.new({from: acc1});
+    const implV0 = await Tir.new({ from: acc1 });
 
     for (let i = 0; i < 11; i += 1) {
       const did = `${i}`;
@@ -160,7 +160,7 @@ describe("pagination", () => {
     const myLibrary = await Pagination.new();
     await Tir.detectNetwork();
     await Tir.link("Pagination", myLibrary.address);
-    const implV0 = await Tir.new({from: acc1});
+    const implV0 = await Tir.new({ from: acc1 });
 
     for (let i = 0; i < 12; i += 1) {
       const did = `${i}`;
@@ -193,7 +193,7 @@ describe("pagination", () => {
     const myLibrary = await Pagination.new();
     await Tir.detectNetwork();
     await Tir.link("Pagination", myLibrary.address);
-    const implV0 = await Tir.new({from: acc1});
+    const implV0 = await Tir.new({ from: acc1 });
 
     for (let i = 0; i < 11; i += 1) {
       const did = `${i}`;

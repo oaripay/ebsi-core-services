@@ -135,8 +135,8 @@ abstract contract IssuerDetailed is IssuerStorage {
         Entity storage iss = ds.issuerStore[did];
         require(iss.attributes.length > 0, "issuer does not exist");
         // based on the last version hash we can retrive the first version hash for this attribute along with the did
-        bytes32 firstAttrHash = ds.attributeMetadataStore[lastVersHash]
-            .attributeId;
+        bytes32 firstAttrHash =
+            ds.attributeMetadataStore[lastVersHash].attributeId;
         assert(iss.attributesStore[firstAttrHash].revisionHashes.length > 0);
         bytes32 newAttrHash = sha256(attributeData);
         require(
@@ -188,15 +188,14 @@ abstract contract IssuerDetailed is IssuerStorage {
         Issuers storage ds = issuerStorage();
         bytes32[] memory attributesFirstHash = ds.issuerStore[did].attributes;
         require(attributesFirstHash.length > 0, "issuer does not exist");
-        bytes32[] memory attributesLastHash = new bytes32[](
-            attributesFirstHash.length
-        );
+        bytes32[] memory attributesLastHash =
+            new bytes32[](attributesFirstHash.length);
         //list all the attributes
         for (uint256 index = 0; index < attributesFirstHash.length; index++) {
             // get all the versions for the current attribute
-            bytes32[] memory versions = ds.issuerStore[did]
-                .attributesStore[attributesFirstHash[index]]
-                .revisionHashes;
+            bytes32[] memory versions =
+                ds.issuerStore[did].attributesStore[attributesFirstHash[index]]
+                    .revisionHashes;
 
             //get the last version hash for this attribute
             attributesLastHash[index] = versions[versions.length - 1];
@@ -242,8 +241,8 @@ abstract contract IssuerDetailed is IssuerStorage {
         require(page > 0, "Page must be > 0");
         Issuers storage ds = issuerStorage();
         // retrieve first the did and attrId (firstHash of attribute)
-        AttributeMetadata memory am = ds
-            .attributeMetadataStore[anyAttrVersHash];
+        AttributeMetadata memory am =
+            ds.attributeMetadataStore[anyAttrVersHash];
         require(
             keccak256(bytes(am.did)) != keccak256(bytes("")),
             "attribute has not been found"

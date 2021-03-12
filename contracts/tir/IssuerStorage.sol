@@ -4,9 +4,8 @@ import "./AttributeStorage.sol";
 
 contract IssuerStorage is AttributeStorage {
     // The state variables we care about.
-    bytes32 public constant ISSUER_DIAMOND_STORAGE_POSITION = keccak256(
-        "diamond.standard.tir.issuer.storage"
-    );
+    bytes32 public constant ISSUER_DIAMOND_STORAGE_POSITION =
+        keccak256("diamond.standard.tir.issuer.storage");
 
     struct Issuers {
         string[] didStore; // list of all dids

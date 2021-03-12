@@ -3,9 +3,9 @@ const {
   expectRevert,
   expectEvent, // Assertions for emitted events
 } = require("@openzeppelin/test-helpers");
-const {accounts, contract, web3} = require("@openzeppelin/test-environment");
+const { accounts, contract, web3 } = require("@openzeppelin/test-environment");
 
-const {ethers} = require("ethers");
+const { ethers } = require("ethers");
 
 const Tir = contract.fromArtifact("Tir");
 const Pagination = contract.fromArtifact("Pagination");
@@ -19,7 +19,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         // insert did and attribute1v0
         const attribute1v0 =
@@ -43,7 +43,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         // insert did and attribute1v0
         const attribute1v0 =
@@ -142,7 +142,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         // insert did and attribute1v0
         const attribute1v0 =
@@ -289,7 +289,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         // insert did and attribute1v0
         const attribute1v0 =
@@ -318,7 +318,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         // insert did and attribute1v0
         const attribute1v0 =
@@ -345,7 +345,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         // insert did and attribute1v0
         const attribute1v0 =
@@ -480,7 +480,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = `didi`;
         const firstinputdata = web3.utils.hexToBytes(web3.utils.toHex("data"));
         const didFirstInputHash = ethers.utils.sha256(firstinputdata);
@@ -532,7 +532,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = `didi`;
         const firstinputdata = web3.utils.hexToBytes(
           web3.utils.toHex("data-update-0")
@@ -704,7 +704,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -739,7 +739,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did1 = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const did1Hash = ethers.utils.sha256(web3.utils.toHex(did1));
 
@@ -786,7 +786,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did1 = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const did1Hash = ethers.utils.sha256(web3.utils.toHex(did1));
 
@@ -853,7 +853,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
@@ -903,7 +903,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
 
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
@@ -946,7 +946,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
 
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
@@ -991,7 +991,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -1039,7 +1039,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
         const data = ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
@@ -1060,7 +1060,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -1115,7 +1115,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -1148,7 +1148,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -1184,7 +1184,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -1289,7 +1289,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
@@ -1463,7 +1463,7 @@ describe("trusted issuer registry", () => {
         const myLibrary = await Pagination.new();
         await Tir.detectNetwork();
         await Tir.link("Pagination", myLibrary.address);
-        const implV0 = await Tir.new({from: acc1});
+        const implV0 = await Tir.new({ from: acc1 });
         const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
         const didHash = ethers.utils.sha256(web3.utils.toHex(did));
 
