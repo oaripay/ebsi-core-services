@@ -23,8 +23,6 @@ import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { InfoObject, RecordLink } from "./records.interface";
 import { multibase64Encode } from "../../shared/utils";
 
-jest.setTimeout(90000);
-
 const RECORDS_TOTAL = 3;
 
 describe("Records Module", () => {

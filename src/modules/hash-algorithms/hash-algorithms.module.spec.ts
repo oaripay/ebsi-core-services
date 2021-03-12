@@ -20,8 +20,6 @@ import { setupTestEnv } from "../../../tests/utils/timestamp";
 import { setupTestEnvTar } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
-jest.setTimeout(90000);
-
 const HASH_ALGORITHMS_TOTAL = 3;
 
 describe("HashAlgorithms Module", () => {

@@ -25,8 +25,6 @@ import { setupTestEnvTar } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { multibase64Encode, multihashEncode } from "../../shared/utils";
 
-jest.setTimeout(90000);
-
 const HASHES_TOTAL = 3;
 
 describe("Timestamps Module", () => {

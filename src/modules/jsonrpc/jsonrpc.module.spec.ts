@@ -56,8 +56,6 @@ type JsonRpcParams =
   | AppendRecordVersionHashesParam
   | TimestampRecordHashesParam;
 
-jest.setTimeout(90000);
-
 describe("JsonRpc Module", () => {
   let app: INestApplication;
   let server: HttpServer;

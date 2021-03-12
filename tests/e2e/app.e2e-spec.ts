@@ -10,8 +10,6 @@ import { Logger } from "@nestjs/common/services/logger.service";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 
-jest.setTimeout(60000);
-
 describe("/timestamp/v2 (generic tests)", () => {
   let app: INestApplication;
 
