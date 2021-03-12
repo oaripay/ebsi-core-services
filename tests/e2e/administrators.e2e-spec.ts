@@ -44,6 +44,18 @@ interface SupertestAdministratorResponse {
   body: AdministratorResponseObject;
 }
 
+interface SupertestAttributesResponse {
+  status: number;
+  body: {
+    items: IdLink[];
+  };
+}
+
+interface SupertestAttributeResponse {
+  status: number;
+  body: AttributeObject;
+}
+
 describe("Administrators (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
@@ -164,6 +176,157 @@ describe("Administrators (e2e)", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe("/administrators/{did}/attributes", () => {
+    it("should return the attributes from a specific administrator", async () => {
+      expect.assertions(3);
+
+      const administrators: SupertestAdministratorsResponse = await request(
+        server
+      ).get("/administrators");
+
+      expect(administrators.status).toBe(200);
+
+      const { did }: DidLink = administrators.body.items[
+        administrators.body.items.length - 1
+      ];
+      const response: SupertestAdministratorsResponse = await request(
+        server
+      ).get(`/administrators/${did}/attributes`);
+
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          self: expect.stringContaining(
+            `/trusted-schemas-registry/v1/administrators/${did}/attributes?page[after]=1&page[size]=10`
+          ) as string,
+          items: expect.arrayContaining([]) as string[],
+          total: expect.any(Number) as number,
+          pageSize: expect.any(Number) as number,
+          links: expect.objectContaining({
+            first: expect.stringContaining(
+              `/trusted-schemas-registry/v1/administrators/${did}/attributes?page[after]=1&page[size]=10`
+            ) as string,
+            prev: expect.stringContaining(
+              `/trusted-schemas-registry/v1/administrators/${did}/attributes?page[after]=1&page[size]=10`
+            ) as string,
+            next: expect.stringContaining(
+              `/trusted-schemas-registry/v1/administrators/${did}/attributes?page[after]=`
+            ) as string,
+            last: expect.stringContaining(
+              `/trusted-schemas-registry/v1/administrators/${did}/attributes?page[after]=`
+            ) as string,
+          }) as PaginatedList<IdLink>["links"],
+        })
+      );
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("/administrators/{did}/attributes/{attributeId}", () => {
+    it("should return a specific attribute", async () => {
+      expect.assertions(4);
+
+      const administrators: SupertestAdministratorsResponse = await request(
+        server
+      ).get(`/administrators`);
+
+      expect(administrators.status).toBe(200);
+
+      const { did }: DidLink = administrators.body.items[
+        administrators.body.items.length - 1
+      ];
+      const responseAttributes: SupertestAttributesResponse = await request(
+        server
+      ).get(`/administrators/${did}/attributes`);
+
+      expect(responseAttributes.status).toBe(200);
+
+      const attributeId = responseAttributes.body.items[0].id;
+      const response: SupertestAttributeResponse = await request(server).get(
+        `/administrators/${did}/attributes/${attributeId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        did,
+        attribute: {
+          body: expect.any(String) as string,
+          hash: attributeId,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error when attribute is not found", async () => {
+      expect.assertions(8);
+
+      const administrators: SupertestAdministratorsResponse = await request(
+        server
+      ).get("/administrators");
+
+      expect(administrators.status).toBe(200);
+
+      const { did }: DidLink = administrators.body.items[
+        administrators.body.items.length - 1
+      ];
+
+      // consult a random attribute
+      const attributeId =
+        "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
+      const response: SupertestAttributeResponse = await request(server).get(
+        `/administrators/${did}/attributes/${attributeId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Attribute ${attributeId} not found`
+        ) as string,
+        status: 404,
+        title: "Attribute Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+
+      // consult an attribute from a random did
+      const response2 = await request(server).get(
+        `/administrators/did:ebsi:unknown/attributes/${attributeId}`
+      );
+
+      expect(response2.body).toStrictEqual({
+        detail: expect.stringContaining(
+          "Administrator did:ebsi:unknown not found"
+        ) as string,
+        status: 404,
+        title: "Administrator Not Found",
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(404);
+
+      // consult an attribute from a different did
+      const { did: did2 }: DidLink = administrators.body.items[
+        administrators.body.items.length - 2
+      ];
+      const responseAttributes: SupertestAttributesResponse = await request(
+        server
+      ).get(`/administrators/${did2}/attributes`);
+
+      expect(responseAttributes.status).toBe(200);
+
+      const attributeId2 = responseAttributes.body.items[0].id;
+      const response3: SupertestAttributeResponse = await request(server).get(
+        `/administrators/${did}/attributes/${attributeId2}`
+      );
+
+      expect(response3.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Attribute 0x${attributeId2} not found`
+        ) as string,
+        status: 404,
+        title: "Attribute Not Found",
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(404);
     });
   });
 

@@ -260,11 +260,11 @@ describe("Schemas (e2e)", () => {
 
       const response = await request(server).get(`/schemas/${schemaId}`);
 
-      expect(response.body).toStrictEqual(rawSchema);
+      expect(response.body).toStrictEqual(rawUpdatedSchema);
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"]
-      ).toStrictEqual(expect.stringContaining("application/ld+json"));
+      ).toStrictEqual(expect.stringContaining("application/json"));
     });
 
     it("should throw an error if the schema is not found", async () => {
