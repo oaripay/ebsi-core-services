@@ -5,6 +5,7 @@ import { ContractService } from "../../shared/services/contract.service";
 import { SchemaSCRegistry } from "../../contracts/trusted-schemas";
 import { generateMultihash } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { PolicyRevisions } from "./policies.interface";
 
 @Injectable()
 export default class PoliciesService {
@@ -47,5 +48,46 @@ export default class PoliciesService {
     // Compute multihash from hash
     const multihash = generateMultihash(rawPolicyHash);
     return [base64Policy, multihash];
+  }
+
+  async getPolicyRevisions(
+    policyId: string,
+    page: number,
+    pageSize: number
+  ): Promise<PolicyRevisions> {
+    let revisions: AsyncReturnType<SchemaSCRegistry["getPolicyRevisions"]>;
+
+    try {
+      revisions = await this.schemasContract.getPolicyRevisions(
+        policyId,
+        page,
+        pageSize
+      );
+    } catch (e) {
+      throw new NotFoundError("Policy Not Found", {
+        detail: `Policy ${policyId} not found`,
+      });
+    }
+
+    const getPoliciesByRevisions = revisions.items.map((hash) =>
+      this.schemasContract.getPolicyByHash(hash)
+    );
+
+    let policies: AsyncReturnType<SchemaSCRegistry["getPolicyByHash"]>[];
+
+    try {
+      policies = await Promise.all(getPoliciesByRevisions);
+    } catch (e) {
+      throw new Error("ach");
+    }
+
+    return {
+      items: revisions.items.map((hash, index) => ({
+        policyId,
+        policy: policies[index],
+        hash,
+      })),
+      total: revisions.total.toNumber(),
+    };
   }
 }

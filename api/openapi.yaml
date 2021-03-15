@@ -821,6 +821,107 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  "/trusted-schemas-registry/v1/policies/{policyId}/revisions":
+    get:
+      tags:
+        - Trusted Schemas Registry
+      summary: Get policy revisions
+      description: Paginated list of policy revisions.
+      operationId: get-trusted-schemas-registry-v1-policy-revisions
+      parameters:
+        - name: policyId
+          in: path
+          schema:
+            type: string
+          example: test-policy-1
+          required: true
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to policies
+                  items:
+                    type: array
+                    description: List of policies
+                    items:
+                      $ref: "#/components/schemas/Policy"
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    items:
+                      - policyId: test-policy-1
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
+                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
+                      - policyId: test-policy-1
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ8
+                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562b
+                    total: 61
+                    pageSize: 2
+                    links:
+                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v1/jsonrpc:
     post:
       operationId: post-trusted-schemas-registry-v1-jsonrpc

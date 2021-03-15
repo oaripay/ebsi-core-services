@@ -1,7 +1,7 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import PoliciesService from "./policies.service";
-import { formatPolicies } from "./policies.formatter";
+import { formatPolicies, formatRevisions } from "./policies.formatter";
 import { PolicyResponseObject, PolicyLink } from "./policies.interface";
 import { PaginationQuery } from "../../shared/dto/pagination-query";
 import { PaginatedList } from "../../shared/interfaces";
@@ -48,5 +48,32 @@ export default class PoliciesController {
       policy,
       hash,
     };
+  }
+
+  @Get("/:policyId/revisions")
+  async getPolicyRevisions(
+    @Param() params: { policyId?: string },
+    @Query() query: PaginationQuery
+  ): Promise<PaginatedList<PolicyResponseObject>> {
+    const { policyId } = params;
+
+    const revisions = await this.policiesService.getPolicyRevisions(
+      policyId,
+      query["page[after]"],
+      query["page[size]"]
+    );
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/policies/${encodeURIComponent(
+      policyId
+    )}/revisions`;
+
+    return formatRevisions(
+      revisions,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl
+    );
   }
 }
