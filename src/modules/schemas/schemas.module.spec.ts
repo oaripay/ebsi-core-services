@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import request from "supertest";
+import { ethers } from "ethers";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
   INestApplication,
@@ -20,10 +21,12 @@ import {
 } from "../../contracts/trusted-schemas";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { ItemsList } from "./schemas.interface";
 
 jest.setTimeout(60000);
 
 const SCHEMAS_TOTAL = 3;
+const SCHEMA_REVISIONS_TOTAL = 3;
 
 describe("Schemas Module", () => {
   let app: INestApplication;
@@ -35,6 +38,7 @@ describe("Schemas Module", () => {
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv({
       schemasTotal: SCHEMAS_TOTAL,
+      schemaRevisionsTotal: SCHEMA_REVISIONS_TOTAL,
     });
 
     schemasRegistryContract = testEnv.schemasRegistryContract;
@@ -94,7 +98,9 @@ describe("Schemas Module", () => {
           ) as string,
         },
       });
-      expect((response.body as { items: string }).items).toHaveLength(3);
+      expect((response.body as { items: string }).items).toHaveLength(
+        SCHEMAS_TOTAL
+      );
       expect(response.status).toBe(200);
     });
 
@@ -209,7 +215,9 @@ describe("Schemas Module", () => {
           ) as string,
         },
       });
-      expect((response4.body as { items: string }).items).toHaveLength(3);
+      expect((response4.body as { items: string }).items).toHaveLength(
+        SCHEMAS_TOTAL
+      );
       expect(response4.status).toBe(200);
     });
 
@@ -310,6 +318,499 @@ describe("Schemas Module", () => {
       const schema = testEnv.schemas[0];
 
       const response = await request(server).get(`/schemas/${schema.schemaId}`);
+
+      // Expect to receive the last revision
+      const revision = testEnv.schemaRevisions[SCHEMA_REVISIONS_TOTAL - 2];
+
+      expect(response.body).toStrictEqual(revision.schema);
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/json"));
+    });
+  });
+
+  describe("GET /schemas/{schemaId}/revisions", () => {
+    it("should throw an error if the schema ID is not hexadecimal", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get(
+        "/schemas/no-schema/revisions"
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["schemaId must be a hexadecimal number","schemaId must match /^0x/ regular expression"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the schema is not found", async () => {
+      expect.assertions(3);
+
+      const schemaId = `0x${crypto.randomBytes(32).toString("hex")}`;
+      const response = await request(server).get(
+        `/schemas/${schemaId}/revisions`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Schema Not Found",
+        status: 404,
+        detail: `Schema ${schemaId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw a Bad Request for bad pagination", async () => {
+      expect.assertions(12);
+
+      const schema = testEnv.schemas[0];
+      const { schemaId } = schema;
+
+      const response1 = await request(server).get(
+        `/schemas/${schemaId}/revisions?page[size]=100`
+      );
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be greater than 50"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+      expect(
+        (response1.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      const response2 = await request(server).get(
+        `/schemas/${schemaId}/revisions?page[size]=0`
+      );
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+      expect(
+        (response2.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      const response3 = await request(server).get(
+        `/schemas/${schemaId}/revisions?page[after]=0`
+      );
+      expect(response3.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[after] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+      expect(
+        (response3.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      const response4 = await request(server).get(
+        `/schemas/${schemaId}/revisions?page[after]=abc`
+      );
+      expect(response4.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+      expect(
+        (response4.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if valid-at query parameter is not valid", async () => {
+      expect.assertions(3);
+
+      const schema = testEnv.schemas[0];
+
+      const response = await request(server).get(
+        `/schemas/${schema.schemaId}/revisions?valid-at=abc`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["valid-at must be a valid ISO 8601 date string"]',
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should return the revisions of the specified schema", async () => {
+      expect.assertions(3);
+
+      const schema = testEnv.schemas[0];
+      const { schemaRevisions } = testEnv;
+
+      const response = await request(server).get(
+        `/schemas/${schema.schemaId}/revisions`
+      );
+
+      const revisionId1 = ethers.utils.sha256(schema.serializedSchema);
+      const revisionId2 = ethers.utils.sha256(
+        schemaRevisions[0].serializedSchema
+      );
+      const revisionId3 = ethers.utils.sha256(
+        schemaRevisions[1].serializedSchema
+      );
+
+      expect(response.body).toStrictEqual({
+        items: expect.arrayContaining([
+          {
+            href: expect.stringContaining(
+              `/schemas/${schema.schemaId}/revisions/${revisionId1}`
+            ) as string,
+            schemaRevisionId: revisionId1,
+          },
+          {
+            href: expect.stringContaining(
+              `/schemas/${schema.schemaId}/revisions/${revisionId2}`
+            ) as string,
+            schemaRevisionId: revisionId2,
+          },
+          {
+            href: expect.stringContaining(
+              `/schemas/${schema.schemaId}/revisions/${revisionId3}`
+            ) as string,
+            schemaRevisionId: revisionId3,
+          },
+        ]) as ItemsList[],
+        links: {
+          first: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+        },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+        ) as string,
+        total: SCHEMA_REVISIONS_TOTAL,
+      });
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/json"));
+    });
+
+    it("should return the revisions valid at a specific date", async () => {
+      expect.assertions(3);
+
+      const schema = testEnv.schemas[0];
+      const { schemaRevisions } = testEnv;
+      const validAt = new Date().toISOString();
+
+      const response = await request(server).get(
+        `/schemas/${schema.schemaId}/revisions?valid-at=${validAt}`
+      );
+
+      const revisionId1 = ethers.utils.sha256(schema.serializedSchema);
+      const revisionId2 = ethers.utils.sha256(
+        schemaRevisions[0].serializedSchema
+      );
+      const revisionId3 = ethers.utils.sha256(
+        schemaRevisions[1].serializedSchema
+      );
+
+      expect(response.body).toStrictEqual({
+        items: expect.arrayContaining([
+          {
+            href: expect.stringContaining(
+              `/schemas/${schema.schemaId}/revisions/${revisionId1}`
+            ) as string,
+            schemaRevisionId: revisionId1,
+          },
+          {
+            href: expect.stringContaining(
+              `/schemas/${schema.schemaId}/revisions/${revisionId2}`
+            ) as string,
+            schemaRevisionId: revisionId2,
+          },
+          {
+            href: expect.stringContaining(
+              `/schemas/${schema.schemaId}/revisions/${revisionId3}`
+            ) as string,
+            schemaRevisionId: revisionId3,
+          },
+        ]) as ItemsList[],
+        links: {
+          first: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+        },
+        pageSize: 10,
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+        ) as string,
+        total: SCHEMA_REVISIONS_TOTAL,
+      });
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/json"));
+    });
+
+    it("should handle the pagination properly", async () => {
+      expect.assertions(12);
+
+      const schema = testEnv.schemas[0];
+
+      const response1 = await request(server).get(
+        `/schemas/${schema.schemaId}/revisions?page[size]=2`
+      );
+      expect(response1.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: SCHEMA_REVISIONS_TOTAL,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
+          ) as string,
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
+          ) as string,
+          next: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+          last: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+        },
+      });
+      expect((response1.body as { items: string }).items).toHaveLength(2);
+      expect(response1.status).toBe(200);
+
+      // next page
+      const response2 = await request(server).get(
+        `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
+      );
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: SCHEMA_REVISIONS_TOTAL,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
+          ) as string,
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
+          ) as string,
+          next: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+          last: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+        },
+      });
+      expect((response2.body as { items: string }).items).toHaveLength(1);
+      expect(response2.status).toBe(200);
+
+      // big page
+      const response3 = await request(server).get(
+        `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`
+      );
+      expect(response3.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: SCHEMA_REVISIONS_TOTAL,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
+          ) as string,
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+          next: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+          last: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
+          ) as string,
+        },
+      });
+      expect((response3.body as { items: string }).items).toHaveLength(0);
+      expect(response3.status).toBe(200);
+
+      // page["after"] defined but page["size"] undefined
+      const response4 = await request(server).get(
+        `/schemas/${schema.schemaId}/revisions?page[after]=1`
+      );
+      expect(response4.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: SCHEMA_REVISIONS_TOTAL,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect((response4.body as { items: string }).items).toHaveLength(
+        SCHEMA_REVISIONS_TOTAL
+      );
+      expect(response4.status).toBe(200);
+    });
+  });
+
+  describe("GET /schemas/{schemaId}/revisions/{schemaRevisionId}", () => {
+    it("should throw an error if the schema ID is not hexadecimal", async () => {
+      expect.assertions(3);
+
+      const schemaRevisionId = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      const response = await request(server).get(
+        `/schemas/no-schema/revisions/${schemaRevisionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["schemaId must be a hexadecimal number","schemaId must match /^0x/ regular expression"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the schema is not found", async () => {
+      expect.assertions(3);
+
+      const schemaId = `0x${crypto.randomBytes(32).toString("hex")}`;
+      const schemaRevisionId = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      const response = await request(server).get(
+        `/schemas/${schemaId}/revisions/${schemaRevisionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Schema Not Found",
+        status: 404,
+        detail: `Schema ${schemaId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the schema revision ID is not hexadecimal", async () => {
+      expect.assertions(3);
+
+      const schemaId = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      const response = await request(server).get(
+        `/schemas/${schemaId}/revisions/no-revision`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["schemaRevisionId must be a hexadecimal number","schemaRevisionId must match /^0x/ regular expression"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the schema revision is not found", async () => {
+      expect.assertions(3);
+
+      const schema = testEnv.schemas[0];
+      const { schemaId } = schema;
+      const schemaRevisionId = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      const response = await request(server).get(
+        `/schemas/${schemaId}/revisions/${schemaRevisionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Revision Not Found",
+        status: 404,
+        detail: `Revision ${schemaRevisionId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should return a specific schema revision", async () => {
+      expect.assertions(3);
+
+      const schema = testEnv.schemas[0];
+      const { schemaId } = schema;
+      const schemaRevisionId = ethers.utils.sha256(schema.serializedSchema);
+
+      const response = await request(server).get(
+        `/schemas/${schemaId}/revisions/${schemaRevisionId}`
+      );
 
       expect(response.body).toStrictEqual(schema.schema);
       expect(response.status).toBe(200);

@@ -49,10 +49,43 @@ export async function insertSchema(
   const metadata = {
     meta: "value",
     data: `data-${crypto.randomBytes(16).toString("hex")}`,
+    validFrom: new Date(Date.now() - 60 * 1000).toISOString(), // -1 minute
+    validTo: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // +5 minutes
   };
   const serializedMetadata = Buffer.from(JSON.stringify(metadata));
 
   await contract.insertSchema(schemaId, serializedSchema, serializedMetadata);
+
+  return {
+    schema,
+    metadata,
+    serializedSchema,
+    serializedMetadata,
+    schemaId,
+  };
+}
+
+export async function updateSchema(
+  schemaId: string,
+  contract: SchemaSCRegistry
+): Promise<SchemaObject> {
+  const schema = {
+    "@context": "https://ebsi.com",
+    type: "CustomSchema",
+    data: `data-${crypto.randomBytes(16).toString("hex")}`,
+  };
+
+  const serializedSchema = Buffer.from(JSON.stringify(schema));
+
+  const metadata = {
+    meta: "value",
+    data: `data-${crypto.randomBytes(16).toString("hex")}`,
+    validFrom: new Date(Date.now() - 60 * 1000).toISOString(), // -1 minute
+    validTo: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // +5 minutes
+  };
+  const serializedMetadata = Buffer.from(JSON.stringify(metadata));
+
+  await contract.updateSchema(schemaId, serializedSchema, serializedMetadata);
 
   return {
     schema,
@@ -186,6 +219,7 @@ export async function insertAdmin(
 export interface SetupOptions {
   administratorsTotal?: number;
   schemasTotal?: number;
+  schemaRevisionsTotal?: number;
   policiesTotal?: number;
   policiesRevisionsTotal?: number;
 }
@@ -194,6 +228,7 @@ export async function setupTestEnv(
   opts: SetupOptions = {
     administratorsTotal: 1,
     schemasTotal: 1,
+    schemaRevisionsTotal: 1,
     policiesTotal: 1,
     policiesRevisionsTotal: 1,
   }
@@ -202,6 +237,7 @@ export async function setupTestEnv(
   schemasRegistryContract: SchemaSCRegistry;
   administrators: ethers.Wallet[];
   schemas: SchemaObject[];
+  schemaRevisions: SchemaObject[];
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
 }> {
@@ -212,6 +248,7 @@ export async function setupTestEnv(
     ethersProvider
   );
 
+  // Insert fake data
   const createAdminWallet = async () => {
     // Create random wallet and connect it so we can use it later to send transactions
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
@@ -219,16 +256,21 @@ export async function setupTestEnv(
     return wallet;
   };
 
-  const administrators = await range(0, opts.administratorsTotal)
+  const administrators = await range(0, opts.administratorsTotal ?? 1)
     .pipe(mergeMap(createAdminWallet), toArray())
     .toPromise();
-  // Insert fake data
+
   const schemas = await Promise.all(
-    Array(opts.schemasTotal)
+    Array(opts.schemasTotal ?? 1)
       .fill(0)
       .map(() => insertSchema(schemasRegistryContract))
   );
 
+  const schemaRevisions = await Promise.all(
+    Array(Math.max(0, (opts.schemaRevisionsTotal ?? 1) - 1))
+      .fill(0)
+      .map(() => updateSchema(schemas[0].schemaId, schemasRegistryContract))
+  );
   const policyRevisions = {};
 
   // Create as many policies as requested
@@ -243,7 +285,7 @@ export async function setupTestEnv(
       // The first revision is the policy itself
       policy,
       // Then, we add new revisions
-      ...(await range(0, opts.policiesRevisionsTotal - 1)
+      ...(await range(0, (opts.policiesRevisionsTotal ?? 1) - 1)
         .pipe(mergeMap(createRevision), toArray())
         .toPromise()),
     ];
@@ -253,7 +295,7 @@ export async function setupTestEnv(
 
   const policies =
     opts.policiesRevisionsTotal >= 1
-      ? await range(0, opts.policiesTotal)
+      ? await range(0, opts.policiesTotal ?? 1)
           .pipe(mergeMap(createPolicy), toArray())
           .toPromise()
       : [];
@@ -264,6 +306,7 @@ export async function setupTestEnv(
     schemasRegistryContract,
     administrators,
     schemas,
+    schemaRevisions,
     policies,
     policyRevisions,
   };

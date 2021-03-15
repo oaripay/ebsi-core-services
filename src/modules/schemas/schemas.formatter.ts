@@ -1,9 +1,13 @@
-import { GetSchemasResponse, SchemasList } from "./schemas.interface";
+import {
+  GetSchemaRevisionsResponse,
+  GetSchemasResponse,
+  ItemsList,
+} from "./schemas.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
 
 export function formatSchemas(
-  schemas: SchemasList,
+  schemas: ItemsList,
   page: number,
   pageSize: number,
   baseUrl: string
@@ -16,6 +20,32 @@ export function formatSchemas(
   }));
 
   return paginate<GetSchemasResponse>(items, baseUrl, total, page, pageSize);
+}
+
+export function formatSchemaRevisions(
+  schemas: ItemsList,
+  page: number,
+  pageSize: number,
+  baseUrl: string,
+  validAt?: string
+): PaginatedList<GetSchemaRevisionsResponse> {
+  // Reshape items
+  const { total } = schemas;
+  const items = schemas.items.map((schemaRevisionId) => ({
+    schemaRevisionId,
+    href: `${baseUrl}/${schemaRevisionId}`,
+  }));
+
+  const extraQuery = validAt ? `&valid-at=${validAt}` : "";
+
+  return paginate<GetSchemaRevisionsResponse>(
+    items,
+    baseUrl,
+    total,
+    page,
+    pageSize,
+    extraQuery
+  );
 }
 
 export default { formatSchemas };
