@@ -999,6 +999,113 @@ paths:
               examples:
                 Bad Request:
                   $ref: "#/components/examples/BadRequest"
+  ? "/trusted-schemas-registry/v1/administrators/{did}/attributes/{attributeId}/revisions"
+  : get:
+      tags:
+        - Trusted Apps Registry
+      summary: List the revisions of an attribute
+      description: |
+        Returns a list of revisions for a given attribute attached to a given administrator.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI of the current page
+                  items:
+                    type: array
+                    description: Array of attribute objects sorted chronologically
+                    items:
+                      $ref: "#/components/schemas/Attribute"
+                  total:
+                    type: integer
+                    description: Total number of results
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=3&page[size]=10
+                    items:
+                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                      - hash: "0x56ef14c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da632125a"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8
+                    total: 2
+                    pageSize: 123
+                    links:
+                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=13&page[size]=10
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      operationId: get-trusted-schemas-registry-v1-administrators-did-attributes-attributeid-revisions
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          required: true
+        - name: attributeId
+          in: path
+          schema:
+            type: string
+          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+          required: true
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
 components:
   schemas:
     Problem:
@@ -1086,6 +1193,16 @@ components:
         href:
           type: string
           description: Link to the resource.
+    Attribute:
+      title: Attribute
+      type: object
+      description: Attribute
+      properties:
+        hash:
+          type: string
+          description: sha256 hash of the payload
+        body:
+          description: Base64 encoded content
     SchemaRevisionsLinks:
       title: Schema revisions links
       description: Links to schema revisions as returned by the REST APIs.

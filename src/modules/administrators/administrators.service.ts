@@ -111,4 +111,29 @@ export default class AdministratorsService {
     const attributes = await this.getAttributes(did);
     return { did, attributes };
   }
+
+  async getAdministratorAttributeRevisions(
+    attributeId: string,
+    adminDid: string,
+    page: number,
+    pageSize: number
+  ): Promise<{ revisions: AttributeObject[]; total: number }> {
+    // Make sure the attribute exists and it belongs to the given admin
+    await this.getAttribute(attributeId, adminDid);
+
+    const hash = prefixWith0x(attributeId);
+    const revisionHashes = await this.schemasContract.getAdministratorAttributeRevisions(
+      hash,
+      page,
+      pageSize
+    );
+
+    const revisions = await Promise.all(
+      revisionHashes.items.map(async (revisionHash) => {
+        return this.getAttribute(revisionHash);
+      })
+    );
+
+    return { revisions, total: revisionHashes.total.toNumber() };
+  }
 }
