@@ -116,7 +116,7 @@ paths:
           in: path
           schema:
             type: string
-          example: "{DOI or IOD}"
+          example: "0x312e332e362e312e342e312e313137332e312e3136322e312e322e332e3236"
           required: true
       responses:
         200:
@@ -151,6 +151,8 @@ paths:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Schema Not Found:
+                  $ref: "#/components/examples/NotFound"
+                Revision Not Found:
                   $ref: "#/components/examples/NotFound"
         500:
           description: Internal Server Error
@@ -284,6 +286,179 @@ paths:
                     "@context": https://ebsi.com
                     type: CustomSchema
                     name: My custom schema
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {schemaId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {schemaId} parameter is not valid
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Schema Not Found:
+                  $ref: "#/components/examples/NotFound"
+                Revision Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  ? /trusted-schemas-registry/v1/schemas/{schemaId}/revisions/{schemaRevisionId}/metadata
+  : get:
+      tags:
+        - Trusted Schemas Registry API
+      summary: Get schema revision's metadata
+      description: Get schemas revision's metadata. Endpoint returns a paginated list of items.
+      operationId: get-trusted-schemas-registry-v1-schemas-revision-metadata-list
+      parameters:
+        - in: path
+          name: schemaId
+          schema:
+            type: string
+          example: "0x312e332e362e312e342e312e313137332e312e3136322e312e322e332e3236"
+          required: true
+        - name: schemaRevisionId
+          in: path
+          schema:
+            type: string
+          example: "0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd"
+          required: true
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection.
+                  items:
+                    type: array
+                    description: List of schemas
+                    items:
+                      $ref: "#/components/schemas/SchemaRevisionsLinks"
+                  total:
+                    type: integer
+                    description: Total number of items accross all pages.
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata?page[after]=3&page[size]=2
+                    items:
+                      - schemaRevisionId: "0x1234"
+                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata/0x1234
+                      - schemaRevisionId: "0x5678"
+                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata/0x5678
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata?page[after]=62&page[size]=2
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Schema Not Found:
+                  $ref: "#/components/examples/NotFound"
+                Revision Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  ? /trusted-schemas-registry/v1/schemas/{schemaId}/revisions/{schemaRevisionId}/metadata/{metadataId}
+  : get:
+      tags:
+        - Trusted Schemas Registry API
+      summary: Get schema revision metadata by its ID
+      description: Returns a trusted schema revision metadata by its ID
+      operationId: get-trusted-schemas-registry-v1-schema-revision-metadata
+      parameters:
+        - name: schemaId
+          in: path
+          schema:
+            type: string
+          example: "0x312e332e362e312e342e312e313137332e312e3136322e312e322e332e3236"
+          required: true
+        - name: schemaRevisionId
+          in: path
+          schema:
+            type: string
+          example: "0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd"
+          required: true
+        - name: metadataId
+          in: path
+          schema:
+            type: string
+          example: "0x8d4c31db6c03b3a71dfc25448cdceec4f7c4b27e8bc30f8da2dcf08325074c94"
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/ld+json:
+              schema:
+                type: object
+              examples:
+                Success:
+                  value:
+                    "@context": https://ebsi.com
+                    type: Metadata
+                    name: My custom metadata
         400:
           description: Bad Request
           content:

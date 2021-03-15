@@ -198,6 +198,87 @@ export class SchemasService {
 
     return decodedSchemaRevisionInfo;
   }
+
+  async getSchemaRevisionMetadataList(
+    schemaId: string,
+    schemaRevisionId: string,
+    page: number,
+    pageSize: number
+  ): Promise<ItemsList> {
+    // Make sure the schema exists
+    try {
+      await this.schemaScRegistryContract.getLatestSchemaRevision(schemaId);
+    } catch (error) {
+      throw new NotFoundError("Schema Not Found", {
+        detail: `Schema ${schemaId} not found`,
+      });
+    }
+
+    // Make sure the revision exists
+    try {
+      await this.schemaScRegistryContract.getSchemaRevision(schemaRevisionId);
+    } catch (error) {
+      throw new NotFoundError("Revision Not Found", {
+        detail: `Revision ${schemaRevisionId} not found`,
+      });
+    }
+
+    // Get metadata
+    const metadata = await this.schemaScRegistryContract.getSchemaRevisionMetadataIds(
+      schemaRevisionId,
+      page,
+      pageSize
+    );
+
+    return {
+      items: metadata.items,
+      total: metadata.total.toNumber(),
+    };
+  }
+
+  async getSchemaRevisionMetadata(
+    schemaId: string,
+    schemaRevisionId: string,
+    metadataId: string
+  ): Promise<unknown> {
+    // Make sure the schema exists
+    try {
+      await this.schemaScRegistryContract.getLatestSchemaRevision(schemaId);
+    } catch (error) {
+      throw new NotFoundError("Schema Not Found", {
+        detail: `Schema ${schemaId} not found`,
+      });
+    }
+
+    // Make sure the revision exists
+    try {
+      await this.schemaScRegistryContract.getSchemaRevision(schemaRevisionId);
+    } catch (error) {
+      throw new NotFoundError("Revision Not Found", {
+        detail: `Revision ${schemaRevisionId} not found`,
+      });
+    }
+
+    // Get metadata
+    let metadata: AsyncReturnType<
+      SchemaSCRegistry["getSchemaRevisionMetadataByMetadataId"]
+    >;
+    try {
+      metadata = await this.schemaScRegistryContract.getSchemaRevisionMetadataByMetadataId(
+        metadataId
+      );
+    } catch (error) {
+      throw new NotFoundError("Metadata Not Found", {
+        detail: `Metadata ${metadataId} not found`,
+      });
+    }
+
+    const decodedMetadata = JSON.parse(
+      Buffer.from(metadata.slice(2), "hex").toString("utf-8")
+    ) as unknown;
+
+    return decodedMetadata;
+  }
 }
 
 export default SchemasService;

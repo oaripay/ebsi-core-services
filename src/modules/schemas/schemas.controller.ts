@@ -1,16 +1,23 @@
-import { Controller, Get, Query, Param } from "@nestjs/common";
+import { Controller, Get, Query, Param, Header } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { SchemasService } from "./schemas.service";
-import { formatSchemas, formatSchemaRevisions } from "./schemas.formatter";
 import {
+  formatSchemas,
+  formatSchemaRevisions,
+  formatSchemaRevisionMetadataList,
+} from "./schemas.formatter";
+import {
+  GetSchemaRevisionMetadataListResponse,
   GetSchemaRevisionsResponse,
   GetSchemasResponse,
 } from "./schemas.interface";
 import {
   GetSchemaParams,
   GetSchemaRevisionParams,
+  GetSchemaRevisionMetadataParams,
   GetSchemasQuery,
   GetSchemaRevisionsQuery,
+  GetSchemaRevisionMetadataQuery,
 } from "./dto";
 import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
@@ -58,7 +65,7 @@ export class SchemasController {
   ): Promise<PaginatedList<GetSchemaRevisionsResponse>> {
     const { schemaId } = params;
 
-    const schemas = await this.schemasService.getSchemaRevisions(
+    const revisions = await this.schemasService.getSchemaRevisions(
       schemaId,
       query["page[after]"],
       query["page[size]"],
@@ -70,7 +77,7 @@ export class SchemasController {
     const baseUrl = `${domain}${apiUrlPrefix}/schemas/${schemaId}/revisions`;
 
     return formatSchemaRevisions(
-      schemas,
+      revisions,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
@@ -86,6 +93,46 @@ export class SchemasController {
     // TODO: change response content-type based on schema metadata?
     // Waiting for feedback https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Trusted+Schemas+Registry+API?focusedCommentId=356876619#comment-356876619
     return this.schemasService.getSchemaRevision(schemaId, schemaRevisionId);
+  }
+
+  @Get("/:schemaId/revisions/:schemaRevisionId/metadata")
+  async getSchemaRevisionMetadataList(
+    @Param() params: GetSchemaRevisionParams,
+    @Query() query: GetSchemaRevisionMetadataQuery
+  ): Promise<PaginatedList<GetSchemaRevisionMetadataListResponse>> {
+    const { schemaId, schemaRevisionId } = params;
+
+    const metadata = await this.schemasService.getSchemaRevisionMetadataList(
+      schemaId,
+      schemaRevisionId,
+      query["page[after]"],
+      query["page[size]"]
+    );
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata`;
+
+    return formatSchemaRevisionMetadataList(
+      metadata,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl
+    );
+  }
+
+  @Get("/:schemaId/revisions/:schemaRevisionId/metadata/:metadataId")
+  @Header("Content-type", "application/ld+json")
+  async getSchemaRevisionMetadata(
+    @Param() params: GetSchemaRevisionMetadataParams
+  ): Promise<unknown> {
+    const { schemaId, schemaRevisionId, metadataId } = params;
+
+    return this.schemasService.getSchemaRevisionMetadata(
+      schemaId,
+      schemaRevisionId,
+      metadataId
+    );
   }
 }
 

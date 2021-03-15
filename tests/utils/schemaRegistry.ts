@@ -18,6 +18,11 @@ interface SchemaObject {
   schemaId: string;
 }
 
+interface SchemaMetadataObject {
+  metadata: unknown;
+  serializedMetadata: Buffer;
+}
+
 export interface PolicyObject {
   policyId: string;
   policyData: unknown;
@@ -93,6 +98,24 @@ export async function updateSchema(
     serializedSchema,
     serializedMetadata,
     schemaId,
+  };
+}
+
+export async function updateMetadata(
+  schemaRevisionId: string,
+  contract: SchemaSCRegistry
+): Promise<SchemaMetadataObject> {
+  const metadata = {
+    meta: "value",
+    data: `data-${crypto.randomBytes(16).toString("hex")}`,
+  };
+  const serializedMetadata = Buffer.from(JSON.stringify(metadata));
+
+  await contract.updateMetadata(schemaRevisionId, serializedMetadata);
+
+  return {
+    metadata,
+    serializedMetadata,
   };
 }
 
@@ -220,6 +243,7 @@ export interface SetupOptions {
   administratorsTotal?: number;
   schemasTotal?: number;
   schemaRevisionsTotal?: number;
+  schemaMetadataTotal?: number;
   policiesTotal?: number;
   policiesRevisionsTotal?: number;
 }
@@ -229,6 +253,7 @@ export async function setupTestEnv(
     administratorsTotal: 1,
     schemasTotal: 1,
     schemaRevisionsTotal: 1,
+    schemaMetadataTotal: 1,
     policiesTotal: 1,
     policiesRevisionsTotal: 1,
   }
@@ -238,6 +263,7 @@ export async function setupTestEnv(
   administrators: ethers.Wallet[];
   schemas: SchemaObject[];
   schemaRevisions: SchemaObject[];
+  schemaMetadata: SchemaMetadataObject[];
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
 }> {
@@ -270,6 +296,13 @@ export async function setupTestEnv(
     Array(Math.max(0, (opts.schemaRevisionsTotal ?? 1) - 1))
       .fill(0)
       .map(() => updateSchema(schemas[0].schemaId, schemasRegistryContract))
+  );
+
+  const schemaRevisionId = ethers.utils.sha256(schemas[0].serializedSchema);
+  const schemaMetadata = await Promise.all(
+    Array(Math.max(0, (opts.schemaMetadataTotal ?? 1) - 1))
+      .fill(0)
+      .map(() => updateMetadata(schemaRevisionId, schemasRegistryContract))
   );
   const policyRevisions = {};
 
@@ -307,6 +340,7 @@ export async function setupTestEnv(
     administrators,
     schemas,
     schemaRevisions,
+    schemaMetadata,
     policies,
     policyRevisions,
   };

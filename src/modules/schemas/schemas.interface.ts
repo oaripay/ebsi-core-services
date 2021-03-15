@@ -8,6 +8,11 @@ export interface GetSchemaRevisionsResponse {
   href: string;
 }
 
+export interface GetSchemaRevisionMetadataListResponse {
+  metadataId: string;
+  href: string;
+}
+
 export interface ItemsList {
   items: string[];
   total: number;

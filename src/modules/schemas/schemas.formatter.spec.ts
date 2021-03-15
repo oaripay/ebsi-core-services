@@ -1,4 +1,8 @@
-import { formatSchemas, formatSchemaRevisions } from "./schemas.formatter";
+import {
+  formatSchemas,
+  formatSchemaRevisions,
+  formatSchemaRevisionMetadataList,
+} from "./schemas.formatter";
 import { ItemsList } from "./schemas.interface";
 
 describe("formatSchemas", () => {
@@ -101,6 +105,45 @@ describe("formatSchemaRevisions", () => {
       },
       pageSize,
       self: `?page[after]=${page}&page[size]=${pageSize}&valid-at=${validAt}`,
+
+      total: 42,
+    });
+  });
+});
+
+describe("formatSchemaRevisionMetadataList", () => {
+  const metadata: ItemsList = {
+    items: ["meta-id", "meta-id-2"],
+    total: 42,
+  };
+
+  it("should use the values returned by the smart contract (except pageSize)", () => {
+    expect.assertions(1);
+
+    const page = 3;
+    const pageSize = 2;
+
+    expect(
+      formatSchemaRevisionMetadataList(metadata, page, pageSize, "")
+    ).toStrictEqual({
+      items: [
+        {
+          metadataId: "meta-id",
+          href: "/meta-id",
+        },
+        {
+          metadataId: "meta-id-2",
+          href: "/meta-id-2",
+        },
+      ],
+      links: {
+        first: `?page[after]=1&page[size]=${pageSize}`,
+        last: `?page[after]=21&page[size]=${pageSize}`,
+        next: `?page[after]=${page + 1}&page[size]=${pageSize}`,
+        prev: `?page[after]=${page - 1}&page[size]=${pageSize}`,
+      },
+      pageSize,
+      self: `?page[after]=${page}&page[size]=${pageSize}`,
       total: 42,
     });
   });

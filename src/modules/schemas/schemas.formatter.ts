@@ -1,6 +1,7 @@
 import {
   GetSchemaRevisionsResponse,
   GetSchemasResponse,
+  GetSchemaRevisionMetadataListResponse,
   ItemsList,
 } from "./schemas.interface";
 import { PaginatedList } from "../../shared/interfaces";
@@ -48,4 +49,24 @@ export function formatSchemaRevisions(
   );
 }
 
-export default { formatSchemas };
+export function formatSchemaRevisionMetadataList(
+  metadata: ItemsList,
+  page: number,
+  pageSize: number,
+  baseUrl: string
+): PaginatedList<GetSchemaRevisionMetadataListResponse> {
+  // Reshape items
+  const { total } = metadata;
+  const items = metadata.items.map((metadataId) => ({
+    metadataId,
+    href: `${baseUrl}/${metadataId}`,
+  }));
+
+  return paginate<GetSchemaRevisionMetadataListResponse>(
+    items,
+    baseUrl,
+    total,
+    page,
+    pageSize
+  );
+}
