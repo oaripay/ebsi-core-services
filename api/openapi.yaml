@@ -44,12 +44,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthenticationRequestResponse"
               examples:
-                Authentication Request Response JWT by value:
+                Authentication Request:
                   value:
-                    uri: openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.ebsi.zyz%2Fauthorisation%2Fv1%2Faccess-tokens&scope=openid%20did_authn&request=eyJhbGciOiJIUzI1Ni...
-                Authentication Request Response JWT by reference:
-                  value:
-                    uri: openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.ebsi.zyz%2Faccess-tokens&scope=openid%20did_authn&&request_uri=https%3A%2F%2Fapi.ebsi.zyz%2Fauthorisation%2Fv1%2Frequest-tokens
+                    uri: openid://?scope=openid%20did_authn&response_type=id_token&client_id=https%3A%2F%2Fapi.test.intebsi.xyz%2Fauthorisation%2Fv1%2Fsiop-sessions&request=eyJraWQiOiJodHRwczovL...
         "400":
           description: Bad Request
           content:
@@ -78,17 +75,17 @@ paths:
       tags:
         - Authorisation API
       summary: SIOP Sessions
-      description: Sessions Token endpoint as the callback for DID SIOP Response
+      description:
+        Sessions Token endpoint as the callback for DID SIOP Response.
+        This endpoint accepts id-token for algorithms ES256K, ES256, RS256, and EdDSA
       requestBody:
         content:
           application/x-www-form-urlencoded:
             schema:
               $ref: "#/components/schemas/SiopSessionsRequest"
             examples:
-              SIOP Response with state:
+              SIOP Response:
                 value: "id_token=eyJraW..&state=af0ifjsldkj"
-              SIOP Response without state:
-                value: "id_token=eyJraW.."
         required: true
       responses:
         "200":
@@ -96,14 +93,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionsResponse"
-              examples:
-                SIOP Access Token:
-                  value:
-                    accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-                    tokenType: bearer
-                    expiresAt: "2020-10-01T19:23:24Z"
-                    scope: openid did_authn
+                $ref: "#/components/schemas/Ake1SiopResponse"
         "400":
           description: Bad Request
           content:
@@ -152,14 +142,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SessionsResponse"
-              examples:
-                SIOP Access Token:
-                  value:
-                    accessToken: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-                    tokenType: bearer
-                    expiresAt: "2020-10-01T19:23:24Z"
-                    scope: openid did_authn
+                $ref: "#/components/schemas/Ake1Oauth2Response"
         "400":
           description: Bad Request
           content:
@@ -182,69 +165,85 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /authorisation/v1/fabric-registrations:
-    post:
-      operationId: post-authorisation-v1-fabric-registrations
-      tags:
-        - Authorisation API
-      description: |
-        Connects to Fabric ledger to ask for the User or Legal Entity
-        secret necessary to complete the enrolment process.
-        User/Legal Entity DID is extracted from the Sessions Token.
-      summary: User and Legal Entity enrolments.
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/EnrollmentSecretResponse"
-              examples:
-                Enrolemnt Secret Response:
-                  value:
-                    enrollmentSecret: user1pw
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Bad Request:
-                  $ref: "#/components/examples/BadRequest"
-        "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Unauthorized:
-                  $ref: "#/components/examples/Unauthorized"
-        "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Forbidden:
-                  $ref: "#/components/examples/Forbidden"
-        "500":
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
 components:
   schemas:
+    AuthenticationRequest:
+      title: SIOP Authentication Request
+      description: Request to initiate a SIOP authentication process.
+      type: object
+      properties:
+        scope:
+          type: string
+          description: Scope is used to define the authentication response method.
+          example: openid did_authn
+      required:
+        - scope
+    AuthenticationRequestResponse:
+      title: SIOP Authentication Request Response
+      type: object
+      properties:
+        uri:
+          description: OpenId DID SIOP Uri response.
+          type: string
+          example: openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.ebsi.zyz%2Fauthorisation%2Fv1%2Faccess-tokens&scope=openid%20did_authn&request=eyJhbGciOiJIUzI1Ni...
+      description: DID SIOP OIDC URI
+    SiopSessionsRequest:
+      title: SIOP Session Request
+      type: string
+      properties:
+        id_token:
+          type: string
+          description: signed JWT OIDC Id Token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        state:
+          type: string
+          description: Required if it is present in the Authentication Request
+          example: "af0ifjsldkj"
+      required:
+        - id_token
+      description: Request for JWT bearer token on a DID SIOP Response.
+    Ake1SiopResponse:
+      title: SIOP Session Response
+      type: object
+      properties:
+        ake1_enc_payload:
+          description: Encrypted payload with user's public key
+          type: string
+          example: dc3495621fcabdee33fe86...
+        ake1_jws_detached:
+          description: Detached JWS of AKE1 Signing Payload
+          type: string
+          example: eyJraWQiOiJodH...
+        ake1_sig_payload:
+          type: object
+          properties:
+            ake1_enc_payload:
+              description: Encrypted payload with user's public key
+              type: string
+              example: dc3495621fcabdee33fe86...
+            ake1_nonce:
+              description: Nonce used during the authentication process
+              type: string
+              example: 6fSnKv06+4XcZQ==
+            did:
+              description: User DID
+              type: string
+              example: did:ebsi:v3Yb4v92ykowMg
+            iat:
+              description: Issued at
+              type: number
+              example: 1615883457
+            iss:
+              description: Issuer (authorisation api)
+              type: string
+              example: authorisation-api
+        did:
+          description: API DID
+          type: string
+          example: did:ebsi:0x404aaa7c731b023e5342e8329b625f2fb9763a26
+      description: Ake1 Response for Oauth2 authentication
     OAuth2SessionsRequest:
-      title: OAuth2 Sessions Request
+      title: OAuth2 Session Request
       description: Request for JWT bearer assertion grant.
       type: object
       properties:
@@ -271,72 +270,46 @@ components:
         - clientAssertionType
         - clientAssertion
         - scope
-    SessionsResponse:
-      title: Sessions Response
+    Ake1Oauth2Response:
+      title: Oauth2 Session Response
       type: object
       properties:
-        accessToken:
-          description: Authentication JWT to access the protected EBSI Services calls.
+        ake1_enc_payload:
+          description: Encrypted payload with user's public key
           type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-        tokenType:
-          description: 'Type of the authentication token. Supported type "bearer".'
+          example: dc3495621fcabdee33fe86...
+        ake1_jws_detached:
+          description: Detached JWS of AKE1 Signing Payload
           type: string
-          example: Bearer
-        expiresAt:
-          description: "Date and time on/after which the Access Token becomes invalid. Format: ISO 8601"
+          example: eyJraWQiOiJodH...
+        ake1_sig_payload:
+          type: object
+          properties:
+            ake1_enc_payload:
+              description: Encrypted payload with user's public key
+              type: string
+              example: dc3495621fcabdee33fe86...
+            ake1_nonce:
+              description: Nonce used during the authentication process
+              type: string
+              example: 6fSnKv06+4XcZQ==
+            kid:
+              description: Trusted App Kid
+              type: string
+              example: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99
+            iat:
+              description: Issued at
+              type: number
+              example: 1615883457
+            iss:
+              description: Issuer (authorisation api)
+              type: string
+              example: authorisation-api
+        kid:
+          description: API Kid
           type: string
-          example: "2020-10-01T19:23:24Z"
-        scope:
-          description: "Open Id scope"
-          type: string
-          example: "openid did_authn"
-      description: Authentication JWT
-    AuthenticationRequest:
-      title: Authentication Request
-      description: Request to initiate a SIOP authentication process.
-      type: object
-      properties:
-        scope:
-          type: string
-          description: Scope is used to define the authentication response method.
-          enum:
-            - openid did_authn
-          example: openid did_authn
-      required:
-        - scope
-    AuthenticationRequestResponse:
-      title: Authentication Request Response
-      type: object
-      properties:
-        uri:
-          description: OpenId DID SIOP Uri response.
-          type: string
-          example: openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.ebsi.zyz%2Fauthorisation%2Fv1%2Faccess-tokens&scope=openid%20did_authn&request=eyJhbGciOiJIUzI1Ni...
-      description: DID SIOP OIDC URI
-    SiopSessionsRequest:
-      title: SIOP Sessions Token Request
-      description: Request for JWT bearer token on a DID SIOP Response.
-      type: string
-      properties:
-        id_token:
-          type: string
-          description: signed JWT OIDC Id Token
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-        state:
-          type: string
-          description: Required if it is present in the Authentication Request
-          example: "af0ifjsldkj"
-      required:
-        - id_token
-    EnrollmentSecretResponse:
-      title: Fabric Enrollment Secret Response
-      type: object
-      properties:
-        enrollmentSecret:
-          description: Enrollment Secret Response after contacting Fabric.
-          type: string
-          example: user1pw
+          example: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xf0c34a721e1bb7606de33a6e44ab30698e8076d7bb5c0b11d108aa52a5de0337
+      description: Ake1 Response for Oauth2 authentication
     Problem:
       description: A Problem Details object (RFC 7807)
       type: object
@@ -379,16 +352,6 @@ components:
         title: Bad Request
         status: 400
         detail: Bad request.
-    Unauthorized:
-      value:
-        title: Unauthorized
-        status: 401
-        detail: Permission denied.
-    Forbidden:
-      value:
-        title: Forbidden
-        status: 403
-        detail: "Forbidden You don't have the right to access that ressource"
     IssuerNotFound:
       value:
         title: Issuer Not Found
