@@ -1,0 +1,16 @@
+# Exclude everything
+*
+
+# Only add what is necessary
+!package.json
+!nest-cli.json
+!tsconfig.production.json
+!tsconfig.json
+!yarn.lock
+!scripts
+!src
+src/contracts
+!submodules/did-registry-ethereum-sc/contracts
+!submodules/did-registry-ethereum-sc/package.json
+!submodules/did-registry-ethereum-sc/yarn.lock
+!submodules/did-registry-ethereum-sc/hardhat.config.ts

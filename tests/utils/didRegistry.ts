@@ -1,0 +1,149 @@
+import { ethers } from "ethers";
+import ganache from "ganache-core";
+import { range } from "rxjs";
+import { mergeMap, toArray } from "rxjs/operators";
+import {
+  DidRegistry,
+  DidRegistry__factory,
+  HashAlgoLib__factory,
+  AdministratorLib__factory,
+  PolicyLib__factory,
+} from "../../src/contracts/did-registry";
+import PaginationArtifact from "../../submodules/did-registry-ethereum-sc/artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol/Pagination.json";
+
+export async function deployDidRegistryContract(
+  ethersProvider: ethers.providers.Web3Provider
+): Promise<DidRegistry> {
+  const owner = ethersProvider.getSigner();
+
+  /*
+    https://docs.soliditylang.org/en/latest/using-the-compiler.html#library-linking
+
+    "If your contracts use libraries, you will notice that the bytecode contains substrings of the
+    form __$53aea86b7d70b31448b230b20ae141a537$__. These are placeholders for the actual library
+    addresses. The placeholder is a 34 character prefix of the hex encoding of the keccak256 hash
+    of the fully qualified library name. The bytecode file will also contain lines of the form
+    // <placeholder> -> <fq library name> at the end to help identify which libraries the
+    placeholders represent. Note that the fully qualified library name is the path of its source
+    file and the library name separated by :."
+
+    Example:
+
+    ```js
+    const ethers = require("ethers");
+    console.log(
+      ethers.utils.keccak256(
+        Buffer.from("contracts/did-registry/AdministratorLib.sol:AdministratorLib", "utf-8")
+      )
+    );
+    ```
+    -> 0x717aec161b9ae870a8320204794edc6b45ff09d8bb3a0d428046500fccfce81b
+
+    Mapping:
+
+    __$717aec161b9ae870a8320204794edc6b45$__ = "contracts/did-registry/AdministratorLib.sol:AdministratorLib"
+    __$83fd23072f3f71fd0064cd6aa0829166fc$__ = "contracts/did-registry/HashAlgoLib.sol:HashAlgoLib"
+    __$c0ce321b058d74b8a232c7ea24bf1e9537$__ = "contracts/did-registry/PolicyLib.sol:PolicyLib"
+    __$515a15b27d7e720e4d91814eed9672e50c$__ = "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination"
+  */
+
+  // Deploy libs
+  const paginationAddress = (
+    await new ethers.ContractFactory(
+      PaginationArtifact.abi,
+      PaginationArtifact.bytecode,
+      owner
+    ).deploy()
+  ).address;
+
+  const administratorLibAddress = (
+    await new AdministratorLib__factory(
+      {
+        __$515a15b27d7e720e4d91814eed9672e50c$__: paginationAddress,
+      },
+      owner
+    ).deploy()
+  ).address;
+
+  const hashAlgoLibAddress = (await new HashAlgoLib__factory(owner).deploy())
+    .address;
+
+  const policyLibAddress = (
+    await new PolicyLib__factory(
+      {
+        __$515a15b27d7e720e4d91814eed9672e50c$__: paginationAddress,
+      },
+      owner
+    ).deploy()
+  ).address;
+
+  const didRegistry = await new DidRegistry__factory(
+    {
+      __$717aec161b9ae870a8320204794edc6b45$__: administratorLibAddress,
+      __$83fd23072f3f71fd0064cd6aa0829166fc$__: hashAlgoLibAddress,
+      __$c0ce321b058d74b8a232c7ea24bf1e9537$__: policyLibAddress,
+    },
+    owner
+  ).deploy();
+
+  return didRegistry;
+}
+
+export async function insertAdmin(
+  contract: DidRegistry,
+  adminAddress: string
+): Promise<ethers.ContractTransaction> {
+  const adminDid = `did:ebsi:${adminAddress.toLowerCase()}`;
+  const bufferAttribute = Buffer.from(
+    JSON.stringify({
+      "@context": {
+        name: {
+          "@id": "http://did-registry-api-test.org/name",
+          "@type": "@id",
+        },
+        description: "http://did-registry-api-test.org/description",
+      },
+      name: `test-${adminDid}`,
+    })
+  );
+
+  return contract.insertAdministrator(adminDid, bufferAttribute);
+}
+
+export interface SetupOptions {
+  administratorsTotal?: number;
+}
+
+export async function setupTestEnv(
+  opts: SetupOptions = {
+    administratorsTotal: 1,
+  }
+): Promise<{
+  provider: ethers.providers.Web3Provider;
+  didRegistryContract: DidRegistry;
+  administrators: ethers.Wallet[];
+}> {
+  const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
+
+  // Deploy contract
+  const didRegistryContract = await deployDidRegistryContract(ethersProvider);
+
+  // Insert fake data
+  const createAdminWallet = async () => {
+    // Create random wallet and connect it so we can use it later to send transactions
+    const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
+    await insertAdmin(didRegistryContract, wallet.address);
+    return wallet;
+  };
+
+  const administrators = await range(0, opts.administratorsTotal ?? 1)
+    .pipe(mergeMap(createAdminWallet), toArray())
+    .toPromise();
+
+  // Return test env variables
+  return {
+    provider: ethersProvider,
+    didRegistryContract,
+    administrators,
+  };
+}
