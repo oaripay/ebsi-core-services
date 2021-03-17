@@ -3,4 +3,4 @@ version: "3.7"
 services:
   did-registry-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api:prod_ebsiint-2808-jsonrpc-insert-administrator_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api:prod_ebsiint-2809-jsonrpc-update-administrator_v2.0.0

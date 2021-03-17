@@ -8,6 +8,8 @@ import {
   UnsignedTransaction,
   ArgsInsertAdministrator,
   RequestInsertAdministratorDto,
+  ArgsUpdateAdministrator,
+  RequestUpdateAdministratorDto,
 } from "./dto";
 import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
@@ -19,6 +21,7 @@ import {
 import { ContractService } from "../../shared/services/contract.service";
 import { DidRegistry } from "../../contracts/did-registry";
 import { ApiConfig } from "../../config/configuration";
+import { prefixWith0x } from "../../shared/utils";
 
 @Injectable()
 export class JsonRpcService {
@@ -146,6 +149,13 @@ export class JsonRpcService {
         );
         break;
       }
+      case "updateAdministrator": {
+        await validateClass(
+          ArgsUpdateAdministrator,
+          (args as unknown) as ArgsUpdateAdministrator
+        );
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -211,6 +221,46 @@ export class JsonRpcService {
       );
 
       return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateAdministrator(
+    body: RequestUpdateAdministratorDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateAdministratorDto, body);
+
+      const { from, did, attributeData, prevAttributeHash } = body.params[0];
+
+      const data = [did.toLowerCase(), attributeData];
+
+      if (prevAttributeHash) {
+        data.push(prefixWith0x(prevAttributeHash));
+      }
+
+      let functionSig;
+
+      if (prevAttributeHash) {
+        // using updateAdministrator function (did, attributeData, lastVersHash)
+        functionSig = "updateAdministrator(string,bytes,bytes32)";
+      } else {
+        // using updateAdministrator function (did, attributeData)
+        functionSig = "updateAdministrator(string,bytes)";
+      }
+
+      const encodedData = this.didRegistryContract.interface.encodeFunctionData(
+        functionSig,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        data
+      );
+
+      return await this.buildTransaction(from, encodedData);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;

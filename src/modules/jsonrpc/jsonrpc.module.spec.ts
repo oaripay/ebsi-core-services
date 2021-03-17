@@ -17,7 +17,11 @@ import {
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
-import { UnsignedTransaction, InsertAdministratorParam } from "./dto";
+import {
+  UnsignedTransaction,
+  InsertAdministratorParam,
+  UpdateAdministratorParam,
+} from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import {
@@ -64,6 +68,7 @@ describe("JsonRpc Module", () => {
   const newAdminWallet = ethers.Wallet.createRandom();
   const adminV1 = createAdministrator(newAdminWallet);
   const adminV2 = createAdministrator(newAdminWallet);
+  const adminV3 = createAdministrator(newAdminWallet);
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -305,351 +310,422 @@ describe("JsonRpc Module", () => {
 
   // Tests to be repeated for every method
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertAdministrator"])(
-    "/jsonrpc with method %s",
-    (method: string) => {
-      it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
-        expect.assertions(4);
+  describe.each([
+    "insertAdministrator",
+    "updateAdministrator",
+    "updateAdministrator(test update attribute)",
+  ])("/jsonrpc with method %s", (testMethod: string) => {
+    const updateAttribute = testMethod.includes("(test update attribute)");
+    const method = testMethod.replace("(test update attribute)", "");
 
-        const { did } = adminV1;
-        let param: JsonRpcParams = null;
+    it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
+      expect.assertions(4);
 
-        const signer = testEnv.administrators[0];
+      const { did } = adminV1;
+      let param: JsonRpcParams = null;
 
-        switch (method) {
-          case "insertAdministrator": {
-            // create a new administrator and add attribute1
+      const signer = testEnv.administrators[0];
+
+      switch (method) {
+        case "insertAdministrator": {
+          // create a new administrator and add attribute1
+          param = {
+            attributeData: adminV1.attributeData,
+            did: did.toLowerCase(),
+            from: signer.address,
+          } as InsertAdministratorParam;
+          break;
+        }
+        case "updateAdministrator": {
+          if (updateAttribute) {
+            // update attribute1: change it to attribute3
             param = {
-              attributeData: adminV1.attributeData,
+              attributeData: adminV3.attributeData,
               did: did.toLowerCase(),
               from: signer.address,
-            } as InsertAdministratorParam;
-            break;
-          }
-          default: {
-            throw new Error(`Test Error: Invalid method ${method}`);
-          }
-        }
-
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param],
-            id: 231,
-          });
-
-        expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
-            from: param.from,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: "0x0",
-          },
-        });
-        expect(responseBuild.status).toBe(200);
-
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction))
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await signer.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-        const responseSend = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method: "signedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
-              },
-            ],
-            id: "45",
-          });
-
-        expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "45",
-          result: expect.any(String) as string,
-        });
-        expect(responseSend.status).toBe(200);
-      });
-
-      it("should accept a request without id", async () => {
-        expect.assertions(2);
-
-        const signer = testEnv.administrators[0];
-
-        let param: JsonRpcParams = null;
-
-        switch (method) {
-          case "insertAdministrator": {
+              prevAttributeHash: ethers.utils.sha256(
+                Buffer.from(adminV1.attributeData.slice(2), "hex")
+              ),
+            } as UpdateAdministratorParam;
+          } else {
+            // updateIssuer: add attribute2
             param = {
-              attributeData: adminV1.attributeData,
-              did: adminV1.did.toLowerCase(),
+              attributeData: adminV2.attributeData,
+              did: did.toLowerCase(),
               from: signer.address,
-            } as InsertAdministratorParam;
-            break;
+            } as UpdateAdministratorParam;
           }
-          default: {
-            throw new Error(`Test Error: Invalid method ${method}`);
-          }
+          break;
         }
+        default: {
+          throw new Error(`Test Error: Invalid method ${method}`);
+        }
+      }
 
-        const responseBuild = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param],
-            // no id defined
-          });
-
-        expect(responseBuild.body).toStrictEqual({
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
           jsonrpc: "2.0",
-          id: null,
-          result: expect.objectContaining({}) as unknown,
+          method,
+          params: [param],
+          id: 231,
         });
-        expect(responseBuild.status).toBe(200);
+
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        result: {
+          chainId: expect.any(String) as string,
+          data: expect.any(String) as string,
+          from: param.from,
+          gasLimit: expect.any(String) as string,
+          gasPrice: expect.any(String) as string,
+          nonce: expect.any(String) as string,
+          to: expect.any(String) as string,
+          value: "0x0",
+        },
       });
+      expect(responseBuild.status).toBe(200);
 
-      it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
-        expect.assertions(6);
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await signer.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
-        const signer = testEnv.administrators[0];
-
-        let param1: JsonRpcParams = null;
-        let param2: JsonRpcParams = null;
-        let param3: JsonRpcParams = null;
-
-        let expectedErrorMessage1;
-        let expectedErrorMessage2;
-        let expectedErrorMessage3;
-
-        switch (method) {
-          case "insertAdministrator": {
-            param1 = {
-              did: adminV1.did,
-              from: signer.address,
-            } as InsertAdministratorParam;
-
-            expectedErrorMessage1 =
-              "property params[0].attributeData has failed the following constraints: isHexadecimal";
-
-            param2 = {
-              from: signer.address,
-              attributeData: adminV1.attributeData,
-            } as InsertAdministratorParam;
-
-            expectedErrorMessage2 =
-              "property params[0].did has failed the following constraints: isLowercase, isDid";
-
-            param3 = {
-              did: adminV1.did,
-              attributeData: adminV1.attributeData,
-              from: "bad address",
-            } as InsertAdministratorParam;
-
-            expectedErrorMessage3 =
-              "property params[0].from has failed the following constraints: isEthereumAddress";
-            break;
-          }
-          default: {
-            throw new Error(`Test Error: Invalid method ${method}`);
-          }
-        }
-
-        const response1 = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param1],
-            id: 231,
-          });
-
-        expect(response1.body).toStrictEqual({
+      const responseSend = await request(server)
+        .post("/jsonrpc")
+        .send({
           jsonrpc: "2.0",
-          id: 231,
-          error: {
-            code: -32600,
-            message: expect.stringContaining(expectedErrorMessage1) as string,
-          },
-        });
-        expect(response1.status).toBe(400);
-
-        const response2 = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param2],
-            id: 231,
-          });
-
-        expect(response2.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          error: {
-            code: -32600,
-            message: expect.stringContaining(expectedErrorMessage2) as string,
-          },
-        });
-        expect(response2.status).toBe(400);
-
-        const response3 = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param3],
-            id: 231,
-          });
-
-        expect(response3.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          error: {
-            code: -32600,
-            message: expect.stringContaining(expectedErrorMessage3) as string,
-          },
-        });
-        expect(response3.status).toBe(400);
-      });
-
-      it("should throw an error when the unsignedTransaction has been tampered", async () => {
-        expect.assertions(6);
-
-        const signer = testEnv.administrators[0];
-
-        let param1: JsonRpcParams;
-        let param2: JsonRpcParams;
-
-        switch (method) {
-          case "insertAdministrator": {
-            param1 = {
-              ...adminV1,
-              from: signer.address,
-            } as InsertAdministratorParam;
-            param2 = {
-              ...adminV2,
-              from: signer.address,
-            } as InsertAdministratorParam;
-            break;
-          }
-          default: {
-            throw new Error(`Test Error: Invalid method ${method}`);
-          }
-        }
-
-        const responseBuild1: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param1],
-            id: 231,
-          });
-
-        expect(responseBuild1.status).toBe(200);
-        const transaction1 = responseBuild1.body.result as UnsignedTransaction;
-
-        const responseBuild2: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param2],
-            id: 232,
-          });
-        expect(responseBuild2.status).toBe(200);
-        const transaction2 = responseBuild2.body.result as UnsignedTransaction;
-
-        const randomSigner = ethers.Wallet.createRandom();
-
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(transaction1))
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx1 = await randomSigner.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx1);
-
-        // Tampering signatures
-        const responseSend1 = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method: "signedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction: transaction2,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx1,
-              },
-            ],
-            id: "45",
-          });
-        expect(responseSend1.body).toStrictEqual({
-          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
           id: "45",
-          error: {
-            code: -32600,
-            message: expect.stringContaining(
-              "does not match with the signedRawTransaction"
-            ) as string,
-          },
         });
-        expect(responseSend1.status).toBe(400);
 
-        // Tampering "from"
-        transaction1.from = transaction2.from;
-        const responseSend2 = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method: "signedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction: transaction1,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx1,
-              },
-            ],
-            id: "46",
-          });
-        expect(responseSend2.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "46",
-          error: {
-            code: -32600,
-            message: expect.stringContaining(
-              "does not match with unsignedTransaction.from"
-            ) as string,
-          },
-        });
-        expect(responseSend1.status).toBe(400);
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        result: expect.any(String) as string,
       });
-    }
-  );
+      expect(responseSend.status).toBe(200);
+    });
+
+    it("should accept a request without id", async () => {
+      expect.assertions(2);
+
+      const signer = testEnv.administrators[0];
+
+      let param: JsonRpcParams = null;
+
+      switch (method) {
+        case "insertAdministrator": {
+          param = {
+            attributeData: adminV1.attributeData,
+            did: adminV1.did.toLowerCase(),
+            from: signer.address,
+          } as InsertAdministratorParam;
+          break;
+        }
+        case "updateAdministrator": {
+          param = {
+            attributeData: adminV1.attributeData,
+            did: adminV1.did.toLowerCase(),
+            from: signer.address,
+          } as UpdateAdministratorParam;
+          break;
+        }
+        default: {
+          throw new Error(`Test Error: Invalid method ${method}`);
+        }
+      }
+
+      const responseBuild = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param],
+          // no id defined
+        });
+
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: null,
+        result: expect.objectContaining({}) as unknown,
+      });
+      expect(responseBuild.status).toBe(200);
+    });
+
+    it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
+      expect.assertions(6);
+
+      const signer = testEnv.administrators[0];
+
+      let param1: JsonRpcParams = null;
+      let param2: JsonRpcParams = null;
+      let param3: JsonRpcParams = null;
+
+      let expectedErrorMessage1;
+      let expectedErrorMessage2;
+      let expectedErrorMessage3;
+
+      switch (method) {
+        case "insertAdministrator": {
+          param1 = {
+            did: adminV1.did,
+            from: signer.address,
+          } as InsertAdministratorParam;
+
+          expectedErrorMessage1 =
+            "property params[0].attributeData has failed the following constraints: isHexadecimal";
+
+          param2 = {
+            from: signer.address,
+            attributeData: adminV1.attributeData,
+          } as InsertAdministratorParam;
+
+          expectedErrorMessage2 =
+            "property params[0].did has failed the following constraints: isLowercase, isDid";
+
+          param3 = {
+            did: adminV1.did,
+            attributeData: adminV1.attributeData,
+            from: "bad address",
+          } as InsertAdministratorParam;
+
+          expectedErrorMessage3 =
+            "property params[0].from has failed the following constraints: isEthereumAddress";
+          break;
+        }
+        case "updateAdministrator": {
+          param1 = {
+            did: adminV1.did,
+            from: signer.address,
+          } as UpdateAdministratorParam;
+
+          expectedErrorMessage1 =
+            "property params[0].attributeData has failed the following constraints: isHexadecimal";
+
+          param2 = {
+            from: signer.address,
+            attributeData: adminV1.attributeData,
+          } as UpdateAdministratorParam;
+
+          expectedErrorMessage2 =
+            "property params[0].did has failed the following constraints: isLowercase, isDid";
+
+          param3 = {
+            did: adminV1.did,
+            attributeData: adminV1.attributeData,
+            from: "bad address",
+          } as UpdateAdministratorParam;
+
+          expectedErrorMessage3 =
+            "property params[0].from has failed the following constraints: isEthereumAddress";
+          break;
+        }
+        default: {
+          throw new Error(`Test Error: Invalid method ${method}`);
+        }
+      }
+
+      const response1 = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param1],
+          id: 231,
+        });
+
+      expect(response1.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        error: {
+          code: -32600,
+          message: expect.stringContaining(expectedErrorMessage1) as string,
+        },
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param2],
+          id: 231,
+        });
+
+      expect(response2.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        error: {
+          code: -32600,
+          message: expect.stringContaining(expectedErrorMessage2) as string,
+        },
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param3],
+          id: 231,
+        });
+
+      expect(response3.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        error: {
+          code: -32600,
+          message: expect.stringContaining(expectedErrorMessage3) as string,
+        },
+      });
+      expect(response3.status).toBe(400);
+    });
+
+    it("should throw an error when the unsignedTransaction has been tampered", async () => {
+      expect.assertions(6);
+
+      const signer = testEnv.administrators[0];
+
+      let param1: JsonRpcParams;
+      let param2: JsonRpcParams;
+
+      switch (method) {
+        case "insertAdministrator": {
+          param1 = {
+            ...adminV1,
+            from: signer.address,
+          } as InsertAdministratorParam;
+          param2 = {
+            ...adminV2,
+            from: signer.address,
+          } as InsertAdministratorParam;
+          break;
+        }
+        case "updateAdministrator": {
+          param1 = {
+            ...adminV1,
+            from: signer.address,
+          } as UpdateAdministratorParam;
+          param2 = {
+            ...adminV2,
+            from: signer.address,
+          } as UpdateAdministratorParam;
+          break;
+        }
+        default: {
+          throw new Error(`Test Error: Invalid method ${method}`);
+        }
+      }
+
+      const responseBuild1: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param1],
+          id: 231,
+        });
+
+      expect(responseBuild1.status).toBe(200);
+      const transaction1 = responseBuild1.body.result as UnsignedTransaction;
+
+      const responseBuild2: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param2],
+          id: 232,
+        });
+      expect(responseBuild2.status).toBe(200);
+      const transaction2 = responseBuild2.body.result as UnsignedTransaction;
+
+      const randomSigner = ethers.Wallet.createRandom();
+
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(transaction1))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx1 = await randomSigner.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx1);
+
+      // Tampering signatures
+      const responseSend1 = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction: transaction2,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx1,
+            },
+          ],
+          id: "45",
+        });
+      expect(responseSend1.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        error: {
+          code: -32600,
+          message: expect.stringContaining(
+            "does not match with the signedRawTransaction"
+          ) as string,
+        },
+      });
+      expect(responseSend1.status).toBe(400);
+
+      // Tampering "from"
+      transaction1.from = transaction2.from;
+      const responseSend2 = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction: transaction1,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx1,
+            },
+          ],
+          id: "46",
+        });
+      expect(responseSend2.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "46",
+        error: {
+          code: -32600,
+          message: expect.stringContaining(
+            "does not match with unsignedTransaction.from"
+          ) as string,
+        },
+      });
+      expect(responseSend1.status).toBe(400);
+    });
+  });
 });

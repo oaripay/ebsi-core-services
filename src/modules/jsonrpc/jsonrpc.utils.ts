@@ -6,6 +6,8 @@ import {
   UnsignedTransaction,
   ArgsInsertAdministrator,
   RequestInsertAdministratorDto,
+  ArgsUpdateAdministrator,
+  RequestUpdateAdministratorDto,
 } from "./dto";
 
 export function formatEthersUnsignedTransaction(
@@ -39,7 +41,9 @@ export function formatEthersSignature(
 type JsonRpcDtos =
   | RequestSignedTransactionDto
   | ArgsInsertAdministrator
-  | RequestInsertAdministratorDto;
+  | RequestInsertAdministratorDto
+  | ArgsUpdateAdministrator
+  | RequestUpdateAdministratorDto;
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,
