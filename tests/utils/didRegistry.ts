@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { ethers } from "ethers";
 import ganache from "ganache-core";
 import { range } from "rxjs";
@@ -14,6 +15,12 @@ import PaginationArtifact from "../../submodules/did-registry-ethereum-sc/artifa
 interface Administrator {
   wallet: ethers.Wallet;
   attribute: { [x: string]: unknown };
+}
+
+interface PolicyObject {
+  policyId: string;
+  policyData: unknown;
+  policyHash: string;
 }
 
 export async function deployDidRegistryContract(
@@ -117,18 +124,63 @@ export async function insertAdmin(
   return attribute;
 }
 
+export async function insertPolicy(
+  contract: DidRegistry
+): Promise<PolicyObject> {
+  const policyId = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
+
+  const policyData = {
+    // any object here
+    any: "Any attribute here",
+    type: "credential",
+    data: crypto.randomBytes(16).toString("hex"),
+  };
+
+  const policyBuffer = Buffer.from(JSON.stringify(policyData));
+  const policyHash = ethers.utils.sha256(policyBuffer);
+
+  await contract.insertPolicy(policyId, policyBuffer);
+
+  return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
+}
+
+export async function updatePolicy(
+  contract: DidRegistry,
+  policyId: string
+): Promise<PolicyObject> {
+  const policyData = {
+    // any object here
+    any: "Any attribute here",
+    type: "credential",
+    data: crypto.randomBytes(16).toString("hex"),
+  };
+
+  const policyBuffer = Buffer.from(JSON.stringify(policyData));
+  const policyHash = ethers.utils.sha256(policyBuffer);
+
+  await contract.updatePolicy(policyId, policyBuffer);
+
+  return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
+}
+
 export interface SetupOptions {
   administratorsTotal?: number;
+  policiesTotal?: number;
+  policiesRevisionsTotal?: number;
 }
 
 export async function setupTestEnv(
   opts: SetupOptions = {
     administratorsTotal: 1,
+    policiesTotal: 1,
+    policiesRevisionsTotal: 1,
   }
 ): Promise<{
   provider: ethers.providers.Web3Provider;
   didRegistryContract: DidRegistry;
   administrators: Administrator[];
+  policies: PolicyObject[];
+  policyRevisions: { [x: string]: PolicyObject[] };
 }> {
   const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
 
@@ -147,10 +199,41 @@ export async function setupTestEnv(
     .pipe(mergeMap(createAdminWallet), toArray())
     .toPromise();
 
+  const policyRevisions = {};
+
+  // Create as many policies as requested
+  const createPolicy = async () => {
+    const policy = await insertPolicy(didRegistryContract);
+
+    const createRevision = async () =>
+      updatePolicy(didRegistryContract, policy.policyId);
+
+    // For each policy, add revisions
+    policyRevisions[policy.policyId] = [
+      // The first revision is the policy itself
+      policy,
+      // Then, we add new revisions
+      ...(await range(0, (opts.policiesRevisionsTotal ?? 1) - 1)
+        .pipe(mergeMap(createRevision), toArray())
+        .toPromise()),
+    ];
+
+    return policy;
+  };
+
+  const policies =
+    opts.policiesTotal >= 1
+      ? await range(0, opts.policiesTotal)
+          .pipe(mergeMap(createPolicy), toArray())
+          .toPromise()
+      : [];
+
   // Return test env variables
   return {
     provider: ethersProvider,
     didRegistryContract,
     administrators,
+    policies,
+    policyRevisions,
   };
 }

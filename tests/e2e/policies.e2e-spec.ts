@@ -19,6 +19,11 @@ import { ApiConfig } from "../../src/config/configuration";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
+import {
+  PolicyResponseObject,
+  PolicyLink,
+} from "../../src/modules/policies/policies.interface";
+import { PaginatedList } from "../../src/shared/interfaces";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { generateMultihash } from "../../src/shared/utils/multihash.utils";
@@ -26,6 +31,16 @@ import { generateMultihash } from "../../src/shared/utils/multihash.utils";
 interface SupertestJsonRpcResponse {
   status: number;
   body: JsonRpcResponseObject;
+}
+
+interface SupertestPoliciesResponse {
+  status: number;
+  body: PaginatedList<PolicyLink>;
+}
+
+interface SupertestPolicyResponse {
+  status: number;
+  body: PolicyResponseObject;
 }
 
 describe("Policies (e2e)", () => {
@@ -77,6 +92,79 @@ describe("Policies (e2e)", () => {
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("adminTestPrivateKey"))
     );
+  });
+
+  describe("/policies", () => {
+    it("should return a collection of policies", async () => {
+      expect.assertions(2);
+      const response: SupertestPoliciesResponse = await request(server).get(
+        "/policies"
+      );
+
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          self: expect.stringContaining(
+            "/trusted-apps-registry/v2/policies?page[after]=1&page[size]=10"
+          ) as string,
+          items: expect.arrayContaining([]) as string[],
+          total: expect.any(Number) as number,
+          pageSize: expect.any(Number) as number,
+          links: expect.objectContaining({
+            first: expect.stringContaining(
+              "/trusted-apps-registry/v2/policies?page[after]=1&page[size]=10"
+            ) as string,
+            prev: expect.stringContaining(
+              "/trusted-apps-registry/v2/policies?page[after]=1&page[size]=10"
+            ) as string,
+            next: expect.stringContaining(
+              "/trusted-apps-registry/v2/policies?page[after]="
+            ) as string,
+            last: expect.stringContaining(
+              "/trusted-apps-registry/v2/policies?page[after]="
+            ) as string,
+          }) as PaginatedList<PolicyLink>["links"],
+        })
+      );
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("/policies/{policyId}", () => {
+    it("should return a specific policy", async () => {
+      expect.assertions(3);
+
+      const policiesResponse: SupertestPoliciesResponse = await request(
+        server
+      ).get("/policies");
+
+      expect(policiesResponse.status).toBe(200);
+      const { policyId }: PolicyLink = policiesResponse.body.items[
+        policiesResponse.body.items.length - 1
+      ];
+
+      const response: SupertestPolicyResponse = await request(server).get(
+        `/policies/${encodeURIComponent(policyId)}`
+      );
+
+      expect(response.body).toStrictEqual({
+        policyId,
+        policy: expect.any(String) as string,
+        hash: expect.any(String) as string,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the policy is not found", async () => {
+      expect.assertions(2);
+      const response = await request(server).get("/policies/unknown-policy");
+      expect(response.body).toStrictEqual({
+        title: "Policy Not Found",
+        status: 404,
+        detail: "Policy unknown-policy not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
