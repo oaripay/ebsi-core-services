@@ -21,6 +21,7 @@ import {
   UnsignedTransaction,
   InsertAdministratorParam,
   UpdateAdministratorParam,
+  InsertPolicyParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -36,7 +37,10 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertAdministratorParam;
+type JsonRpcParams =
+  | InsertAdministratorParam
+  | UpdateAdministratorParam
+  | InsertPolicyParam;
 
 jest.setTimeout(120000);
 
@@ -65,10 +69,30 @@ describe("JsonRpc Module", () => {
     return { did, attributeData };
   };
 
+  function createPolicy() {
+    const policyId = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
+    const json = {
+      // any object here
+      any: "Any attribute here",
+      type: "credential",
+      data: crypto.randomBytes(16).toString("hex"),
+    };
+    const data = Buffer.from(JSON.stringify(json));
+    const policyData = `0x${data.toString("hex")}`;
+    return {
+      policyId,
+      policyData,
+    };
+  }
+
   const newAdminWallet = ethers.Wallet.createRandom();
   const adminV1 = createAdministrator(newAdminWallet);
   const adminV2 = createAdministrator(newAdminWallet);
   const adminV3 = createAdministrator(newAdminWallet);
+
+  const policy1 = createPolicy();
+  const policy2 = createPolicy();
+  const policy3 = createPolicy();
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -314,6 +338,7 @@ describe("JsonRpc Module", () => {
     "insertAdministrator",
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
+    "insertPolicy",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
@@ -355,6 +380,14 @@ describe("JsonRpc Module", () => {
               from: signer.address,
             } as UpdateAdministratorParam;
           }
+          break;
+        }
+        case "insertPolicy": {
+          param = {
+            from: signer.address,
+            policyId: policy1.policyId,
+            policyData: policy1.policyData,
+          } as InsertPolicyParam;
           break;
         }
         default: {
@@ -445,6 +478,14 @@ describe("JsonRpc Module", () => {
           } as UpdateAdministratorParam;
           break;
         }
+        case "insertPolicy": {
+          param = {
+            from: signer.address,
+            policyId: policy1.policyId,
+            policyData: policy1.policyData,
+          } as InsertPolicyParam;
+          break;
+        }
         default: {
           throw new Error(`Test Error: Invalid method ${method}`);
         }
@@ -531,6 +572,33 @@ describe("JsonRpc Module", () => {
             from: "bad address",
           } as UpdateAdministratorParam;
 
+          expectedErrorMessage3 =
+            "property params[0].from has failed the following constraints: isEthereumAddress";
+          break;
+        }
+        case "insertPolicy": {
+          param1 = {
+            ...policy1,
+            from: signer.address,
+          };
+          param2 = {
+            ...policy2,
+            from: signer.address,
+          };
+          param3 = {
+            ...policy3,
+            from: signer.address,
+          };
+
+          delete param1.policyId;
+          expectedErrorMessage1 =
+            "property params[0].policyId has failed the following constraints: isString";
+
+          delete param2.policyData;
+          expectedErrorMessage2 =
+            "property params[0].policyData has failed the following constraints: isHexadecimal";
+
+          param3.from = "bad address";
           expectedErrorMessage3 =
             "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
@@ -627,6 +695,17 @@ describe("JsonRpc Module", () => {
             ...adminV2,
             from: signer.address,
           } as UpdateAdministratorParam;
+          break;
+        }
+        case "insertPolicy": {
+          param1 = {
+            ...policy1,
+            from: signer.address,
+          } as InsertPolicyParam;
+          param2 = {
+            ...policy2,
+            from: signer.address,
+          } as InsertPolicyParam;
           break;
         }
         default: {

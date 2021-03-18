@@ -7,6 +7,7 @@ import {
   RequestSignedTransactionDto,
   RequestInsertAdministratorDto,
   RequestUpdateAdministratorDto,
+  RequestInsertPolicyDto,
 } from "./dto";
 
 function jsonRpcResponse(
@@ -35,6 +36,13 @@ export default class AppController {
       case "updateAdministrator": {
         const transaction = await this.jsonRpcService.buildTransactionUpdateAdministrator(
           body as RequestUpdateAdministratorDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "insertPolicy": {
+        const transaction = await this.jsonRpcService.buildTransactionInsertPolicy(
+          body as RequestInsertPolicyDto,
           id
         );
         return jsonRpcResponse(transaction, id);

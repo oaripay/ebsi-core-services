@@ -10,6 +10,8 @@ import {
   RequestInsertAdministratorDto,
   ArgsUpdateAdministrator,
   RequestUpdateAdministratorDto,
+  ArgsInsertPolicy,
+  RequestInsertPolicyDto,
 } from "./dto";
 import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
@@ -156,6 +158,13 @@ export class JsonRpcService {
         );
         break;
       }
+      case "insertPolicy": {
+        await validateClass(
+          ArgsInsertPolicy,
+          (args as unknown) as ArgsInsertPolicy
+        );
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -261,6 +270,26 @@ export class JsonRpcService {
       );
 
       return await this.buildTransaction(from, encodedData);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertPolicy(
+    body: RequestInsertPolicyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertPolicyDto, body);
+      const { from, policyId, policyData } = body.params[0];
+
+      const data = this.didRegistryContract.interface.encodeFunctionData(
+        "insertPolicy",
+        [policyId, policyData]
+      );
+      return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;
