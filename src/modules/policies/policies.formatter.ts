@@ -1,4 +1,8 @@
-import { PolicyLink } from "./policies.interface";
+import {
+  PolicyLink,
+  PolicyRevisions,
+  PolicyResponseObject,
+} from "./policies.interface";
 import { DidRegistry } from "../../contracts/did-registry";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
@@ -21,4 +25,13 @@ export function formatPolicies(
   return paginate<PolicyLink>(items, baseUrl, total, page, pageSize);
 }
 
-export default { formatPolicies };
+export function formatRevisions(
+  revisions: PolicyRevisions,
+  page: number,
+  pageSize: number,
+  baseUrl: string
+): PaginatedList<PolicyResponseObject> {
+  const { total, items } = revisions;
+
+  return paginate<PolicyResponseObject>(items, baseUrl, total, page, pageSize);
+}

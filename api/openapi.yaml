@@ -23,6 +23,416 @@ tags:
   - name: DID Registry
     description: List trusted DIDs
 paths:
+  /did-registry/v2/administrators:
+    get:
+      tags:
+        - DID Registry
+      summary: List of trusted administrators
+      description: Returns a list of trusted administrators
+      operationId: get-did-registry-v2-administrators
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to administrators
+                  items:
+                    type: array
+                    description: List of administrators
+                    items:
+                      type: object
+                      properties:
+                        did:
+                          type: string
+                          description: DID of the administrator
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=3&page[size]=10
+                    items:
+                      - did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                        href: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                      - did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                        href: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=13&page[size]=10
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      parameters:
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+  /did-registry/v2/administrators/{did}:
+    get:
+      tags:
+        - DID Registry
+      summary: Get administrator by its Decentralized Identifier
+      description: Returns a trusted administrator by its decentralized identifier
+      operationId: get-trusted-administrator
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Administrator"
+              examples:
+                Success:
+                  value:
+                    did: did:ebsi:0x464190367BE948210608a46847bed183607f685A
+                    attributes:
+                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v2/administrators/{did}/attributes:
+    get:
+      summary: List the attributes of an administrator
+      description: Returns a list of attributes for a given administrator
+      operationId: get-did-registry-v2-administrators-did-attributes
+      tags:
+        - DID Registry
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          required: true
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to attributes
+                  items:
+                    type: array
+                    description: List of attributes
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: Attribute ID. (hash, sha256)
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=3&page[size]=10
+                    items:
+                      - id: 792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                        href: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                      - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+                        href: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=13&page[size]=10
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v2/administrators/{did}/attributes/{attributeId}:
+    get:
+      summary: Get a specific attribute
+      description: Returns the corresponding attribute of a given administrator
+      operationId: get-did-registry-v2-administrators-did-attributes-attributeid
+      tags:
+        - DID Registry
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          required: true
+        - name: attributeId
+          in: path
+          schema:
+            type: string
+          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AttributeDetails"
+              examples:
+                Success:
+                  value:
+                    did: did:ebsi:0x464190367BE948210608a46847bed183607f685A
+                    attribute:
+                      hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: "The format of {did} parameter is not valid"
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v2/administrators/{did}/attributes/{attributeId}/revisions:
+    get:
+      summary: List the revisions of an attribute
+      description: |
+        Returns a list of revisions for a given attribute attached to a given administrator.
+      operationId: get-did-registry-v2-administrators-did-attributes-attributeid-revisions
+      tags:
+        - DID Registry
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          required: true
+        - name: attributeId
+          in: path
+          schema:
+            type: string
+          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+          required: true
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI of the current page
+                  items:
+                    type: array
+                    description: Array of attribute objects sorted chronologically
+                    items:
+                      $ref: "#/components/schemas/Attribute"
+                  total:
+                    type: integer
+                    description: Total number of results
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=3&page[size]=10
+                    items:
+                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                      - hash: "0x56ef14c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da632125a"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8
+                    total: 2
+                    pageSize: 123
+                    links:
+                      first: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=13&page[size]=10
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /did-registry/v2/policies:
     get:
       summary: Get all policies
@@ -161,6 +571,102 @@ paths:
           description: Internal Server Error
           content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v2/policies/{policyId}/revisions:
+    get:
+      summary: Get policy revisions
+      description: Paginated list of policy revisions.
+      operationId: get-did-registry-v2-policy-revisions
+      tags:
+        - DID Registry
+      parameters:
+        - name: policyId
+          in: path
+          schema:
+            type: string
+          example: test-policy-1
+          required: true
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to policies
+                  items:
+                    type: array
+                    description: List of policies
+                    items:
+                      $ref: "#/components/schemas/Policy"
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/did-registry/v2/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    items:
+                      - policyId: test-policy-1
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
+                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
+                      - policyId: test-policy-1
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ8
+                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562b
+                    total: 61
+                    pageSize: 2
+                    links:
+                      first: https://api.ebsi.xyz/did-registry/v2/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/did-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/did-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/did-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -375,6 +881,39 @@ components:
           prev: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=2&page[size]=2
           next: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=4&page[size]=2
           last: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=13&page[size]=2
+    Attribute:
+      title: Attribute
+      type: object
+      description: Attribute
+      properties:
+        hash:
+          type: string
+          description: sha256 hash of the payload
+        body:
+          description: Base64 encoded content
+    AttributeDetails:
+      title: attributeDetails
+      type: object
+      description: Attribute Details
+      properties:
+        did:
+          type: string
+          description: DID of the attribute owner
+        attribute:
+          $ref: "#/components/schemas/Attribute"
+    Administrator:
+      title: Administrator
+      type: object
+      description: Name of the administrator
+      properties:
+        did:
+          type: string
+          description: DID of the administrator
+        attributes:
+          type: array
+          description: Array of attributes
+          items:
+            $ref: "#/components/schemas/Attribute"
     Policy:
       title: Policy
       type: object
