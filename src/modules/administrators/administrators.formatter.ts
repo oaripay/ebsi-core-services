@@ -39,3 +39,13 @@ export function formatAttributes(
 
   return paginate<IdLink>(items, baseUrl, total, page, pageSize);
 }
+
+export function formatRevisions(
+  revisions: AttributeObject[],
+  total: number,
+  page: number,
+  pageSize: number,
+  baseUrl: string
+): PaginatedList<AttributeObject> {
+  return paginate<AttributeObject>(revisions, baseUrl, total, page, pageSize);
+}

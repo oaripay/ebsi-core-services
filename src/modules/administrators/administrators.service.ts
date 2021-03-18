@@ -15,20 +15,20 @@ import { AsyncReturnType } from "../../shared/types/async-return-type";
 export default class AdministratorsService {
   private readonly logger = new Logger(AdministratorsService.name);
 
-  private schemasContract: DidRegistry;
+  private didRegistryContract: DidRegistry;
 
   constructor(
     private contractService: ContractService,
     private configService: ConfigService<ApiConfig>
   ) {
-    this.schemasContract = this.contractService.getContract();
+    this.didRegistryContract = this.contractService.getContract();
   }
 
   async getAdministrators(
     page: number,
     pageSize: number
   ): ReturnType<DidRegistry["getAdministrators"]> {
-    return this.schemasContract.getAdministrators(page, pageSize);
+    return this.didRegistryContract.getAdministrators(page, pageSize);
   }
 
   async getAttribute(
@@ -38,7 +38,7 @@ export default class AdministratorsService {
     // If `adminDid` is passed, make sure the admin exists
     if (adminDid) {
       try {
-        await this.schemasContract.getAdministrator(adminDid);
+        await this.didRegistryContract.getAdministrator(adminDid);
       } catch (e) {
         throw new NotFoundError("Administrator Not Found", {
           detail: `Administrator ${adminDid} not found`,
@@ -54,7 +54,7 @@ export default class AdministratorsService {
     >;
 
     try {
-      attributeByHash = await this.schemasContract.getAdministratorAttributeByHash(
+      attributeByHash = await this.didRegistryContract.getAdministratorAttributeByHash(
         hash
       );
     } catch (e) {
@@ -86,7 +86,7 @@ export default class AdministratorsService {
     let attributesLastHash: string[];
 
     try {
-      attributesLastHash = await this.schemasContract.getAdministrator(did);
+      attributesLastHash = await this.didRegistryContract.getAdministrator(did);
 
       if (attributesLastHash.length === 0) {
         throw new Error();
@@ -110,5 +110,30 @@ export default class AdministratorsService {
     const did = administratorDid.toLowerCase();
     const attributes = await this.getAttributes(did);
     return { did, attributes };
+  }
+
+  async getAdministratorAttributeRevisions(
+    attributeId: string,
+    adminDid: string,
+    page: number,
+    pageSize: number
+  ): Promise<{ revisions: AttributeObject[]; total: number }> {
+    // Make sure the attribute exists and it belongs to the given admin
+    await this.getAttribute(attributeId, adminDid);
+
+    const hash = prefixWith0x(attributeId);
+    const revisionHashes = await this.didRegistryContract.getAdministratorAttributeRevisions(
+      hash,
+      page,
+      pageSize
+    );
+
+    const revisions = await Promise.all(
+      revisionHashes.items.map(async (revisionHash) => {
+        return this.getAttribute(revisionHash);
+      })
+    );
+
+    return { revisions, total: revisionHashes.total.toNumber() };
   }
 }

@@ -231,99 +231,6 @@ describe("Administrators (e2e)", () => {
     });
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each([
-    "insertAdministrator",
-    "updateAdministrator",
-    "updateAdministrator(test update attribute)",
-  ])("/jsonrpc - send transaction for %s", (testMethod: string) => {
-    const updateAttribute = testMethod.includes("(test update attribute)");
-    const method = testMethod.replace("(test update attribute)", "");
-
-    it("should insert a new administrator", async () => {
-      expect.assertions(3);
-
-      const { did } = newAdministrator;
-      let attributeData: string;
-      let prevAttributeHash: string = null;
-
-      switch (method) {
-        case "insertAdministrator": {
-          // create a new administrator and add attribute1
-          attributeData = attributeData1;
-          break;
-        }
-        case "updateAdministrator": {
-          if (updateAttribute) {
-            // update attribute1: change it to attribute3
-            attributeData = attributeData3;
-            prevAttributeHash = ethers.utils.sha256(
-              Buffer.from(attributeData1.slice(2), "hex")
-            );
-          } else {
-            // updateIssuer: add attribute2
-            attributeData = attributeData2;
-          }
-          break;
-        }
-        default:
-          break;
-      }
-
-      const responseBuild: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
-        .send({
-          jsonrpc: "2.0",
-          method,
-          params: [
-            {
-              from: adminTestWallet.address,
-              did,
-              attributeData,
-              ...(prevAttributeHash && { prevAttributeHash }),
-            },
-          ],
-          id: 231,
-        });
-      const unsignedTransaction = responseBuild.body.result;
-      const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction))
-      );
-      uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await adminTestWallet.signTransaction(uTx);
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-      const responseSend: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
-        .send({
-          jsonrpc: "2.0",
-          method: "signedTransaction",
-          params: [
-            {
-              protocol: "eth",
-              unsignedTransaction,
-              r,
-              s,
-              v: `0x${Number(v).toString(16)}`,
-              signedRawTransaction: sgnTx,
-            },
-          ],
-          id: "45",
-        });
-
-      expect(responseSend.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: "45",
-        result: expect.any(String) as string,
-      });
-      expect(responseSend.status).toBe(200);
-
-      // wait to be mined
-      const receipt = await waitToBeMined(responseSend.body.result as string);
-      expect(receipt.status).toBe("0x1");
-    });
-  });
-
   describe("/administrators/{did}/attributes", () => {
     it("should return the attributes from a specific administrator", async () => {
       expect.assertions(3);
@@ -472,6 +379,142 @@ describe("Administrators (e2e)", () => {
         type: "about:blank",
       });
       expect(response3.status).toBe(404);
+    });
+  });
+
+  describe("/administrators/{did}/attributes/{attributeId}/revisions", () => {
+    it("should return revisions", async () => {
+      expect.assertions(4);
+
+      const administrators: SupertestAdministratorsResponse = await request(
+        server
+      ).get("/administrators");
+
+      expect(administrators.status).toBe(200);
+
+      const { did }: DidLink = administrators.body.items[
+        administrators.body.items.length - 1
+      ];
+
+      const administratorResponse: SupertestAdministratorResponse = await request(
+        server
+      ).get(`/administrators/${did}`);
+
+      expect(administratorResponse.status).toBe(200);
+
+      const attributeId = administratorResponse.body.attributes[0].hash;
+      const urlPath = `/administrators/${did}/attributes/${attributeId}/revisions`;
+
+      const response = await request(server).get(
+        `/administrators/${did}/attributes/${attributeId}/revisions`
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(urlPath) as string,
+        items: expect.arrayContaining([]) as AttributeObject[],
+        total: expect.any(Number) as number,
+        pageSize: expect.any(Number) as number,
+        links: {
+          first: expect.stringContaining(urlPath) as string,
+          prev: expect.stringContaining(urlPath) as string,
+          next: expect.stringContaining(urlPath) as string,
+          last: expect.stringContaining(urlPath) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  describe.each([
+    "insertAdministrator",
+    "updateAdministrator",
+    "updateAdministrator(test update attribute)",
+  ])("/jsonrpc - send transaction for %s", (testMethod: string) => {
+    const updateAttribute = testMethod.includes("(test update attribute)");
+    const method = testMethod.replace("(test update attribute)", "");
+
+    it("should insert a new administrator", async () => {
+      expect.assertions(3);
+
+      const { did } = newAdministrator;
+      let attributeData: string;
+      let prevAttributeHash: string = null;
+
+      switch (method) {
+        case "insertAdministrator": {
+          // create a new administrator and add attribute1
+          attributeData = attributeData1;
+          break;
+        }
+        case "updateAdministrator": {
+          if (updateAttribute) {
+            // update attribute1: change it to attribute3
+            attributeData = attributeData3;
+            prevAttributeHash = ethers.utils.sha256(
+              Buffer.from(attributeData1.slice(2), "hex")
+            );
+          } else {
+            // updateIssuer: add attribute2
+            attributeData = attributeData2;
+          }
+          break;
+        }
+        default:
+          break;
+      }
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [
+            {
+              from: adminTestWallet.address,
+              did,
+              attributeData,
+              ...(prevAttributeHash && { prevAttributeHash }),
+            },
+          ],
+          id: 231,
+        });
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await adminTestWallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        result: expect.any(String) as string,
+      });
+      expect(responseSend.status).toBe(200);
+
+      // wait to be mined
+      const receipt = await waitToBeMined(responseSend.body.result as string);
+      expect(receipt.status).toBe("0x1");
     });
   });
 });
