@@ -324,7 +324,7 @@ describe("JsonRpc Module", () => {
       const { did } = adminV1;
       let param: JsonRpcParams = null;
 
-      const signer = testEnv.administrators[0];
+      const signer = testEnv.administrators[0].wallet;
 
       switch (method) {
         case "insertAdministrator": {
@@ -424,7 +424,7 @@ describe("JsonRpc Module", () => {
     it("should accept a request without id", async () => {
       expect.assertions(2);
 
-      const signer = testEnv.administrators[0];
+      const signer = testEnv.administrators[0].wallet;
 
       let param: JsonRpcParams = null;
 
@@ -470,7 +470,7 @@ describe("JsonRpc Module", () => {
     it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
       expect.assertions(6);
 
-      const signer = testEnv.administrators[0];
+      const signer = testEnv.administrators[0].wallet;
 
       let param1: JsonRpcParams = null;
       let param2: JsonRpcParams = null;
@@ -601,7 +601,7 @@ describe("JsonRpc Module", () => {
     it("should throw an error when the unsignedTransaction has been tampered", async () => {
       expect.assertions(6);
 
-      const signer = testEnv.administrators[0];
+      const signer = testEnv.administrators[0].wallet;
 
       let param1: JsonRpcParams;
       let param2: JsonRpcParams;

@@ -23,6 +23,155 @@ tags:
   - name: DID Registry
     description: List trusted DIDs
 paths:
+  /did-registry/v2/administrators:
+    get:
+      tags:
+        - DID Registry
+      summary: List of trusted administrators
+      description: Returns a list of trusted administrators
+      operationId: get-did-registry-v2-administrators
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to administrators
+                  items:
+                    type: array
+                    description: List of administrators
+                    items:
+                      type: object
+                      properties:
+                        did:
+                          type: string
+                          description: DID of the administrator
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=3&page[size]=10
+                    items:
+                      - did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                        href: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                      - did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                        href: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=13&page[size]=10
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+  /did-registry/v2/administrators/{did}:
+    get:
+      tags:
+        - DID Registry
+      summary: Get administrator by its Decentralized Identifier
+      description: Returns a trusted administrator by its decentralized identifier
+      operationId: get-trusted-administrator
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Administrator"
+              examples:
+                Success:
+                  value:
+                    did: did:ebsi:0x464190367BE948210608a46847bed183607f685A
+                    attributes:
+                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /did-registry/v2/jsonrpc:
     post:
       operationId: post-did-registry-v2-jsonrpc
@@ -77,7 +226,7 @@ paths:
                   id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attributeData: "0x68946e6565d6516..."
               Build tx to updateAdministrator (new attribute):
                 value:
@@ -191,6 +340,52 @@ components:
           description: |
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
+    Links:
+      title: Links
+      type: object
+      properties:
+        last:
+          type: string
+          description: URI of the last page
+        prev:
+          type: string
+          description: URI of the previous page
+        next:
+          type: string
+          description: URI of the next page
+        first:
+          type: string
+          description: URI of the first page
+      description: links model used for pagination
+      x-examples:
+        Links:
+          first: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=1&page[size]=2
+          prev: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=2&page[size]=2
+          next: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=4&page[size]=2
+          last: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=13&page[size]=2
+    Attribute:
+      title: Attribute
+      type: object
+      description: Attribute
+      properties:
+        hash:
+          type: string
+          description: sha256 hash of the payload
+        body:
+          description: Base64 encoded content
+    Administrator:
+      title: Administrator
+      type: object
+      description: Name of the administrator
+      properties:
+        did:
+          type: string
+          description: DID of the administrator
+        attributes:
+          type: array
+          description: Array of attributes
+          items:
+            $ref: "#/components/schemas/Attribute"
     JsonRpcResponse:
       title: Json Rpc Response
       type: object
@@ -209,9 +404,19 @@ components:
   examples:
     BadRequest:
       value:
-        title: Bad Request
+        title: Bad request
         status: 400
         detail: Bad request
+    NotFound:
+      value:
+        title: Not found
+        status: 404
+        detail: Not found
+    InternalError:
+      value:
+        title: Internal error
+        status: 500
+        detail: Internal error
 servers:
   - url: http://localhost
     description: Local Computer Environment
