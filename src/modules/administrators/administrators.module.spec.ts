@@ -304,4 +304,141 @@ describe("Administrators Module", () => {
       expect(response.status).toBe(404);
     });
   });
+
+  describe("GET /administrators/{did}/attributes", () => {
+    it("should return the attributes of a specific administrator", async () => {
+      expect.assertions(2);
+
+      const { administrators } = testEnv;
+      const adminDid = `did:ebsi:${administrators[0].wallet.address.toLowerCase()}`;
+      const adminAttribute = administrators[0].attribute;
+
+      const response = await request(server).get(
+        `/administrators/${adminDid}/attributes`
+      );
+
+      const data = Buffer.from(JSON.stringify(adminAttribute));
+      const dataHash = ethers.utils.sha256(data).slice(2);
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/administrators/${adminDid}/attributes`
+        ) as string,
+        items: [
+          {
+            href: expect.stringContaining(
+              `/administrators/${adminDid}/attributes/${dataHash}`
+            ) as string,
+            id: dataHash,
+          },
+        ],
+        total: expect.any(Number) as number,
+        pageSize: expect.any(Number) as number,
+        links: {
+          first: expect.stringContaining(
+            `/administrators/${adminDid}/attributes?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/administrators/${adminDid}/attributes?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/administrators/${adminDid}/attributes?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/administrators/${adminDid}/attributes?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /administrators/{did}/attributes/{attributeId}", () => {
+    it("should return a specific attribute", async () => {
+      expect.assertions(2);
+
+      const { administrators } = testEnv;
+      const adminDid = `did:ebsi:${administrators[0].wallet.address.toLowerCase()}`;
+      const adminAttribute = administrators[0].attribute;
+
+      const data = Buffer.from(JSON.stringify(adminAttribute));
+
+      const dataBase64 = data.toString("base64");
+      const dataHash = ethers.utils.sha256(data);
+      const response = await request(server).get(
+        `/administrators/${adminDid}/attributes/${dataHash}`
+      );
+
+      expect(response.body).toStrictEqual({
+        did: adminDid,
+        attribute: {
+          body: dataBase64,
+          hash: dataHash.slice(2),
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error when the attribute is not found", async () => {
+      expect.assertions(6);
+
+      const { administrators } = testEnv;
+      const adminDid = `did:ebsi:${administrators[0].wallet.address.toLowerCase()}`;
+      const adminAttribute = administrators[0].attribute;
+      const admin2Attribute = administrators[1].attribute;
+
+      // Consult a random attribute
+      const attributeId =
+        "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
+      const response1 = await request(server).get(
+        `/administrators/${adminDid}/attributes/${attributeId}`
+      );
+
+      expect(response1.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Attribute ${attributeId} not found`
+        ) as string,
+        status: 404,
+        title: "Attribute Not Found",
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(404);
+
+      // Consult an existing attribute from a random did
+      const attributeId2 = ethers.utils.sha256(
+        Buffer.from(JSON.stringify(adminAttribute))
+      );
+      const response2 = await request(server).get(
+        `/administrators/did:ebsi:unknown/attributes/${attributeId2}`
+      );
+
+      expect(response2.body).toStrictEqual({
+        detail: expect.stringContaining(
+          "Administrator did:ebsi:unknown not found"
+        ) as string,
+        status: 404,
+        title: "Administrator Not Found",
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(404);
+
+      // Consult a valid attribute (of admin2Did) from a different did (adminDid)
+      const attributeId3 = ethers.utils.sha256(
+        Buffer.from(JSON.stringify(admin2Attribute))
+      );
+      const response3 = await request(server).get(
+        `/administrators/${adminDid}/attributes/${attributeId3}`
+      );
+
+      expect(response3.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Attribute ${attributeId3} not found`
+        ) as string,
+        status: 404,
+        title: "Attribute Not Found",
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(404);
+    });
+  });
 });

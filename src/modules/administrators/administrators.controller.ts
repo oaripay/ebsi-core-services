@@ -1,10 +1,15 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import AdministratorsService from "./administrators.service";
-import { formatAdministrators } from "./administrators.formatter";
 import {
+  formatAdministrators,
+  formatAttributes,
+} from "./administrators.formatter";
+import {
+  IdLink,
   DidLink,
   AdministratorResponseObject,
+  AttributeDetailsObject,
 } from "./administrators.interface";
 import { PaginationQuery } from "../../shared/dto/pagination-query";
 import { PaginatedList } from "../../shared/interfaces";
@@ -44,5 +49,43 @@ export default class AdministratorsController {
   ): Promise<AdministratorResponseObject> {
     const { did } = params;
     return this.administratorsService.getAdministrator(did);
+  }
+
+  @Get("/:did/attributes")
+  async getAdministratorAttributes(
+    @Param() params: { did: string },
+    @Query() query: PaginationQuery
+  ): Promise<PaginatedList<IdLink>> {
+    const { did } = params;
+
+    const attributes = await this.administratorsService.getAttributes(did);
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/administrators/${did}/attributes`;
+
+    return formatAttributes(
+      attributes,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl
+    );
+  }
+
+  @Get("/:did/attributes/:attributeId")
+  async getAdministratorAttribute(
+    @Param() params: { did: string; attributeId: string }
+  ): Promise<AttributeDetailsObject> {
+    const { did, attributeId } = params;
+
+    const attribute = await this.administratorsService.getAttribute(
+      attributeId,
+      did
+    );
+
+    return {
+      did,
+      attribute,
+    };
   }
 }

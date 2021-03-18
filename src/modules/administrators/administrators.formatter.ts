@@ -1,4 +1,4 @@
-import { DidLink } from "./administrators.interface";
+import { AttributeObject, IdLink, DidLink } from "./administrators.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
 import { DidRegistry } from "../../contracts/did-registry";
@@ -21,4 +21,21 @@ export function formatAdministrators(
   return paginate<DidLink>(items, baseUrl, total, page, pageSize);
 }
 
-export default { formatAdministrators };
+export function formatAttributes(
+  attributes: AttributeObject[],
+  page: number,
+  pageSize: number,
+  baseUrl: string
+): PaginatedList<IdLink> {
+  const total = attributes.length;
+
+  // Extract and reshape items
+  const items = attributes
+    .slice((page - 1) * pageSize, page * pageSize)
+    .map((attr) => ({
+      id: attr.hash,
+      href: `${baseUrl}/${attr.hash}`,
+    }));
+
+  return paginate<IdLink>(items, baseUrl, total, page, pageSize);
+}
