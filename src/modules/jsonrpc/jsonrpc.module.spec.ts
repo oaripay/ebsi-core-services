@@ -22,6 +22,7 @@ import {
   InsertAdministratorParam,
   UpdateAdministratorParam,
   InsertPolicyParam,
+  UpdatePolicyParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -40,7 +41,8 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | InsertAdministratorParam
   | UpdateAdministratorParam
-  | InsertPolicyParam;
+  | InsertPolicyParam
+  | UpdatePolicyParam;
 
 jest.setTimeout(120000);
 
@@ -339,6 +341,7 @@ describe("JsonRpc Module", () => {
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
     "insertPolicy",
+    "updatePolicy",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
@@ -388,6 +391,14 @@ describe("JsonRpc Module", () => {
             policyId: policy1.policyId,
             policyData: policy1.policyData,
           } as InsertPolicyParam;
+          break;
+        }
+        case "updatePolicy": {
+          param = {
+            from: signer.address,
+            policyId: policy1.policyId,
+            policyData: policy2.policyData,
+          } as UpdatePolicyParam;
           break;
         }
         default: {
@@ -478,7 +489,8 @@ describe("JsonRpc Module", () => {
           } as UpdateAdministratorParam;
           break;
         }
-        case "insertPolicy": {
+        case "insertPolicy":
+        case "updatePolicy": {
           param = {
             from: signer.address,
             policyId: policy1.policyId,
@@ -576,19 +588,20 @@ describe("JsonRpc Module", () => {
             "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
         }
-        case "insertPolicy": {
+        case "insertPolicy":
+        case "updatePolicy": {
           param1 = {
             ...policy1,
             from: signer.address,
-          };
+          } as InsertPolicyParam;
           param2 = {
             ...policy2,
             from: signer.address,
-          };
+          } as InsertPolicyParam;
           param3 = {
             ...policy3,
             from: signer.address,
-          };
+          } as InsertPolicyParam;
 
           delete param1.policyId;
           expectedErrorMessage1 =
@@ -697,7 +710,8 @@ describe("JsonRpc Module", () => {
           } as UpdateAdministratorParam;
           break;
         }
-        case "insertPolicy": {
+        case "insertPolicy":
+        case "updatePolicy": {
           param1 = {
             ...policy1,
             from: signer.address,
