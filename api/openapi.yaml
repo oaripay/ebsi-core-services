@@ -691,7 +691,7 @@ paths:
 
           - **jsonrpc**: Must be exactly '2.0'
           - **method**: Method to be invoked. Possible values: 'insertAdministrator',
-            'updateAdministrator', 'insertPolicy', 'updatePolicy'
+            'updateAdministrator', 'insertPolicy', 'updatePolicy', 'insertHashAlgorithm'
           - **id**: Identifier stablished by the client
         content:
           application/json:
@@ -764,6 +764,17 @@ paths:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       policyId: test-policy-1
                       policyData: "0x1234567890..."
+                  id: 1
+              Build tx to insertHashAlgorithm:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertHashAlgorithm
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      outputLength: 256
+                      ianaName: sha-256
+                      oid: "2.16.840.1.101.3.4.2.1"
+                      status: 1
                   id: 1
               Send Transaction:
                 value:

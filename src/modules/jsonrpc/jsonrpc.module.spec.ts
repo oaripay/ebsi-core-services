@@ -21,6 +21,7 @@ import {
   UnsignedTransaction,
   InsertAdministratorParam,
   UpdateAdministratorParam,
+  InsertHashAlgorithmParam,
   InsertPolicyParam,
   UpdatePolicyParam,
 } from "./dto";
@@ -42,7 +43,8 @@ type JsonRpcParams =
   | InsertAdministratorParam
   | UpdateAdministratorParam
   | InsertPolicyParam
-  | UpdatePolicyParam;
+  | UpdatePolicyParam
+  | InsertHashAlgorithmParam;
 
 jest.setTimeout(120000);
 
@@ -340,6 +342,7 @@ describe("JsonRpc Module", () => {
     "insertAdministrator",
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
+    "insertHashAlgorithm",
     "insertPolicy",
     "updatePolicy",
   ])("/jsonrpc with method %s", (testMethod: string) => {
@@ -383,6 +386,16 @@ describe("JsonRpc Module", () => {
               from: signer.address,
             } as UpdateAdministratorParam;
           }
+          break;
+        }
+        case "insertHashAlgorithm": {
+          param = {
+            from: signer.address,
+            outputLength: 256,
+            ianaName: "sha-256",
+            oid: "2.16.840.1.101.3.4.2.1",
+            status: 1,
+          } as InsertHashAlgorithmParam;
           break;
         }
         case "insertPolicy": {
@@ -489,6 +502,16 @@ describe("JsonRpc Module", () => {
           } as UpdateAdministratorParam;
           break;
         }
+        case "insertHashAlgorithm": {
+          param = {
+            from: signer.address,
+            outputLength: 256,
+            ianaName: "sha-256",
+            oid: "2.16.840.1.101.3.4.2.1",
+            status: 1,
+          } as InsertHashAlgorithmParam;
+          break;
+        }
         case "insertPolicy":
         case "updatePolicy": {
           param = {
@@ -586,6 +609,41 @@ describe("JsonRpc Module", () => {
 
           expectedErrorMessage3 =
             "property params[0].from has failed the following constraints: isEthereumAddress";
+          break;
+        }
+        case "insertHashAlgorithm": {
+          param1 = {
+            from: signer.address,
+            outputLength: -12,
+            ianaName: "sha-256",
+            oid: "2.16.840.1.101.3.4.2.1",
+            status: 1,
+          } as InsertHashAlgorithmParam;
+
+          expectedErrorMessage1 =
+            "property params[0].outputLength has failed the following constraints: min";
+
+          param2 = {
+            from: signer.address,
+            outputLength: 256,
+            ianaName: "sha-256",
+            oid: "2.16.840.1.101.3.4.2.1",
+            status: 3,
+          } as InsertHashAlgorithmParam;
+
+          expectedErrorMessage2 =
+            "property params[0].status has failed the following constraints: max";
+
+          param3 = ({
+            from: signer.address,
+            outputLength: 256,
+            ianaName: "sha-256",
+            oid: 1,
+            status: 1,
+          } as unknown) as InsertHashAlgorithmParam;
+
+          expectedErrorMessage3 =
+            "property params[0].oid has failed the following constraints: isString";
           break;
         }
         case "insertPolicy":
@@ -708,6 +766,24 @@ describe("JsonRpc Module", () => {
             ...adminV2,
             from: signer.address,
           } as UpdateAdministratorParam;
+          break;
+        }
+        case "insertHashAlgorithm": {
+          param1 = {
+            from: signer.address,
+            outputLength: 256,
+            ianaName: "sha-256",
+            oid: "2.16.840.1.101.3.4.2.1",
+            status: 1,
+          } as InsertHashAlgorithmParam;
+
+          param2 = {
+            from: signer.address,
+            outputLength: 256,
+            ianaName: "sha-256",
+            oid: "2.16.840.1.101.3.4.2.1",
+            status: 2,
+          } as InsertHashAlgorithmParam;
           break;
         }
         case "insertPolicy":

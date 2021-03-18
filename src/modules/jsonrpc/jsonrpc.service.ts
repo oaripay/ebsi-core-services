@@ -14,6 +14,8 @@ import {
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
   ArgsUpdatePolicy,
+  ArgsInsertHashAlgorithm,
+  RequestInsertHashAlgorithmDto,
 } from "./dto";
 import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
@@ -174,6 +176,13 @@ export class JsonRpcService {
         );
         break;
       }
+      case "insertHashAlgorithm": {
+        await validateClass(
+          ArgsInsertHashAlgorithm,
+          (args as unknown) as ArgsInsertHashAlgorithm
+        );
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -317,6 +326,27 @@ export class JsonRpcService {
       const data = this.didRegistryContract.interface.encodeFunctionData(
         "updatePolicy",
         [policyId, policyData]
+      );
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertHashAlgorithm(
+    body: RequestInsertHashAlgorithmDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertHashAlgorithmDto, body);
+
+      const { from, outputLength, ianaName, oid, status } = body.params[0];
+
+      const data = this.didRegistryContract.interface.encodeFunctionData(
+        "insertHashAlgorithm",
+        [outputLength, ianaName, oid, status]
       );
       return await this.buildTransaction(from, data);
     } catch (err) {

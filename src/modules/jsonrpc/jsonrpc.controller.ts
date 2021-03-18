@@ -9,6 +9,7 @@ import {
   RequestUpdateAdministratorDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
+  RequestInsertHashAlgorithmDto,
 } from "./dto";
 
 function jsonRpcResponse(
@@ -54,6 +55,13 @@ export default class AppController {
           id
         );
         return jsonRpcResponse(transaction, id);
+      }
+      case "insertHashAlgorithm": {
+        const result = await this.jsonRpcService.buildTransactionInsertHashAlgorithm(
+          body as RequestInsertHashAlgorithmDto,
+          id
+        );
+        return jsonRpcResponse(result, id);
       }
       case "signedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(
