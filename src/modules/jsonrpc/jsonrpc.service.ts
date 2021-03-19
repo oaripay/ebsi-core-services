@@ -10,12 +10,14 @@ import {
   RequestInsertAdministratorDto,
   ArgsUpdateAdministrator,
   RequestUpdateAdministratorDto,
+  ArgsInsertHashAlgorithm,
+  RequestInsertHashAlgorithmDto,
+  RequestUpdateHashAlgorithmDto,
+  ArgsUpdateHashAlgorithm,
   ArgsInsertPolicy,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
   ArgsUpdatePolicy,
-  ArgsInsertHashAlgorithm,
-  RequestInsertHashAlgorithmDto,
 } from "./dto";
 import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
@@ -180,6 +182,13 @@ export class JsonRpcService {
         await validateClass(
           ArgsInsertHashAlgorithm,
           (args as unknown) as ArgsInsertHashAlgorithm
+        );
+        break;
+      }
+      case "updateHashAlgorithm": {
+        await validateClass(
+          ArgsUpdateHashAlgorithm,
+          (args as unknown) as ArgsUpdateHashAlgorithm
         );
         break;
       }
@@ -348,6 +357,35 @@ export class JsonRpcService {
         "insertHashAlgorithm",
         [outputLength, ianaName, oid, status]
       );
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateHashAlgorithm(
+    body: RequestUpdateHashAlgorithmDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateHashAlgorithmDto, body);
+
+      const {
+        from,
+        hashAlgorithmId,
+        outputLength,
+        ianaName,
+        oid,
+        status,
+      } = body.params[0];
+
+      const data = this.didRegistryContract.interface.encodeFunctionData(
+        "updateHashAlgorithm",
+        [hashAlgorithmId, outputLength, ianaName, oid, status]
+      );
+
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);

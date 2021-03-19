@@ -3,4 +3,4 @@ version: "3.7"
 services:
   did-registry-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api:prod_ebsiint-2800-jsonrpc-insert-hash-alg_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api:prod_ebsiint-2801-jsonrpc-update-hash-alg_v2.0.0

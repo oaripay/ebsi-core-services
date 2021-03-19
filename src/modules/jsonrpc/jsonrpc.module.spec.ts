@@ -22,6 +22,7 @@ import {
   InsertAdministratorParam,
   UpdateAdministratorParam,
   InsertHashAlgorithmParam,
+  UpdateHashAlgorithmParam,
   InsertPolicyParam,
   UpdatePolicyParam,
 } from "./dto";
@@ -42,9 +43,10 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | InsertAdministratorParam
   | UpdateAdministratorParam
+  | InsertHashAlgorithmParam
+  | UpdateHashAlgorithmParam
   | InsertPolicyParam
-  | UpdatePolicyParam
-  | InsertHashAlgorithmParam;
+  | UpdatePolicyParam;
 
 jest.setTimeout(120000);
 
@@ -343,6 +345,7 @@ describe("JsonRpc Module", () => {
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
     "insertHashAlgorithm",
+    "updateHashAlgorithm",
     "insertPolicy",
     "updatePolicy",
   ])("/jsonrpc with method %s", (testMethod: string) => {
@@ -396,6 +399,17 @@ describe("JsonRpc Module", () => {
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
           } as InsertHashAlgorithmParam;
+          break;
+        }
+        case "updateHashAlgorithm": {
+          param = {
+            from: signer.address,
+            hashAlgorithmId: 0, // "0" is the ID of the hash we've just inserted
+            outputLength: 256,
+            ianaName: "sha-256",
+            oid: "2.16.840.1.101.3.4.2.1",
+            status: 1,
+          } as UpdateHashAlgorithmParam;
           break;
         }
         case "insertPolicy": {
@@ -510,6 +524,17 @@ describe("JsonRpc Module", () => {
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
           } as InsertHashAlgorithmParam;
+          break;
+        }
+        case "updateHashAlgorithm": {
+          param = {
+            from: signer.address,
+            hashAlgorithmId: 1,
+            outputLength: 256,
+            ianaName: "sha-256",
+            oid: "2.16.840.1.101.3.4.2.1",
+            status: 1,
+          } as UpdateHashAlgorithmParam;
           break;
         }
         case "insertPolicy":
@@ -644,6 +669,44 @@ describe("JsonRpc Module", () => {
 
           expectedErrorMessage3 =
             "property params[0].oid has failed the following constraints: isString";
+          break;
+        }
+        case "updateHashAlgorithm": {
+          param1 = {
+            from: signer.address,
+            hashAlgorithmId: -1,
+            outputLength: 256,
+            ianaName: "sha-256",
+            oid: "2.16.840.1.101.3.4.2.1",
+            status: 1,
+          } as UpdateHashAlgorithmParam;
+
+          expectedErrorMessage1 =
+            "property params[0].hashAlgorithmId has failed the following constraints: min";
+
+          param2 = {
+            from: signer.address,
+            hashAlgorithmId: 1,
+            outputLength: -1,
+            ianaName: "sha-256",
+            oid: "2.16.840.1.101.3.4.2.1",
+            status: 1,
+          } as UpdateHashAlgorithmParam;
+
+          expectedErrorMessage2 =
+            "property params[0].outputLength has failed the following constraints: min";
+
+          param3 = {
+            from: signer.address,
+            hashAlgorithmId: 1,
+            outputLength: 256,
+            ianaName: "sha-256",
+            oid: "2.16.840.1.101.3.4.2.1",
+            status: 0,
+          } as UpdateHashAlgorithmParam;
+
+          expectedErrorMessage3 =
+            "property params[0].status has failed the following constraints: min";
           break;
         }
         case "insertPolicy":
@@ -784,6 +847,28 @@ describe("JsonRpc Module", () => {
             oid: "2.16.840.1.101.3.4.2.1",
             status: 2,
           } as InsertHashAlgorithmParam;
+
+          break;
+        }
+        case "updateHashAlgorithm": {
+          param1 = {
+            from: signer.address,
+            hashAlgorithmId: 1,
+            outputLength: 256,
+            ianaName: "sha-256",
+            oid: "2.16.840.1.101.3.4.2.1",
+            status: 1,
+          } as UpdateHashAlgorithmParam;
+
+          param2 = {
+            from: signer.address,
+            hashAlgorithmId: 1,
+            outputLength: 256,
+            ianaName: "sha-256",
+            oid: "2.16.840.1.101.3.4.2.1",
+            status: 2,
+          } as UpdateHashAlgorithmParam;
+
           break;
         }
         case "insertPolicy":

@@ -4,4 +4,5 @@ export * from "./insertAdministrator";
 export * from "./insertHashAlgorithm";
 export * from "./insertPolicy";
 export * from "./updateAdministrator";
+export * from "./updateHashAlgorithm";
 export * from "./updatePolicy";

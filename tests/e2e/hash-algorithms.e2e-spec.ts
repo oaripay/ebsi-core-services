@@ -16,7 +16,10 @@ import { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
-import { InsertHashAlgorithmParam } from "../../src/modules/jsonrpc/dto";
+import {
+  InsertHashAlgorithmParam,
+  UpdateHashAlgorithmParam,
+} from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
@@ -62,7 +65,7 @@ describe("HashAlgorithms (e2e)", () => {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertHashAlgorithm"])(
+  describe.each(["insertHashAlgorithm", "updateHashAlgorithm"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should work", async () => {
@@ -92,6 +95,21 @@ describe("HashAlgorithms (e2e)", () => {
               oid: "2.16.840.1.101.3.4.2.1",
               status: 1,
             } as InsertHashAlgorithmParam;
+            break;
+          }
+          case "updateHashAlgorithm": {
+            // TODO: get hashAlgorithmId dynamically
+            params = {
+              from: adminTestWallet.address,
+              hashAlgorithmId: 1,
+              outputLength: 256,
+              ianaName:
+                validHashAlgorithms[
+                  Math.floor(Math.random() * validHashAlgorithms.length)
+                ],
+              oid: "2.16.840.1.101.3.4.2.2",
+              status: 1,
+            } as UpdateHashAlgorithmParam;
             break;
           }
           default:
