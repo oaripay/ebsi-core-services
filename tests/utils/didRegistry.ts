@@ -17,6 +17,13 @@ interface Administrator {
   attribute: { [x: string]: unknown };
 }
 
+interface HashAlgorithmObject {
+  outputLength: number;
+  ianaName: string;
+  oid: string;
+  status: number;
+}
+
 interface PolicyObject {
   policyId: string;
   policyData: unknown;
@@ -163,8 +170,36 @@ export async function updatePolicy(
   return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
 }
 
+const validHashAlgorithms = [
+  "sha1",
+  "sha2-256",
+  "sha2-512",
+  "sha3-512",
+  "sha3-384",
+  "sha3-256",
+  "sha3-224",
+];
+
+export async function insertHashAlgorithm(
+  contract: DidRegistry
+): Promise<HashAlgorithmObject> {
+  const outputLength = 20;
+  const ianaName =
+    validHashAlgorithms[Math.floor(Math.random() * validHashAlgorithms.length)];
+  const oid = "oid-test";
+  const status = 1;
+  await contract.insertHashAlgorithm(outputLength, ianaName, oid, status);
+  return {
+    outputLength,
+    ianaName,
+    oid,
+    status,
+  };
+}
+
 export interface SetupOptions {
   administratorsTotal?: number;
+  hashAlgorithmsTotal?: number;
   policiesTotal?: number;
   policiesRevisionsTotal?: number;
 }
@@ -172,6 +207,7 @@ export interface SetupOptions {
 export async function setupTestEnv(
   opts: SetupOptions = {
     administratorsTotal: 1,
+    hashAlgorithmsTotal: 1,
     policiesTotal: 1,
     policiesRevisionsTotal: 1,
   }
@@ -179,6 +215,7 @@ export async function setupTestEnv(
   provider: ethers.providers.Web3Provider;
   didRegistryContract: DidRegistry;
   administrators: Administrator[];
+  hashAlgorithms: HashAlgorithmObject[];
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
 }> {
@@ -198,6 +235,12 @@ export async function setupTestEnv(
   const administrators = await range(0, opts.administratorsTotal ?? 1)
     .pipe(mergeMap(createAdminWallet), toArray())
     .toPromise();
+
+  const hashAlgorithms = await Promise.all(
+    Array(opts.hashAlgorithmsTotal ?? 1)
+      .fill(0)
+      .map(() => insertHashAlgorithm(didRegistryContract))
+  );
 
   const policyRevisions = {};
 
@@ -233,6 +276,7 @@ export async function setupTestEnv(
     provider: ethersProvider,
     didRegistryContract,
     administrators,
+    hashAlgorithms,
     policies,
     policyRevisions,
   };
