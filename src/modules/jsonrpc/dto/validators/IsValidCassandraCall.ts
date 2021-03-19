@@ -8,7 +8,7 @@ const allowedQueries = [
   "update notification_storage",
   "insert into attribute_storage",
   "delete from attribute_storage",
-  "update notification_storage",
+  "update attribute_storage",
   "select",
 ];
 

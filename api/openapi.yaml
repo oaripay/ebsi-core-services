@@ -216,13 +216,15 @@ paths:
               Insert Attribute:
                 value:
                   jsonrpc: "2.0"
-                  method: cassandra_call
+                  method: "cassandra_call"
                   params:
-                    - insert into attribute_storage (id, did, hash, data) values (?, ?, ?, ?)
-                    - "7d504817-e570-4939-8931-973500f25b34"
-                    - did:ebsi:0x14ec91AC9FFa3499bC6a418fc0A5B5531D1a20E3
+                    - "insert into attribute_storage (hash, did, visibility, content_type, data, data_label) values (?, ?, ?, ?, ?, ?)"
                     - "0xaed15s2ed21258a2624d2a55de452faed15s2ed21258a2624d2a55de452f5412"
-                    - anVsaWFuIGdvbnphbGV6... (encrypted data)
+                    - "did:ebsi:0x14ec91AC9FFa3499bC6a418fc0A5B5531D1a20E3"
+                    - "private"
+                    - "application/ld+json"
+                    - "anVsaWFuIGdvbnphbGV6... (encrypted data)"
+                    - "document"
                   id: 1
               Get Attributes:
                 value:
@@ -237,8 +239,9 @@ paths:
                   jsonrpc: "2.0"
                   method: cassandra_call
                   params:
-                    - delete from attribute_storage where id = ?
-                    - "7d504817-e570-4939-8931-973500f25b34"
+                    - delete from attribute_storage where hash = ? and did = ?
+                    - "0xaed15s2ed21258a2624d2a55de452faed15s2ed21258a2624d2a55de452f5412"
+                    - "did:ebsi:0x14ec91AC9FFa3499bC6a418fc0A5B5531D1a20E3"
                   id: 1
       responses:
         200:

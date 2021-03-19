@@ -83,7 +83,7 @@ describe("JsonRpc Module", () => {
   });
 
   const notificationId: string = uuidv4();
-  const attributeId: string = uuidv4();
+  const attributeHash = `0x${crypto.randomBytes(32).toString("hex")}`;
   const didUser = `did:ebsi:0x${crypto.randomBytes(20).toString("hex")}`;
 
   const queries = [
@@ -101,14 +101,20 @@ describe("JsonRpc Module", () => {
     ],
     ["delete from notification_storage where id = ?", notificationId],
     [
-      "insert into attribute_storage (id, did, hash, data) values (?, ?, ?, ?)",
-      attributeId,
+      "insert into attribute_storage (hash, did, visibility, content_type, data, data_label) values (?, ?, ?, ?, ?, ?)",
+      attributeHash,
       didUser,
-      `0x${crypto.randomBytes(32).toString("hex")}`,
+      "private",
+      "application/ld+json",
       "anVsaWFuIGdvbnphbGV6... (encrypted data)",
+      "document",
     ],
     ["select * from attribute_storage where did = ? allow filtering", didUser],
-    ["delete from attribute_storage where id = ?", attributeId],
+    [
+      "delete from attribute_storage where hash = ? and did = ?",
+      attributeHash,
+      didUser,
+    ],
   ];
 
   describe.each(queries)("calling %j", (...args) => {

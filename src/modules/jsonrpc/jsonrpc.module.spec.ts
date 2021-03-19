@@ -115,19 +115,23 @@ describe("JsonRpc Module", () => {
       "7d504817-e570-4939-8931-973500f25b34",
     ],
     [
-      "insert into attribute_storage (id, did, hash, data) values (?, ?, ?, ?)",
-      "7d504817-e570-4939-8931-973500f25b34",
-      "did:ebsi:0x14ec91AC9FFa3499bC6a418fc0A5B5531D1a20E3",
+      "insert into attribute_storage (hash, did, visibility, content_type, data, data_label) values (?, ?, ?, ?, ?, ?)",
       "0xaed15s2ed21258a2624d2a55de452faed15s2ed21258a2624d2a55de452f5412",
+      "did:ebsi:0x14ec91AC9FFa3499bC6a418fc0A5B5531D1a20E3",
+      "private",
+      "application/ld+json",
       "anVsaWFuIGdvbnphbGV6... (encrypted data)",
+      "document",
     ],
     [
       "select * from attribute_storage where did = ? allow filtering",
+      "0xaed15s2ed21258a2624d2a55de452faed15s2ed21258a2624d2a55de452f5412",
       "did:ebsi:0xe08BbfED79c5D66b723086E9D28d70C0d12c9DB8",
     ],
     [
-      "delete from attribute_storage where id = ?",
-      "7d504817-e570-4939-8931-973500f25b34",
+      "delete from attribute_storage where hash = ? and did = ?",
+      "0xaed15s2ed21258a2624d2a55de452faed15s2ed21258a2624d2a55de452f5412",
+      "did:ebsi:0x14ec91AC9FFa3499bC6a418fc0A5B5531D1a20E3",
     ],
   ])("calling %j", (...args) => {
     it("should proxy a call to cassandra", async () => {
