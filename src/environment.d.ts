@@ -10,7 +10,6 @@ declare global {
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       LEDGER?: string;
       CONTRACT_ADDR: string;
-      AUTH_EXPIRE_TIME: string;
       DOMAIN?: string;
       ADMIN_TEST_PRIVATE_KEY?: string;
     }
