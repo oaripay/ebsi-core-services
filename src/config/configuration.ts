@@ -52,7 +52,7 @@ export const loadConfig = (): ApiConfig => {
     adminTestPrivateKey: process.env.ADMIN_TEST_PRIVATE_KEY || "",
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
-    apiUrlPrefix: process.env.API_URL_PREFIX || "",
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/did-registry/v2",
     contractAddr: process.env.CONTRACT_ADDR,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
@@ -78,7 +78,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_PRIVATE_KEY: Joi.string().required(),
-    API_URL_PREFIX: Joi.string().required(),
+    API_URL_PREFIX: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
