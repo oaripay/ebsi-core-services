@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   timestamp-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api:test_ebsiint-2791-timestamp-data-can-be-empty_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api:test_ebsiint-2908-fix-dockerfile_v2.0.0
     build: ../..
