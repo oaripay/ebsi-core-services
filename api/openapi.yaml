@@ -107,7 +107,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/trusted-issuers-registry/v2/administrators/{did}":
+  /trusted-issuers-registry/v2/administrators/{did}:
     get:
       tags:
         - Trusted Issuers Registry
@@ -165,7 +165,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/trusted-issuers-registry/v2/administrators/{did}/attributes":
+  /trusted-issuers-registry/v2/administrators/{did}/attributes:
     get:
       tags:
         - Trusted Issuers Registry
@@ -271,7 +271,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/trusted-issuers-registry/v2/administrators/{did}/attributes/{attributeId}":
+  /trusted-issuers-registry/v2/administrators/{did}/attributes/{attributeId}:
     get:
       tags:
         - Trusted Issuers Registry
@@ -335,7 +335,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  ? "/trusted-issuers-registry/v2/administrators/{did}/attributes/{attributeId}/revisions"
+  ? /trusted-issuers-registry/v2/administrators/{did}/attributes/{attributeId}/revisions
   : get:
       tags:
         - Trusted Issuers Registry
@@ -524,7 +524,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/trusted-issuers-registry/v2/issuers/{did}":
+  /trusted-issuers-registry/v2/issuers/{did}:
     get:
       tags:
         - Trusted Issuers Registry
@@ -582,7 +582,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/trusted-issuers-registry/v2/issuers/{did}/attributes":
+  /trusted-issuers-registry/v2/issuers/{did}/attributes:
     get:
       tags:
         - Trusted Issuers Registry
@@ -688,7 +688,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/trusted-issuers-registry/v2/issuers/{did}/attributes/{attributeId}":
+  /trusted-issuers-registry/v2/issuers/{did}/attributes/{attributeId}:
     get:
       tags:
         - Trusted Issuers Registry
@@ -752,8 +752,8 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  ? "/trusted-issuers-registry/v2/issuers/{did}/attributes/{attributeId}/revisions"
-  : get:
+  /trusted-issuers-registry/v2/issuers/{did}/attributes/{attributeId}/revisions:
+    get:
       tags:
         - Trusted Issuers Registry
       operationId: get-trusted-issuers-registry-v2-issuers-did-attributes-attributeid-revisions
@@ -949,7 +949,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/trusted-issuers-registry/v2/policies/{policyId}":
+  /trusted-issuers-registry/v2/policies/{policyId}:
     get:
       tags:
         - Trusted Issuers Registry
@@ -1006,7 +1006,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/trusted-issuers-registry/v2/policies/{policyId}/revisions":
+  /trusted-issuers-registry/v2/policies/{policyId}/revisions:
     get:
       tags:
         - Trusted Issuers Registry
@@ -1107,7 +1107,6 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-
   /trusted-issuers-registry/v2/jsonrpc:
     post:
       tags:
