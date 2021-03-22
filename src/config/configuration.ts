@@ -54,7 +54,7 @@ export const loadConfig = (): ConfigObject => {
   return {
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
-    apiUrlPrefix: process.env.API_URL_PREFIX || "",
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/notifications/v1",
     apiUrlOrigin:
       process.env.API_URL_ORIGIN || defaultConfig[EBSI_ENV].API_URL_ORIGIN,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
@@ -104,7 +104,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_PRIVATE_KEY: Joi.string().required(),
-    API_URL_PREFIX: Joi.string().required(),
+    API_URL_PREFIX: Joi.string(),
     API_URL_ORIGIN: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
