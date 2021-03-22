@@ -6,13 +6,13 @@ info:
     verifying if an application is trusted and authorized to interact with other applications in
     the EBSI network.
   version: 2.0.0
-  termsOfService: "/docs/terms"
+  termsOfService: /docs/terms
   contact:
-    name: "EBSI Support"
-    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
+    name: EBSI Support
+    url: https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi
   license:
-    name: "EUPL-1.2"
-    url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
+    name: EUPL-1.2
+    url: https://joinup.ec.europa.eu/page/eupl-text-11-12
 tags:
   - name: Trusted Apps Registry
     description: List and verify trusted apps
@@ -51,7 +51,7 @@ paths:
             type: string
           description: Filter results by public key id
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -102,10 +102,10 @@ paths:
                       prev: https://api.ebsi.xyz/trusted-apps-registry/v2/apps?page[after]=2&page[size]=2
                       next: https://api.ebsi.xyz/trusted-apps-registry/v2/apps?page[after]=4&page[size]=2
                       last: https://api.ebsi.xyz/trusted-apps-registry/v2/apps?page[after]=62&page[size]=2
-        "400":
+        400:
           description: Bad Request Error
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -114,16 +114,16 @@ paths:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        "500":
+        500:
           description: Internal Server Error
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/trusted-apps-registry/v2/apps/{applicationId}":
+  /trusted-apps-registry/v2/apps/{applicationId}:
     get:
       tags:
         - Trusted Apps Registry
@@ -138,7 +138,7 @@ paths:
           example: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
           required: true
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -173,10 +173,10 @@ paths:
                         status: active
                         notBefore: 1610699786
                         notAfter: 2610699786
-        "400":
+        400:
           description: Bad Request
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -188,13 +188,13 @@ paths:
         "404":
           description: Not found
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 DID Not Found:
                   $ref: "#/components/examples/NotFound"
-        "500":
+        500:
           description: Internal Server Error
           content:
             application/json:
@@ -203,97 +203,6 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v2/administrators:
-    get:
-      tags:
-        - Trusted Apps Registry
-      summary: List of trusted administrators
-      description: Returns a list of trusted administrators
-      operationId: get-trusted-apps-registry-v2-administrators
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    description: URI to administrators
-                  items:
-                    type: array
-                    description: List of administrators
-                    items:
-                      type: object
-                      properties:
-                        did:
-                          type: string
-                          description: DID of the administrator
-                        href:
-                          type: string
-                          description: Link to the resource
-                  total:
-                    type: integer
-                    description: Total number of items in a collection
-                  pageSize:
-                    type: integer
-                    description: Number of items to be returned per page
-                  links:
-                    $ref: "#/components/schemas/Links"
-              examples:
-                Success:
-                  value:
-                    self: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=3&page[size]=10
-                    items:
-                      - did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                        href: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                      - did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
-                        href: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148
-                    total: 124
-                    pageSize: 10
-                    links:
-                      first: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=13&page[size]=10
-        "400":
-          description: Bad Request Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Bad Paging Request:
-                  value:
-                    title: Bad Paging Request
-                    status: 400
-                    detail: PageSize should not be greater than 50
-        "500":
-          description: Internal Server Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      parameters:
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
   /trusted-apps-registry/v2/apps/{resourceApplicationId}/authorizations:
     get:
       tags:
@@ -314,7 +223,7 @@ paths:
             type: string
           example: "0xab435678901234567890123456789012345678901234567890ef0c"
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -365,10 +274,10 @@ paths:
                       prev: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/authorizations?page[after]=2&page[size]=2
                       next: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/authorizations?page[after]=4&page[size]=2
                       last: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/authorizations?page[after]=62&page[size]=2
-        "400":
+        400:
           description: Bad Request Error
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -377,10 +286,10 @@ paths:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        "500":
+        500:
           description: Internal Server Error
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -407,7 +316,7 @@ paths:
           example: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
           required: true
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -430,10 +339,10 @@ paths:
                     status: active
                     notBefore: 1610699786
                     notAfter: 2610699786
-        "400":
+        400:
           description: Bad Request
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -445,13 +354,13 @@ paths:
         "404":
           description: Not found
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 DID Not Found:
                   $ref: "#/components/examples/NotFound"
-        "500":
+        500:
           description: Internal Server Error
           content:
             application/json:
@@ -460,7 +369,98 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/trusted-apps-registry/v2/administrators/{did}":
+  /trusted-apps-registry/v2/administrators:
+    get:
+      tags:
+        - Trusted Apps Registry
+      summary: List of trusted administrators
+      description: Returns a list of trusted administrators
+      operationId: get-trusted-apps-registry-v2-administrators
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to administrators
+                  items:
+                    type: array
+                    description: List of administrators
+                    items:
+                      type: object
+                      properties:
+                        did:
+                          type: string
+                          description: DID of the administrator
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=3&page[size]=10
+                    items:
+                      - did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                        href: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                      - did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                        href: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=13&page[size]=10
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      parameters:
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+  /trusted-apps-registry/v2/administrators/{did}:
     get:
       tags:
         - Trusted Apps Registry
@@ -475,7 +475,7 @@ paths:
           example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
           required: true
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -488,10 +488,10 @@ paths:
                     attributes:
                       - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-        "400":
+        400:
           description: Bad Request
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -503,13 +503,13 @@ paths:
         "404":
           description: Not found
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 DID Not Found:
                   $ref: "#/components/examples/NotFound"
-        "500":
+        500:
           description: Internal Server Error
           content:
             application/json:
@@ -518,14 +518,14 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/trusted-apps-registry/v2/administrators/{did}/attributes":
+  /trusted-apps-registry/v2/administrators/{did}/attributes:
     get:
       tags:
         - Trusted Apps Registry
       summary: List the attributes of an administrator
       description: Returns a list of attributes for a given administrator
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -571,10 +571,10 @@ paths:
                       prev: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=2&page[size]=10
                       next: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=4&page[size]=10
                       last: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=13&page[size]=10
-        "400":
+        400:
           description: Bad Request Error
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -586,16 +586,16 @@ paths:
         "404":
           description: Not found
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 DID Not Found:
                   $ref: "#/components/examples/NotFound"
-        "500":
+        500:
           description: Internal Server Error
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -624,7 +624,7 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
-  "/trusted-apps-registry/v2/administrators/{did}/attributes/{attributeId}":
+  /trusted-apps-registry/v2/administrators/{did}/attributes/{attributeId}:
     get:
       tags:
         - Trusted Apps Registry
@@ -644,7 +644,7 @@ paths:
           example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
           required: true
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -657,10 +657,10 @@ paths:
                     attribute:
                       hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
                       body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-        "400":
+        400:
           description: Bad Request
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -672,13 +672,13 @@ paths:
         "404":
           description: Not found
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 DID Not Found:
                   $ref: "#/components/examples/NotFound"
-        "500":
+        500:
           description: Internal Server Error
           content:
             application/json:
@@ -688,7 +688,7 @@ paths:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
       operationId: get-trusted-apps-registry-v2-administrators-did-attributes-attributeid
-  ? "/trusted-apps-registry/v2/administrators/{did}/attributes/{attributeId}/revisions"
+  ? /trusted-apps-registry/v2/administrators/{did}/attributes/{attributeId}/revisions
   : get:
       tags:
         - Trusted Apps Registry
@@ -696,7 +696,7 @@ paths:
       description: |
         Returns a list of revisions for a given attribute attached to a given administrator.
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -735,10 +735,10 @@ paths:
                       prev: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=2&page[size]=10
                       next: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=4&page[size]=10
                       last: https://api.ebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=13&page[size]=10
-        "400":
+        400:
           description: Bad Request Error
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -751,16 +751,16 @@ paths:
         "404":
           description: Not found
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 DID Not Found:
                   $ref: "#/components/examples/NotFound"
-        "500":
+        500:
           description: Internal Server Error
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -819,7 +819,7 @@ paths:
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -865,10 +865,10 @@ paths:
                       prev: https://api.ebsi.xyz/trusted-apps-registry/v2/policies?page[after]=2&page[size]=2
                       next: https://api.ebsi.xyz/trusted-apps-registry/v2/policies?page[after]=4&page[size]=2
                       last: https://api.ebsi.xyz/trusted-apps-registry/v2/policies?page[after]=62&page[size]=2
-        "400":
+        400:
           description: Bad Request Error
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -877,16 +877,16 @@ paths:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        "500":
+        500:
           description: Internal Server Error
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/trusted-apps-registry/v2/policies/{policyId}":
+  /trusted-apps-registry/v2/policies/{policyId}:
     get:
       tags:
         - Trusted Apps Registry
@@ -901,7 +901,7 @@ paths:
           example: test-policy-1
           required: true
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -913,10 +913,10 @@ paths:
                     policyId: test-policy-1
                     policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
                     hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
-        "400":
+        400:
           description: Bad Request
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -928,13 +928,13 @@ paths:
         "404":
           description: Not found
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 DID Not Found:
                   $ref: "#/components/examples/NotFound"
-        "500":
+        500:
           description: Internal Server Error
           content:
             application/json:
@@ -943,7 +943,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/trusted-apps-registry/v2/policies/{policyId}/revisions":
+  /trusted-apps-registry/v2/policies/{policyId}/revisions:
     get:
       tags:
         - Trusted Apps Registry
@@ -973,7 +973,7 @@ paths:
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -1014,10 +1014,10 @@ paths:
                       prev: https://api.ebsi.xyz/trusted-apps-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
                       next: https://api.ebsi.xyz/trusted-apps-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
                       last: https://api.ebsi.xyz/trusted-apps-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
-        "400":
+        400:
           description: Bad Request Error
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -1029,16 +1029,16 @@ paths:
         "404":
           description: Not found
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
                 DID Not Found:
                   $ref: "#/components/examples/NotFound"
-        "500":
+        500:
           description: Internal Server Error
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
@@ -1270,7 +1270,7 @@ paths:
                   id: 1
         required: true
       responses:
-        "200":
+        200:
           description: Response
           content:
             application/json:
@@ -1295,10 +1295,10 @@ paths:
                     jsonrpc: "2.0"
                     id: 1
                     result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
-        "400":
+        400:
           description: Bad request
           content:
-            "application/problem+json":
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:

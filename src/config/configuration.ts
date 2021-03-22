@@ -6,7 +6,6 @@ export interface ApiConfig {
   apiPort: number;
   apiPrivateKey: string;
   apiUrlPrefix: string;
-  authExpireTime: number;
   contractAddr: string;
   domain: string;
   logLevel: string;
@@ -51,10 +50,9 @@ export const loadConfig = (): ApiConfig => {
 
   return {
     adminTestPrivateKey: process.env.ADMIN_TEST_PRIVATE_KEY || "",
-    authExpireTime: parseInt(process.env.AUTH_EXPIRE_TIME, 10) || 60, // minutes
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
-    apiUrlPrefix: process.env.API_URL_PREFIX || "",
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-apps-registry/v2",
     contractAddr: process.env.CONTRACT_ADDR,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
@@ -80,7 +78,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_PRIVATE_KEY: Joi.string().required(),
-    API_URL_PREFIX: Joi.string().required(),
+    API_URL_PREFIX: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -91,7 +89,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     // TAR specific variables
     ADMIN_TEST_PRIVATE_KEY: Joi.string(),
-    AUTH_EXPIRE_TIME: Joi.string(),
     DOMAIN: Joi.string().uri(),
     LEDGER: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
