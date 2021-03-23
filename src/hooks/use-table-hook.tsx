@@ -15,13 +15,6 @@ export function useTableHook() {
 
   const columns = [
     {
-      title: "Id",
-      dataIndex: "id",
-      sorter: (a: any, b: any) => {
-        return a.name.localeCompare(b.name);
-      },
-    },
-    {
       title: "Name",
       dataIndex: "name",
       sorter: (a: any, b: any) => {
@@ -61,7 +54,11 @@ export function useTableHook() {
             <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: "More" }}>
               {params.authorizedApps.map((authApp: any) => (
                 <Tag className="m-t-10" key={authApp} color="processing">
-                  {authApp}
+                  {
+                    appCtx.filteredDataSource.find(
+                      (param: any) => param.id === authApp
+                    ).name
+                  }
                 </Tag>
               ))}
             </Paragraph>

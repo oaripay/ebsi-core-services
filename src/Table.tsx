@@ -17,7 +17,7 @@ export function Table() {
         appCtx.setTableDataSource(data);
       });
     }
-  }, []);
+  }, [getApplications]);
 
   return (
     <TableAntd
@@ -25,6 +25,11 @@ export function Table() {
       columns={columns}
       loading={appCtx.tableLoading}
       rowKey="id"
+      pagination={{
+        position: ["bottomRight"],
+        pageSizeOptions: ["10", "20", "25", "30", "35", "40"],
+        showSizeChanger: true,
+      }}
     />
   );
 }

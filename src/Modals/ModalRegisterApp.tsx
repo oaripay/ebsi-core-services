@@ -10,10 +10,11 @@ import {
   Select,
   Space,
 } from "antd";
-
 import { ethers } from "ethers";
+
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
 import { AppContext } from "../AppContext";
+import { notAfterDate, notBeforeDate } from "../date-validator";
 
 export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
   const [form] = Form.useForm();
@@ -50,7 +51,7 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
               ...fields,
               notBefore: fields.notBefore.unix(),
               notAfter: fields.notAfter.unix(),
-              publicKey: ethers.utils.formatBytes32String(fields.publicKey),
+              publicKey: ethers.utils.toUtf8Bytes(fields.publicKey),
             };
 
             const appNames = appCtx.tableDataSource.filter(
@@ -91,6 +92,7 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
               .catch(() => {
                 notification.error({
                   message: "Error",
+                  duration: 5,
                   description:
                     "A problem appeared on trying to register app. Please make sure you're logged in wallet client. If that didn't fix please contact an admin for further instructions!",
                 });
@@ -126,7 +128,6 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
                 <Select style={{ width: "100%" }} onChange={() => {}}>
                   <Select.Option value={1}>ebsi</Select.Option>
                   <Select.Option value={2}>external_domain</Select.Option>
-                  <Select.Option value={0}>undefined</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -167,7 +168,6 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
                   <Select.Option value={1}>active</Select.Option>
                   <Select.Option value={2}>revoked</Select.Option>
                   <Select.Option value={3}>suspended</Select.Option>
-                  <Select.Option value={0}>undefined</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -182,6 +182,7 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
                     required: true,
                     message: "Please input a not before date!",
                   },
+                  notBeforeDate,
                 ]}
               >
                 <DatePicker style={{ width: "100%" }} />
@@ -199,20 +200,7 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
                     required: true,
                     message: "Please input a not after date!",
                   },
-                  ({ getFieldValue }) => ({
-                    validator() {
-                      const notBefore = getFieldValue("notBefore");
-                      const notAfter = getFieldValue("notAfter");
-                      if (notBefore.diff(notAfter) > 0) {
-                        return Promise.reject(
-                          new Error(
-                            "Not after date is less than not before date!"
-                          )
-                        );
-                      }
-                      return Promise.resolve();
-                    },
-                  }),
+                  notAfterDate,
                 ]}
               >
                 <DatePicker style={{ width: "100%" }} />

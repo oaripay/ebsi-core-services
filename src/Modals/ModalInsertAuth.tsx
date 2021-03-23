@@ -13,6 +13,7 @@ import {
 
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
 import { AppContext } from "../AppContext";
+import { notAfterDate, notBeforeDate } from "../date-validator";
 
 export default function ModalInsertAuth(): ReactElement {
   const [form] = Form.useForm();
@@ -117,7 +118,20 @@ export default function ModalInsertAuth(): ReactElement {
               <Form.Item
                 label="ISS"
                 name="iss"
-                rules={[{ required: true, message: "Please input iss!" }]}
+                rules={[
+                  { required: true, message: "Please input iss!" },
+                  ({ getFieldValue }) => ({
+                    validator() {
+                      const iss = getFieldValue("iss");
+                      if (iss.indexOf("did:ebsi:") !== 0) {
+                        return Promise.reject(
+                          new Error("Input should start with did:ebsi:")
+                        );
+                      }
+                      return Promise.resolve();
+                    },
+                  }),
+                ]}
               >
                 <Input />
               </Form.Item>
@@ -130,7 +144,6 @@ export default function ModalInsertAuth(): ReactElement {
                   <Select.Option value={1}>active</Select.Option>
                   <Select.Option value={2}>revoked</Select.Option>
                   <Select.Option value={3}>suspended</Select.Option>
-                  <Select.Option value={0}>undefined</Select.Option>
                 </Select>
               </Form.Item>
             </Col>
@@ -175,6 +188,7 @@ export default function ModalInsertAuth(): ReactElement {
                     required: true,
                     message: "Please input a not before date!",
                   },
+                  notBeforeDate,
                 ]}
               >
                 <DatePicker style={{ width: "100%" }} />
@@ -191,20 +205,7 @@ export default function ModalInsertAuth(): ReactElement {
                     required: true,
                     message: "Please input a not after date!",
                   },
-                  ({ getFieldValue }) => ({
-                    validator() {
-                      const notBefore = getFieldValue("notBefore");
-                      const notAfter = getFieldValue("notAfter");
-                      if (notBefore.diff(notAfter) > 0) {
-                        return Promise.reject(
-                          new Error(
-                            "Not after date is less than not before date!"
-                          )
-                        );
-                      }
-                      return Promise.resolve();
-                    },
-                  }),
+                  notAfterDate,
                 ]}
               >
                 <DatePicker style={{ width: "100%" }} />

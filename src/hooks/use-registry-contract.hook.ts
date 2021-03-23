@@ -1,22 +1,22 @@
 import { PopulatedTransaction } from "ethers";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { useEthersHook } from "./use-ethers.hook";
 import { useFetch } from "./use-fetch";
 import { config } from "../config";
 import { domains } from "../constants";
 
-const PAGE_SIZE = 20;
-
 export function useRegistryContractHook() {
   const { registryContract } = useEthersHook();
   const { post } = useFetch();
 
+  const [pageSize, setPageSize] = useState(50);
+
   const getApplicationIds = useCallback(() => {
-    return registryContract.getApps(1, PAGE_SIZE).then((appKeys: any) => {
+    return registryContract.getApps(1, pageSize).then((appKeys: any) => {
       return appKeys.items;
     });
-  }, []);
+  }, [pageSize]);
 
   const insertAppPublicKey = useCallback(
     (
@@ -68,13 +68,13 @@ export function useRegistryContractHook() {
 
       const appPublicKeysPromises = Promise.all(
         ids.map((id: number) =>
-          registryContract.getAppPublicKeyIds(id, 1, PAGE_SIZE)
+          registryContract.getAppPublicKeyIds(id, 1, pageSize)
         )
       );
 
       const appAuthorizationsKeysPromises = Promise.all(
         ids.map((id: number) =>
-          registryContract.getAuthorizedAppsIds(id, 1, PAGE_SIZE)
+          registryContract.getAuthorizedAppsIds(id, 1, pageSize)
         )
       );
 
@@ -101,7 +101,7 @@ export function useRegistryContractHook() {
         return tableData;
       });
     });
-  }, []);
+  }, [getApplicationIds]);
 
   const isOperator = useCallback((): Promise<boolean> => {
     const did: string | null = localStorage.getItem("Did");
@@ -124,22 +124,15 @@ export function useRegistryContractHook() {
       notBefore: number,
       notAfter: number
     ) => {
-      return registryContract
-        .insertApp(
-          name,
-          domain,
-          appAdministrator,
-          pubKey,
-          status,
-          notBefore,
-          notAfter
-        )
-        .then(() => {
-          // console.log(data);
-        })
-        .catch(() => {
-          // console.log(er);
-        });
+      return registryContract.insertApp(
+        name,
+        domain,
+        appAdministrator,
+        pubKey,
+        status,
+        notBefore,
+        notAfter
+      );
     },
     []
   );
@@ -190,5 +183,6 @@ export function useRegistryContractHook() {
     isOperator,
     insertAppPublicKey,
     insertAuthorization,
+    setPageSize,
   };
 }

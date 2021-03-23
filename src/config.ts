@@ -1,4 +1,5 @@
 export const config = {
+  EBSI_CHAIN_ID: process.env.REACT_APP_EBSI_CHAIN_ID || 6175,
   PROVIDER:
     process.env.REACT_APP_PROVIDER ||
     "https://api.test.intebsi.xyz/ledger/v1/blockchains/besu",
