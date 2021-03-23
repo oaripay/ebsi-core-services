@@ -57,7 +57,7 @@ export const loadConfig = (): ApiConfig => {
     authExpireTime: parseInt(process.env.AUTH_EXPIRE_TIME, 10) || 900, // seconds
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
-    apiUrlPrefix: process.env.API_URL_PREFIX || "",
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/authorisation/v1",
     trustedAppsRegistry:
       process.env.TRUSTED_APPS_REGISTRY ||
       defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY,
@@ -87,7 +87,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_PRIVATE_KEY: Joi.string().required(),
-    API_URL_PREFIX: Joi.string().required(),
+    API_URL_PREFIX: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
