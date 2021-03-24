@@ -30,6 +30,7 @@ import {
   InsertDidControllerParam,
   InsertDidDocumentParam,
   UpdateDidDocumentParam,
+  UpdateDidControllerParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -54,7 +55,8 @@ type JsonRpcParams =
   | UpdatePolicyParam
   | InsertDidDocumentParam
   | UpdateDidDocumentParam
-  | InsertDidControllerParam;
+  | InsertDidControllerParam
+  | UpdateDidControllerParam;
 
 interface DidDocumentDataset {
   didDocument: { [x: string]: unknown };
@@ -432,6 +434,7 @@ describe("JsonRpc Module", () => {
     "insertDidDocument",
     "updateDidDocument",
     "insertDidController",
+    "updateDidController",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
@@ -566,7 +569,8 @@ describe("JsonRpc Module", () => {
 
           break;
         }
-        case "insertDidController": {
+        case "insertDidController":
+        case "updateDidController": {
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
 
           param = {
@@ -751,7 +755,8 @@ describe("JsonRpc Module", () => {
 
           break;
         }
-        case "insertDidController": {
+        case "insertDidController":
+        case "updateDidController": {
           param = {
             from: signer.address,
             identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
@@ -1011,7 +1016,8 @@ describe("JsonRpc Module", () => {
 
           break;
         }
-        case "insertDidController": {
+        case "insertDidController":
+        case "updateDidController": {
           param1 = {
             from: signer.address,
             identifier: `0x${Buffer.from("did:ebsi:not-base-58").toString(
@@ -1232,7 +1238,8 @@ describe("JsonRpc Module", () => {
 
           break;
         }
-        case "insertDidController": {
+        case "insertDidController":
+        case "updateDidController": {
           param1 = {
             from: signer.address,
             identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,

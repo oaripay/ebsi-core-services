@@ -24,6 +24,8 @@ import {
   ArgsInsertDidDocument,
   RequestUpdateDidDocumentDto,
   ArgsUpdateDidDocument,
+  RequestUpdateDidControllerDto,
+  ArgsUpdateDidController,
 } from "./dto";
 import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
@@ -216,6 +218,13 @@ export class JsonRpcService {
         await validateClass(
           ArgsInsertDidController,
           (args as unknown) as ArgsInsertDidController
+        );
+        break;
+      }
+      case "updateDidController": {
+        await validateClass(
+          ArgsUpdateDidController,
+          (args as unknown) as ArgsUpdateDidController
         );
         break;
       }
@@ -512,6 +521,33 @@ export class JsonRpcService {
 
       const data = this.didRegistryContract.interface.encodeFunctionData(
         "insertDidController",
+        [identifier, newControllerId, notBefore, notAfter]
+      );
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateDidController(
+    body: RequestUpdateDidControllerDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateDidControllerDto, body);
+
+      const {
+        from,
+        identifier,
+        newControllerId,
+        notBefore,
+        notAfter,
+      } = body.params[0];
+
+      const data = this.didRegistryContract.interface.encodeFunctionData(
+        "updateDidController",
         [identifier, newControllerId, notBefore, notAfter]
       );
       return await this.buildTransaction(from, data);

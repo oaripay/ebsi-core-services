@@ -205,7 +205,8 @@ describe("DID Registry (e2e)", () => {
           } as UpdateDidDocumentParam;
           break;
         }
-        case "insertDidController": {
+        case "insertDidController":
+        case "updateDidController": {
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
 
           params = {

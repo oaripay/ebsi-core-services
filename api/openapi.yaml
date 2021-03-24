@@ -836,7 +836,8 @@ paths:
           - **jsonrpc**: Must be exactly '2.0'
           - **method**: Method to be invoked. Possible values: 'insertAdministrator',
             'updateAdministrator', 'insertPolicy', 'updatePolicy', 'insertHashAlgorithm',
-            'updateHashAlgorithm', 'insertDidDocument', 'updateDidDocument', 'insertDidController'
+            'updateHashAlgorithm', 'insertDidDocument', 'updateDidDocument', 'insertDidController',
+            'updateDidController'
           - **id**: Identifier stablished by the client
         content:
           application/json:
@@ -963,6 +964,17 @@ paths:
                 value:
                   jsonrpc: "2.0"
                   method: insertDidController
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      identifier: "0x6469643a656273693a3577393450627848715376537270387658716e78675847356b71503776483757567374417841535163674e74"
+                      newControllerId: "0x039323cb774B8E12Dfa685BAf82aa50394E074e5"
+                      notBefore: 1616408985883
+                      notAfter: 3232818053700
+                  id: 1
+              Build tx to updateDidController:
+                value:
+                  jsonrpc: "2.0"
+                  method: updateDidController
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       identifier: "0x6469643a656273693a3577393450627848715376537270387658716e78675847356b71503776483757567374417841535163674e74"
