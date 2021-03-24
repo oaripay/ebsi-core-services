@@ -1,22 +1,22 @@
-import { PopulatedTransaction } from "ethers";
-import { useCallback, useState } from "react";
+import { BigNumber } from "ethers";
+import { useCallback, useContext, useState } from "react";
 
 import { useEthersHook } from "./use-ethers.hook";
-import { useFetch } from "./use-fetch";
-import { config } from "../config";
 import { domains } from "../constants";
+import { AppContext } from "../AppContext";
+import { config } from "../config";
+
+const { PAGE_SIZE } = config;
 
 export function useRegistryContractHook() {
   const { registryContract } = useEthersHook();
-  const { post } = useFetch();
+  const appCtx = useContext(AppContext);
 
-  const [pageSize, setPageSize] = useState(50);
+  const [totalItems, setTotalItems] = useState(0);
 
   const getApplicationIds = useCallback(() => {
-    return registryContract.getApps(1, pageSize).then((appKeys: any) => {
-      return appKeys.items;
-    });
-  }, [pageSize]);
+    return registryContract.getApps(appCtx.page, PAGE_SIZE);
+  }, [PAGE_SIZE, appCtx.page]);
 
   const insertAppPublicKey = useCallback(
     (
@@ -60,47 +60,58 @@ export function useRegistryContractHook() {
     []
   );
 
+  const initTotalItems = useCallback(() => {
+    return getApplicationIds().then(
+      (applications: { items: number[]; total: BigNumber }) => {
+        setTotalItems(applications.total.toNumber());
+      }
+    );
+  }, []);
+
   const getApplications = useCallback(() => {
-    return getApplicationIds().then((ids: number[]) => {
-      const appsPromises = Promise.all(
-        ids.map((id: number) => registryContract.getAppById(id))
-      );
+    return getApplicationIds().then(
+      (applications: { items: number[]; total: number }) => {
+        const ids = applications.items;
+        const appsPromises = Promise.all(
+          ids.map((id: number) => registryContract.getAppById(id))
+        );
 
-      const appPublicKeysPromises = Promise.all(
-        ids.map((id: number) =>
-          registryContract.getAppPublicKeyIds(id, 1, pageSize)
-        )
-      );
+        const appPublicKeysPromises = Promise.all(
+          ids.map((id: number) =>
+            registryContract.getAppPublicKeyIds(id, appCtx.page, PAGE_SIZE)
+          )
+        );
 
-      const appAuthorizationsKeysPromises = Promise.all(
-        ids.map((id: number) =>
-          registryContract.getAuthorizedAppsIds(id, 1, pageSize)
-        )
-      );
+        const appAuthorizationsKeysPromises = Promise.all(
+          ids.map((id: number) =>
+            registryContract.getAuthorizedAppsIds(id, appCtx.page, PAGE_SIZE)
+          )
+        );
 
-      return Promise.allSettled([
-        appsPromises,
-        appPublicKeysPromises,
-        appAuthorizationsKeysPromises,
-      ]).then((result) => {
-        const apps: any = result[0];
-        const appPublicKeys: any = result[1];
-        const appAuthorizations: any = result[2];
+        return Promise.allSettled([
+          appsPromises,
+          appPublicKeysPromises,
+          appAuthorizationsKeysPromises,
+        ]).then((result) => {
+          const apps: any = result[0];
+          const appPublicKeys: any = result[1];
+          const appAuthorizations: any = result[2];
 
-        const tableData = [];
+          const tableData = [];
 
-        for (let i = 0; i < apps.value.length; i += 1) {
-          tableData.push({
-            id: ids[i],
-            name: apps.value[i].name,
-            domain: domains[apps.value[i].domain],
-            publicKeys: appPublicKeys.value[i].items,
-            authorizedApps: appAuthorizations.value[i].items,
-          });
-        }
-        return tableData;
-      });
-    });
+          for (let i = 0; i < apps.value.length; i += 1) {
+            tableData.push({
+              id: ids[i],
+              name: apps.value[i].name,
+              domain: domains[apps.value[i].domain],
+              publicKeys: appPublicKeys.value[i].items,
+              authorizedApps: appAuthorizations.value[i].items,
+            });
+          }
+          return tableData;
+        });
+      }
+    );
   }, [getApplicationIds]);
 
   const isOperator = useCallback((): Promise<boolean> => {
@@ -145,34 +156,15 @@ export function useRegistryContractHook() {
     return registryContract.updateAppPublicKey(publicKeyId, status, notAfter);
   }, []);
 
-  const deleteAuthorization = useCallback(
-    (appName: string, authName: string) => {
-      return registryContract.populateTransaction
-        .deleteAuthorization(appName, authName)
-        .then((response: PopulatedTransaction) => {
-          return post(config.NOTIFICATION_URL, {
-            did: localStorage.getItem("Did"),
-            rawTransaction: {
-              to: response.to,
-              data: response.data,
-            },
-            redirectUrl: config.REDIRECT_URL,
-            iss: "trusted-app-admin-delete-auth",
-          });
-        });
-    },
-    [registryContract]
-  );
-
   return {
     getApplications,
     registerApp,
     updateApp,
-    deleteAuthorization,
     isOperator,
     insertAppPublicKey,
     insertAuthorization,
     updateAppPublicKey,
-    setPageSize,
+    totalItems,
+    initTotalItems,
   };
 }

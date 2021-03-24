@@ -8,10 +8,12 @@ export type AppContextType = {
   setTableLoading: (tableLoading: boolean) => void;
   setTableDataSource: (dataSource: any[]) => void;
   searchedTerm: string;
+  page: number;
   setSearchedTerm: (searchedTerm: string) => void;
   setEditModal: (params: any) => void;
   setInsertPublicKeyModal: (params: any) => void;
   editModal: { show: boolean; data: any };
+  setPage: (page: number) => void;
   setUpdateAppPublicKey: (params: any) => void;
   updateAppPublicKey: { show: boolean; data: any };
   insertPublicKeyModal: { show: boolean; data: any; appId: string };
@@ -26,6 +28,7 @@ export const AppContext = React.createContext<AppContextType>(defaultValue);
 export function AppProvider({ children }: any) {
   const defaultParams: any = {
     searchedTerm: "",
+    page: 1,
   };
 
   const defaultParamsModal: { show: boolean; data: any } = {
@@ -136,6 +139,16 @@ export function AppProvider({ children }: any) {
     [appState]
   );
 
+  const setPage = useCallback(
+    (page: number) => {
+      setAppState({
+        ...appState,
+        page,
+      });
+    },
+    [appState]
+  );
+
   const setEditModal = useCallback(
     (editModal: any) => {
       setEditModalState({
@@ -183,6 +196,7 @@ export function AppProvider({ children }: any) {
       setUpdateAppPublicKey,
       pageErr,
       metamask,
+      setPage,
       insertPublicKeyModal: insertPublicKeyModalState,
     };
   }, [
@@ -190,6 +204,7 @@ export function AppProvider({ children }: any) {
     editModalState,
     setInsertPublicKeyModal,
     tableDataState,
+    setPage,
     authorizedAppsModalState,
     updateAppPublicKeyState,
     metamask,

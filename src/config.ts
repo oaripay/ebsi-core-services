@@ -1,4 +1,5 @@
 export const config = {
+  PAGE_SIZE: 50,
   EBSI_CHAIN_ID: process.env.REACT_APP_EBSI_CHAIN_ID || 6175,
   PROVIDER:
     process.env.REACT_APP_PROVIDER ||

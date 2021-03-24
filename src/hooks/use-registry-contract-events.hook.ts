@@ -30,6 +30,12 @@ export function useRegistryContractEventsHook() {
   }, [provider, appCtx.metamask]);
 
   useEffect(() => {
+    registryContract.off("AddNewAuthorization", () => {});
+    registryContract.off("PublicKeyAdded", () => {});
+    registryContract.off("ApplicationUpdated", () => {});
+    registryContract.off("PublicKeyUpdated", () => {});
+    registryContract.off("ApplicationRegistered", () => {});
+
     if (appCtx.metamask) {
       registryContract.on("AddNewAuthorization", () => {
         notification.success({

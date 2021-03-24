@@ -6,18 +6,14 @@ import { AppContext } from "./AppContext";
 import { useRegistryContractHook } from "./hooks/use-registry-contract.hook";
 
 export function Table() {
-  const { columns } = useTableHook();
+  const { columns, loadTableData } = useTableHook();
   const appCtx = useContext(AppContext);
 
   const { getApplications } = useRegistryContractHook();
 
   useEffect(() => {
-    if (!appCtx.tableDataSource.length) {
-      getApplications().then((data: any) => {
-        appCtx.setTableDataSource(data);
-      });
-    }
-  }, [getApplications]);
+    loadTableData();
+  }, [getApplications, appCtx.page]);
 
   return (
     <TableAntd

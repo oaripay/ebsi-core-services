@@ -1,5 +1,5 @@
 import { Button, Space, Tag, Tooltip, Typography } from "antd";
-import React, { useContext } from "react";
+import React, { useCallback, useContext } from "react";
 import {
   EditOutlined,
   KeyOutlined,
@@ -8,11 +8,20 @@ import {
 } from "@ant-design/icons/lib";
 
 import { AppContext } from "../AppContext";
+import { useRegistryContractHook } from "./use-registry-contract.hook";
 
 const { Paragraph } = Typography;
 
 export function useTableHook() {
   const appCtx = useContext(AppContext);
+  const { getApplications } = useRegistryContractHook();
+
+  const loadTableData = useCallback(() => {
+    appCtx.setTableLoading(true);
+    getApplications().then((data: any) => {
+      appCtx.setTableDataSource(data);
+    });
+  }, [getApplications, appCtx.page]);
 
   const columns = [
     {
@@ -145,5 +154,5 @@ export function useTableHook() {
     },
   ];
 
-  return { columns };
+  return { columns, loadTableData };
 }
