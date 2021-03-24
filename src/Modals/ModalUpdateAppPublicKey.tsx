@@ -103,7 +103,9 @@ export function ModalUpdateAppPublicKey() {
                 <Select style={{ width: "100%" }}>
                   {appCtx.updateAppPublicKey.data?.publicKeys.map(
                     (key: string) => (
-                      <Select.Option value={key}>{key}</Select.Option>
+                      <Select.Option key={key} value={key}>
+                        {key}
+                      </Select.Option>
                     )
                   )}
                 </Select>

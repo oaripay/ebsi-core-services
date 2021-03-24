@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import {
   Col,
   Form,
@@ -12,6 +12,7 @@ import {
 
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
 import { AppContext } from "../AppContext";
+import { domains } from "../constants";
 
 export function ModalUpdateApp() {
   const [form] = Form.useForm();
@@ -19,17 +20,23 @@ export function ModalUpdateApp() {
   const { updateApp } = useRegistryContractHook();
   const appCtx = useContext(AppContext);
 
+  useEffect(() => {
+    if (appCtx.editModal.show) {
+      form.resetFields();
+    }
+  }, [appCtx.editModal.show]);
+
   return (
     <Modal
       title="Update application"
       visible={appCtx.editModal.show}
       okText="Save"
       onOk={() => {
-        form.validateFields(["applicationId", "name", "publicKey"]).then(() => {
+        form.validateFields(["applicationId", "name", "domain"]).then(() => {
           const fields = form.getFieldsValue([
             "applicationId",
             "name",
-            "publicKey",
+            "domain",
           ]);
 
           const appNames = appCtx.tableDataSource.filter(
@@ -53,6 +60,7 @@ export function ModalUpdateApp() {
 
           updateApp(fields.applicationId, fields.name, fields.domain)
             .then(() => {
+              form.resetFields();
               notification.info({
                 message: "Transaction",
                 description: (
@@ -72,12 +80,12 @@ export function ModalUpdateApp() {
             });
         });
       }}
-      onCancel={() =>
+      onCancel={() => {
         appCtx.setEditModal({
-          ...appCtx.editModal,
+          data: {},
           show: false,
-        })
-      }
+        });
+      }}
     >
       <Space
         direction="vertical"
@@ -91,7 +99,7 @@ export function ModalUpdateApp() {
           layout="vertical"
           form={form}
           initialValues={{
-            domain: appCtx.editModal.data?.domain,
+            domain: domains.indexOf(appCtx.editModal.data?.domain),
             name: appCtx.editModal.data?.name,
             applicationId: appCtx.editModal?.data?.id,
           }}

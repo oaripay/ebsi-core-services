@@ -116,7 +116,7 @@ export default function ModalInsertAuth(): ReactElement {
           <Row>
             <Col lg={24}>
               <Form.Item
-                label="ISS"
+                label="ISS (did of the authorization issuer)"
                 name="iss"
                 rules={[
                   { required: true, message: "Please input iss!" },

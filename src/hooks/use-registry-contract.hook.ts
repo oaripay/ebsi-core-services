@@ -41,7 +41,7 @@ export function useRegistryContractHook() {
     (
       name: string,
       authorizedAppName: string,
-      calldata: string,
+      iss: string,
       status: number,
       permissions: number,
       notBefore: number,
@@ -50,7 +50,7 @@ export function useRegistryContractHook() {
       return registryContract.insertAuthorization(
         name,
         authorizedAppName,
-        calldata,
+        iss,
         status,
         permissions,
         notBefore,

@@ -4,14 +4,12 @@ import { notification } from "antd";
 import { useEthersHook } from "./use-ethers.hook";
 import { config } from "../config";
 import { AppContext } from "../AppContext";
-import { useRegistryContractHook } from "./use-registry-contract.hook";
 
 export function useRegistryContractEventsHook() {
   const { registryContract } = useEthersHook();
   const appCtx = useContext(AppContext);
 
   const { provider } = useEthersHook();
-  const { getApplications } = useRegistryContractHook();
 
   useEffect(() => {
     if (appCtx.metamask) {
@@ -58,17 +56,11 @@ export function useRegistryContractEventsHook() {
         });
       });
       registryContract.on("ApplicationRegistered", () => {
-        if (!appCtx.tableDataSource.length) {
-          appCtx.setTableLoading(true);
-          getApplications().then((data: any) => {
-            appCtx.setTableDataSource(data);
-          });
-        }
         notification.success({
           message: "Transaction mined",
           description: `A new application was created!`,
         });
       });
     }
-  }, [appCtx.metamask, registryContract]);
+  }, [appCtx.metamask]);
 }
