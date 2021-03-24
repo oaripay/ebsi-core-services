@@ -1,3 +1,4 @@
+import { QueryOptions } from "cassandra-driver";
 import { ValidateBy, ValidationOptions, buildMessage } from "class-validator";
 
 export const IS_VALID_CASSANDRA_CALL = "isValidCassandraCall";
@@ -14,7 +15,7 @@ const allowedQueries = [
 
 export function isValidCassandraCall(value: unknown): boolean {
   if (!Array.isArray(value)) return false;
-  const array = value as Array<string | number>;
+  const array = value as Array<string | number | QueryOptions>;
   if (array.length === 0) return false;
   if (typeof array[0] !== "string") return false;
   const query = array[0].trim().toLowerCase();
@@ -24,6 +25,16 @@ export function isValidCassandraCall(value: unknown): boolean {
       .includes(true)
   )
     return false;
+
+  // Only the last element can be Object
+  const lastId = array.length - 1;
+  if (
+    array
+      .map((val, id) => id !== lastId && typeof val === "object")
+      .includes(true)
+  )
+    return false;
+
   return true;
 }
 

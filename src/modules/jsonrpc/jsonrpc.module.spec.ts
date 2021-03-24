@@ -73,14 +73,39 @@ describe("JsonRpc Module", () => {
   });
 
   it("should throw an error when the parameters of callCassandra are invalid", async () => {
-    expect.assertions(2);
+    expect.assertions(4);
 
-    const response = await request(server)
+    let response = await request(server)
       .post("/stores/distributed/jsonrpc")
       .send({
         jsonrpc: "2.0",
         method: "cassandra_call",
         params: ["drop table"],
+        id: "45",
+      });
+
+    expect(response.body).toStrictEqual({
+      jsonrpc: "2.0",
+      id: "45",
+      error: {
+        code: -32600,
+        message: expect.stringContaining(
+          `property params has failed the following constraints: isValidCassandraCall`
+        ) as string,
+      },
+    });
+    expect(response.status).toBe(400);
+
+    response = await request(server)
+      .post("/stores/distributed/jsonrpc")
+      .send({
+        jsonrpc: "2.0",
+        method: "cassandra_call",
+        params: [
+          "select * from table where name = ?",
+          { fetchSize: 4 },
+          "alice",
+        ],
         id: "45",
       });
 
@@ -129,6 +154,12 @@ describe("JsonRpc Module", () => {
       "did:ebsi:0xe08BbfED79c5D66b723086E9D28d70C0d12c9DB8",
     ],
     [
+      "select * from attribute_storage where did = ? allow filtering",
+      "0xaed15s2ed21258a2624d2a55de452faed15s2ed21258a2624d2a55de452f5412",
+      "did:ebsi:0xe08BbfED79c5D66b723086E9D28d70C0d12c9DB8",
+      { fetchSize: 50, pageState: "0123456789abcdef" },
+    ],
+    [
       "delete from attribute_storage where hash = ? and did = ?",
       "0xaed15s2ed21258a2624d2a55de452faed15s2ed21258a2624d2a55de452f5412",
       "did:ebsi:0x14ec91AC9FFa3499bC6a418fc0A5B5531D1a20E3",
@@ -162,6 +193,9 @@ describe("JsonRpc Module", () => {
           : cassandraService.getConsistency().write,
         prepare: true,
       };
+      if (params.length > 0 && typeof params[params.length - 1] === "object") {
+        Object.assign(options, params.pop());
+      }
       expect(mockCassandra).toHaveBeenCalledWith(query, params, options);
     });
   });

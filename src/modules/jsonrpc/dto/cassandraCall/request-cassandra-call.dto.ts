@@ -1,3 +1,4 @@
+import { QueryOptions } from "cassandra-driver";
 import { IsArray, ArrayMinSize, Equals } from "class-validator";
 import { JsonRpcDto } from "../jsonrpc.dto";
 import { IsValidCassandraCall } from "../validators";
@@ -9,7 +10,7 @@ export class RequestCassandraCallDto extends JsonRpcDto {
   @IsArray()
   @ArrayMinSize(1)
   @IsValidCassandraCall()
-  params: (string | number)[];
+  params: (string | number | QueryOptions)[];
 }
 
 export default RequestCassandraCallDto;

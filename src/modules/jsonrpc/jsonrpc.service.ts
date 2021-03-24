@@ -42,6 +42,9 @@ export class JsonRpcService implements OnApplicationBootstrap {
           : this.consistency.write,
         prepare: true,
       };
+      if (params.length > 0 && typeof params[params.length - 1] === "object") {
+        Object.assign(options, params.pop());
+      }
       const { rows, pageState } = await this.cassandraClient.execute(
         query as string,
         params,
