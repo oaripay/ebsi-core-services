@@ -1,4 +1,6 @@
 export * from "./args-insert-administrator.dto";
+export * from "./args-insert-did-controller.dto";
+export * from "./args-insert-did-document.dto";
 export * from "./args-insert-hash-algorithm.dto";
 export * from "./args-insert-policy.dto";
 export * from "./args-update-administrator.dto";

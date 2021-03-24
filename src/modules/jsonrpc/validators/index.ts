@@ -1,2 +1,4 @@
 export * from "./IsDid";
-export * from "./IsHexadecimalJSON";
+export * from "./IsHexadecimalBase58EbsiDid";
+export * from "./IsHexadecimalJson";
+export * from "./IsHexadecimalJsonLd";

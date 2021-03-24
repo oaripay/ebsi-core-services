@@ -14,6 +14,8 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { canonize } from "jsonld";
+import * as bs58 from "bs58";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -25,6 +27,8 @@ import {
   UpdateHashAlgorithmParam,
   InsertPolicyParam,
   UpdatePolicyParam,
+  InsertDidControllerParam,
+  InsertDidDocumentParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -46,7 +50,9 @@ type JsonRpcParams =
   | InsertHashAlgorithmParam
   | UpdateHashAlgorithmParam
   | InsertPolicyParam
-  | UpdatePolicyParam;
+  | UpdatePolicyParam
+  | InsertDidDocumentParam
+  | InsertDidControllerParam;
 
 jest.setTimeout(120000);
 
@@ -99,6 +105,37 @@ describe("JsonRpc Module", () => {
   const policy1 = createPolicy();
   const policy2 = createPolicy();
   const policy3 = createPolicy();
+
+  const createDid = (): string => {
+    const buf = crypto.randomBytes(32);
+    return `did:ebsi:${bs58.encode(buf)}`;
+  };
+
+  const controllerDid = createDid();
+  const didDocument = {
+    "@context": [
+      "https://www.w3.org/ns/did/v1",
+      "https://identity.foundation/EcdsaSecp256k1RecoverySignature2020/lds-ecdsa-secp256k1-recovery2020-0.0.jsonld",
+    ],
+    id: controllerDid,
+    publicKey: [
+      {
+        id: `${controllerDid}#vm-3`,
+        controller: controllerDid,
+        type: "EcdsaSecp256k1RecoveryMethod2020",
+        blockchainAccountId:
+          "0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1",
+      },
+    ],
+  };
+  const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
+  let canonizedDidDocument: string;
+  let canonizedDidDocumentBuffer: Buffer;
+  let canonizedDidDocumentHash: string;
+  const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
+  const didVersionMetadataBuffer = Buffer.from(
+    JSON.stringify({ metadata: "value" })
+  );
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -160,9 +197,19 @@ describe("JsonRpc Module", () => {
 
         return Promise.reject(new Error("Unknown method"));
       });
+
+    // Canonize DID Document
+    canonizedDidDocument = await canonize(didDocument, {
+      algorithm: "URDNA2015",
+      format: "application/n-quads",
+    });
+
+    canonizedDidDocumentBuffer = Buffer.from(canonizedDidDocument);
+    canonizedDidDocumentHash = ethers.utils.sha256(canonizedDidDocumentBuffer);
   });
 
   afterAll(async () => {
+    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
     await app.close();
   });
 
@@ -348,6 +395,8 @@ describe("JsonRpc Module", () => {
     "updateHashAlgorithm",
     "insertPolicy",
     "updatePolicy",
+    "insertDidDocument",
+    "insertDidController",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
@@ -426,6 +475,39 @@ describe("JsonRpc Module", () => {
             policyId: policy1.policyId,
             policyData: policy2.policyData,
           } as UpdatePolicyParam;
+          break;
+        }
+        case "insertDidDocument": {
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
+
+          param = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            timestampData,
+            didVersionMetadata,
+          } as InsertDidDocumentParam;
+
+          break;
+        }
+        case "insertDidController": {
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+
+          param = {
+            from: signer.address,
+            identifier,
+            newControllerId: ethers.Wallet.createRandom().address,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+          } as InsertDidControllerParam;
+
           break;
         }
         default: {
@@ -544,6 +626,36 @@ describe("JsonRpc Module", () => {
             policyId: policy1.policyId,
             policyData: policy1.policyData,
           } as InsertPolicyParam;
+          break;
+        }
+        case "insertDidDocument": {
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
+
+          param = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            timestampData,
+            didVersionMetadata,
+          } as InsertDidDocumentParam;
+
+          break;
+        }
+        case "insertDidController": {
+          param = {
+            from: signer.address,
+            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+            newControllerId: ethers.Wallet.createRandom().address,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+          } as InsertDidControllerParam;
           break;
         }
         default: {
@@ -737,6 +849,94 @@ describe("JsonRpc Module", () => {
             "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
         }
+        case "insertDidDocument": {
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
+
+          param1 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: "0xnot-a-hash",
+            didVersionInfo,
+            timestampData,
+            didVersionMetadata,
+          } as InsertDidDocumentParam;
+
+          expectedErrorMessage1 =
+            "property params[0].hashValue has failed the following constraints: isHexadecimal";
+
+          param2 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo: Buffer.from(
+              JSON.stringify({ test: "value" })
+            ).toString("hex"),
+            timestampData,
+            didVersionMetadata,
+          } as InsertDidDocumentParam;
+
+          expectedErrorMessage2 =
+            "property params[0].didVersionInfo has failed the following constraints: IsHexadecimalJsonLdConstraint";
+
+          param3 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            timestampData: "1234ab",
+            didVersionMetadata,
+          } as InsertDidDocumentParam;
+
+          expectedErrorMessage3 =
+            "property params[0].timestampData has failed the following constraints: isHexadecimalJson";
+
+          break;
+        }
+        case "insertDidController": {
+          param1 = {
+            from: signer.address,
+            identifier: `0x${Buffer.from("did:ebsi:not-base-58").toString(
+              "hex"
+            )}`,
+            newControllerId: ethers.Wallet.createRandom().address,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+          } as InsertDidControllerParam;
+
+          expectedErrorMessage1 =
+            "property params[0].identifier has failed the following constraints: isHexadecimalBase58EbsiDid";
+
+          param2 = {
+            from: signer.address,
+            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+            newControllerId: "0x1234",
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+          } as InsertDidControllerParam;
+
+          expectedErrorMessage2 =
+            "property params[0].newControllerId has failed the following constraints: isEthereumAddress";
+
+          param3 = {
+            from: signer.address,
+            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+            newControllerId: ethers.Wallet.createRandom().address,
+            notBefore: -123,
+            notAfter: 3232818053700,
+          } as InsertDidControllerParam;
+
+          expectedErrorMessage3 =
+            "property params[0].notBefore has failed the following constraints: min";
+          break;
+        }
         default: {
           throw new Error(`Test Error: Invalid method ${method}`);
         }
@@ -881,6 +1081,54 @@ describe("JsonRpc Module", () => {
             ...policy2,
             from: signer.address,
           } as InsertPolicyParam;
+          break;
+        }
+        case "insertDidDocument": {
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
+          param1 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            timestampData,
+            didVersionMetadata,
+          } as InsertDidDocumentParam;
+
+          param2 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 1,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            timestampData,
+            didVersionMetadata,
+          } as InsertDidDocumentParam;
+
+          break;
+        }
+        case "insertDidController": {
+          param1 = {
+            from: signer.address,
+            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+            newControllerId: ethers.Wallet.createRandom().address,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+          } as InsertDidControllerParam;
+
+          param2 = {
+            from: signer.address,
+            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+            newControllerId: ethers.Wallet.createRandom().address,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+          } as InsertDidControllerParam;
+
           break;
         }
         default: {

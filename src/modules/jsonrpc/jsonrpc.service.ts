@@ -18,6 +18,10 @@ import {
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
   ArgsUpdatePolicy,
+  RequestInsertDidControllerDto,
+  ArgsInsertDidController,
+  RequestInsertDidDocumentDto,
+  ArgsInsertDidDocument,
 } from "./dto";
 import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
@@ -189,6 +193,20 @@ export class JsonRpcService {
         await validateClass(
           ArgsUpdateHashAlgorithm,
           (args as unknown) as ArgsUpdateHashAlgorithm
+        );
+        break;
+      }
+      case "insertDidDocument": {
+        await validateClass(
+          ArgsInsertDidDocument,
+          (args as unknown) as ArgsInsertDidDocument
+        );
+        break;
+      }
+      case "insertDidController": {
+        await validateClass(
+          ArgsInsertDidController,
+          (args as unknown) as ArgsInsertDidController
         );
         break;
       }
@@ -386,6 +404,70 @@ export class JsonRpcService {
         [hashAlgorithmId, outputLength, ianaName, oid, status]
       );
 
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertDidDocument(
+    body: RequestInsertDidDocumentDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertDidDocumentDto, body);
+
+      const {
+        from,
+        identifier,
+        hashAlgorithmId,
+        hashValue,
+        didVersionInfo,
+        timestampData,
+        didVersionMetadata,
+      } = body.params[0];
+
+      const data = this.didRegistryContract.interface.encodeFunctionData(
+        "insertDidDocument",
+        [
+          identifier,
+          hashAlgorithmId,
+          hashValue,
+          didVersionInfo,
+          timestampData ?? "0x",
+          didVersionMetadata ?? "0x",
+        ]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertDidController(
+    body: RequestInsertDidControllerDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertDidControllerDto, body);
+
+      const {
+        from,
+        identifier,
+        newControllerId,
+        notBefore,
+        notAfter,
+      } = body.params[0];
+
+      const data = this.didRegistryContract.interface.encodeFunctionData(
+        "insertDidController",
+        [identifier, newControllerId, notBefore, notAfter]
+      );
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);

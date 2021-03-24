@@ -11,6 +11,8 @@ import {
   RequestUpdateHashAlgorithmDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
+  RequestInsertDidControllerDto,
+  RequestInsertDidDocumentDto,
 } from "./dto";
 
 function jsonRpcResponse(
@@ -70,6 +72,20 @@ export default class AppController {
           id
         );
         return jsonRpcResponse(result, id);
+      }
+      case "insertDidDocument": {
+        const transaction = await this.jsonRpcService.buildTransactionInsertDidDocument(
+          body as RequestInsertDidDocumentDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "insertDidController": {
+        const transaction = await this.jsonRpcService.buildTransactionInsertDidController(
+          body as RequestInsertDidControllerDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
       }
       case "signedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(

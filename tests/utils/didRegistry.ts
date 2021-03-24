@@ -9,6 +9,9 @@ import {
   HashAlgoLib__factory,
   AdministratorLib__factory,
   PolicyLib__factory,
+  DidRecordLib__factory,
+  DidMethodLib__factory,
+  DidTimestampLib__factory,
 } from "../../src/contracts/did-registry";
 import PaginationArtifact from "../../submodules/did-registry-ethereum-sc/artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol/Pagination.json";
 
@@ -64,6 +67,10 @@ export async function deployDidRegistryContract(
     __$83fd23072f3f71fd0064cd6aa0829166fc$__ = "contracts/did-registry/HashAlgoLib.sol:HashAlgoLib"
     __$c0ce321b058d74b8a232c7ea24bf1e9537$__ = "contracts/did-registry/PolicyLib.sol:PolicyLib"
     __$515a15b27d7e720e4d91814eed9672e50c$__ = "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination"
+    __$4f4b3a405fd4509d509fff556f3095a5fd$__ = "contracts/did-registry/DidRecordLib.sol:DidRecordLib"
+    __$5fb82bece21faf6323dd5a8d5ed0063559$__ = "contracts/did-registry/DidTimestampLib.sol:DidTimestampLib"
+    __$b75474ddf77e030e5604a84f9456d5d2be$__ = "contracts/did-registry/DidMethodLib.sol:DidMethodLib"
+
   */
 
   // Deploy libs
@@ -87,6 +94,16 @@ export async function deployDidRegistryContract(
   const hashAlgoLibAddress = (await new HashAlgoLib__factory(owner).deploy())
     .address;
 
+  const didRecordLibAddress = (await new DidRecordLib__factory(owner).deploy())
+    .address;
+
+  const didMethodLibAddress = (await new DidMethodLib__factory(owner).deploy())
+    .address;
+
+  const didTimestampLibAddress = (
+    await new DidTimestampLib__factory(owner).deploy()
+  ).address;
+
   const policyLibAddress = (
     await new PolicyLib__factory(
       {
@@ -101,6 +118,9 @@ export async function deployDidRegistryContract(
       __$717aec161b9ae870a8320204794edc6b45$__: administratorLibAddress,
       __$83fd23072f3f71fd0064cd6aa0829166fc$__: hashAlgoLibAddress,
       __$c0ce321b058d74b8a232c7ea24bf1e9537$__: policyLibAddress,
+      __$4f4b3a405fd4509d509fff556f3095a5fd$__: didRecordLibAddress,
+      __$5fb82bece21faf6323dd5a8d5ed0063559$__: didTimestampLibAddress,
+      __$b75474ddf77e030e5604a84f9456d5d2be$__: didMethodLibAddress,
     },
     owner
   ).deploy();

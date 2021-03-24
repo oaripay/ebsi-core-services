@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -13,30 +14,97 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
+import * as bs58 from "bs58";
+import { canonize } from "jsonld";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
-import {
-  InsertHashAlgorithmParam,
-  UpdateHashAlgorithmParam,
-} from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
-import { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface";
+import {
+  InsertDidControllerParam,
+  InsertDidDocumentParam,
+} from "../../src/modules/jsonrpc/dto";
+
+type JsonRpcParams = InsertDidDocumentParam | InsertDidControllerParam;
 
 interface SupertestJsonRpcResponse {
   status: number;
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertHashAlgorithmParam;
+interface DidDocumentDataset {
+  didDocument: { [x: string]: unknown };
+  didDocumentBuffer: Buffer;
+  canonizedDidDocument: string;
+  canonizedDidDocumentBuffer: Buffer;
+  canonizedDidDocumentHash: string;
+  controllerDid: string;
+  timestampDataBuffer: Buffer;
+  didVersionMetadataBuffer: Buffer;
+}
 
-describe("HashAlgorithms (e2e)", () => {
+describe("DID Registry (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
+
+  const createDid = (): string => {
+    const buf = crypto.randomBytes(32);
+    return `did:ebsi:${bs58.encode(buf)}`;
+  };
+
+  const createDidDocument = async (): Promise<DidDocumentDataset> => {
+    const did = createDid();
+    const didDocument = {
+      "@context": [
+        "https://www.w3.org/ns/did/v1",
+        "https://identity.foundation/EcdsaSecp256k1RecoverySignature2020/lds-ecdsa-secp256k1-recovery2020-0.0.jsonld",
+      ],
+      id: did,
+      publicKey: [
+        {
+          id: `${did}#vm-3`,
+          controller: did,
+          type: "EcdsaSecp256k1RecoveryMethod2020",
+          blockchainAccountId:
+            "0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1",
+        },
+      ],
+    };
+
+    const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
+
+    const canonizedDidDocument = await canonize(didDocument, {
+      algorithm: "URDNA2015",
+      format: "application/n-quads",
+    });
+
+    const canonizedDidDocumentBuffer = Buffer.from(canonizedDidDocument);
+    const canonizedDidDocumentHash = ethers.utils.sha256(
+      canonizedDidDocumentBuffer
+    );
+
+    const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
+    const didVersionMetadataBuffer = Buffer.from(
+      JSON.stringify({ metadata: "value" })
+    );
+
+    return {
+      didDocument,
+      didDocumentBuffer,
+      canonizedDidDocument,
+      canonizedDidDocumentBuffer,
+      canonizedDidDocumentHash,
+      controllerDid: did,
+      timestampDataBuffer,
+      didVersionMetadataBuffer,
+    };
+  };
+
+  let newDidDocument: DidDocumentDataset;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -63,10 +131,12 @@ describe("HashAlgorithms (e2e)", () => {
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("adminTestPrivateKey"))
     );
+
+    newDidDocument = await createDidDocument();
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertHashAlgorithm", "updateHashAlgorithm"])(
+  describe.each(["insertDidDocument", "insertDidController"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should work", async () => {
@@ -74,43 +144,51 @@ describe("HashAlgorithms (e2e)", () => {
 
         let params: JsonRpcParams = null;
 
-        const validHashAlgorithms = [
-          "sha1",
-          "sha2-256",
-          "sha2-512",
-          "sha3-512",
-          "sha3-384",
-          "sha3-256",
-          "sha3-224",
-        ];
-
         switch (method) {
-          case "insertHashAlgorithm": {
+          case "insertDidDocument": {
+            const {
+              controllerDid,
+              didDocumentBuffer,
+              canonizedDidDocumentHash,
+              timestampDataBuffer,
+              didVersionMetadataBuffer,
+            } = newDidDocument;
+
+            const identifier = `0x${Buffer.from(controllerDid).toString(
+              "hex"
+            )}`;
+
+            const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+            const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+            const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+              "hex"
+            )}`;
+
             params = {
               from: adminTestWallet.address,
-              outputLength: 256,
-              ianaName:
-                validHashAlgorithms[
-                  Math.floor(Math.random() * validHashAlgorithms.length)
-                ],
-              oid: "2.16.840.1.101.3.4.2.1",
-              status: 1,
-            } as InsertHashAlgorithmParam;
+              identifier,
+              hashAlgorithmId: 0,
+              hashValue: canonizedDidDocumentHash,
+              didVersionInfo,
+              timestampData,
+              didVersionMetadata,
+            } as InsertDidDocumentParam;
             break;
           }
-          case "updateHashAlgorithm": {
-            // TODO: get hashAlgorithmId dynamically
+          case "insertDidController": {
+            const { controllerDid } = newDidDocument;
+
+            const identifier = `0x${Buffer.from(controllerDid).toString(
+              "hex"
+            )}`;
+
             params = {
               from: adminTestWallet.address,
-              hashAlgorithmId: 1,
-              outputLength: 256,
-              ianaName:
-                validHashAlgorithms[
-                  Math.floor(Math.random() * validHashAlgorithms.length)
-                ],
-              oid: "2.16.840.1.101.3.4.2.2",
-              status: 1,
-            } as UpdateHashAlgorithmParam;
+              identifier,
+              newControllerId: ethers.Wallet.createRandom().address,
+              notBefore: 1616408985883,
+              notAfter: 3232818053700,
+            } as InsertDidControllerParam;
             break;
           }
           default:
@@ -181,76 +259,4 @@ describe("HashAlgorithms (e2e)", () => {
       });
     }
   );
-
-  describe("GET /hash-algorithms", () => {
-    it("should return a paginated collection of hash algorithms", async () => {
-      expect.assertions(2);
-
-      const response = await request(server).get("/hash-algorithms");
-      expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/hash-algorithms?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: expect.any(Number) as number,
-        pageSize: 10,
-        links: {
-          first: expect.stringContaining(
-            "/hash-algorithms?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/hash-algorithms?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining(
-            "/hash-algorithms?page[after]="
-          ) as string,
-          last: expect.stringContaining(
-            "/hash-algorithms?page[after]="
-          ) as string,
-        },
-      });
-      expect(response.status).toBe(200);
-    });
-  });
-
-  describe("GET /hash-algorithms/{hashAlgorithmId}", () => {
-    it("should return a specific hash algorithm", async () => {
-      expect.assertions(2);
-
-      const respHashAlgorithms = await request(server).get("/hash-algorithms");
-      const { hashAlgorithmId } = (respHashAlgorithms.body as {
-        items: HashAlgorithmLink[];
-      }).items[0];
-
-      const response = await request(server).get(
-        `/hash-algorithms/${hashAlgorithmId}`
-      );
-
-      expect(response.body).toStrictEqual({
-        ianaName: expect.any(String) as string,
-        oid: expect.any(String) as string,
-        outputLengthBits: expect.any(Number) as number,
-        status: expect.any(String) as string,
-      });
-      expect(response.status).toBe(200);
-    });
-
-    it("should throw an error if the hash algorithm is not found", async () => {
-      expect.assertions(2);
-
-      const hashAlgorithmId = Math.floor(Math.random() * 10000) + 10000; // some random number between 10,000 and 20,000
-
-      const response = await request(server).get(
-        `/hash-algorithms/${hashAlgorithmId}`
-      );
-
-      expect(response.body).toStrictEqual({
-        title: "Hash algorithm Not Found",
-        status: 404,
-        detail: `Hash algorithm ${hashAlgorithmId} not found`,
-        type: "about:blank",
-      });
-      expect(response.status).toBe(404);
-    });
-  });
 });
