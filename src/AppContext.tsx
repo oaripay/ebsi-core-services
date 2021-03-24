@@ -12,6 +12,8 @@ export type AppContextType = {
   setEditModal: (params: any) => void;
   setInsertPublicKeyModal: (params: any) => void;
   editModal: { show: boolean; data: any };
+  setUpdateAppPublicKey: (params: any) => void;
+  updateAppPublicKey: { show: boolean; data: any };
   insertPublicKeyModal: { show: boolean; data: any; appId: string };
   setAuthorizedAppsModal: (params: any) => void;
   authorizedAppsModal: { show: boolean; data: any };
@@ -26,7 +28,7 @@ export function AppProvider({ children }: any) {
     searchedTerm: "",
   };
 
-  const defaultParamstModal: { show: boolean; data: any } = {
+  const defaultParamsModal: { show: boolean; data: any } = {
     show: false,
     data: null,
   };
@@ -43,12 +45,15 @@ export function AppProvider({ children }: any) {
 
   const [appState, setAppState] = useState(defaultParams);
   const [tableDataState, setTableDataState] = useState(defaultParamsTable);
-  const [editModalState, setEditModalState] = useState(defaultParamstModal);
+  const [editModalState, setEditModalState] = useState(defaultParamsModal);
   const [insertPublicKeyModalState, setInsertPublicKeyModalState] = useState(
-    defaultParamstModal
+    defaultParamsModal
   );
   const [authorizedAppsModalState, setAuthorizedAppsModalState] = useState(
-    defaultParamstModal
+    defaultParamsModal
+  );
+  const [updateAppPublicKeyState, setUpdateAppPublicKeyState] = useState(
+    defaultParamsModal
   );
 
   const basePageErr: string = "";
@@ -77,6 +82,16 @@ export function AppProvider({ children }: any) {
         });
     }
   }, []);
+
+  const setUpdateAppPublicKey = useCallback(
+    (updateAppPublicKey: any) => {
+      setUpdateAppPublicKeyState({
+        ...updateAppPublicKeyState,
+        ...updateAppPublicKey,
+      });
+    },
+    [updateAppPublicKeyState]
+  );
 
   const setTableLoading = useCallback(
     (tableLoading) => {
@@ -156,6 +171,7 @@ export function AppProvider({ children }: any) {
       ...appState,
       ...tableDataState,
       editModal: editModalState,
+      updateAppPublicKey: updateAppPublicKeyState,
       authorizedAppsModal: authorizedAppsModalState,
       setTableLoading,
       setTableDataSource,
@@ -164,6 +180,7 @@ export function AppProvider({ children }: any) {
       setEditModal,
       setInsertPublicKeyModal,
       setAuthorizedAppsModal,
+      setUpdateAppPublicKey,
       pageErr,
       metamask,
       insertPublicKeyModal: insertPublicKeyModalState,
@@ -174,6 +191,7 @@ export function AppProvider({ children }: any) {
     setInsertPublicKeyModal,
     tableDataState,
     authorizedAppsModalState,
+    updateAppPublicKeyState,
     metamask,
   ]);
 

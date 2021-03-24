@@ -1,6 +1,7 @@
 import { Button, Space, Tag, Tooltip, Typography } from "antd";
 import React, { useContext } from "react";
 import {
+  EditOutlined,
   KeyOutlined,
   PlusOutlined,
   PropertySafetyOutlined,
@@ -100,6 +101,42 @@ export function useTableHook() {
               >
                 <PlusOutlined />
                 <PropertySafetyOutlined />
+              </Button>
+            </Tooltip>
+            <Tooltip title="Update app">
+              <Button
+                type="default"
+                onClick={() => {
+                  appCtx.setEditModal({
+                    show: true,
+                    data: {
+                      domain: params.domain,
+                      id: params.id,
+                      name: params.name,
+                    },
+                  });
+                }}
+              >
+                <EditOutlined />
+              </Button>
+            </Tooltip>
+            <Tooltip title="Update public key">
+              <Button
+                type="default"
+                onClick={() => {
+                  appCtx.setUpdateAppPublicKey({
+                    show: true,
+                    data: {
+                      publicKeys: params.publicKeys,
+                      status: params.status,
+                      id: params.id,
+                      name: params.name,
+                    },
+                  });
+                }}
+              >
+                <EditOutlined />
+                <KeyOutlined />
               </Button>
             </Tooltip>
           </Space>

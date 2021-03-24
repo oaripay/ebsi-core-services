@@ -26,7 +26,7 @@ export function useRegistryContractEventsHook() {
           }
         })
         .catch(() => {
-          console.log("errr");
+          // console.log("errr");
         });
     }
   }, [provider, appCtx.metamask]);
@@ -43,6 +43,18 @@ export function useRegistryContractEventsHook() {
         notification.success({
           message: "Transaction mined",
           description: `A new public key was added!`,
+        });
+      });
+      registryContract.on("ApplicationUpdated", () => {
+        notification.success({
+          message: "Transaction mined",
+          description: `An app has been updated!`,
+        });
+      });
+      registryContract.on("PublicKeyUpdated", () => {
+        notification.success({
+          message: "Transaction mined",
+          description: `A public key was updated!`,
         });
       });
       registryContract.on("ApplicationRegistered", () => {

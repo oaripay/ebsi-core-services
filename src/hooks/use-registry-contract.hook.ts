@@ -137,24 +137,13 @@ export function useRegistryContractHook() {
     []
   );
 
-  const updateApp = useCallback(
-    (currName: string, newName: string, pubKey: string) => {
-      return registryContract.populateTransaction
-        .updateApp(currName, newName, pubKey)
-        .then((response: PopulatedTransaction) => {
-          return post(config.NOTIFICATION_URL, {
-            did: localStorage.getItem("Did"),
-            rawTransaction: {
-              to: response.to,
-              data: response.data,
-            },
-            redirectUrl: config.REDIRECT_URL,
-            iss: "trusted-app-admin-update",
-          });
-        });
-    },
-    []
-  );
+  const updateApp = useCallback((applicationId, name, domain) => {
+    return registryContract.updateApp(applicationId, name, domain);
+  }, []);
+
+  const updateAppPublicKey = useCallback((publicKeyId, status, notAfter) => {
+    return registryContract.updateAppPublicKey(publicKeyId, status, notAfter);
+  }, []);
 
   const deleteAuthorization = useCallback(
     (appName: string, authName: string) => {
@@ -183,6 +172,7 @@ export function useRegistryContractHook() {
     isOperator,
     insertAppPublicKey,
     insertAuthorization,
+    updateAppPublicKey,
     setPageSize,
   };
 }
