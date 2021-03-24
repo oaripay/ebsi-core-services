@@ -22,6 +22,8 @@ import {
   ArgsInsertDidController,
   RequestInsertDidDocumentDto,
   ArgsInsertDidDocument,
+  RequestUpdateDidDocumentDto,
+  ArgsUpdateDidDocument,
 } from "./dto";
 import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
@@ -200,6 +202,13 @@ export class JsonRpcService {
         await validateClass(
           ArgsInsertDidDocument,
           (args as unknown) as ArgsInsertDidDocument
+        );
+        break;
+      }
+      case "updateDidDocument": {
+        await validateClass(
+          ArgsUpdateDidDocument,
+          (args as unknown) as ArgsUpdateDidDocument
         );
         break;
       }
@@ -431,6 +440,43 @@ export class JsonRpcService {
 
       const data = this.didRegistryContract.interface.encodeFunctionData(
         "insertDidDocument",
+        [
+          identifier,
+          hashAlgorithmId,
+          hashValue,
+          didVersionInfo,
+          timestampData ?? "0x",
+          didVersionMetadata ?? "0x",
+        ]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateDidDocument(
+    body: RequestUpdateDidDocumentDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateDidDocumentDto, body);
+
+      const {
+        from,
+        identifier,
+        hashAlgorithmId,
+        hashValue,
+        didVersionInfo,
+        timestampData,
+        didVersionMetadata,
+      } = body.params[0];
+
+      const data = this.didRegistryContract.interface.encodeFunctionData(
+        "updateDidDocument",
         [
           identifier,
           hashAlgorithmId,

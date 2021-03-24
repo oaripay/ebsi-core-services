@@ -13,6 +13,7 @@ import {
   RequestUpdatePolicyDto,
   RequestInsertDidControllerDto,
   RequestInsertDidDocumentDto,
+  RequestUpdateDidDocumentDto,
 } from "./dto";
 
 function jsonRpcResponse(
@@ -76,6 +77,13 @@ export default class AppController {
       case "insertDidDocument": {
         const transaction = await this.jsonRpcService.buildTransactionInsertDidDocument(
           body as RequestInsertDidDocumentDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "updateDidDocument": {
+        const transaction = await this.jsonRpcService.buildTransactionUpdateDidDocument(
+          body as RequestUpdateDidDocumentDto,
           id
         );
         return jsonRpcResponse(transaction, id);

@@ -29,6 +29,7 @@ import {
   UpdatePolicyParam,
   InsertDidControllerParam,
   InsertDidDocumentParam,
+  UpdateDidDocumentParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -52,7 +53,18 @@ type JsonRpcParams =
   | InsertPolicyParam
   | UpdatePolicyParam
   | InsertDidDocumentParam
+  | UpdateDidDocumentParam
   | InsertDidControllerParam;
+
+interface DidDocumentDataset {
+  didDocument: { [x: string]: unknown };
+  didDocumentBuffer: Buffer;
+  canonizedDidDocument: string;
+  canonizedDidDocumentBuffer: Buffer;
+  canonizedDidDocumentHash: string;
+  timestampDataBuffer: Buffer;
+  didVersionMetadataBuffer: Buffer;
+}
 
 jest.setTimeout(120000);
 
@@ -112,30 +124,58 @@ describe("JsonRpc Module", () => {
   };
 
   const controllerDid = createDid();
-  const didDocument = {
-    "@context": [
-      "https://www.w3.org/ns/did/v1",
-      "https://identity.foundation/EcdsaSecp256k1RecoverySignature2020/lds-ecdsa-secp256k1-recovery2020-0.0.jsonld",
-    ],
-    id: controllerDid,
-    publicKey: [
-      {
-        id: `${controllerDid}#vm-3`,
-        controller: controllerDid,
-        type: "EcdsaSecp256k1RecoveryMethod2020",
-        blockchainAccountId:
-          "0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1",
-      },
-    ],
+
+  const createDidDocument = async (
+    did: string
+  ): Promise<DidDocumentDataset> => {
+    const didDocument = {
+      "@context": [
+        "https://www.w3.org/ns/did/v1",
+        "https://identity.foundation/EcdsaSecp256k1RecoverySignature2020/lds-ecdsa-secp256k1-recovery2020-0.0.jsonld",
+      ],
+      id: did,
+      publicKey: [
+        {
+          id: `${did}#vm-3`,
+          controller: did,
+          type: "EcdsaSecp256k1RecoveryMethod2020",
+          blockchainAccountId:
+            "0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1",
+        },
+      ],
+    };
+
+    const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
+
+    // Canonize DID Document
+    const canonizedDidDocument = await canonize(didDocument, {
+      algorithm: "URDNA2015",
+      format: "application/n-quads",
+    });
+
+    const canonizedDidDocumentBuffer = Buffer.from(canonizedDidDocument);
+    const canonizedDidDocumentHash = ethers.utils.sha256(
+      canonizedDidDocumentBuffer
+    );
+
+    const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
+    const didVersionMetadataBuffer = Buffer.from(
+      JSON.stringify({ metadata: "value" })
+    );
+
+    return {
+      didDocument,
+      didDocumentBuffer,
+      canonizedDidDocument,
+      canonizedDidDocumentBuffer,
+      canonizedDidDocumentHash,
+      timestampDataBuffer,
+      didVersionMetadataBuffer,
+    };
   };
-  const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
-  let canonizedDidDocument: string;
-  let canonizedDidDocumentBuffer: Buffer;
-  let canonizedDidDocumentHash: string;
-  const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
-  const didVersionMetadataBuffer = Buffer.from(
-    JSON.stringify({ metadata: "value" })
-  );
+
+  let didDocument: DidDocumentDataset;
+  let updatedDidDocument: DidDocumentDataset;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -198,14 +238,8 @@ describe("JsonRpc Module", () => {
         return Promise.reject(new Error("Unknown method"));
       });
 
-    // Canonize DID Document
-    canonizedDidDocument = await canonize(didDocument, {
-      algorithm: "URDNA2015",
-      format: "application/n-quads",
-    });
-
-    canonizedDidDocumentBuffer = Buffer.from(canonizedDidDocument);
-    canonizedDidDocumentHash = ethers.utils.sha256(canonizedDidDocumentBuffer);
+    didDocument = await createDidDocument(controllerDid);
+    updatedDidDocument = await createDidDocument(controllerDid);
   });
 
   afterAll(async () => {
@@ -396,6 +430,7 @@ describe("JsonRpc Module", () => {
     "insertPolicy",
     "updatePolicy",
     "insertDidDocument",
+    "updateDidDocument",
     "insertDidController",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
@@ -478,6 +513,13 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "insertDidDocument": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+            timestampDataBuffer,
+            didVersionMetadataBuffer,
+          } = didDocument;
+
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
@@ -494,6 +536,33 @@ describe("JsonRpc Module", () => {
             timestampData,
             didVersionMetadata,
           } as InsertDidDocumentParam;
+
+          break;
+        }
+        case "updateDidDocument": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+            timestampDataBuffer,
+            didVersionMetadataBuffer,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
+
+          param = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            timestampData,
+            didVersionMetadata,
+          } as UpdateDidDocumentParam;
 
           break;
         }
@@ -629,6 +698,13 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "insertDidDocument": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+            timestampDataBuffer,
+            didVersionMetadataBuffer,
+          } = didDocument;
+
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
@@ -645,6 +721,33 @@ describe("JsonRpc Module", () => {
             timestampData,
             didVersionMetadata,
           } as InsertDidDocumentParam;
+
+          break;
+        }
+        case "updateDidDocument": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+            timestampDataBuffer,
+            didVersionMetadataBuffer,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
+
+          param = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            timestampData,
+            didVersionMetadata,
+          } as UpdateDidDocumentParam;
 
           break;
         }
@@ -849,7 +952,15 @@ describe("JsonRpc Module", () => {
             "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
         }
-        case "insertDidDocument": {
+        case "insertDidDocument":
+        case "updateDidDocument": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+            timestampDataBuffer,
+            didVersionMetadataBuffer,
+          } = didDocument;
+
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
@@ -1083,13 +1194,22 @@ describe("JsonRpc Module", () => {
           } as InsertPolicyParam;
           break;
         }
-        case "insertDidDocument": {
+        case "insertDidDocument":
+        case "updateDidDocument": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+            timestampDataBuffer,
+            didVersionMetadataBuffer,
+          } = didDocument;
+
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
             "hex"
           )}`;
+
           param1 = {
             from: signer.address,
             identifier,

@@ -26,6 +26,7 @@ import { waitToBeMined } from "../utils/waitToBeMined";
 import {
   InsertDidControllerParam,
   InsertDidDocumentParam,
+  UpdateDidDocumentParam,
 } from "../../src/modules/jsonrpc/dto";
 
 type JsonRpcParams = InsertDidDocumentParam | InsertDidControllerParam;
@@ -56,8 +57,11 @@ describe("DID Registry (e2e)", () => {
     return `did:ebsi:${bs58.encode(buf)}`;
   };
 
-  const createDidDocument = async (): Promise<DidDocumentDataset> => {
-    const did = createDid();
+  const controllerDid = createDid();
+
+  const createDidDocument = async (
+    did: string
+  ): Promise<DidDocumentDataset> => {
     const didDocument = {
       "@context": [
         "https://www.w3.org/ns/did/v1",
@@ -105,6 +109,7 @@ describe("DID Registry (e2e)", () => {
   };
 
   let newDidDocument: DidDocumentDataset;
+  let updatedDidDocument: DidDocumentDataset;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -132,131 +137,151 @@ describe("DID Registry (e2e)", () => {
       prefixWith0x(configService.get("adminTestPrivateKey"))
     );
 
-    newDidDocument = await createDidDocument();
+    newDidDocument = await createDidDocument(controllerDid);
+    updatedDidDocument = await createDidDocument(controllerDid);
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["insertDidDocument", "insertDidController"])(
-    "/jsonrpc - send transaction for %s",
-    (method: string) => {
-      it("should work", async () => {
-        expect.assertions(5);
+  describe.each([
+    "insertDidDocument",
+    "updateDidDocument",
+    "insertDidController",
+  ])("/jsonrpc - send transaction for %s", (method: string) => {
+    it("should work", async () => {
+      expect.assertions(5);
 
-        let params: JsonRpcParams = null;
+      let params: JsonRpcParams = null;
 
-        switch (method) {
-          case "insertDidDocument": {
-            const {
-              controllerDid,
-              didDocumentBuffer,
-              canonizedDidDocumentHash,
-              timestampDataBuffer,
-              didVersionMetadataBuffer,
-            } = newDidDocument;
+      switch (method) {
+        case "insertDidDocument": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+            timestampDataBuffer,
+            didVersionMetadataBuffer,
+          } = newDidDocument;
 
-            const identifier = `0x${Buffer.from(controllerDid).toString(
-              "hex"
-            )}`;
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
 
-            const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
-            const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
-            const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
-              "hex"
-            )}`;
-
-            params = {
-              from: adminTestWallet.address,
-              identifier,
-              hashAlgorithmId: 0,
-              hashValue: canonizedDidDocumentHash,
-              didVersionInfo,
-              timestampData,
-              didVersionMetadata,
-            } as InsertDidDocumentParam;
-            break;
-          }
-          case "insertDidController": {
-            const { controllerDid } = newDidDocument;
-
-            const identifier = `0x${Buffer.from(controllerDid).toString(
-              "hex"
-            )}`;
-
-            params = {
-              from: adminTestWallet.address,
-              identifier,
-              newControllerId: ethers.Wallet.createRandom().address,
-              notBefore: 1616408985883,
-              notAfter: 3232818053700,
-            } as InsertDidControllerParam;
-            break;
-          }
-          default:
-            throw new Error(`Test Error: Invalid method ${method}`);
-        }
-
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [params],
-            id: 231,
-          });
-
-        expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
+          params = {
             from: adminTestWallet.address,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: expect.any(String) as string,
-          },
-        });
-        expect(responseBuild.status).toBe(200);
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            timestampData,
+            didVersionMetadata,
+          } as InsertDidDocumentParam;
+          break;
+        }
+        case "updateDidDocument": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+            timestampDataBuffer,
+            didVersionMetadataBuffer,
+          } = updatedDidDocument;
 
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction))
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await adminTestWallet.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
 
-        const responseSend: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .send({
-            jsonrpc: "2.0",
-            method: "signedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
-              },
-            ],
-            id: "45",
-          });
+          params = {
+            from: adminTestWallet.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            timestampData,
+            didVersionMetadata,
+          } as UpdateDidDocumentParam;
+          break;
+        }
+        case "insertDidController": {
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
 
-        expect(responseSend.body).toStrictEqual({
+          params = {
+            from: adminTestWallet.address,
+            identifier,
+            newControllerId: ethers.Wallet.createRandom().address,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+          } as InsertDidControllerParam;
+          break;
+        }
+        default:
+          throw new Error(`Test Error: Invalid method ${method}`);
+      }
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
           jsonrpc: "2.0",
-          id: "45",
-          result: expect.any(String) as string,
+          method,
+          params: [params],
+          id: 231,
         });
-        expect(responseSend.status).toBe(200);
 
-        // wait to be mined
-        const receipt = await waitToBeMined(responseSend.body.result as string);
-        expect(receipt.status).toBe("0x1");
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        result: {
+          chainId: expect.any(String) as string,
+          data: expect.any(String) as string,
+          from: adminTestWallet.address,
+          gasLimit: expect.any(String) as string,
+          gasPrice: expect.any(String) as string,
+          nonce: expect.any(String) as string,
+          to: expect.any(String) as string,
+          value: expect.any(String) as string,
+        },
       });
-    }
-  );
+      expect(responseBuild.status).toBe(200);
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await adminTestWallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        result: expect.any(String) as string,
+      });
+      expect(responseSend.status).toBe(200);
+
+      // wait to be mined
+      const receipt = await waitToBeMined(responseSend.body.result as string);
+      expect(receipt.status).toBe("0x1");
+    });
+  });
 });

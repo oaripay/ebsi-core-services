@@ -6,5 +6,6 @@ export * from "./insertDidDocument";
 export * from "./insertHashAlgorithm";
 export * from "./insertPolicy";
 export * from "./updateAdministrator";
+export * from "./updateDidDocument";
 export * from "./updateHashAlgorithm";
 export * from "./updatePolicy";
