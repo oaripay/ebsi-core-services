@@ -6,7 +6,6 @@ import { config } from "../config";
 import { AppContext } from "../AppContext";
 
 export function useRegistryContractEventsHook() {
-  const { registryContract } = useEthersHook();
   const appCtx = useContext(AppContext);
 
   const { provider } = useEthersHook();
@@ -28,45 +27,4 @@ export function useRegistryContractEventsHook() {
         });
     }
   }, [provider, appCtx.metamask]);
-
-  useEffect(() => {
-    registryContract.off("AddNewAuthorization", () => {});
-    registryContract.off("PublicKeyAdded", () => {});
-    registryContract.off("ApplicationUpdated", () => {});
-    registryContract.off("PublicKeyUpdated", () => {});
-    registryContract.off("ApplicationRegistered", () => {});
-
-    if (appCtx.metamask) {
-      registryContract.on("AddNewAuthorization", () => {
-        notification.success({
-          message: "Transaction mined",
-          description: `A new authorization was added!`,
-        });
-      });
-      registryContract.on("PublicKeyAdded", () => {
-        notification.success({
-          message: "Transaction mined",
-          description: `A new public key was added!`,
-        });
-      });
-      registryContract.on("ApplicationUpdated", () => {
-        notification.success({
-          message: "Transaction mined",
-          description: `An app has been updated!`,
-        });
-      });
-      registryContract.on("PublicKeyUpdated", () => {
-        notification.success({
-          message: "Transaction mined",
-          description: `A public key was updated!`,
-        });
-      });
-      registryContract.on("ApplicationRegistered", () => {
-        notification.success({
-          message: "Transaction mined",
-          description: `A new application was created!`,
-        });
-      });
-    }
-  }, [appCtx.metamask]);
 }

@@ -13,11 +13,13 @@ import {
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
 import { AppContext } from "../AppContext";
 import { domains } from "../constants";
+import { useTableHook } from "../hooks/use-table-hook";
 
 export function ModalUpdateApp() {
   const [form] = Form.useForm();
 
   const { updateApp } = useRegistryContractHook();
+  const { loadTableData } = useTableHook();
   const appCtx = useContext(AppContext);
 
   useEffect(() => {
@@ -31,6 +33,7 @@ export function ModalUpdateApp() {
       title="Update application"
       visible={appCtx.editModal.show}
       okText="Save"
+      width={640}
       onOk={() => {
         form.validateFields(["applicationId", "name", "domain"]).then(() => {
           const fields = form.getFieldsValue([
@@ -59,7 +62,14 @@ export function ModalUpdateApp() {
           });
 
           updateApp(fields.applicationId, fields.name, fields.domain)
-            .then(() => {
+            .then((tx: any) => {
+              tx.wait(1).then(() => {
+                loadTableData();
+                notification.success({
+                  message: "Transaction mined",
+                  description: `App ${fields.name} has been updated!`,
+                });
+              });
               form.resetFields();
               notification.info({
                 message: "Transaction",
@@ -94,7 +104,6 @@ export function ModalUpdateApp() {
           width: "100%",
         }}
       >
-        <h3>Application name must be unique</h3>
         <Form
           layout="vertical"
           form={form}
@@ -105,21 +114,21 @@ export function ModalUpdateApp() {
           }}
         >
           <Row>
-            <Col lg={20}>
+            <Col lg={24}>
               <Form.Item label="Application id" name="applicationId">
                 <Input disabled />
               </Form.Item>
             </Col>
           </Row>
           <Row>
-            <Col lg={20}>
+            <Col lg={24}>
               <Form.Item label="Name" name="name">
                 <Input required />
               </Form.Item>
             </Col>
           </Row>
           <Row>
-            <Col lg={20}>
+            <Col lg={24}>
               <Form.Item label="Domain" name="domain">
                 <Select style={{ width: "100%" }} onChange={() => {}}>
                   <Select.Option value={1}>ebsi</Select.Option>

@@ -16,7 +16,7 @@ export function useRegistryContractHook() {
 
   const getApplicationIds = useCallback(() => {
     return registryContract.getApps(appCtx.page, PAGE_SIZE);
-  }, [PAGE_SIZE, appCtx.page]);
+  }, [registryContract, appCtx.page]);
 
   const insertAppPublicKey = useCallback(
     (
@@ -68,6 +68,17 @@ export function useRegistryContractHook() {
     );
   }, []);
 
+  const getAuthorizationsIds = useCallback(
+    (applicationId: string, authorizedAppId: string) => {
+      return registryContract
+        .getAuthorizations(applicationId, authorizedAppId, 1, PAGE_SIZE)
+        .then((authIdsResponse: { items: number[]; total: BigNumber }) => {
+          return authIdsResponse.items;
+        });
+    },
+    []
+  );
+
   const getApplications = useCallback(() => {
     return getApplicationIds().then(
       (applications: { items: number[]; total: number }) => {
@@ -78,13 +89,13 @@ export function useRegistryContractHook() {
 
         const appPublicKeysPromises = Promise.all(
           ids.map((id: number) =>
-            registryContract.getAppPublicKeyIds(id, appCtx.page, PAGE_SIZE)
+            registryContract.getAppPublicKeyIds(id, 1, PAGE_SIZE)
           )
         );
 
         const appAuthorizationsKeysPromises = Promise.all(
           ids.map((id: number) =>
-            registryContract.getAuthorizedAppsIds(id, appCtx.page, PAGE_SIZE)
+            registryContract.getAuthorizedAppsIds(id, 1, PAGE_SIZE)
           )
         );
 
@@ -112,7 +123,7 @@ export function useRegistryContractHook() {
         });
       }
     );
-  }, [getApplicationIds]);
+  }, [getApplicationIds, appCtx.page]);
 
   const isOperator = useCallback((): Promise<boolean> => {
     const did: string | null = localStorage.getItem("Did");
@@ -156,6 +167,18 @@ export function useRegistryContractHook() {
     return registryContract.updateAppPublicKey(publicKeyId, status, notAfter);
   }, []);
 
+  const updateAuthorization = useCallback(
+    (authorizationId, status, permissions, notAfter) => {
+      return registryContract.updateAuthorization(
+        authorizationId,
+        status,
+        permissions,
+        notAfter
+      );
+    },
+    []
+  );
+
   return {
     getApplications,
     registerApp,
@@ -164,6 +187,8 @@ export function useRegistryContractHook() {
     insertAppPublicKey,
     insertAuthorization,
     updateAppPublicKey,
+    updateAuthorization,
+    getAuthorizationsIds,
     totalItems,
     initTotalItems,
   };

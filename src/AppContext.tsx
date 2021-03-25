@@ -15,7 +15,9 @@ export type AppContextType = {
   editModal: { show: boolean; data: any };
   setPage: (page: number) => void;
   setUpdateAppPublicKey: (params: any) => void;
+  setUpdateAuthorization: (params: any) => void;
   updateAppPublicKey: { show: boolean; data: any };
+  updateAuthorization: { show: boolean; data: any };
   insertPublicKeyModal: { show: boolean; data: any; appId: string };
   setAuthorizedAppsModal: (params: any) => void;
   authorizedAppsModal: { show: boolean; data: any };
@@ -59,6 +61,10 @@ export function AppProvider({ children }: any) {
     defaultParamsModal
   );
 
+  const [updateAuthorizationState, setUpdateAuthorizationState] = useState(
+    defaultParamsModal
+  );
+
   const basePageErr: string = "";
 
   const [pageErr, setPageErr] = useState(basePageErr);
@@ -94,6 +100,16 @@ export function AppProvider({ children }: any) {
       });
     },
     [updateAppPublicKeyState]
+  );
+
+  const setUpdateAuthorization = useCallback(
+    (updateAuthorization: any) => {
+      setUpdateAuthorizationState({
+        ...updateAuthorizationState,
+        ...updateAuthorization,
+      });
+    },
+    [updateAuthorizationState]
   );
 
   const setTableLoading = useCallback(
@@ -185,6 +201,7 @@ export function AppProvider({ children }: any) {
       ...tableDataState,
       editModal: editModalState,
       updateAppPublicKey: updateAppPublicKeyState,
+      updateAuthorization: updateAuthorizationState,
       authorizedAppsModal: authorizedAppsModalState,
       setTableLoading,
       setTableDataSource,
@@ -194,6 +211,7 @@ export function AppProvider({ children }: any) {
       setInsertPublicKeyModal,
       setAuthorizedAppsModal,
       setUpdateAppPublicKey,
+      setUpdateAuthorization,
       pageErr,
       metamask,
       setPage,
@@ -207,6 +225,8 @@ export function AppProvider({ children }: any) {
     setPage,
     authorizedAppsModalState,
     updateAppPublicKeyState,
+    updateAuthorizationState,
+    updateAuthorizationState,
     metamask,
   ]);
 

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import {
   Col,
   DatePicker,
@@ -15,12 +15,20 @@ import { ethers } from "ethers";
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
 import { AppContext } from "../AppContext";
 import { notAfterDate, notBeforeDate } from "../date-validator";
+import { useTableHook } from "../hooks/use-table-hook";
 
 export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
   const [form] = Form.useForm();
 
   const { registerApp } = useRegistryContractHook();
   const appCtx = useContext(AppContext);
+  const { loadTableData } = useTableHook();
+
+  useEffect(() => {
+    if (showAddModal) {
+      form.resetFields();
+    }
+  }, [showAddModal]);
 
   return (
     <Modal
@@ -79,7 +87,14 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
               registerAppFields.notBefore,
               registerAppFields.notAfter
             )
-              .then(() => {
+              .then((tx: any) => {
+                tx.wait(1).then(() => {
+                  loadTableData();
+                  notification.success({
+                    message: "Transaction mined",
+                    description: `A new application was created!`,
+                  });
+                });
                 notification.info({
                   message: "Transaction",
                   description: (

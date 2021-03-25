@@ -14,11 +14,13 @@ import { ethers } from "ethers";
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
 import { AppContext } from "../AppContext";
 import { notAfterDate, notBeforeDate } from "../date-validator";
+import { useTableHook } from "../hooks/use-table-hook";
 
 export default function ModalInsertPublicKey(): ReactElement {
   const [form] = Form.useForm();
 
   const { insertAppPublicKey } = useRegistryContractHook();
+  const { loadTableData } = useTableHook();
   const appCtx = useContext(AppContext);
 
   useEffect(() => {
@@ -26,6 +28,12 @@ export default function ModalInsertPublicKey(): ReactElement {
       appId: appCtx.insertPublicKeyModal.appId,
     });
   }, [appCtx.insertPublicKeyModal.appId]);
+
+  useEffect(() => {
+    if (appCtx.insertPublicKeyModal.show) {
+      form.resetFields();
+    }
+  }, [appCtx.insertPublicKeyModal.show]);
 
   return (
     <Modal
@@ -79,7 +87,14 @@ export default function ModalInsertPublicKey(): ReactElement {
               insertPubKeyFields.notBefore,
               insertPubKeyFields.notAfter
             )
-              .then(() => {
+              .then((tx: any) => {
+                tx.wait(1).then(() => {
+                  loadTableData();
+                  notification.success({
+                    message: "Transaction mined",
+                    description: `A new public key was added!`,
+                  });
+                });
                 form.resetFields();
                 notification.info({
                   message: "Transaction",
@@ -102,6 +117,7 @@ export default function ModalInsertPublicKey(): ReactElement {
       onCancel={() =>
         appCtx.setInsertPublicKeyModal({
           show: false,
+          data: {},
         })
       }
     >

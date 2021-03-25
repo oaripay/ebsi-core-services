@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import {
   Col,
   DatePicker,
@@ -14,12 +14,20 @@ import {
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
 import { AppContext } from "../AppContext";
 import { notAfterDate } from "../date-validator";
+import { useTableHook } from "../hooks/use-table-hook";
 
 export function ModalUpdateAppPublicKey() {
   const [form] = Form.useForm();
 
   const { updateAppPublicKey } = useRegistryContractHook();
   const appCtx = useContext(AppContext);
+  const { loadTableData } = useTableHook();
+
+  useEffect(() => {
+    if (appCtx.updateAppPublicKey.show) {
+      form.resetFields();
+    }
+  }, [appCtx.updateAppPublicKey.show]);
 
   return (
     <Modal
@@ -45,7 +53,14 @@ export function ModalUpdateAppPublicKey() {
             fields.status,
             fields.notAfter.unix()
           )
-            .then(() => {
+            .then((tx: any) => {
+              tx.wait(1).then(() => {
+                loadTableData();
+                notification.success({
+                  message: "Transaction mined",
+                  description: `A public key was updated!`,
+                });
+              });
               notification.info({
                 message: "Transaction",
                 description: (
@@ -55,8 +70,7 @@ export function ModalUpdateAppPublicKey() {
                 ),
               });
             })
-            .catch((er: any) => {
-              console.log(er);
+            .catch(() => {
               notification.error({
                 message: "Error",
                 duration: 5,

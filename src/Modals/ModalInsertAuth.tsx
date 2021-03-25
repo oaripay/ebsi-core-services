@@ -1,4 +1,4 @@
-import React, { ReactElement, useContext } from "react";
+import React, { ReactElement, useContext, useEffect } from "react";
 import {
   Col,
   DatePicker,
@@ -14,12 +14,20 @@ import {
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
 import { AppContext } from "../AppContext";
 import { notAfterDate, notBeforeDate } from "../date-validator";
+import { useTableHook } from "../hooks/use-table-hook";
 
 export default function ModalInsertAuth(): ReactElement {
   const [form] = Form.useForm();
 
   const { insertAuthorization } = useRegistryContractHook();
+  const { loadTableData } = useTableHook();
   const appCtx = useContext(AppContext);
+
+  useEffect(() => {
+    if (appCtx.authorizedAppsModal.show) {
+      form.resetFields();
+    }
+  }, [appCtx.authorizedAppsModal.show]);
 
   return (
     <Modal
@@ -66,7 +74,15 @@ export default function ModalInsertAuth(): ReactElement {
               insertAuthFields.notBefore,
               insertAuthFields.notAfter
             )
-              .then(() => {
+              .then((tx: any) => {
+                tx.wait(1).then(() => {
+                  loadTableData();
+                  notification.success({
+                    message: "Transaction mined",
+                    description: `A new authorization was added to app ${insertAuthFields.name}!`,
+                  });
+                });
+                form.resetFields();
                 notification.info({
                   message: "Transaction",
                   description: (
@@ -87,6 +103,7 @@ export default function ModalInsertAuth(): ReactElement {
       }}
       onCancel={() =>
         appCtx.setAuthorizedAppsModal({
+          data: {},
           show: false,
         })
       }

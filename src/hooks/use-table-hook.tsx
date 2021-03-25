@@ -96,6 +96,25 @@ export function useTableHook() {
                 <KeyOutlined />
               </Button>
             </Tooltip>
+            <Tooltip title="Update public key">
+              <Button
+                type="default"
+                onClick={() => {
+                  appCtx.setUpdateAppPublicKey({
+                    show: true,
+                    data: {
+                      publicKeys: params.publicKeys,
+                      status: params.status,
+                      id: params.id,
+                      name: params.name,
+                    },
+                  });
+                }}
+              >
+                <EditOutlined />
+                <KeyOutlined />
+              </Button>
+            </Tooltip>
             <Tooltip title="Add authorization">
               <Button
                 type="default"
@@ -109,6 +128,23 @@ export function useTableHook() {
                 }}
               >
                 <PlusOutlined />
+                <PropertySafetyOutlined />
+              </Button>
+            </Tooltip>
+            <Tooltip title="Update authorization">
+              <Button
+                type="default"
+                onClick={() => {
+                  appCtx.setUpdateAuthorization({
+                    show: true,
+                    data: {
+                      appId: params.id,
+                      authorizedApps: params.authorizedApps,
+                    },
+                  });
+                }}
+              >
+                <EditOutlined />
                 <PropertySafetyOutlined />
               </Button>
             </Tooltip>
@@ -127,25 +163,6 @@ export function useTableHook() {
                 }}
               >
                 <EditOutlined />
-              </Button>
-            </Tooltip>
-            <Tooltip title="Update public key">
-              <Button
-                type="default"
-                onClick={() => {
-                  appCtx.setUpdateAppPublicKey({
-                    show: true,
-                    data: {
-                      publicKeys: params.publicKeys,
-                      status: params.status,
-                      id: params.id,
-                      name: params.name,
-                    },
-                  });
-                }}
-              >
-                <EditOutlined />
-                <KeyOutlined />
               </Button>
             </Tooltip>
           </Space>

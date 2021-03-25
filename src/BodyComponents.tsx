@@ -7,6 +7,7 @@ import ModalInsertAuth from "./Modals/ModalInsertAuth";
 import { useRegistryContractEventsHook } from "./hooks/use-registry-contract-events.hook";
 import { ModalUpdateApp } from "./Modals/ModalUpdateApp";
 import { ModalUpdateAppPublicKey } from "./Modals/ModalUpdateAppPublicKey";
+import { ModalUpdateAuthorization } from "./Modals/ModalUpdateAuthorization";
 
 export default function BodyComponents(): ReactElement {
   const appCtx = useContext(AppContext);
@@ -19,6 +20,7 @@ export default function BodyComponents(): ReactElement {
   return (
     <>
       <NewApp />
+      <ModalUpdateAuthorization />
       <ModalUpdateAppPublicKey />
       <ModalUpdateApp />
       <ModalInsertPublicKey />
