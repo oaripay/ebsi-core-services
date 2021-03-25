@@ -1,6 +1,5 @@
 coverage
 dist
-log
 node_modules
-.env
-!.ci/*/.env
+.env*.local
+yarn-error.log

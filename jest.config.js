@@ -1,29 +1,21 @@
 module.exports = {
   preset: "ts-jest",
+  testTimeout: 90000,
+  maxConcurrency: 1,
   testEnvironment: "node",
   rootDir: ".",
-  roots: ["<rootDir>/src/", "<rootDir>/api/", "<rootDir>/tests/"],
-  testMatch: ["**/?(*.)+(spec|test).+(ts|tsx|js)"],
+  roots: ["<rootDir>/src/", "<rootDir>/tests/"],
+  testMatch: ["**/?(*.|*-)+(spec|test).ts"],
   transform: {
-    "^.+\\.(ts|tsx)?$": "ts-jest",
+    "^.+\\.(t|j)s$": "ts-jest",
   },
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
+  moduleFileExtensions: ["js", "json", "ts"],
   coverageDirectory: "./coverage/",
   collectCoverageFrom: [
-    "src/**/*.{ts,tsx}",
-    "!src/**/*.d.ts",
-    "!**/node_modules/**",
+    "src/**/*.(t|j)s",
+    "!**/*.d.ts",
+    "!src/main.ts",
+    "!src/logger/logger.ts",
   ],
-  collectCoverage: true,
-  reporters: ["default", "jest-sonar"],
-  globals: {
-    "ts-jest": {
-      diagnostics: true,
-      warnOnly: true,
-      ignoreCodes: [
-        18002, // The ‘files’ list in config file is empty. (it is strongly recommended to include this one)
-      ],
-      pretty: true,
-    },
-  },
+  coverageReporters: ["text", "lcov", "json", "clover", "cobertura"],
 };

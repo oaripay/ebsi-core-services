@@ -3,33 +3,44 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
-               sh 'yarn install --frozen-lockfile'
-            }
-        }
-        stage('Audit dependencies') {
-            steps {
-                sh 'yarn run audit'
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn install --frozen-lockfile'
+                    sh 'yarn run audit'
+                }
             }
         }
         stage('Lint') {
             steps {
-                sh 'yarn lint'
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn lint'
+                }
             }
         }
-        stage('Unit test') {
+        stage('Unit tests') {
             environment {
-                EBSI_ENV='test'
-                DEBUG_LEVEL='silly'
-                API_PRIVATE_KEY=credentials('API_PRIVATE_KEY_HUB')
+                API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
             }
             steps {
-                sh 'yarn run test:unit'
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn test:ci'
+                }
+            }
+        }
+        stage ('Lint Dockerfile') {
+            agent {
+                docker {
+                    image 'hadolint/hadolint:latest-debian'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh 'hadolint Dockerfile'
             }
         }
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('LocalSonar'){
-                    sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=identity-hub-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=identity-hub-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}"
+                    sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=proxy-data-hub-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=proxy-data-hub-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}"
                 }
             }
         }

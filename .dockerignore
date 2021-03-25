@@ -3,8 +3,8 @@
 
 # Only add what is necessary
 !package.json
-!tsconfig-build.json
+!nest-cli.json
+!tsconfig.production.json
 !tsconfig.json
 !yarn.lock
 !src
-!api

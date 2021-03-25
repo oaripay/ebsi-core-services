@@ -1,15 +1,10 @@
 version: "3.7"
 
 services:
-  identity-hub-api:
+  proxy-data-hub-api:
     build: .
-    restart: always
-    logging:
-      options:
-        max-size: "100m"
-        max-file: "50"
+    env_file:
+      - .env
+      - .env.local
     ports:
-      - 8080:9000
-    environment:
-      - EBSI_ENV=${EBSI_ENV:?Missing EBSI_ENV variable}
-      - API_PRIVATE_KEY=${API_PRIVATE_KEY:?Missing API_PRIVATE_KEY variable}
+      - "${API_PORT:-3000}:${API_PORT:-3000}"

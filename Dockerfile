@@ -1,18 +1,22 @@
-FROM node:12.19.1-alpine3.12@sha256:3ae30348acd445501758896f691106cbc32111f3525651c7256a7df75aa8a97d AS base
+FROM node:14.16.0-alpine3.12@sha256:b16524cf535a6010663d63e8f871c7efc7d87f14d7fcb38298a40f7a521743f8 as base
+WORKDIR /app
+# Some dependencies need git to be installed (see yarn.lock)
+RUN apk add --no-cache --virtual .build-deps git
 COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile --silent --production && yarn cache clean
+RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
 
-FROM base AS builder
+FROM base as builder
 RUN yarn install --frozen-lockfile --silent
-COPY . .
+COPY nest-cli.json tsconfig*.json ./
+COPY src src
 RUN yarn build
 
 FROM base
-WORKDIR /usr/src/app
-COPY --from=builder dist dist
-COPY api api
-RUN  mkdir log && chown -R node:node log
+WORKDIR /app
+# Remove git
+RUN apk del .build-deps
+ENV NODE_ENV=production
+COPY --from=builder /app/dist dist
+RUN chown node:node /app
 USER node
-EXPOSE 9000/tcp
-ENV NODE_ENV production
-CMD [ "node", "dist/start.js" ]
+CMD [ "node", "dist/main" ]

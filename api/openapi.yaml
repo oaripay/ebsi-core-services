@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
-  title: Identity Hub API
+  title: Proxy Data Hub API
   description: |
-    Identity Hub API is a Core Service of the EBSI platform providing the
-    capability of securely storing W3C Verifiable Credentials/Attestations.
-  version: 1.0.0
+    Proxy Data API is a Core Service of the EBSI platform providing the capability of
+    securely storing data controlled by the owner.
+  version: 2.0.0
   termsOfService: "/docs/terms"
   contact:
     name: "EBSI Support"
@@ -13,64 +13,18 @@ info:
     name: "EUPL-1.2"
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
 servers:
-  - url: "http://localhost:9000"
-    description: Local Computer Environment
   - url: "https://api.ebsi.xyz"
     description: EBSI Testing Environment
 tags:
-  - name: Authentication
-    description: Authenticate to the Identity Hub
-  - name: Identity Hub
+  - name: Proxy Data Hub
     description: Store and retrieve personal credentials
 paths:
-  /identity-hub/v1/sessions:
-    post:
-      tags:
-        - Authentication
-      summary: Login to Identity Hub.
-      description: Login to Identity Hub.
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SessionsRequest"
-        required: true
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SessionsResponse"
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Bad Request:
-                  $ref: "#/components/examples/BadRequest"
-                Token Expired:
-                  $ref: "#/components/examples/ExpiredToken"
-                Issuer Not Found:
-                  $ref: "#/components/examples/IssuerNotFound"
-        "500":
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: post-identity-hub-v1-sessions
-  "/identity-hub/v1/attributes":
+  "/proxy-data-hub/v2/attributes":
     get:
       tags:
-        - Identity Hub
+        - Proxy Data Hub
       summary: Get attributes.
-      description: "Retrieves attributes from the ID Hub."
+      description: "Retrieves attributes from the Proxy Data Hub."
       responses:
         "200":
           description: Success
@@ -95,31 +49,27 @@ paths:
                 Get Attributes:
                   value:
                     items:
-                      - id: cred-7ee0d94aab0e4f36eae85127056de084
-                        type:
-                          - VerifiableCredential
-                          - EssifVerifiableID
-                        name: Verifiable ID
-                        did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      - storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-                        data:
-                          base64: "<bytes for base64>"
-                      - id: cred-7ee0d94aab0e4f36eae85127056de084
-                        type:
-                          - VerifiableCredential
-                          - EssifVerifiableID
-                        name: Verifiable ID
-                        did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+                        did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+                        visibility: private
+                        metadata:
+                          id: cred-7ee0d94aab0e4f36eae85127056de084
+                        data: "<bytes for base64url>"
+                      - storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-                        data:
-                          base64: "<bytes for base64>"
+                        did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+                        visibility: private
+                        metadata:
+                          id: cred-7ee0d94aab0e4f36eae85127056de084
+                        data: "<bytes for base64url>"
                     total: 13
                     pageSize: 2
                     links:
-                      first: "/identity-hub/v1/attributes?page[after]=0&page[size]=2"
-                      prev: "/identity-hub/v1/attributes?page[after]=2&page[size]=2"
-                      next: "/identity-hub/v1/attributes?page[after]=4&page[size]=2"
-                      last: "/identity-hub/v1/attributes?page[after]=13&page[size]=2"
+                      first: "/proxy-data-hub/v2/attributes?page[after]=0&page[size]=2"
+                      prev: "/proxy-data-hub/v2/attributes?page[after]=2&page[size]=2"
+                      next: "/proxy-data-hub/v2/attributes?page[after]=4&page[size]=2"
+                      last: "/proxy-data-hub/v2/attributes?page[after]=13&page[size]=2"
         "400":
           description: Bad Request
           content:
@@ -127,11 +77,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Invalid {did, type} Parameter:
+                Invalid Parameter:
                   value:
                     title: Bad Request
                     status: 400
-                    detail: "The format of {did, type} parameter is not valid"
+                    detail: "The format of the parameter is not valid"
         "401":
           description: Unauthorized
           content:
@@ -161,29 +111,8 @@ paths:
                   $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
-      operationId: get-identity-hub-v1-attributes-did-type
+      operationId: get-proxy-data-hub-v2-attributes-did
       parameters:
-        - name: did
-          in: query
-          schema:
-            type: string
-            example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
-          required: true
-          description: Decentralized Identifier
-        - name: type
-          in: query
-          schema:
-            type: string
-            example: "%5B%22EssifVerifiableID%22%2C%22EuropassDiploma%22%5D"
-          description: Attributes types. They must be url-encoded
-          required: false
-        - in: query
-          name: "page[before]"
-          schema:
-            type: string
-          description: |
-            Cursor that points to the start of the page of data that has been
-            returned.
         - in: query
           name: "page[after]"
           schema:
@@ -196,14 +125,14 @@ paths:
           in: query
           name: "page[size]"
           description: Defines the maximum number of objects that may be returned.
-  "/identity-hub/v1/attributes/{hash}":
+  "/proxy-data-hub/v2/attributes/{hash}":
     put:
       tags:
-        - Identity Hub
+        - Proxy Data Hub
       summary: Store attributes.
-      description: "Stores an attribute to the ID Hub."
+      description: "Stores an attribute to the Proxy Data Hub."
       requestBody:
-        description: Verifiable Identity attribute.
+        description: Attribute with its metadata to be stored with a given visibility (shared or private).
         content:
           application/json:
             schema:
@@ -211,13 +140,11 @@ paths:
             examples:
               New Attribute:
                 value:
-                  id: cred-7ee0d94aab0e4f36eae85127056de084
-                  type:
-                    - VerifiableCredential
-                    - EssifVerifiableID
-                  name: Verifiable ID
-                  data:
-                    base64: "<bytes for base64>"
+                  storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+                  visibility: private
+                  metadata:
+                    id: cred-7ee0d94aab0e4f36eae85127056de084
+                  data: "<bytes for base64url>"
         required: true
       responses:
         "200":
@@ -229,15 +156,13 @@ paths:
               examples:
                 Success:
                   value:
-                    id: cred-7ee0d94aab0e4f36eae85127056de084
-                    type:
-                      - VerifiableCredential
-                      - EssifVerifiableID
-                    name: Verifiable ID
-                    did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-                    data:
-                      base64: "<bytes for base64>"
+                    did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+                    visibility: private
+                    metadata:
+                      id: cred-7ee0d94aab0e4f36eae85127056de084
+                    data: "<bytes for base64url>"
         "201":
           description: Create a new attribute
           content:
@@ -247,15 +172,13 @@ paths:
               examples:
                 Created:
                   value:
-                    id: cred-7ee0d94aab0e4f36eae85127056de084
-                    type:
-                      - VerifiableCredential
-                      - EssifVerifiableID
-                    name: Verifiable ID
-                    did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-                    data:
-                      base64: "<bytes for base64>"
+                    did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+                    visibility: private
+                    metadata:
+                      id: cred-7ee0d94aab0e4f36eae85127056de084
+                    data: "<bytes for base64url>"
         "400":
           description: Unformatted error
           content:
@@ -297,7 +220,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
-      operationId: put-identity-hub-v1-attributes-hash
+      operationId: put-proxy-data-hub-v2-attributes-hash
     parameters:
       - name: hash
         in: path
@@ -308,9 +231,9 @@ paths:
         description: Hash of the attribute.
     get:
       tags:
-        - Identity Hub
-      summary: Get Identity Attribute by its hash
-      operationId: get-identity-hub-v1-attributes-hash
+        - Proxy Data Hub
+      summary: Get a private Attribute by its hash
+      operationId: get-proxy-data-hub-v2-private-attributes-hash
       responses:
         "200":
           description: Success
@@ -321,15 +244,13 @@ paths:
               examples:
                 Success:
                   value:
-                    id: cred-7ee0d94aab0e4f36eae85127056de084
-                    type:
-                      - VerifiableCredential
-                      - EssifVerifiableID
-                    name: Verifiable ID
-                    did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-                    data:
-                      base64: "<bytes for base64>"
+                    did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+                    visibility: private
+                    metadata:
+                      id: cred-7ee0d94aab0e4f36eae85127056de084
+                    data: "<bytes for base64url>"
         "400":
           description: Unformatted error
           content:
@@ -384,159 +305,155 @@ paths:
       description: Retrieves an attribute by hash.
       security:
         - bearerAuth: []
+    delete:
+      tags:
+        - Proxy Data Hub
+      summary: Delete an Attribute by its hash
+      operationId: delete-proxy-data-hub-v2-attributes-hash
+      responses:
+        "204":
+          description: Attribute deleted
+        "400":
+          description: Unformatted error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {hash} parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: "The {hash} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Unauthorized:
+                  $ref: "#/components/examples/Unauthorized"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Forbidden:
+                  $ref: "#/components/examples/Forbidden"
+        "404":
+          description: Hash does not exist
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Not found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "Hash parameter not found"
+        "500":
+          description: Internal Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      description: Deletes an attribute by hash.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: hash
+          in: path
+          schema:
+            type: string
+            example: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
+          required: true
+          description: Hash of the attribute.
 components:
   schemas:
     Attribute:
       type: object
-      description: Identity Attribute
-      x-examples:
+      description: Attribute
+      example:
         Attribute example:
-          id: cred-7ee0d94aab0e4f36eae85127056de084
-          type:
-            - VerifiableCredential
-            - EssifVerifiableID
-          name: Verifiable ID
-          did: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+          storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
           hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-          data:
-            base64: "<bytes for base64>"
+          did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+          visibility: private
+          metadata:
+            id: cred-7ee0d94aab0e4f36eae85127056de084
+          data: "<bytes for base64url>"
       title: Attribute
       properties:
-        id:
+        storageUri:
           type: string
-          description: |
-            Attribute Metadata identifier generated by ID Hub to later identify
-            it.
-          example: cred-7ee0d94aab0e4f36eae85127056de084
-        type:
-          type: array
-          description: |
-            Attribute type that corresponds to the Credential type that is
-            included as data.
-          example:
-            - "VerifiableCredential"
-            - "EssifVerifiableID"
-          uniqueItems: true
-          items:
-            type: string
+          description: URI of the Proxy Data Hub Storage to access
+          example: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
         did:
           type: string
           description: User Decentralized Identifier
-          example: "did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e"
+          example: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
         hash:
           type: string
           description: Hash of the attribute.
           example: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-        data:
-          type: object
-          format: date-time
-          description: Data object encoded in base64
-          required:
-            - base64
-          properties:
-            base64:
-              type: string
-              format: byte
-              description: base64 encoding of the data to be stored.
-        name:
+        visibility:
           type: string
-          description: |
-            User defined name to better display the attribute type on Frontend
-            UI.
-          example: Verifiable ID
+          enum: [private, shared]
+          description: Access of the data to be stored. Options are private (only visible for the owner) or shared (visible for everyone)
+        metadata:
+          type: object
+          description: JSON object for the metadata of the data to be stored
+          properties:
+            id:
+              type: string
+              description: Optional parameter to identify the stored attribute
+        data:
+          type: string
+          description: base64url encoding of the data to be stored
       required:
-        - id
-        - type
+        - storageUri
         - hash
         - data
-        - name
     AttributeRequest:
       type: object
       description: Identity Attribute request for creation
-      x-examples:
+      example:
         Attribute request example:
-          id: cred-7ee0d94aab0e4f36eae85127056de084
-          type: "['VerifiableCredential', 'EssifVerifiableID']"
-          name: Verifiable ID
-          data:
-            base64: "<bytes for base64>"
+          storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+          visibility: private
+          metadata:
+            id: cred-7ee0d94aab0e4f36eae85127056de084
+          data: "<bytes for base64url>"
       title: Attribute Request
       properties:
-        id:
+        storageUri:
           type: string
-          description: |
-            Attribute Metadata identifier generated by ID Hub to later identify
-            it.
-          example: cred-7ee0d94aab0e4f36eae85127056de084
-        type:
-          type: array
-          description: |
-            Attribute type that corresponds to the Credential type that is
-            included as data.
-          example:
-            - "VerifiableCredential"
-            - "EssifVerifiableID"
-          uniqueItems: true
-          items:
-            type: string
-        data:
+          description: URI of the Proxy Data Hub Storage to access
+          example: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+        visibility:
+          type: string
+          enum: [private, shared]
+          description: Access of the data to be stored. Options are private (only visible for the owner) or shared (visible for everyone)
+        metadata:
           type: object
-          format: date-time
-          description: Data object encoded in base64
-          required:
-            - base64
+          description: JSON object for the metadata of the data to be stored
           properties:
-            base64:
+            id:
               type: string
-              format: byte
-              description: base64 encoding of the data to be stored.
-        name:
+              description: Optional parameter to identify the stored attribute.
+        data:
           type: string
-          description: |
-            User defined name to better display the attribute type on Frontend
-            UI.
-          example: Verifiable ID
+          description: base64url encoding of the data to be stored
       required:
-        - id
-        - type
+        - storageUri
         - data
-        - name
-    SessionsRequest:
-      description: Request for OAuth 2.0 JWT bearer assertion grant.
-      required:
-        - grantType
-        - assertion
-      type: object
-      properties:
-        grantType:
-          description: |
-            OAuth 2.0 grant type. Must be set to
-            "urn:ietf:params:oauth:grant-type:jwt-bearer"
-          type: string
-          example: "urn:ietf:params:oauth:grant-type:jwt-bearer"
-        assertion:
-          type: string
-          description: Self-signed JWT
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-    SessionsResponse:
-      type: object
-      properties:
-        accessToken:
-          description: Token to access the api
-          type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-        tokenType:
-          description: Token type
-          type: string
-          example: Bearer
-        expiresIn:
-          description: JWT token expiration time in seconds
-          type: integer
-          example: 900
-        issuedAt:
-          description: "Time at which the JWT was issued. Format: unix timestamp"
-          type: string
-          example: "1467841035013"
     Problem:
       description: A Problem Details object (RFC 7807)
       type: object
@@ -592,21 +509,11 @@ components:
       description: links model used for pagination
       x-examples:
         links example:
-          first: "/identity-hub/v1/attributes?page[after]=0&page[size]=2"
-          prev: "/identity-hub/v1/attributes?page[after]=2&page[size]=2"
-          next: "/identity-hub/v1/attributes?page[after]=4&page[size]=2"
-          last: "/identity-hub/v1/attributes?page[after]=13&page[size]=2"
+          first: "/proxy-data-hub/v2/attributes?page[after]=0&page[size]=2"
+          prev: "/proxy-data-hub/v2/attributes?page[after]=2&page[size]=2"
+          next: "/proxy-data-hub/v2/attributes?page[after]=4&page[size]=2"
+          last: "/proxy-data-hub/v2/attributes?page[after]=13&page[size]=2"
   examples:
-    BadRequest:
-      value:
-        title: Bad Request
-        status: 400
-        detail: Bad request.
-    ExpiredToken:
-      value:
-        title: Token Expired
-        status: 400
-        detail: The token has expired.
     Forbidden:
       value:
         title: Forbidden
@@ -617,11 +524,6 @@ components:
         title: Unauthorized
         status: 401
         detail: You are not authorized to access the resources.
-    IssuerNotFound:
-      value:
-        title: Issuer Not Found
-        status: 400
-        detail: Issuer not found in the list of trusted apps.
     InternalError:
       value:
         title: Internal Server Error
