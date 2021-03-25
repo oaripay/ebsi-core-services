@@ -78,7 +78,7 @@ describe("Attributes", () => {
           "storageUri must be a string",
           "did must be a valid DID string",
           "visibility must be one of the following values: private, shared",
-          "contentType must be a string",
+          "contentType must be MIME type format",
           "data must be base64url encoded",
           "dataLabel must be a string",
           "proof must be an object",
@@ -153,6 +153,55 @@ describe("Attributes", () => {
         hash,
       });
       expect(response.status).toBe(200);
+    });
+  });
+
+  describe("DELETE /attributes", () => {
+    it("should throw not found for delete attribute", async () => {
+      expect.assertions(2);
+      const hash = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      const response = await request(server)
+        .delete(`/attributes/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        title: "Attribute Not Found",
+        status: 404,
+        type: "about:blank",
+        detail: `Attribute ${hash} for did ${did} not found`,
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should delete an attribute", async () => {
+      expect.assertions(2);
+
+      // insert attribute
+      const attribute = {
+        storageUri: "http://localhost:3000",
+        did,
+        visibility: "private",
+        contentType: "application/json+ld",
+        data: base64url.encode("encrypted data"),
+        dataLabel: "document",
+        proof: {},
+      };
+
+      const responseInsert = await request(server)
+        .post("/attributes")
+        .auth(validToken, { type: "bearer" })
+        .send(attribute);
+      const { hash } = responseInsert.body as { hash: string };
+
+      const response = await request(server)
+        .delete(`/attributes/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({});
+      expect(response.status).toBe(204);
     });
   });
 });

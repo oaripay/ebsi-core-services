@@ -1,4 +1,4 @@
-import { IsString, IsIn, IsObject } from "class-validator";
+import { IsString, IsIn, IsObject, IsMimeType } from "class-validator";
 import { IsBase64url, IsDid } from "../../../shared/validators";
 
 export class AttributeBodyDto {
@@ -11,7 +11,7 @@ export class AttributeBodyDto {
   @IsIn(["private", "shared"])
   visibility: string;
 
-  @IsString()
+  @IsMimeType()
   contentType: string;
 
   @IsBase64url()

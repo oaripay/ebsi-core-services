@@ -53,16 +53,16 @@ paths:
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                         did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
                         visibility: private
-                        metadata:
-                          id: cred-7ee0d94aab0e4f36eae85127056de084
+                        contentType: application/json+ld
                         data: "<bytes for base64url>"
+                        dataLabel: document
                       - storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                         did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
                         visibility: private
-                        metadata:
-                          id: cred-7ee0d94aab0e4f36eae85127056de084
+                        contentType: application/json+ld
                         data: "<bytes for base64url>"
+                        dataLabel: document
                     total: 13
                     pageSize: 2
                     links:
@@ -125,8 +125,7 @@ paths:
           in: query
           name: "page[size]"
           description: Defines the maximum number of objects that may be returned.
-  "/proxy-data-hub/v2/attributes/{hash}":
-    put:
+    post:
       tags:
         - Proxy Data Hub
       summary: Store attributes.
@@ -142,9 +141,11 @@ paths:
                 value:
                   storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                   visibility: private
-                  metadata:
-                    id: cred-7ee0d94aab0e4f36eae85127056de084
+                  did: did:ebsi:0x1234567890
+                  contentType: application/json+ld
+                  dataLabel: document
                   data: "<bytes for base64url>"
+                  proof: {}
         required: true
       responses:
         "200":
@@ -160,8 +161,8 @@ paths:
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
                     visibility: private
-                    metadata:
-                      id: cred-7ee0d94aab0e4f36eae85127056de084
+                    contentType: application/json+ld
+                    dataLabel: document
                     data: "<bytes for base64url>"
         "201":
           description: Create a new attribute
@@ -176,8 +177,8 @@ paths:
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
                     visibility: private
-                    metadata:
-                      id: cred-7ee0d94aab0e4f36eae85127056de084
+                    contentType: application/json+ld
+                    dataLabel: document
                     data: "<bytes for base64url>"
         "400":
           description: Unformatted error
@@ -220,7 +221,8 @@ paths:
                   $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
-      operationId: put-proxy-data-hub-v2-attributes-hash
+      operationId: post-proxy-data-hub-v2-attributes-hash
+  "/proxy-data-hub/v2/attributes/{hash}":
     parameters:
       - name: hash
         in: path
@@ -248,8 +250,8 @@ paths:
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
                     visibility: private
-                    metadata:
-                      id: cred-7ee0d94aab0e4f36eae85127056de084
+                    contentType: application/json+ld
+                    dataLabel: document
                     data: "<bytes for base64url>"
         "400":
           description: Unformatted error
@@ -367,14 +369,6 @@ paths:
       description: Deletes an attribute by hash.
       security:
         - bearerAuth: []
-      parameters:
-        - name: hash
-          in: path
-          schema:
-            type: string
-            example: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-          required: true
-          description: Hash of the attribute.
 components:
   schemas:
     Attribute:
@@ -386,8 +380,8 @@ components:
           hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
           did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
           visibility: private
-          metadata:
-            id: cred-7ee0d94aab0e4f36eae85127056de084
+          contentType: application/json+ld
+          dataLabel: document
           data: "<bytes for base64url>"
       title: Attribute
       properties:
@@ -407,52 +401,57 @@ components:
           type: string
           enum: [private, shared]
           description: Access of the data to be stored. Options are private (only visible for the owner) or shared (visible for everyone)
-        metadata:
-          type: object
-          description: JSON object for the metadata of the data to be stored
-          properties:
-            id:
-              type: string
-              description: Optional parameter to identify the stored attribute
+        contentType:
+          type: string
+          description: Content type representing the format of the data registered on the Hub
+        dataLabel:
+          type: string
+          description: Label to be added to the stored data to describe some extra information about the data being stored
         data:
           type: string
           description: base64url encoding of the data to be stored
-      required:
-        - storageUri
-        - hash
-        - data
     AttributeRequest:
       type: object
       description: Identity Attribute request for creation
       example:
         Attribute request example:
           storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+          did: did:ebsi:0x1234567890
           visibility: private
-          metadata:
-            id: cred-7ee0d94aab0e4f36eae85127056de084
+          contentType: application/json+ld
+          dataLabel: document
           data: "<bytes for base64url>"
+          proof: {}
       title: Attribute Request
       properties:
         storageUri:
           type: string
           description: URI of the Proxy Data Hub Storage to access
           example: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+        did:
+          type: string
+          description: User Decentralized Identifier
+          example: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
         visibility:
           type: string
           enum: [private, shared]
           description: Access of the data to be stored. Options are private (only visible for the owner) or shared (visible for everyone)
-        metadata:
-          type: object
-          description: JSON object for the metadata of the data to be stored
-          properties:
-            id:
-              type: string
-              description: Optional parameter to identify the stored attribute.
+        contentType:
+          type: string
+          description: Content type representing the format of the data registered on the Hub
+        dataLabel:
+          type: string
+          description: Label to be added to the stored data to describe some extra information about the data being stored
         data:
           type: string
           description: base64url encoding of the data to be stored
+        proof:
+          type: object
+          description: JSON-LD Proof of the request to add an attribute or update its label.
       required:
         - storageUri
+        - did
+        - contentType
         - data
     Problem:
       description: A Problem Details object (RFC 7807)

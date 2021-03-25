@@ -85,6 +85,14 @@ export class AttributesService {
       hash,
     };
   }
+
+  async deleteAttribute(hash: string, did: string): Promise<void> {
+    await this.storageJsonrpc([
+      "delete from attribute_storage where hash = ? and did = ?",
+      hash,
+      did,
+    ]);
+  }
 }
 
 export default { AttributesService };

@@ -1,14 +1,26 @@
-import { Controller, Response, Post, Body, UseGuards } from "@nestjs/common";
+import {
+  Controller,
+  Response,
+  Post,
+  Delete,
+  Body,
+  UseGuards,
+  HttpCode,
+  Param,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { FastifyReply } from "fastify";
 import crypto from "crypto";
-import { BadRequestError } from "@cef-ebsi/problem-details-errors";
+import {
+  BadRequestError,
+  NotFoundError,
+} from "@cef-ebsi/problem-details-errors";
 import { AttributesService } from "./attributes.service";
 import { AttributeResponseObject } from "./attributes.interface";
 import { ApiConfig } from "../../config/configuration";
 import { JwtAuthGuard } from "../auth/guards";
 import { User, UserInfo } from "../auth/decorators";
-import { AttributeBodyDto } from "./dto";
+import { AttributeBodyDto, AttributeHashDto } from "./dto";
 
 @Controller("/attributes")
 export default class AttributesController {
@@ -19,7 +31,7 @@ export default class AttributesController {
 
   @UseGuards(JwtAuthGuard)
   @Post("/")
-  async putAttribute(
+  async insertAttribute(
     @Body() body: AttributeBodyDto,
     @User() user: UserInfo,
     @Response() res: FastifyReply
@@ -45,5 +57,21 @@ export default class AttributesController {
 
     const attribute = await this.attributesService.insertAttribute(hash, body);
     return res.code(201).type("application/json").send(attribute);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(204)
+  @Delete("/:hash")
+  async deleteAttribute(
+    @Param() params: AttributeHashDto,
+    @User() user: UserInfo
+  ): Promise<void> {
+    const { hash } = params;
+    if (!(await this.attributesService.existAttribute(hash, user.did))) {
+      throw new NotFoundError("Attribute Not Found", {
+        detail: `Attribute ${hash} for did ${user.did} not found`,
+      });
+    }
+    await this.attributesService.deleteAttribute(hash, user.did);
   }
 }

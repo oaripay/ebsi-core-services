@@ -103,7 +103,7 @@ describe("Attributes Module", () => {
           "storageUri must be a string",
           "did must be a valid DID string",
           "visibility must be one of the following values: private, shared",
-          "contentType must be a string",
+          "contentType must be MIME type format",
           "data must be base64url encoded",
           "dataLabel must be a string",
           "proof must be an object",
@@ -293,6 +293,108 @@ describe("Attributes Module", () => {
         hash: expect.any(String) as string,
       });
       expect(response.status).toBe(200);
+    });
+  });
+
+  describe("DELETE /attributes", () => {
+    it("should throw not found for delete attribute", async () => {
+      expect.assertions(3);
+      const hash = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      mockAxios.mockImplementation(async () => {
+        return Promise.resolve({
+          data: { result: { rows: [] } },
+        });
+      });
+
+      const response = await request(server)
+        .delete(`/attributes/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        5,
+        ...[
+          expect.stringContaining("/distributed/jsonrpc"),
+          expect.objectContaining({
+            id: expect.any(Number) as number,
+            jsonrpc: "2.0",
+            method: "cassandra_call",
+            params: [
+              "select did from attribute_storage where hash = ? and did = ?",
+              hash,
+              did,
+            ],
+          }),
+        ]
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Attribute Not Found",
+        status: 404,
+        type: "about:blank",
+        detail: `Attribute ${hash} for did ${did} not found`,
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should delete an attribute", async () => {
+      expect.assertions(4);
+      const hash = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      mockAxios.mockImplementation(async (url: string, data: JsonrpcCall) => {
+        if (data.params[0].startsWith("select")) {
+          return Promise.resolve({
+            data: { result: { rows: ["existing attribute"] } },
+          });
+        }
+
+        return Promise.resolve({
+          data: { result: { rows: [] } },
+        });
+      });
+
+      const response = await request(server)
+        .delete(`/attributes/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        6,
+        ...[
+          expect.stringContaining("/distributed/jsonrpc"),
+          expect.objectContaining({
+            id: expect.any(Number) as number,
+            jsonrpc: "2.0",
+            method: "cassandra_call",
+            params: [
+              "select did from attribute_storage where hash = ? and did = ?",
+              hash,
+              did,
+            ],
+          }),
+        ]
+      );
+
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        7,
+        ...[
+          expect.stringContaining("/distributed/jsonrpc"),
+          expect.objectContaining({
+            id: expect.any(Number) as number,
+            jsonrpc: "2.0",
+            method: "cassandra_call",
+            params: [
+              "delete from attribute_storage where hash = ? and did = ?",
+              hash,
+              did,
+            ],
+          }),
+        ]
+      );
+
+      expect(response.body).toStrictEqual({});
+      expect(response.status).toBe(204);
     });
   });
 });
