@@ -42,13 +42,7 @@ export default function ModalInsertPublicKey(): ReactElement {
       okText="Save"
       onOk={() => {
         form
-          .validateFields([
-            "appId",
-            "publicKey",
-            "status",
-            "notBefore",
-            "notAfter",
-          ])
+          .validateFields(["publicKey", "status", "notBefore", "notAfter"])
           .then(() => {
             const fields = form.getFieldsValue([
               "appId",
@@ -58,21 +52,11 @@ export default function ModalInsertPublicKey(): ReactElement {
               "notAfter",
             ]);
 
-            let publicKeyFormatted;
-
-            try {
-              publicKeyFormatted = ethers.utils.formatBytes32String(
-                fields.publicKey
-              );
-            } catch (ex) {
-              publicKeyFormatted = fields.publicKey;
-            }
-
             const insertPubKeyFields: any = {
               ...fields,
+              publicKey: ethers.utils.toUtf8Bytes(fields.publicKey),
               notBefore: fields.notBefore.unix(),
               notAfter: fields.notAfter.unix(),
-              publicKey: publicKeyFormatted,
             };
 
             appCtx.setInsertPublicKeyModal({
@@ -125,18 +109,15 @@ export default function ModalInsertPublicKey(): ReactElement {
         <Form
           initialValues={{
             status: 1,
+            appId: appCtx.insertPublicKeyModal.data?.appId,
           }}
           layout="vertical"
           form={form}
         >
           <Row>
             <Col lg={24}>
-              <Form.Item
-                label="APP Id"
-                name="appId"
-                rules={[{ required: true, message: "Please input app id!" }]}
-              >
-                <Input />
+              <Form.Item label="APP Id" name="appId">
+                <Input disabled />
               </Form.Item>
             </Col>
           </Row>
