@@ -34,8 +34,9 @@ import {
   RevokeDidControllerParam,
   InsertDidMethodParam,
   UpdateDidMethodParam,
-  AppendDidDocumentVersionParam,
+  AppendDidDocumentVersionHashParam,
   DetachDidDocumentVersionParam,
+  AppendDidDocumentVersionMetadataParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -65,8 +66,9 @@ type JsonRpcParams =
   | RevokeDidControllerParam
   | InsertDidMethodParam
   | UpdateDidMethodParam
-  | AppendDidDocumentVersionParam
-  | DetachDidDocumentVersionParam;
+  | AppendDidDocumentVersionHashParam
+  | DetachDidDocumentVersionParam
+  | AppendDidDocumentVersionMetadataParam;
 
 interface DidDocumentDataset {
   didDocument: { [x: string]: unknown };
@@ -492,8 +494,9 @@ describe("JsonRpc Module", () => {
     "insertDidMethod",
     "updateDidMethod",
     "appendDidDocumentVersionHash",
-    "appendDidDocumentVersionHash(with optional params)",
     "detachDidDocumentVersionHash",
+    "appendDidDocumentVersionMetadata",
+    "appendDidDocumentVersionHash(with optional params)",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const withOptionalParams = testMethod.includes("(with optional params)");
@@ -727,7 +730,7 @@ describe("JsonRpc Module", () => {
             ...(withOptionalParams && {
               timestampData,
             }),
-          } as AppendDidDocumentVersionParam;
+          } as AppendDidDocumentVersionHashParam;
 
           break;
         }
@@ -747,6 +750,27 @@ describe("JsonRpc Module", () => {
             hashValue: canonizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
+
+          break;
+        }
+        case "appendDidDocumentVersionMetadata": {
+          const {
+            didDocumentBuffer,
+            didVersionMetadataBuffer,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
+
+          param = {
+            from: signer.address,
+            identifier,
+            didVersionInfo,
+            didVersionMetadata,
+          } as AppendDidDocumentVersionMetadataParam;
 
           break;
         }
@@ -999,7 +1023,7 @@ describe("JsonRpc Module", () => {
             ...(withOptionalParams && {
               timestampData,
             }),
-          } as AppendDidDocumentVersionParam;
+          } as AppendDidDocumentVersionHashParam;
 
           break;
         }
@@ -1019,6 +1043,27 @@ describe("JsonRpc Module", () => {
             hashValue: canonizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
+
+          break;
+        }
+        case "appendDidDocumentVersionMetadata": {
+          const {
+            didDocumentBuffer,
+            didVersionMetadataBuffer,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
+
+          param = {
+            from: signer.address,
+            identifier,
+            didVersionInfo,
+            didVersionMetadata,
+          } as AppendDidDocumentVersionMetadataParam;
 
           break;
         }
@@ -1456,7 +1501,7 @@ describe("JsonRpc Module", () => {
             hashValue: "0xnot-a-hash",
             didVersionInfo,
             timestampData,
-          } as AppendDidDocumentVersionParam;
+          } as AppendDidDocumentVersionHashParam;
 
           expectedErrorMessage1 =
             "property params[0].hashValue has failed the following constraints: isHexadecimal";
@@ -1470,7 +1515,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: "value" })
             ).toString("hex"),
             timestampData,
-          } as AppendDidDocumentVersionParam;
+          } as AppendDidDocumentVersionHashParam;
 
           expectedErrorMessage2 =
             "property params[0].didVersionInfo has failed the following constraints: IsHexadecimalJsonLdConstraint";
@@ -1482,7 +1527,7 @@ describe("JsonRpc Module", () => {
             hashValue: canonizedDidDocumentHash,
             didVersionInfo,
             timestampData: "1234ab",
-          } as AppendDidDocumentVersionParam;
+          } as AppendDidDocumentVersionHashParam;
 
           expectedErrorMessage3 =
             "property params[0].timestampData has failed the following constraints: isHexadecimalJson";
@@ -1532,6 +1577,54 @@ describe("JsonRpc Module", () => {
 
           expectedErrorMessage3 =
             "property params[0].hashAlgorithmId has failed the following constraints: min";
+
+          break;
+        }
+        case "appendDidDocumentVersionMetadata": {
+          const {
+            didDocumentBuffer,
+            didVersionMetadataBuffer,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
+
+          param1 = {
+            from: signer.address,
+            identifier: `0x${Buffer.from("did:ebsi:not-base-58").toString(
+              "hex"
+            )}`,
+            didVersionInfo,
+            didVersionMetadata,
+          } as AppendDidDocumentVersionMetadataParam;
+
+          expectedErrorMessage1 =
+            "property params[0].identifier has failed the following constraints: isHexadecimalBase58EbsiDid";
+
+          param2 = {
+            from: signer.address,
+            identifier,
+            didVersionInfo: Buffer.from(
+              JSON.stringify({ test: "value" })
+            ).toString("hex"),
+            didVersionMetadata,
+          } as AppendDidDocumentVersionMetadataParam;
+
+          expectedErrorMessage2 =
+            "property params[0].didVersionInfo has failed the following constraints: IsHexadecimalJsonLdConstraint";
+
+          param3 = {
+            from: signer.address,
+            identifier,
+            didVersionInfo,
+            didVersionMetadata: "0x",
+          } as AppendDidDocumentVersionMetadataParam;
+
+          expectedErrorMessage3 =
+            "property params[0].didVersionMetadata has failed the following constraints: isHexadecimalJson";
 
           break;
         }
@@ -1832,7 +1925,7 @@ describe("JsonRpc Module", () => {
             ...(withOptionalParams && {
               timestampData,
             }),
-          } as AppendDidDocumentVersionParam;
+          } as AppendDidDocumentVersionHashParam;
 
           param2 = {
             from: signer.address,
@@ -1843,7 +1936,7 @@ describe("JsonRpc Module", () => {
             ...(withOptionalParams && {
               timestampData,
             }),
-          } as AppendDidDocumentVersionParam;
+          } as AppendDidDocumentVersionHashParam;
 
           break;
         }
@@ -1871,6 +1964,38 @@ describe("JsonRpc Module", () => {
             hashValue: canonizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
+
+          break;
+        }
+        case "appendDidDocumentVersionMetadata": {
+          const {
+            didDocumentBuffer,
+            didVersionMetadataBuffer,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
+          const newControllerDid = createDid();
+          const tamperedIdentifier = `0x${Buffer.from(
+            newControllerDid
+          ).toString("hex")}`;
+
+          param1 = {
+            from: signer.address,
+            identifier,
+            didVersionInfo,
+            didVersionMetadata,
+          } as AppendDidDocumentVersionMetadataParam;
+
+          param2 = {
+            from: signer.address,
+            identifier: tamperedIdentifier,
+            didVersionInfo,
+            didVersionMetadata,
+          } as AppendDidDocumentVersionMetadataParam;
 
           break;
         }

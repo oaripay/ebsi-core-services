@@ -1,9 +1,9 @@
 import { IsEthereumAddress } from "class-validator";
 import { ArgsAppendDidDocumentVersionHash } from "../signedTransaction";
 
-export class AppendDidDocumentVersionParam extends ArgsAppendDidDocumentVersionHash {
+export class AppendDidDocumentVersionHashParam extends ArgsAppendDidDocumentVersionHash {
   @IsEthereumAddress()
   from: string;
 }
 
-export default { AppendDidDocumentVersionParam };
+export default { AppendDidDocumentVersionHashParam };

@@ -30,8 +30,9 @@ import {
   RevokeDidControllerParam,
   UpdateDidDocumentParam,
   UpdateDidMethodParam,
-  AppendDidDocumentVersionParam,
+  AppendDidDocumentVersionHashParam,
   DetachDidDocumentVersionParam,
+  AppendDidDocumentVersionMetadataParam,
   UpdateDidControllerParam,
 } from "../../src/modules/jsonrpc/dto";
 
@@ -41,8 +42,9 @@ type JsonRpcParams =
   | RevokeDidControllerParam
   | InsertDidMethodParam
   | UpdateDidMethodParam
-  | AppendDidDocumentVersionParam
+  | AppendDidDocumentVersionHashParam
   | DetachDidDocumentVersionParam
+  | AppendDidDocumentVersionMetadataParam
   | UpdateDidDocumentParam
   | UpdateDidControllerParam;
 
@@ -213,6 +215,7 @@ describe("DID Registry (e2e)", () => {
     "insertDidMethod",
     "appendDidDocumentVersionHash",
     "detachDidDocumentVersionHash",
+    "appendDidDocumentVersionMetadata",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
     it("should work", async () => {
       expect.assertions(5);
@@ -364,7 +367,7 @@ describe("DID Registry (e2e)", () => {
             hashValue: canonizedDidDocumentHash,
             didVersionInfo,
             timestampData,
-          } as AppendDidDocumentVersionParam;
+          } as AppendDidDocumentVersionHashParam;
           break;
         }
         case "detachDidDocumentVersionHash": {
@@ -383,6 +386,26 @@ describe("DID Registry (e2e)", () => {
             hashValue: canonizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
+          break;
+        }
+        case "appendDidDocumentVersionMetadata": {
+          const {
+            didDocumentBuffer,
+            didVersionMetadataBuffer,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
+
+          params = {
+            from: signer.address,
+            identifier,
+            didVersionInfo,
+            didVersionMetadata,
+          } as AppendDidDocumentVersionMetadataParam;
           break;
         }
         default:

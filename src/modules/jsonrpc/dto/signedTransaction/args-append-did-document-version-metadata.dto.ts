@@ -1,0 +1,23 @@
+import { IsOptional } from "class-validator";
+import {
+  IsHexadecimalBase58EbsiDid,
+  IsHexadecimalJson,
+  IsHexadecimalJsonLd,
+} from "../../validators";
+
+export class ArgsAppendDidDocumentVersionMetadata {
+  // Consumer calling function must convert Base58 DID identifier into bytes in hex format
+  @IsHexadecimalBase58EbsiDid()
+  identifier: string;
+
+  // Stringified JSON-LD DID Document(hex-encoded)
+  @IsHexadecimalJsonLd()
+  didVersionInfo: string;
+
+  // Stringified JSON (hex-encoded)
+  @IsOptional()
+  @IsHexadecimalJson()
+  didVersionMetadata?: string;
+}
+
+export default { ArgsAppendDidDocumentVersionMetadata };
