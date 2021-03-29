@@ -218,10 +218,11 @@ paths:
                   jsonrpc: "2.0"
                   method: "cassandra_call"
                   params:
-                    - "insert into attribute_storage (hash, did, visibility, content_type, data, data_label) values (?, ?, ?, ?, ?, ?)"
+                    - "insert into attribute_storage (hash, did, visibility, shared_with, content_type, data, data_label) values (?, ?, ?, ?, ?, ?, ?)"
                     - "0xaed15s2ed21258a2624d2a55de452faed15s2ed21258a2624d2a55de452f5412"
                     - "did:ebsi:0x14ec91AC9FFa3499bC6a418fc0A5B5531D1a20E3"
                     - "private"
+                    - ""
                     - "application/ld+json"
                     - "anVsaWFuIGdvbnphbGV6... (encrypted data)"
                     - "document"
@@ -234,14 +235,30 @@ paths:
                     - select * from attribute_storage where did = ? allow filtering
                     - did:ebsi:0xe08BbfED79c5D66b723086E9D28d70C0d12c9DB8
                   id: 1
+              Get Shared Attributes:
+                value:
+                  jsonrpc: "2.0"
+                  method: cassandra_call
+                  params:
+                    - select * from attribute_storage where shared_with = ? allow filtering
+                    - did:ebsi:0xe08BbfED79c5D66b723086E9D28d70C0d12c9DB8
+                  id: 1
+              Get Attributes with query options:
+                value:
+                  jsonrpc: "2.0"
+                  method: cassandra_call
+                  params:
+                    - select * from attribute_storage where did = ? allow filtering
+                    - did:ebsi:0xe08BbfED79c5D66b723086E9D28d70C0d12c9DB8
+                    - { fetchSize: 50, pageState: "abcdef" }
+                  id: 1
               Delete Attribute:
                 value:
                   jsonrpc: "2.0"
                   method: cassandra_call
                   params:
-                    - delete from attribute_storage where hash = ? and did = ?
+                    - delete from attribute_storage where hash = ?
                     - "0xaed15s2ed21258a2624d2a55de452faed15s2ed21258a2624d2a55de452f5412"
-                    - "did:ebsi:0x14ec91AC9FFa3499bC6a418fc0A5B5531D1a20E3"
                   id: 1
       responses:
         200:

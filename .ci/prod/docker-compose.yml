@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   storage-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/storage-api:prod_ebsiint-2912-query-options-jsonrpc_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/storage-api:prod_ebsiint-2924-attribute-hash-as-primary-key_v2.0.0
     build: ../..

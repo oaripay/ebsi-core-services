@@ -150,19 +150,20 @@ describe("JsonRpc Module", () => {
     ],
     [
       "select * from attribute_storage where did = ? allow filtering",
-      "0xaed15s2ed21258a2624d2a55de452faed15s2ed21258a2624d2a55de452f5412",
+      "did:ebsi:0xe08BbfED79c5D66b723086E9D28d70C0d12c9DB8",
+    ],
+    [
+      "select * from attribute_storage where shared_with = ? allow filtering",
       "did:ebsi:0xe08BbfED79c5D66b723086E9D28d70C0d12c9DB8",
     ],
     [
       "select * from attribute_storage where did = ? allow filtering",
-      "0xaed15s2ed21258a2624d2a55de452faed15s2ed21258a2624d2a55de452f5412",
       "did:ebsi:0xe08BbfED79c5D66b723086E9D28d70C0d12c9DB8",
       { fetchSize: 50, pageState: "0123456789abcdef" },
     ],
     [
-      "delete from attribute_storage where hash = ? and did = ?",
+      "delete from attribute_storage where hash = ?",
       "0xaed15s2ed21258a2624d2a55de452faed15s2ed21258a2624d2a55de452f5412",
-      "did:ebsi:0x14ec91AC9FFa3499bC6a418fc0A5B5531D1a20E3",
     ],
   ])("calling %j", (...args) => {
     it("should proxy a call to cassandra", async () => {

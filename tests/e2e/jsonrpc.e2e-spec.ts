@@ -111,15 +111,15 @@ describe("JsonRpc Module", () => {
     ],
     ["select * from attribute_storage where did = ? allow filtering", didUser],
     [
+      "select * from attribute_storage where shared_with = ? allow filtering",
+      didUser,
+    ],
+    [
       "select * from attribute_storage where did = ? allow filtering",
       didUser,
       { fetchSize: 50 },
     ],
-    [
-      "delete from attribute_storage where hash = ? and did = ?",
-      attributeHash,
-      didUser,
-    ],
+    ["delete from attribute_storage where hash = ?", attributeHash],
   ];
 
   describe.each(queries)("calling %j", (...args) => {

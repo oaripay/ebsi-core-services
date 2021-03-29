@@ -29,11 +29,15 @@ echo creating table notification_storage
 docker exec -t $CONTAINER bash -c "cqlsh -u cassandra -p cassandra -e \"create table $CASSANDRA_KEYSPACE.notification_storage (id uuid, sender text, receiver text, message text, primary key(id));\""
 
 echo creating table attribute_storage
-docker exec -t $CONTAINER bash -c "cqlsh -u cassandra -p cassandra -e \"create table $CASSANDRA_KEYSPACE.attribute_storage (hash text, did text, visibility text, content_type text, data text, data_label text, primary key(hash, did));\""
+docker exec -t $CONTAINER bash -c "cqlsh -u cassandra -p cassandra -e \"create table $CASSANDRA_KEYSPACE.attribute_storage (hash text, did text, visibility text, shared_with text, content_type text, data text, data_label text, primary key(hash));\""
 
 echo creating indexes
 echo notification_storage: creating index for receiver column
 docker exec -t $CONTAINER bash -c "cqlsh -u cassandra -p cassandra -e \"create index on $CASSANDRA_KEYSPACE.notification_storage (receiver);\""
+
+echo attribute_storage: creating index for columns did and shared_with
+docker exec -t $CONTAINER bash -c "cqlsh -u cassandra -p cassandra -e \"create index on $CASSANDRA_KEYSPACE.attribute_storage (did);\""
+docker exec -t $CONTAINER bash -c "cqlsh -u cassandra -p cassandra -e \"create index on $CASSANDRA_KEYSPACE.attribute_storage (shared_with);\""
 
 # PERMISSIONS
 
