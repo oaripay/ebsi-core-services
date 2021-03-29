@@ -33,6 +33,7 @@ import {
   AppendDidDocumentVersionHashParam,
   DetachDidDocumentVersionParam,
   AppendDidDocumentVersionMetadataParam,
+  DetachDidDocumentVersionMetadataParam,
   UpdateDidControllerParam,
 } from "../../src/modules/jsonrpc/dto";
 
@@ -45,6 +46,7 @@ type JsonRpcParams =
   | AppendDidDocumentVersionHashParam
   | DetachDidDocumentVersionParam
   | AppendDidDocumentVersionMetadataParam
+  | DetachDidDocumentVersionMetadataParam
   | UpdateDidDocumentParam
   | UpdateDidControllerParam;
 
@@ -216,6 +218,7 @@ describe("DID Registry (e2e)", () => {
     "appendDidDocumentVersionHash",
     "detachDidDocumentVersionHash",
     "appendDidDocumentVersionMetadata",
+    "detachDidDocumentVersionMetadata",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
     it("should work", async () => {
       expect.assertions(5);
@@ -388,7 +391,8 @@ describe("DID Registry (e2e)", () => {
           } as DetachDidDocumentVersionParam;
           break;
         }
-        case "appendDidDocumentVersionMetadata": {
+        case "appendDidDocumentVersionMetadata":
+        case "detachDidDocumentVersionMetadata": {
           const {
             didDocumentBuffer,
             didVersionMetadataBuffer,

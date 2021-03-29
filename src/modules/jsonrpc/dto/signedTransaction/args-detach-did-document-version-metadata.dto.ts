@@ -4,7 +4,7 @@ import {
   IsHexadecimalJsonLd,
 } from "../../validators";
 
-export class ArgsAppendDidDocumentVersionMetadata {
+export class ArgsDetachDidDocumentVersionMetadata {
   // Consumer calling function must convert Base58 DID identifier into bytes in hex format
   @IsHexadecimalBase58EbsiDid()
   identifier: string;
@@ -18,4 +18,4 @@ export class ArgsAppendDidDocumentVersionMetadata {
   didVersionMetadata: string;
 }
 
-export default { ArgsAppendDidDocumentVersionMetadata };
+export default { ArgsDetachDidDocumentVersionMetadata };

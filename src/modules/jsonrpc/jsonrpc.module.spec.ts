@@ -37,6 +37,7 @@ import {
   AppendDidDocumentVersionHashParam,
   DetachDidDocumentVersionParam,
   AppendDidDocumentVersionMetadataParam,
+  DetachDidDocumentVersionMetadataParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -68,7 +69,8 @@ type JsonRpcParams =
   | UpdateDidMethodParam
   | AppendDidDocumentVersionHashParam
   | DetachDidDocumentVersionParam
-  | AppendDidDocumentVersionMetadataParam;
+  | AppendDidDocumentVersionMetadataParam
+  | DetachDidDocumentVersionMetadataParam;
 
 interface DidDocumentDataset {
   didDocument: { [x: string]: unknown };
@@ -494,9 +496,10 @@ describe("JsonRpc Module", () => {
     "insertDidMethod",
     "updateDidMethod",
     "appendDidDocumentVersionHash",
+    "appendDidDocumentVersionHash(with optional params)",
     "detachDidDocumentVersionHash",
     "appendDidDocumentVersionMetadata",
-    "appendDidDocumentVersionHash(with optional params)",
+    "detachDidDocumentVersionMetadata",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const withOptionalParams = testMethod.includes("(with optional params)");
@@ -774,6 +777,27 @@ describe("JsonRpc Module", () => {
 
           break;
         }
+        case "detachDidDocumentVersionMetadata": {
+          const {
+            didDocumentBuffer,
+            didVersionMetadataBuffer,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+            "hex"
+          )}`;
+
+          param = {
+            from: signer.address,
+            identifier,
+            didVersionInfo,
+            didVersionMetadata,
+          } as DetachDidDocumentVersionMetadataParam;
+
+          break;
+        }
         default: {
           throw new Error(`Test Error: Invalid method ${method}`);
         }
@@ -1046,7 +1070,8 @@ describe("JsonRpc Module", () => {
 
           break;
         }
-        case "appendDidDocumentVersionMetadata": {
+        case "appendDidDocumentVersionMetadata":
+        case "detachDidDocumentVersionMetadata": {
           const {
             didDocumentBuffer,
             didVersionMetadataBuffer,
@@ -1580,7 +1605,8 @@ describe("JsonRpc Module", () => {
 
           break;
         }
-        case "appendDidDocumentVersionMetadata": {
+        case "appendDidDocumentVersionMetadata":
+        case "detachDidDocumentVersionMetadata": {
           const {
             didDocumentBuffer,
             didVersionMetadataBuffer,
@@ -1967,7 +1993,8 @@ describe("JsonRpc Module", () => {
 
           break;
         }
-        case "appendDidDocumentVersionMetadata": {
+        case "appendDidDocumentVersionMetadata":
+        case "detachDidDocumentVersionMetadata": {
           const {
             didDocumentBuffer,
             didVersionMetadataBuffer,

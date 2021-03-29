@@ -21,6 +21,7 @@ import {
   RequestAppendDidDocumentVersionHashDto,
   RequestDetachDidDocumentVersionHashDto,
   RequestAppendDidDocumentVersionMetadataDto,
+  RequestDetachDidDocumentVersionMetadataDto,
 } from "./dto";
 
 function jsonRpcResponse(
@@ -147,6 +148,13 @@ export default class AppController {
       case "appendDidDocumentVersionMetadata": {
         const transaction = await this.jsonRpcService.buildTransactionAppendDidMethodVersionMetadata(
           body as RequestAppendDidDocumentVersionMetadataDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "detachDidDocumentVersionMetadata": {
+        const transaction = await this.jsonRpcService.buildTransactionDetachDidMethodVersionMetadata(
+          body as RequestDetachDidDocumentVersionMetadataDto,
           id
         );
         return jsonRpcResponse(transaction, id);

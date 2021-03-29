@@ -3,6 +3,7 @@ export * from "./signedTransaction";
 export * from "./appendDidDocumentVersionHash";
 export * from "./appendDidDocumentVersionMetadata";
 export * from "./detachDidDocumentVersionHash";
+export * from "./detachDidDocumentVersionMetadata";
 export * from "./insertAdministrator";
 export * from "./insertDidController";
 export * from "./insertDidDocument";
