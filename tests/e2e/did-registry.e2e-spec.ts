@@ -30,6 +30,7 @@ import {
   RevokeDidControllerParam,
   UpdateDidControllerParam,
   UpdateDidDocumentParam,
+  UpdateDidMethodParam,
 } from "../../src/modules/jsonrpc/dto";
 
 type JsonRpcParams =
@@ -38,7 +39,8 @@ type JsonRpcParams =
   | InsertDidControllerParam
   | UpdateDidControllerParam
   | RevokeDidControllerParam
-  | InsertDidMethodParam;
+  | InsertDidMethodParam
+  | UpdateDidMethodParam;
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -57,6 +59,7 @@ interface DidDocumentDataset {
 }
 
 interface DidMethodDataset {
+  methodName: string;
   didMethods: { [x: string]: unknown }[];
   didMethodsBuffer: Buffer[];
   canonizedDidMethods: string[];
@@ -126,6 +129,7 @@ describe("DID Registry (e2e)", () => {
   };
 
   const createDidMethod = async (): Promise<DidMethodDataset> => {
+    const methodName = `did:ebsi-${crypto.randomBytes(8).toString("hex")}`;
     const rand1 = crypto.randomBytes(32).toString("hex");
     const rand2 = crypto.randomBytes(32).toString("hex");
     const didMethod = {
@@ -150,6 +154,7 @@ describe("DID Registry (e2e)", () => {
     );
 
     return {
+      methodName,
       didMethods: [didMethod],
       didMethodsBuffer: [didMethodBuffer],
       canonizedDidMethods: [canonizedDidMethod],
@@ -306,7 +311,7 @@ describe("DID Registry (e2e)", () => {
         case "insertDidMethod": {
           params = {
             from: signer.address,
-            methodName: "did:ebsi",
+            methodName: didMethod.methodName,
             ledgerName: "ebsi-besu",
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
@@ -316,6 +321,22 @@ describe("DID Registry (e2e)", () => {
             notAfter: 3232818053700,
             status: 1,
           } as InsertDidMethodParam;
+
+          break;
+        }
+        case "updateDidMethod": {
+          params = {
+            from: signer.address,
+            methodName: didMethod.methodName,
+            ledgerName: "ebsi-besu-2",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 1,
+          } as UpdateDidMethodParam;
 
           break;
         }

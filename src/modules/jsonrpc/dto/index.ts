@@ -10,5 +10,6 @@ export * from "./revokeDidController";
 export * from "./updateAdministrator";
 export * from "./updateDidController";
 export * from "./updateDidDocument";
+export * from "./updateDidMethod";
 export * from "./updateHashAlgorithm";
 export * from "./updatePolicy";

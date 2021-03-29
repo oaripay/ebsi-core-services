@@ -8,6 +8,7 @@ export * from "./args-revoke-did-controller.dto";
 export * from "./args-update-administrator.dto";
 export * from "./args-update-did-controller.dto";
 export * from "./args-update-did-document.dto";
+export * from "./args-update-did-method.dto";
 export * from "./args-update-hash-algorithm.dto";
 export * from "./args-update-policy.dto";
 export * from "./request-signed-transaction.dto";

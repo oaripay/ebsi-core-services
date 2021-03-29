@@ -33,6 +33,7 @@ import {
   UpdateDidControllerParam,
   RevokeDidControllerParam,
   InsertDidMethodParam,
+  UpdateDidMethodParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -60,7 +61,8 @@ type JsonRpcParams =
   | InsertDidControllerParam
   | UpdateDidControllerParam
   | RevokeDidControllerParam
-  | InsertDidMethodParam;
+  | InsertDidMethodParam
+  | UpdateDidMethodParam;
 
 interface DidDocumentDataset {
   didDocument: { [x: string]: unknown };
@@ -484,6 +486,7 @@ describe("JsonRpc Module", () => {
     "updateDidController",
     "revokeDidController",
     "insertDidMethod",
+    "updateDidMethod",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
@@ -675,6 +678,22 @@ describe("JsonRpc Module", () => {
             notAfter: 3232818053700,
             status: 1,
           } as InsertDidMethodParam;
+
+          break;
+        }
+        case "updateDidMethod": {
+          param = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu-2",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 1,
+          } as UpdateDidMethodParam;
 
           break;
         }
@@ -888,6 +907,22 @@ describe("JsonRpc Module", () => {
             notAfter: 3232818053700,
             status: 1,
           } as InsertDidMethodParam;
+
+          break;
+        }
+        case "updateDidMethod": {
+          param = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu-2",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 1,
+          } as UpdateDidMethodParam;
 
           break;
         }
@@ -1258,6 +1293,55 @@ describe("JsonRpc Module", () => {
 
           break;
         }
+        case "updateDidMethod": {
+          param1 = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu-2",
+            methodSpec: ["0x"],
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 1,
+          } as UpdateDidMethodParam;
+
+          expectedErrorMessage1 =
+            "property params[0].methodSpec has failed the following constraints: IsHexadecimalJsonLdConstraint";
+
+          param2 = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu2",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 4,
+          } as UpdateDidMethodParam;
+
+          expectedErrorMessage2 =
+            "property params[0].status has failed the following constraints: max";
+
+          param3 = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu2",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: -1,
+            status: 1,
+          } as UpdateDidMethodParam;
+
+          expectedErrorMessage3 =
+            "property params[0].notAfter has failed the following constraints: min";
+
+          break;
+        }
         default: {
           throw new Error(`Test Error: Invalid method ${method}`);
         }
@@ -1503,6 +1587,35 @@ describe("JsonRpc Module", () => {
             notAfter: 3232818053700,
             status: 2,
           } as InsertDidMethodParam;
+
+          break;
+        }
+        case "updateDidMethod": {
+          param1 = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu-2",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 1,
+          } as UpdateDidMethodParam;
+
+          param2 = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu-xx",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 1,
+          } as UpdateDidMethodParam;
 
           break;
         }

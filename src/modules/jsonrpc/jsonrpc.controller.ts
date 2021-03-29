@@ -17,6 +17,7 @@ import {
   RequestUpdateDidControllerDto,
   RequestRevokeDidControllerDto,
   RequestInsertDidMethodDto,
+  RequestUpdateDidMethodDto,
 } from "./dto";
 
 function jsonRpcResponse(
@@ -115,6 +116,13 @@ export default class AppController {
       case "insertDidMethod": {
         const transaction = await this.jsonRpcService.buildTransactionInsertDidMethod(
           body as RequestInsertDidMethodDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "updateDidMethod": {
+        const transaction = await this.jsonRpcService.buildTransactionUpdateDidMethod(
+          body as RequestUpdateDidMethodDto,
           id
         );
         return jsonRpcResponse(transaction, id);
