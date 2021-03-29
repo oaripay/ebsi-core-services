@@ -28,6 +28,8 @@ import {
   ArgsUpdateDidController,
   RequestRevokeDidControllerDto,
   ArgsRevokeDidController,
+  RequestInsertDidMethodDto,
+  ArgsInsertDidMethod,
 } from "./dto";
 import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
@@ -62,10 +64,6 @@ export class JsonRpcService {
       this.chainId = ethers.BigNumber.from(chainId).toHexString();
     }
     return this.chainId;
-  }
-
-  async getBlockNumber(): Promise<number> {
-    return this.didRegistryContract.provider.getBlockNumber();
   }
 
   async callBesuAuth(method: string, params: unknown[]): Promise<unknown> {
@@ -249,6 +247,13 @@ export class JsonRpcService {
         await validateClass(
           ArgsRevokeDidController,
           (args as unknown) as ArgsRevokeDidController
+        );
+        break;
+      }
+      case "insertDidMethod": {
+        await validateClass(
+          ArgsInsertDidMethod,
+          (args as unknown) as ArgsInsertDidMethod
         );
         break;
       }
@@ -594,6 +599,44 @@ export class JsonRpcService {
       const data = this.didRegistryContract.interface.encodeFunctionData(
         "revokeDidController",
         [identifier, oldControllerId]
+      );
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertDidMethod(
+    body: RequestInsertDidMethodDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertDidMethodDto, body);
+
+      const {
+        from,
+        methodName,
+        ledgerName,
+        methodSpec,
+        methodSpecHash,
+        notBefore,
+        notAfter,
+        status,
+      } = body.params[0];
+
+      const data = this.didRegistryContract.interface.encodeFunctionData(
+        "insertDidMethod",
+        [
+          methodName,
+          ledgerName,
+          methodSpec,
+          methodSpecHash,
+          notBefore,
+          notAfter,
+          status,
+        ]
       );
       return await this.buildTransaction(from, data);
     } catch (err) {

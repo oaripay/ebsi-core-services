@@ -32,6 +32,7 @@ import {
   UpdateDidDocumentParam,
   UpdateDidControllerParam,
   RevokeDidControllerParam,
+  InsertDidMethodParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -58,7 +59,8 @@ type JsonRpcParams =
   | UpdateDidDocumentParam
   | InsertDidControllerParam
   | UpdateDidControllerParam
-  | RevokeDidControllerParam;
+  | RevokeDidControllerParam
+  | InsertDidMethodParam;
 
 interface DidDocumentDataset {
   didDocument: { [x: string]: unknown };
@@ -68,6 +70,14 @@ interface DidDocumentDataset {
   canonizedDidDocumentHash: string;
   timestampDataBuffer: Buffer;
   didVersionMetadataBuffer: Buffer;
+}
+
+interface DidMethodDataset {
+  didMethods: { [x: string]: unknown }[];
+  didMethodsBuffer: Buffer[];
+  canonizedDidMethods: string[];
+  canonizedDidMethodsBuffer: Buffer[];
+  canonizedDidMethodsHash: string[];
 }
 
 jest.setTimeout(120000);
@@ -178,9 +188,42 @@ describe("JsonRpc Module", () => {
     };
   };
 
+  const createDidMethod = async (): Promise<DidMethodDataset> => {
+    const didMethod = {
+      "@context": "https://json-ld.org/contexts/person.jsonld",
+      "@id": "http://dbpedia.org/resource/John_Lennon",
+      name: "John Lennon",
+      born: "1940-10-09",
+      spouse: "http://dbpedia.org/resource/Cynthia_Lennon",
+    };
+
+    const didMethodBuffer = Buffer.from(JSON.stringify(didMethod));
+
+    // Canonize DID Method
+    const canonizedDidMethod = await canonize(didMethod, {
+      algorithm: "URDNA2015",
+      format: "application/n-quads",
+    });
+
+    const canonizedDidMethodBuffer = Buffer.from(canonizedDidMethod);
+    const canonizedDidMethodHash = ethers.utils.sha256(
+      canonizedDidMethodBuffer
+    );
+
+    return {
+      didMethods: [didMethod],
+      didMethodsBuffer: [didMethodBuffer],
+      canonizedDidMethods: [canonizedDidMethod],
+      canonizedDidMethodsBuffer: [canonizedDidMethodBuffer],
+      canonizedDidMethodsHash: [canonizedDidMethodHash],
+    };
+  };
+
   let didDocument: DidDocumentDataset;
   let updatedDidDocument: DidDocumentDataset;
   const controllers: ethers.Wallet[] = [];
+
+  let didMethod: DidMethodDataset;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -245,6 +288,7 @@ describe("JsonRpc Module", () => {
 
     didDocument = await createDidDocument(controllerDid);
     updatedDidDocument = await createDidDocument(controllerDid);
+    didMethod = await createDidMethod();
   });
 
   afterAll(async () => {
@@ -439,6 +483,7 @@ describe("JsonRpc Module", () => {
     "insertDidController",
     "updateDidController",
     "revokeDidController",
+    "insertDidMethod",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
@@ -614,6 +659,22 @@ describe("JsonRpc Module", () => {
             identifier,
             oldControllerId: controllers[controllers.length - 1].address,
           } as RevokeDidControllerParam;
+
+          break;
+        }
+        case "insertDidMethod": {
+          param = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 1,
+          } as InsertDidMethodParam;
 
           break;
         }
@@ -811,6 +872,22 @@ describe("JsonRpc Module", () => {
             identifier,
             oldControllerId: controllerId,
           } as RevokeDidControllerParam;
+
+          break;
+        }
+        case "insertDidMethod": {
+          param = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 1,
+          } as InsertDidMethodParam;
 
           break;
         }
@@ -1132,6 +1209,55 @@ describe("JsonRpc Module", () => {
             "property params[0].oldControllerId has failed the following constraints: isEthereumAddress";
           break;
         }
+        case "insertDidMethod": {
+          param1 = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu",
+            methodSpec: ["0x"],
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 1,
+          } as InsertDidMethodParam;
+
+          expectedErrorMessage1 =
+            "property params[0].methodSpec has failed the following constraints: IsHexadecimalJsonLdConstraint";
+
+          param2 = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 4,
+          } as InsertDidMethodParam;
+
+          expectedErrorMessage2 =
+            "property params[0].status has failed the following constraints: max";
+
+          param3 = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: -1,
+            status: 2,
+          } as InsertDidMethodParam;
+
+          expectedErrorMessage3 =
+            "property params[0].notAfter has failed the following constraints: min";
+
+          break;
+        }
         default: {
           throw new Error(`Test Error: Invalid method ${method}`);
         }
@@ -1348,6 +1474,35 @@ describe("JsonRpc Module", () => {
             identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
             oldControllerId: ethers.Wallet.createRandom().address,
           } as RevokeDidControllerParam;
+
+          break;
+        }
+        case "insertDidMethod": {
+          param1 = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 1,
+          } as InsertDidMethodParam;
+
+          param2 = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 2,
+          } as InsertDidMethodParam;
 
           break;
         }

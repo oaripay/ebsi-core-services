@@ -26,6 +26,8 @@ import {
   RequestUpdateDidControllerDto,
   ArgsRevokeDidController,
   RequestRevokeDidControllerDto,
+  ArgsInsertDidMethod,
+  RequestInsertDidMethodDto,
 } from "./dto";
 
 export function formatEthersUnsignedTransaction(
@@ -80,7 +82,9 @@ type JsonRpcDtos =
   | ArgsUpdateDidController
   | RequestUpdateDidControllerDto
   | ArgsRevokeDidController
-  | RequestRevokeDidControllerDto;
+  | RequestRevokeDidControllerDto
+  | ArgsInsertDidMethod
+  | RequestInsertDidMethodDto;
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,

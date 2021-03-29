@@ -3,6 +3,7 @@ export * from "./signedTransaction";
 export * from "./insertAdministrator";
 export * from "./insertDidController";
 export * from "./insertDidDocument";
+export * from "./insertDidMethod";
 export * from "./insertHashAlgorithm";
 export * from "./insertPolicy";
 export * from "./revokeDidController";

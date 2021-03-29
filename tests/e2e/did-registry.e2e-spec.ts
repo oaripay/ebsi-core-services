@@ -26,6 +26,7 @@ import { waitToBeMined } from "../utils/waitToBeMined";
 import {
   InsertDidControllerParam,
   InsertDidDocumentParam,
+  InsertDidMethodParam,
   RevokeDidControllerParam,
   UpdateDidControllerParam,
   UpdateDidDocumentParam,
@@ -36,7 +37,8 @@ type JsonRpcParams =
   | UpdateDidDocumentParam
   | InsertDidControllerParam
   | UpdateDidControllerParam
-  | RevokeDidControllerParam;
+  | RevokeDidControllerParam
+  | InsertDidMethodParam;
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -52,6 +54,14 @@ interface DidDocumentDataset {
   controllerDid: string;
   timestampDataBuffer: Buffer;
   didVersionMetadataBuffer: Buffer;
+}
+
+interface DidMethodDataset {
+  didMethods: { [x: string]: unknown }[];
+  didMethodsBuffer: Buffer[];
+  canonizedDidMethods: string[];
+  canonizedDidMethodsBuffer: Buffer[];
+  canonizedDidMethodsHash: string[];
 }
 
 describe("DID Registry (e2e)", () => {
@@ -115,9 +125,43 @@ describe("DID Registry (e2e)", () => {
     };
   };
 
+  const createDidMethod = async (): Promise<DidMethodDataset> => {
+    const rand1 = crypto.randomBytes(32).toString("hex");
+    const rand2 = crypto.randomBytes(32).toString("hex");
+    const didMethod = {
+      "@context": "https://json-ld.org/contexts/person.jsonld",
+      "@id": `http://dbpedia.org/resource/${rand1}`,
+      name: rand1,
+      born: "1940-10-09",
+      spouse: `http://dbpedia.org/resource/${rand2}`,
+    };
+
+    const didMethodBuffer = Buffer.from(JSON.stringify(didMethod));
+
+    // Canonize DID Method
+    const canonizedDidMethod = await canonize(didMethod, {
+      algorithm: "URDNA2015",
+      format: "application/n-quads",
+    });
+
+    const canonizedDidMethodBuffer = Buffer.from(canonizedDidMethod);
+    const canonizedDidMethodHash = ethers.utils.sha256(
+      canonizedDidMethodBuffer
+    );
+
+    return {
+      didMethods: [didMethod],
+      didMethodsBuffer: [didMethodBuffer],
+      canonizedDidMethods: [canonizedDidMethod],
+      canonizedDidMethodsBuffer: [canonizedDidMethodBuffer],
+      canonizedDidMethodsHash: [canonizedDidMethodHash],
+    };
+  };
+
   let newDidDocument: DidDocumentDataset;
   let updatedDidDocument: DidDocumentDataset;
   const controllers: ethers.Wallet[] = [];
+  let didMethod: DidMethodDataset;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -147,6 +191,7 @@ describe("DID Registry (e2e)", () => {
 
     newDidDocument = await createDidDocument(controllerDid);
     updatedDidDocument = await createDidDocument(controllerDid);
+    didMethod = await createDidMethod();
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -156,6 +201,7 @@ describe("DID Registry (e2e)", () => {
     "insertDidController",
     "updateDidController",
     "revokeDidController",
+    "insertDidMethod",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
     it("should work", async () => {
       expect.assertions(5);
@@ -255,6 +301,22 @@ describe("DID Registry (e2e)", () => {
             identifier,
             oldControllerId: controllers[controllers.length - 1].address,
           } as RevokeDidControllerParam;
+          break;
+        }
+        case "insertDidMethod": {
+          params = {
+            from: signer.address,
+            methodName: "did:ebsi",
+            ledgerName: "ebsi-besu",
+            methodSpec: didMethod.didMethodsBuffer.map(
+              (b) => `0x${b.toString("hex")}`
+            ),
+            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+            status: 1,
+          } as InsertDidMethodParam;
+
           break;
         }
         default:
