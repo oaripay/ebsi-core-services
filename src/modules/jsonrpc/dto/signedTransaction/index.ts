@@ -1,4 +1,5 @@
 export * from "./args-append-did-document-version-hash.dto";
+export * from "./args-detach-did-document-version-hash.dto";
 export * from "./args-insert-administrator.dto";
 export * from "./args-insert-did-controller.dto";
 export * from "./args-insert-did-document.dto";

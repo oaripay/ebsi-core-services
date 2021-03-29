@@ -35,6 +35,7 @@ import {
   InsertDidMethodParam,
   UpdateDidMethodParam,
   AppendDidDocumentVersionParam,
+  DetachDidDocumentVersionParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -64,7 +65,8 @@ type JsonRpcParams =
   | RevokeDidControllerParam
   | InsertDidMethodParam
   | UpdateDidMethodParam
-  | AppendDidDocumentVersionParam;
+  | AppendDidDocumentVersionParam
+  | DetachDidDocumentVersionParam;
 
 interface DidDocumentDataset {
   didDocument: { [x: string]: unknown };
@@ -491,6 +493,7 @@ describe("JsonRpc Module", () => {
     "updateDidMethod",
     "appendDidDocumentVersionHash",
     "appendDidDocumentVersionHash(with optional params)",
+    "detachDidDocumentVersionHash",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const withOptionalParams = testMethod.includes("(with optional params)");
@@ -725,6 +728,25 @@ describe("JsonRpc Module", () => {
               timestampData,
             }),
           } as AppendDidDocumentVersionParam;
+
+          break;
+        }
+        case "detachDidDocumentVersionHash": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+
+          param = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+          } as DetachDidDocumentVersionParam;
 
           break;
         }
@@ -978,6 +1000,25 @@ describe("JsonRpc Module", () => {
               timestampData,
             }),
           } as AppendDidDocumentVersionParam;
+
+          break;
+        }
+        case "detachDidDocumentVersionHash": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+
+          param = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+          } as DetachDidDocumentVersionParam;
 
           break;
         }
@@ -1448,6 +1489,52 @@ describe("JsonRpc Module", () => {
 
           break;
         }
+        case "detachDidDocumentVersionHash": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+
+          param1 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: "0xnot-a-hash",
+            didVersionInfo,
+          } as DetachDidDocumentVersionParam;
+
+          expectedErrorMessage1 =
+            "property params[0].hashValue has failed the following constraints: isHexadecimal";
+
+          param2 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo: Buffer.from(
+              JSON.stringify({ test: "value" })
+            ).toString("hex"),
+          } as DetachDidDocumentVersionParam;
+
+          expectedErrorMessage2 =
+            "property params[0].didVersionInfo has failed the following constraints: IsHexadecimalJsonLdConstraint";
+
+          param3 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: -1,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+          } as DetachDidDocumentVersionParam;
+
+          expectedErrorMessage3 =
+            "property params[0].hashAlgorithmId has failed the following constraints: min";
+
+          break;
+        }
         default: {
           throw new Error(`Test Error: Invalid method ${method}`);
         }
@@ -1757,6 +1844,33 @@ describe("JsonRpc Module", () => {
               timestampData,
             }),
           } as AppendDidDocumentVersionParam;
+
+          break;
+        }
+        case "detachDidDocumentVersionHash": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+
+          param1 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+          } as DetachDidDocumentVersionParam;
+
+          param2 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 1,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+          } as DetachDidDocumentVersionParam;
 
           break;
         }

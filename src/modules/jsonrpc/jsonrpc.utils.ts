@@ -32,6 +32,8 @@ import {
   RequestUpdateDidMethodDto,
   ArgsAppendDidDocumentVersionHash,
   RequestAppendDidDocumentVersionHashDto,
+  ArgsDetachDidDocumentVersionHash,
+  RequestDetachDidDocumentVersionHashDto,
 } from "./dto";
 
 export function formatEthersUnsignedTransaction(
@@ -92,7 +94,9 @@ type JsonRpcDtos =
   | ArgsUpdateDidMethod
   | RequestUpdateDidMethodDto
   | ArgsAppendDidDocumentVersionHash
-  | RequestAppendDidDocumentVersionHashDto;
+  | RequestAppendDidDocumentVersionHashDto
+  | ArgsDetachDidDocumentVersionHash
+  | RequestDetachDidDocumentVersionHashDto;
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,

@@ -1,6 +1,7 @@
 export * from "./jsonrpc.dto";
 export * from "./signedTransaction";
 export * from "./appendDidDocumentVersionHash";
+export * from "./detachDidDocumentVersionHash";
 export * from "./insertAdministrator";
 export * from "./insertDidController";
 export * from "./insertDidDocument";

@@ -34,6 +34,8 @@ import {
   ArgsUpdateDidMethod,
   ArgsAppendDidDocumentVersionHash,
   RequestAppendDidDocumentVersionHashDto,
+  ArgsDetachDidDocumentVersionHash,
+  RequestDetachDidDocumentVersionHashDto,
 } from "./dto";
 import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
@@ -272,6 +274,13 @@ export class JsonRpcService {
         await validateClass(
           ArgsAppendDidDocumentVersionHash,
           (args as unknown) as ArgsAppendDidDocumentVersionHash
+        );
+        break;
+      }
+      case "detachDidDocumentVersionHash": {
+        await validateClass(
+          ArgsDetachDidDocumentVersionHash,
+          (args as unknown) as ArgsDetachDidDocumentVersionHash
         );
         break;
       }
@@ -727,6 +736,33 @@ export class JsonRpcService {
           timestampData ?? "0x",
           didVersionInfo,
         ]
+      );
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionDetachDidMethodVersionHash(
+    body: RequestDetachDidDocumentVersionHashDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestDetachDidDocumentVersionHashDto, body);
+
+      const {
+        from,
+        identifier,
+        hashAlgorithmId,
+        hashValue,
+        didVersionInfo,
+      } = body.params[0];
+
+      const data = this.didRegistryContract.interface.encodeFunctionData(
+        "detachDidDocumentVersionHash",
+        [identifier, hashAlgorithmId, hashValue, didVersionInfo]
       );
       return await this.buildTransaction(from, data);
     } catch (err) {

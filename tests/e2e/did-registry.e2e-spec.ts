@@ -31,6 +31,7 @@ import {
   UpdateDidDocumentParam,
   UpdateDidMethodParam,
   AppendDidDocumentVersionParam,
+  DetachDidDocumentVersionParam,
   UpdateDidControllerParam,
 } from "../../src/modules/jsonrpc/dto";
 
@@ -41,6 +42,7 @@ type JsonRpcParams =
   | InsertDidMethodParam
   | UpdateDidMethodParam
   | AppendDidDocumentVersionParam
+  | DetachDidDocumentVersionParam
   | UpdateDidDocumentParam
   | UpdateDidControllerParam;
 
@@ -210,6 +212,7 @@ describe("DID Registry (e2e)", () => {
     "revokeDidController",
     "insertDidMethod",
     "appendDidDocumentVersionHash",
+    "detachDidDocumentVersionHash",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
     it("should work", async () => {
       expect.assertions(5);
@@ -362,6 +365,24 @@ describe("DID Registry (e2e)", () => {
             didVersionInfo,
             timestampData,
           } as AppendDidDocumentVersionParam;
+          break;
+        }
+        case "detachDidDocumentVersionHash": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+
+          params = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+          } as DetachDidDocumentVersionParam;
           break;
         }
         default:
