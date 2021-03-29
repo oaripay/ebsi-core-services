@@ -26,6 +26,8 @@ import {
   ArgsUpdateDidDocument,
   RequestUpdateDidControllerDto,
   ArgsUpdateDidController,
+  RequestRevokeDidControllerDto,
+  ArgsRevokeDidController,
 } from "./dto";
 import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
@@ -99,9 +101,24 @@ export class JsonRpcService {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async checkWritePermission(func: string, address: string): Promise<void> {
-    // TODO: implement EBSI admin verification?
+    // If the function is not in the list, then the user can access it
+    if (
+      ![
+        "insertAdministrator",
+        "updateAdministrator",
+        "insertHashAlgorithm",
+        "updateHashAlgorithm",
+        "insertDidMethod",
+        "updateDidMethod",
+        "insertPolicy",
+        "updatePolicy",
+      ].includes(func)
+    ) {
+      return;
+    }
+
+    // If the function name is in the list, check if user did is an admin
     const did = `did:ebsi:${address.toLowerCase()}`;
-    // verify the did is in the TAR Registry
     try {
       await this.didRegistryContract.getAdministrator(did);
     } catch (e) {
@@ -225,6 +242,13 @@ export class JsonRpcService {
         await validateClass(
           ArgsUpdateDidController,
           (args as unknown) as ArgsUpdateDidController
+        );
+        break;
+      }
+      case "revokeDidController": {
+        await validateClass(
+          ArgsRevokeDidController,
+          (args as unknown) as ArgsRevokeDidController
         );
         break;
       }
@@ -549,6 +573,27 @@ export class JsonRpcService {
       const data = this.didRegistryContract.interface.encodeFunctionData(
         "updateDidController",
         [identifier, newControllerId, notBefore, notAfter]
+      );
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionRevokeDidController(
+    body: RequestRevokeDidControllerDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestRevokeDidControllerDto, body);
+
+      const { from, identifier, oldControllerId } = body.params[0];
+
+      const data = this.didRegistryContract.interface.encodeFunctionData(
+        "revokeDidController",
+        [identifier, oldControllerId]
       );
       return await this.buildTransaction(from, data);
     } catch (err) {

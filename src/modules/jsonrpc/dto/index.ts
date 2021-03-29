@@ -5,6 +5,7 @@ export * from "./insertDidController";
 export * from "./insertDidDocument";
 export * from "./insertHashAlgorithm";
 export * from "./insertPolicy";
+export * from "./revokeDidController";
 export * from "./updateAdministrator";
 export * from "./updateDidController";
 export * from "./updateDidDocument";

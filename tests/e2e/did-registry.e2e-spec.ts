@@ -26,10 +26,17 @@ import { waitToBeMined } from "../utils/waitToBeMined";
 import {
   InsertDidControllerParam,
   InsertDidDocumentParam,
+  RevokeDidControllerParam,
+  UpdateDidControllerParam,
   UpdateDidDocumentParam,
 } from "../../src/modules/jsonrpc/dto";
 
-type JsonRpcParams = InsertDidDocumentParam | InsertDidControllerParam;
+type JsonRpcParams =
+  | InsertDidDocumentParam
+  | UpdateDidDocumentParam
+  | InsertDidControllerParam
+  | UpdateDidControllerParam
+  | RevokeDidControllerParam;
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -110,6 +117,7 @@ describe("DID Registry (e2e)", () => {
 
   let newDidDocument: DidDocumentDataset;
   let updatedDidDocument: DidDocumentDataset;
+  const controllers: ethers.Wallet[] = [];
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -146,11 +154,14 @@ describe("DID Registry (e2e)", () => {
     "insertDidDocument",
     "updateDidDocument",
     "insertDidController",
+    "updateDidController",
+    "revokeDidController",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
     it("should work", async () => {
       expect.assertions(5);
 
       let params: JsonRpcParams = null;
+      let signer = adminTestWallet;
 
       switch (method) {
         case "insertDidDocument": {
@@ -168,8 +179,10 @@ describe("DID Registry (e2e)", () => {
             "hex"
           )}`;
 
+          controllers.push(signer);
+
           params = {
-            from: adminTestWallet.address,
+            from: signer.address,
             identifier,
             hashAlgorithmId: 0,
             hashValue: canonizedDidDocumentHash,
@@ -195,7 +208,7 @@ describe("DID Registry (e2e)", () => {
           )}`;
 
           params = {
-            from: adminTestWallet.address,
+            from: signer.address,
             identifier,
             hashAlgorithmId: 0,
             hashValue: canonizedDidDocumentHash,
@@ -205,17 +218,43 @@ describe("DID Registry (e2e)", () => {
           } as UpdateDidDocumentParam;
           break;
         }
-        case "insertDidController":
-        case "updateDidController": {
+        case "insertDidController": {
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const controller = ethers.Wallet.createRandom();
+          controllers.push(controller);
 
           params = {
-            from: adminTestWallet.address,
+            from: signer.address,
             identifier,
-            newControllerId: ethers.Wallet.createRandom().address,
+            newControllerId: controller.address,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
           } as InsertDidControllerParam;
+          break;
+        }
+        case "updateDidController": {
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const controller = controllers[controllers.length - 1];
+          // Sign with the new controller
+          signer = controller;
+
+          params = {
+            from: signer.address,
+            identifier,
+            newControllerId: controller.address,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+          } as UpdateDidControllerParam;
+          break;
+        }
+        case "revokeDidController": {
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+
+          params = {
+            from: signer.address,
+            identifier,
+            oldControllerId: controllers[controllers.length - 1].address,
+          } as RevokeDidControllerParam;
           break;
         }
         default:
@@ -237,7 +276,7 @@ describe("DID Registry (e2e)", () => {
         result: {
           chainId: expect.any(String) as string,
           data: expect.any(String) as string,
-          from: adminTestWallet.address,
+          from: signer.address,
           gasLimit: expect.any(String) as string,
           gasPrice: expect.any(String) as string,
           nonce: expect.any(String) as string,
@@ -252,7 +291,7 @@ describe("DID Registry (e2e)", () => {
         JSON.parse(JSON.stringify(unsignedTransaction))
       );
       uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await adminTestWallet.signTransaction(uTx);
+      const sgnTx = await signer.signTransaction(uTx);
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
       const responseSend: SupertestJsonRpcResponse = await request(server)

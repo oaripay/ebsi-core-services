@@ -31,6 +31,7 @@ import {
   InsertDidDocumentParam,
   UpdateDidDocumentParam,
   UpdateDidControllerParam,
+  RevokeDidControllerParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -56,7 +57,8 @@ type JsonRpcParams =
   | InsertDidDocumentParam
   | UpdateDidDocumentParam
   | InsertDidControllerParam
-  | UpdateDidControllerParam;
+  | UpdateDidControllerParam
+  | RevokeDidControllerParam;
 
 interface DidDocumentDataset {
   didDocument: { [x: string]: unknown };
@@ -178,6 +180,7 @@ describe("JsonRpc Module", () => {
 
   let didDocument: DidDocumentDataset;
   let updatedDidDocument: DidDocumentDataset;
+  const controllers: ethers.Wallet[] = [];
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -435,6 +438,7 @@ describe("JsonRpc Module", () => {
     "updateDidDocument",
     "insertDidController",
     "updateDidController",
+    "revokeDidController",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
@@ -444,8 +448,8 @@ describe("JsonRpc Module", () => {
 
       const { did } = adminV1;
       let param: JsonRpcParams = null;
-
-      const signer = testEnv.administrators[0].wallet;
+      const defaultSigner = testEnv.administrators[0].wallet;
+      let signer = defaultSigner;
 
       switch (method) {
         case "insertAdministrator": {
@@ -530,6 +534,8 @@ describe("JsonRpc Module", () => {
             "hex"
           )}`;
 
+          controllers.push(signer);
+
           param = {
             from: signer.address,
             identifier,
@@ -569,17 +575,45 @@ describe("JsonRpc Module", () => {
 
           break;
         }
-        case "insertDidController":
+        case "insertDidController": {
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const controller = ethers.Wallet.createRandom();
+          controllers.push(controller);
+
+          param = {
+            from: signer.address,
+            identifier,
+            newControllerId: controller.address,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+          } as InsertDidControllerParam;
+
+          break;
+        }
         case "updateDidController": {
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const controller = controllers[controllers.length - 1];
+          // Sign with the new controller
+          signer = controller;
+
+          param = {
+            from: signer.address,
+            identifier,
+            newControllerId: controller.address,
+            notBefore: 1616408985883,
+            notAfter: 3232818053700,
+          } as UpdateDidControllerParam;
+
+          break;
+        }
+        case "revokeDidController": {
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
 
           param = {
             from: signer.address,
             identifier,
-            newControllerId: ethers.Wallet.createRandom().address,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-          } as InsertDidControllerParam;
+            oldControllerId: controllers[controllers.length - 1].address,
+          } as RevokeDidControllerParam;
 
           break;
         }
@@ -651,7 +685,6 @@ describe("JsonRpc Module", () => {
       expect.assertions(2);
 
       const signer = testEnv.administrators[0].wallet;
-
       let param: JsonRpcParams = null;
 
       switch (method) {
@@ -757,13 +790,28 @@ describe("JsonRpc Module", () => {
         }
         case "insertDidController":
         case "updateDidController": {
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const controllerId = ethers.Wallet.createRandom().address;
+
           param = {
             from: signer.address,
-            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
-            newControllerId: ethers.Wallet.createRandom().address,
+            identifier,
+            newControllerId: controllerId,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
           } as InsertDidControllerParam;
+          break;
+        }
+        case "revokeDidController": {
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const controllerId = ethers.Wallet.createRandom().address;
+
+          param = {
+            from: signer.address,
+            identifier,
+            oldControllerId: controllerId,
+          } as RevokeDidControllerParam;
+
           break;
         }
         default: {
@@ -1054,6 +1102,36 @@ describe("JsonRpc Module", () => {
             "property params[0].notBefore has failed the following constraints: min";
           break;
         }
+        case "revokeDidController": {
+          param1 = {
+            from: signer.address,
+            identifier: `0x${Buffer.from("did:ebsi:not-base-58").toString(
+              "hex"
+            )}`,
+            oldControllerId: ethers.Wallet.createRandom().address,
+          } as RevokeDidControllerParam;
+
+          expectedErrorMessage1 =
+            "property params[0].identifier has failed the following constraints: isHexadecimalBase58EbsiDid";
+
+          param2 = {
+            from: signer.address,
+            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+            oldControllerId: "0x1234",
+          } as RevokeDidControllerParam;
+
+          expectedErrorMessage2 =
+            "property params[0].oldControllerId has failed the following constraints: isEthereumAddress";
+
+          param3 = {
+            from: signer.address,
+            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+          } as RevokeDidControllerParam;
+
+          expectedErrorMessage3 =
+            "property params[0].oldControllerId has failed the following constraints: isEthereumAddress";
+          break;
+        }
         default: {
           throw new Error(`Test Error: Invalid method ${method}`);
         }
@@ -1255,6 +1333,21 @@ describe("JsonRpc Module", () => {
             notBefore: 1616408985883,
             notAfter: 3232818053700,
           } as InsertDidControllerParam;
+
+          break;
+        }
+        case "revokeDidController": {
+          param1 = {
+            from: signer.address,
+            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+            oldControllerId: ethers.Wallet.createRandom().address,
+          } as RevokeDidControllerParam;
+
+          param2 = {
+            from: signer.address,
+            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+            oldControllerId: ethers.Wallet.createRandom().address,
+          } as RevokeDidControllerParam;
 
           break;
         }
