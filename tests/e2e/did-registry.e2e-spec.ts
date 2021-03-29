@@ -28,19 +28,21 @@ import {
   InsertDidDocumentParam,
   InsertDidMethodParam,
   RevokeDidControllerParam,
-  UpdateDidControllerParam,
   UpdateDidDocumentParam,
   UpdateDidMethodParam,
+  AppendDidDocumentVersionParam,
+  UpdateDidControllerParam,
 } from "../../src/modules/jsonrpc/dto";
 
 type JsonRpcParams =
   | InsertDidDocumentParam
-  | UpdateDidDocumentParam
   | InsertDidControllerParam
-  | UpdateDidControllerParam
   | RevokeDidControllerParam
   | InsertDidMethodParam
-  | UpdateDidMethodParam;
+  | UpdateDidMethodParam
+  | AppendDidDocumentVersionParam
+  | UpdateDidDocumentParam
+  | UpdateDidControllerParam;
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -207,6 +209,7 @@ describe("DID Registry (e2e)", () => {
     "updateDidController",
     "revokeDidController",
     "insertDidMethod",
+    "appendDidDocumentVersionHash",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
     it("should work", async () => {
       expect.assertions(5);
@@ -338,6 +341,27 @@ describe("DID Registry (e2e)", () => {
             status: 1,
           } as UpdateDidMethodParam;
 
+          break;
+        }
+        case "appendDidDocumentVersionHash": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+            timestampDataBuffer,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+
+          params = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            timestampData,
+          } as AppendDidDocumentVersionParam;
           break;
         }
         default:

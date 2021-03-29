@@ -36,12 +36,12 @@ export class ArgsInsertDidDocument {
   // Stringified JSON (hex-encoded)
   @IsOptional()
   @IsHexadecimalJson()
-  timestampData: string;
+  timestampData?: string;
 
   // Stringified JSON (hex-encoded)
   @IsOptional()
   @IsHexadecimalJson()
-  didVersionMetadata: string;
+  didVersionMetadata?: string;
 }
 
 export default { ArgsInsertDidDocument };

@@ -18,6 +18,7 @@ import {
   RequestRevokeDidControllerDto,
   RequestInsertDidMethodDto,
   RequestUpdateDidMethodDto,
+  RequestAppendDidDocumentVersionHashDto,
 } from "./dto";
 
 function jsonRpcResponse(
@@ -123,6 +124,13 @@ export default class AppController {
       case "updateDidMethod": {
         const transaction = await this.jsonRpcService.buildTransactionUpdateDidMethod(
           body as RequestUpdateDidMethodDto,
+          id
+        );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "appendDidDocumentVersionHash": {
+        const transaction = await this.jsonRpcService.buildTransactionAppendDidMethodVersionHash(
+          body as RequestAppendDidDocumentVersionHashDto,
           id
         );
         return jsonRpcResponse(transaction, id);

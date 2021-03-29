@@ -34,6 +34,7 @@ import {
   RevokeDidControllerParam,
   InsertDidMethodParam,
   UpdateDidMethodParam,
+  AppendDidDocumentVersionParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -62,7 +63,8 @@ type JsonRpcParams =
   | UpdateDidControllerParam
   | RevokeDidControllerParam
   | InsertDidMethodParam
-  | UpdateDidMethodParam;
+  | UpdateDidMethodParam
+  | AppendDidDocumentVersionParam;
 
 interface DidDocumentDataset {
   didDocument: { [x: string]: unknown };
@@ -82,7 +84,7 @@ interface DidMethodDataset {
   canonizedDidMethodsHash: string[];
 }
 
-jest.setTimeout(120000);
+jest.setTimeout(180000);
 
 const ADMINS_TOTAL = 1;
 
@@ -487,9 +489,14 @@ describe("JsonRpc Module", () => {
     "revokeDidController",
     "insertDidMethod",
     "updateDidMethod",
+    "appendDidDocumentVersionHash",
+    "appendDidDocumentVersionHash(with optional params)",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
-    const method = testMethod.replace("(test update attribute)", "");
+    const withOptionalParams = testMethod.includes("(with optional params)");
+    const method = testMethod
+      .replace("(test update attribute)", "")
+      .replace("(with optional params)", "");
 
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
       expect.assertions(4);
@@ -694,6 +701,30 @@ describe("JsonRpc Module", () => {
             notAfter: 3232818053700,
             status: 1,
           } as UpdateDidMethodParam;
+
+          break;
+        }
+        case "appendDidDocumentVersionHash": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+            timestampDataBuffer,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+
+          param = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            ...(withOptionalParams && {
+              timestampData,
+            }),
+          } as AppendDidDocumentVersionParam;
 
           break;
         }
@@ -923,6 +954,30 @@ describe("JsonRpc Module", () => {
             notAfter: 3232818053700,
             status: 1,
           } as UpdateDidMethodParam;
+
+          break;
+        }
+        case "appendDidDocumentVersionHash": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+            timestampDataBuffer,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+
+          param = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            ...(withOptionalParams && {
+              timestampData,
+            }),
+          } as AppendDidDocumentVersionParam;
 
           break;
         }
@@ -1342,6 +1397,57 @@ describe("JsonRpc Module", () => {
 
           break;
         }
+        case "appendDidDocumentVersionHash": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+            timestampDataBuffer,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+
+          param1 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: "0xnot-a-hash",
+            didVersionInfo,
+            timestampData,
+          } as AppendDidDocumentVersionParam;
+
+          expectedErrorMessage1 =
+            "property params[0].hashValue has failed the following constraints: isHexadecimal";
+
+          param2 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo: Buffer.from(
+              JSON.stringify({ test: "value" })
+            ).toString("hex"),
+            timestampData,
+          } as AppendDidDocumentVersionParam;
+
+          expectedErrorMessage2 =
+            "property params[0].didVersionInfo has failed the following constraints: IsHexadecimalJsonLdConstraint";
+
+          param3 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            timestampData: "1234ab",
+          } as AppendDidDocumentVersionParam;
+
+          expectedErrorMessage3 =
+            "property params[0].timestampData has failed the following constraints: isHexadecimalJson";
+
+          break;
+        }
         default: {
           throw new Error(`Test Error: Invalid method ${method}`);
         }
@@ -1616,6 +1722,41 @@ describe("JsonRpc Module", () => {
             notAfter: 3232818053700,
             status: 1,
           } as UpdateDidMethodParam;
+
+          break;
+        }
+        case "appendDidDocumentVersionHash": {
+          const {
+            didDocumentBuffer,
+            canonizedDidDocumentHash,
+            timestampDataBuffer,
+          } = updatedDidDocument;
+
+          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+
+          param1 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 0,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            ...(withOptionalParams && {
+              timestampData,
+            }),
+          } as AppendDidDocumentVersionParam;
+
+          param2 = {
+            from: signer.address,
+            identifier,
+            hashAlgorithmId: 1,
+            hashValue: canonizedDidDocumentHash,
+            didVersionInfo,
+            ...(withOptionalParams && {
+              timestampData,
+            }),
+          } as AppendDidDocumentVersionParam;
 
           break;
         }

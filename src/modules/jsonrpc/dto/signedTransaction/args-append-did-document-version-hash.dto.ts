@@ -11,7 +11,7 @@ import {
   IsHexadecimalJsonLd,
 } from "../../validators";
 
-export class ArgsUpdateDidDocument {
+export class ArgsAppendDidDocumentVersionHash {
   // Consumer calling function must convert Base58 DID identifier into bytes in hex format
   @IsHexadecimalBase58EbsiDid()
   identifier: string;
@@ -37,11 +37,6 @@ export class ArgsUpdateDidDocument {
   @IsOptional()
   @IsHexadecimalJson()
   timestampData?: string;
-
-  // Stringified JSON (hex-encoded)
-  @IsOptional()
-  @IsHexadecimalJson()
-  didVersionMetadata?: string;
 }
 
-export default { ArgsUpdateDidDocument };
+export default { ArgsAppendDidDocumentVersionHash };

@@ -11,7 +11,7 @@ export class ArgsUpdateAdministrator {
 
   @IsOptional()
   @IsHexadecimal()
-  prevAttributeHash: string;
+  prevAttributeHash?: string;
 }
 
 export default { ArgsUpdateAdministrator };
