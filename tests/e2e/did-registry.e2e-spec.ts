@@ -36,6 +36,7 @@ import {
   DetachDidDocumentVersionMetadataParam,
   UpdateDidControllerParam,
 } from "../../src/modules/jsonrpc/dto";
+import { DidMethodResponseObject } from "../../src/modules/did-methods/did-methods.interface";
 
 type JsonRpcParams =
   | InsertDidDocumentParam
@@ -68,11 +69,17 @@ interface DidDocumentDataset {
 
 interface DidMethodDataset {
   methodName: string;
+  ledgerName: string;
   didMethods: { [x: string]: unknown }[];
   didMethodsBuffer: Buffer[];
   canonizedDidMethods: string[];
   canonizedDidMethodsBuffer: Buffer[];
   canonizedDidMethodsHash: string[];
+  methodSpec: string[];
+  methodSpecHash: string[];
+  notBefore: number;
+  notAfter: number;
+  status: number;
 }
 
 describe("DID Registry (e2e)", () => {
@@ -161,13 +168,26 @@ describe("DID Registry (e2e)", () => {
       canonizedDidMethodBuffer
     );
 
+    const ledgerName = "ebsi-besu";
+    const methodSpec = [didMethodBuffer].map((b) => `0x${b.toString("hex")}`);
+    const methodSpecHash = [canonizedDidMethodHash];
+    const notBefore = 1616408985883;
+    const notAfter = 3232818053700;
+    const status = 1;
+
     return {
       methodName,
+      ledgerName,
       didMethods: [didMethod],
       didMethodsBuffer: [didMethodBuffer],
       canonizedDidMethods: [canonizedDidMethod],
       canonizedDidMethodsBuffer: [canonizedDidMethodBuffer],
       canonizedDidMethodsHash: [canonizedDidMethodHash],
+      methodSpec,
+      methodSpecHash,
+      notBefore,
+      notAfter,
+      status,
     };
   };
 
@@ -324,14 +344,14 @@ describe("DID Registry (e2e)", () => {
           params = {
             from: signer.address,
             methodName: didMethod.methodName,
-            ledgerName: "ebsi-besu",
+            ledgerName: didMethod.ledgerName,
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
             methodSpecHash: didMethod.canonizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 1,
+            notBefore: didMethod.notBefore,
+            notAfter: didMethod.notAfter,
+            status: didMethod.status,
           } as InsertDidMethodParam;
 
           break;
@@ -345,9 +365,9 @@ describe("DID Registry (e2e)", () => {
               (b) => `0x${b.toString("hex")}`
             ),
             methodSpecHash: didMethod.canonizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 1,
+            notBefore: didMethod.notBefore,
+            notAfter: didMethod.notAfter,
+            status: didMethod.status,
           } as UpdateDidMethodParam;
 
           break;
@@ -477,6 +497,130 @@ describe("DID Registry (e2e)", () => {
       // wait to be mined
       const receipt = await waitToBeMined(responseSend.body.result as string);
       expect(receipt.status).toBe("0x1");
+    });
+  });
+
+  describe("GET /did-methods", () => {
+    it("should return a paginated collection of  DID methods", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/did-methods");
+
+      const total =
+        ((response.body as { [x: string]: unknown })?.total as number) ?? 0;
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/did-methods?page[after]=1&page[size]=10"
+        ) as string,
+        items: expect.arrayContaining([
+          {
+            name: didMethod.methodName,
+            href: expect.stringContaining(
+              `/did-methods/${didMethod.methodName}`
+            ) as string,
+          },
+        ]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/did-methods?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/did-methods?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining(
+            `/did-methods?page[after]=${total > 10 ? 2 : 1}&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/did-methods?page[after]=${Math.ceil(total / 10)}&page[size]=10`
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw a Bad Request for bad pagination", async () => {
+      expect.assertions(8);
+
+      const response1 = await request(server).get(
+        "/did-methods?page[size]=100"
+      );
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be greater than 50"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server).get("/did-methods?page[size]=0");
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server).get("/did-methods?page[after]=0");
+      expect(response3.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[after] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+
+      const response4 = await request(server).get(
+        "/did-methods?page[after]=abc"
+      );
+      expect(response4.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+    });
+  });
+
+  describe("GET /did-methods/{did}", () => {
+    it("should return a specific DID Method", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        `/did-methods/${didMethod.methodName}`
+      );
+
+      expect(response.body).toStrictEqual({
+        methodName: didMethod.methodName,
+        ledgerName: didMethod.ledgerName, // TODO: TBH I was expecting "ebsi-besu-2" here...
+        methodSpec: didMethod.didMethodsBuffer.map(
+          (b) => `0x${b.toString("hex")}`
+        ),
+        methodSpecHash: didMethod.canonizedDidMethodsHash,
+        notBefore: didMethod.notBefore,
+        notAfter: didMethod.notAfter,
+        status: didMethod.status,
+      } as DidMethodResponseObject);
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the DID Method is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/did-methods/no-did-method");
+
+      expect(response.body).toStrictEqual({
+        title: "DID Method Not Found",
+        status: 404,
+        detail: "DID Method no-did-method not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
     });
   });
 });

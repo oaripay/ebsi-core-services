@@ -433,6 +433,155 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /did-registry/v2/did-methods:
+    get:
+      tags:
+        - DID Registry
+      summary: List of DID Methods
+      description: Returns a list of DID Methods
+      operationId: get-did-registry-v2-did-methods
+      parameters:
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to DID Method
+                  items:
+                    type: array
+                    description: List of DID Methods
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Name of the DID Method
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/did-registry/v2/did-methods?page[after]=3&page[size]=10
+                    items:
+                      - name: did:ebsi
+                        href: https://api.ebsi.xyz/did-registry/v2/did-methods/did:ebsi
+                      - name: did:ebsi-test
+                        href: https://api.ebsi.xyz/did-registry/v2/did-methods/did:ebsi-test
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.ebsi.xyz/did-registry/v2/did-methods?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/did-registry/v2/did-methods?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/did-registry/v2/did-methods?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/did-registry/v2/did-methods?page[after]=13&page[size]=10
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v2/did-methods/{name}:
+    get:
+      tags:
+        - DID Registry
+      summary: Get DID Method by its name
+      description: Returns a DID Method by its name
+      operationId: get-did-registry-v2-did-method
+      parameters:
+        - name: name
+          in: path
+          schema:
+            type: string
+          example: did:ebsi
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DIDMethod"
+              examples:
+                Success:
+                  value:
+                    methodName: did:ebsi-26adc612f9e37b6e
+                    ledgerName: ebsi-besu
+                    methodSpec:
+                      - "0x7b2240636f6e74657874223a2268747470733a2f2f6a736f6e2d6c642e6f72672f636f6e74657874732f706572736f6e2e6a736f6e6c64222c22406964223a22687474703a2f2f646270656469612e6f72672f7265736f757263652f62326233633931353534346439666363356430666336656161363331643039393466623732383761663230373365336530343861343332393730366536386535222c226e616d65223a2262326233633931353534346439666363356430666336656161363331643039393466623732383761663230373365336530343861343332393730366536386535222c22626f726e223a22313934302d31302d3039222c2273706f757365223a22687474703a2f2f646270656469612e6f72672f7265736f757263652f64633930323539393366353364323766313637623731363861336635663636633662316138656635633935333233636136613630336238623066663136663130227d"
+                    methodSpecHash:
+                      - "0xdb158dff550da6373a1c0c379b91df464f3acde80e8661c8a02aaa66c253667b"
+                    notBefore: 1616408985883
+                    notAfter: 3232818053700
+                    status: 1
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {name} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {name} parameter is not valid
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /did-registry/v2/hash-algorithms:
     get:
       tags:
@@ -1209,6 +1358,44 @@ components:
       type: object
       description: Name of the administrator
       properties:
+        did:
+          type: string
+          description: DID of the administrator
+        attributes:
+          type: array
+          description: Array of attributes
+          items:
+            $ref: "#/components/schemas/Attribute"
+    DIDMethod:
+      title: DID Method
+      type: object
+      description: DID Method info
+      properties:
+        methodName:
+          type: string
+          description: DID Method name, e.g. "did:ebsi"
+        ledgerName:
+          type: string
+          description: Name of ledger where DID Method is implemented, e.g. "ebsi-besu".
+        methodSpec:
+          type: array
+          description: Array of bytes encoded serialized JSON-LD method spec
+          items:
+            type: string
+        methodSpecHash:
+          type: array
+          description: Array of bytes32 hashes (sha2-256) of the methodInfo element
+          items:
+            type: string
+        notBefore:
+          type: number
+          description: Date and time after the DID method can be used.
+        notAfter:
+          type: number
+          description: Date and time at or after the DID method must be considered invalid.
+        status:
+          type: number
+          description: Status of the did method (1 = "active", 2 = "revoked", 3 = "suspended")
         did:
           type: string
           description: DID of the administrator

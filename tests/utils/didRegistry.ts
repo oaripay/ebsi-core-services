@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import ganache from "ganache-core";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
+import { canonize } from "jsonld";
 import {
   DidRegistry,
   DidRegistry__factory,
@@ -18,6 +19,21 @@ import PaginationArtifact from "../../submodules/did-registry-ethereum-sc/artifa
 interface Administrator {
   wallet: ethers.Wallet;
   attribute: { [x: string]: unknown };
+}
+
+interface DidMethod {
+  methodName: string;
+  ledgerName: string;
+  didMethods: { [x: string]: unknown }[];
+  didMethodsBuffer: Buffer[];
+  canonizedDidMethods: string[];
+  canonizedDidMethodsBuffer: Buffer[];
+  canonizedDidMethodsHash: string[];
+  methodSpec: string[];
+  methodSpecHash: string[];
+  notBefore: number;
+  notAfter: number;
+  status: number;
 }
 
 interface HashAlgorithmObject {
@@ -94,11 +110,23 @@ export async function deployDidRegistryContract(
   const hashAlgoLibAddress = (await new HashAlgoLib__factory(owner).deploy())
     .address;
 
-  const didRecordLibAddress = (await new DidRecordLib__factory(owner).deploy())
-    .address;
+  const didRecordLibAddress = (
+    await new DidRecordLib__factory(
+      {
+        __$515a15b27d7e720e4d91814eed9672e50c$__: paginationAddress,
+      },
+      owner
+    ).deploy()
+  ).address;
 
-  const didMethodLibAddress = (await new DidMethodLib__factory(owner).deploy())
-    .address;
+  const didMethodLibAddress = (
+    await new DidMethodLib__factory(
+      {
+        __$515a15b27d7e720e4d91814eed9672e50c$__: paginationAddress,
+      },
+      owner
+    ).deploy()
+  ).address;
 
   const didTimestampLibAddress = (
     await new DidTimestampLib__factory(owner).deploy()
@@ -149,6 +177,64 @@ export async function insertAdmin(
   await contract.insertAdministrator(adminDid, bufferAttribute);
 
   return attribute;
+}
+
+export async function insertDidMethod(
+  contract: DidRegistry
+): Promise<DidMethod> {
+  const methodName = `did:ebsi-${crypto.randomBytes(8).toString("hex")}`;
+  const rand1 = crypto.randomBytes(32).toString("hex");
+  const rand2 = crypto.randomBytes(32).toString("hex");
+  const didMethod = {
+    "@context": "https://json-ld.org/contexts/person.jsonld",
+    "@id": `http://dbpedia.org/resource/${rand1}`,
+    name: rand1,
+    born: "1940-10-09",
+    spouse: `http://dbpedia.org/resource/${rand2}`,
+  };
+
+  const didMethodBuffer = Buffer.from(JSON.stringify(didMethod));
+
+  // Canonize DID Method
+  const canonizedDidMethod = await canonize(didMethod, {
+    algorithm: "URDNA2015",
+    format: "application/n-quads",
+  });
+
+  const canonizedDidMethodBuffer = Buffer.from(canonizedDidMethod);
+  const canonizedDidMethodHash = ethers.utils.sha256(canonizedDidMethodBuffer);
+
+  const ledgerName = "ebsi-besu";
+  const methodSpec = [didMethodBuffer].map((b) => `0x${b.toString("hex")}`);
+  const methodSpecHash = [canonizedDidMethodHash];
+  const notBefore = 1616408985883;
+  const notAfter = 3232818053700;
+  const status = 1;
+
+  await contract.insertDidMethod(
+    methodName,
+    ledgerName,
+    methodSpec,
+    methodSpecHash,
+    notBefore,
+    notAfter,
+    status
+  );
+
+  return {
+    methodName,
+    ledgerName,
+    didMethods: [didMethod],
+    didMethodsBuffer: [didMethodBuffer],
+    canonizedDidMethods: [canonizedDidMethod],
+    canonizedDidMethodsBuffer: [canonizedDidMethodBuffer],
+    canonizedDidMethodsHash: [canonizedDidMethodHash],
+    methodSpec,
+    methodSpecHash,
+    notBefore,
+    notAfter,
+    status,
+  };
 }
 
 export async function insertPolicy(
@@ -219,6 +305,7 @@ export async function insertHashAlgorithm(
 
 export interface SetupOptions {
   administratorsTotal?: number;
+  didMethodsTotal?: number;
   hashAlgorithmsTotal?: number;
   policiesTotal?: number;
   policiesRevisionsTotal?: number;
@@ -227,6 +314,7 @@ export interface SetupOptions {
 export async function setupTestEnv(
   opts: SetupOptions = {
     administratorsTotal: 1,
+    didMethodsTotal: 1,
     hashAlgorithmsTotal: 1,
     policiesTotal: 1,
     policiesRevisionsTotal: 1,
@@ -235,6 +323,7 @@ export async function setupTestEnv(
   provider: ethers.providers.Web3Provider;
   didRegistryContract: DidRegistry;
   administrators: Administrator[];
+  didMethods: DidMethod[];
   hashAlgorithms: HashAlgorithmObject[];
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
@@ -255,6 +344,12 @@ export async function setupTestEnv(
   const administrators = await range(0, opts.administratorsTotal ?? 1)
     .pipe(mergeMap(createAdminWallet), toArray())
     .toPromise();
+
+  const didMethods = await Promise.all(
+    Array(opts.didMethodsTotal ?? 1)
+      .fill(0)
+      .map(() => insertDidMethod(didRegistryContract))
+  );
 
   const hashAlgorithms = await Promise.all(
     Array(opts.hashAlgorithmsTotal ?? 1)
@@ -296,6 +391,7 @@ export async function setupTestEnv(
     provider: ethersProvider,
     didRegistryContract,
     administrators,
+    didMethods,
     hashAlgorithms,
     policies,
     policyRevisions,
