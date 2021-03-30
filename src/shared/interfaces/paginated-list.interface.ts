@@ -1,12 +1,12 @@
 export interface PaginatedList<T> {
   self: string;
   items: T[];
-  total: number;
+  total?: number;
   pageSize: number;
   links: {
-    first: string;
-    prev: string;
-    next: string;
-    last: string;
+    first?: string;
+    prev?: string;
+    next?: string;
+    last?: string;
   };
 }

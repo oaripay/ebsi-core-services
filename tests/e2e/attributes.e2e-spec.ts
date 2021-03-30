@@ -12,6 +12,9 @@ import jsonwebtoken from "jsonwebtoken";
 import { Logger } from "@nestjs/common/services/logger.service";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import { loadConfig } from "../../src/config/configuration";
+import { AttributeResponseObject } from "../../src/modules/attributes/attributes.interface";
+import { PaginatedList } from "../../src/shared/interfaces";
 
 jest.setTimeout(60000);
 
@@ -19,7 +22,10 @@ describe("Attributes", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
 
-  const did = `did:ebsi:0x${crypto.randomBytes(32).toString("hex")}`;
+  const { domain, apiUrlPrefix, storage } = loadConfig();
+  const apiUrl = `${domain}${apiUrlPrefix}`;
+  const did = `did:ebsi:0x${crypto.randomBytes(20).toString("hex")}`;
+  const did2 = `did:ebsi:0x${crypto.randomBytes(20).toString("hex")}`;
   const validToken = jsonwebtoken.sign(
     {
       did,
@@ -30,6 +36,37 @@ describe("Attributes", () => {
       issuer: "authorisation-api",
     }
   );
+  const validToken2 = jsonwebtoken.sign(
+    {
+      did: did2,
+    },
+    "secret",
+    {
+      audience: "proxy-data-hub-api",
+      issuer: "authorisation-api",
+    }
+  );
+
+  const createAttribute = (visibility?: string, sharedWithMe?: boolean) => ({
+    storageUri: `${storage}/stores/distributed`,
+    did,
+    visibility,
+    ...(sharedWithMe && {
+      // The owner is a different did, but it is shared with the user
+      did: did2,
+      sharedWith: did,
+    }),
+    contentType: "application/json+ld",
+    data: base64url.encode(crypto.randomBytes(15).toString("hex")),
+    dataLabel: "document",
+    proof: {},
+  });
+
+  const insertAttribute = async (visibility?: string, sharedWithMe?: boolean) =>
+    request(server)
+      .post("/attributes")
+      .auth(sharedWithMe ? validToken2 : validToken, { type: "bearer" })
+      .send(createAttribute(visibility, sharedWithMe));
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -47,6 +84,103 @@ describe("Attributes", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+  });
+
+  describe("GET /attributes", () => {
+    it("should get attributes associated to the did", async () => {
+      expect.assertions(9);
+      /* eslint-disable no-await-in-loop */
+      for (let i = 0; i < 3; i += 1) await insertAttribute();
+      await insertAttribute("shared", true);
+      /* eslint-enable no-await-in-loop */
+
+      // First Page
+      let path = "/attributes?page[size]=2";
+      let response = await request(server)
+        .get(path)
+        .auth(validToken, { type: "bearer" })
+        .send();
+      expect(response.body).toStrictEqual({
+        self: `${apiUrl}${path}`,
+        items: expect.arrayContaining([
+          expect.objectContaining({
+            did,
+            sharedWith: expect.not.stringContaining(did) as string,
+          }),
+        ]) as AttributeResponseObject[],
+        links: {
+          next: expect.stringMatching(
+            new RegExp(
+              `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=2`
+            )
+          ) as string,
+        },
+        pageSize: 2,
+      });
+      expect(response.status).toBe(200);
+      expect(
+        (response.body as { items: AttributeResponseObject[] }).items
+      ).toHaveLength(2);
+
+      path = (response.body as PaginatedList<AttributeResponseObject>).links.next.replace(
+        apiUrl,
+        ""
+      );
+
+      // Second page
+      response = await request(server)
+        .get(path)
+        .auth(validToken, { type: "bearer" })
+        .send();
+      expect(response.body).toStrictEqual({
+        self: `${apiUrl}${path}`,
+        items: expect.arrayContaining([
+          expect.objectContaining({
+            did,
+            sharedWith: expect.not.stringContaining(did) as string,
+          }),
+        ]) as AttributeResponseObject[],
+        links: {
+          next: expect.stringMatching(
+            new RegExp(
+              `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=2`
+            )
+          ) as string,
+        },
+        pageSize: 2,
+      });
+      expect(response.status).toBe(200);
+      expect(
+        (response.body as { items: AttributeResponseObject[] }).items
+      ).toHaveLength(1);
+
+      path = (response.body as PaginatedList<AttributeResponseObject>).links.next.replace(
+        apiUrl,
+        ""
+      );
+
+      // Third page: Shared attributes
+      response = await request(server)
+        .get(path)
+        .auth(validToken, { type: "bearer" })
+        .send();
+      expect(response.body).toStrictEqual({
+        self: `${apiUrl}${path}`,
+        items: expect.arrayContaining([
+          expect.objectContaining({
+            // Not the owner but it is shared
+            did: expect.not.stringContaining(did) as string,
+            sharedWith: did,
+          }),
+        ]) as AttributeResponseObject[],
+        links: {},
+        pageSize: 2,
+      });
+      expect(response.status).toBe(200);
+      expect(
+        (response.body as { items: AttributeResponseObject[] }).items
+      ).toHaveLength(1);
+    });
   });
 
   describe("POST /attributes", () => {
@@ -75,13 +209,10 @@ describe("Attributes", () => {
         status: 400,
         type: "about:blank",
         detail: JSON.stringify([
-          "storageUri must be a string",
+          `storageUri must be equal to ${storage}/stores/distributed`,
           "did must be a valid DID string",
-          "visibility must be one of the following values: private, shared",
           "contentType must be MIME type format",
           "data must be base64url encoded",
-          "dataLabel must be a string",
-          "proof must be an object",
         ]),
       });
       expect(response.status).toBe(400);
@@ -90,7 +221,7 @@ describe("Attributes", () => {
         .post("/attributes")
         .auth(validToken, { type: "bearer" })
         .send({
-          storageUri: "http://localhost:3000",
+          storageUri: `${storage}/stores/distributed`,
           did,
           visibility: "private",
           contentType: "application/json+ld",
@@ -110,21 +241,14 @@ describe("Attributes", () => {
     it("should create and update an attribute", async () => {
       expect.assertions(4);
 
-      const attribute = {
-        storageUri: "http://localhost:3000",
-        did,
-        visibility: "private",
-        contentType: "application/json+ld",
-        data: base64url.encode("encrypted data"),
-        dataLabel: "document",
-        proof: {},
-      };
+      const attribute = createAttribute();
 
       let response = await request(server)
         .post("/attributes")
         .auth(validToken, { type: "bearer" })
         .send(attribute);
 
+      delete attribute.visibility;
       expect(response.body).toStrictEqual({
         ...attribute,
         hash: expect.any(String) as string,
@@ -133,23 +257,15 @@ describe("Attributes", () => {
 
       const { hash } = response.body as { hash: string };
 
-      const attribute2 = {
-        storageUri: "http://localhost:3000",
-        did,
-        visibility: "shared",
-        contentType: "application/json+ld",
-        data: base64url.encode("encrypted data"),
-        dataLabel: "document2",
-        proof: {},
-      };
+      attribute.dataLabel = "document2";
 
       response = await request(server)
         .post("/attributes")
         .auth(validToken, { type: "bearer" })
-        .send(attribute2);
+        .send(attribute);
 
       expect(response.body).toStrictEqual({
-        ...attribute2,
+        ...attribute,
         hash,
       });
       expect(response.status).toBe(200);
@@ -170,7 +286,7 @@ describe("Attributes", () => {
         title: "Attribute Not Found",
         status: 404,
         type: "about:blank",
-        detail: `Attribute ${hash} for did ${did} not found`,
+        detail: `Attribute ${hash} not found`,
       });
       expect(response.status).toBe(404);
     });
@@ -180,7 +296,7 @@ describe("Attributes", () => {
 
       // insert attribute
       const attribute = {
-        storageUri: "http://localhost:3000",
+        storageUri: `${storage}/stores/distributed`,
         did,
         visibility: "private",
         contentType: "application/json+ld",

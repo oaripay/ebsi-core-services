@@ -5,6 +5,7 @@ import Joi from "joi";
 export interface ApiConfig {
   apiPort: number;
   apiPrivateKey: string;
+  encryptionSecret: string;
   apiUrlPrefix: string;
   domain: string;
   logLevel: string;
@@ -49,6 +50,7 @@ export const loadConfig = (): ApiConfig => {
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
+    encryptionSecret: process.env.ENCRYPTION_SECRET,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/proxy-data-hub/v2",
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
@@ -84,6 +86,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "debug"
     ),
     // Proxy data hub specific variables
+    ENCRYPTION_SECRET: Joi.string().required(),
     DOMAIN: Joi.string().uri(),
     STORAGE: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),

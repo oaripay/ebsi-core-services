@@ -1,18 +1,21 @@
 import {
   Controller,
   Response,
+  Get,
   Post,
   Delete,
   Body,
   UseGuards,
   HttpCode,
   Param,
+  Query,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { FastifyReply } from "fastify";
 import crypto from "crypto";
 import {
   BadRequestError,
+  ForbiddenError,
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
 import { AttributesService } from "./attributes.service";
@@ -20,7 +23,9 @@ import { AttributeResponseObject } from "./attributes.interface";
 import { ApiConfig } from "../../config/configuration";
 import { JwtAuthGuard } from "../auth/guards";
 import { User, UserInfo } from "../auth/decorators";
-import { AttributeBodyDto, AttributeHashDto } from "./dto";
+import { AttributeBodyDto, AttributeHashDto, GetAttributesDto } from "./dto";
+import { PaginatedList } from "../../shared/interfaces";
+import { formatAttributes } from "./attributes.formatter";
 
 @Controller("/attributes")
 export default class AttributesController {
@@ -47,7 +52,8 @@ export default class AttributesController {
       });
     }
 
-    if (await this.attributesService.existAttribute(hash, body.did)) {
+    const did = await this.attributesService.getDidByAttributeHash(hash);
+    if (did) {
       const updatedAttribute = await this.attributesService.updateAttribute(
         hash,
         body
@@ -60,6 +66,37 @@ export default class AttributesController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get("")
+  async getAttributes(
+    @User() user: UserInfo,
+    @Query() query: GetAttributesDto
+  ): Promise<PaginatedList<AttributeResponseObject>> {
+    const currentPage = query["page[after]"];
+    const pageSize = query["page[size]"];
+
+    const {
+      attributes,
+      pageAfter: nextPage,
+    } = await this.attributesService.getAttributes(
+      user.did,
+      currentPage,
+      pageSize
+    );
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/attributes`;
+
+    return formatAttributes(
+      attributes,
+      currentPage,
+      nextPage,
+      pageSize,
+      baseUrl
+    );
+  }
+
+  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   @Delete("/:hash")
   async deleteAttribute(
@@ -67,11 +104,21 @@ export default class AttributesController {
     @User() user: UserInfo
   ): Promise<void> {
     const { hash } = params;
-    if (!(await this.attributesService.existAttribute(hash, user.did))) {
+
+    const did = await this.attributesService.getDidByAttributeHash(hash);
+
+    if (!did) {
       throw new NotFoundError("Attribute Not Found", {
-        detail: `Attribute ${hash} for did ${user.did} not found`,
+        detail: `Attribute ${hash} not found`,
       });
     }
-    await this.attributesService.deleteAttribute(hash, user.did);
+
+    if (did !== user.did) {
+      throw new ForbiddenError(ForbiddenError.defaultTitle, {
+        detail: `${user.did} is not the owner of attribute ${hash}`,
+      });
+    }
+
+    await this.attributesService.deleteAttribute(hash);
   }
 }

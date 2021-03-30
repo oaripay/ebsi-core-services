@@ -17,6 +17,9 @@ import jsonwebtoken from "jsonwebtoken";
 import axios from "axios";
 import { AttributesModule } from "./attributes.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
+import { loadConfig } from "../../config/configuration";
+import { AttributeResponseObject } from "./attributes.interface";
+import { encrypt } from "../../shared/utils";
 
 interface JsonrpcCall {
   jsonrpc: "2.0";
@@ -30,6 +33,8 @@ describe("Attributes Module", () => {
   let server: HttpServer;
   const mockAxios = jest.spyOn(axios, "post");
 
+  const { domain, apiUrlPrefix, storage, encryptionSecret } = loadConfig();
+  const apiUrl = `${domain}${apiUrlPrefix}`;
   const did = `did:ebsi:0x${crypto.randomBytes(32).toString("hex")}`;
   const validToken = jsonwebtoken.sign(
     {
@@ -41,6 +46,15 @@ describe("Attributes Module", () => {
       issuer: "authorisation-api",
     }
   );
+
+  const createAttributeCassandra = () => ({
+    did,
+    visibility: "private",
+    content_type: "application/json+ld",
+    data: base64url.encode(crypto.randomBytes(15).toString("hex")),
+    data_label: "document",
+    hash: `0x${crypto.randomBytes(32).toString("hex")}`,
+  });
 
   beforeAll(async () => {
     // Mock Storage
@@ -74,6 +88,166 @@ describe("Attributes Module", () => {
     await app.close();
   });
 
+  describe("GET /attributes", () => {
+    it("should get attributes associated to the did", async () => {
+      expect.assertions(4);
+
+      mockAxios.mockImplementation(async () =>
+        Promise.resolve({
+          data: {
+            result: {
+              pageState: "abc",
+              rows: Array(2).fill(createAttributeCassandra()),
+            },
+          },
+        })
+      );
+
+      const response = await request(server)
+        .get("/attributes?page[size]=2")
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        1,
+        ...[
+          expect.stringContaining("/distributed/jsonrpc"),
+          expect.objectContaining({
+            id: expect.any(Number) as number,
+            jsonrpc: "2.0",
+            method: "cassandra_call",
+            params: [
+              "select * from attribute_storage where did = ? allow filtering",
+              did,
+              { fetchSize: 2 },
+            ],
+          }),
+        ]
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining("/attributes?page[size]=2") as string,
+        items: expect.arrayContaining([]) as AttributeResponseObject[],
+        links: {
+          next: expect.stringMatching(
+            new RegExp(
+              `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=2`
+            )
+          ) as string,
+        },
+        pageSize: 2,
+      });
+      expect(response.status).toBe(200);
+      expect(
+        (response.body as { items: AttributeResponseObject[] }).items
+      ).toHaveLength(2);
+    });
+
+    it("should get attributes associated to the did using page[after]", async () => {
+      expect.assertions(8);
+
+      mockAxios.mockImplementation(async () =>
+        Promise.resolve({
+          data: {
+            result: {
+              pageState: "abc",
+              rows: Array(2).fill(createAttributeCassandra()),
+            },
+          },
+        })
+      );
+
+      let pageAfter = encrypt("123abc", encryptionSecret);
+      let response = await request(server)
+        .get(`/attributes?page[after]=${pageAfter}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        2,
+        ...[
+          expect.stringContaining("/distributed/jsonrpc"),
+          expect.objectContaining({
+            id: expect.any(Number) as number,
+            jsonrpc: "2.0",
+            method: "cassandra_call",
+            params: [
+              "select * from attribute_storage where did = ? allow filtering",
+              did,
+              { fetchSize: 10, pageState: "123abc" },
+            ],
+          }),
+        ]
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringMatching(
+          new RegExp(
+            `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`
+          )
+        ) as string,
+        items: expect.arrayContaining([]) as AttributeResponseObject[],
+        links: {
+          next: expect.stringMatching(
+            new RegExp(
+              `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`
+            )
+          ) as string,
+        },
+        pageSize: 10,
+      });
+      expect(response.status).toBe(200);
+      expect(
+        (response.body as { items: AttributeResponseObject[] }).items
+      ).toHaveLength(2);
+
+      // page for shared attributes
+      pageAfter = encrypt("__shared__123abc", encryptionSecret);
+      response = await request(server)
+        .get(`/attributes?page[after]=${pageAfter}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        3,
+        ...[
+          expect.stringContaining("/distributed/jsonrpc"),
+          expect.objectContaining({
+            id: expect.any(Number) as number,
+            jsonrpc: "2.0",
+            method: "cassandra_call",
+            params: [
+              "select * from attribute_storage where shared_with = ? allow filtering",
+              did,
+              { fetchSize: 10, pageState: "123abc" },
+            ],
+          }),
+        ]
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringMatching(
+          new RegExp(
+            `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`
+          )
+        ) as string,
+        items: expect.arrayContaining([]) as AttributeResponseObject[],
+        links: {
+          next: expect.stringMatching(
+            new RegExp(
+              `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`
+            )
+          ) as string,
+        },
+        pageSize: 10,
+      });
+      expect(response.status).toBe(200);
+      expect(
+        (response.body as { items: AttributeResponseObject[] }).items
+      ).toHaveLength(2);
+    });
+  });
+
   describe("POST /attributes", () => {
     it("should reject unauthorized requests", async () => {
       expect.assertions(2);
@@ -89,7 +263,7 @@ describe("Attributes Module", () => {
     });
 
     it("should reject bad requests", async () => {
-      expect.assertions(6);
+      expect.assertions(8);
 
       let response = await request(server)
         .post("/attributes")
@@ -100,9 +274,32 @@ describe("Attributes Module", () => {
         status: 400,
         type: "about:blank",
         detail: JSON.stringify([
-          "storageUri must be a string",
+          `storageUri must be equal to ${storage}/stores/distributed`,
+          "did must be a valid DID string",
+          "contentType must be MIME type format",
+          "data must be base64url encoded",
+        ]),
+      });
+      expect(response.status).toBe(400);
+
+      response = await request(server)
+        .post("/attributes")
+        .auth(validToken, { type: "bearer" })
+        .send({
+          visibility: "???",
+          sharedWith: "no did",
+          dataLabel: 40,
+          proof: "text",
+        });
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        type: "about:blank",
+        detail: JSON.stringify([
+          `storageUri must be equal to ${storage}/stores/distributed`,
           "did must be a valid DID string",
           "visibility must be one of the following values: private, shared",
+          "sharedWith must be a valid DID string",
           "contentType must be MIME type format",
           "data must be base64url encoded",
           "dataLabel must be a string",
@@ -115,7 +312,7 @@ describe("Attributes Module", () => {
         .post("/attributes")
         .auth(validToken, { type: "bearer" })
         .send({
-          storageUri: "http://localhost:3000",
+          storageUri: `${storage}/stores/distributed`,
           did,
           visibility: "private",
           contentType: "application/json+ld",
@@ -135,7 +332,7 @@ describe("Attributes Module", () => {
         .post("/attributes")
         .auth(validToken, { type: "bearer" })
         .send({
-          storageUri: "http://localhost:3000",
+          storageUri: `${storage}/stores/distributed`,
           did,
           visibility: "private",
           contentType: "application/json+ld",
@@ -162,7 +359,7 @@ describe("Attributes Module", () => {
       });
 
       const attribute = {
-        storageUri: "http://localhost:3000",
+        storageUri: `${storage}/stores/distributed`,
         did,
         visibility: "private",
         contentType: "application/json+ld",
@@ -177,7 +374,7 @@ describe("Attributes Module", () => {
         .send(attribute);
 
       expect(mockAxios).toHaveBeenNthCalledWith(
-        1,
+        4,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -185,16 +382,15 @@ describe("Attributes Module", () => {
             jsonrpc: "2.0",
             method: "cassandra_call",
             params: [
-              "select did from attribute_storage where hash = ? and did = ?",
+              "select did from attribute_storage where hash = ?",
               expect.any(String) as string,
-              attribute.did,
             ],
           }),
         ]
       );
 
       expect(mockAxios).toHaveBeenNthCalledWith(
-        2,
+        5,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -202,10 +398,11 @@ describe("Attributes Module", () => {
             jsonrpc: "2.0",
             method: "cassandra_call",
             params: [
-              "insert into attribute_storage (hash, did, visibility, content_type, data, data_label) values (?, ?, ?, ?, ?, ?)",
+              "insert into attribute_storage (hash, did, visibility, shared_with, content_type, data, data_label) values (?, ?, ?, ?, ?, ?, ?)",
               expect.any(String) as string,
               attribute.did,
               attribute.visibility,
+              "",
               attribute.contentType,
               attribute.data,
               attribute.dataLabel,
@@ -227,7 +424,7 @@ describe("Attributes Module", () => {
       mockAxios.mockImplementation(async (url: string, data: JsonrpcCall) => {
         if (data.params[0].startsWith("select")) {
           return Promise.resolve({
-            data: { result: { rows: ["existing attribute"] } },
+            data: { result: { rows: [{ did: "did:owner" }] } },
           });
         }
 
@@ -237,9 +434,10 @@ describe("Attributes Module", () => {
       });
 
       const attribute = {
-        storageUri: "http://localhost:3000",
+        storageUri: `${storage}/stores/distributed`,
         did,
-        visibility: "private",
+        visibility: "shared",
+        sharedWith: "did:ebsi:12245",
         contentType: "application/json+ld",
         data: base64url.encode("encrypted data"),
         dataLabel: "document",
@@ -252,7 +450,7 @@ describe("Attributes Module", () => {
         .send(attribute);
 
       expect(mockAxios).toHaveBeenNthCalledWith(
-        3,
+        6,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -260,16 +458,15 @@ describe("Attributes Module", () => {
             jsonrpc: "2.0",
             method: "cassandra_call",
             params: [
-              "select did from attribute_storage where hash = ? and did = ?",
+              "select did from attribute_storage where hash = ?",
               expect.any(String) as string,
-              attribute.did,
             ],
           }),
         ]
       );
 
       expect(mockAxios).toHaveBeenNthCalledWith(
-        4,
+        7,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -277,12 +474,12 @@ describe("Attributes Module", () => {
             jsonrpc: "2.0",
             method: "cassandra_call",
             params: [
-              "update attribute_storage set visibility = ?, content_type = ?, data_label = ? where hash = ? and did = ?",
+              "update attribute_storage set visibility = ?, shared_with = ?, data_label = ?, content_type = ? where hash = ?",
               attribute.visibility,
-              attribute.contentType,
+              attribute.sharedWith,
               attribute.dataLabel,
+              attribute.contentType,
               expect.any(String) as string,
-              attribute.did,
             ],
           }),
         ]
@@ -313,18 +510,14 @@ describe("Attributes Module", () => {
         .send();
 
       expect(mockAxios).toHaveBeenNthCalledWith(
-        5,
+        8,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
             id: expect.any(Number) as number,
             jsonrpc: "2.0",
             method: "cassandra_call",
-            params: [
-              "select did from attribute_storage where hash = ? and did = ?",
-              hash,
-              did,
-            ],
+            params: ["select did from attribute_storage where hash = ?", hash],
           }),
         ]
       );
@@ -333,9 +526,46 @@ describe("Attributes Module", () => {
         title: "Attribute Not Found",
         status: 404,
         type: "about:blank",
-        detail: `Attribute ${hash} for did ${did} not found`,
+        detail: `Attribute ${hash} not found`,
       });
       expect(response.status).toBe(404);
+    });
+
+    it("should throw forbidden", async () => {
+      expect.assertions(3);
+      const hash = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      mockAxios.mockImplementation(async () => {
+        return Promise.resolve({
+          data: { result: { rows: [{ did: "did:owner" }] } },
+        });
+      });
+
+      const response = await request(server)
+        .delete(`/attributes/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        9,
+        ...[
+          expect.stringContaining("/distributed/jsonrpc"),
+          expect.objectContaining({
+            id: expect.any(Number) as number,
+            jsonrpc: "2.0",
+            method: "cassandra_call",
+            params: ["select did from attribute_storage where hash = ?", hash],
+          }),
+        ]
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Forbidden",
+        status: 403,
+        type: "about:blank",
+        detail: `${did} is not the owner of attribute ${hash}`,
+      });
+      expect(response.status).toBe(403);
     });
 
     it("should delete an attribute", async () => {
@@ -345,7 +575,7 @@ describe("Attributes Module", () => {
       mockAxios.mockImplementation(async (url: string, data: JsonrpcCall) => {
         if (data.params[0].startsWith("select")) {
           return Promise.resolve({
-            data: { result: { rows: ["existing attribute"] } },
+            data: { result: { rows: [{ did }] } },
           });
         }
 
@@ -360,35 +590,27 @@ describe("Attributes Module", () => {
         .send();
 
       expect(mockAxios).toHaveBeenNthCalledWith(
-        6,
+        10,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
             id: expect.any(Number) as number,
             jsonrpc: "2.0",
             method: "cassandra_call",
-            params: [
-              "select did from attribute_storage where hash = ? and did = ?",
-              hash,
-              did,
-            ],
+            params: ["select did from attribute_storage where hash = ?", hash],
           }),
         ]
       );
 
       expect(mockAxios).toHaveBeenNthCalledWith(
-        7,
+        11,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
             id: expect.any(Number) as number,
             jsonrpc: "2.0",
             method: "cassandra_call",
-            params: [
-              "delete from attribute_storage where hash = ? and did = ?",
-              hash,
-              did,
-            ],
+            params: ["delete from attribute_storage where hash = ?", hash],
           }),
         ]
       );
