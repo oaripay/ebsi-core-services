@@ -21,7 +21,7 @@ import {
 import { AttributesService } from "./attributes.service";
 import { AttributeResponseObject } from "./attributes.interface";
 import { ApiConfig } from "../../config/configuration";
-import { JwtAuthGuard } from "../auth/guards";
+import { JwtAuthGuard, JwtOptionalAuthGuard } from "../auth/guards";
 import { User, UserInfo } from "../auth/decorators";
 import { AttributeBodyDto, AttributeHashDto, GetAttributesDto } from "./dto";
 import { PaginatedList } from "../../shared/interfaces";
@@ -94,6 +94,26 @@ export default class AttributesController {
       pageSize,
       baseUrl
     );
+  }
+
+  @UseGuards(JwtOptionalAuthGuard)
+  @Get("/:hash")
+  async getAttribute(
+    @Param() params: AttributeHashDto,
+    @User() user: UserInfo
+  ): Promise<AttributeResponseObject> {
+    const attribute = await this.attributesService.getAttribute(params.hash);
+    const { visibility, sharedWith, did } = attribute;
+    if (
+      did !== user.did &&
+      (visibility !== "shared" ||
+        (visibility === "shared" &&
+          sharedWith !== "" &&
+          sharedWith !== user.did))
+    ) {
+      throw new ForbiddenError(ForbiddenError.defaultTitle);
+    }
+    return attribute;
   }
 
   @UseGuards(JwtAuthGuard)

@@ -183,6 +183,95 @@ describe("Attributes", () => {
     });
   });
 
+  describe("GET /attribute/{hash}", () => {
+    it("should return attribute not found", async () => {
+      expect.assertions(2);
+      const hash = `0x${crypto.randomBytes(32).toString("hex")}`;
+      const response = await request(server)
+        .get(`/attributes/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+      expect(response.body).toStrictEqual({
+        title: "Attribute Not Found",
+        status: 404,
+        type: "about:blank",
+        detail: `Attribute ${hash} not found`,
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return forbidden", async () => {
+      expect.assertions(2);
+
+      const attribute = ((await insertAttribute()) as {
+        body: AttributeResponseObject;
+      }).body;
+
+      const response = await request(server)
+        .get(`/attributes/${attribute.hash}`)
+        .send();
+
+      expect(response.body).toStrictEqual({
+        title: "Forbidden",
+        status: 403,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(403);
+    });
+
+    it("should get a specific attribute associated to the did", async () => {
+      expect.assertions(2);
+
+      const expectedAttribute = ((await insertAttribute()) as {
+        body: AttributeResponseObject;
+      }).body;
+
+      const response = await request(server)
+        .get(`/attributes/${expectedAttribute.hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      delete expectedAttribute.proof;
+      expectedAttribute.visibility = "private";
+      expectedAttribute.sharedWith = "";
+      expect(response.body).toStrictEqual(expectedAttribute);
+      expect(response.status).toBe(200);
+    });
+
+    it("should get a shared attribute", async () => {
+      expect.assertions(4);
+
+      // shared with everyone without authentication
+      let expectedAttribute = ((await insertAttribute("shared")) as {
+        body: AttributeResponseObject;
+      }).body;
+
+      let response = await request(server)
+        .get(`/attributes/${expectedAttribute.hash}`)
+        // no authentication
+        .send();
+
+      delete expectedAttribute.proof;
+      expectedAttribute.sharedWith = "";
+      expect(response.body).toStrictEqual(expectedAttribute);
+      expect(response.status).toBe(200);
+
+      // shared with the user
+      expectedAttribute = ((await insertAttribute("shared", true)) as {
+        body: AttributeResponseObject;
+      }).body;
+
+      response = await request(server)
+        .get(`/attributes/${expectedAttribute.hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      delete expectedAttribute.proof;
+      expect(response.body).toStrictEqual(expectedAttribute);
+      expect(response.status).toBe(200);
+    });
+  });
+
   describe("POST /attributes", () => {
     it("should reject unauthorized requests", async () => {
       expect.assertions(2);
@@ -294,22 +383,9 @@ describe("Attributes", () => {
     it("should delete an attribute", async () => {
       expect.assertions(2);
 
-      // insert attribute
-      const attribute = {
-        storageUri: `${storage}/stores/distributed`,
-        did,
-        visibility: "private",
-        contentType: "application/json+ld",
-        data: base64url.encode("encrypted data"),
-        dataLabel: "document",
-        proof: {},
-      };
-
-      const responseInsert = await request(server)
-        .post("/attributes")
-        .auth(validToken, { type: "bearer" })
-        .send(attribute);
-      const { hash } = responseInsert.body as { hash: string };
+      const { hash } = ((await insertAttribute()) as {
+        body: AttributeResponseObject;
+      }).body;
 
       const response = await request(server)
         .delete(`/attributes/${hash}`)

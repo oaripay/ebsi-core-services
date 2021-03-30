@@ -1,5 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { BadRequestError } from "@cef-ebsi/problem-details-errors";
+import {
+  BadRequestError,
+  NotFoundError,
+} from "@cef-ebsi/problem-details-errors";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import { ApiConfig } from "../../config/configuration";
@@ -135,6 +138,30 @@ export class AttributesService {
     }
 
     return { attributes: items, pageAfter: newPageAfter };
+  }
+
+  async getAttribute(hash: string): Promise<AttributeResponseObject> {
+    const result = await this.storageJsonrpc([
+      "select * from attribute_storage where hash = ?",
+      hash,
+    ]);
+
+    if (result.rows.length === 0)
+      throw new NotFoundError("Attribute Not Found", {
+        detail: `Attribute ${hash} not found`,
+      });
+
+    const r = result.rows[0] as AttributeCassandraModel;
+    return {
+      storageUri: this.storageUri,
+      hash: r.hash,
+      did: r.did,
+      visibility: r.visibility,
+      sharedWith: r.shared_with,
+      contentType: r.content_type,
+      data: r.data,
+      dataLabel: r.data_label,
+    };
   }
 
   async insertAttribute(

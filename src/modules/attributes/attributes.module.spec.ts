@@ -18,7 +18,10 @@ import axios from "axios";
 import { AttributesModule } from "./attributes.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { loadConfig } from "../../config/configuration";
-import { AttributeResponseObject } from "./attributes.interface";
+import {
+  AttributeCassandraModel,
+  AttributeResponseObject,
+} from "./attributes.interface";
 import { encrypt } from "../../shared/utils";
 
 interface JsonrpcCall {
@@ -32,6 +35,7 @@ describe("Attributes Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   const mockAxios = jest.spyOn(axios, "post");
+  let numberCall = 0;
 
   const { domain, apiUrlPrefix, storage, encryptionSecret } = loadConfig();
   const apiUrl = `${domain}${apiUrlPrefix}`;
@@ -47,9 +51,10 @@ describe("Attributes Module", () => {
     }
   );
 
-  const createAttributeCassandra = () => ({
+  const createAttributeCassandra = (): AttributeCassandraModel => ({
     did,
     visibility: "private",
+    shared_with: "",
     content_type: "application/json+ld",
     data: base64url.encode(crypto.randomBytes(15).toString("hex")),
     data_label: "document",
@@ -108,8 +113,9 @@ describe("Attributes Module", () => {
         .auth(validToken, { type: "bearer" })
         .send();
 
+      numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
-        1,
+        numberCall,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -163,8 +169,9 @@ describe("Attributes Module", () => {
         .auth(validToken, { type: "bearer" })
         .send();
 
+      numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
-        2,
+        numberCall,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -208,8 +215,9 @@ describe("Attributes Module", () => {
         .auth(validToken, { type: "bearer" })
         .send();
 
+      numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
-        3,
+        numberCall,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -245,6 +253,265 @@ describe("Attributes Module", () => {
       expect(
         (response.body as { items: AttributeResponseObject[] }).items
       ).toHaveLength(2);
+    });
+  });
+
+  describe("GET /attribute/{hash}", () => {
+    it("should return attribute not found", async () => {
+      expect.assertions(3);
+
+      mockAxios.mockImplementation(async () =>
+        Promise.resolve({
+          data: {
+            result: {
+              rows: [],
+            },
+          },
+        })
+      );
+
+      const hash = `0x${crypto.randomBytes(32).toString("hex")}`;
+      const response = await request(server)
+        .get(`/attributes/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      numberCall += 1;
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        numberCall,
+        ...[
+          expect.stringContaining("/distributed/jsonrpc"),
+          expect.objectContaining({
+            id: expect.any(Number) as number,
+            jsonrpc: "2.0",
+            method: "cassandra_call",
+            params: ["select * from attribute_storage where hash = ?", hash],
+          }),
+        ]
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Attribute Not Found",
+        status: 404,
+        type: "about:blank",
+        detail: `Attribute ${hash} not found`,
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return forbidden", async () => {
+      expect.assertions(6);
+
+      const attributeCassandra = createAttributeCassandra();
+      attributeCassandra.did = "did:ebsi:different_owner";
+      attributeCassandra.visibility = "shared";
+      attributeCassandra.shared_with = "did:ebsi:shared_with_other";
+      mockAxios.mockImplementation(async () =>
+        Promise.resolve({
+          data: {
+            result: {
+              rows: [attributeCassandra],
+            },
+          },
+        })
+      );
+
+      let response = await request(server)
+        .get(`/attributes/${attributeCassandra.hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      numberCall += 1;
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        numberCall,
+        ...[
+          expect.stringContaining("/distributed/jsonrpc"),
+          expect.objectContaining({
+            id: expect.any(Number) as number,
+            jsonrpc: "2.0",
+            method: "cassandra_call",
+            params: [
+              "select * from attribute_storage where hash = ?",
+              attributeCassandra.hash,
+            ],
+          }),
+        ]
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Forbidden",
+        status: 403,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(403);
+
+      attributeCassandra.visibility = "shared";
+      attributeCassandra.shared_with = "did:ebsi:shared_with_other";
+      response = await request(server)
+        .get(`/attributes/${attributeCassandra.hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      numberCall += 1;
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        numberCall,
+        ...[
+          expect.stringContaining("/distributed/jsonrpc"),
+          expect.objectContaining({
+            id: expect.any(Number) as number,
+            jsonrpc: "2.0",
+            method: "cassandra_call",
+            params: [
+              "select * from attribute_storage where hash = ?",
+              attributeCassandra.hash,
+            ],
+          }),
+        ]
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Forbidden",
+        status: 403,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(403);
+    });
+
+    it("should get a specific attribute associated to the did", async () => {
+      expect.assertions(3);
+
+      const attributeCassandra = createAttributeCassandra();
+      mockAxios.mockImplementation(async () =>
+        Promise.resolve({
+          data: {
+            result: {
+              rows: [attributeCassandra],
+            },
+          },
+        })
+      );
+
+      const response = await request(server)
+        .get(`/attributes/${attributeCassandra.hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      numberCall += 1;
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        numberCall,
+        ...[
+          expect.stringContaining("/distributed/jsonrpc"),
+          expect.objectContaining({
+            id: expect.any(Number) as number,
+            jsonrpc: "2.0",
+            method: "cassandra_call",
+            params: [
+              "select * from attribute_storage where hash = ?",
+              attributeCassandra.hash,
+            ],
+          }),
+        ]
+      );
+
+      expect(response.body).toStrictEqual({
+        storageUri: `${storage}/stores/distributed`,
+        hash: attributeCassandra.hash,
+        did: attributeCassandra.did,
+        sharedWith: attributeCassandra.shared_with,
+        visibility: attributeCassandra.visibility,
+        contentType: attributeCassandra.content_type,
+        data: attributeCassandra.data,
+        dataLabel: attributeCassandra.data_label,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should get a shared attribute", async () => {
+      expect.assertions(6);
+
+      // shared with everyone and no token authentication
+      const attributeCassandra = createAttributeCassandra();
+      attributeCassandra.did = "did:ebsi:different_owner";
+      attributeCassandra.visibility = "shared";
+      mockAxios.mockImplementation(async () =>
+        Promise.resolve({
+          data: {
+            result: {
+              rows: [attributeCassandra],
+            },
+          },
+        })
+      );
+
+      let response = await request(server)
+        .get(`/attributes/${attributeCassandra.hash}`)
+        // no token authentication
+        .send();
+
+      numberCall += 1;
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        numberCall,
+        ...[
+          expect.stringContaining("/distributed/jsonrpc"),
+          expect.objectContaining({
+            id: expect.any(Number) as number,
+            jsonrpc: "2.0",
+            method: "cassandra_call",
+            params: [
+              "select * from attribute_storage where hash = ?",
+              attributeCassandra.hash,
+            ],
+          }),
+        ]
+      );
+
+      expect(response.body).toStrictEqual({
+        storageUri: `${storage}/stores/distributed`,
+        hash: attributeCassandra.hash,
+        did: attributeCassandra.did,
+        visibility: attributeCassandra.visibility,
+        sharedWith: attributeCassandra.shared_with,
+        contentType: attributeCassandra.content_type,
+        data: attributeCassandra.data,
+        dataLabel: attributeCassandra.data_label,
+      });
+      expect(response.status).toBe(200);
+
+      // shared with the user
+      attributeCassandra.shared_with = did;
+      response = await request(server)
+        .get(`/attributes/${attributeCassandra.hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+
+      numberCall += 1;
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        numberCall,
+        ...[
+          expect.stringContaining("/distributed/jsonrpc"),
+          expect.objectContaining({
+            id: expect.any(Number) as number,
+            jsonrpc: "2.0",
+            method: "cassandra_call",
+            params: [
+              "select * from attribute_storage where hash = ?",
+              attributeCassandra.hash,
+            ],
+          }),
+        ]
+      );
+
+      expect(response.body).toStrictEqual({
+        storageUri: `${storage}/stores/distributed`,
+        hash: attributeCassandra.hash,
+        did: attributeCassandra.did,
+        visibility: attributeCassandra.visibility,
+        sharedWith: attributeCassandra.shared_with,
+        contentType: attributeCassandra.content_type,
+        data: attributeCassandra.data,
+        dataLabel: attributeCassandra.data_label,
+      });
+      expect(response.status).toBe(200);
     });
   });
 
@@ -373,8 +640,9 @@ describe("Attributes Module", () => {
         .auth(validToken, { type: "bearer" })
         .send(attribute);
 
+      numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
-        4,
+        numberCall,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -389,8 +657,9 @@ describe("Attributes Module", () => {
         ]
       );
 
+      numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
-        5,
+        numberCall,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -449,8 +718,9 @@ describe("Attributes Module", () => {
         .auth(validToken, { type: "bearer" })
         .send(attribute);
 
+      numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
-        6,
+        numberCall,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -465,8 +735,9 @@ describe("Attributes Module", () => {
         ]
       );
 
+      numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
-        7,
+        numberCall,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -509,8 +780,9 @@ describe("Attributes Module", () => {
         .auth(validToken, { type: "bearer" })
         .send();
 
+      numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
-        8,
+        numberCall,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -546,8 +818,9 @@ describe("Attributes Module", () => {
         .auth(validToken, { type: "bearer" })
         .send();
 
+      numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
-        9,
+        numberCall,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -589,8 +862,9 @@ describe("Attributes Module", () => {
         .auth(validToken, { type: "bearer" })
         .send();
 
+      numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
-        10,
+        numberCall,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
@@ -602,8 +876,9 @@ describe("Attributes Module", () => {
         ]
       );
 
+      numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
-        11,
+        numberCall,
         ...[
           expect.stringContaining("/distributed/jsonrpc"),
           expect.objectContaining({
