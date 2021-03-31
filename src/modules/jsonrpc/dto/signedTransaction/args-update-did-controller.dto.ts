@@ -1,9 +1,9 @@
 import { IsEthereumAddress, IsNumber, Min } from "class-validator";
-import { IsHexadecimalBase58EbsiDid } from "../../validators";
+import { IsHexadecimalDid } from "../../validators";
 
 export class ArgsUpdateDidController {
   // Consumer calling function must convert Base58 DID identifier into bytes in hex format
-  @IsHexadecimalBase58EbsiDid()
+  @IsHexadecimalDid()
   identifier: string;
 
   // ETH address of the new DID Controller on the SC

@@ -1,12 +1,9 @@
 import { IsHexadecimal, IsNumber, Matches, Min } from "class-validator";
-import {
-  IsHexadecimalBase58EbsiDid,
-  IsHexadecimalJsonLd,
-} from "../../validators";
+import { IsHexadecimalDid, IsHexadecimalJsonLd } from "../../validators";
 
 export class ArgsDetachDidDocumentVersionHash {
   // Consumer calling function must convert Base58 DID identifier into bytes in hex format
-  @IsHexadecimalBase58EbsiDid()
+  @IsHexadecimalDid()
   identifier: string;
 
   // The hash algorithm id used to compute the hashValue.

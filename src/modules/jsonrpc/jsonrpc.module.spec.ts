@@ -163,8 +163,9 @@ describe("JsonRpc Module", () => {
           id: `${did}#vm-3`,
           controller: did,
           type: "EcdsaSecp256k1RecoveryMethod2020",
-          blockchainAccountId:
-            "0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1",
+          blockchainAccountId: `0x${crypto
+            .randomBytes(16)
+            .toString("hex")}@eip155:1`,
         },
       ],
     };
@@ -182,9 +183,14 @@ describe("JsonRpc Module", () => {
       canonizedDidDocumentBuffer
     );
 
-    const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
+    const timestampDataBuffer = Buffer.from(
+      JSON.stringify({ data: "test", r: crypto.randomBytes(8).toString("hex") })
+    );
     const didVersionMetadataBuffer = Buffer.from(
-      JSON.stringify({ metadata: "value" })
+      JSON.stringify({
+        metadata: "value",
+        r: crypto.randomBytes(8).toString("hex"),
+      })
     );
 
     return {
@@ -716,8 +722,8 @@ describe("JsonRpc Module", () => {
         case "appendDidDocumentVersionHash": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
             timestampDataBuffer,
+            canonizedDidDocumentHash,
           } = updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
@@ -1346,16 +1352,14 @@ describe("JsonRpc Module", () => {
         case "updateDidController": {
           param1 = {
             from: signer.address,
-            identifier: `0x${Buffer.from("did:ebsi:not-base-58").toString(
-              "hex"
-            )}`,
+            identifier: `0x${Buffer.from("did:ebsi").toString("hex")}`,
             newControllerId: ethers.Wallet.createRandom().address,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
           } as InsertDidControllerParam;
 
           expectedErrorMessage1 =
-            "property params[0].identifier has failed the following constraints: isHexadecimalBase58EbsiDid";
+            "property params[0].identifier has failed the following constraints: isHexadecimalDid";
 
           param2 = {
             from: signer.address,
@@ -1383,14 +1387,12 @@ describe("JsonRpc Module", () => {
         case "revokeDidController": {
           param1 = {
             from: signer.address,
-            identifier: `0x${Buffer.from("did:ebsi:not-base-58").toString(
-              "hex"
-            )}`,
+            identifier: `0x${Buffer.from("did:ebsi").toString("hex")}`,
             oldControllerId: ethers.Wallet.createRandom().address,
           } as RevokeDidControllerParam;
 
           expectedErrorMessage1 =
-            "property params[0].identifier has failed the following constraints: isHexadecimalBase58EbsiDid";
+            "property params[0].identifier has failed the following constraints: isHexadecimalDid";
 
           param2 = {
             from: signer.address,
@@ -1620,15 +1622,13 @@ describe("JsonRpc Module", () => {
 
           param1 = {
             from: signer.address,
-            identifier: `0x${Buffer.from("did:ebsi:not-base-58").toString(
-              "hex"
-            )}`,
+            identifier: `0x${Buffer.from("did:ebsi").toString("hex")}`,
             didVersionInfo,
             didVersionMetadata,
           } as AppendDidDocumentVersionMetadataParam;
 
           expectedErrorMessage1 =
-            "property params[0].identifier has failed the following constraints: isHexadecimalBase58EbsiDid";
+            "property params[0].identifier has failed the following constraints: isHexadecimalDid";
 
           param2 = {
             from: signer.address,

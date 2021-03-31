@@ -274,7 +274,7 @@ describe("HashAlgorithms Module", () => {
       expect(response.body).toStrictEqual({
         ianaName: expect.any(String) as string,
         oid: "oid-test",
-        outputLengthBits: 20,
+        outputLengthBits: 256,
         status: "active",
       });
       expect(response.status).toBe(200);

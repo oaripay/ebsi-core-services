@@ -6,14 +6,14 @@ import {
   Min,
 } from "class-validator";
 import {
-  IsHexadecimalBase58EbsiDid,
+  IsHexadecimalDid,
   IsHexadecimalJson,
   IsHexadecimalJsonLd,
 } from "../../validators";
 
 export class ArgsInsertDidDocument {
   // Consumer calling function must convert Base58 DID identifier into bytes in hex format
-  @IsHexadecimalBase58EbsiDid()
+  @IsHexadecimalDid()
   identifier: string;
 
   // The hash algorithm id used to compute the hashValue.

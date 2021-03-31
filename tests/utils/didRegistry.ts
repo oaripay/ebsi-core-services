@@ -4,6 +4,7 @@ import ganache from "ganache-core";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
 import { canonize } from "jsonld";
+import * as bs58 from "bs58";
 import {
   DidRegistry,
   DidRegistry__factory,
@@ -19,6 +20,19 @@ import PaginationArtifact from "../../submodules/did-registry-ethereum-sc/artifa
 interface Administrator {
   wallet: ethers.Wallet;
   attribute: { [x: string]: unknown };
+}
+
+interface DidDocument {
+  did: string;
+  identifier: string;
+  didDocument: { [x: string]: unknown };
+  didDocumentBuffer: Buffer;
+  canonizedDidDocument: string;
+  canonizedDidDocumentBuffer: Buffer;
+  canonizedDidDocumentHash: string;
+  controller: ethers.Wallet;
+  timestampDataBuffer: Buffer;
+  didVersionMetadataBuffer: Buffer;
 }
 
 interface DidMethod {
@@ -179,6 +193,88 @@ export async function insertAdmin(
   return attribute;
 }
 
+const createDid = (): string => {
+  const buf = crypto.randomBytes(32);
+  return `did:ebsi:${bs58.encode(buf)}`;
+};
+
+export async function insertDidDocument(
+  contract: DidRegistry,
+  ethersProvider: ethers.providers.Web3Provider
+): Promise<DidDocument> {
+  const did = createDid();
+
+  const didDocument = {
+    "@context": [
+      "https://www.w3.org/ns/did/v1",
+      "https://identity.foundation/EcdsaSecp256k1RecoverySignature2020/lds-ecdsa-secp256k1-recovery2020-0.0.jsonld",
+    ],
+    id: did,
+    publicKey: [
+      {
+        id: `${did}#vm-3`,
+        controller: did,
+        type: "EcdsaSecp256k1RecoveryMethod2020",
+        blockchainAccountId:
+          "0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1",
+      },
+    ],
+  };
+
+  const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
+
+  const canonizedDidDocument = await canonize(didDocument, {
+    algorithm: "URDNA2015",
+    format: "application/n-quads",
+  });
+
+  const canonizedDidDocumentBuffer = Buffer.from(canonizedDidDocument);
+  const canonizedDidDocumentHash = ethers.utils.sha256(
+    canonizedDidDocumentBuffer
+  );
+
+  const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
+  const didVersionMetadataBuffer = Buffer.from(
+    JSON.stringify({ metadata: "value" })
+  );
+
+  const identifier = `0x${Buffer.from(did).toString("hex")}`;
+  const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+  const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+  const didVersionMetadata = `0x${didVersionMetadataBuffer.toString("hex")}`;
+
+  const controller = ethers.Wallet.createRandom().connect(ethersProvider);
+
+  await contract.insertDidDocument(
+    identifier,
+    0,
+    canonizedDidDocumentHash,
+    didVersionInfo,
+    timestampData,
+    didVersionMetadata
+  );
+
+  await contract.updateDidController(
+    identifier,
+    controller.address,
+    Date.now() - 1,
+    Date.now() + 100000
+  );
+
+  return {
+    did,
+    identifier,
+    didDocument,
+    didDocumentBuffer,
+    canonizedDidDocument,
+    canonizedDidDocumentBuffer,
+    canonizedDidDocumentHash,
+    controller,
+    timestampDataBuffer,
+    didVersionMetadataBuffer,
+  };
+}
+
 export async function insertDidMethod(
   contract: DidRegistry
 ): Promise<DidMethod> {
@@ -289,7 +385,7 @@ const validHashAlgorithms = [
 export async function insertHashAlgorithm(
   contract: DidRegistry
 ): Promise<HashAlgorithmObject> {
-  const outputLength = 20;
+  const outputLength = 256;
   const ianaName =
     validHashAlgorithms[Math.floor(Math.random() * validHashAlgorithms.length)];
   const oid = "oid-test";
@@ -306,6 +402,7 @@ export async function insertHashAlgorithm(
 export interface SetupOptions {
   administratorsTotal?: number;
   didMethodsTotal?: number;
+  didDocuments?: number;
   hashAlgorithmsTotal?: number;
   policiesTotal?: number;
   policiesRevisionsTotal?: number;
@@ -315,6 +412,7 @@ export async function setupTestEnv(
   opts: SetupOptions = {
     administratorsTotal: 1,
     didMethodsTotal: 1,
+    didDocuments: 1,
     hashAlgorithmsTotal: 1,
     policiesTotal: 1,
     policiesRevisionsTotal: 1,
@@ -324,11 +422,13 @@ export async function setupTestEnv(
   didRegistryContract: DidRegistry;
   administrators: Administrator[];
   didMethods: DidMethod[];
+  didDocuments: DidDocument[];
   hashAlgorithms: HashAlgorithmObject[];
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
 }> {
-  const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
+  const provider = ganache.provider();
+  const ethersProvider = new ethers.providers.Web3Provider(provider);
 
   // Deploy contract
   const didRegistryContract = await deployDidRegistryContract(ethersProvider);
@@ -345,16 +445,22 @@ export async function setupTestEnv(
     .pipe(mergeMap(createAdminWallet), toArray())
     .toPromise();
 
+  const hashAlgorithms = await Promise.all(
+    Array(opts.hashAlgorithmsTotal ?? 1)
+      .fill(0)
+      .map(() => insertHashAlgorithm(didRegistryContract))
+  );
+
   const didMethods = await Promise.all(
     Array(opts.didMethodsTotal ?? 1)
       .fill(0)
       .map(() => insertDidMethod(didRegistryContract))
   );
 
-  const hashAlgorithms = await Promise.all(
-    Array(opts.hashAlgorithmsTotal ?? 1)
+  const didDocuments = await Promise.all(
+    Array(opts.didDocuments ?? 1)
       .fill(0)
-      .map(() => insertHashAlgorithm(didRegistryContract))
+      .map(() => insertDidDocument(didRegistryContract, ethersProvider))
   );
 
   const policyRevisions = {};
@@ -392,6 +498,7 @@ export async function setupTestEnv(
     didRegistryContract,
     administrators,
     didMethods,
+    didDocuments,
     hashAlgorithms,
     policies,
     policyRevisions,

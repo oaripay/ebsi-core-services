@@ -582,6 +582,175 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /did-registry/v2/identifiers:
+    get:
+      tags:
+        - DID Registry
+      summary: List of identifiers
+      description: Returns a list of identifiers
+      operationId: get-did-registry-v2-identifiers
+      parameters:
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+        - schema:
+            type: integer
+          in: query
+          name: controller
+          description: Filter by controller ID (Ethereum address).
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection (consult)
+                  items:
+                    type: array
+                    description: List of identifiers
+                    items:
+                      type: object
+                      properties:
+                        did:
+                          type: string
+                          description: A unique record id = DID User
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items across all pages.
+                  pageSize:
+                    type: integer
+                    description: |
+                      Maximum number of items per page. For the last page, its value should be
+                      independent of the number of actually returned items.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=3&page[size]=10
+                    items:
+                      - did: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                        href: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                      - did: did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew
+                        href: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=13&page[size]=10
+                Filter by controller:
+                  value:
+                    self: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=3&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                    items:
+                      - did: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                        href: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      prev: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=2&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      next: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=4&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      last: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=13&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v2/identifiers/{did}:
+    get:
+      tags:
+        - DID Registry
+      summary: Resolve identifier by its DID
+      description: Returns a identifier by its DID
+      operationId: get-did-registry-v2-identifier
+      parameters:
+        - in: path
+          name: did
+          required: true
+          description: A DID to be resolved.
+          schema:
+            type: string
+          example: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+      responses:
+        200:
+          description: Success
+          content:
+            application/did+ld+json:
+              schema:
+                $ref: "#/components/schemas/DIDDocument"
+              examples:
+                Success:
+                  value:
+                    "@context":
+                      - https://www.w3.org/ns/did/v1
+                      - https://identity.foundation/EcdsaSecp256k1RecoverySignature2020/lds-ecdsa-secp256k1-recovery2020-0.0.jsonld
+                    id: did:ebsi:6rqAv6Jy4H13GntqJck1mj7d31mk8DoDV4afsP6huh8U
+                    publicKey:
+                      - controller: did:ebsi:6rqAv6Jy4H13GntqJck1mj7d31mk8DoDV4afsP6huh8U
+                        id: did:ebsi:6rqAv6Jy4H13GntqJck1mj7d31mk8DoDV4afsP6huh8U#vm-3
+                        type: EcdsaSecp256k1RecoveryMethod2020
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /did-registry/v2/hash-algorithms:
     get:
       tags:
@@ -1404,6 +1573,21 @@ components:
           description: Array of attributes
           items:
             $ref: "#/components/schemas/Attribute"
+    DIDDocument:
+      title: DID Document
+      description: DID Document as a JSON-LD document
+      type: object
+      additionalProperties: true
+      properties:
+        "@context":
+          description: DID Document @context
+          oneOf:
+            - type: string
+              format: uri
+            - type: array
+              items:
+                type: string
+                format: uri
     HashAlgorithm:
       title: Hash algorithm
       type: object

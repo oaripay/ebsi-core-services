@@ -108,8 +108,9 @@ describe("DID Registry (e2e)", () => {
           id: `${did}#vm-3`,
           controller: did,
           type: "EcdsaSecp256k1RecoveryMethod2020",
-          blockchainAccountId:
-            "0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1",
+          blockchainAccountId: `0x${crypto
+            .randomBytes(16)
+            .toString("hex")}@eip155:1`,
         },
       ],
     };
@@ -501,7 +502,7 @@ describe("DID Registry (e2e)", () => {
   });
 
   describe("GET /did-methods", () => {
-    it("should return a paginated collection of  DID methods", async () => {
+    it("should return a paginated collection of DID methods", async () => {
       expect.assertions(2);
 
       const response = await request(server).get("/did-methods");
@@ -515,10 +516,8 @@ describe("DID Registry (e2e)", () => {
         ) as string,
         items: expect.arrayContaining([
           {
-            name: didMethod.methodName,
-            href: expect.stringContaining(
-              `/did-methods/${didMethod.methodName}`
-            ) as string,
+            name: expect.any(String) as string,
+            href: expect.stringContaining("/did-methods/") as string,
           },
         ]) as Array<string>,
         total: expect.any(Number) as number,
@@ -618,6 +617,154 @@ describe("DID Registry (e2e)", () => {
         title: "DID Method Not Found",
         status: 404,
         detail: "DID Method no-did-method not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+  });
+
+  describe("GET /identifiers", () => {
+    it("should return a paginated collection of identifiers", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/identifiers");
+
+      const total =
+        ((response.body as { [x: string]: unknown })?.total as number) ?? 0;
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/identifiers?page[after]=1&page[size]=10"
+        ) as string,
+        items: expect.arrayContaining([
+          {
+            did: expect.stringContaining("did:") as string,
+            href: expect.stringContaining("/identifiers/") as string,
+          },
+        ]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining(
+            `/identifiers?page[after]=${total > 10 ? 2 : 1}&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/identifiers?page[after]=${Math.ceil(total / 10)}&page[size]=10`
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should return an empty array for an unkown controller ID", async () => {
+      expect.assertions(2);
+
+      const controllerId = ethers.Wallet.createRandom().address;
+
+      const response = await request(server).get(
+        `/identifiers?controller=${controllerId}`
+      );
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
+        ) as string,
+        items: [],
+        total: 0,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
+          ) as string,
+          prev: expect.stringContaining(
+            `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
+          ) as string,
+          next: expect.stringContaining(
+            `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
+          ) as string,
+          last: expect.stringContaining(
+            `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw a Bad Request for bad pagination", async () => {
+      expect.assertions(8);
+
+      const response1 = await request(server).get(
+        "/identifiers?page[size]=100"
+      );
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be greater than 50"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server).get("/identifiers?page[size]=0");
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server).get("/identifiers?page[after]=0");
+      expect(response3.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[after] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+
+      const response4 = await request(server).get(
+        "/identifiers?page[after]=abc"
+      );
+      expect(response4.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+    });
+  });
+
+  describe("GET /identifiers/{did}", () => {
+    it("should return a specific identifier", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get(
+        `/identifiers/${updatedDidDocument.controllerDid}`
+      );
+
+      expect(response.body).toStrictEqual(updatedDidDocument.didDocument);
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/did+ld+json"));
+    });
+
+    it("should throw an error if the identifier is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/identifiers/no-identifier");
+
+      expect(response.body).toStrictEqual({
+        title: "Identifier Not Found",
+        status: 404,
+        detail: "Identifier no-identifier not found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
