@@ -53,14 +53,16 @@ paths:
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                         did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
                         visibility: private
-                        contentType: application/json+ld
+                        sharedWith: ""
+                        contentType: application/ld+json
                         data: "<bytes for base64url>"
                         dataLabel: document
                       - storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                         did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
                         visibility: private
-                        contentType: application/json+ld
+                        sharedWith: ""
+                        contentType: application/ld+json
                         data: "<bytes for base64url>"
                         dataLabel: document
                     total: 13
@@ -141,29 +143,14 @@ paths:
                 value:
                   storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                   visibility: private
+                  sharedWith: ""
                   did: did:ebsi:0x1234567890
-                  contentType: application/json+ld
+                  contentType: application/ld+json
                   dataLabel: document
                   data: "<bytes for base64url>"
                   proof: {}
         required: true
       responses:
-        "200":
-          description: Attribute already exists.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Attribute"
-              examples:
-                Success:
-                  value:
-                    storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
-                    hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-                    did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
-                    visibility: private
-                    contentType: application/json+ld
-                    dataLabel: document
-                    data: "<bytes for base64url>"
         "201":
           description: Create a new attribute
           content:
@@ -177,7 +164,8 @@ paths:
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
                     visibility: private
-                    contentType: application/json+ld
+                    sharedWith: ""
+                    contentType: application/ld+json
                     dataLabel: document
                     data: "<bytes for base64url>"
         "400":
@@ -228,13 +216,13 @@ paths:
         in: path
         schema:
           type: string
-          example: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
+          example: "7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
         required: true
         description: Hash of the attribute.
     get:
       tags:
         - Proxy Data Hub
-      summary: Get a private Attribute by its hash
+      summary: Get an attribute by its hash
       operationId: get-proxy-data-hub-v2-private-attributes-hash
       responses:
         "200":
@@ -250,7 +238,8 @@ paths:
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
                     visibility: private
-                    contentType: application/json+ld
+                    sharedWith: ""
+                    contentType: application/ld+json
                     dataLabel: document
                     data: "<bytes for base64url>"
         "400":
@@ -304,7 +293,97 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      description: Retrieves an attribute by hash.
+      description: Get a shared or private attribute by its hash.
+      security:
+        - bearerAuth: []
+    patch:
+      tags:
+        - Proxy Data Hub
+      summary: Patch an ttribute by its hash
+      operationId: patch-proxy-data-hub-v2-private-attributes-hash
+      requestBody:
+        required: true
+        content:
+          application/json-patch+json:
+            schema:
+              $ref: "#/components/schemas/Patch"
+            examples:
+              Patch metadata:
+                value:
+                  - op: replace
+                    path: /contentType
+                    value: application/ld+json
+        description: JSON Patch standard
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attribute"
+              examples:
+                Success:
+                  value:
+                    storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+                    hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
+                    did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+                    visibility: private
+                    sharedWith: ""
+                    contentType: application/ld+json
+                    dataLabel: document
+                    data: "<bytes for base64url>"
+        "400":
+          description: Unformatted error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {hash} parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: "The {hash} parameter is not valid"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Unauthorized:
+                  $ref: "#/components/examples/Unauthorized"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Forbidden:
+                  $ref: "#/components/examples/Forbidden"
+        "404":
+          description: Hash does not exist
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Not found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: "Hash parameter not found"
+        "500":
+          description: Internal Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      description: Patch an attribute by hash.
       security:
         - bearerAuth: []
     delete:
@@ -380,7 +459,8 @@ components:
           hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
           did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
           visibility: private
-          contentType: application/json+ld
+          sharedWith: ""
+          contentType: application/ld+json
           dataLabel: document
           data: "<bytes for base64url>"
       title: Attribute
@@ -401,6 +481,9 @@ components:
           type: string
           enum: [private, shared]
           description: Access of the data to be stored. Options are private (only visible for the owner) or shared (visible for everyone)
+        sharedWith:
+          type: string
+          description: DID with read permissions (applicable when visibility = shared)
         contentType:
           type: string
           description: Content type representing the format of the data registered on the Hub
@@ -418,7 +501,8 @@ components:
           storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
           did: did:ebsi:0x1234567890
           visibility: private
-          contentType: application/json+ld
+          sharedWith: ""
+          contentType: application/ld+json
           dataLabel: document
           data: "<bytes for base64url>"
           proof: {}
@@ -436,6 +520,9 @@ components:
           type: string
           enum: [private, shared]
           description: Access of the data to be stored. Options are private (only visible for the owner) or shared (visible for everyone)
+        sharedWith:
+          type: string
+          description: DID wit read permissions (applicable when visibility = shared)
         contentType:
           type: string
           description: Content type representing the format of the data registered on the Hub
@@ -453,6 +540,65 @@ components:
         - did
         - contentType
         - data
+    Patch:
+      title: Patch
+      type: array
+      description: Format for expressing a sequence of operations to apply to a target JSON document
+      items:
+        type: object
+        properties:
+          op:
+            type: string
+            enum:
+              - add
+              - remove
+              - replace
+              - move
+              - copy
+              - test
+            description: Operation to perform
+          path:
+            type: string
+            description: |
+              String containing a JSON-Pointer value that references a location within the target
+              document where the operation is performed.
+          value:
+            oneOf:
+              - type: string
+              - type: object
+            description: Value to be added, replaced or tested
+          from:
+            type: string
+            description: Should be used with move, copy and remove operations
+        required:
+          - op
+          - path
+      x-examples:
+        Replace:
+          op: replace
+          path: /a/b/c
+          value: 42
+        Add:
+          op: add
+          path: /a/b/c
+          value:
+            - foo
+            - bar
+        Move:
+          op: move
+          from: /a/b/c
+          path: /a/b/d
+        Copy:
+          op: copy
+          from: /a/b/c
+          path: /a/b/e
+        Remove:
+          op: remove
+          path: /a/b/c
+        Test:
+          op: test
+          path: /a/b/c
+          value: foo
     Problem:
       description: A Problem Details object (RFC 7807)
       type: object

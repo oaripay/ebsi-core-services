@@ -287,7 +287,7 @@ describe("Attributes", () => {
     });
 
     it("should reject bad requests", async () => {
-      expect.assertions(4);
+      expect.assertions(6);
 
       let response = await request(server)
         .post("/attributes")
@@ -325,14 +325,31 @@ describe("Attributes", () => {
         detail: JSON.stringify(["data must be base64url encoded"]),
       });
       expect(response.status).toBe(400);
+
+      const { data } = ((await insertAttribute()) as {
+        body: AttributeResponseObject;
+      }).body;
+      const attribute2 = createAttribute();
+      attribute2.data = data;
+      response = await request(server)
+        .post("/attributes")
+        .auth(validToken, { type: "bearer" })
+        .send(attribute2);
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        type: "about:blank",
+        detail: "Attribute already exist",
+      });
+      expect(response.status).toBe(400);
     });
 
-    it("should create and update an attribute", async () => {
-      expect.assertions(4);
+    it("should create an attribute", async () => {
+      expect.assertions(2);
 
       const attribute = createAttribute();
 
-      let response = await request(server)
+      const response = await request(server)
         .post("/attributes")
         .auth(validToken, { type: "bearer" })
         .send(attribute);
@@ -343,21 +360,6 @@ describe("Attributes", () => {
         hash: expect.any(String) as string,
       });
       expect(response.status).toBe(201);
-
-      const { hash } = response.body as { hash: string };
-
-      attribute.dataLabel = "document2";
-
-      response = await request(server)
-        .post("/attributes")
-        .auth(validToken, { type: "bearer" })
-        .send(attribute);
-
-      expect(response.body).toStrictEqual({
-        ...attribute,
-        hash,
-      });
-      expect(response.status).toBe(200);
     });
   });
 
@@ -394,6 +396,153 @@ describe("Attributes", () => {
 
       expect(response.body).toStrictEqual({});
       expect(response.status).toBe(204);
+    });
+  });
+
+  describe("PATCH /attributes", () => {
+    it("should reject bad requests", async () => {
+      expect.assertions(10);
+
+      let response = await request(server)
+        .patch("/attributes/123456789")
+        .auth(validToken, { type: "bearer" })
+        .send([
+          { op: "replace", path: "/storageUri", value: "https://example.com" },
+        ]);
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        type: "about:blank",
+        detail: `["path must match /^(\\\\/visibility)|(\\\\/sharedWith)|(\\\\/contentType)|(\\\\/dataLabel)$/ regular expression"]`,
+      });
+      expect(response.status).toBe(400);
+
+      response = await request(server)
+        .patch("/attributes/123456789")
+        .auth(validToken, { type: "bearer" })
+        .send([{ op: "replace", path: "/did", value: "did:ebsi:123" }]);
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        type: "about:blank",
+        detail: `["path must match /^(\\\\/visibility)|(\\\\/sharedWith)|(\\\\/contentType)|(\\\\/dataLabel)$/ regular expression"]`,
+      });
+      expect(response.status).toBe(400);
+
+      response = await request(server)
+        .patch("/attributes/123456789")
+        .auth(validToken, { type: "bearer" })
+        .send([{ op: "replace", path: "/data", value: "xfeGevej" }]);
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        type: "about:blank",
+        detail: `["path must match /^(\\\\/visibility)|(\\\\/sharedWith)|(\\\\/contentType)|(\\\\/dataLabel)$/ regular expression"]`,
+      });
+      expect(response.status).toBe(400);
+
+      response = await request(server)
+        .patch("/attributes/123456789")
+        .auth(validToken, { type: "bearer" })
+        .send([{ op: "unknown-op", path: "/visibility", value: "shared" }]);
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        type: "about:blank",
+        detail: `["op must match /add|remove|replace/ regular expression"]`,
+      });
+      expect(response.status).toBe(400);
+
+      response = await request(server)
+        .patch("/attributes/0x123456789")
+        .auth(validToken, { type: "bearer" })
+        .send([
+          { op: "replace", path: "/visibility", value: "invalid-visibility" },
+        ]);
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        type: "about:blank",
+        detail: "visibility must be 'private', 'shared', or ''",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should reject not found", async () => {
+      expect.assertions(2);
+      const hash = crypto.randomBytes(12).toString("hex");
+
+      const response = await request(server)
+        .patch(`/attributes/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send([{ op: "replace", path: "/visibility", value: "shared" }]);
+
+      expect(response.body).toStrictEqual({
+        title: "Attribute Not Found",
+        status: 404,
+        type: "about:blank",
+        detail: `Attribute ${hash} not found`,
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should reject forbidden", async () => {
+      expect.assertions(2);
+
+      const { hash } = ((await insertAttribute()) as {
+        body: AttributeResponseObject;
+      }).body;
+
+      const response = await request(server)
+        .patch(`/attributes/${hash}`)
+        .auth(validToken2, { type: "bearer" })
+        .send([{ op: "replace", path: "/visibility", value: "shared" }]);
+
+      expect(response.body).toStrictEqual({
+        title: "Forbidden",
+        status: 403,
+        type: "about:blank",
+        detail: `${did2} is not the owner of attribute ${hash}`,
+      });
+      expect(response.status).toBe(403);
+    });
+
+    it("should patch an attribute", async () => {
+      expect.assertions(4);
+
+      const { hash, data } = ((await insertAttribute()) as {
+        body: AttributeResponseObject;
+      }).body;
+
+      let response = await request(server)
+        .patch(`/attributes/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send([
+          { op: "replace", path: "/visibility", value: "shared" },
+          { op: "replace", path: "/contentType", value: "application/json" },
+          { op: "replace", path: "/sharedWith", value: "did:ebsi:1234" },
+          { op: "replace", path: "/dataLabel", value: "document2" },
+        ]);
+
+      const expectedAttribute = {
+        storageUri: `${storage}/stores/distributed`,
+        hash,
+        did,
+        visibility: "shared",
+        sharedWith: "did:ebsi:1234",
+        contentType: "application/json",
+        data,
+        dataLabel: "document2",
+      };
+      expect(response.body).toStrictEqual(expectedAttribute);
+      expect(response.status).toBe(200);
+
+      response = await request(server)
+        .get(`/attributes/${hash}`)
+        .auth(validToken, { type: "bearer" })
+        .send();
+      expect(response.body).toStrictEqual(expectedAttribute);
+      expect(response.status).toBe(200);
     });
   });
 });

@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   proxy-data-hub-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/proxy-data-hub-api:test_ebsiint-2451-get-attribute_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/proxy-data-hub-api:test_ebsiint-2888-patch-attribute_v2.0.0
     build: ../..

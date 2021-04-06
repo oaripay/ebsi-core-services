@@ -1,10 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
 import {
   BadRequestError,
+  ForbiddenError,
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
+import jsonpatch from "jsonpatch";
 import { ApiConfig } from "../../config/configuration";
 import {
   AttributeResponseObject,
@@ -12,7 +14,7 @@ import {
   AxiosResponseJsonRpc,
   CassandraResponse,
 } from "./attributes.interface";
-import { AttributeBodyDto } from "./dto";
+import { AttributeBodyDto, PatchAttributeBody } from "./dto";
 import { encrypt, decrypt } from "../../shared/utils";
 
 interface PageOpts {
@@ -185,40 +187,37 @@ export class AttributesService {
     };
   }
 
-  async updateAttribute(
-    hash: string,
-    attribute: AttributeBodyDto
-  ): Promise<AttributeResponseObject> {
-    let cassandraQuery = "update attribute_storage set ";
-    const { visibility, sharedWith, dataLabel, contentType } = attribute;
-    const params: string[] = [];
-    if (visibility) {
-      cassandraQuery += "visibility = ?, ";
-      params.push(visibility);
-    }
-    if (sharedWith) {
-      cassandraQuery += "shared_with = ?, ";
-      params.push(sharedWith);
-    }
-    if (dataLabel) {
-      cassandraQuery += "data_label = ?, ";
-      params.push(dataLabel);
-    }
-    cassandraQuery += "content_type = ? where hash = ?";
-    params.push(contentType, hash);
-    await this.storageJsonrpc([cassandraQuery, ...params]);
-
-    return {
-      ...attribute,
-      hash,
-    };
-  }
-
   async deleteAttribute(hash: string): Promise<void> {
     await this.storageJsonrpc([
       "delete from attribute_storage where hash = ?",
       hash,
     ]);
+  }
+
+  async patchAttribute(
+    hash: string,
+    did: string,
+    patch: PatchAttributeBody[]
+  ): Promise<AttributeResponseObject> {
+    const oldAttribute = await this.getAttribute(hash);
+
+    if (did !== oldAttribute.did) {
+      throw new ForbiddenError(ForbiddenError.defaultTitle, {
+        detail: `${did} is not the owner of attribute ${hash}`,
+      });
+    }
+
+    const attribute = jsonpatch.apply_patch(oldAttribute, patch);
+    await this.storageJsonrpc([
+      "update attribute_storage set visibility = ?, shared_with = ?, content_type = ?, data_label = ? where hash = ?",
+      attribute.visibility ?? "private",
+      attribute.sharedWith ?? "",
+      attribute.contentType,
+      attribute.dataLabel ?? "",
+      hash,
+    ]);
+
+    return attribute;
   }
 }
 

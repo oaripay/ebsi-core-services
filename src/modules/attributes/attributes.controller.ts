@@ -3,12 +3,14 @@ import {
   Response,
   Get,
   Post,
+  Patch,
   Delete,
   Body,
   UseGuards,
   HttpCode,
   Param,
   Query,
+  ParseArrayPipe,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { FastifyReply } from "fastify";
@@ -23,9 +25,15 @@ import { AttributeResponseObject } from "./attributes.interface";
 import { ApiConfig } from "../../config/configuration";
 import { JwtAuthGuard, JwtOptionalAuthGuard } from "../auth/guards";
 import { User, UserInfo } from "../auth/decorators";
-import { AttributeBodyDto, AttributeHashDto, GetAttributesDto } from "./dto";
+import {
+  AttributeBodyDto,
+  AttributeHashDto,
+  GetAttributesDto,
+  PatchAttributeBody,
+} from "./dto";
 import { PaginatedList } from "../../shared/interfaces";
 import { formatAttributes } from "./attributes.formatter";
+import { multihashEncode } from "../../shared/utils";
 
 @Controller("/attributes")
 export default class AttributesController {
@@ -41,10 +49,13 @@ export default class AttributesController {
     @User() user: UserInfo,
     @Response() res: FastifyReply
   ): Promise<AttributeResponseObject> {
-    const hash = `0x${crypto
-      .createHash("sha256")
-      .update(body.data)
-      .digest("hex")}`;
+    const hash = multihashEncode(
+      crypto
+        .createHash("sha3-256")
+        .update(`${body.data}${body.did}`)
+        .digest("hex"),
+      "sha3-256"
+    );
 
     if (user.did !== body.did) {
       throw new BadRequestError("DID Mismatch", {
@@ -52,13 +63,10 @@ export default class AttributesController {
       });
     }
 
-    const did = await this.attributesService.getDidByAttributeHash(hash);
-    if (did) {
-      const updatedAttribute = await this.attributesService.updateAttribute(
-        hash,
-        body
-      );
-      return res.code(200).type("application/json").send(updatedAttribute);
+    if (await this.attributesService.getDidByAttributeHash(hash)) {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "Attribute already exist",
+      });
     }
 
     const attribute = await this.attributesService.insertAttribute(hash, body);
@@ -140,5 +148,31 @@ export default class AttributesController {
     }
 
     await this.attributesService.deleteAttribute(hash);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch("/:hash")
+  async patchAttribute(
+    @Param() params: AttributeHashDto,
+    @Body(new ParseArrayPipe({ items: PatchAttributeBody }))
+    patch: PatchAttributeBody[],
+    @User() user: UserInfo
+  ): Promise<AttributeResponseObject> {
+    // verify visibility
+    if (
+      patch.find(
+        (p) =>
+          p.path === "/visibility" &&
+          p.value !== "" &&
+          p.value !== "private" &&
+          p.value !== "shared"
+      )
+    ) {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: `visibility must be 'private', 'shared', or ''`,
+      });
+    }
+
+    return this.attributesService.patchAttribute(params.hash, user.did, patch);
   }
 }
