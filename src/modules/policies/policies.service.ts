@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { ContractService } from "../../shared/services/contract.service";
 import { DidRegistry } from "../../contracts/did-registry";
-import { generateMultihash } from "../../shared/utils";
+import { multihashEncode } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { PolicyRevisions } from "./policies.interface";
 
@@ -42,7 +42,7 @@ export class PoliciesService {
     );
 
     // Compute multihash from hash
-    const multihash = generateMultihash(rawPolicyHash);
+    const multihash = multihashEncode(rawPolicyHash);
     return [base64Policy, multihash];
   }
 

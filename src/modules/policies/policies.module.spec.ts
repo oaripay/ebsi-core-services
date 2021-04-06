@@ -13,7 +13,7 @@ import {
 import { FastifyInstance } from "fastify";
 import { PoliciesModule } from "./policies.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { generateMultihash } from "../../shared/utils";
+import { multihashEncode } from "../../shared/utils";
 import { DidRegistry__factory } from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
@@ -268,7 +268,7 @@ describe("Policies Module", () => {
       ];
 
       const expectedPolicy = policyData;
-      const expectedHash = generateMultihash(policyHash);
+      const expectedHash = multihashEncode(policyHash);
 
       const response = await request(server).get(
         `/policies/${encodeURIComponent(policyId)}`

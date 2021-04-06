@@ -582,6 +582,150 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /did-registry/v2/did-timestamps:
+    get:
+      tags:
+        - DID Registry
+      summary: List of DID Timestamps
+      description: Returns a list of DID Timestamps
+      operationId: get-did-registry-v2-did-timestamps
+      parameters:
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to DID Timestamp
+                  items:
+                    type: array
+                    description: List of DID Timestamps
+                    items:
+                      type: object
+                      properties:
+                        timestampId:
+                          type: string
+                          description: ID of the DID Timestamp
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=3&page[size]=10
+                    items:
+                      - timestampId: "0x03d19d4f03ae937116956500651fb3cb63218ef3358d333c1d62d334168a85a6"
+                        href: https://api.ebsi.xyz/did-registry/v2/did-timestamps/0x03d19d4f03ae937116956500651fb3cb63218ef3358d333c1d62d334168a85a6
+                      - timestampId: "0x2154615a0b269afd110921467133da03431b7ae3d6a59e8dfdd9e47e88a9c7f5"
+                        href: https://api.ebsi.xyz/did-registry/v2/did-timestamps/0x2154615a0b269afd110921467133da03431b7ae3d6a59e8dfdd9e47e88a9c7f5
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=2&page[size]=10
+                      next: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=4&page[size]=10
+                      last: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=13&page[size]=10
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v2/did-timestamps/{timestampId}:
+    get:
+      tags:
+        - DID Registry
+      summary: Get DID Timestamp by its ID
+      description: Returns a DID Timestamp by its ID
+      operationId: get-did-registry-v2-did-timestamp
+      parameters:
+        - name: timestampId
+          in: path
+          schema:
+            type: string
+          example: "0x03d19d4f03ae937116956500651fb3cb63218ef3358d333c1d62d334168a85a6"
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DIDTimestamp"
+              examples:
+                Success:
+                  value:
+                    hash: "1220139f28116c365611a7852e3aef6800de196c23c1d1787c2f476c1816479e6952"
+                    timestampedBy: "0x9139869907de5bA6Cd38AB08e84c72188bce25c0"
+                    blockNumber: 12
+                    data: "0x7b2264617461223a2274657374227d"
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {name} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {name} parameter is not valid
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /did-registry/v2/identifiers:
     get:
       tags:
@@ -1588,6 +1732,24 @@ components:
               items:
                 type: string
                 format: uri
+    DIDTimestamp:
+      title: DID Timestamp
+      description: DID Timestamp
+      type: object
+      additionalProperties: true
+      properties:
+        hash:
+          type: string
+          description: Multi-hash encoded hash
+        timestampedBy:
+          type: string
+          description: Address of the transaction signer that timestamped the information.
+        blockNumber:
+          type: number
+          description: Number of the block in which the hash has been timestamped.
+        data:
+          type: string
+          description: Additional timestamp data.
     HashAlgorithm:
       title: Hash algorithm
       type: object

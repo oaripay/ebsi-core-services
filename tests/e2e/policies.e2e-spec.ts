@@ -26,7 +26,7 @@ import {
 import { PaginatedList } from "../../src/shared/interfaces";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
-import { generateMultihash } from "../../src/shared/utils/multihash.utils";
+import { multihashEncode } from "../../src/shared/utils/multihash.utils";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -217,7 +217,7 @@ describe("Policies (e2e)", () => {
         );
 
         const bufferPolicyData = Buffer.from(policyData.slice(2), "hex");
-        const expectedHash = generateMultihash(
+        const expectedHash = multihashEncode(
           ethers.utils.sha256(bufferPolicyData)
         );
 

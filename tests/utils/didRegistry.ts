@@ -383,10 +383,12 @@ const validHashAlgorithms = [
 ];
 
 export async function insertHashAlgorithm(
-  contract: DidRegistry
+  contract: DidRegistry,
+  defaultIanaName?: string
 ): Promise<HashAlgorithmObject> {
   const outputLength = 256;
   const ianaName =
+    defaultIanaName ??
     validHashAlgorithms[Math.floor(Math.random() * validHashAlgorithms.length)];
   const oid = "oid-test";
   const status = 1;
@@ -445,11 +447,13 @@ export async function setupTestEnv(
     .pipe(mergeMap(createAdminWallet), toArray())
     .toPromise();
 
-  const hashAlgorithms = await Promise.all(
-    Array(opts.hashAlgorithmsTotal ?? 1)
+  const hashAlgorithms = await Promise.all([
+    // Make sure to always register "sha2-256" first
+    insertHashAlgorithm(didRegistryContract, "sha2-256"),
+    ...Array((opts.hashAlgorithmsTotal ?? 1) - 1)
       .fill(0)
-      .map(() => insertHashAlgorithm(didRegistryContract))
-  );
+      .map(() => insertHashAlgorithm(didRegistryContract)),
+  ]);
 
   const didMethods = await Promise.all(
     Array(opts.didMethodsTotal ?? 1)

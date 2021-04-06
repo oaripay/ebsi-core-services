@@ -21,7 +21,7 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { prefixWith0x } from "../../src/shared/utils";
+import { multihashEncode, prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import {
   InsertDidControllerParam,
@@ -37,6 +37,10 @@ import {
   UpdateDidControllerParam,
 } from "../../src/modules/jsonrpc/dto";
 import { DidMethodResponseObject } from "../../src/modules/did-methods/did-methods.interface";
+import {
+  DidTimestampResponseObject,
+  TimestampLink,
+} from "../../src/modules/did-timestamps/did-timestamps.interface";
 
 type JsonRpcParams =
   | InsertDidDocumentParam
@@ -765,6 +769,264 @@ describe("DID Registry (e2e)", () => {
         title: "Identifier Not Found",
         status: 404,
         detail: "Identifier no-identifier not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+  });
+
+  describe("GET /did-timestamps", () => {
+    it("should return a paginated collection of DID timestamps", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/did-timestamps");
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/did-timestamps?page[after]=1&page[size]=10"
+        ) as string,
+        items: expect.arrayContaining([
+          {
+            timestampId: expect.any(String) as string,
+            href: expect.stringContaining(`/did-timestamps/`) as string,
+          } as TimestampLink,
+        ]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/did-timestamps?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/did-timestamps?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining(
+            "/did-timestamps?page[after]="
+          ) as string,
+          last: expect.stringContaining(
+            "/did-timestamps?page[after]="
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should handle the pagination properly", async () => {
+      expect.assertions(8);
+
+      const response1 = await request(server).get(
+        "/did-timestamps?page[size]=2"
+      );
+      expect(response1.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/did-timestamps?page[after]=1&page[size]=2"
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            "/did-timestamps?page[after]=1&page[size]=2"
+          ) as string,
+          prev: expect.stringContaining(
+            "/did-timestamps?page[after]=1&page[size]=2"
+          ) as string,
+          next: expect.stringContaining(
+            "/did-timestamps?page[after]="
+          ) as string,
+          last: expect.stringContaining(
+            "/did-timestamps?page[after]="
+          ) as string,
+        },
+      });
+      expect(response1.status).toBe(200);
+
+      // next page
+      const response2 = await request(server).get(
+        "/did-timestamps?page[after]=2&page[size]=2"
+      );
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/did-timestamps?page[after]=2&page[size]=2"
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            "/did-timestamps?page[after]=1&page[size]=2"
+          ) as string,
+          prev: expect.stringContaining(
+            "/did-timestamps?page[after]=1&page[size]=2"
+          ) as string,
+          next: expect.stringContaining(
+            "/did-timestamps?page[after]="
+          ) as string,
+          last: expect.stringContaining(
+            "/did-timestamps?page[after]="
+          ) as string,
+        },
+      });
+      expect(response2.status).toBe(200);
+
+      // big page
+      const response3 = await request(server).get(
+        "/did-timestamps?page[after]=100&page[size]=2"
+      );
+      expect(response3.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/did-timestamps?page[after]=100&page[size]=2"
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            "/did-timestamps?page[after]=1&page[size]=2"
+          ) as string,
+          prev: expect.stringContaining(
+            "/did-timestamps?page[after]="
+          ) as string,
+          next: expect.stringContaining(
+            "/did-timestamps?page[after]="
+          ) as string,
+          last: expect.stringContaining(
+            "/did-timestamps?page[after]="
+          ) as string,
+        },
+      });
+      expect(response3.status).toBe(200);
+
+      // page["after"] defined but page["size"] undefined
+      const response4 = await request(server).get(
+        "/did-timestamps?page[after]=1"
+      );
+      expect(response4.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/did-timestamps?page[after]=1&page[size]=10"
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/did-timestamps?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/did-timestamps?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining(
+            "/did-timestamps?page[after]="
+          ) as string,
+          last: expect.stringContaining(
+            "/did-timestamps?page[after]="
+          ) as string,
+        },
+      });
+      expect(response4.status).toBe(200);
+    });
+
+    it("should throw a Bad Request for bad pagination", async () => {
+      expect.assertions(8);
+
+      const response1 = await request(server).get(
+        "/did-timestamps?page[size]=100"
+      );
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be greater than 50"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server).get(
+        "/did-timestamps?page[size]=0"
+      );
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server).get(
+        "/did-timestamps?page[after]=0"
+      );
+      expect(response3.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[after] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+
+      const response4 = await request(server).get(
+        "/did-timestamps?page[after]=abc"
+      );
+      expect(response4.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+    });
+  });
+
+  describe("GET /did-timestamps/{did}", () => {
+    it("should return a specific DID timestamp", async () => {
+      expect.assertions(2);
+
+      const {
+        canonizedDidDocumentHash,
+        timestampDataBuffer,
+      } = updatedDidDocument;
+
+      const timestampId = ethers.utils.sha256(canonizedDidDocumentHash);
+
+      const response = await request(server).get(
+        `/did-timestamps/${timestampId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        blockNumber: expect.any(Number) as number,
+        data: `0x${timestampDataBuffer.toString("hex")}`,
+        hash: multihashEncode(canonizedDidDocumentHash, "sha2-256"),
+        timestampedBy: adminTestWallet.address,
+      } as DidTimestampResponseObject);
+
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the timestamp ID is not well formatted", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        "/did-timestamps/no-timestamp"
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["timestampId must match /^0x/ regular expression","timestampId must be a hexadecimal number"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the DID timestamp is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/did-timestamps/0x1234");
+
+      expect(response.body).toStrictEqual({
+        title: "Timestamp Not Found",
+        status: 404,
+        detail: "Timestamp 0x1234 not found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);

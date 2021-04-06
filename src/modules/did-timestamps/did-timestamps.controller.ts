@@ -1,0 +1,51 @@
+import { Controller, Get, Query, Param } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { DidTimestampsService } from "./did-timestamps.service";
+import { formatDidTimestamps } from "./did-timestamps.formatter";
+import {
+  TimestampLink,
+  DidTimestampResponseObject,
+} from "./did-timestamps.interface";
+import { GetTimestampParamsDto } from "./dto";
+import { PaginationQuery } from "../../shared/dto/pagination-query";
+import { PaginatedList } from "../../shared/interfaces";
+import { ApiConfig } from "../../config/configuration";
+
+@Controller("/did-timestamps")
+export class DidTimestampsController {
+  constructor(
+    private didTimestampsService: DidTimestampsService,
+    private configService: ConfigService<ApiConfig>
+  ) {}
+
+  @Get("")
+  async getDidTimestamps(
+    @Query() query: PaginationQuery
+  ): Promise<PaginatedList<TimestampLink>> {
+    const didTimestamps = await this.didTimestampsService.getDidTimestamps(
+      query["page[after]"],
+      query["page[size]"]
+    );
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/did-timestamps`;
+
+    return formatDidTimestamps(
+      didTimestamps,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl
+    );
+  }
+
+  @Get("/:timestampId")
+  async getDidTimestamp(
+    @Param() params: GetTimestampParamsDto
+  ): Promise<DidTimestampResponseObject> {
+    const { timestampId } = params;
+    return this.didTimestampsService.getDidTimestamp(timestampId);
+  }
+}
+
+export default DidTimestampsController;
