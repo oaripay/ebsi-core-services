@@ -79,15 +79,71 @@ export default class IdentifiersService {
     }
 
     try {
-      const latesteDidDoc = await this.didRegistryContract.getDidDocumentVersionInfo(
+      const versionInfo = await this.didRegistryContract.getDidDocumentVersionInfo(
         versionId
       );
       return JSON.parse(
-        Buffer.from(remove0xPrefix(latesteDidDoc), "hex").toString()
+        Buffer.from(remove0xPrefix(versionInfo), "hex").toString()
       ) as { [x: string]: unknown };
     } catch (e) {
       throw new NotFoundError("Version Not Found", {
         detail: `Version ${versionId} not found`,
+      });
+    }
+  }
+
+  async getIdentifiersVersionsMetadata(
+    did: string,
+    versionId: string,
+    page: number,
+    pageSize: number
+  ): ReturnType<DidRegistry["getDidDocumentVersionMetadataIds"]> {
+    const hexDid = `0x${Buffer.from(did).toString("hex")}`;
+
+    return this.didRegistryContract.getDidDocumentVersionMetadataIds(
+      hexDid,
+      versionId,
+      page,
+      pageSize
+    );
+  }
+
+  async getIdentifierVersionMetadata(
+    did: string,
+    versionId: string,
+    metadataId: string
+  ): Promise<{ [x: string]: unknown }> {
+    try {
+      const hexDid = `0x${Buffer.from(did).toString("hex")}`;
+      await this.didRegistryContract.getLatestDidDocumentVersion(hexDid);
+    } catch (e) {
+      throw new NotFoundError("Identifier Not Found", {
+        detail: `Identifier ${did} not found`,
+      });
+    }
+
+    try {
+      const versionInfo = await this.didRegistryContract.getDidDocumentVersionInfo(
+        versionId
+      );
+      if (versionInfo === "0x") throw new Error();
+    } catch (e) {
+      throw new NotFoundError("Version Not Found", {
+        detail: `Version ${versionId} not found`,
+      });
+    }
+
+    try {
+      const metadata = await this.didRegistryContract.getDidDocumentVersionMetadata(
+        metadataId
+      );
+
+      return JSON.parse(
+        Buffer.from(remove0xPrefix(metadata), "hex").toString()
+      ) as { [x: string]: unknown };
+    } catch (e) {
+      throw new NotFoundError("Metadata Not Found", {
+        detail: `Metadata ${metadataId} not found`,
       });
     }
   }

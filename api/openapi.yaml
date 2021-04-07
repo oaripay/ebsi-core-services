@@ -956,7 +956,7 @@ paths:
               examples:
                 Success:
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=3&page[size]=10
+                    self: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=3&page[size]=10
                     items:
                       - versionId: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
                         href: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a
@@ -979,6 +979,11 @@ paths:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
         404:
           description: Not found
           content:
@@ -1001,8 +1006,8 @@ paths:
     get:
       tags:
         - DID Registry
-      summary: Resolve identifier by its DID
-      description: Returns a identifier by its DID
+      summary: Resolve a DID Document by its version ID
+      description: Returns a DID Document by its version ID
       operationId: get-did-registry-v2-identifier-version
       parameters:
         - in: path
@@ -1064,6 +1069,213 @@ paths:
                 DID Not Found:
                   $ref: "#/components/examples/NotFound"
                 Version ID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v2/identifiers/{did}/versions/{versionId}/metadata:
+    get:
+      tags:
+        - DID Registry
+      summary: List of DID Document metadata
+      description: Returns a list of DID Document metadata
+      operationId: get-did-registry-v2-identifiers-versions-metadata
+      parameters:
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - in: query
+          schema:
+            type: integer
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+        - in: path
+          name: did
+          required: true
+          description: A DID to be resolved.
+          schema:
+            type: string
+          example: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+        - in: path
+          name: versionId
+          required: true
+          description: A unique version id.
+          schema:
+            type: string
+          example: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection (consult)
+                  items:
+                    type: array
+                    description: List of DID Document versions
+                    items:
+                      type: object
+                      properties:
+                        metadataId:
+                          type: string
+                          description: A unique metadata id.
+                        href:
+                          type: string
+                          description: Link to the resource.
+                  total:
+                    type: integer
+                    description: Total number of items across all pages.
+                  pageSize:
+                    type: integer
+                    description: |
+                      Maximum number of items per page. For the last page, its value should be
+                      independent of the number of actually returned items.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=3&page[size]=10
+                    items:
+                      - metadataId: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
+                        href: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata/0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      prev: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      next: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      last: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+                Invalid {versionId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {versionId} parameter is not valid
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+                Version ID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v2/identifiers/{did}/versions/{versionId}/metadata/{metadataId}:
+    get:
+      tags:
+        - DID Registry
+      summary: Resolve DID Document metadata by its ID
+      description: Returns the DID Document metadata by its ID
+      operationId: get-did-registry-v2-identifier-version-metadata
+      parameters:
+        - in: path
+          name: did
+          required: true
+          description: A DID to be resolved.
+          schema:
+            type: string
+          example: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+        - in: path
+          name: versionId
+          required: true
+          description: A unique version id.
+          schema:
+            type: string
+          example: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
+        - in: path
+          name: metadataId
+          required: true
+          description: A unique metadata id.
+          schema:
+            type: string
+          example: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
+      responses:
+        200:
+          description: Success
+          content:
+            application/ld+json:
+              schema:
+                $ref: "#/components/schemas/DIDDocumentMetadata"
+              examples:
+                Success:
+                  value:
+                    "@context":
+                      - https://www.example.com
+                    id: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+                Invalid {versionId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {versionId} parameter is not valid
+                Invalid {metadataId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {metadataId} parameter is not valid
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+                Version ID Not Found:
+                  $ref: "#/components/examples/NotFound"
+                Metadata ID Not Found:
                   $ref: "#/components/examples/NotFound"
         500:
           description: Internal Server Error
@@ -1904,6 +2116,21 @@ components:
       properties:
         "@context":
           description: DID Document @context
+          oneOf:
+            - type: string
+              format: uri
+            - type: array
+              items:
+                type: string
+                format: uri
+    DIDDocumentMetadata:
+      title: DID Document metadata
+      description: DID Document metadata as a JSON-LD document
+      type: object
+      additionalProperties: true
+      properties:
+        "@context":
+          description: DID Document metadata @context
           oneOf:
             - type: string
               format: uri

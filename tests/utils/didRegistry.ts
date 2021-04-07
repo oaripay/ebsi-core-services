@@ -32,6 +32,7 @@ interface DidDocument {
   canonizedDidDocumentHash: string;
   controller: ethers.Wallet;
   timestampDataBuffer: Buffer;
+  didVersionMetadata: { [x: string]: unknown };
   didVersionMetadataBuffer: Buffer;
 }
 
@@ -234,14 +235,25 @@ export async function insertDidDocument(
   );
 
   const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
+  const didVersionMetadata = {
+    "@context": "https://json-ld.org/contexts/person.jsonld",
+    "@id": `http://dbpedia.org/resource/${crypto
+      .randomBytes(32)
+      .toString("hex")}`,
+    name: crypto.randomBytes(32).toString("hex"),
+    born: "1940-10-09",
+    spouse: `http://dbpedia.org/resource/${crypto
+      .randomBytes(32)
+      .toString("hex")}`,
+  };
   const didVersionMetadataBuffer = Buffer.from(
-    JSON.stringify({ metadata: "value" })
+    JSON.stringify(didVersionMetadata)
   );
 
   const identifier = `0x${Buffer.from(did).toString("hex")}`;
   const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
   const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
-  const didVersionMetadata = `0x${didVersionMetadataBuffer.toString("hex")}`;
+  const didVersionMetadataHex = `0x${didVersionMetadataBuffer.toString("hex")}`;
 
   const controller = ethers.Wallet.createRandom().connect(ethersProvider);
 
@@ -251,7 +263,7 @@ export async function insertDidDocument(
     canonizedDidDocumentHash,
     didVersionInfo,
     timestampData,
-    didVersionMetadata
+    didVersionMetadataHex
   );
 
   await contract.updateDidController(
@@ -271,6 +283,7 @@ export async function insertDidDocument(
     canonizedDidDocumentHash,
     controller,
     timestampDataBuffer,
+    didVersionMetadata,
     didVersionMetadataBuffer,
   };
 }

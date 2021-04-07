@@ -1,12 +1,21 @@
 import { Controller, Get, Query, Param, Header } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import IdentifiersService from "./identifiers.service";
-import { formatIdentifiers, formatVersions } from "./identifiers.formatter";
-import { DidLink, VersionIdLink } from "./identifiers.interface";
+import {
+  formatIdentifiers,
+  formatVersions,
+  formatMetadata,
+} from "./identifiers.formatter";
+import {
+  DidLink,
+  MetadataIdLink,
+  VersionIdLink,
+} from "./identifiers.interface";
 import {
   GetIdentifierParamsDto,
   GetIdentifiersDto,
   GetIdentifiersVersionsDto,
+  GetIdentifierVersionMetadataParamsDto,
   GetIdentifierVersionParamsDto,
 } from "./dto";
 import { PaginatedList } from "../../shared/interfaces";
@@ -85,5 +94,43 @@ export default class IdentifiersController {
   ): Promise<{ [x: string]: unknown }> {
     const { did, versionId } = params;
     return this.didMethodsService.getIdentifierVersion(did, versionId);
+  }
+
+  @Get("/:did/versions/:versionId/metadata")
+  async getIdentifiersVersionsMetadata(
+    @Query() query: GetIdentifiersVersionsDto,
+    @Param() params: GetIdentifierVersionParamsDto
+  ): Promise<PaginatedList<MetadataIdLink>> {
+    const { did, versionId } = params;
+
+    const didMethods = await this.didMethodsService.getIdentifiersVersions(
+      did,
+      query["page[after]"],
+      query["page[size]"]
+    );
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/identifiers/${did}/versions/${versionId}/metadata`;
+
+    return formatMetadata(
+      didMethods,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl
+    );
+  }
+
+  @Get("/:did/versions/:versionId/metadata/:metadataId")
+  @Header("Content-Type", "application/ld+json")
+  async getIdentifierVersionMetadata(
+    @Param() params: GetIdentifierVersionMetadataParamsDto
+  ): Promise<{ [x: string]: unknown }> {
+    const { did, versionId, metadataId } = params;
+    return this.didMethodsService.getIdentifierVersionMetadata(
+      did,
+      versionId,
+      metadataId
+    );
   }
 }

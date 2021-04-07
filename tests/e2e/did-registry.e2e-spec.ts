@@ -68,6 +68,7 @@ interface DidDocumentDataset {
   canonizedDidDocumentHash: string;
   controllerDid: string;
   timestampDataBuffer: Buffer;
+  didVersionMetadata: { [x: string]: unknown };
   didVersionMetadataBuffer: Buffer;
 }
 
@@ -132,8 +133,19 @@ describe("DID Registry (e2e)", () => {
     );
 
     const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
+    const didVersionMetadata = {
+      "@context": "https://json-ld.org/contexts/person.jsonld",
+      "@id": `http://dbpedia.org/resource/${crypto
+        .randomBytes(32)
+        .toString("hex")}`,
+      name: crypto.randomBytes(32).toString("hex"),
+      born: "1940-10-09",
+      spouse: `http://dbpedia.org/resource/${crypto
+        .randomBytes(32)
+        .toString("hex")}`,
+    };
     const didVersionMetadataBuffer = Buffer.from(
-      JSON.stringify({ metadata: "value" })
+      JSON.stringify(didVersionMetadata)
     );
 
     return {
@@ -144,6 +156,7 @@ describe("DID Registry (e2e)", () => {
       canonizedDidDocumentHash,
       controllerDid: did,
       timestampDataBuffer,
+      didVersionMetadata,
       didVersionMetadataBuffer,
     };
   };
@@ -1093,6 +1106,397 @@ describe("DID Registry (e2e)", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(400);
+    });
+  });
+
+  describe("GET /identifiers/{did}/versions/{versionId}/metadata", () => {
+    it("should return a paginated collection of DID Document metadata", async () => {
+      expect.assertions(2);
+
+      const { didDocumentBuffer } = updatedDidDocument;
+      const did = updatedDidDocument.controllerDid;
+      const versionId = ethers.utils.sha256(didDocumentBuffer);
+
+      const response = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata`
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([
+          {
+            metadataId: expect.any(String) as string,
+            href: expect.stringContaining(
+              `/identifiers/${did}/versions/${versionId}/metadata/`
+            ) as string,
+          },
+        ]) as Array<string>,
+        total: 3,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should handle the pagination properly", async () => {
+      expect.assertions(8);
+
+      const { didDocumentBuffer } = updatedDidDocument;
+      const did = updatedDidDocument.controllerDid;
+      const versionId = ethers.utils.sha256(didDocumentBuffer);
+
+      const response1 = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata?page[size]=2`
+      );
+
+      expect(response1.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 3,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
+          ) as string,
+          prev: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
+          ) as string,
+          next: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+          ) as string,
+          last: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+          ) as string,
+        },
+      });
+      expect(response1.status).toBe(200);
+
+      // next page
+      const response2 = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+      );
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 3,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
+          ) as string,
+          prev: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
+          ) as string,
+          next: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+          ) as string,
+          last: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+          ) as string,
+        },
+      });
+      expect(response2.status).toBe(200);
+
+      // big page
+      const response3 = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata?page[after]=100&page[size]=2`
+      );
+      expect(response3.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/identifiers/${did}/versions/${versionId}/metadata?page[after]=100&page[size]=2`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 3,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
+          ) as string,
+          prev: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+          ) as string,
+          next: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+          ) as string,
+          last: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+          ) as string,
+        },
+      });
+      expect(response3.status).toBe(200);
+
+      // page["after"] defined but page["size"] undefined
+      const response4 = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1`
+      );
+      expect(response4.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 3,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect(response4.status).toBe(200);
+    });
+
+    it("should throw an error if the identifier is not a valid did", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        "/identifiers/invalid/versions"
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["did must be a valid DID"]',
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw a Bad Request for bad pagination", async () => {
+      expect.assertions(8);
+
+      const { didDocumentBuffer } = updatedDidDocument;
+      const did = updatedDidDocument.controllerDid;
+      const versionId = ethers.utils.sha256(didDocumentBuffer);
+
+      const response1 = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata?page[size]=100`
+      );
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be greater than 50"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata?page[size]=0`
+      );
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata?page[after]=0`
+      );
+      expect(response3.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[after] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+
+      const response4 = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata?page[after]=abc`
+      );
+      expect(response4.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+    });
+  });
+
+  describe("GET /identifiers/{did}/versions/{versionId}/metadata/{metadataId}", () => {
+    it("should return a specific DID Document metadata", async () => {
+      expect.assertions(3);
+
+      const {
+        didDocumentBuffer,
+        didVersionMetadata,
+        didVersionMetadataBuffer,
+      } = updatedDidDocument;
+      const did = updatedDidDocument.controllerDid;
+      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const metadataId = ethers.utils.sha256(didVersionMetadataBuffer);
+
+      const response = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata/${metadataId}`
+      );
+
+      expect(response.body).toStrictEqual(didVersionMetadata);
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/ld+json"));
+    });
+
+    it("should throw an error if the identifier is not a valid did", async () => {
+      expect.assertions(2);
+
+      const {
+        didDocumentBuffer,
+        didVersionMetadataBuffer,
+      } = updatedDidDocument;
+      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const metadataId = ethers.utils.sha256(didVersionMetadataBuffer);
+
+      const response = await request(server).get(
+        `/identifiers/invalid/versions/${versionId}/metadata/${metadataId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["did must be a valid DID"]',
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the identifier is not found", async () => {
+      expect.assertions(2);
+
+      const {
+        didDocumentBuffer,
+        didVersionMetadataBuffer,
+      } = updatedDidDocument;
+      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const metadataId = ethers.utils.sha256(didVersionMetadataBuffer);
+
+      const response = await request(server).get(
+        `/identifiers/did:unknown:unknown/versions/${versionId}/metadata/${metadataId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Identifier Not Found",
+        status: 404,
+        detail: "Identifier did:unknown:unknown not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw an error if the version ID is not valid", async () => {
+      expect.assertions(2);
+
+      const { didVersionMetadataBuffer } = updatedDidDocument;
+      const did = updatedDidDocument.controllerDid;
+      const versionId = "test";
+      const metadataId = ethers.utils.sha256(didVersionMetadataBuffer);
+
+      const response = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata/${metadataId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["versionId must match /^0x/ regular expression","versionId must be a hexadecimal number"]',
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the version ID is not found", async () => {
+      expect.assertions(2);
+
+      const { didVersionMetadataBuffer } = updatedDidDocument;
+      const did = updatedDidDocument.controllerDid;
+      const versionId = ethers.utils.sha256(crypto.randomBytes(32));
+      const metadataId = ethers.utils.sha256(didVersionMetadataBuffer);
+
+      const response = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata/${metadataId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Version Not Found",
+        status: 404,
+        detail: `Version ${versionId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw an error if the metadata ID is not valid", async () => {
+      expect.assertions(2);
+
+      const { didDocumentBuffer } = updatedDidDocument;
+      const did = updatedDidDocument.controllerDid;
+      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const metadataId = "test";
+
+      const response = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata/${metadataId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["metadataId must match /^0x/ regular expression","metadataId must be a hexadecimal number"]',
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the metadata ID is not found", async () => {
+      expect.assertions(2);
+
+      const { didDocumentBuffer } = updatedDidDocument;
+      const did = updatedDidDocument.controllerDid;
+      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const metadataId = "0x1234";
+
+      const response = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata/${metadataId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Metadata Not Found",
+        status: 404,
+        detail: `Metadata ${metadataId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
     });
   });
 

@@ -188,8 +188,15 @@ describe("JsonRpc Module", () => {
     );
     const didVersionMetadataBuffer = Buffer.from(
       JSON.stringify({
-        metadata: "value",
-        r: crypto.randomBytes(8).toString("hex"),
+        "@context": "https://json-ld.org/contexts/person.jsonld",
+        "@id": `http://dbpedia.org/resource/${crypto
+          .randomBytes(32)
+          .toString("hex")}`,
+        name: crypto.randomBytes(32).toString("hex"),
+        born: "1940-10-09",
+        spouse: `http://dbpedia.org/resource/${crypto
+          .randomBytes(32)
+          .toString("hex")}`,
       })
     );
 
@@ -1650,7 +1657,7 @@ describe("JsonRpc Module", () => {
           } as AppendDidDocumentVersionMetadataParam;
 
           expectedErrorMessage3 =
-            "property params[0].didVersionMetadata has failed the following constraints: isHexadecimalJson";
+            "property params[0].didVersionMetadata has failed the following constraints: IsHexadecimalJsonLdConstraint";
 
           break;
         }

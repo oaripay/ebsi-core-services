@@ -29,7 +29,7 @@ export class ArgsInsertDidDocument {
   @Matches(/^0x/)
   hashValue: string;
 
-  // Stringified JSON-LD DID Document(hex-encoded)
+  // Stringified JSON-LD DID Document (hex-encoded)
   @IsHexadecimalJsonLd()
   didVersionInfo: string;
 
@@ -38,9 +38,9 @@ export class ArgsInsertDidDocument {
   @IsHexadecimalJson()
   timestampData?: string;
 
-  // Stringified JSON (hex-encoded)
+  // Stringified JSON-LD DID Document metadata (hex-encoded)
   @IsOptional()
-  @IsHexadecimalJson()
+  @IsHexadecimalJsonLd()
   didVersionMetadata?: string;
 }
 
