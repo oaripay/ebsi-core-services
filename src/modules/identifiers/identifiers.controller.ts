@@ -1,9 +1,14 @@
 import { Controller, Get, Query, Param, Header } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import IdentifiersService from "./identifiers.service";
-import { formatIdentifiers } from "./identifiers.formatter";
-import { DidLink } from "./identifiers.interface";
-import { GetIdentifiersDto } from "./dto";
+import { formatIdentifiers, formatVersions } from "./identifiers.formatter";
+import { DidLink, VersionIdLink } from "./identifiers.interface";
+import {
+  GetIdentifierParamsDto,
+  GetIdentifiersDto,
+  GetIdentifiersVersionsDto,
+  GetIdentifierVersionParamsDto,
+} from "./dto";
 import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 
@@ -40,9 +45,45 @@ export default class IdentifiersController {
   @Get("/:did")
   @Header("Content-Type", "application/did+ld+json")
   async getIdentifier(
-    @Param() params: { did?: string }
+    @Param() params: GetIdentifierParamsDto
   ): Promise<{ [x: string]: unknown }> {
     const { did } = params;
     return this.didMethodsService.getIdentifier(did);
+  }
+
+  @Get("/:did/versions")
+  async getIdentifiersVersions(
+    @Query() query: GetIdentifiersVersionsDto,
+    @Param() params: GetIdentifierParamsDto
+  ): Promise<PaginatedList<VersionIdLink>> {
+    const { did } = params;
+
+    const didMethods = await this.didMethodsService.getIdentifiersVersions(
+      did,
+      query["page[after]"],
+      query["page[size]"],
+      query["valid-at"]
+    );
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/identifiers/${did}/versions`;
+
+    return formatVersions(
+      didMethods,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+      query["valid-at"]
+    );
+  }
+
+  @Get("/:did/versions/:versionId")
+  @Header("Content-Type", "application/did+ld+json")
+  async getIdentifierVersion(
+    @Param() params: GetIdentifierVersionParamsDto
+  ): Promise<{ [x: string]: unknown }> {
+    const { did, versionId } = params;
+    return this.didMethodsService.getIdentifierVersion(did, versionId);
   }
 }

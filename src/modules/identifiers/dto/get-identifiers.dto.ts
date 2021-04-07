@@ -4,7 +4,7 @@ import { PaginationQuery } from "../../../shared/dto/pagination-query";
 export class GetIdentifiersDto extends PaginationQuery {
   @IsOptional()
   @IsEthereumAddress()
-  "controller";
+  "controller": string;
 }
 
 export default GetIdentifiersDto;

@@ -4,7 +4,7 @@ import {
   isHexadecimal,
   ValidationOptions,
 } from "class-validator";
-import { isDid } from "./IsDid";
+import { isDid } from "../../../shared/validators";
 
 export const IS_HEXADECIMAL_DID = "isHexadecimalDid";
 
