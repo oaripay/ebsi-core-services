@@ -2,16 +2,26 @@ openapi: 3.0.3
 info:
   title: Storage API
   description: |
-    Storage API is a Core Service of the EBSI platform providing access to the Off-chain
-    Storage services of the lower layer Chain & Storage. This API provides read and write
-    storage capabilities of files and Key-Value.
+    The Storage API is a generic supporting Core Service of the EBSI platform
+    providing access to the Off-chain Storage services of the lower layer Chain &
+    Storage, but will limit in terms of storage capacity, as EBSI Project doesn't
+    have the vocation of being a storage cloud provider.
 
-    File Storage API provides read and write files capabilities to off-chain distributed
-    storage, (off-chain private (local) storage and off-chain external
-    storage trusted providers -> not Yet for EBSI v2)
+    This API provides read and write storage capabilities of files and Key-Value
+    for multiple storage systems:
 
-    Key-Value Storage API provides capabilities to save Key-Value (with data value in JSON
-    format) in the off-chain distributed storage for v2.
+    * File Storage API: provides CRUD operations for files in the off-chain distributed storage.
+
+    * Key-Value Storage API: provides CRUD operations for Key-Value (with data value in JSON format) in the off-chain distributed storage.
+
+    It also has a special JSON-RPC endpoint that serves as a proxy between Core
+    APIs and the distributed storage. Only the Storage API has direct access to
+    distributed storage infrastructure (Cassandra for v2.0).
+
+    For more information see:
+
+    - [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/VYiWFQ)
+    - [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/browse)
   version: 2.0.0
   termsOfService: /docs/terms
   contact:
@@ -142,7 +152,7 @@ paths:
       summary: Proxy calls to Cassandra
       description: |
         JSON-RPC call that includes the SQL query to interact with cassandra. This endpoint can
-        only be used by Notifications API and ID Hub API.
+        only be used by Notifications API and Proxy Data Hub API.
       security:
         - bearerAuth: []
       requestBody:
@@ -1227,6 +1237,86 @@ paths:
                   $ref: "#/components/examples/InternalError"
 components:
   schemas:
+    CassandraLinks:
+      title: Cassandra Links
+      type: object
+      properties:
+        next:
+          type: string
+          description: URI of the next page
+      description: Links model used for pagination with Cassandra
+      x-examples:
+        Links:
+          next: /storage/v2/stores?page[after]=4&page[size]=abc123
+
+    file:
+      title: File
+      type: string
+      description: File data model
+
+    fileStoreResponse:
+      title: File Store Response
+      type: object
+      x-examples:
+        file store response:
+          hash: "0xbe5b5152fcd01b6bf53f149bfd1493a49ec5e8ae94cc4c29a81563eea0e347f4"
+          function: keccak256
+      description: Object returned upon successful file storage
+      properties:
+        hash:
+          type: string
+          description: hash of the file stored
+        function:
+          type: string
+          description: 1lgorithm used to generate the file's hash
+      required:
+        - hash
+        - function
+    JsonRpcResponse:
+      title: JSON-RPC Response
+      type: object
+      properties:
+        jsonrpc:
+          description: Must be exactly '2.0'
+          type: string
+        id:
+          description: Same identifier established by the client in the call
+          type: integer
+        result:
+          description: Result of the call
+          oneOf:
+            - type: object
+            - type: string
+
+    key:
+      title: Key
+      type: string
+      description: Key from a key-value pair
+
+    Links:
+      title: Links
+      type: object
+      properties:
+        last:
+          type: string
+          description: URI of the last page
+        prev:
+          type: string
+          description: URI of the previous page
+        next:
+          type: string
+          description: URI of the next page
+        first:
+          type: string
+          description: URI of the first page
+      description: Links model used for pagination
+      x-examples:
+        Links:
+          first: /storage/v2/stores?page[after]=1&page[size]=2
+          prev: /storage/v2/stores?page[after]=2&page[size]=2
+          next: /storage/v2/stores?page[after]=4&page[size]=2
+          last: /storage/v2/stores?page[after]=13&page[size]=2
+
     patch:
       title: Patch
       type: array
@@ -1286,29 +1376,6 @@ components:
           op: test
           path: /a/b/c
           value: foo
-    key:
-      title: Key
-      type: string
-      description: key from a key-value pair
-    file:
-      title: File
-      type: string
-      description: File data model
-    JsonRpcResponse:
-      title: Json Rpc Response
-      type: object
-      properties:
-        jsonrpc:
-          description: Must be exactly '2.0'
-          type: string
-        id:
-          description: Same identifier established by the client in the call
-          type: integer
-        result:
-          description: Result of the call
-          oneOf:
-            - type: object
-            - type: string
     Problem:
       description: A Problem Details object (RFC 7807)
       type: object
@@ -1344,58 +1411,6 @@ components:
           description: |
             An absolute URI that identifies the specific occurrence of the problem. It may or may
             not yield further information if dereferenced.
-    Links:
-      title: Links
-      type: object
-      properties:
-        last:
-          type: string
-          description: URI of the last page
-        prev:
-          type: string
-          description: URI of the previous page
-        next:
-          type: string
-          description: URI of the next page
-        first:
-          type: string
-          description: URI of the first page
-      description: Links model used for pagination
-      x-examples:
-        Links:
-          first: /storage/v2/stores?page[after]=1&page[size]=2
-          prev: /storage/v2/stores?page[after]=2&page[size]=2
-          next: /storage/v2/stores?page[after]=4&page[size]=2
-          last: /storage/v2/stores?page[after]=13&page[size]=2
-    CassandraLinks:
-      title: Cassandra Links
-      type: object
-      properties:
-        next:
-          type: string
-          description: URI of the next page
-      description: Links model used for pagination with Cassandra
-      x-examples:
-        Links:
-          next: /storage/v2/stores?page[after]=4&page[size]=abc123
-    fileStoreResponse:
-      title: File Store Response
-      type: object
-      x-examples:
-        file store response:
-          hash: "0xbe5b5152fcd01b6bf53f149bfd1493a49ec5e8ae94cc4c29a81563eea0e347f4"
-          function: keccak256
-      description: Object returned upon successful file storage
-      properties:
-        hash:
-          type: string
-          description: hash of the file stored
-        function:
-          type: string
-          description: 1lgorithm used to generate the file's hash
-      required:
-        - hash
-        - function
   examples:
     BadRequest:
       value:
@@ -1430,14 +1445,16 @@ components:
 tags:
   - name: Stores
     description: Information about available stores
-  - name: Proxy
-    description: Storage api serving as proxy between the client and Cassandra (Internal use, not open to the public)
   - name: File Storage
     description: Interact with File Storage (Only used by external apps)
   - name: Key-Value Storage
     description: Interact with Key-Value Storage (Only used by external apps)
+  - name: Proxy
+    description: Storage API serving as proxy between the client and Cassandra (Internal use, not open to the public)
 servers:
-  - url: http://localhost
+  - url: "http://localhost"
     description: Local Computer Environment
-  - url: https://api.test.intebsi.xyz
-    description: EBSI Testing Environment
+  - url: "https://api.preprod.ebsi.eu"
+    description: EBSI Pre-production Environment
+  - url: "https://api.ebsi.eu"
+    description: EBSI Production Environment

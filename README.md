@@ -2,26 +2,58 @@
 
 # Storage API
 
-The Storage API is a GENERIC supporting Core Service of the EBSI platform providing access to the Off-chain Storage services of the lower layer Chain & Storage, but will limit in terms of storage capacity, as EBSI Project doesn't have the vocation of being a storage cloud provider.
+The Storage API is a generic supporting Core Service of the EBSI platform
+providing access to the Off-chain Storage services of the lower layer Chain &
+Storage, but will limit in terms of storage capacity, as EBSI Project doesn't
+have the vocation of being a storage cloud provider.
 
-This API provides read and write storage capabilities of files and Key-Value for multiple storage systems:
+This API provides read and write storage capabilities of files and Key-Value
+for multiple storage systems:
 
 - File Storage API: provides CRUD operations for files in the off-chain distributed storage.
+
 - Key-Value Storage API: provides CRUD operations for Key-Value (with data value in JSON format) in the off-chain distributed storage.
 
-It also has a special JSON-RPC endpoint that serves as a proxy between Core APIs and the distributed storage. Only the Storage API has direct access to distributed storage infrastructure (Cassandra for v2.0).
+It also has a special JSON-RPC endpoint that serves as a proxy between Core
+APIs and the distributed storage. Only the Storage API has direct access to
+distributed storage infrastructure (Cassandra for v2.0).
+
+The EBSI MS nodes are not an off-chain or cloud storage provider
+infrastructure. The off-chain storage capabilities provided by EBSI are
+limited to the available resources of the MS Node infrastructure. The storage
+capabilities have the goal to support the deployment and integration of the
+exposed core services and approved business applications.
+
+For more information see:
+
+- [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/VYiWFQ)
+- API catalogs:
+  - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
+  - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
 
 ## Table of Contents
 
-1. [Getting started](#getting-started)
-2. [Linting](#linting)
-3. [Auditing the dependencies](#auditing-the-dependencies)
-4. [Testing](#testing)
-5. [Load testing with k6](#load-testing-with-k6)
-6. [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
-7. [Cutting a new release](#cutting-a-new-release)
-8. [Troubleshooting](#troubleshooting)
-9. [License](#license)
+- [Storage API](#storage-api)
+  - [Table of Contents](#table-of-contents)
+  - [Getting started](#getting-started)
+    - [Run the project locally](#run-the-project-locally)
+    - [Run with Docker](#run-with-docker)
+  - [Linting](#linting)
+    - [ESLint](#eslint)
+    - [OpenAPI](#openapi)
+    - [Prettier](#prettier)
+    - [tsc](#tsc)
+    - [Extra: lint Dockerfile](#extra-lint-dockerfile)
+  - [Auditing the dependencies](#auditing-the-dependencies)
+  - [Testing](#testing)
+    - [Test consistency level in a network](#test-consistency-level-in-a-network)
+  - [Load testing with k6](#load-testing-with-k6)
+    - [Start the API server](#start-the-api-server)
+    - [Run the tests](#run-the-tests)
+  - [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
+  - [Cutting a new release](#cutting-a-new-release)
+  - [Troubleshooting](#troubleshooting)
+  - [License](#license)
 
 ## Getting started
 
