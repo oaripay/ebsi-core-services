@@ -13,8 +13,7 @@ info:
 
     * [TAR API Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/SoiWFQ)
     * [TAR Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/rIiWFQ)
-    * [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/browse)
-
+    * [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/browse)
   version: 2.0.0
   termsOfService: /docs/terms
   contact:
