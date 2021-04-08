@@ -30,3 +30,7 @@
 	path = contracts/trusted-ledgers-sc-registry-ethereum-sc
 	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-ledgers-sc-registry-ethereum-sc
 	branch = develop
+[submodule "contracts/did-registry-ethereum-sc"]
+	path = contracts/did-registry-ethereum-sc
+	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/did-registry-ethereum-sc
+  branch = develop

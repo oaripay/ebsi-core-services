@@ -5,10 +5,13 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
 
   const { deployer } = await getNamedAccounts();
-  const hashAlgoLib = await deployments.deploy("HashAlgoLib", {
-    from: deployer,
-    log: true,
-  });
+  const hashAlgoLib = await deployments.deploy(
+    "contracts/timestamp-ethereum-sc/contracts/timestamp/HashAlgoLib.sol:HashAlgoLib",
+    {
+      from: deployer,
+      log: true,
+    }
+  );
   const timestampLib = await deployments.deploy("TimestampLib", {
     from: deployer,
     log: true,
