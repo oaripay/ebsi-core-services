@@ -523,21 +523,20 @@
     minimatch "^3.0.4"
     strip-json-comments "^3.1.1"
 
-"@ethereumjs/common@^2.2.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-2.2.0.tgz#850a3e3e594ee707ad8d44a11e8152fb62450535"
-  integrity sha512-PyQiTG00MJtBRkJmv46ChZL8u2XWxNBeAthznAUIUiefxPAXjbkuiCZOuncgJS34/XkMbNc9zMt/PlgKRBElig==
+"@ethereumjs/common@2.1.0", "@ethereumjs/common@^2.0.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-2.1.0.tgz#00534e89419f43556843f73abdf40235f37693ee"
+  integrity sha512-sY2yBKwZjlIM5Z+sBd9ZEEH5YDB5OsvSVCi5hzTqeMfv4307JfLH0MjM09whi4InLmqWRdJp/fmt/rQyP4qxKg==
   dependencies:
     crc-32 "^1.2.0"
-    ethereumjs-util "^7.0.9"
 
-"@ethereumjs/tx@^3.1.2":
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.1.2.tgz#17ac0d69727cd056b9bda62eb0ca695992a263f3"
-  integrity sha512-bpnO+swaw2nmdBybDR0Nn+tt3AJxkUWakoQda5dCGh+yQiHlg8KZgBf84pK6Z/R0tdxn9mhi1b13qi0kn5RKGg==
+"@ethereumjs/tx@3.0.2":
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-3.0.2.tgz#9cd34226cad25fa6d1d66b620f647f846e649cbb"
+  integrity sha512-zmFCosjOdj1WoYEiQBdC4sCOAllBEwxdKuY85L9FgZ4zVDfZUVsQ4S9paczt4hVt65A7N8sJwgVEzDaQmrRaqw==
   dependencies:
-    "@ethereumjs/common" "^2.2.0"
-    ethereumjs-util "^7.0.10"
+    "@ethereumjs/common" "^2.0.0"
+    ethereumjs-util "^7.0.8"
 
 "@ethersproject/abi@5.0.0-beta.153":
   version "5.0.0-beta.153"
@@ -4987,7 +4986,7 @@ ethereumjs-util@^5.0.0, ethereumjs-util@^5.0.1, ethereumjs-util@^5.1.1, ethereum
     rlp "^2.0.0"
     safe-buffer "^5.1.1"
 
-ethereumjs-util@^7.0.10, ethereumjs-util@^7.0.2, ethereumjs-util@^7.0.9:
+ethereumjs-util@^7.0.2, ethereumjs-util@^7.0.8:
   version "7.0.10"
   resolved "https://registry.yarnpkg.com/ethereumjs-util/-/ethereumjs-util-7.0.10.tgz#5fb7b69fa1fda0acc59634cf39d6b0291180fc1f"
   integrity sha512-c/xThw6A+EAnej5Xk5kOzFzyoSnw0WX0tSlZ6pAsfGVvQj3TItaDg9b1+Fz1RJXA+y2YksKwQnuzgt1eY6LKzw==

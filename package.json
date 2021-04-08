@@ -27,8 +27,8 @@
   },
   "dependencies": {
     "@cef-ebsi/problem-details-errors": "0.0.4",
-    "@ethereumjs/common": "^2.2.0",
-    "@ethereumjs/tx": "^3.1.2",
+    "@ethereumjs/common": "2.1.0",
+    "@ethereumjs/tx": "3.0.2",
     "@nestjs/common": "^7.6.15",
     "@nestjs/config": "^0.6.3",
     "@nestjs/core": "^7.6.15",
