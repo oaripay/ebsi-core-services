@@ -24,13 +24,13 @@ const defaultConfig = {
   },
   pilot: {
     LOG_LEVEL: "warn",
-    BESU_RPC_NODE: "https://www.pilot.intebsi.xyz/jsonrpc",
-    HEALTH_CHECK: "https://api.pilot.ebsi.xyz/docs/",
+    BESU_RPC_NODE: "https://www.preprod.ebsi.eu/jsonrpc",
+    HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
   },
   prod: {
     LOG_LEVEL: "error",
-    BESU_RPC_NODE: "https://www.prod.intebsi.xyz/jsonrpc",
-    HEALTH_CHECK: "https://api.prod.ebsi.xyz/docs/",
+    BESU_RPC_NODE: "https://www.ebsi.eu/jsonrpc",
+    HEALTH_CHECK: "https://api.ebsi.eu/docs/",
   },
 };
 

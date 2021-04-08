@@ -237,8 +237,7 @@ describe("Besu Module", () => {
       });
 
     expect(response.body).toStrictEqual({
-      detail:
-        "Error parsing the transaction: Invalid chain id. Please set chain id to 0x539",
+      detail: "Error parsing the transaction: Invalid character",
       status: 400,
       title: "Bad Request",
       type: "about:blank",

@@ -4,20 +4,43 @@
 
 This repository contains the code of the EBSI Ledger API.
 
+Ledger API service gives use case applications access to all the available blockchain protocol interfaces and capabilities provided by the ledger nodes software running on MS hosted nodes.
+
 The Ledger API is a Core Service of the EBSI platform providing access to the EBSI Ledger Protocol(s) and Smart Contracts services running at the lower layer Chain & Storage.
 
-EBSI v2 Ledger API provides capabilities to interact (Read and Write) with Hyperledger Besu and (Read-Only) for Fabric ledgers. As a remark, for EBSI v2.0, in order to interact with the Fabric node clients, consumers must install the Fabric SDK kit because Fabric ledgers has not a full feature set natively exposed by a REST API. Only a limited set of features are exposed.
+EBSI V2 Ledger API provides capabilities to interact (Read and Write) with Hyperledger Besu and (Read-Only) for Fabric ledgers. As a remark, for EBSI v2.0, in order to interact with the Fabric node clients, consumers must install the Fabric SDK kit because Fabric ledgers has not a full feature set natively exposed by a REST API. Only a limited set of features are exposed.
+
+As a general principle, only EBSI Core Service API, acting as JSON-RPC proxy for the end-users can have access to the Ledger API JSON RPC Proxy, meaning end-users have no direct access to the EBSI Ledgers clients software running on MS nodes.
+
+For more information see:
+
+- [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/V4iWFQ)
+- API catalogs:
+  - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
+  - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
 
 ## Table of Contents
 
-1. [Getting started](#getting-started)
-2. [Linting](#linting)
-3. [Auditing the dependencies](#auditing-the-dependencies)
-4. [Testing](#testing)
-5. [Load testing with k6](#load-testing-with-k6)
-6. [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
-7. [Cutting a new release](#cutting-a-new-release)
-8. [License](#license)
+- [Ledger API](#ledger-api)
+  - [Table of Contents](#table-of-contents)
+  - [Getting started](#getting-started)
+    - [Run the project locally](#run-the-project-locally)
+    - [Run with Docker](#run-with-docker)
+  - [Linting](#linting)
+    - [ESLint](#eslint)
+    - [OpenAPI](#openapi)
+    - [Prettier](#prettier)
+    - [tsc](#tsc)
+    - [Git hooks](#git-hooks)
+    - [Extra: lint Dockerfile](#extra-lint-dockerfile)
+  - [Auditing the dependencies](#auditing-the-dependencies)
+  - [Testing](#testing)
+  - [Load testing with k6](#load-testing-with-k6)
+    - [Start the API server](#start-the-api-server)
+    - [Run the tests](#run-the-tests)
+  - [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
+  - [Cutting a new release](#cutting-a-new-release)
+  - [License](#license)
 
 ## Getting started
 
