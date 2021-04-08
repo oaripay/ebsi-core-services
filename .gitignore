@@ -1,0 +1,10 @@
+node_modules
+coverage
+artifacts
+cache
+src
+build
+*.log
+*log
+all.sol
+.secret*
