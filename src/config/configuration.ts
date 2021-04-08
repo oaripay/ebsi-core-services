@@ -27,14 +27,14 @@ const defaultConfig = {
   },
   pilot: {
     LOG_LEVEL: "warn",
-    DOMAIN: "https://api.pilot.ebsi.xyz",
-    HEALTH_CHECK: "https://api.pilot.ebsi.xyz/docs/",
+    DOMAIN: "https://api.preprod.ebsi.eu",
+    HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
     KEYSPACE: "ebsi_pilot",
   },
   prod: {
     LOG_LEVEL: "error",
-    DOMAIN: "https://api.prod.ebsi.xyz",
-    HEALTH_CHECK: "https://api.prod.ebsi.xyz/docs/",
+    DOMAIN: "https://api.ebsi.eu",
+    HEALTH_CHECK: "https://api.ebsi.eu/docs/",
     KEYSPACE: "ebsi_prod",
   },
 };
