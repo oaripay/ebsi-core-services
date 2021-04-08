@@ -26,7 +26,7 @@ export class HealthController {
       () =>
         this.http.pingCheck(
           "ebsi-apis",
-          this.configService.get("externalEBSIApiHealthCheck")
+          this.configService.get("externalEbsiApiHealthCheck")
         ),
     ]);
   }

@@ -13,7 +13,7 @@ export interface ApiConfig {
   logLevel: string;
   ledger: string;
   adminTestPrivateKey: string;
-  externalEBSIApiHealthCheck: string;
+  externalEbsiApiHealthCheck: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -32,15 +32,15 @@ const defaultConfig = {
   },
   pilot: {
     LOG_LEVEL: "warn",
-    DOMAIN: "https://api.pilot.ebsi.xyz",
-    LEDGER: "https://api.pilot.ebsi.xyz/ledger/v2",
-    HEALTH_CHECK: `https://api.pilot.ebsi.xyz/docs/`,
+    DOMAIN: "https://api.preprod.ebsi.eu",
+    LEDGER: "https://api.preprod.ebsi.eu/ledger/v2",
+    HEALTH_CHECK: `https://api.preprod.ebsi.eu/docs/`,
   },
   prod: {
     LOG_LEVEL: "error",
-    DOMAIN: "https://api.prod.ebsi.xyz",
-    LEDGER: "https://api.prod.ebsi.xyz/ledger/v2",
-    HEALTH_CHECK: `https://api.prod.ebsi.xyz/docs/`,
+    DOMAIN: "https://api.ebsi.eu",
+    LEDGER: "https://api.ebsi.eu/ledger/v2",
+    HEALTH_CHECK: `https://api.ebsi.eu/docs/`,
   },
 };
 
@@ -61,7 +61,7 @@ export const loadConfig = (): ApiConfig => {
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     ledger: process.env.LEDGER || defaultConfig[EBSI_ENV].LEDGER,
-    externalEBSIApiHealthCheck:
+    externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
   };
 };

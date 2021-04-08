@@ -1,6 +1,6 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { HttpServer, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -11,7 +11,8 @@ import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 
 describe("/timestamp/v2 (generic tests)", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
+  let server: HttpServer;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -28,12 +29,13 @@ describe("/timestamp/v2 (generic tests)", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    server = app.getHttpServer() as HttpServer;
   });
 
   describe("GET /health", () => {
     it("should return ok", async () => {
       expect.assertions(2);
-      const response = await request(app.getHttpServer()).get(`/health`);
+      const response = await request(server).get(`/health`);
 
       expect(response.body).toStrictEqual({
         details: { "ebsi-apis": { status: "up" } },
@@ -48,7 +50,7 @@ describe("/timestamp/v2 (generic tests)", () => {
   describe("GET /bad-method", () => {
     it("should return error 404", async () => {
       expect.assertions(2);
-      const response = await request(app.getHttpServer()).get("/bad-method");
+      const response = await request(server).get("/bad-method");
 
       expect(response.body).toStrictEqual({
         title: "Not Found",

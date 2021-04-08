@@ -2,10 +2,16 @@ openapi: 3.0.3
 info:
   title: Timestamp API
   description: |
-    Timestamp API is a Core Service of the EBSI platform providing the
-    capability of checking the authenticity of a digital document by
-    verifying the presence and the timestamp of the document's hash
-    in a specific smart contract.
+    Timestamp API is an EBSI core service. It enables us to interact with the TimeStamp SC to
+    * timestamp hashes,
+    * supports timestamping records/versions (and linking the timestamps)
+    * verify timestamps.
+
+    For more information see:
+
+    * [Timestamp API Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/VIiWFQ)
+    * [Timestamp Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/hYiWFQ)
+    * [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/browse)
   version: 2.0.0
   termsOfService: "/docs/terms"
   contact:
@@ -919,7 +925,7 @@ components:
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
     JsonRpcResponse:
-      title: Json Rpc Response
+      title: JSON-RPC Response
       type: object
       properties:
         jsonrpc:
@@ -1050,9 +1056,11 @@ components:
         detail: Internal error
 tags:
   - name: Timestamp API
-    description: Validate timestamped records
+    description: Timestamp and validate timestamp records
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
-  - url: "https://api.test.ebsi.xyz"
-    description: EBSI Testing Environment
+  - url: "https://api.preprod.ebsi.eu"
+    description: EBSI Pre-production Environment
+  - url: "https://api.ebsi.eu"
+    description: EBSI Production Environment
