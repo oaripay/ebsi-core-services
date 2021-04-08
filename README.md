@@ -2,18 +2,46 @@
 
 # Trusted Apps Registry API
 
-This repository contains the code of the EBSI Trusted Apps Registry API.
+Trusted Apps Registry (TAR) API is an EBSI core service. It enables us to interact with the Trusted Apps Registry Smart Contract to:
+
+- manage (register/update/revoke) trusted EBSI and trusted external applications,
+- manage application authorisations,
+- manage application administrators,
+- obtain application information,
+- obtain application authorisations.
+
+Trusted Apps Registry (TAR) API is an EBSI core service (Architecture). It enables us to interact with the Trusted Apps Registry Smart Contract to:
+
+For more information see:
+
+- [TAR API Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/SoiWFQ)
+- [TAR Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/rIiWFQ)
+- [TAR Smart Contract Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-ethereum-sc/browse)
+- API catalogs:
+  - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
+  - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
 
 ## Table of Contents
 
-1. [Getting started](#getting-started)
-2. [Linting](#linting)
-3. [Auditing the dependencies](#auditing-the-dependencies)
-4. [Testing](#testing)
-5. [Load testing with k6](#load-testing-with-k6)
-6. [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
-7. [Cutting a new release](#cutting-a-new-release)
-8. [License](#license)
+- [Trusted Apps Registry API](#trusted-apps-registry-api)
+  - [Table of Contents](#table-of-contents)
+  - [Getting started](#getting-started)
+    - [Run the project locally](#run-the-project-locally)
+    - [Run with Docker](#run-with-docker)
+  - [Linting](#linting)
+    - [ESLint](#eslint)
+    - [OpenAPI](#openapi)
+    - [Prettier](#prettier)
+    - [tsc](#tsc)
+    - [Extra: lint Dockerfile](#extra-lint-dockerfile)
+  - [Auditing the dependencies](#auditing-the-dependencies)
+  - [Testing](#testing)
+  - [Load testing with k6](#load-testing-with-k6)
+    - [Start the API server](#start-the-api-server)
+    - [Run the tests](#run-the-tests)
+  - [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
+  - [Cutting a new release](#cutting-a-new-release)
+  - [License](#license)
 
 ## Getting started
 

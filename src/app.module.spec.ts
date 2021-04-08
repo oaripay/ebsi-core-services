@@ -41,13 +41,4 @@ describe("App Module", () => {
     expect(response.status).toBe(200);
     expect(response.text).toBe("ok");
   });
-
-  it("GET /health returns ok", async () => {
-    expect.assertions(2);
-    const response = await request(server).get("/health");
-    expect(response.status).toBe(200);
-    expect(response.text).toStrictEqual(
-      '{"status":"ok","info":{"ebsi-apis":{"status":"up"}},"error":{},"details":{"ebsi-apis":{"status":"up"}}}'
-    );
-  });
 });
