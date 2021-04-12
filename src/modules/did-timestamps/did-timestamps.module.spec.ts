@@ -81,8 +81,10 @@ describe("DidTimestamps Module", () => {
         ) as string,
         items: expect.arrayContaining(
           didDocuments.map((method) => {
-            // Timestamp ID = sha256(canonizedDidDocumentHash)
-            const hash = ethers.utils.sha256(method.canonizedDidDocumentHash);
+            // Timestamp ID = sha256(canonicalizedDidDocumentHash)
+            const hash = ethers.utils.sha256(
+              method.canonicalizedDidDocumentHash
+            );
             return {
               timestampId: hash,
               href: expect.stringContaining(
@@ -288,9 +290,12 @@ describe("DidTimestamps Module", () => {
       expect.assertions(2);
 
       const { didDocuments, didRegistryContract } = testEnv;
-      const { canonizedDidDocumentHash, timestampDataBuffer } = didDocuments[0];
+      const {
+        canonicalizedDidDocumentHash,
+        timestampDataBuffer,
+      } = didDocuments[0];
 
-      const timestampId = ethers.utils.sha256(canonizedDidDocumentHash);
+      const timestampId = ethers.utils.sha256(canonicalizedDidDocumentHash);
 
       const response = await request(server).get(
         `/did-timestamps/${timestampId}`
@@ -301,7 +306,7 @@ describe("DidTimestamps Module", () => {
       expect(response.body).toStrictEqual({
         blockNumber: expect.any(Number) as number,
         data: `0x${timestampDataBuffer.toString("hex")}`,
-        hash: multihashEncode(canonizedDidDocumentHash, "sha2-256"),
+        hash: multihashEncode(canonicalizedDidDocumentHash, "sha2-256"),
         timestampedBy: signer,
       } as DidTimestampResponseObject);
 

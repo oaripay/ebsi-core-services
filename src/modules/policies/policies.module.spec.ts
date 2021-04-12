@@ -18,7 +18,7 @@ import { DidRegistry__factory } from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
-jest.setTimeout(60000);
+jest.setTimeout(120000);
 
 const POLICIES_TOTAL = 12;
 const POLICIES_REVISIONS_TOTAL = 5;

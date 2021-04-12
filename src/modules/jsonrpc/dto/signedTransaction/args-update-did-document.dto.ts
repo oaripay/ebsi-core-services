@@ -5,11 +5,7 @@ import {
   Matches,
   Min,
 } from "class-validator";
-import {
-  IsHexadecimalDid,
-  IsHexadecimalJson,
-  IsHexadecimalJsonLd,
-} from "../../validators";
+import { IsHexadecimalDid, IsHexadecimalJson } from "../../validators";
 
 export class ArgsUpdateDidDocument {
   // Consumer calling function must convert Base58 DID identifier into bytes in hex format
@@ -22,25 +18,28 @@ export class ArgsUpdateDidDocument {
   @Min(0)
   hashAlgorithmId: number;
 
-  // Hash value of the serialized (with URDNA2015) JSON-LD DID Document, computed by the user calling the function.
+  // Hash value of the canonicalized (https://tools.ietf.org/html/rfc8785) JSON DID Document, computed by the user calling the function.
   // TODO: dynamically check that hashValue is valid? Get hash_alg corresponding to hashAlgorithmId
-  // and check if hash_alg(canonize(didVersionInfo)) == hashValue
+  // and check if hash_alg(canonicalize(didVersionInfo)) == hashValue
   @IsHexadecimal()
   @Matches(/^0x/)
   hashValue: string;
 
-  // Stringified JSON-LD DID Document (hex-encoded)
-  @IsHexadecimalJsonLd()
+  // Stringified JSON DID Document (hex-encoded)
+  @IsHexadecimalJson()
+  @Matches(/^0x/)
   didVersionInfo: string;
 
   // Stringified JSON (hex-encoded)
   @IsOptional()
   @IsHexadecimalJson()
+  @Matches(/^0x/)
   timestampData?: string;
 
-  // Stringified JSON-LD DID Document metadata (hex-encoded)
+  // Stringified JSON metadata (hex-encoded)
   @IsOptional()
-  @IsHexadecimalJsonLd()
+  @IsHexadecimalJson()
+  @Matches(/^0x/)
   didVersionMetadata?: string;
 }
 

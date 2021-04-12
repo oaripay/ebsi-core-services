@@ -954,7 +954,7 @@ describe("Identifiers Module", () => {
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"]
-      ).toStrictEqual(expect.stringContaining("application/ld+json"));
+      ).toStrictEqual(expect.stringContaining("application/json"));
     });
 
     it("should throw an error if the identifier is not a valid did", async () => {

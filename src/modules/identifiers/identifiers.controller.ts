@@ -122,7 +122,7 @@ export default class IdentifiersController {
   }
 
   @Get("/:did/versions/:versionId/metadata/:metadataId")
-  @Header("Content-Type", "application/ld+json")
+  @Header("Content-Type", "application/json")
   async getIdentifierVersionMetadata(
     @Param() params: GetIdentifierVersionMetadataParamsDto
   ): Promise<{ [x: string]: unknown }> {

@@ -14,8 +14,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { canonize } from "jsonld";
-import * as bs58 from "bs58";
+import canonicalize from "canonicalize";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -47,6 +46,12 @@ import {
 } from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
+import {
+  createDid,
+  createDidDocument,
+  createMetadata,
+  createDidMethod,
+} from "../../../tests/utils/data";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -75,9 +80,9 @@ type JsonRpcParams =
 interface DidDocumentDataset {
   didDocument: { [x: string]: unknown };
   didDocumentBuffer: Buffer;
-  canonizedDidDocument: string;
-  canonizedDidDocumentBuffer: Buffer;
-  canonizedDidDocumentHash: string;
+  canonicalizedDidDocument: string;
+  canonicalizedDidDocumentBuffer: Buffer;
+  canonicalizedDidDocumentHash: string;
   timestampDataBuffer: Buffer;
   didVersionMetadataBuffer: Buffer;
 }
@@ -85,9 +90,9 @@ interface DidDocumentDataset {
 interface DidMethodDataset {
   didMethods: { [x: string]: unknown }[];
   didMethodsBuffer: Buffer[];
-  canonizedDidMethods: string[];
-  canonizedDidMethodsBuffer: Buffer[];
-  canonizedDidMethodsHash: string[];
+  canonicalizedDidMethods: string[];
+  canonicalizedDidMethodsBuffer: Buffer[];
+  canonicalizedDidMethodsHash: string[];
 }
 
 jest.setTimeout(180000);
@@ -142,103 +147,60 @@ describe("JsonRpc Module", () => {
   const policy2 = createPolicy();
   const policy3 = createPolicy();
 
-  const createDid = (): string => {
-    const buf = crypto.randomBytes(32);
-    return `did:ebsi:${bs58.encode(buf)}`;
-  };
-
   const controllerDid = createDid();
 
-  const createDidDocument = async (
-    did: string
-  ): Promise<DidDocumentDataset> => {
-    const didDocument = {
-      "@context": [
-        "https://www.w3.org/ns/did/v1",
-        "https://identity.foundation/EcdsaSecp256k1RecoverySignature2020/lds-ecdsa-secp256k1-recovery2020-0.0.jsonld",
-      ],
-      id: did,
-      publicKey: [
-        {
-          id: `${did}#vm-3`,
-          controller: did,
-          type: "EcdsaSecp256k1RecoveryMethod2020",
-          blockchainAccountId: `0x${crypto
-            .randomBytes(16)
-            .toString("hex")}@eip155:1`,
-        },
-      ],
-    };
+  const prepareDidDocument = (did: string): DidDocumentDataset => {
+    const didDocument = createDidDocument(did);
 
     const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
 
-    // Canonize DID Document
-    const canonizedDidDocument = await canonize(didDocument, {
-      algorithm: "URDNA2015",
-      format: "application/n-quads",
-    });
+    // Canonicalize DID Document
+    const canonicalizedDidDocument = canonicalize(didDocument);
 
-    const canonizedDidDocumentBuffer = Buffer.from(canonizedDidDocument);
-    const canonizedDidDocumentHash = ethers.utils.sha256(
-      canonizedDidDocumentBuffer
+    const canonicalizedDidDocumentBuffer = Buffer.from(
+      canonicalizedDidDocument
+    );
+    const canonicalizedDidDocumentHash = ethers.utils.sha256(
+      canonicalizedDidDocumentBuffer
     );
 
     const timestampDataBuffer = Buffer.from(
       JSON.stringify({ data: "test", r: crypto.randomBytes(8).toString("hex") })
     );
     const didVersionMetadataBuffer = Buffer.from(
-      JSON.stringify({
-        "@context": "https://json-ld.org/contexts/person.jsonld",
-        "@id": `http://dbpedia.org/resource/${crypto
-          .randomBytes(32)
-          .toString("hex")}`,
-        name: crypto.randomBytes(32).toString("hex"),
-        born: "1940-10-09",
-        spouse: `http://dbpedia.org/resource/${crypto
-          .randomBytes(32)
-          .toString("hex")}`,
-      })
+      JSON.stringify(createMetadata())
     );
 
     return {
       didDocument,
       didDocumentBuffer,
-      canonizedDidDocument,
-      canonizedDidDocumentBuffer,
-      canonizedDidDocumentHash,
+      canonicalizedDidDocument,
+      canonicalizedDidDocumentBuffer,
+      canonicalizedDidDocumentHash,
       timestampDataBuffer,
       didVersionMetadataBuffer,
     };
   };
 
-  const createDidMethod = async (): Promise<DidMethodDataset> => {
-    const didMethod = {
-      "@context": "https://json-ld.org/contexts/person.jsonld",
-      "@id": "http://dbpedia.org/resource/John_Lennon",
-      name: "John Lennon",
-      born: "1940-10-09",
-      spouse: "http://dbpedia.org/resource/Cynthia_Lennon",
-    };
+  const prepareDidMethod = (): DidMethodDataset => {
+    const didMethod = createDidMethod();
 
     const didMethodBuffer = Buffer.from(JSON.stringify(didMethod));
 
-    // Canonize DID Method
-    const canonizedDidMethod = await canonize(didMethod, {
-      algorithm: "URDNA2015",
-      format: "application/n-quads",
-    });
+    // Canonicalize DID Method
+    const canonicalizedDidMethod = canonicalize(didMethod);
 
-    const canonizedDidMethodBuffer = Buffer.from(canonizedDidMethod);
-    const canonizedDidMethodHash = ethers.utils.sha256(
-      canonizedDidMethodBuffer
+    const canonicalizedDidMethodBuffer = Buffer.from(canonicalizedDidMethod);
+    const canonicalizedDidMethodHash = ethers.utils.sha256(
+      canonicalizedDidMethodBuffer
     );
 
     return {
       didMethods: [didMethod],
       didMethodsBuffer: [didMethodBuffer],
-      canonizedDidMethods: [canonizedDidMethod],
-      canonizedDidMethodsBuffer: [canonizedDidMethodBuffer],
-      canonizedDidMethodsHash: [canonizedDidMethodHash],
+      canonicalizedDidMethods: [canonicalizedDidMethod],
+      canonicalizedDidMethodsBuffer: [canonicalizedDidMethodBuffer],
+      canonicalizedDidMethodsHash: [canonicalizedDidMethodHash],
     };
   };
 
@@ -309,9 +271,9 @@ describe("JsonRpc Module", () => {
         return Promise.reject(new Error("Unknown method"));
       });
 
-    didDocument = await createDidDocument(controllerDid);
-    updatedDidDocument = await createDidDocument(controllerDid);
-    didMethod = await createDidMethod();
+    didDocument = prepareDidDocument(controllerDid);
+    updatedDidDocument = prepareDidDocument(controllerDid);
+    didMethod = prepareDidMethod();
   });
 
   afterAll(async () => {
@@ -599,7 +561,7 @@ describe("JsonRpc Module", () => {
         case "insertDidDocument": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
             timestampDataBuffer,
             didVersionMetadataBuffer,
           } = didDocument;
@@ -617,7 +579,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
             didVersionMetadata,
@@ -628,7 +590,7 @@ describe("JsonRpc Module", () => {
         case "updateDidDocument": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
             timestampDataBuffer,
             didVersionMetadataBuffer,
           } = updatedDidDocument;
@@ -644,7 +606,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
             didVersionMetadata,
@@ -702,7 +664,7 @@ describe("JsonRpc Module", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
             status: 1,
@@ -718,7 +680,7 @@ describe("JsonRpc Module", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
             status: 1,
@@ -730,7 +692,7 @@ describe("JsonRpc Module", () => {
           const {
             didDocumentBuffer,
             timestampDataBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
           } = updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
@@ -741,7 +703,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             ...(withOptionalParams && {
               timestampData,
@@ -753,7 +715,7 @@ describe("JsonRpc Module", () => {
         case "detachDidDocumentVersionHash": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
           } = updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
@@ -763,7 +725,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
 
@@ -931,7 +893,7 @@ describe("JsonRpc Module", () => {
         case "insertDidDocument": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
             timestampDataBuffer,
             didVersionMetadataBuffer,
           } = didDocument;
@@ -947,7 +909,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
             didVersionMetadata,
@@ -958,7 +920,7 @@ describe("JsonRpc Module", () => {
         case "updateDidDocument": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
             timestampDataBuffer,
             didVersionMetadataBuffer,
           } = updatedDidDocument;
@@ -974,7 +936,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
             didVersionMetadata,
@@ -1016,7 +978,7 @@ describe("JsonRpc Module", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
             status: 1,
@@ -1032,7 +994,7 @@ describe("JsonRpc Module", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
             status: 1,
@@ -1043,7 +1005,7 @@ describe("JsonRpc Module", () => {
         case "appendDidDocumentVersionHash": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
             timestampDataBuffer,
           } = updatedDidDocument;
 
@@ -1055,7 +1017,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             ...(withOptionalParams && {
               timestampData,
@@ -1067,7 +1029,7 @@ describe("JsonRpc Module", () => {
         case "detachDidDocumentVersionHash": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
           } = updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
@@ -1077,7 +1039,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
 
@@ -1300,7 +1262,7 @@ describe("JsonRpc Module", () => {
         case "updateDidDocument": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
             timestampDataBuffer,
             didVersionMetadataBuffer,
           } = didDocument;
@@ -1329,24 +1291,22 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
-            didVersionInfo: Buffer.from(
-              JSON.stringify({ test: "value" })
-            ).toString("hex"),
+            hashValue: canonicalizedDidDocumentHash,
+            didVersionInfo: "0x1234ab",
             timestampData,
             didVersionMetadata,
           } as InsertDidDocumentParam;
 
           expectedErrorMessage2 =
-            "property params[0].didVersionInfo has failed the following constraints: IsHexadecimalJsonLdConstraint";
+            "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson";
 
           param3 = {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
-            timestampData: "1234ab",
+            timestampData: "0x1234ab",
             didVersionMetadata,
           } as InsertDidDocumentParam;
 
@@ -1425,14 +1385,14 @@ describe("JsonRpc Module", () => {
             methodName: "did:ebsi",
             ledgerName: "ebsi-besu",
             methodSpec: ["0x"],
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
             status: 1,
           } as InsertDidMethodParam;
 
           expectedErrorMessage1 =
-            "property params[0].methodSpec has failed the following constraints: IsHexadecimalJsonLdConstraint";
+            "property params[0].methodSpec has failed the following constraints: isHexadecimalJson";
 
           param2 = {
             from: signer.address,
@@ -1441,7 +1401,7 @@ describe("JsonRpc Module", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
             status: 4,
@@ -1457,7 +1417,7 @@ describe("JsonRpc Module", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: -1,
             status: 2,
@@ -1474,14 +1434,14 @@ describe("JsonRpc Module", () => {
             methodName: "did:ebsi",
             ledgerName: "ebsi-besu-2",
             methodSpec: ["0x"],
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
             status: 1,
           } as UpdateDidMethodParam;
 
           expectedErrorMessage1 =
-            "property params[0].methodSpec has failed the following constraints: IsHexadecimalJsonLdConstraint";
+            "property params[0].methodSpec has failed the following constraints: isHexadecimalJson";
 
           param2 = {
             from: signer.address,
@@ -1490,7 +1450,7 @@ describe("JsonRpc Module", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
             status: 4,
@@ -1506,7 +1466,7 @@ describe("JsonRpc Module", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: -1,
             status: 1,
@@ -1520,7 +1480,7 @@ describe("JsonRpc Module", () => {
         case "appendDidDocumentVersionHash": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
             timestampDataBuffer,
           } = updatedDidDocument;
 
@@ -1544,23 +1504,22 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
-            didVersionInfo: Buffer.from(
-              JSON.stringify({ test: "value" })
-            ).toString("hex"),
+            hashValue: canonicalizedDidDocumentHash,
+            didVersionInfo: "0x1234ab",
+
             timestampData,
           } as AppendDidDocumentVersionHashParam;
 
           expectedErrorMessage2 =
-            "property params[0].didVersionInfo has failed the following constraints: IsHexadecimalJsonLdConstraint";
+            "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson";
 
           param3 = {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
-            timestampData: "1234ab",
+            timestampData: "0x1234ab",
           } as AppendDidDocumentVersionHashParam;
 
           expectedErrorMessage3 =
@@ -1571,7 +1530,7 @@ describe("JsonRpc Module", () => {
         case "detachDidDocumentVersionHash": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
           } = updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
@@ -1592,20 +1551,18 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
-            didVersionInfo: Buffer.from(
-              JSON.stringify({ test: "value" })
-            ).toString("hex"),
+            hashValue: canonicalizedDidDocumentHash,
+            didVersionInfo: "0x1234ab",
           } as DetachDidDocumentVersionParam;
 
           expectedErrorMessage2 =
-            "property params[0].didVersionInfo has failed the following constraints: IsHexadecimalJsonLdConstraint";
+            "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson";
 
           param3 = {
             from: signer.address,
             identifier,
             hashAlgorithmId: -1,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
 
@@ -1640,14 +1597,12 @@ describe("JsonRpc Module", () => {
           param2 = {
             from: signer.address,
             identifier,
-            didVersionInfo: Buffer.from(
-              JSON.stringify({ test: "value" })
-            ).toString("hex"),
+            didVersionInfo: "0x1234ab",
             didVersionMetadata,
           } as AppendDidDocumentVersionMetadataParam;
 
           expectedErrorMessage2 =
-            "property params[0].didVersionInfo has failed the following constraints: IsHexadecimalJsonLdConstraint";
+            "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson";
 
           param3 = {
             from: signer.address,
@@ -1657,7 +1612,7 @@ describe("JsonRpc Module", () => {
           } as AppendDidDocumentVersionMetadataParam;
 
           expectedErrorMessage3 =
-            "property params[0].didVersionMetadata has failed the following constraints: IsHexadecimalJsonLdConstraint";
+            "property params[0].didVersionMetadata has failed the following constraints: isHexadecimalJson";
 
           break;
         }
@@ -1811,7 +1766,7 @@ describe("JsonRpc Module", () => {
         case "updateDidDocument": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
             timestampDataBuffer,
             didVersionMetadataBuffer,
           } = didDocument;
@@ -1827,7 +1782,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
             didVersionMetadata,
@@ -1837,7 +1792,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 1,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
             didVersionMetadata,
@@ -1888,7 +1843,7 @@ describe("JsonRpc Module", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
             status: 1,
@@ -1901,7 +1856,7 @@ describe("JsonRpc Module", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
             status: 2,
@@ -1917,7 +1872,7 @@ describe("JsonRpc Module", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
             status: 1,
@@ -1930,7 +1885,7 @@ describe("JsonRpc Module", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
             status: 1,
@@ -1941,7 +1896,7 @@ describe("JsonRpc Module", () => {
         case "appendDidDocumentVersionHash": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
             timestampDataBuffer,
           } = updatedDidDocument;
 
@@ -1953,7 +1908,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             ...(withOptionalParams && {
               timestampData,
@@ -1964,7 +1919,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 1,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             ...(withOptionalParams && {
               timestampData,
@@ -1976,7 +1931,7 @@ describe("JsonRpc Module", () => {
         case "detachDidDocumentVersionHash": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
           } = updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
@@ -1986,7 +1941,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
 
@@ -1994,7 +1949,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 1,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
 

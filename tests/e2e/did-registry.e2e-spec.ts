@@ -14,8 +14,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
-import * as bs58 from "bs58";
-import { canonize } from "jsonld";
+import canonicalize from "canonicalize";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -41,6 +40,12 @@ import {
   DidTimestampResponseObject,
   TimestampLink,
 } from "../../src/modules/did-timestamps/did-timestamps.interface";
+import {
+  createDid,
+  createDidDocument,
+  createMetadata,
+  createDidMethod,
+} from "../utils/data";
 
 type JsonRpcParams =
   | InsertDidDocumentParam
@@ -63,9 +68,9 @@ interface SupertestJsonRpcResponse {
 interface DidDocumentDataset {
   didDocument: { [x: string]: unknown };
   didDocumentBuffer: Buffer;
-  canonizedDidDocument: string;
-  canonizedDidDocumentBuffer: Buffer;
-  canonizedDidDocumentHash: string;
+  canonicalizedDidDocument: string;
+  canonicalizedDidDocumentBuffer: Buffer;
+  canonicalizedDidDocumentHash: string;
   controllerDid: string;
   timestampDataBuffer: Buffer;
   didVersionMetadata: { [x: string]: unknown };
@@ -77,9 +82,9 @@ interface DidMethodDataset {
   ledgerName: string;
   didMethods: { [x: string]: unknown }[];
   didMethodsBuffer: Buffer[];
-  canonizedDidMethods: string[];
-  canonizedDidMethodsBuffer: Buffer[];
-  canonizedDidMethodsHash: string[];
+  canonicalizedDidMethods: string[];
+  canonicalizedDidMethodsBuffer: Buffer[];
+  canonicalizedDidMethodsHash: string[];
   methodSpec: string[];
   methodSpecHash: string[];
   notBefore: number;
@@ -92,58 +97,24 @@ describe("DID Registry (e2e)", () => {
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
 
-  const createDid = (): string => {
-    const buf = crypto.randomBytes(32);
-    return `did:ebsi:${bs58.encode(buf)}`;
-  };
-
   const controllerDid = createDid();
 
-  const createDidDocument = async (
-    did: string
-  ): Promise<DidDocumentDataset> => {
-    const didDocument = {
-      "@context": [
-        "https://www.w3.org/ns/did/v1",
-        "https://identity.foundation/EcdsaSecp256k1RecoverySignature2020/lds-ecdsa-secp256k1-recovery2020-0.0.jsonld",
-      ],
-      id: did,
-      publicKey: [
-        {
-          id: `${did}#vm-3`,
-          controller: did,
-          type: "EcdsaSecp256k1RecoveryMethod2020",
-          blockchainAccountId: `0x${crypto
-            .randomBytes(16)
-            .toString("hex")}@eip155:1`,
-        },
-      ],
-    };
+  const prepareDidDocument = (did: string): DidDocumentDataset => {
+    const didDocument = createDidDocument(did);
 
     const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
 
-    const canonizedDidDocument = await canonize(didDocument, {
-      algorithm: "URDNA2015",
-      format: "application/n-quads",
-    });
+    const canonicalizedDidDocument = canonicalize(didDocument);
 
-    const canonizedDidDocumentBuffer = Buffer.from(canonizedDidDocument);
-    const canonizedDidDocumentHash = ethers.utils.sha256(
-      canonizedDidDocumentBuffer
+    const canonicalizedDidDocumentBuffer = Buffer.from(
+      canonicalizedDidDocument
+    );
+    const canonicalizedDidDocumentHash = ethers.utils.sha256(
+      canonicalizedDidDocumentBuffer
     );
 
     const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
-    const didVersionMetadata = {
-      "@context": "https://json-ld.org/contexts/person.jsonld",
-      "@id": `http://dbpedia.org/resource/${crypto
-        .randomBytes(32)
-        .toString("hex")}`,
-      name: crypto.randomBytes(32).toString("hex"),
-      born: "1940-10-09",
-      spouse: `http://dbpedia.org/resource/${crypto
-        .randomBytes(32)
-        .toString("hex")}`,
-    };
+    const didVersionMetadata = createMetadata();
     const didVersionMetadataBuffer = Buffer.from(
       JSON.stringify(didVersionMetadata)
     );
@@ -151,9 +122,9 @@ describe("DID Registry (e2e)", () => {
     return {
       didDocument,
       didDocumentBuffer,
-      canonizedDidDocument,
-      canonizedDidDocumentBuffer,
-      canonizedDidDocumentHash,
+      canonicalizedDidDocument,
+      canonicalizedDidDocumentBuffer,
+      canonicalizedDidDocumentHash,
       controllerDid: did,
       timestampDataBuffer,
       didVersionMetadata,
@@ -161,34 +132,23 @@ describe("DID Registry (e2e)", () => {
     };
   };
 
-  const createDidMethod = async (): Promise<DidMethodDataset> => {
+  const prepareDidMethod = (): DidMethodDataset => {
     const methodName = `did:ebsi-${crypto.randomBytes(8).toString("hex")}`;
-    const rand1 = crypto.randomBytes(32).toString("hex");
-    const rand2 = crypto.randomBytes(32).toString("hex");
-    const didMethod = {
-      "@context": "https://json-ld.org/contexts/person.jsonld",
-      "@id": `http://dbpedia.org/resource/${rand1}`,
-      name: rand1,
-      born: "1940-10-09",
-      spouse: `http://dbpedia.org/resource/${rand2}`,
-    };
+    const didMethod = createDidMethod();
 
     const didMethodBuffer = Buffer.from(JSON.stringify(didMethod));
 
-    // Canonize DID Method
-    const canonizedDidMethod = await canonize(didMethod, {
-      algorithm: "URDNA2015",
-      format: "application/n-quads",
-    });
+    // Canonicalize DID Method
+    const canonicalizedDidMethod = canonicalize(didMethod);
 
-    const canonizedDidMethodBuffer = Buffer.from(canonizedDidMethod);
-    const canonizedDidMethodHash = ethers.utils.sha256(
-      canonizedDidMethodBuffer
+    const canonicalizedDidMethodBuffer = Buffer.from(canonicalizedDidMethod);
+    const canonicalizedDidMethodHash = ethers.utils.sha256(
+      canonicalizedDidMethodBuffer
     );
 
     const ledgerName = "ebsi-besu";
     const methodSpec = [didMethodBuffer].map((b) => `0x${b.toString("hex")}`);
-    const methodSpecHash = [canonizedDidMethodHash];
+    const methodSpecHash = [canonicalizedDidMethodHash];
     const notBefore = 1616408985883;
     const notAfter = 3232818053700;
     const status = 1;
@@ -198,9 +158,9 @@ describe("DID Registry (e2e)", () => {
       ledgerName,
       didMethods: [didMethod],
       didMethodsBuffer: [didMethodBuffer],
-      canonizedDidMethods: [canonizedDidMethod],
-      canonizedDidMethodsBuffer: [canonizedDidMethodBuffer],
-      canonizedDidMethodsHash: [canonizedDidMethodHash],
+      canonicalizedDidMethods: [canonicalizedDidMethod],
+      canonicalizedDidMethodsBuffer: [canonicalizedDidMethodBuffer],
+      canonicalizedDidMethodsHash: [canonicalizedDidMethodHash],
       methodSpec,
       methodSpecHash,
       notBefore,
@@ -240,9 +200,9 @@ describe("DID Registry (e2e)", () => {
       prefixWith0x(configService.get("adminTestPrivateKey"))
     );
 
-    newDidDocument = await createDidDocument(controllerDid);
-    updatedDidDocument = await createDidDocument(controllerDid);
-    didMethod = await createDidMethod();
+    newDidDocument = prepareDidDocument(controllerDid);
+    updatedDidDocument = prepareDidDocument(controllerDid);
+    didMethod = prepareDidMethod();
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -268,7 +228,7 @@ describe("DID Registry (e2e)", () => {
         case "insertDidDocument": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
             timestampDataBuffer,
             didVersionMetadataBuffer,
           } = newDidDocument;
@@ -286,7 +246,7 @@ describe("DID Registry (e2e)", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
             didVersionMetadata,
@@ -296,7 +256,7 @@ describe("DID Registry (e2e)", () => {
         case "updateDidDocument": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
             timestampDataBuffer,
             didVersionMetadataBuffer,
           } = updatedDidDocument;
@@ -312,7 +272,7 @@ describe("DID Registry (e2e)", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
             didVersionMetadata,
@@ -366,7 +326,7 @@ describe("DID Registry (e2e)", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: didMethod.notBefore,
             notAfter: didMethod.notAfter,
             status: didMethod.status,
@@ -382,7 +342,7 @@ describe("DID Registry (e2e)", () => {
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
             ),
-            methodSpecHash: didMethod.canonizedDidMethodsHash,
+            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
             notBefore: didMethod.notBefore,
             notAfter: didMethod.notAfter,
             status: didMethod.status,
@@ -393,7 +353,7 @@ describe("DID Registry (e2e)", () => {
         case "appendDidDocumentVersionHash": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
             timestampDataBuffer,
           } = updatedDidDocument;
 
@@ -405,7 +365,7 @@ describe("DID Registry (e2e)", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
           } as AppendDidDocumentVersionHashParam;
@@ -414,7 +374,7 @@ describe("DID Registry (e2e)", () => {
         case "detachDidDocumentVersionHash": {
           const {
             didDocumentBuffer,
-            canonizedDidDocumentHash,
+            canonicalizedDidDocumentHash,
           } = updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
@@ -424,7 +384,7 @@ describe("DID Registry (e2e)", () => {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: canonizedDidDocumentHash,
+            hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
           break;
@@ -617,7 +577,7 @@ describe("DID Registry (e2e)", () => {
         methodSpec: didMethod.didMethodsBuffer.map(
           (b) => `0x${b.toString("hex")}`
         ),
-        methodSpecHash: didMethod.canonizedDidMethodsHash,
+        methodSpecHash: didMethod.canonicalizedDidMethodsHash,
         notBefore: didMethod.notBefore,
         notAfter: didMethod.notAfter,
         status: didMethod.status,
@@ -1364,7 +1324,7 @@ describe("DID Registry (e2e)", () => {
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"]
-      ).toStrictEqual(expect.stringContaining("application/ld+json"));
+      ).toStrictEqual(expect.stringContaining("application/json"));
     });
 
     it("should throw an error if the identifier is not a valid did", async () => {
@@ -1706,11 +1666,11 @@ describe("DID Registry (e2e)", () => {
       expect.assertions(2);
 
       const {
-        canonizedDidDocumentHash,
+        canonicalizedDidDocumentHash,
         timestampDataBuffer,
       } = updatedDidDocument;
 
-      const timestampId = ethers.utils.sha256(canonizedDidDocumentHash);
+      const timestampId = ethers.utils.sha256(canonicalizedDidDocumentHash);
 
       const response = await request(server).get(
         `/did-timestamps/${timestampId}`
@@ -1719,7 +1679,7 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         blockNumber: expect.any(Number) as number,
         data: `0x${timestampDataBuffer.toString("hex")}`,
-        hash: multihashEncode(canonizedDidDocumentHash, "sha2-256"),
+        hash: multihashEncode(canonicalizedDidDocumentHash, "sha2-256"),
         timestampedBy: adminTestWallet.address,
       } as DidTimestampResponseObject);
 

@@ -6,7 +6,7 @@ import {
   Max,
   Min,
 } from "class-validator";
-import { IsHexadecimalJsonLd } from "../../validators";
+import { IsHexadecimalJson } from "../../validators";
 
 export class ArgsInsertDidMethod {
   @IsString()
@@ -15,7 +15,8 @@ export class ArgsInsertDidMethod {
   @IsString()
   ledgerName: string;
 
-  @IsHexadecimalJsonLd({ each: true })
+  @IsHexadecimalJson({ each: true })
+  @Matches(/^0x/, { each: true })
   methodSpec: string[];
 
   @Matches(/^0x/, { each: true })

@@ -3,8 +3,7 @@ import { ethers } from "ethers";
 import ganache from "ganache-core";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
-import { canonize } from "jsonld";
-import * as bs58 from "bs58";
+import canonicalize from "canonicalize";
 import {
   DidRegistry,
   DidRegistry__factory,
@@ -16,6 +15,12 @@ import {
   DidTimestampLib__factory,
 } from "../../src/contracts/did-registry";
 import PaginationArtifact from "../../submodules/did-registry-ethereum-sc/artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol/Pagination.json";
+import {
+  createDid,
+  createDidDocument,
+  createDidMethod,
+  createMetadata,
+} from "./data";
 
 interface Administrator {
   wallet: ethers.Wallet;
@@ -27,9 +32,9 @@ interface DidDocument {
   identifier: string;
   didDocument: { [x: string]: unknown };
   didDocumentBuffer: Buffer;
-  canonizedDidDocument: string;
-  canonizedDidDocumentBuffer: Buffer;
-  canonizedDidDocumentHash: string;
+  canonicalizedDidDocument: string;
+  canonicalizedDidDocumentBuffer: Buffer;
+  canonicalizedDidDocumentHash: string;
   controller: ethers.Wallet;
   timestampDataBuffer: Buffer;
   didVersionMetadata: { [x: string]: unknown };
@@ -41,9 +46,9 @@ interface DidMethod {
   ledgerName: string;
   didMethods: { [x: string]: unknown }[];
   didMethodsBuffer: Buffer[];
-  canonizedDidMethods: string[];
-  canonizedDidMethodsBuffer: Buffer[];
-  canonizedDidMethodsHash: string[];
+  canonicalizedDidMethods: string[];
+  canonicalizedDidMethodsBuffer: Buffer[];
+  canonicalizedDidMethodsHash: string[];
   methodSpec: string[];
   methodSpecHash: string[];
   notBefore: number;
@@ -194,58 +199,23 @@ export async function insertAdmin(
   return attribute;
 }
 
-const createDid = (): string => {
-  const buf = crypto.randomBytes(32);
-  return `did:ebsi:${bs58.encode(buf)}`;
-};
-
 export async function insertDidDocument(
   contract: DidRegistry,
   ethersProvider: ethers.providers.Web3Provider
 ): Promise<DidDocument> {
   const did = createDid();
-
-  const didDocument = {
-    "@context": [
-      "https://www.w3.org/ns/did/v1",
-      "https://identity.foundation/EcdsaSecp256k1RecoverySignature2020/lds-ecdsa-secp256k1-recovery2020-0.0.jsonld",
-    ],
-    id: did,
-    publicKey: [
-      {
-        id: `${did}#vm-3`,
-        controller: did,
-        type: "EcdsaSecp256k1RecoveryMethod2020",
-        blockchainAccountId:
-          "0xab16a96d359ec26a11e2c2b3d8f8b8942d5bfcdb@eip155:1",
-      },
-    ],
-  };
-
+  const didDocument = createDidDocument(did);
   const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
 
-  const canonizedDidDocument = await canonize(didDocument, {
-    algorithm: "URDNA2015",
-    format: "application/n-quads",
-  });
+  const canonicalizedDidDocument = canonicalize(didDocument);
 
-  const canonizedDidDocumentBuffer = Buffer.from(canonizedDidDocument);
-  const canonizedDidDocumentHash = ethers.utils.sha256(
-    canonizedDidDocumentBuffer
+  const canonicalizedDidDocumentBuffer = Buffer.from(canonicalizedDidDocument);
+  const canonicalizedDidDocumentHash = ethers.utils.sha256(
+    canonicalizedDidDocumentBuffer
   );
 
   const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
-  const didVersionMetadata = {
-    "@context": "https://json-ld.org/contexts/person.jsonld",
-    "@id": `http://dbpedia.org/resource/${crypto
-      .randomBytes(32)
-      .toString("hex")}`,
-    name: crypto.randomBytes(32).toString("hex"),
-    born: "1940-10-09",
-    spouse: `http://dbpedia.org/resource/${crypto
-      .randomBytes(32)
-      .toString("hex")}`,
-  };
+  const didVersionMetadata = createMetadata();
   const didVersionMetadataBuffer = Buffer.from(
     JSON.stringify(didVersionMetadata)
   );
@@ -260,7 +230,7 @@ export async function insertDidDocument(
   await contract.insertDidDocument(
     identifier,
     0,
-    canonizedDidDocumentHash,
+    canonicalizedDidDocumentHash,
     didVersionInfo,
     timestampData,
     didVersionMetadataHex
@@ -278,9 +248,9 @@ export async function insertDidDocument(
     identifier,
     didDocument,
     didDocumentBuffer,
-    canonizedDidDocument,
-    canonizedDidDocumentBuffer,
-    canonizedDidDocumentHash,
+    canonicalizedDidDocument,
+    canonicalizedDidDocumentBuffer,
+    canonicalizedDidDocumentHash,
     controller,
     timestampDataBuffer,
     didVersionMetadata,
@@ -292,30 +262,21 @@ export async function insertDidMethod(
   contract: DidRegistry
 ): Promise<DidMethod> {
   const methodName = `did:ebsi-${crypto.randomBytes(8).toString("hex")}`;
-  const rand1 = crypto.randomBytes(32).toString("hex");
-  const rand2 = crypto.randomBytes(32).toString("hex");
-  const didMethod = {
-    "@context": "https://json-ld.org/contexts/person.jsonld",
-    "@id": `http://dbpedia.org/resource/${rand1}`,
-    name: rand1,
-    born: "1940-10-09",
-    spouse: `http://dbpedia.org/resource/${rand2}`,
-  };
+  const didMethod = createDidMethod();
 
   const didMethodBuffer = Buffer.from(JSON.stringify(didMethod));
 
-  // Canonize DID Method
-  const canonizedDidMethod = await canonize(didMethod, {
-    algorithm: "URDNA2015",
-    format: "application/n-quads",
-  });
+  // Canonicalize DID Method
+  const canonicalizedDidMethod = canonicalize(didMethod);
 
-  const canonizedDidMethodBuffer = Buffer.from(canonizedDidMethod);
-  const canonizedDidMethodHash = ethers.utils.sha256(canonizedDidMethodBuffer);
+  const canonicalizedDidMethodBuffer = Buffer.from(canonicalizedDidMethod);
+  const canonicalizedDidMethodHash = ethers.utils.sha256(
+    canonicalizedDidMethodBuffer
+  );
 
   const ledgerName = "ebsi-besu";
   const methodSpec = [didMethodBuffer].map((b) => `0x${b.toString("hex")}`);
-  const methodSpecHash = [canonizedDidMethodHash];
+  const methodSpecHash = [canonicalizedDidMethodHash];
   const notBefore = 1616408985883;
   const notAfter = 3232818053700;
   const status = 1;
@@ -335,9 +296,9 @@ export async function insertDidMethod(
     ledgerName,
     didMethods: [didMethod],
     didMethodsBuffer: [didMethodBuffer],
-    canonizedDidMethods: [canonizedDidMethod],
-    canonizedDidMethodsBuffer: [canonizedDidMethodBuffer],
-    canonizedDidMethodsHash: [canonizedDidMethodHash],
+    canonicalizedDidMethods: [canonicalizedDidMethod],
+    canonicalizedDidMethodsBuffer: [canonicalizedDidMethodBuffer],
+    canonicalizedDidMethodsHash: [canonicalizedDidMethodHash],
     methodSpec,
     methodSpecHash,
     notBefore,
