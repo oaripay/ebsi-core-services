@@ -1,23 +1,16 @@
 import { Controller, Post, Body, HttpCode } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { AuthorisationService } from "./authorisation.service";
-import { ApiConfig } from "../../config/configuration";
 import {
   AuthenticationRequestDto,
   OAuth2SessionDto,
   SiopSessionDto,
 } from "./dto";
-import {
-  AuthenticationRequestResponse,
-  AkeResponse,
-} from "./authorisation.interface";
+import { AuthenticationRequestResponse } from "./authorisation.interface";
 
 @Controller("/")
 export class AuthorisationController {
-  constructor(
-    private authorisationService: AuthorisationService,
-    private configService: ConfigService<ApiConfig>
-  ) {}
+  constructor(private authorisationService: AuthorisationService) {}
 
   @HttpCode(200)
   @Post("/authentication-requests")
@@ -32,11 +25,7 @@ export class AuthorisationController {
   @HttpCode(200)
   @Post("/oauth2-sessions")
   async oauth2Sessions(@Body() body: OAuth2SessionDto): Promise<AkeResponse> {
-    const { clientAssertion } = body;
-    const tokenDecoded = await this.authorisationService.validateClientAssertion(
-      clientAssertion
-    );
-    return this.authorisationService.createSession("oauth2", tokenDecoded);
+    return this.authorisationService.createSessionOauth2(body);
   }
 
   @HttpCode(200)

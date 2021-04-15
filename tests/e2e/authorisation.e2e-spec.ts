@@ -12,7 +12,6 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
 import fromKeyLike, { JWK } from "jose/jwk/from_key_like";
 import { createJwt, SimpleSigner } from "@cef-ebsi/did-jwt";
 import SignJWT from "jose/jwt/sign";
@@ -20,13 +19,10 @@ import { ConfigService } from "@nestjs/config";
 import base64url from "base64url";
 import { FastifyInstance } from "fastify";
 import jwtVerify from "jose/jwt/verify";
+import { Ake1SigPayload, AkeResponse, Agent } from "@cef-ebsi/oauth2-auth";
 import querystring from "querystring";
 import { AppModule } from "../../src/app.module";
-import {
-  Ake1SigPayload,
-  AkeResponse,
-  AuthenticationRequestResponse,
-} from "../../src/modules/authorisation/authorisation.interface";
+import { AuthenticationRequestResponse } from "../../src/modules/authorisation/authorisation.interface";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { loadConfig, ApiConfig } from "../../src/config/configuration";
 import { getPublicKey } from "../utils/publicKey";
@@ -83,6 +79,7 @@ describe("Authorisation (e2e)", () => {
     name: string;
     applicationId: string;
     privateKey: string;
+    kid: string;
   };
 
   beforeAll(async () => {
@@ -106,14 +103,19 @@ describe("Authorisation (e2e)", () => {
     const configService = moduleFixture.get<ConfigService<ApiConfig>>(
       ConfigService
     );
-    const appTestName: string = configService.get("appTestName");
-    const appTestPrivateKey: string = configService.get("appTestPrivateKey");
-    trustedAppsRegistry = configService.get("trustedAppsRegistry");
-    const applicationId: string = configService.get("applicationId");
+    const apiName = configService.get<string>("apiName");
+    const appTestName = configService.get<string>("appTestName");
+    const appTestPrivateKey = configService.get<string>("appTestPrivateKey");
+    trustedAppsRegistry = configService.get<string>("trustedAppsRegistry");
 
-    const listAppsByName: {
+    let listAppsByName: {
       data: { items: { id: string }[] };
-    } = await axios.get(`${trustedAppsRegistry}/apps?name=${appTestName}`);
+    } = await axios.get(`${trustedAppsRegistry}?name=${apiName}`);
+    const applicationId = listAppsByName.data.items[0].id;
+
+    listAppsByName = await axios.get(
+      `${trustedAppsRegistry}?name=${appTestName}`
+    );
     appTestId = listAppsByName.data.items[0].id;
 
     const { publicKeyObject, did } = await getPublicKey(
@@ -121,12 +123,13 @@ describe("Authorisation (e2e)", () => {
     );
     publicKeyApi = publicKeyObject;
     didApi = did;
-    kidApi = `${trustedAppsRegistry}/apps/${applicationId}`;
+    kidApi = `${trustedAppsRegistry}/${applicationId}`;
 
     trustedApp = {
       name: appTestName,
       applicationId: appTestId,
       privateKey: appTestPrivateKey,
+      kid: `${trustedAppsRegistry}/${appTestId}`,
     };
   });
 
@@ -200,7 +203,7 @@ describe("Authorisation (e2e)", () => {
 
   describe("POST /oauth2-sessions", () => {
     it("should reject bad requests", async () => {
-      expect.assertions(10);
+      expect.assertions(8);
 
       let response = await request(server)
         .post("/oauth2-sessions")
@@ -214,8 +217,8 @@ describe("Authorisation (e2e)", () => {
       });
       expect(response.status).toBe(400);
 
-      let payload = {};
-      let token = await createJwt(payload, {
+      const payload = {};
+      const token = await createJwt(payload, {
         alg: "ES256K",
         issuer: trustedApp.name,
         signer: SimpleSigner(crypto.randomBytes(32).toString("hex")),
@@ -231,37 +234,30 @@ describe("Authorisation (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Invalid Client Assertion",
         status: 400,
-        detail: "Invalid JWT header",
+        detail:
+          "Assertion token requires aud, iss, exp, sub, jti, nonce and iat in the payload",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
 
-      let applicationId =
+      const applicationId =
         "0x0000000000000000000000000000000000000000000000000000000000000000";
-
-      payload = {};
-      let header = {
-        kid: `${trustedAppsRegistry}/apps/${applicationId}`,
-      };
-      token = await createJwt(
-        payload,
-        {
-          alg: "ES256K",
-          issuer: "test-app",
-          signer: SimpleSigner(crypto.randomBytes(32).toString("hex")),
-        },
-        header
-      );
-      response = await request(server).post("/oauth2-sessions").send({
-        grantType: "client_credentials",
-        clientAssertionType:
-          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        clientAssertion: token,
-        scope: "openid did_authn",
+      const nonce = crypto.randomBytes(10).toString("base64");
+      let agent = new Agent(crypto.randomBytes(32).toString("hex"), {
+        issuer: trustedApp.name,
+        kid: `${trustedAppsRegistry}/${applicationId}`,
       });
 
+      let authRequest = await agent.createRequestPayload("storage-api", {
+        nonce,
+      });
+
+      response = await request(server)
+        .post("/oauth2-sessions")
+        .send(authRequest);
+
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
+        title: "Invalid Client Assertion",
         status: 400,
         detail: expect.stringContaining(
           `App ${applicationId} not found`
@@ -270,143 +266,66 @@ describe("Authorisation (e2e)", () => {
       });
       expect(response.status).toBe(400);
 
-      applicationId = appTestId;
-      header = {
-        kid: `${trustedAppsRegistry}/apps/${applicationId}`,
-      };
-      token = await createJwt(
-        payload,
-        {
-          alg: "ES256K",
-          issuer: trustedApp.name,
-          signer: SimpleSigner(crypto.randomBytes(32).toString("hex")),
-        },
-        header
-      );
-
-      response = await request(server).post("/oauth2-sessions").send({
-        grantType: "client_credentials",
-        clientAssertionType:
-          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        clientAssertion: token,
-        scope: "openid did_authn",
+      agent = new Agent(crypto.randomBytes(32).toString("hex"), {
+        issuer: trustedApp.name,
+        kid: trustedApp.kid,
       });
+
+      authRequest = await agent.createRequestPayload("storage-api", {
+        nonce,
+      });
+
+      response = await request(server)
+        .post("/oauth2-sessions")
+        .send(authRequest);
 
       expect(response.body).toStrictEqual({
         title: "Invalid Client Assertion",
         status: 400,
-        detail: "Invalid signature",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(400);
-
-      token = await createJwt(
-        payload,
-        {
-          alg: "ES256K",
-          issuer: trustedApp.name,
-          signer: SimpleSigner(trustedApp.privateKey),
-        },
-        header
-      );
-
-      response = await request(server).post("/oauth2-sessions").send({
-        grantType: "client_credentials",
-        clientAssertionType:
-          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        clientAssertion: token,
-        scope: "openid did_authn",
-      });
-
-      expect(response.body).toStrictEqual({
-        title: "Invalid Client Assertion",
-        status: 400,
-        detail: "The payload should contain sub, aud, jti, nonce, and exp",
+        detail: "token validation failed",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
     });
 
     it("should create an oauth2 session", async () => {
-      expect.assertions(4);
+      expect.assertions(3);
       const nonce = crypto.randomBytes(10).toString("base64");
-      const kidTrustedApp = `${trustedAppsRegistry}/apps/${appTestId}`;
-      const header = {
-        kid: kidTrustedApp,
-      };
-      const payload = {
-        iss: trustedApp.name,
-        sub: trustedApp.name,
-        aud: "storage-api",
-        jti: uuidv4(),
-        exp: Math.trunc(Date.now() / 1000) + 15,
-        nonce,
-      };
-      const token = await createJwt(
-        payload,
-        {
-          alg: "ES256K",
-          issuer: trustedApp.name,
-          signer: SimpleSigner(trustedApp.privateKey),
-        },
-        header
-      );
-
-      const response = await request(server).post("/oauth2-sessions").send({
-        grantType: "client_credentials",
-        clientAssertionType:
-          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        clientAssertion: token,
-        scope: "openid did_authn",
+      const agent = new Agent(trustedApp.privateKey, {
+        issuer: trustedApp.name,
+        kid: trustedApp.kid,
       });
+
+      const authRequest = await agent.createRequestPayload("storage-api", {
+        nonce,
+      });
+      const response = await request(server)
+        .post("/oauth2-sessions")
+        .send(authRequest);
 
       expect(response.body).toStrictEqual({
         ake1_enc_payload: expect.any(String) as string,
-        ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
         ake1_sig_payload: expect.objectContaining({
-          ake1_enc_payload: expect.any(String) as string,
-          ake1_nonce: nonce,
-          kid: kidTrustedApp,
           iat: expect.any(Number) as number,
+          exp: expect.any(Number) as number,
+          ake1_nonce: nonce,
+          ake1_enc_payload: expect.any(String) as string,
+          kid: trustedApp.kid,
           iss: "authorisation-api",
         }) as Ake1SigPayload,
+        ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
         kid: kidApi,
       });
       expect(response.status).toBe(200);
 
-      // verify ake
-      const {
-        ake1_enc_payload: ake1EncPayload,
-        ake1_sig_payload: ake1SigPayload,
-        ake1_jws_detached: ake1JwsDetached,
-      } = response.body as AkeResponse;
-
-      // check ake1EncPayload
-      const ake1DecPayload = (await decrypt(
-        "ES256K",
-        trustedApp.privateKey,
-        ake1EncPayload
-      )) as {
-        access_token: string;
-        kid: string;
-        nonce: string;
+      const check = async () => {
+        await agent.verifyAuthenticationResponse(
+          response.body as AkeResponse,
+          nonce
+        );
       };
-      expect(ake1DecPayload).toStrictEqual({
-        access_token: expect.any(String) as string,
-        kid: kidApi,
-        nonce,
-      });
 
-      // check ake1JwsDetached
-      const ake1SignPayload = ake1JwsDetached.replace(
-        "..",
-        `.${base64url(JSON.stringify(ake1SigPayload))}.`
-      );
-      const { payload: payloadAke } = await jwtVerify(
-        ake1SignPayload,
-        publicKeyApi
-      );
-      expect(payloadAke).toStrictEqual(ake1SigPayload);
+      await expect(check()).resolves.not.toThrow();
     });
   });
 

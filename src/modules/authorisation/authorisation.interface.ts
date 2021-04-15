@@ -4,22 +4,6 @@ export interface AuthenticationRequestResponse {
   uri: string;
 }
 
-export interface Ake1SigPayload {
-  ake1_enc_payload: string;
-  ake1_nonce: string;
-  did: string;
-  iat: number;
-  iss: string;
-}
-
-export interface AkeResponse {
-  ake1_enc_payload: string;
-  ake1_sig_payload: Ake1SigPayload;
-  ake1_jws_detached: string;
-  did?: string;
-  kid?: string;
-}
-
 export interface AuthorizationObject {
   authorizationId: string;
   resourceApplicationId: string;

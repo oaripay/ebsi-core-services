@@ -1,8 +1,15 @@
 import request from "supertest";
 import crypto from "crypto";
-import { v4 as uuidv4 } from "uuid";
 import base64url from "base64url";
 import fromKeyLike, { JWK } from "jose/jwk/from_key_like";
+import {
+  Session,
+  Agent,
+  AkeResponse,
+  Ake1SigPayload,
+  InvalidTokenError,
+  InvalidAppError,
+} from "@cef-ebsi/oauth2-auth";
 import SignJWT from "jose/jwt/sign";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -16,19 +23,14 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
-import axios, { AxiosError, AxiosResponse } from "axios";
 import jwtVerify from "jose/jwt/verify";
 import querystring from "querystring";
 import { AuthorisationModule } from "./authorisation.module";
-import {
-  Ake1SigPayload,
-  AkeResponse,
-  AuthenticationRequestResponse,
-} from "./authorisation.interface";
+import { AuthenticationRequestResponse } from "./authorisation.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { loadConfig } from "../../config/configuration";
 import { getPublicKey } from "../../../tests/utils/publicKey";
-import { decrypt, generateKeys } from "./authorisation.utils";
+import { decrypt, generateKeys, getPrivateKeyHex } from "./authorisation.utils";
 
 async function generateApp() {
   const { privateKey, publicKey } = await generateKeys("ES256K");
@@ -36,14 +38,19 @@ async function generateApp() {
     type: "spki",
     format: "pem",
   });
+  const privateKeyHex = await getPrivateKeyHex(privateKey);
   const publicKeyPemBase64 = Buffer.from(publicKeyPem).toString("base64");
   const applicationId = `0x${crypto.randomBytes(32).toString("hex")}`;
   const name = `test-${crypto.randomBytes(3).toString("hex")}`;
+  const kid = `${loadConfig().trustedAppsRegistry}/${applicationId}`;
   return {
     name,
     applicationId,
     privateKey,
+    privateKeyHex,
     publicKeyPemBase64,
+    publicKey,
+    kid,
   };
 }
 
@@ -86,9 +93,15 @@ async function createClient(alg) {
 describe("Authorisation Module", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let kidApi: string;
   let didApi: string;
   let publicKeyApi: crypto.KeyObject;
+  const mockOauth2 = {
+    verifyAuthenticationRequest: jest.spyOn(
+      Session.prototype,
+      "verifyAuthenticationRequest"
+    ),
+    createAccessToken: jest.spyOn(Session.prototype, "createAccessToken"),
+  };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -108,14 +121,28 @@ describe("Authorisation Module", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
+    // mock library
+    mockOauth2.verifyAuthenticationRequest.mockImplementation(
+      async (): Promise<crypto.KeyObject> =>
+        Promise.reject(
+          new Error(
+            "Forgot to implement the mock for verifyAuthenticationRequest?"
+          )
+        )
+    );
+
+    mockOauth2.createAccessToken.mockImplementation(
+      async (): Promise<AkeResponse> =>
+        Promise.reject(
+          new Error("Forgot to implement the mock for createAccessToken?")
+        )
+    );
+
     const { publicKeyObject, did } = await getPublicKey(
       loadConfig().apiPrivateKey
     );
     publicKeyApi = publicKeyObject;
     didApi = did;
-    kidApi = `${loadConfig().trustedAppsRegistry}/apps/${
-      loadConfig().applicationId
-    }`;
   });
 
   afterAll(async () => {
@@ -193,7 +220,7 @@ describe("Authorisation Module", () => {
 
   describe("POST /oauth2-sessions", () => {
     it("should reject bad requests", async () => {
-      expect.assertions(12);
+      expect.assertions(6);
 
       const trustedApp = await generateApp();
 
@@ -209,294 +236,85 @@ describe("Authorisation Module", () => {
       });
       expect(response.status).toBe(400);
 
-      let payload = {};
-      let token = await new SignJWT(payload)
-        .setProtectedHeader({
-          alg: "ES256K",
-          typ: "JWT",
-        })
-        .setIssuer(trustedApp.name)
-        .setIssuedAt()
-        .setExpirationTime("15s")
-        .setAudience("storage-api")
-        .sign(trustedApp.privateKey);
-
-      response = await request(server).post("/oauth2-sessions").send({
-        grantType: "client_credentials",
-        clientAssertionType:
-          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        clientAssertion: token,
-        scope: "openid did_authn",
+      const agent = new Agent(trustedApp.privateKeyHex, {
+        issuer: trustedApp.name,
+        kid: trustedApp.kid,
       });
+
+      const nonce = crypto.randomBytes(10).toString("base64");
+      const authRequest = await agent.createRequestPayload("storage-api", {
+        nonce,
+      });
+
+      jest
+        .spyOn(Session.prototype, "verifyAuthenticationRequest")
+        .mockImplementation(
+          async (): Promise<crypto.KeyObject> =>
+            Promise.reject(new InvalidTokenError("mock invalid token"))
+        );
+
+      response = await request(server)
+        .post("/oauth2-sessions")
+        .send(authRequest);
       expect(response.body).toStrictEqual({
         title: "Invalid Client Assertion",
         status: 400,
-        detail: "Invalid JWT header",
+        detail: "mock invalid token",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
 
-      const dataErrorTar = {
-        title: "App Not Found",
-        status: 404,
-        type: "about:blank",
-        detail: `App ${trustedApp.applicationId} not found`,
-      };
+      jest
+        .spyOn(Session.prototype, "verifyAuthenticationRequest")
+        .mockImplementation(
+          async (): Promise<crypto.KeyObject> =>
+            Promise.reject(new InvalidAppError("mock invalid app"))
+        );
 
-      jest.spyOn(axios, "get").mockImplementation(
-        (): Promise<AxiosError<unknown>> => {
-          const err = new Error("Not Found");
-          (err as AxiosError).config = {};
-          (err as AxiosError).isAxiosError = true;
-          (err as AxiosError).toJSON = () => ({});
-          (err as AxiosError).response = {
-            data: dataErrorTar,
-            status: 404,
-            statusText: "Not Found",
-            config: {},
-            headers: {},
-          };
-
-          return Promise.reject(err);
-        }
-      );
-
-      payload = {};
-      const kid = `${loadConfig().trustedAppsRegistry}/apps/${
-        trustedApp.applicationId
-      }`;
-      token = await new SignJWT(payload)
-        .setProtectedHeader({
-          alg: "ES256K",
-          typ: "JWT",
-          kid,
-        })
-        .setIssuer(trustedApp.name)
-        .setIssuedAt()
-        .setExpirationTime("15s")
-        .setAudience("storage-api")
-        .sign(trustedApp.privateKey);
-      response = await request(server).post("/oauth2-sessions").send({
-        grantType: "client_credentials",
-        clientAssertionType:
-          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        clientAssertion: token,
-        scope: "openid did_authn",
-      });
-
-      expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
-        detail: JSON.stringify(dataErrorTar),
-        type: "about:blank",
-      });
-      expect(response.status).toBe(400);
-
-      jest.spyOn(axios, "get").mockImplementation(
-        (): Promise<AxiosResponse<unknown>> => {
-          const resp: AxiosResponse = {
-            data: {
-              applicationId: trustedApp.applicationId,
-              name: "another-tar-app",
-            },
-            status: 200,
-            statusText: "Success",
-            headers: {},
-            config: {},
-          };
-          return Promise.resolve(resp);
-        }
-      );
-
-      response = await request(server).post("/oauth2-sessions").send({
-        grantType: "client_credentials",
-        clientAssertionType:
-          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        clientAssertion: token,
-        scope: "openid did_authn",
-      });
-
+      response = await request(server)
+        .post("/oauth2-sessions")
+        .send(authRequest);
       expect(response.body).toStrictEqual({
         title: "Invalid Client Assertion",
         status: 400,
-        detail: `Expected issuer: another-tar-app. Payload iss: ${trustedApp.name}`,
-        type: "about:blank",
-      });
-      expect(response.status).toBe(400);
-
-      jest.spyOn(axios, "get").mockImplementation(
-        (): Promise<AxiosResponse<unknown>> => {
-          const resp: AxiosResponse = {
-            data: {
-              applicationId: trustedApp.applicationId,
-              name: trustedApp.name,
-              publicKeys: [trustedApp.publicKeyPemBase64],
-            },
-            status: 200,
-            statusText: "Success",
-            headers: {},
-            config: {},
-          };
-          return Promise.resolve(resp);
-        }
-      );
-
-      token = await new SignJWT(payload)
-        .setProtectedHeader({
-          alg: "ES256K",
-          typ: "JWT",
-          kid,
-        })
-        .setIssuer(trustedApp.name)
-        .setIssuedAt()
-        .setExpirationTime("15s")
-        .setAudience("storage-api")
-        .sign((await generateApp()).privateKey);
-
-      response = await request(server).post("/oauth2-sessions").send({
-        grantType: "client_credentials",
-        clientAssertionType:
-          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        clientAssertion: token,
-        scope: "openid did_authn",
-      });
-
-      expect(response.body).toStrictEqual({
-        title: "Invalid Client Assertion",
-        status: 400,
-        detail: "Invalid signature",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(400);
-
-      token = await new SignJWT(payload)
-        .setProtectedHeader({
-          alg: "ES256K",
-          typ: "JWT",
-          kid,
-        })
-        .setIssuer(trustedApp.name)
-        .setIssuedAt()
-        .setExpirationTime("15s")
-        .setAudience("storage-api")
-        .sign(trustedApp.privateKey);
-
-      response = await request(server).post("/oauth2-sessions").send({
-        grantType: "client_credentials",
-        clientAssertionType:
-          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        clientAssertion: token,
-        scope: "openid did_authn",
-      });
-
-      expect(response.body).toStrictEqual({
-        title: "Invalid Client Assertion",
-        status: 400,
-        detail: "The payload should contain sub, aud, jti, nonce, and exp",
+        detail: "mock invalid app",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
     });
 
     it("should create an oauth2 session", async () => {
-      expect.assertions(4);
+      expect.assertions(1);
 
       const trustedApp = await generateApp();
-      const kidTrustedApp = `${loadConfig().trustedAppsRegistry}/apps/${
-        trustedApp.applicationId
-      }`;
+
+      const agent = new Agent(trustedApp.privateKeyHex, {
+        issuer: trustedApp.name,
+        kid: trustedApp.kid,
+      });
 
       const nonce = crypto.randomBytes(10).toString("base64");
-      const payload = {
-        sub: trustedApp.name,
-        aud: "storage-api",
-        jti: uuidv4(),
-        nonce,
-      };
-      const token = await new SignJWT(payload)
-        .setProtectedHeader({
-          alg: "ES256K",
-          typ: "JWT",
-          kid: kidTrustedApp,
-        })
-        .setIssuer(trustedApp.name)
-        .setIssuedAt()
-        .setExpirationTime("15s")
-        .setAudience("storage-api")
-        .sign(trustedApp.privateKey);
-
-      jest.spyOn(axios, "get").mockImplementation(
-        async (): Promise<AxiosResponse<unknown>> => {
-          const resp: AxiosResponse = {
-            data: {
-              applicationId: trustedApp.applicationId,
-              name: trustedApp.name,
-              publicKeys: [trustedApp.publicKeyPemBase64],
-            },
-            status: 200,
-            statusText: "Success",
-            headers: {},
-            config: {},
-          };
-          return Promise.resolve(resp);
-        }
-      );
-
-      const response = await request(server).post("/oauth2-sessions").send({
-        grantType: "client_credentials",
-        clientAssertionType:
-          "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-        clientAssertion: token,
-        scope: "openid did_authn",
-      });
-
-      expect(response.body).toStrictEqual({
-        ake1_enc_payload: expect.any(String) as string,
-        ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
-        ake1_sig_payload: expect.objectContaining({
-          ake1_enc_payload: expect.any(String) as string,
-          ake1_nonce: nonce,
-          kid: kidTrustedApp,
-          iat: expect.any(Number) as number,
-          iss: "authorisation-api",
-        }) as Ake1SigPayload,
-        kid: kidApi,
-      });
-      expect(response.status).toBe(200);
-
-      // verify ake
-      const {
-        ake1_enc_payload: ake1EncPayload,
-        ake1_sig_payload: ake1SigPayload,
-        ake1_jws_detached: ake1JwsDetached,
-      } = response.body as AkeResponse;
-
-      // check ake1EncPayload
-      const ake1DecPayload = (await decrypt(
-        "ES256K",
-        trustedApp.privateKey,
-        ake1EncPayload
-      )) as {
-        access_token: string;
-        kid: string;
-        nonce: string;
-      };
-      expect(ake1DecPayload).toStrictEqual({
-        access_token: expect.any(String) as string,
-        kid: kidApi,
+      const authRequest = await agent.createRequestPayload("storage-api", {
         nonce,
       });
 
-      // check ake1JwsDetached
-      const ake1SignPayload = ake1JwsDetached.replace(
-        "..",
-        `.${base64url(JSON.stringify(ake1SigPayload))}.`
+      jest
+        .spyOn(Session.prototype, "verifyAuthenticationRequest")
+        .mockImplementation(
+          async (): Promise<crypto.KeyObject> =>
+            Promise.resolve(trustedApp.publicKey)
+        );
+      jest
+        .spyOn(Session.prototype, "createAccessToken")
+        .mockImplementation(
+          async (): Promise<AkeResponse> => Promise.resolve(null as AkeResponse)
+        );
+
+      await request(server).post("/oauth2-sessions").send(authRequest);
+      expect(mockOauth2.createAccessToken).toHaveBeenCalledWith(
+        authRequest,
+        trustedApp.publicKey
       );
-      const { payload: payloadAke } = await jwtVerify(
-        ake1SignPayload,
-        publicKeyApi
-      );
-      expect(payloadAke).toStrictEqual(ake1SigPayload);
     });
   });
 
