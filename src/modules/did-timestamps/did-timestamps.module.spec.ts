@@ -23,7 +23,7 @@ import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { multihashEncode } from "../../shared/utils";
 
-jest.setTimeout(60000);
+jest.setTimeout(120000);
 
 const DID_METHODS_TOTAL = 3;
 

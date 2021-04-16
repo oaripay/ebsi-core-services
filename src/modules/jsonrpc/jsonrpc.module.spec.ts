@@ -95,7 +95,7 @@ interface DidMethodDataset {
   canonicalizedDidMethodsHash: string[];
 }
 
-jest.setTimeout(180000);
+jest.setTimeout(300000);
 
 const ADMINS_TOTAL = 1;
 

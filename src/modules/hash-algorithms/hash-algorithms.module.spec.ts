@@ -22,6 +22,8 @@ import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 const HASH_ALGORITHMS_TOTAL = 3;
 
+jest.setTimeout(120000);
+
 describe("HashAlgorithms Module", () => {
   let app: INestApplication;
   let server: HttpServer;

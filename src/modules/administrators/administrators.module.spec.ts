@@ -19,7 +19,7 @@ import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { AttributeObject } from "./administrators.interface";
 
-jest.setTimeout(60000);
+jest.setTimeout(120000);
 
 const ADMINISTRATORS_TOTAL = 3;
 
