@@ -10,7 +10,7 @@ export interface ApiConfig {
   domain: string;
   logLevel: string;
   storage: string;
-  externalEBSIApiHealthCheck: string;
+  externalEbsiApiHealthCheck: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -55,7 +55,7 @@ export const loadConfig = (): ApiConfig => {
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     storage: process.env.STORAGE || defaultConfig[EBSI_ENV].STORAGE,
-    externalEBSIApiHealthCheck:
+    externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
   };
 };

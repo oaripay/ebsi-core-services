@@ -2,7 +2,14 @@
 
 # Proxy Data Hub API
 
-> Proxy Data Hub API is a Core Service of the EBSI platform providing the capability of securely storing W3C Verifiable Credentials/Attestations.
+Proxy Data Hub API is a Core Service of the EBSI platform providing the capability of securely storing W3C Verifiable Credentials/Attestations.
+
+For more information see:
+
+- [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/HoiWFQ)
+- API catalogs:
+  - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
+  - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
 
 ## Getting started
 
