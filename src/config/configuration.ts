@@ -29,15 +29,15 @@ const defaultConfig = {
     LOG_LEVEL: "info",
   },
   pilot: {
-    DOMAIN: "https://api.pilot.ebsi.xyz",
-    LEDGER: "https://api.pilot.ebsi.xyz/ledger/v2",
-    HEALTH_CHECK: "https://api.pilot.ebsi.xyz/docs/",
+    DOMAIN: "https://api.preprod.ebsi.eu",
+    LEDGER: "https://api.preprod.ebsi.eu/ledger/v2",
+    HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
     LOG_LEVEL: "warn",
   },
   prod: {
-    DOMAIN: "https://api.prod.ebsi.xyz",
-    LEDGER: "https://api.prod.ebsi.xyz/ledger/v2",
-    HEALTH_CHECK: "https://api.prod.ebsi.xyz/docs/",
+    DOMAIN: "https://api.ebsi.eu",
+    LEDGER: "https://api.ebsi.eu/ledger/v2",
+    HEALTH_CHECK: "https://api.ebsi.eu/docs/",
     LOG_LEVEL: "error",
   },
 };
