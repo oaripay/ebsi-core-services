@@ -13,4 +13,7 @@ module.exports = {
   coverageDirectory: "./coverage/",
   collectCoverageFrom: ["src/**/*.(t|j)s", "!**/*.d.ts", "!src/main.ts"],
   coverageReporters: ["text", "lcov", "json", "clover", "cobertura"],
+  moduleNameMapper: {
+    "^jose/(.*)$": "<rootDir>/node_modules/jose/dist/node/cjs/$1",
+  },
 };

@@ -5,12 +5,14 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from "@nestjs/common";
 import {
   ProblemDetailsError,
   InternalServerError,
   NotFoundError,
   BadRequestError,
+  ForbiddenError,
 } from "@cef-ebsi/problem-details-errors";
 import { FastifyReply } from "fastify";
 import { AxiosError } from "axios";
@@ -27,6 +29,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (err instanceof NotFoundException) {
       problemError = new NotFoundError(NotFoundError.defaultTitle, {
+        detail: err.message,
+      });
+    } else if (err instanceof ForbiddenException) {
+      problemError = new ForbiddenError(ForbiddenError.defaultTitle, {
         detail: err.message,
       });
     } else if (err instanceof BadRequestException) {
