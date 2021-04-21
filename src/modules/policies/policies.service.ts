@@ -1,5 +1,4 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { PolicyRevisions } from "./policies.interface";
 import LedgerService from "../../shared/services/ledger.service";
@@ -13,10 +12,7 @@ export default class PoliciesService {
 
   private tarContract: Tar;
 
-  constructor(
-    private ledgerService: LedgerService,
-    private configService: ConfigService
-  ) {
+  constructor(private ledgerService: LedgerService) {
     this.tarContract = this.ledgerService.getContract();
   }
 

@@ -83,25 +83,6 @@ describe("JsonRpcService", () => {
     );
   });
 
-  it(`Throws error if the service cannot create a new session with ledger api`, async () => {
-    expect.assertions(1);
-    jest.spyOn(axios, "post").mockImplementation(
-      (): Promise<AxiosErrorResponse> => {
-        const httpError = new BadRequestError();
-        const error: unknown = new Error("HTTP 400");
-        (error as AxiosErrorResponse).response = {
-          status: httpError.status,
-          data: httpError.toJSON(),
-        };
-
-        return Promise.reject(error);
-      }
-    );
-    await expect(jsonRpcService.createSession()).rejects.toThrow(
-      "A new session with ledger api could not be established"
-    );
-  });
-
   it(`Parses the error from axios when calling besu`, async () => {
     expect.assertions(3);
     jest.spyOn(axios, "post").mockImplementation(

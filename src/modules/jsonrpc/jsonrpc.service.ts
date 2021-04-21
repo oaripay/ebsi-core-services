@@ -1,7 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { ethers } from "ethers";
-import { Agent, Scope } from "@cef-ebsi/app-jwt";
 import { ConfigService } from "@nestjs/config";
 import {
   RequestDeleteAppAdministratorDto,
@@ -36,11 +35,7 @@ import {
   ArgsUpdateAuthorization,
   SignedTransactionParam,
 } from "./dto";
-import {
-  AxiosResponseSessions,
-  AxiosResponseJsonRpc,
-  AxiosErrorResponse,
-} from "./jsonrpc.interface";
+import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
 import {
   formatEthersUnsignedTransaction,
@@ -60,57 +55,11 @@ export class JsonRpcService {
 
   private chainId: string = null;
 
-  private accessToken: string = null;
-
-  private expAccessToken: number = null;
-
   constructor(
     private configService: ConfigService<ApiConfig>,
     private ledgerService: LedgerService
   ) {
     this.tarContract = this.ledgerService.getContract();
-  }
-
-  async createSession(): Promise<void> {
-    const agent = new Agent(
-      Scope.COMPONENT,
-      this.configService.get<string>("apiPrivateKey"),
-      {
-        issuer: "trusted-apps-registry",
-      }
-    );
-    const requestToken = (await agent.createRequestPayload(
-      "ebsi-ledger"
-    )) as string;
-    const url = `${this.configService.get<string>("ledger")}/sessions`;
-    try {
-      const response: AxiosResponseSessions = await axios.post(
-        url,
-        requestToken
-      );
-      this.accessToken = response.data.accessToken;
-      this.expAccessToken =
-        Number(response.data.issuedAt) + Number(response.data.expiresIn);
-    } catch (error) {
-      this.logger.error("Error creating new session with ledger api");
-      this.logger.error((error as Error).message);
-      this.logger.error((error as Error).stack);
-      throw new Error(
-        "Error checking session: A new session with ledger api could not be established"
-      );
-    }
-  }
-
-  isAccessTokenExpired(): boolean {
-    return (
-      !this.accessToken ||
-      !this.expAccessToken ||
-      Date.now() > this.expAccessToken * 1000
-    );
-  }
-
-  async checkSession(): Promise<void> {
-    if (this.isAccessTokenExpired()) await this.createSession();
   }
 
   async getChainId(): Promise<string> {
@@ -122,18 +71,9 @@ export class JsonRpcService {
   }
 
   async callBesuAuth(method: string, params: unknown[]): Promise<unknown> {
-    /*
-     * TODO: Create a session with Authorization API and use that token to
-     * connect with Ledger API
-     */
-    // await this.checkSession();
-    const url = `${this.configService.get<string>("ledger")}/blockchains/besu`;
+    const url = this.configService.get<string>("besuRpcNode");
     const data = { jsonrpc: "2.0", method, params, id: 1 };
-    const opts = {
-      /* headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-      }, */
-    };
+    const opts = {};
     try {
       const response: AxiosResponseJsonRpc = await axios.post(url, data, opts);
       return response.data.result;

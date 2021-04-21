@@ -159,11 +159,6 @@ describe("JsonRpc Module", () => {
       throw new Error("Forgot to mock an axios call?");
     });
 
-    // Mock JsonRpcService (prevent calling EBSI Ledger API)
-    jest.spyOn(jsonRpcService, "createSession").mockImplementation(async () => {
-      return Promise.resolve();
-    });
-
     // Instead of calling EBSI Ledger API, use tarContract directly
     const signer = administrators[0];
     jest

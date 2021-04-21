@@ -1,11 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import {
   AdministratorResponseObject,
   AttributeObject,
 } from "./administrators.interface";
-import { ApiConfig } from "../../config/configuration";
 import LedgerService from "../../shared/services/ledger.service";
 import { Tar } from "../../contracts/Tar";
 import { prefixWith0x } from "../../shared/utils";
@@ -17,10 +15,7 @@ export default class AdministratorsService {
 
   private tarContract: Tar;
 
-  constructor(
-    private ledgerService: LedgerService,
-    private configService: ConfigService<ApiConfig>
-  ) {
+  constructor(private ledgerService: LedgerService) {
     this.tarContract = this.ledgerService.getContract();
   }
 

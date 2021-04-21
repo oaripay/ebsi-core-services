@@ -35,7 +35,7 @@ describe("TAR API (generic tests)", () => {
   describe("GET /health", () => {
     it("should return ok", async () => {
       expect.assertions(2);
-      const response = await request(server).get(`/health`);
+      const response = await request(server).get("/health");
 
       expect(response.body).toStrictEqual({
         details: { "ebsi-apis": { status: "up" } },

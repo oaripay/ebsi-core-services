@@ -7,7 +7,7 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-const { ledger } = loadConfig();
+const { besuRpcNode } = loadConfig();
 
 export const waitToBeMined = async (
   txId: string
@@ -18,8 +18,8 @@ export const waitToBeMined = async (
   while (!mined) {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const responseReceipt: SupertestJsonRpcResponse = await request(ledger)
-      .post("/blockchains/besu")
+    const responseReceipt: SupertestJsonRpcResponse = await request(besuRpcNode)
+      .post("")
       .send({
         jsonrpc: "2.0",
         method: "eth_getTransactionReceipt",

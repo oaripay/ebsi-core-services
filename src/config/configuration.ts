@@ -9,7 +9,7 @@ export interface ApiConfig {
   contractAddr: string;
   domain: string;
   logLevel: string;
-  ledger: string;
+  besuRpcNode: string;
   adminTestPrivateKey: string;
   externalEbsiApiHealthCheck: string;
 }
@@ -18,25 +18,25 @@ export interface ApiConfig {
 const defaultConfig = {
   local: {
     DOMAIN: "https://api.test.intebsi.xyz",
-    LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
+    BESU_RPC_NODE: "https://www.test.intebsi.xyz/jsonrpc",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LOG_LEVEL: "debug",
   },
   test: {
     DOMAIN: "https://api.test.intebsi.xyz",
-    LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
+    BESU_RPC_NODE: "https://www.test.intebsi.xyz/jsonrpc",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LOG_LEVEL: "info",
   },
   pilot: {
     DOMAIN: "https://api.preprod.ebsi.eu",
-    LEDGER: "https://api.preprod.ebsi.eu/ledger/v2",
+    BESU_RPC_NODE: "https://www.preprod.ebsi.eu/jsonrpc",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
     LOG_LEVEL: "warn",
   },
   prod: {
     DOMAIN: "https://api.ebsi.eu",
-    LEDGER: "https://api.ebsi.eu/ledger/v2",
+    BESU_RPC_NODE: "https://www.ebsi.eu/jsonrpc",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
     LOG_LEVEL: "error",
   },
@@ -56,7 +56,8 @@ export const loadConfig = (): ApiConfig => {
     contractAddr: process.env.CONTRACT_ADDR,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
-    ledger: process.env.LEDGER || defaultConfig[EBSI_ENV].LEDGER,
+    besuRpcNode:
+      process.env.BESU_RPC_NODE || defaultConfig[EBSI_ENV].BESU_RPC_NODE,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
   };
@@ -90,7 +91,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // TAR specific variables
     ADMIN_TEST_PRIVATE_KEY: Joi.string(),
     DOMAIN: Joi.string().uri(),
-    LEDGER: Joi.string().uri(),
+    BESU_RPC_NODE: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
   }),
 });

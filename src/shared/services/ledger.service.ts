@@ -20,7 +20,7 @@ export default class LedgerService {
 
   constructor(private configService: ConfigService<ApiConfig>) {
     this.ethersProvider = new ethers.providers.JsonRpcProvider(
-      `${this.configService.get<string>("ledger")}/blockchains/besu`
+      this.configService.get<string>("besuRpcNode")
     );
 
     this.ethersWallet = new ethers.Wallet(
