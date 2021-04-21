@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { JWTPayload, Session } from "@cef-ebsi/oauth2-auth";
-import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
-import { ApiConfig } from "../../config/configuration";
+// import { ConfigService } from "@nestjs/config";
+// import { JWTPayload, Session } from "@cef-ebsi/oauth2-auth";
+// import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
+// import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
 export class AuthService {
+  /*
   private authApiName: string;
 
   private session: Session;
@@ -27,6 +28,7 @@ export class AuthService {
       });
     }
   }
+  */
 }
 
 export default AuthService;

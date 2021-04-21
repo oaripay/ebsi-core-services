@@ -85,7 +85,7 @@ describe("Besu Module", () => {
   });
 
   // Generic tests
-  it("should throw forbidden or unauthorized errors for bad Authentication", async () => {
+  it.skip("should throw forbidden or unauthorized errors for bad Authentication", async () => {
     expect.assertions(4);
 
     let response = await request(server).post("/blockchains/besu").send();
