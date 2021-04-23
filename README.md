@@ -2,17 +2,36 @@
 
 # Notifications API
 
-This repository contains the code of Notifications API.
+Notifications API is an EBSI core service that helps to send async or delayed notifications by addressing the DID of a natural person or legal entity.
+
+- Notification service can be used by any entity/user registered in the DID registry or application registered in the Trusted Applications Registry (TAR).
+- Entity or application is notified via its DID registered in the DID registry or TAR.
+
+For more information see:
+
+- [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/WIiWFQ)
+- API catalogs:
+  - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
+  - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
 
 ## Table of Contents
 
-1. [Getting started](#getting-started)
-2. [Linting](#linting)
-3. [Auditing the dependencies](#auditing-the-dependencies)
-4. [Testing](#testing)
-5. [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
-6. [Cutting a new release](#cutting-a-new-release)
-7. [License](#license)
+- [Notifications API](#notifications-api)
+  - [Table of Contents](#table-of-contents)
+  - [Getting started](#getting-started)
+    - [Run the project locally](#run-the-project-locally)
+    - [Run with Docker](#run-with-docker)
+  - [Linting](#linting)
+    - [ESLint](#eslint)
+    - [OpenAPI](#openapi)
+    - [Prettier](#prettier)
+    - [tsc](#tsc)
+    - [Extra: lint Dockerfile](#extra-lint-dockerfile)
+  - [Auditing the dependencies](#auditing-the-dependencies)
+  - [Testing](#testing)
+  - [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
+  - [Cutting a new release](#cutting-a-new-release)
+  - [License](#license)
 
 ## Getting started
 
