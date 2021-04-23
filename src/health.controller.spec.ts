@@ -1,6 +1,8 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, Logger, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { HealthIndicatorResult, HttpHealthIndicator } from "@nestjs/terminus";
 import {
   NestFastifyApplication,
   FastifyAdapter,
@@ -8,9 +10,12 @@ import {
 import { FastifyInstance } from "fastify";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
+import { ApiConfig } from "./config/configuration";
 
 describe("HealthController", () => {
   let app: INestApplication;
+  let httpHealthIndicator: HttpHealthIndicator;
+  let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -24,20 +29,37 @@ describe("HealthController", () => {
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
+    httpHealthIndicator = moduleFixture.get<HttpHealthIndicator>(
+      HttpHealthIndicator
+    );
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
   });
 
   describe("check", () => {
     it("should return 'ok'", async () => {
-      expect.assertions(2);
-      const url = `/health`;
-      const response = await request(app.getHttpServer()).get(url);
+      expect.assertions(3);
+
+      const status = { "ebsi-apis": { status: "up" } } as HealthIndicatorResult;
+
+      const spy = jest
+        .spyOn(httpHealthIndicator, "pingCheck")
+        .mockImplementation(() => {
+          return Promise.resolve(status);
+        });
+
+      const response = await request(app.getHttpServer()).get("/health");
+
+      expect(spy).toHaveBeenCalledWith(
+        "ebsi-apis",
+        configService.get("externalEbsiApiHealthCheck")
+      );
       expect(response.body).toStrictEqual({
         details: { "ebsi-apis": { status: "up" } },
         error: {},
         info: { "ebsi-apis": { status: "up" } },
         status: "ok",
       });
-
       expect(response.status).toBe(200);
     });
   });

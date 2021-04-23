@@ -48,4 +48,19 @@ describe("App Module (e2e)", () => {
     });
     expect(response.status).toBe(200);
   });
+
+  describe("GET /bad-method", () => {
+    it("should return error 404", async () => {
+      expect.assertions(2);
+      const response = await request(server).get("/bad-method");
+
+      expect(response.body).toStrictEqual({
+        title: "Not Found",
+        status: 404,
+        detail: "Cannot GET /bad-method",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+  });
 });

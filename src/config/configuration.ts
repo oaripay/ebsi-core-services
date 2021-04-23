@@ -11,7 +11,7 @@ export interface ApiConfig {
   domain: string;
   ledger: string;
   besuTrustedIssuersRegistryAddress: string;
-  externalEBSIApiHealthCheck: string;
+  externalEbsiApiHealthCheck: string;
 }
 
 const defaultConfig = {
@@ -19,25 +19,25 @@ const defaultConfig = {
     DOMAIN: "https://api.test.intebsi.xyz",
     LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
     LOG_LEVEL: "debug",
-    HEALTH_CHECK: `https://api.test.intebsi.xyz/docs/`,
+    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
   },
   test: {
     DOMAIN: "https://api.test.intebsi.xyz",
     LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
     LOG_LEVEL: "info",
-    HEALTH_CHECK: `https://api.test.intebsi.xyz/docs/`,
+    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
   },
   pilot: {
-    DOMAIN: "https://api.pilot.ebsi.xyz",
-    LEDGER: "https://api.pilot.ebsi.xyz/ledger/v2",
+    DOMAIN: "https://api.preprod.ebsi.eu",
+    LEDGER: "https://api.preprod.ebsi.eu/ledger/v2",
     LOG_LEVEL: "warn",
-    HEALTH_CHECK: `https://api.pilot.ebsi.xyz/docs/`,
+    HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
   },
   prod: {
-    DOMAIN: "https://api.prod.ebsi.xyz",
-    LEDGER: "https://api.prod.ebsi.xyz/ledger/v2",
+    DOMAIN: "https://api.ebsi.eu",
+    LEDGER: "https://api.ebsi.eu/ledger/v2",
     LOG_LEVEL: "error",
-    HEALTH_CHECK: `https://api.prod.ebsi.xyz/docs/`,
+    HEALTH_CHECK: "https://api.ebsi.eu/docs/",
   },
 };
 
@@ -54,7 +54,7 @@ export const loadConfig = (): ApiConfig => {
     ledger: process.env.LEDGER || defaultConfig[EBSI_ENV].LEDGER,
     besuTrustedIssuersRegistryAddress:
       process.env.BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS,
-    externalEBSIApiHealthCheck:
+    externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
   };
 };

@@ -2,17 +2,40 @@
 
 # Trusted Issuers Registry
 
-This repository contains the code of EBSI Trusted Issuers Registry.
+Trusted Issuers Registry (TIR) is a generic decentralised registry holding information about trusted issuers, like public information, accreditations and other. All information is stored in the smart contract in form of Attribute envelops (like Verifiable Credentials) that are issued by Trusted Issuers or self-issued. Generic Envelop (like Verifiable Credential) validation is performed outside EBSI.
+
+EBSI Trusted Issuers Registry (TIR) is a generic decentralised registry component and is used as a core component of the European Self Sovereign Identity Framework (ESSIF) that enables to validate the identity and accreditations of Trusted Issuers.
+
+TIR smart contract is deployed on the permissioned EBSI ledger that has the advantages of being public while at the same time ensuring the highest level of trust and transparency. Furthermore, TIR has high availability due to the redundancy of the EBSI Ledger; has no single point of failure; is transparent, traceable, immutable and cryptographically secure. The immutable nature of the ledger enables one to validate whether an issuer was eligible to issue a specific Verifiable Credential/Claim/Attestation at a certain time.
+
+The TIR service consists of a smart contract (TIR SC) and API (TIR API). The TIR SC is an Ethereum SC is deployed on the EBSI ledger. All public smart contract methods are exposed via APIs. Two types of APIs are delivered, JSON-RPC for write and REST for the read operations. The TIR API enables to manage and verify Trusted Issuers information and accreditations. Accreditation of trusted issuers domain-specific and is outside the EBSI scope.
+
+For more information see:
+
+- [TIR API Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/S4iWFQ)
+- [TIR Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/tYiWFQ)
+- API catalogs:
+  - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
+  - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
 
 ## Table of Contents
 
-1. [Getting started](#getting-started)
-2. [Linting](#linting)
-3. [Auditing the dependencies](#auditing-the-dependencies)
-4. [Testing](#testing)
-5. [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
-6. [Cutting a new release](#cutting-a-new-release)
-7. [License](#license)
+- [Trusted Issuers Registry](#trusted-issuers-registry)
+  - [Table of Contents](#table-of-contents)
+  - [Getting started](#getting-started)
+    - [Run the project locally](#run-the-project-locally)
+    - [Run with Docker](#run-with-docker)
+  - [Linting](#linting)
+    - [ESLint](#eslint)
+    - [OpenAPI](#openapi)
+    - [Prettier](#prettier)
+    - [tsc](#tsc)
+    - [Extra: lint Dockerfile](#extra-lint-dockerfile)
+  - [Auditing the dependencies](#auditing-the-dependencies)
+  - [Testing](#testing)
+  - [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
+  - [Cutting a new release](#cutting-a-new-release)
+  - [License](#license)
 
 ## Getting started
 

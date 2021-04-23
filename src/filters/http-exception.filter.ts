@@ -3,11 +3,13 @@ import {
   Catch,
   ArgumentsHost,
   Logger,
+  NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
 import {
   ProblemDetailsError,
   InternalServerError,
+  NotFoundError,
   BadRequestError,
 } from "@cef-ebsi/problem-details-errors";
 import { FastifyReply } from "fastify";
@@ -18,14 +20,10 @@ import { InvalidRequestJsonRpcError } from "../modules/jsonrpc/errors";
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
-  catch(
-    err: Error | ProblemDetailsError | InvalidRequestJsonRpcError,
-    host: ArgumentsHost
-  ): FastifyReply {
+  catch(err: Error, host: ArgumentsHost): FastifyReply {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
 
-    let problemError: ProblemDetailsError;
     if (err instanceof InvalidRequestJsonRpcError) {
       const JsonRpcError = err;
       this.logger.debug(JsonRpcError.toString());
@@ -35,8 +33,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
         .send(JsonRpcError.toJSON());
     }
 
-    if (err instanceof ProblemDetailsError) {
-      problemError = err;
+    let problemError: ProblemDetailsError;
+
+    if (err instanceof NotFoundException) {
+      problemError = new NotFoundError(NotFoundError.defaultTitle, {
+        detail: err.message,
+      });
     } else if (err instanceof BadRequestException) {
       let detail = err.message;
       const resp = err.getResponse();
@@ -50,6 +52,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       problemError = new BadRequestError(BadRequestError.defaultTitle, {
         detail,
       });
+    } else if (err instanceof ProblemDetailsError) {
+      problemError = err;
     } else {
       if ((err as AxiosError).isAxiosError) {
         // Properly log error, https://github.com/axios/axios#handling-errors
