@@ -1,33 +1,40 @@
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
-import { Injectable, Logger, OnApplicationShutdown } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import cassandra, { DseClientOptions } from "cassandra-driver";
-import { StoredNotification } from "./cassandra.interface";
+import axios from "axios";
+import {
+  StoredNotification,
+  AxiosResponseJsonRpc,
+  CassandraResponse,
+  PageOpts,
+} from "./cassandra.interface";
+import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
-export class CassandraService implements OnApplicationShutdown {
+export class CassandraService {
   private readonly logger = new Logger(CassandraService.name);
 
-  client: cassandra.Client;
+  private urlJsonrpcStorage: string;
 
-  optsWrite: DseClientOptions["queryOptions"];
+  constructor(private configService: ConfigService<ApiConfig>) {
+    const storageApi = this.configService.get<string>("storage");
+    this.urlJsonrpcStorage = `${storageApi}/stores/distributed/jsonrpc`;
+  }
 
-  optsRead: DseClientOptions["queryOptions"];
-
-  constructor(private configService: ConfigService) {
-    this.client = new cassandra.Client(
-      configService.get<DseClientOptions>("cassandraConnection")
+  async storageJsonrpc(
+    params: (string | number | PageOpts)[]
+  ): Promise<CassandraResponse> {
+    // TODO: check token expiration and login again
+    const response: AxiosResponseJsonRpc = await axios.post(
+      this.urlJsonrpcStorage,
+      {
+        jsonrpc: "2.0",
+        method: "cassandra_call",
+        params,
+        id: Math.trunc(Math.random() * 1000),
+      }
     );
-    this.optsWrite = this.configService.get("optsWrite");
-    this.optsRead = this.configService.get("optsRead");
-  }
-
-  async onApplicationShutdown(): Promise<void> {
-    await this.client.shutdown();
-  }
-
-  getClient(): cassandra.Client {
-    return this.client;
+    return response.data.result as CassandraResponse;
   }
 
   async insertNotification(
@@ -43,51 +50,69 @@ export class CassandraService implements OnApplicationShutdown {
     const ttl = Math.trunc(
       (expirationDate.getTime() - issuanceDate.getTime()) / 1000
     );
-    const queryInsert = `insert into notification_storage (id, sender, receiver, message) values (?, ?, ?, ?) using ttl ?`;
-    const params = [id, from, to, message, ttl];
-    await this.client.execute(queryInsert, params, {
-      prepare: true,
-      ...this.optsWrite,
-    });
+    const queryInsert =
+      "insert into notification_storage (id, sender, receiver, message) values (?, ?, ?, ?) using ttl ?";
+
+    await this.storageJsonrpc([queryInsert, id, from, to, message, ttl]);
   }
 
   async getNotifications(to: string): Promise<StoredNotification[]> {
-    const query = `select * from notification_storage where receiver = ? allow filtering`;
-    const params = [to];
-    const result = await this.client.execute(query, params);
-    if (result.rowLength === 0) return new Array<StoredNotification>();
-    const list = result.rows.map((row) => {
-      return {
-        id: row.get("id") as string,
-        from: row.get("sender") as string,
-        to: row.get("receiver") as string,
-        message: row.get("message") as string,
-      } as StoredNotification;
-    });
+    const query =
+      "select * from notification_storage where receiver = ? allow filtering";
+
+    const result = await this.storageJsonrpc([query, to]);
+
+    if (result.rows.length === 0) return new Array<StoredNotification>();
+
+    const list = result.rows.map(
+      (row: {
+        id?: string;
+        sender?: string;
+        receiver?: string;
+        message?: string;
+      }) => {
+        return {
+          id: row?.id ?? "",
+          from: row?.sender ?? "",
+          to: row?.receiver ?? "",
+          message: row?.message ?? "",
+        } as StoredNotification;
+      }
+    );
     return list;
   }
 
   async getNotification(to: string, id: string): Promise<StoredNotification> {
-    const query = `select * from notification_storage where receiver = ? and id = ? allow filtering`;
-    const params = [to, id];
-    const result = await this.client.execute(query, params);
-    if (result.rowLength === 0)
+    const query =
+      "select * from notification_storage where receiver = ? and id = ? allow filtering";
+
+    const result = await this.storageJsonrpc([query, to, id]);
+
+    if (result.rows.length === 0) {
       throw new NotFoundError("Notification Not Found", {
         detail: `Id parameter not found`,
       });
+    }
+
+    const firstRow = (result.rows[0] || {}) as {
+      id?: string;
+      sender?: string;
+      receiver?: string;
+      message?: string;
+    };
+
     return {
-      id: result.rows[0].get("id") as string,
-      from: result.rows[0].get("sender") as string,
-      to: result.rows[0].get("receiver") as string,
-      message: result.rows[0].get("message") as string,
+      id: firstRow.id ?? "",
+      from: firstRow.sender ?? "",
+      to: firstRow.receiver ?? "",
+      message: firstRow.message ?? "",
     } as StoredNotification;
   }
 
   async deleteNotification(to: string, id: string): Promise<void> {
     await this.getNotification(to, id);
-    const params = [id];
-    const query = `delete from notification_storage where id = ?`;
-    await this.client.execute(query, params);
+    const query = "delete from notification_storage where id = ?";
+    await this.storageJsonrpc([query, id]);
   }
 }
 

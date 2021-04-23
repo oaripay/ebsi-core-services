@@ -47,4 +47,33 @@ describe("AppController (e2e)", () => {
       expect(response.status).toBe(200);
     });
   });
+
+  describe("GET /health", () => {
+    it("should return 200 with status up", async () => {
+      expect.assertions(2);
+      const response = await request(server).get("/health");
+      expect(response.body).toStrictEqual({
+        details: { "ebsi-apis": { status: "up" } },
+        error: {},
+        info: { "ebsi-apis": { status: "up" } },
+        status: "ok",
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /bad-method", () => {
+    it("should return error 404", async () => {
+      expect.assertions(2);
+      const response = await request(server).get("/bad-method");
+
+      expect(response.body).toStrictEqual({
+        title: "Not Found",
+        status: 404,
+        detail: "Cannot GET /bad-method",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+  });
 });

@@ -8,11 +8,3 @@ services:
       - .env.local
     ports:
       - "${API_PORT:-3000}:${API_PORT:-3000}"
-  cassandradb:
-    image: cassandra:3.11.8
-    container_name: cassandradb
-    ports:
-      - "7000:7000"
-      - "9042:9042"
-    volumes:
-      - ./cassandra.yaml:/etc/cassandra/cassandra.yaml

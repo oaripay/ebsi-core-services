@@ -7,14 +7,14 @@ import {
   HttpHealthIndicator,
   HealthCheckResult,
 } from "@nestjs/terminus";
-import { ConfigObject } from "../../config/configuration";
+import { ApiConfig } from "../../config/configuration";
 
 @Controller("/health")
 export class HealthController {
   constructor(
     private health: HealthCheckService,
     private http: HttpHealthIndicator,
-    private configService: ConfigService<ConfigObject>
+    private configService: ConfigService<ApiConfig>
   ) {}
 
   @Get()
@@ -25,8 +25,8 @@ export class HealthController {
       // Make sure the DNS are correctly configured
       () =>
         this.http.pingCheck(
-          "ebsi-api",
-          this.configService.get("healthcheckEbsiApi")
+          "ebsi-apis",
+          this.configService.get("externalEbsiApiHealthCheck")
         ),
     ]);
   }

@@ -20,7 +20,7 @@ import {
   NotificationWithLinks,
   DecodedToken,
 } from "./notifications.interface";
-import { ConfigObject } from "../../config/configuration";
+import { ApiConfig } from "../../config/configuration";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { PaginationQuery } from "./dto/pagination-query.dto";
 
@@ -32,7 +32,7 @@ export class NotificationsController {
 
   constructor(
     private notificationsService: NotificationsService,
-    private configService: ConfigService<ConfigObject>
+    private configService: ConfigService<ApiConfig>
   ) {
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     const apiUrlOrigin = configService.get<string>("apiUrlOrigin");

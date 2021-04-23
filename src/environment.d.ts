@@ -9,32 +9,8 @@ declare global {
       API_URL_PREFIX?: string;
       API_URL_ORIGIN?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-      HEALTHCHECK_EBSI_API?: string;
-      CASSANDRA_CONTACT_POINTS?: string;
-      CASSANDRA_LOCAL_DATACENTER?: string;
-      CASSANDRA_KEYSPACE?: string;
-      CASSANDRA_CONSISTENCY_WRITE?:
-        | "any"
-        | "one"
-        | "two"
-        | "three"
-        | "quorum"
-        | "all"
-        | "localQuorum"
-        | "eachQuorum"
-        | "localOne";
-      CASSANDRA_CONSISTENCY_READ?:
-        | "any"
-        | "one"
-        | "two"
-        | "three"
-        | "quorum"
-        | "all"
-        | "localQuorum"
-        | "eachQuorum"
-        | "localOne";
-      CASSANDRA_USER: string;
-      CASSANDRA_PASSWORD: string;
+      HEALTH_CHECK?: string;
+      STORAGE?: string;
     }
   }
 }

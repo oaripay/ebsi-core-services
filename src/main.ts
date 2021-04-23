@@ -9,7 +9,7 @@ import { fastifyHelmet } from "fastify-helmet";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
 import { createLogger, consoleTransport } from "./logger/logger";
-import { ConfigObject } from "./config/configuration";
+import { ApiConfig } from "./config/configuration";
 import { EbsiValidationPipe } from "./pipes/ebsi-validation.pipe";
 
 declare const module: {
@@ -31,7 +31,7 @@ async function bootstrap(): Promise<void> {
     { logger }
   );
 
-  const configService = app.get<ConfigService<ConfigObject>>(ConfigService);
+  const configService = app.get<ConfigService<ApiConfig>>(ConfigService);
   const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
   const apiUrlOrigin = configService.get<string>("apiUrlOrigin");
   const port = configService.get<number>("apiPort");

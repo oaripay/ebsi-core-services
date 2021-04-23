@@ -1,6 +1,8 @@
 import request from "supertest";
+import { ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, HttpServer, Logger } from "@nestjs/common";
+import { HttpHealthIndicator, HealthIndicatorResult } from "@nestjs/terminus";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -9,10 +11,13 @@ import { FastifyInstance } from "fastify";
 import { HealthModule } from "./health.module";
 import { EbsiValidationPipe } from "../../pipes/ebsi-validation.pipe";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
+import { ApiConfig } from "../../config/configuration";
 
 describe("Health module", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let httpHealthIndicator: HttpHealthIndicator;
+  let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -31,6 +36,11 @@ describe("Health module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    httpHealthIndicator = moduleFixture.get<HttpHealthIndicator>(
+      HttpHealthIndicator
+    );
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
   });
 
   afterAll(async () => {
@@ -40,16 +50,29 @@ describe("Health module", () => {
 
   describe("GET /health", () => {
     it("should be fine", async () => {
-      expect.assertions(2);
+      expect.assertions(3);
+
+      const status = { "ebsi-apis": { status: "up" } } as HealthIndicatorResult;
+
+      const spy = jest
+        .spyOn(httpHealthIndicator, "pingCheck")
+        .mockImplementation(() => {
+          return Promise.resolve(status);
+        });
 
       const response = await request(server).get("/health");
 
+      expect(spy).toHaveBeenCalledWith(
+        "ebsi-apis",
+        configService.get("externalEbsiApiHealthCheck")
+      );
       expect(response.body).toStrictEqual({
-        details: { "ebsi-api": { status: "up" } },
+        details: { "ebsi-apis": { status: "up" } },
         error: {},
-        info: { "ebsi-api": { status: "up" } },
+        info: { "ebsi-apis": { status: "up" } },
         status: "ok",
       });
+
       expect(response.status).toBe(200);
     });
   });

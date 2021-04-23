@@ -1,23 +1,22 @@
 import crypto from "crypto";
-import { Session } from "@cef-ebsi/app-jwt";
-import { loadConfig } from "../../src/config/configuration";
+import jsonwebtoken from "jsonwebtoken";
 import { Notification } from "../../src/modules/notifications/notifications.interface";
-
-const config = loadConfig();
 
 function randomDid(): string {
   return `did:ebsi:0x${crypto.randomBytes(20).toString("hex")}`;
 }
 
 function createToken(did: string): string {
-  const session = new Session(config.apiName, config.apiPrivateKey);
-  const rand = crypto.randomBytes(10).toString("hex");
-  const payload = {
-    did,
-    nonce: `zizu-${rand}`,
-    sub: `TEST ENTITY-${rand}`,
-  };
-  return session.generateToken(payload).accessToken;
+  return jsonwebtoken.sign(
+    {
+      did,
+    },
+    "secret",
+    {
+      audience: "notifications-api",
+      issuer: "authorization-api",
+    }
+  );
 }
 
 function createNotification(to = randomDid(), ttl = 3600): Notification {

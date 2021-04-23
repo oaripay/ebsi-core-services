@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import axios from "axios";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, HttpServer, Logger } from "@nestjs/common";
@@ -7,7 +8,6 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
-import cassandraDriver from "cassandra-driver";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { CassandraService } from "../cassandra/cassandra.service";
 import { NotificationsModule } from "./notifications.module";
@@ -18,8 +18,6 @@ import {
   createNotification,
   createToken,
 } from "../../../tests/utils/notifications";
-
-jest.mock("cassandra-driver");
 
 describe("Notifications module", () => {
   let app: INestApplication;
@@ -69,13 +67,13 @@ describe("Notifications module", () => {
         .update(JSON.stringify(notification), "utf8")
         .digest("hex");
 
-      const mockExecute = jest.spyOn(
-        cassandraDriver.Client.prototype,
-        "execute"
-      );
-
+      const mockExecute = jest.spyOn(axios, "post");
       mockExecute.mockImplementation(() => {
-        return cassandraResponse([]);
+        return Promise.resolve({
+          data: {
+            result: cassandraResponse([]),
+          },
+        });
       });
 
       const response = await request(server)

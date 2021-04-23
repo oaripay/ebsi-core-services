@@ -1,6 +1,7 @@
+import { ConfigService } from "@nestjs/config";
 import { Test } from "@nestjs/testing";
-import cassandra from "cassandra-driver";
-import { ApiConfigModule } from "../../config/configuration";
+import axios from "axios";
+import { ApiConfig, ApiConfigModule } from "../../config/configuration";
 import { CassandraService } from "./cassandra.service";
 
 const fakeQueryResult = {
@@ -79,6 +80,7 @@ const fakeQueryResult = {
   nextPage: undefined,
   nextPageAsync: undefined,
 };
+
 const fakeQueryResultSingleValue = {
   info: {
     queriedHost: "::1:9042",
@@ -129,6 +131,7 @@ const fakeQueryResultSingleValue = {
   nextPage: undefined,
   nextPageAsync: undefined,
 };
+
 const fakeEmptyQueryResult = {
   info: {
     queriedHost: "::1:9042",
@@ -155,42 +158,63 @@ const fakeEmptyQueryResult = {
 
 describe("Cassandra service", () => {
   let cassandraService: CassandraService;
+  let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
       providers: [CassandraService],
       imports: [ApiConfigModule],
     }).compile();
+
     cassandraService = moduleRef.get<CassandraService>(CassandraService);
+    configService = moduleRef.get<ConfigService<ApiConfig>>(ConfigService);
   });
+
   describe("GET /notifications", () => {
     it("should return an empty list of stored notifications", async () => {
       expect.assertions(3);
-      jest.mock("cassandra-driver");
-      const mockExecute = jest.spyOn(cassandra.Client.prototype, "execute");
+
+      const mockExecute = jest.spyOn(axios, "post");
       mockExecute.mockImplementation(() => {
-        return fakeEmptyQueryResult;
+        return Promise.resolve({
+          data: {
+            result: fakeEmptyQueryResult,
+          },
+        });
       });
+
       const result = await cassandraService.getNotifications(
         fakeQueryResult.rows[0].receiver
       );
+
       expect(result).toHaveLength(0);
       expect(mockExecute).toHaveBeenCalledTimes(1);
-      expect(
-        mockExecute
-      ).toHaveBeenCalledWith(
-        "select * from notification_storage where receiver = ? allow filtering",
-        [fakeQueryResult.rows[0].receiver]
+      expect(mockExecute).toHaveBeenCalledWith(
+        `${configService.get<string>("storage")}/stores/distributed/jsonrpc`,
+        {
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from notification_storage where receiver = ? allow filtering",
+            fakeQueryResult.rows[0].receiver,
+          ],
+        }
       );
+
       jest.resetAllMocks();
     });
 
     it("should return a list of stored notifications", async () => {
       expect.assertions(9);
-      jest.mock("cassandra-driver");
-      const mockExecute = jest.spyOn(cassandra.Client.prototype, "execute");
+
+      const mockExecute = jest.spyOn(axios, "post");
       mockExecute.mockImplementation(() => {
-        return fakeQueryResult;
+        return Promise.resolve({
+          data: {
+            result: fakeQueryResult,
+          },
+        });
       });
 
       fakeQueryResult.rows[0].get = jest
@@ -209,9 +233,11 @@ describe("Cassandra service", () => {
               return "0";
           }
         });
+
       const result = await cassandraService.getNotifications(
         fakeQueryResult.rows[0].receiver
       );
+
       expect(result).toHaveLength(fakeQueryResult.rows.length);
       expect(result[0]).toHaveProperty("id");
       expect(result[0].id).toStrictEqual(fakeQueryResult.rows[0].id);
@@ -229,10 +255,14 @@ describe("Cassandra service", () => {
   describe("GET /notification", () => {
     it("should return specified notification", async () => {
       expect.assertions(3);
-      jest.mock("cassandra-driver");
-      const mockExecute = jest.spyOn(cassandra.Client.prototype, "execute");
+
+      const mockExecute = jest.spyOn(axios, "post");
       mockExecute.mockImplementation(() => {
-        return fakeQueryResultSingleValue;
+        return Promise.resolve({
+          data: {
+            result: fakeQueryResultSingleValue,
+          },
+        });
       });
 
       fakeQueryResultSingleValue.rows[0].get = jest
@@ -251,10 +281,12 @@ describe("Cassandra service", () => {
               return "0";
           }
         });
+
       const result = await cassandraService.getNotification(
         fakeQueryResultSingleValue.rows[0].receiver,
         fakeQueryResultSingleValue.rows[0].id
       );
+
       expect(result).toStrictEqual({
         id: fakeQueryResultSingleValue.rows[0].id,
         from: fakeQueryResultSingleValue.rows[0].sender,
@@ -262,60 +294,92 @@ describe("Cassandra service", () => {
         message: fakeQueryResultSingleValue.rows[0].message,
       });
       expect(mockExecute).toHaveBeenCalledTimes(1);
-      expect(
-        mockExecute
-      ).toHaveBeenCalledWith(
-        "select * from notification_storage where receiver = ? and id = ? allow filtering",
-        [
-          fakeQueryResultSingleValue.rows[0].receiver,
-          fakeQueryResultSingleValue.rows[0].id,
-        ]
+      expect(mockExecute).toHaveBeenCalledWith(
+        `${configService.get<string>("storage")}/stores/distributed/jsonrpc`,
+        {
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from notification_storage where receiver = ? and id = ? allow filtering",
+            fakeQueryResultSingleValue.rows[0].receiver,
+            fakeQueryResultSingleValue.rows[0].id,
+          ],
+        }
       );
+
       jest.resetAllMocks();
     });
 
     it("should not return a notification since id unknown", async () => {
       expect.assertions(3);
-      jest.mock("cassandra-driver");
-      const mockExecute = jest.spyOn(cassandra.Client.prototype, "execute");
+
+      const mockExecute = jest.spyOn(axios, "post");
       mockExecute.mockImplementation(() => {
-        return fakeEmptyQueryResult;
+        return Promise.resolve({
+          data: {
+            result: fakeEmptyQueryResult,
+          },
+        });
       });
+
       await expect(
         cassandraService.getNotification(
           fakeQueryResult.rows[0].receiver,
           fakeQueryResult.rows[0].id
         )
       ).rejects.toThrow("Notification Not Found");
+
       expect(mockExecute).toHaveBeenCalledTimes(1);
-      expect(
-        mockExecute
-      ).toHaveBeenCalledWith(
-        "select * from notification_storage where receiver = ? and id = ? allow filtering",
-        [fakeQueryResult.rows[0].receiver, fakeQueryResult.rows[0].id]
+      expect(mockExecute).toHaveBeenCalledWith(
+        `${configService.get<string>("storage")}/stores/distributed/jsonrpc`,
+        {
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from notification_storage where receiver = ? and id = ? allow filtering",
+            fakeQueryResult.rows[0].receiver,
+            fakeQueryResult.rows[0].id,
+          ],
+        }
       );
+
       jest.resetAllMocks();
     });
 
     it("should not return a notification since specified notification does not match receiver", async () => {
       expect.assertions(3);
-      jest.mock("cassandra-driver");
-      const mockExecute = jest.spyOn(cassandra.Client.prototype, "execute");
+
+      const mockExecute = jest.spyOn(axios, "post");
       mockExecute.mockImplementation(() => {
-        return fakeEmptyQueryResult;
+        return Promise.resolve({
+          data: {
+            result: fakeEmptyQueryResult,
+          },
+        });
       });
+
       await expect(
         cassandraService.getNotification(
           fakeQueryResult.rows[0].sender,
           fakeQueryResult.rows[0].id
         )
       ).rejects.toThrow("Notification Not Found");
+
       expect(mockExecute).toHaveBeenCalledTimes(1);
-      expect(
-        mockExecute
-      ).toHaveBeenCalledWith(
-        "select * from notification_storage where receiver = ? and id = ? allow filtering",
-        [fakeQueryResult.rows[0].sender, fakeQueryResult.rows[0].id]
+      expect(mockExecute).toHaveBeenCalledWith(
+        `${configService.get<string>("storage")}/stores/distributed/jsonrpc`,
+        {
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from notification_storage where receiver = ? and id = ? allow filtering",
+            fakeQueryResult.rows[0].sender,
+            fakeQueryResult.rows[0].id,
+          ],
+        }
       );
       jest.resetAllMocks();
     });
