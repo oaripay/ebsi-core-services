@@ -1,6 +1,6 @@
 ![EBSI Logo](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
 
-# Users onboarding API
+# Users onboarding API (backend)
 
 TODO
 

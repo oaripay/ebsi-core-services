@@ -1,0 +1,10 @@
+# Exclude everything
+*
+
+# Only add what is necessary
+!package.json
+!nest-cli.json
+!tsconfig.production.json
+!tsconfig.json
+!yarn.lock
+!src
