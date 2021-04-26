@@ -54,7 +54,9 @@ export default function ModalInsertPublicKey(): ReactElement {
 
             const insertPubKeyFields: any = {
               ...fields,
-              publicKey: ethers.utils.toUtf8Bytes(fields.publicKey),
+              publicKey: ethers.utils.toUtf8Bytes(
+                Buffer.from(fields.publicKey, "base64").toString()
+              ),
               notBefore: fields.notBefore.unix(),
               notAfter: fields.notAfter.unix(),
             };

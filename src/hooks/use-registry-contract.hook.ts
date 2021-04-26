@@ -68,6 +68,10 @@ export function useRegistryContractHook() {
     );
   }, []);
 
+  const getAppByName = useCallback((appName: string) => {
+    return registryContract.getAppByName(appName);
+  }, []);
+
   const getAuthorizationsIds = useCallback(
     (applicationId: string, authorizedAppId: string) => {
       return registryContract
@@ -79,51 +83,61 @@ export function useRegistryContractHook() {
     []
   );
 
-  const getApplications = useCallback(() => {
-    return getApplicationIds().then(
-      (applications: { items: number[]; total: number }) => {
-        const ids = applications.items;
-        const appsPromises = Promise.all(
-          ids.map((id: number) => registryContract.getAppById(id))
-        );
-
-        const appPublicKeysPromises = Promise.all(
-          ids.map((id: number) =>
-            registryContract.getAppPublicKeyIds(id, 1, PAGE_SIZE)
-          )
-        );
-
-        const appAuthorizationsKeysPromises = Promise.all(
-          ids.map((id: number) =>
-            registryContract.getAuthorizedAppsIds(id, 1, PAGE_SIZE)
-          )
-        );
-
-        return Promise.allSettled([
-          appsPromises,
-          appPublicKeysPromises,
-          appAuthorizationsKeysPromises,
-        ]).then((result) => {
-          const apps: any = result[0];
-          const appPublicKeys: any = result[1];
-          const appAuthorizations: any = result[2];
-
-          const tableData = [];
-
-          for (let i = 0; i < apps.value.length; i += 1) {
-            tableData.push({
-              id: ids[i],
-              name: apps.value[i].name,
-              domain: domains[apps.value[i].domain],
-              publicKeys: appPublicKeys.value[i].items,
-              authorizedApps: appAuthorizations.value[i].items,
-            });
-          }
-          return tableData;
+  const getApplications = useCallback(
+    (appIds = []) => {
+      let promise = getApplicationIds();
+      if (appIds.length) {
+        promise = Promise.resolve({
+          items: appIds,
+          total: 1,
         });
       }
-    );
-  }, [getApplicationIds, appCtx.page]);
+      return promise.then(
+        (applications: { items: number[]; total: number }) => {
+          const ids = applications.items;
+          const appsPromises = Promise.all(
+            ids.map((id: number) => registryContract.getAppById(id))
+          );
+
+          const appPublicKeysPromises = Promise.all(
+            ids.map((id: number) =>
+              registryContract.getAppPublicKeyIds(id, 1, PAGE_SIZE)
+            )
+          );
+
+          const appAuthorizationsKeysPromises = Promise.all(
+            ids.map((id: number) =>
+              registryContract.getAuthorizedAppsIds(id, 1, PAGE_SIZE)
+            )
+          );
+
+          return Promise.allSettled([
+            appsPromises,
+            appPublicKeysPromises,
+            appAuthorizationsKeysPromises,
+          ]).then((result) => {
+            const apps: any = result[0];
+            const appPublicKeys: any = result[1];
+            const appAuthorizations: any = result[2];
+
+            const tableData = [];
+
+            for (let i = 0; i < apps.value.length; i += 1) {
+              tableData.push({
+                id: ids[i],
+                name: apps.value[i].name,
+                domain: domains[apps.value[i].domain],
+                publicKeys: appPublicKeys.value[i].items,
+                authorizedApps: appAuthorizations.value[i].items,
+              });
+            }
+            return tableData;
+          });
+        }
+      );
+    },
+    [getApplicationIds, appCtx.page]
+  );
 
   const isOperator = useCallback((): Promise<boolean> => {
     const did: string | null = localStorage.getItem("Did");
@@ -191,5 +205,6 @@ export function useRegistryContractHook() {
     getAuthorizationsIds,
     totalItems,
     initTotalItems,
+    getAppByName,
   };
 }

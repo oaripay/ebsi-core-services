@@ -1,5 +1,5 @@
-import { AutoComplete, Col, Input, Row, Select } from "antd";
-import React, { useContext, useEffect, useMemo } from "react";
+import { Col, Input, Row } from "antd";
+import React, { useCallback, useContext, useMemo } from "react";
 import Fuse from "fuse.js";
 
 import { AppContext } from "./AppContext";
@@ -7,11 +7,7 @@ import { useRegistryContractHook } from "./hooks/use-registry-contract.hook";
 
 export function Search() {
   const appCtx = useContext(AppContext);
-  const { totalItems, initTotalItems } = useRegistryContractHook();
-
-  useEffect(() => {
-    initTotalItems();
-  }, []);
+  const { getAppByName, getApplications } = useRegistryContractHook();
 
   const options = {
     shouldSort: true,
@@ -26,53 +22,49 @@ export function Search() {
     keys: ["name"],
   };
 
-  const nrOfPages = useMemo(() => Math.ceil(totalItems / 50), [totalItems]);
-  const pagesAsArray = useMemo(() => {
-    const pages = [];
-    for (let i = 1; i <= nrOfPages; i += 1) {
-      pages.push(i);
-    }
-    return pages;
-  }, [nrOfPages]);
-
   const fuse = useMemo(() => new Fuse(appCtx.tableDataSource, options), [
     appCtx.tableDataSource,
   ]);
 
+  const search = useCallback(
+    (word) => {
+      getAppByName(word)
+        .then((result: { applicationId: string }) => {
+          if (result.applicationId) {
+            appCtx.setTableLoading(true);
+            getApplications([result.applicationId]).then((data: any) => {
+              appCtx.setTableFilteredDataSource(data);
+            });
+          } else {
+            appCtx.setTableFilteredDataSource(
+              fuse.search(word).map((data) => data.item)
+            );
+          }
+        })
+        .catch(() => {
+          appCtx.setTableFilteredDataSource(
+            fuse.search(word).map((data) => data.item)
+          );
+        });
+    },
+    [getApplications, appCtx.page, fuse]
+  );
+
   return (
     <Row>
       <Col>
-        <AutoComplete
-          dropdownClassName="certain-category-search-dropdown"
-          dropdownMatchSelectWidth={500}
-          style={{ width: 250 }}
+        <Input.Search
+          size="large"
+          placeholder="Search by name"
           onSearch={(value) => {
-            if (value !== "") {
-              appCtx.setTableFilteredDataSource(
-                fuse.search(value).map((data) => data.item)
-              );
+            const valueTrimmed = value.trim();
+            if (valueTrimmed !== "") {
+              search(valueTrimmed);
             } else {
               appCtx.setTableFilteredDataSource(appCtx.tableDataSource);
             }
           }}
-        >
-          <Input.Search size="large" placeholder="Search by name" />
-        </AutoComplete>
-      </Col>
-      <Col style={{ marginLeft: 10 }}>
-        <Select
-          size="large"
-          defaultValue={1}
-          onChange={(pageSize: number) => {
-            appCtx.setPage(pageSize);
-          }}
-        >
-          {pagesAsArray.map((page: number) => (
-            <Select.Option key={page} value={page}>
-              Page {page}
-            </Select.Option>
-          ))}
-        </Select>
+        />
       </Col>
     </Row>
   );

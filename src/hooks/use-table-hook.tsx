@@ -67,7 +67,7 @@ export function useTableHook() {
                   {
                     appCtx.filteredDataSource.find(
                       (param: any) => param.id === authApp
-                    ).name
+                    )?.name
                   }
                 </Tag>
               ))}

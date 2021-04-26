@@ -1,6 +1,7 @@
 import React, { useContext, useEffect } from "react";
 import { Table as TableAntd } from "antd";
 
+import { TablePaginationConfig } from "antd/es/table";
 import { useTableHook } from "./hooks/use-table-hook";
 import { AppContext } from "./AppContext";
 import { useRegistryContractHook } from "./hooks/use-registry-contract.hook";
@@ -8,6 +9,11 @@ import { useRegistryContractHook } from "./hooks/use-registry-contract.hook";
 export function Table() {
   const { columns, loadTableData } = useTableHook();
   const appCtx = useContext(AppContext);
+  const { totalItems, initTotalItems } = useRegistryContractHook();
+
+  useEffect(() => {
+    initTotalItems();
+  }, []);
 
   const { getApplications } = useRegistryContractHook();
 
@@ -21,10 +27,14 @@ export function Table() {
       columns={columns}
       loading={appCtx.tableLoading}
       rowKey="id"
+      onChange={(changeEvent: TablePaginationConfig) => {
+        appCtx.setPage(changeEvent.current || 1);
+      }}
       pagination={{
         position: ["bottomRight"],
-        pageSizeOptions: ["10", "20", "25", "30", "35", "40"],
-        showSizeChanger: true,
+        showSizeChanger: false,
+        total: totalItems,
+        defaultPageSize: 50,
       }}
     />
   );

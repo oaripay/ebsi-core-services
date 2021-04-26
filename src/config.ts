@@ -3,7 +3,7 @@ export const config = {
   EBSI_CHAIN_ID: process.env.REACT_APP_EBSI_CHAIN_ID || 6175,
   PROVIDER:
     process.env.REACT_APP_PROVIDER ||
-    "https://api.test.intebsi.xyz/ledger/v1/blockchains/besu",
+    "https://ebsi:password@www.test.intebsi.xyz/besu",
   REGISTRY_ADDRESS:
     process.env.REACT_APP_REGISTRY_ADDRESS ||
     "0x4d06b562588cb61616959806726c5d9f060b0f21",
