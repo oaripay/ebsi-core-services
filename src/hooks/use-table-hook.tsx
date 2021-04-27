@@ -62,15 +62,22 @@ export function useTableHook() {
         if (params.authorizedApps.length) {
           return (
             <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: "More" }}>
-              {params.authorizedApps.map((authApp: any) => (
-                <Tag className="m-t-10" key={authApp} color="processing">
-                  {
+              {params.authorizedApps
+                .filter(
+                  (authApp: any) =>
                     appCtx.filteredDataSource.find(
                       (param: any) => param.id === authApp
                     )?.name
-                  }
-                </Tag>
-              ))}
+                )
+                .map((authApp: any) => (
+                  <Tag className="m-t-10" key={authApp} color="processing">
+                    {
+                      appCtx.filteredDataSource.find(
+                        (param: any) => param.id === authApp
+                      )?.name
+                    }
+                  </Tag>
+                ))}
             </Paragraph>
           );
         }
