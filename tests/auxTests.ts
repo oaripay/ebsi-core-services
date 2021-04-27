@@ -6,8 +6,12 @@ import jwtDecrypt from "jose/jwt/decrypt";
 import fromKeyLike from "jose/jwk/from_key_like";
 import generateKeyPair from "jose/util/generate_key_pair";
 import base64url from "base64url";
+import axios from "axios";
+import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import { loadConfig } from "../src/config/configuration";
 
 const keyEncoder = new KeyEncoder("secp256k1");
+const { apiName, authApiName, trustedAppsRegistry } = loadConfig();
 
 export async function generateKeys(
   alg: string
@@ -104,4 +108,37 @@ export async function decrypt(
     privateKey as crypto.KeyObject
   );
   return payload;
+}
+
+export async function createFakeToken(useKidAuthApi = false): Promise<string> {
+  const payload = {
+    iss: authApiName,
+    sub: "testApp",
+    aud: apiName,
+    atHash: `0x${crypto.randomBytes(32).toString("hex")}`,
+    exp: Math.trunc(Date.now() / 1000) + 15,
+    nonce: crypto.randomBytes(16).toString("base64"),
+  };
+
+  let kid = `${trustedAppsRegistry}/0x${"0".repeat(64)}`;
+  if (useKidAuthApi) {
+    const response = await axios.get(
+      `${trustedAppsRegistry}?name=${authApiName}`
+    );
+    const { href } = (response.data as {
+      items: { href: string }[];
+    }).items[0];
+    kid = href;
+  }
+  return createJWT(
+    payload,
+    {
+      alg: "ES256K",
+      issuer: authApiName,
+      signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+    },
+    {
+      kid,
+    }
+  );
 }

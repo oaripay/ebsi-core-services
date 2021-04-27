@@ -1,4 +1,4 @@
-import * as ebsiDidAuth from "@cef-ebsi/ebsi-siop-auth";
+import * as ebsiDidAuth from "@cef-ebsi/siop-auth";
 import { INestApplication } from "@nestjs/common";
 import {
   FastifyAdapter,
@@ -10,7 +10,11 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import * as authenticationModule from "./authentication.module";
 import { ApiConfig } from "../../config/configuration";
-import { prefix0x, prepareDidAuthRequest } from "./authentication.utils";
+import {
+  getDidFromKid,
+  prefix0x,
+  prepareDidAuthRequest,
+} from "./authentication.utils";
 import { generateKeys, getPrivateKeyHex } from "../../../tests/auxTests";
 
 describe("add0xPrefix", () => {
@@ -64,7 +68,7 @@ describe("prepareDidAuthRequest", () => {
     const appId = configService.get<string>("applicationId");
     const appDid = `did:ebsi:${wallet.address.toLowerCase()}`;
 
-    const domain = `https://api.test.intebsi.xyz/onboarding/v1/authentication-responses`;
+    const domain = `https://api.test.intebsi.xyz/users-onboarding/v1/authentication-responses`;
     const kid = `${"https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps"}/${appId}`;
 
     const ebsiMocked = jest.spyOn(
@@ -81,5 +85,12 @@ describe("prepareDidAuthRequest", () => {
       kid,
     };
     expect(ebsiMocked).toHaveBeenCalledWith(didAuthRequestCall);
+  });
+
+  it("should get did from kid", () => {
+    expect.assertions(1);
+    const kid = "did:ebsi:6QYJc3tLRhey88WPKC2kv588v1uZ1oid3yfc5Lp5AbYD#keys-1";
+    const did = getDidFromKid(kid);
+    expect(did).toBe("did:ebsi:6QYJc3tLRhey88WPKC2kv588v1uZ1oid3yfc5Lp5AbYD");
   });
 });

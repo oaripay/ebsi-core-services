@@ -1,8 +1,8 @@
-import { EbsiDidAuth, DidAuthRequestCall } from "@cef-ebsi/ebsi-siop-auth";
+import { EbsiDidAuth, DidAuthRequestCall } from "@cef-ebsi/siop-auth";
 import { InvalidUserAuthentication } from "../../errors";
 import { AuthenticationErrors } from "../../errors/errorCodes";
 
-async function prepareDidAuthRequest(
+export async function prepareDidAuthRequest(
   redirectUri: string,
   privateKey: string,
   kid: string,
@@ -28,8 +28,10 @@ async function prepareDidAuthRequest(
   }
 }
 
-function prefix0x(value: string): string {
+export function prefix0x(value: string): string {
   return value.startsWith("0x") ? value : `0x${value}`;
 }
 
-export { prefix0x, prepareDidAuthRequest };
+export function getDidFromKid(kid: string): string {
+  return kid.split("#")[0];
+}

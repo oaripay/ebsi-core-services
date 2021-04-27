@@ -1,9 +1,11 @@
-// For more info, read https://docs.nestjs.com/recipes/terminus
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Post, UseGuards } from "@nestjs/common";
 import {
+  VerifiableAuthorization,
   AuthenticationResponse,
   AuthenticationRequest,
+  AuhtenticationResponseRequest,
 } from "src/shared/interfaces";
+import { JwtAuthGuard } from "../auth/guards";
 import AuthenticationService from "./authentication.service";
 
 @Controller("/")
@@ -14,11 +16,19 @@ export class AuthenticationController {
   async authenticationRequest(
     @Body() body: AuthenticationRequest
   ): Promise<AuthenticationResponse> {
-    // validate user authentication
     const authenticationResponse = await this.authenticationService.startAuthentication(
       body
     );
     return authenticationResponse;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("/authentication-responses")
+  async authenticationResponse(
+    @Body() body: AuhtenticationResponseRequest
+  ): Promise<VerifiableAuthorization> {
+    const subject = await this.authenticationService.validateResponse(body);
+    return this.authenticationService.createVerifiableAuthorisation(subject);
   }
 }
 

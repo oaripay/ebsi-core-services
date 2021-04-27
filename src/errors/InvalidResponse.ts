@@ -1,6 +1,6 @@
 import { BadRequestError } from "@cef-ebsi/problem-details-errors";
 
-class InvalidScope extends BadRequestError {
+class InvalidResponse extends BadRequestError {
   constructor(message: string) {
     super(BadRequestError.defaultTitle);
     this.title = BadRequestError.defaultTitle;
@@ -8,4 +8,4 @@ class InvalidScope extends BadRequestError {
   }
 }
 
-export default InvalidScope;
+export default InvalidResponse;

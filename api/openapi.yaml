@@ -2,7 +2,12 @@ openapi: 3.0.3
 info:
   title: Users Onboarding API
   description: |
-    TODO
+    Users Onboarding API is an EBSI core service to enable users (Natural
+    Persons and Legal Entities) to obtain long-term access to the EBSI
+    pre-production network.
+    For more information see:
+    * [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/koXkFQ)
+    * [Code repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/browse?at=refs%2Fheads%2Fdevelop)
   version: 1.0.0
   termsOfService: /docs/terms
   contact:
@@ -11,76 +16,64 @@ info:
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
-tags:
-  - name: Users onboarding API
-    description: List trusted DIDs
 paths:
-  /users-onboarding-api/v2/todo:
-    get:
+  /users-onboarding/v1/authentication-requests:
+    post:
       tags:
-        - Users onboarding API
-      summary: todo
-      description: todo
-      operationId: todo
+        - Users Onboarding API
+      summary: Authentication requests
+      description: The user performs a request to this endpoint to start did siop by requesting the creation of the request. The endpoint returns a SIOP DID authentication request.
+      operationId: post-users-onboarding-api-authentication-requests
+      requestBody:
+        required: true
+        description: |
+          It requires the following field to be set as:
+          - **scope**: ebsi users onboarding
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scope:
+                  description: scope of did siop
+                  type: string
+            examples:
+              object:
+                value:
+                  scope: "ebsi users onboarding"
       responses:
-        200:
+        201:
           description: Success
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  self:
+                  session_token:
                     type: string
-                    description: URI to administrators
-                  items:
-                    type: array
-                    description: List of administrators
-                    items:
-                      type: object
-                      properties:
-                        did:
-                          type: string
-                          description: DID of the administrator
-                        href:
-                          type: string
-                          description: Link to the resource
-                  total:
-                    type: integer
-                    description: Total number of items in a collection
-                  pageSize:
-                    type: integer
-                    description: Number of items to be returned per page
-                  links:
-                    $ref: "#/components/schemas/Links"
+                    description: authentication request result
               examples:
                 Success:
                   value:
-                    self: https://api.ebsi.xyz/users-onboarding/v2/administrators?page[after]=3&page[size]=10
-                    items:
-                      - did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                        href: https://api.ebsi.xyz/users-onboarding/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                      - did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
-                        href: https://api.ebsi.xyz/users-onboarding/v2/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148
-                    total: 124
-                    pageSize: 10
-                    links:
-                      first: https://api.ebsi.xyz/users-onboarding/v2/administrators?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/users-onboarding/v2/administrators?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/users-onboarding/v2/administrators?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/users-onboarding/v2/administrators?page[after]=13&page[size]=10
+                    session_token: openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.ebsi.zyz%2Faccess-tokens&scope=openid%20did_authn&request=eyJhbGciOiJIUzI1Ni...
         400:
-          description: Bad Request Error
+          description: Bad Request
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
               examples:
-                Bad Paging Request:
-                  value:
-                    title: Bad Paging Request
-                    status: 400
-                    detail: PageSize should not be greater than 50
+                Bad Request Error:
+                  $ref: "#/components/examples/BadRequest"
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Not Found:
+                  $ref: "#/components/examples/NotFound"
         500:
           description: Internal Server Error
           content:
@@ -90,17 +83,85 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      parameters:
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
+  /users-onboarding/v1/authentication-responses:
+    post:
+      tags:
+        - Users Onboarding API
+      summary: Authentication responses
+      description: The user performs a request to this endpoint so as the user onboarding api accept his/her authentication response, validates it and returns a Verifiable Authorisation.
+      operationId: post-users-onboarding-api-authentication-responses
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                id_token:
+                  description: id token created by the user candidate to be validated. Notice that this value holds more than the JWT but also parameters like state.
+                  type: string
+            examples:
+              scope:
+                value:
+                  id_token: "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj"
+      responses:
+        201:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verifiableCredential:
+                    type: object
+                    description: this field contains the Verifiable Credential requested, i.e. the Verifiable Authorisation
+              examples:
+                Success:
+                  value:
+                    verifiableCredential:
+                      credentialSubject:
+                        id: "did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn"
+                        issuer:
+                          id: "did:ebsi:6QYJc3tLRhey88WPKC2kv588v1uZ1oid3yfc5Lp5AbYD"
+                        issuanceDate: "2021-04-26T15:55:02Z"
+                        "@context":
+                          - "https://www.w3.org/2018/credentials/v1"
+                        type: "VerifiableCredential"
+                        proof:
+                          type: "EcdsaSecp256k1Signature2019"
+                          created: "2021-04-26T15:55:02Z"
+                          proofPurpose: "assertionMethod"
+                          verificationMethod: "did:ebsi:6QYJc3tLRhey88WPKC2kv588v1uZ1oid3yfc5Lp5AbYD#keys-1"
+                          jws: "351Oed421iLbLLJjINWF_EAXN6EaBk1AJUqbpHqpv7TZOA7PnCmgyurvPVvjjmw"
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Request Error:
+                  $ref: "#/components/examples/BadRequest"
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
 components:
   schemas:
     Problem:
@@ -139,182 +200,6 @@ components:
           description: |
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
-    Links:
-      title: Links
-      type: object
-      properties:
-        last:
-          type: string
-          description: URI of the last page
-        prev:
-          type: string
-          description: URI of the previous page
-        next:
-          type: string
-          description: URI of the next page
-        first:
-          type: string
-          description: URI of the first page
-      description: links model used for pagination
-      x-examples:
-        Links:
-          first: https://api.ebsi.xyz/users-onboarding/v2/administrators?page[after]=1&page[size]=2
-          prev: https://api.ebsi.xyz/users-onboarding/v2/administrators?page[after]=2&page[size]=2
-          next: https://api.ebsi.xyz/users-onboarding/v2/administrators?page[after]=4&page[size]=2
-          last: https://api.ebsi.xyz/users-onboarding/v2/administrators?page[after]=13&page[size]=2
-    Attribute:
-      title: Attribute
-      type: object
-      description: Attribute
-      properties:
-        hash:
-          type: string
-          description: sha256 hash of the payload
-        body:
-          description: Base64 encoded content
-    AttributeDetails:
-      title: attributeDetails
-      type: object
-      description: Attribute Details
-      properties:
-        did:
-          type: string
-          description: DID of the attribute owner
-        attribute:
-          $ref: "#/components/schemas/Attribute"
-    Administrator:
-      title: Administrator
-      type: object
-      description: Name of the administrator
-      properties:
-        did:
-          type: string
-          description: DID of the administrator
-        attributes:
-          type: array
-          description: Array of attributes
-          items:
-            $ref: "#/components/schemas/Attribute"
-    DIDMethod:
-      title: DID Method
-      type: object
-      description: DID Method info
-      properties:
-        methodName:
-          type: string
-          description: DID Method name, e.g. "did:ebsi"
-        ledgerName:
-          type: string
-          description: Name of ledger where DID Method is implemented, e.g. "ebsi-besu".
-        methodSpec:
-          type: array
-          description: Array of bytes encoded serialized JSON method spec
-          items:
-            type: string
-        methodSpecHash:
-          type: array
-          description: Array of bytes32 hashes (sha2-256) of the methodInfo element
-          items:
-            type: string
-        notBefore:
-          type: number
-          description: Date and time after the DID method can be used.
-        notAfter:
-          type: number
-          description: Date and time at or after the DID method must be considered invalid.
-        status:
-          type: number
-          description: Status of the did method (1 = "active", 2 = "revoked", 3 = "suspended")
-        did:
-          type: string
-          description: DID of the administrator
-        attributes:
-          type: array
-          description: Array of attributes
-          items:
-            $ref: "#/components/schemas/Attribute"
-    DIDDocument:
-      title: DID Document
-      description: DID Document as a JSON-LD document
-      type: object
-      additionalProperties: true
-      properties:
-        "@context":
-          description: DID Document @context
-          oneOf:
-            - type: string
-              format: uri
-            - type: array
-              items:
-                type: string
-                format: uri
-    DIDDocumentMetadata:
-      title: DID Document metadata
-      description: DID Document metadata as a JSON document
-      type: object
-    DIDTimestamp:
-      title: DID Timestamp
-      description: DID Timestamp
-      type: object
-      additionalProperties: true
-      properties:
-        hash:
-          type: string
-          description: Multi-hash encoded hash
-        timestampedBy:
-          type: string
-          description: Address of the transaction signer that timestamped the information.
-        blockNumber:
-          type: number
-          description: Number of the block in which the hash has been timestamped.
-        data:
-          type: string
-          description: Additional timestamp data.
-    HashAlgorithm:
-      title: Hash algorithm
-      type: object
-      properties:
-        outputLengthBits:
-          type: number
-          description: Hash algorithm output length in bits. 0 if the output length if variable.
-        ianaName:
-          type: string
-          description: Hash algorithm IANA name.
-        oid:
-          type: string
-          description: Object identifier.
-        status:
-          type: string
-          description: Status of the algorithm (active, revoked).
-    Policy:
-      title: Policy
-      type: object
-      description: Policy data model
-      properties:
-        policyId:
-          type: string
-          description: Unique policy ID
-        policy:
-          type: string
-          description: Base64 encoded policy
-        hash:
-          type: string
-          description: Hash (multihash) of the policy
-    JsonRpcResponse:
-      title: Json Rpc Response
-      type: object
-      properties:
-        jsonrpc:
-          description: Must be exactly '2.0'
-          type: string
-        id:
-          description: Same identifier established by the client in the call
-          type: integer
-        result:
-          description: Result of the call
-          oneOf:
-            - type: object
-            - type: string
   examples:
     BadRequest:
       value:
@@ -331,8 +216,15 @@ components:
         title: Internal error
         status: 500
         detail: Internal error
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 servers:
-  - url: http://localhost
+  - url: "http://localhost"
     description: Local Computer Environment
-  - url: https://api.ebsi.xyz
-    description: EBSI Testing Environment
+  - url: "https://api.preprod.ebsi.eu"
+    description: EBSI Pre-production Environment
+  - url: "https://api.ebsi.eu"
+    description: EBSI Production Environment

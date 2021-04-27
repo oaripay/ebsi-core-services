@@ -12,7 +12,7 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 
 jest.setTimeout(60000);
 
-describe("/onboarding (generic tests)", () => {
+describe("/users-onboarding (generic tests)", () => {
   let app: NestFastifyApplication;
 
   beforeAll(async () => {

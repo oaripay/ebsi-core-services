@@ -3,7 +3,10 @@ import Joi from "joi";
 
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
+  authApiName: string;
+  authorisationApiUrl: string;
   apiPort: number;
+  apiName: string;
   apiPrivateKey: string;
   apiUrlPrefix: string;
   contractAddr: string;
@@ -13,8 +16,16 @@ export interface ApiConfig {
   adminTestPrivateKey: string;
   externalEbsiApiHealthCheck: string;
   trustedAppsRegistry: string;
+  didResolver: string;
   applicationId: string;
   applicationDid: string;
+  testUserDid: string;
+  testUserPrivateKey: string;
+  testApp: {
+    id: string;
+    name: string;
+    privateKey: string;
+  };
 }
 
 // Example of default values to be used, depending on the environment
@@ -23,32 +34,40 @@ const defaultConfig = {
     DOMAIN: "https://api.test.intebsi.xyz",
     LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    LOG_LEVEL: "debug",
+    AUTHORISATION: "https://api.test.intebsi.xyz/authorisation/v1",
     TRUSTED_APPS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
+    DID_RESOLVER: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
+    LOG_LEVEL: "debug",
   },
   test: {
     DOMAIN: "https://api.test.intebsi.xyz",
     LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    LOG_LEVEL: "info",
+    AUTHORISATION: "https://api.test.intebsi.xyz/authorisation/v1",
     TRUSTED_APPS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
+    DID_RESOLVER: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
+    LOG_LEVEL: "info",
   },
   pilot: {
     DOMAIN: "https://api.preprod.ebsi.eu",
     LEDGER: "https://api.preprod.ebsi.eu/ledger/v2",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
-    LOG_LEVEL: "warn",
+    AUTHORISATION: "https://api.preprod.ebsi.eu/authorisation/v1",
     TRUSTED_APPS_REGISTRY:
       "https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps",
+    DID_RESOLVER: "https://api.preprod.ebsi.eu/did-registry/v2/identifiers",
+    LOG_LEVEL: "warn",
   },
   prod: {
     DOMAIN: "https://api.ebsi.eu",
     LEDGER: "https://api.ebsi.eu/ledger/v2",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
-    LOG_LEVEL: "error",
+    AUTHORISATION: "https://api.ebsi.eu/authorisation/v1",
     TRUSTED_APPS_REGISTRY: "https://api.ebsi.eu/trusted-apps-registry/v2/apps",
+    DID_RESOLVER: "https://api.ebsi.eu/did-registry/v2/identifiers",
+    LOG_LEVEL: "error",
   },
 };
 
@@ -61,19 +80,32 @@ export const loadConfig = (): ApiConfig => {
   return {
     adminTestPrivateKey: process.env.ADMIN_TEST_PRIVATE_KEY || "",
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
+    apiName: "users-onboarding-api",
+    authApiName: "authorisation-api",
+    authorisationApiUrl:
+      process.env.AUTHORISATION || defaultConfig[EBSI_ENV].AUTHORISATION,
     apiPrivateKey: process.env.API_PRIVATE_KEY,
-    apiUrlPrefix: process.env.API_URL_PREFIX || "/onboarding/v1",
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/users-onboarding/v1",
     contractAddr: process.env.CONTRACT_ADDR,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     ledger: process.env.LEDGER || defaultConfig[EBSI_ENV].LEDGER,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    didResolver:
+      process.env.DID_RESOLVER || defaultConfig[EBSI_ENV].DID_RESOLVER,
     trustedAppsRegistry:
       process.env.TRUSTED_APPS_REGISTRY ||
       defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY,
     applicationId: process.env.APPLICATION_ID,
     applicationDid: process.env.APPLICATION_DID,
+    testUserDid: process.env.USER_DID || "",
+    testUserPrivateKey: process.env.USER_PRIVATE_KEY || "",
+    testApp: {
+      id: process.env.TEST_APP_ID,
+      name: process.env.TEST_APP_NAME,
+      privateKey: process.env.TEST_APP_PRIVATE_KEY,
+    },
   };
 };
 
@@ -101,6 +133,12 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug"
     ),
+    // Users Onboarding specific variables
     HEALTH_CHECK: Joi.string(),
+    API_PRIVATE_KEY: Joi.string().required(),
+    APPLICATION_ID: Joi.string().required(),
+    APPLICATION_DID: Joi.string().required(),
+    USER_DID: Joi.string().required(),
+    USER_PRIVATE_KEY: Joi.string().required(),
   }),
 });
