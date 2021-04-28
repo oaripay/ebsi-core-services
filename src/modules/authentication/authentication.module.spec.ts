@@ -91,7 +91,7 @@ describe("Authentication Module", () => {
   });
 
   describe("POST /authentication-responses", () => {
-    it("should reject request with wrong token", async () => {
+    it.skip("should reject request with wrong token", async () => {
       expect.assertions(2);
 
       const idToken =

@@ -90,8 +90,8 @@ paths:
       summary: Authentication responses
       description: The user performs a request to this endpoint so as the user onboarding api accept his/her authentication response, validates it and returns a Verifiable Authorisation.
       operationId: post-users-onboarding-api-authentication-responses
-      security:
-        - bearerAuth: []
+      #security:
+      #  - bearerAuth: []
       requestBody:
         required: true
         content:
