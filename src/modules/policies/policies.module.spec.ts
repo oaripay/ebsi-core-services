@@ -18,8 +18,6 @@ import { SchemaSCRegistry__factory } from "../../contracts/trusted-schemas";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
-jest.setTimeout(60000);
-
 const POLICIES_TOTAL = 12;
 const POLICIES_REVISIONS_TOTAL = 5;
 

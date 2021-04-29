@@ -23,8 +23,6 @@ import { setupTestEnv } from "../../../tests/utils/schemaRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { ItemsList } from "./schemas.interface";
 
-jest.setTimeout(60000);
-
 const SCHEMAS_TOTAL = 3;
 const SCHEMA_REVISIONS_TOTAL = 3;
 const SCHEMA_METADATA_TOTAL = 3;
