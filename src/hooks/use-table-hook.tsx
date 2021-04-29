@@ -19,7 +19,10 @@ export function useTableHook() {
   const loadTableData = useCallback(() => {
     appCtx.setTableLoading(true);
     getApplications().then((data: any) => {
-      appCtx.setTableDataSource(data);
+      appCtx.setTableDataSource(data.tableData);
+      getApplications(data.missingAppsFromTable).then((missingApps: any) => {
+        appCtx.setMissingApps(missingApps.tableData);
+      });
     });
   }, [getApplications, appCtx.page]);
 
@@ -61,23 +64,22 @@ export function useTableHook() {
       render: (params: any) => {
         if (params.authorizedApps.length) {
           return (
-            <Paragraph ellipsis={{ rows: 2, expandable: true, symbol: "More" }}>
-              {params.authorizedApps
-                .filter(
-                  (authApp: any) =>
-                    appCtx.filteredDataSource.find(
-                      (param: any) => param.id === authApp
-                    )?.name
-                )
-                .map((authApp: any) => (
+            <Paragraph ellipsis={{ rows: 3, expandable: true, symbol: "More" }}>
+              {params.authorizedApps.map((authApp: any) => {
+                let name = appCtx.tableDataSource.find(
+                  (param: any) => param.id === authApp
+                )?.name;
+                if (!name) {
+                  name = appCtx.missingApps.find(
+                    (param: any) => param.id === authApp
+                  )?.name;
+                }
+                return (
                   <Tag className="m-t-10" key={authApp} color="processing">
-                    {
-                      appCtx.filteredDataSource.find(
-                        (param: any) => param.id === authApp
-                      )?.name
-                    }
+                    {name}
                   </Tag>
-                ))}
+                );
+              })}
             </Paragraph>
           );
         }

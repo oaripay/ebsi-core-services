@@ -33,7 +33,12 @@ export function Search() {
           if (result.applicationId) {
             appCtx.setTableLoading(true);
             getApplications([result.applicationId]).then((data: any) => {
-              appCtx.setTableFilteredDataSource(data);
+              appCtx.setTableFilteredDataSource(data.tableData);
+              getApplications(data.missingAppsFromTable).then(
+                (missingApps: any) => {
+                  appCtx.setMissingApps(missingApps.tableData);
+                }
+              );
             });
           } else {
             appCtx.setTableFilteredDataSource(

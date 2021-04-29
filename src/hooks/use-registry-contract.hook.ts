@@ -83,10 +83,30 @@ export function useRegistryContractHook() {
     []
   );
 
+  const getAllMissingAppsByAuthorizationIds = (
+    idsLocally: any,
+    appAuthorizations: any,
+    length: number
+  ) => {
+    const appIdsLocally: string[] = [];
+    for (let i = 0; i < length; i += 1) {
+      for (let j = 0; j < appAuthorizations.value[i].items.length; j += 1) {
+        const authorizationIdLocally = appAuthorizations.value[i].items[j];
+        if (
+          !appIdsLocally.includes(authorizationIdLocally) &&
+          !idsLocally.includes(authorizationIdLocally)
+        ) {
+          appIdsLocally.push(authorizationIdLocally);
+        }
+      }
+    }
+    return appIdsLocally;
+  };
+
   const getApplications = useCallback(
-    (appIds = []) => {
+    (appIds = null) => {
       let promise = getApplicationIds();
-      if (appIds.length) {
+      if (appIds) {
         promise = Promise.resolve({
           items: appIds,
           total: 1,
@@ -119,7 +139,6 @@ export function useRegistryContractHook() {
             const apps: any = result[0];
             const appPublicKeys: any = result[1];
             const appAuthorizations: any = result[2];
-
             const tableData = [];
 
             for (let i = 0; i < apps.value.length; i += 1) {
@@ -131,7 +150,14 @@ export function useRegistryContractHook() {
                 authorizedApps: appAuthorizations.value[i].items,
               });
             }
-            return tableData;
+            return {
+              tableData,
+              missingAppsFromTable: getAllMissingAppsByAuthorizationIds(
+                ids,
+                appAuthorizations,
+                apps.value.length
+              ),
+            };
           });
         }
       );
@@ -206,5 +232,6 @@ export function useRegistryContractHook() {
     totalItems,
     initTotalItems,
     getAppByName,
+    getAllMissingAppsByAuthorizationIds,
   };
 }

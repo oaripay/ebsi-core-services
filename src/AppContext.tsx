@@ -3,10 +3,12 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 export type AppContextType = {
   tableLoading: true;
   tableDataSource: any[];
+  missingApps: any[];
   filteredDataSource: any[];
   setTableFilteredDataSource: (tableFilteredSource: any[]) => void;
   setTableLoading: (tableLoading: boolean) => void;
   setTableDataSource: (dataSource: any[]) => void;
+  setMissingApps: (missingApps: any[]) => void;
   searchedTerm: string;
   page: number;
   setSearchedTerm: (searchedTerm: string) => void;
@@ -51,6 +53,9 @@ export function AppProvider({ children }: any) {
   const [appState, setAppState] = useState(defaultParams);
   const [tableDataState, setTableDataState] = useState(defaultParamsTable);
   const [editModalState, setEditModalState] = useState(defaultParamsModal);
+
+  const [missingAppsState, setMissingAppsState] = useState([]);
+
   const [insertPublicKeyModalState, setInsertPublicKeyModalState] = useState(
     defaultParamsModal
   );
@@ -134,6 +139,13 @@ export function AppProvider({ children }: any) {
     [tableDataState]
   );
 
+  const setMissingApps = useCallback(
+    (missingApps) => {
+      setMissingAppsState(missingApps);
+    },
+    [missingAppsState]
+  );
+
   const setTableFilteredDataSource = useCallback(
     (filteredDataSource: any[]) => {
       setTableDataState({
@@ -205,6 +217,7 @@ export function AppProvider({ children }: any) {
       authorizedAppsModal: authorizedAppsModalState,
       setTableLoading,
       setTableDataSource,
+      setMissingApps,
       setSearchedTerm,
       setTableFilteredDataSource,
       setEditModal,
@@ -215,10 +228,12 @@ export function AppProvider({ children }: any) {
       pageErr,
       metamask,
       setPage,
+      missingApps: missingAppsState,
       insertPublicKeyModal: insertPublicKeyModalState,
     };
   }, [
     appState,
+    missingAppsState,
     editModalState,
     setInsertPublicKeyModal,
     tableDataState,

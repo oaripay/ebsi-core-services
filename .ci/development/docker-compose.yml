@@ -11,4 +11,4 @@ services:
         REACT_APP_REDIRECT_URL: ${REACT_APP_REDIRECT_URL}
         REACT_APP_WALLET_WEB_CLIENT_URL: ${REACT_APP_WALLET_WEB_CLIENT_URL}
         REACT_APP_WALLET_API: ${REACT_APP_WALLET_API}
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry-web-client:EBSIINT2976-v0.0.10
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry-web-client:v0.0.11
