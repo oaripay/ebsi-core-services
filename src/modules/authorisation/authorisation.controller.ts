@@ -15,27 +15,22 @@ export class AuthorisationController {
   @HttpCode(200)
   @Post("/authentication-requests")
   async authenticationRequests(
-    @Body() body: AuthenticationRequestDto
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    @Body() _body: AuthenticationRequestDto
   ): Promise<AuthenticationRequestResponse> {
-    const { scope } = body;
-
-    return this.authorisationService.authenticationRequest(scope);
+    return this.authorisationService.authenticationRequest();
   }
 
   @HttpCode(200)
   @Post("/oauth2-sessions")
   async oauth2Sessions(@Body() body: OAuth2SessionDto): Promise<AkeResponse> {
-    return this.authorisationService.createSessionOauth2(body);
+    return this.authorisationService.createOAuth2Session(body);
   }
 
   @HttpCode(200)
   @Post("/siop-sessions")
   async siopSessions(@Body() body: SiopSessionDto): Promise<AkeResponse> {
-    const { id_token: idToken } = body;
-    const tokenDecoded = await this.authorisationService.validateIdToken(
-      idToken
-    );
-    return this.authorisationService.createSession("siop", tokenDecoded);
+    return this.authorisationService.createSiopSession(body);
   }
 }
 

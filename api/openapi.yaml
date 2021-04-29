@@ -46,7 +46,7 @@ paths:
               examples:
                 Authentication Request:
                   value:
-                    uri: openid://?scope=openid%20did_authn&response_type=id_token&client_id=https%3A%2F%2Fapi.test.intebsi.xyz%2Fauthorisation%2Fv1%2Fsiop-sessions&request=eyJraWQiOiJodHRwczovL...
+                    uri: openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.test.intebsi.xyz%2Fauthorisation%2Fv1%2Fsiop-sessions&scope=openid%20did_authn&nonce=693dc75f-c2f7-494d-86bd-2068e9aa69ae&request=eyJhbGciOiJFUzI1NksiLCJ0eXAiOi...
         "400":
           description: Bad Request
           content:
@@ -84,8 +84,8 @@ paths:
             schema:
               $ref: "#/components/schemas/SiopSessionsRequest"
             examples:
-              SIOP Response:
-                value: "id_token=eyJraW..&state=af0ifjsldkj"
+              ID Token:
+                value: "id_token=eyJraW.."
         required: true
       responses:
         "200":
@@ -94,6 +94,19 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Ake1SiopResponse"
+              examples:
+                SIOP Response:
+                  value:
+                    ake1_enc_payload: a779dabc9de45e4dde99fd7092d649dd032e93c0d3282aee31feb449943268115215a6d0ad6fe0bd1887...
+                    ake1_sig_payload:
+                      iat: 1619700622
+                      exp: 1619701522
+                      ake1_nonce: "64ce6e9f-2fea-4f44-9faa-2409bdf7792c"
+                      ake1_enc_payload: a779dabc9de45e4dde99fd7092d649dd032e93c0d3282aee31feb449943268115215a6d0ad6fe0bd1887...
+                      did: did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e
+                      iss: did:ebsi:BdFneNpniW3DE639yY6sEga9GhwdZ3jSdfJ1EyURMPx5
+                    ake1_jws_detached: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwc...
+                    did: did:ebsi:BdFneNpniW3DE639yY6sEga9GhwdZ3jSdfJ1EyURMPx5
         "400":
           description: Bad Request
           content:
@@ -142,7 +155,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Ake1Oauth2Response"
+                $ref: "#/components/schemas/Ake1OAuth2Response"
+              examples:
+                OAuth2 response:
+                  value:
+                    ake1_enc_payload: a2b0f1d9e76ed4ccca51727e73237a530021d1851fae0464b0d24b1dec5...
+                    ake1_sig_payload:
+                      iat: 1619700951
+                      exp: 1619701851
+                      ake1_nonce: "5b7239ab-e28e-4187-a9b3-703f2d9f6a78"
+                      ake1_enc_payload: a2b0f1d9e76ed4ccca51727e73237a530021d1851fae0464b0d24b1dec5...
+                      kid: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb12d3a1d0ab15c87590c26fea7afdca8f22bfeb8c5387e787955f8044b6ada5f
+                      iss: authorisation-api
+                    ake1_jws_detached: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHR...
+                    kid: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xf0c34a721e1bb7606de33a6e44ab30698e8076d7bb5c0b11d108aa52a5de0337
         "400":
           description: Bad Request
           content:
@@ -195,10 +221,6 @@ components:
           type: string
           description: signed JWT OIDC Id Token
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-        state:
-          type: string
-          description: Required if it is present in the Authentication Request
-          example: "af0ifjsldkj"
       required:
         - id_token
       description: Request for JWT bearer token on a DID SIOP Response.
@@ -233,6 +255,10 @@ components:
               description: Issued at
               type: number
               example: 1615883457
+            exp:
+              description: Expires
+              type: number
+              example: 1615883468
             iss:
               description: Issuer (authorisation api)
               type: string
@@ -270,7 +296,7 @@ components:
         - clientAssertionType
         - clientAssertion
         - scope
-    Ake1Oauth2Response:
+    Ake1OAuth2Response:
       title: Oauth2 Session Response
       type: object
       properties:
@@ -301,6 +327,10 @@ components:
               description: Issued at
               type: number
               example: 1615883457
+            exp:
+              description: Expires
+              type: number
+              example: 1615883468
             iss:
               description: Issuer (authorisation api)
               type: string

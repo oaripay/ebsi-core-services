@@ -12,75 +12,53 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import axios from "axios";
-import fromKeyLike, { JWK } from "jose/jwk/from_key_like";
-import { createJwt, SimpleSigner } from "@cef-ebsi/did-jwt";
+import { parseJwk } from "jose/jwk/parse";
+import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import generateKeyPair from "jose/util/generate_key_pair";
+import { ec as EC } from "elliptic";
 import SignJWT from "jose/jwt/sign";
 import { ConfigService } from "@nestjs/config";
-import base64url from "base64url";
 import { FastifyInstance } from "fastify";
 import jwtVerify from "jose/jwt/verify";
-import { Ake1SigPayload, AkeResponse, Agent } from "@cef-ebsi/oauth2-auth";
+import { v4 as uuidv4 } from "uuid";
+import {
+  Ake1SigPayload,
+  AkeResponse,
+  Agent as OAuth2Agent,
+} from "@cef-ebsi/oauth2-auth";
+import {
+  EbsiDidAuth,
+  Agent as SiopAgent,
+  DidAuthResponseMode,
+} from "@cef-ebsi/siop-auth";
 import querystring from "querystring";
 import { AppModule } from "../../src/app.module";
 import { AuthenticationRequestResponse } from "../../src/modules/authorisation/authorisation.interface";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { loadConfig, ApiConfig } from "../../src/config/configuration";
-import { getPublicKey } from "../utils/publicKey";
-import {
-  decrypt,
-  generateKeys,
-} from "../../src/modules/authorisation/authorisation.utils";
+import { ApiConfig } from "../../src/config/configuration";
+import { getPublicKey } from "../utils/keys";
 
-async function createClient(alg) {
-  const {
-    publicKey,
-    privateKey,
-    publicKeyEncryption,
-    privateKeyEncryption,
-  } = await generateKeys(alg);
-
-  let jwk: JWK | JWK[];
-
-  if (alg === "EdDSA") {
-    // two types of keys for Edward
-    jwk = [
-      {
-        ...(await fromKeyLike(publicKeyEncryption)),
-        use: "enc",
-      },
-      {
-        ...(await fromKeyLike(publicKey)),
-        use: "sig",
-      },
-    ];
-  } else {
-    jwk = await fromKeyLike(publicKey);
-  }
-
-  return {
-    publicKey,
-    privateKey,
-    publicKeyEncryption,
-    privateKeyEncryption,
-    did: `did:ebsi:${crypto.randomBytes(12).toString("base64")}`,
-    jwk,
-  };
+function prefix0x(value: string): string {
+  return value.startsWith("0x") ? value : `0x${value}`;
 }
+
+const base64ToBase64Url = (base64: string): string =>
+  base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 
 describe("Authorisation (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let appTestId: string;
   let trustedAppsRegistry: string;
-  let kidApi: string;
-  let didApi: string;
-  let publicKeyApi: crypto.KeyObject;
+  let apiKid: string;
+  let apiDid: string;
   let trustedApp: {
     name: string;
-    applicationId: string;
+    apiTarId: string;
     privateKey: string;
     kid: string;
   };
+  let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -100,35 +78,30 @@ describe("Authorisation (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
-      ConfigService
-    );
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
     const apiName = configService.get<string>("apiName");
-    const appTestName = configService.get<string>("appTestName");
-    const appTestPrivateKey = configService.get<string>("appTestPrivateKey");
+    const testAppName = configService.get<string>("testAppName");
+    const testAppPrivateKey = configService.get<string>("testAppPrivateKey");
     trustedAppsRegistry = configService.get<string>("trustedAppsRegistry");
 
     let listAppsByName: {
       data: { items: { id: string }[] };
     } = await axios.get(`${trustedAppsRegistry}?name=${apiName}`);
-    const applicationId = listAppsByName.data.items[0].id;
+    const apiTarId = listAppsByName.data.items[0].id;
 
     listAppsByName = await axios.get(
-      `${trustedAppsRegistry}?name=${appTestName}`
+      `${trustedAppsRegistry}?name=${testAppName}`
     );
     appTestId = listAppsByName.data.items[0].id;
 
-    const { publicKeyObject, did } = await getPublicKey(
-      configService.get("apiPrivateKey")
-    );
-    publicKeyApi = publicKeyObject;
-    didApi = did;
-    kidApi = `${trustedAppsRegistry}/${applicationId}`;
+    apiDid = configService.get("apiDid");
+    apiKid = `${trustedAppsRegistry}/${apiTarId}`;
 
     trustedApp = {
-      name: appTestName,
-      applicationId: appTestId,
-      privateKey: appTestPrivateKey,
+      name: testAppName,
+      apiTarId: appTestId,
+      privateKey: testAppPrivateKey,
       kid: `${trustedAppsRegistry}/${appTestId}`,
     };
   });
@@ -161,7 +134,7 @@ describe("Authorisation (e2e)", () => {
     });
 
     it("should return an authentication request", async () => {
-      expect.assertions(3);
+      expect.assertions(7);
 
       const response = await request(server)
         .post("/authentication-requests")
@@ -169,11 +142,6 @@ describe("Authorisation (e2e)", () => {
           scope: "openid did_authn",
         });
 
-      expect(response.body).toStrictEqual({
-        uri: expect.stringContaining(
-          `openid://?scope=openid%20did_authn&response_type=id_token&client_id=`
-        ) as string,
-      });
       expect(response.status).toBe(200);
 
       const query = querystring.decode(
@@ -183,20 +151,28 @@ describe("Authorisation (e2e)", () => {
         )
       );
 
+      expect(query.scope).toStrictEqual("openid did_authn");
+      expect(query.response_type).toStrictEqual("id_token");
+      expect(query.client_id).toBeDefined();
+      expect(query.nonce).toBeDefined();
+      expect(query.request).toBeDefined();
+
       const { publicKeyObject } = await getPublicKey(
-        loadConfig().apiPrivateKey
+        configService.get("apiPrivateKey")
       );
       const verification = await jwtVerify(
         query.request as string,
         publicKeyObject
       );
+
       expect(verification.payload).toStrictEqual({
         iat: expect.any(Number) as number,
+        exp: expect.any(Number) as number,
         scope: "openid did_authn",
         response_type: "id_token",
         client_id: expect.any(String) as string,
         nonce: expect.any(String) as string,
-        iss: "authorisation-api",
+        iss: configService.get<string>("apiDid"),
       });
     });
   });
@@ -218,10 +194,10 @@ describe("Authorisation (e2e)", () => {
       expect(response.status).toBe(400);
 
       const payload = {};
-      const token = await createJwt(payload, {
+      const token = await createJWT(payload, {
         alg: "ES256K",
         issuer: trustedApp.name,
-        signer: SimpleSigner(crypto.randomBytes(32).toString("hex")),
+        signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
       });
 
       response = await request(server).post("/oauth2-sessions").send({
@@ -240,12 +216,12 @@ describe("Authorisation (e2e)", () => {
       });
       expect(response.status).toBe(400);
 
-      const applicationId =
+      const apiTarId =
         "0x0000000000000000000000000000000000000000000000000000000000000000";
-      const nonce = crypto.randomBytes(10).toString("base64");
-      let agent = new Agent(crypto.randomBytes(32).toString("hex"), {
+      const nonce = uuidv4();
+      let agent = new OAuth2Agent(crypto.randomBytes(32).toString("hex"), {
         issuer: trustedApp.name,
-        kid: `${trustedAppsRegistry}/${applicationId}`,
+        kid: `${trustedAppsRegistry}/${apiTarId}`,
       });
 
       let authRequest = await agent.createRequestPayload("storage-api", {
@@ -259,14 +235,12 @@ describe("Authorisation (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Invalid Client Assertion",
         status: 400,
-        detail: expect.stringContaining(
-          `App ${applicationId} not found`
-        ) as string,
+        detail: expect.stringContaining(`App ${apiTarId} not found`) as string,
         type: "about:blank",
       });
       expect(response.status).toBe(400);
 
-      agent = new Agent(crypto.randomBytes(32).toString("hex"), {
+      agent = new OAuth2Agent(crypto.randomBytes(32).toString("hex"), {
         issuer: trustedApp.name,
         kid: trustedApp.kid,
       });
@@ -288,10 +262,10 @@ describe("Authorisation (e2e)", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should create an oauth2 session", async () => {
+    it("should create an OAuth2 session", async () => {
       expect.assertions(3);
-      const nonce = crypto.randomBytes(10).toString("base64");
-      const agent = new Agent(trustedApp.privateKey, {
+      const nonce = uuidv4();
+      const agent = new OAuth2Agent(trustedApp.privateKey, {
         issuer: trustedApp.name,
         kid: trustedApp.kid,
       });
@@ -299,6 +273,7 @@ describe("Authorisation (e2e)", () => {
       const authRequest = await agent.createRequestPayload("storage-api", {
         nonce,
       });
+
       const response = await request(server)
         .post("/oauth2-sessions")
         .send(authRequest);
@@ -314,7 +289,7 @@ describe("Authorisation (e2e)", () => {
           iss: "authorisation-api",
         }) as Ake1SigPayload,
         ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
-        kid: kidApi,
+        kid: apiKid,
       });
       expect(response.status).toBe(200);
 
@@ -329,239 +304,284 @@ describe("Authorisation (e2e)", () => {
     });
   });
 
-  describe.each(["ES256K", "ES256", "RS256", "EdDSA"])(
-    "POST /siop-sessions with alg %s",
-    (alg) => {
-      it("should reject bad requests", async () => {
-        expect.assertions(10);
+  describe.each(["ES256K"])("POST /siop-sessions with alg %s", (alg) => {
+    it("should reject bad requests", async () => {
+      expect.assertions(10);
 
-        const client = await createClient(alg);
+      const clientDid = configService.get<string>("testClientDid");
+      const ec = new EC("secp256k1");
+      const ecKey = ec.keyFromPrivate(
+        configService.get<string>("testClientPrivateKey")
+      );
+      const jwk = {
+        kty: "EC",
+        crv: "secp256k1",
+        x: base64ToBase64Url(
+          ecKey.getPublic().getX().toArrayLike(Buffer).toString("base64")
+        ),
+        y: base64ToBase64Url(
+          ecKey.getPublic().getY().toArrayLike(Buffer).toString("base64")
+        ),
+        d: base64ToBase64Url(
+          ecKey.getPrivate().toArrayLike(Buffer).toString("base64")
+        ),
+      };
+      const clientPrivateKey = await parseJwk(jwk, "ES256K");
+      const domain = configService.get<string>("domain");
+      const urlPrefix = configService.get<string>("apiUrlPrefix");
+      const siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
+      const nonce = uuidv4();
 
-        let response = await request(server)
-          .post("/siop-sessions")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send("invalid string");
+      let response = await request(server)
+        .post("/siop-sessions")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send("invalid string");
 
-        expect(response.body).toStrictEqual({
-          title: "Bad Request",
-          status: 400,
-          detail: `["id_token must be a jwt string","state must be a string"]`,
-          type: "about:blank",
-        });
-        expect(response.status).toBe(400);
-
-        let payload = {};
-        let idToken = await new SignJWT(payload)
-          .setProtectedHeader({
-            alg,
-            typ: "JWT",
-          })
-          .setIssuedAt()
-          .setIssuer(client.did)
-          .setAudience("storage-api")
-          .setExpirationTime("15s")
-          .sign(client.privateKey);
-
-        response = await request(server)
-          .post("/siop-sessions")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send({
-            id_token: idToken,
-            state: crypto.randomBytes(4).toString("hex"),
-          });
-        expect(response.body).toStrictEqual({
-          title: "Invalid Id Token",
-          status: 400,
-          detail: "Invalid JWT header",
-          type: "about:blank",
-        });
-        expect(response.status).toBe(400);
-
-        idToken = await new SignJWT(payload)
-          .setProtectedHeader({
-            alg,
-            typ: "JWT",
-            kid: client.did,
-          })
-          .setIssuedAt()
-          .setIssuer(client.did)
-          .setAudience("storage-api")
-          .setExpirationTime("15s")
-          .sign(client.privateKey);
-
-        response = await request(server)
-          .post("/siop-sessions")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send({
-            id_token: idToken,
-            state: crypto.randomBytes(4).toString("hex"),
-          });
-        expect(response.body).toStrictEqual({
-          title: "Invalid Id Token",
-          status: 400,
-          detail:
-            "The payload should contain iss, sub, aud, exp, iat, sub_jwk, sub_did_verification_method_uri, nonce, and claims",
-          type: "about:blank",
-        });
-        expect(response.status).toBe(400);
-
-        payload = {
-          sub: "thumbprint of the sub_jwk",
-          aud: "storage-api",
-          sub_jwk: "sub_jwk",
-          sub_did_verification_method_uri: client.did,
-          nonce: crypto.randomBytes(4).toString("hex"),
-          exp: Math.trunc(Date.now() / 1000) + 15,
-          claims: {},
-        };
-        idToken = await new SignJWT(payload)
-          .setProtectedHeader({
-            alg,
-            typ: "JWT",
-            kid: client.did,
-          })
-          .setIssuedAt()
-          .setIssuer(client.did)
-          .setAudience("storage-api")
-          .setExpirationTime("15s")
-          .sign(client.privateKey);
-
-        response = await request(server)
-          .post("/siop-sessions")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send({
-            id_token: idToken,
-            state: crypto.randomBytes(4).toString("hex"),
-          });
-        expect(response.body).toStrictEqual({
-          title: "Invalid Id Token",
-          status: 400,
-          detail: "Invalid sub_jwk: JWK must be an object",
-          type: "about:blank",
-        });
-        expect(response.status).toBe(400);
-
-        payload = {
-          sub: "thumbprint of the sub_jwk",
-          aud: "storage-api",
-          sub_jwk: (await createClient(alg)).jwk,
-          sub_did_verification_method_uri: client.did,
-          nonce: crypto.randomBytes(4).toString("hex"),
-          exp: Math.trunc(Date.now() / 1000) + 15,
-          claims: {},
-        };
-
-        idToken = await new SignJWT(payload)
-          .setProtectedHeader({
-            alg,
-            typ: "JWT",
-            kid: client.did,
-          })
-          .setIssuedAt()
-          .setIssuer(client.did)
-          .setAudience("storage-api")
-          .setExpirationTime("15s")
-          .sign(client.privateKey);
-
-        response = await request(server)
-          .post("/siop-sessions")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send({
-            id_token: idToken,
-            state: crypto.randomBytes(4).toString("hex"),
-          });
-        expect(response.body).toStrictEqual({
-          title: "Invalid Id Token",
-          status: 400,
-          detail: "Invalid signature",
-          type: "about:blank",
-        });
-        expect(response.status).toBe(400);
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["id_token must be a jwt string"]',
+        type: "about:blank",
       });
+      expect(response.status).toBe(400);
 
-      it(`should create a siop session for a user that uses alg ${alg}`, async () => {
-        expect.assertions(4);
-
-        const nonce = crypto.randomBytes(10).toString("base64");
-
-        const client = await createClient(alg);
-
-        const payload = {
-          sub: "thumbprint of the sub_jwk",
-          sub_jwk: client.jwk,
-          sub_did_verification_method_uri: client.did,
-          nonce,
-          exp: Math.trunc(Date.now() / 1000) + 15,
-          claims: {},
-        };
-
-        const idToken = await new SignJWT(payload)
-          .setProtectedHeader({
-            alg,
-            typ: "JWT",
-            kid: client.did,
-          })
-          .setIssuedAt()
-          .setIssuer(client.did)
-          .setAudience("storage-api")
-          .setExpirationTime("15s")
-          .sign(client.privateKey);
-
-        const response = await request(server)
-          .post("/siop-sessions")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send({
-            id_token: idToken,
-            state: crypto.randomBytes(4).toString("hex"),
-          });
-
-        expect(response.body).toStrictEqual({
-          ake1_enc_payload: expect.any(String) as string,
-          ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
-          ake1_sig_payload: expect.objectContaining({
-            ake1_enc_payload: expect.any(String) as string,
-            ake1_nonce: nonce,
-            did: client.did,
-            iat: expect.any(Number) as number,
-            iss: "authorisation-api",
-          }) as Ake1SigPayload,
-          did: didApi,
-        });
-        expect(response.status).toBe(200);
-
-        // verify ake
-        const {
-          ake1_enc_payload: ake1EncPayload,
-          ake1_sig_payload: ake1SigPayload,
-          ake1_jws_detached: ake1JwsDetached,
-        } = response.body as AkeResponse;
-
-        // check ake1EncPayload
-        const ake1DecPayload = (await decrypt(
+      let payload = {};
+      let idToken = await new SignJWT(payload)
+        .setProtectedHeader({
           alg,
-          alg === "EdDSA" ? client.privateKeyEncryption : client.privateKey,
-          ake1EncPayload
-        )) as {
-          access_token: string;
-          did: string;
-        };
-        expect(ake1DecPayload).toStrictEqual({
-          access_token: expect.any(String) as string,
-          did: didApi,
+          typ: "JWT",
+        })
+        .setIssuedAt()
+        .setIssuer(clientDid) // wrong issuer
+        .setAudience(siopSessionsUrl)
+        .setExpirationTime("15s")
+        .sign(clientPrivateKey);
+
+      response = await request(server)
+        .post("/siop-sessions")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send({ id_token: idToken });
+
+      expect(response.body).toStrictEqual({
+        title: "Invalid ID Token",
+        status: 400,
+        detail:
+          "The Response Token Issuer Claim (iss) MUST be https://self-issued.me",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+
+      idToken = await new SignJWT(payload)
+        .setProtectedHeader({
+          alg,
+          typ: "JWT",
+          kid: "did:ebsi:1234", // wrong DID
+        })
+        .setIssuedAt()
+        .setIssuer("https://self-issued.me")
+        .setAudience(siopSessionsUrl)
+        .setExpirationTime("15s")
+        .sign(clientPrivateKey);
+
+      response = await request(server)
+        .post("/siop-sessions")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send({ id_token: idToken });
+
+      expect(response.body).toStrictEqual({
+        title: "Invalid ID Token",
+        status: 400,
+        detail:
+          "Unable to resolve DID document for https://self-issued.me: notFound, registry used: https://api.test.intebsi.xyz/did-registry/v2/identifiers",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+
+      payload = {
+        nonce: undefined, // missing nonce
+      };
+
+      idToken = await new SignJWT(payload)
+        .setProtectedHeader({
+          alg,
+          typ: "JWT",
+          kid: clientDid,
+        })
+        .setIssuedAt()
+        .setIssuer("https://self-issued.me")
+        .setAudience(siopSessionsUrl)
+        .setExpirationTime("15s")
+        .sign(clientPrivateKey);
+
+      response = await request(server)
+        .post("/siop-sessions")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send({ id_token: idToken });
+
+      expect(response.body).toStrictEqual({
+        title: "Invalid ID Token",
+        status: 400,
+        detail: "No nonce found in JWT payload",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+
+      payload = {
+        nonce,
+      };
+
+      const wrongPrivateKey = (await generateKeyPair("ES256K")).privateKey;
+      idToken = await new SignJWT(payload)
+        .setProtectedHeader({
+          alg,
+          typ: "JWT",
+          kid: clientDid,
+        })
+        .setIssuedAt()
+        .setIssuer("https://self-issued.me")
+        .setAudience(siopSessionsUrl)
+        .setExpirationTime("15s")
+        .sign(wrongPrivateKey);
+
+      response = await request(server)
+        .post("/siop-sessions")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send({ id_token: idToken });
+
+      expect(response.body).toStrictEqual({
+        title: "Invalid ID Token",
+        status: 400,
+        detail: "Signature invalid for JWT",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it(`should create a SIOP session for a user that uses alg ${alg}`, async () => {
+      expect.assertions(3);
+
+      const domain = configService.get<string>("domain");
+      const urlPrefix = configService.get<string>("apiUrlPrefix");
+      const privateKey = prefix0x(configService.get<string>("apiPrivateKey"));
+      const siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
+
+      const { uri } = await EbsiDidAuth.createAuthenticationRequest({
+        redirectUri: siopSessionsUrl,
+        hexPrivateKey: privateKey,
+        kid: apiKid,
+        issuer: apiDid,
+      });
+
+      const uriDecoded = querystring.decode(uri.replace("openid://?", ""));
+
+      const nonce = uuidv4();
+      const authenticationResponse = await EbsiDidAuth.createAuthenticationResponse(
+        {
+          hexPrivatekey: prefix0x(configService.get("testClientPrivateKey")),
+          did: configService.get("testClientDid"),
           nonce,
+          redirectUri: uriDecoded.client_id as string,
+          response_mode: DidAuthResponseMode.FORM_POST,
+        }
+      );
+
+      const authResponseDecoded = querystring.decode(
+        authenticationResponse.bodyEncoded || ""
+      );
+
+      const response = await request(server)
+        .post("/siop-sessions")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send({ id_token: authResponseDecoded.id_token });
+
+      expect(response.body).toStrictEqual({
+        ake1_enc_payload: expect.any(String) as string,
+        ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
+        ake1_sig_payload: expect.objectContaining({
+          ake1_enc_payload: expect.any(String) as string,
+          ake1_nonce: nonce,
+          did: configService.get<string>("testClientDid"),
+          iat: expect.any(Number) as number,
+          exp: expect.any(Number) as number,
+          iss: apiDid,
+        }) as Ake1SigPayload,
+        did: apiDid,
+      });
+      expect(response.status).toBe(200);
+
+      // Check that we can get the access token
+      const client = {
+        privateKey: prefix0x(configService.get<string>("testClientPrivateKey")),
+        did: configService.get<string>("testClientDid"),
+        didRegistry: configService.get<string>("didRegistry"),
+      };
+      const agent = new SiopAgent(client);
+      const accessToken = await agent.verifyAuthenticationResponse(
+        response.body,
+        nonce
+      );
+      expect(accessToken).toBeDefined();
+    });
+  });
+
+  describe("SIOP flow", () => {
+    it("should support the full SIOP flow", async () => {
+      expect.assertions(1);
+
+      // 1. First, the client calls /authentication-requests
+      const authenticationRequestsResponse = await request(server)
+        .post("/authentication-requests")
+        .send({
+          scope: "openid did_authn",
         });
 
-        // check ake1JwsDetached
-        const ake1SignPayload = ake1JwsDetached.replace(
-          "..",
-          `.${base64url(JSON.stringify(ake1SigPayload))}.`
-        );
-        const { payload: payloadAke } = await jwtVerify(
-          ake1SignPayload,
-          publicKeyApi
-        );
-        expect(payloadAke).toStrictEqual(ake1SigPayload);
+      // 2. The client verifies the response
+      const { uri } = authenticationRequestsResponse.body as { uri: string };
+      const uriDecoded = querystring.decode(uri.replace("openid://?", "")) as {
+        request: string;
+      };
+
+      const payload = await EbsiDidAuth.verifyAuthenticationRequest(
+        uriDecoded.request,
+        configService.get<string>("didRegistry")
+      );
+
+      // 3. The client creates an authentication response and gets an ID Token
+      const nonce = uuidv4();
+      const authenticationResponse = await EbsiDidAuth.createAuthenticationResponse(
+        {
+          hexPrivatekey: prefix0x(configService.get("testClientPrivateKey")),
+          did: configService.get("testClientDid"),
+          nonce,
+          redirectUri: payload.client_id,
+          response_mode: DidAuthResponseMode.FORM_POST,
+        }
+      );
+
+      const authResponseDecoded = querystring.decode(
+        authenticationResponse.bodyEncoded ?? ""
+      );
+
+      const idToken = authResponseDecoded.id_token;
+
+      // 4. The client call /siop-sessions with the ID Token
+      const siopSessionsResponse = await request(server)
+        .post("/siop-sessions")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send({ id_token: idToken });
+
+      // 5. Finally, the client verifies the SIOP authentication response and gets an access token
+      const siopAgent = new SiopAgent({
+        privateKey: prefix0x(configService.get<string>("testClientPrivateKey")),
+        didRegistry: configService.get<string>("didRegistry"),
       });
-    }
-  );
+
+      const accessToken = await siopAgent.verifyAuthenticationResponse(
+        siopSessionsResponse.body,
+        nonce
+      );
+
+      expect(accessToken).toBeDefined();
+    });
+  });
 });

@@ -23,7 +23,7 @@ First, create an `.env.local` file locally. You can duplicate the content of `.e
 
 Please note that you need to fill the API_PRIVATE_KEY and ADMIN_TEST_PRIVATE_KEY environment variable with secp256k1 elliptic curve private keys in hexadecimal.
 
-You must at least set `API_PRIVATE_KEY`, `TRUSTED_APPS_REGISTRY_CONTRACT_ADDR` and `EBSI_ENV` to run the API. For e2e testing, you must also set `APP_TEST_NAME` and `ADMIN_TEST_PRIVATE_KEY`.
+You must at least set `API_PRIVATE_KEY`, `API_DID`, `API_TAR_ID` and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_DID` and `TEST_CLIENT_PRIVATE_KEY`.
 
 ### Run the project locally
 
@@ -149,7 +149,7 @@ yarn audit
 
 ## Testing
 
-Reminder: you need to set `APP_TEST_NAME` and `APP_TEST_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests!
+Reminder: you need to set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_DID` and `TEST_CLIENT_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests!
 
 Run all the tests:
 

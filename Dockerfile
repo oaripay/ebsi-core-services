@@ -1,4 +1,4 @@
-FROM node:14.16.0-alpine3.12@sha256:b16524cf535a6010663d63e8f871c7efc7d87f14d7fcb38298a40f7a521743f8 as base
+FROM node:14.16.1-alpine3.13@sha256:4ffbef007b0214706fb8ec92353ccd5b0a12d9d1522e0f2c5e0a8bde3f9d8985 as base
 WORKDIR /app
 # Some dependencies need git to be installed (see yarn.lock)
 RUN apk add --no-cache --virtual .build-deps git
@@ -6,7 +6,7 @@ COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
 
 FROM base as builder
-RUN yarn install --frozen-lockfile --silent
+RUN yarn install --frozen-lockfile --silent && yarn cache clean
 COPY nest-cli.json tsconfig*.json ./
 COPY src src
 RUN yarn build

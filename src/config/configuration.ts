@@ -7,14 +7,18 @@ export interface ApiConfig {
   apiPrivateKey: string;
   apiName: string;
   apiUrlPrefix: string;
+  apiDid: string;
+  apiTarId: string;
   authExpireTime: number;
   trustedAppsRegistry: string;
-  applicationId: string;
+  didRegistry: string;
   domain: string;
   logLevel: string;
-  appTestName: string;
-  appTestPrivateKey: string;
   externalEbsiApiHealthCheck: string;
+  testAppName: string;
+  testAppPrivateKey: string;
+  testClientDid: string;
+  testClientPrivateKey: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -24,27 +28,31 @@ const defaultConfig = {
     DOMAIN: "https://api.test.intebsi.xyz",
     TRUSTED_APPS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
-    HEALTH_CHECK: `https://api.test.intebsi.xyz/docs/`,
+    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
+    DID_REGISTRY: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
   },
   test: {
     LOG_LEVEL: "info",
     DOMAIN: "https://api.test.intebsi.xyz",
     TRUSTED_APPS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
-    HEALTH_CHECK: `https://api.test.intebsi.xyz/docs/`,
+    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
+    DID_REGISTRY: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
   },
   pilot: {
     LOG_LEVEL: "warn",
     DOMAIN: "https://api.preprod.ebsi.eu",
     TRUSTED_APPS_REGISTRY:
       "https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps",
-    HEALTH_CHECK: `https://api.preprod.ebsi.eu/docs/`,
+    HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
+    DID_REGISTRY: "https://api.preprod.ebsi.eu/did-registry/v2/identifiers",
   },
   prod: {
     LOG_LEVEL: "error",
     DOMAIN: "https://api.ebsi.eu",
     TRUSTED_APPS_REGISTRY: "https://api.ebsi.eu/trusted-apps-registry/v2/apps",
-    HEALTH_CHECK: `https://api.ebsi.eu/docs/`,
+    HEALTH_CHECK: "https://api.ebsi.eu/docs/",
+    DID_REGISTRY: "https://api.ebsi.eu/did-registry/v2/identifiers",
   },
 };
 
@@ -60,16 +68,21 @@ export const loadConfig = (): ApiConfig => {
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiName: process.env.API_NAME || "authorisation-api",
     apiUrlPrefix: process.env.API_URL_PREFIX || "/authorisation/v1",
+    apiDid: process.env.API_DID,
+    apiTarId: process.env.API_TAR_ID,
     trustedAppsRegistry:
       process.env.TRUSTED_APPS_REGISTRY ||
       defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY,
-    applicationId: process.env.APPLICATION_ID,
+    didRegistry:
+      process.env.DID_REGISTRY || defaultConfig[EBSI_ENV].DID_REGISTRY,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
-    appTestName: process.env.APP_TEST_NAME || "",
-    appTestPrivateKey: process.env.APP_TEST_PRIVATE_KEY || "",
+    testAppName: process.env.TEST_APP_NAME || "",
+    testAppPrivateKey: process.env.TEST_APP_PRIVATE_KEY || "",
+    testClientDid: process.env.TEST_CLIENT_DID || "",
+    testClientPrivateKey: process.env.TEST_CLIENT_PRIVATE_KEY || "",
   };
 };
 
@@ -89,6 +102,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_PRIVATE_KEY: Joi.string().required(),
+    API_DID: Joi.string().required(),
+    API_TAR_ID: Joi.string().required(),
     API_NAME: Joi.string(),
     API_URL_PREFIX: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
@@ -101,10 +116,12 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     // Authorisation specific variables
     DOMAIN: Joi.string().uri(),
-    TRUSTED_APPS_REGISTRY: Joi.string(),
-    APPLICATION_ID: Joi.string().required(),
-    HEALTH_CHECK: Joi.string(),
-    APP_TEST_NAME: Joi.string(),
-    APP_TEST_PRIVATE_KEY: Joi.string(),
+    TRUSTED_APPS_REGISTRY: Joi.string().uri(),
+    DID_REGISTRY: Joi.string().uri(),
+    HEALTH_CHECK: Joi.string().uri(),
+    TEST_APP_NAME: Joi.string(),
+    TEST_APP_PRIVATE_KEY: Joi.string(),
+    TEST_CLIENT_DID: Joi.string(),
+    TEST_CLIENT_PRIVATE_KEY: Joi.string(),
   }),
 });
