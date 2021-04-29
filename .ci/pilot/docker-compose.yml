@@ -3,4 +3,4 @@ version: "3.7"
 services:
   notifications-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/notifications-api:pilot_ebsiint-2974-release_v1.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/notifications-api:pilot_ebsiint-2982-fixes_v1.0.0

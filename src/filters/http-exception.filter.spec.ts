@@ -122,6 +122,22 @@ describe("All exception filter tests", () => {
     });
   });
 
+  it("should handle uncaught Error", () => {
+    const exception = new Error("uncaught error");
+    const response = service.catch(exception, mockArgumentsHost);
+    expect(response).toStrictEqual({
+      code: 500,
+      type: "application/problem+json",
+      send: {
+        detail:
+          "The server encountered an internal error and was unable to complete your request",
+        status: 500,
+        title: "Internal Server Error",
+        type: "about:blank",
+      },
+    });
+  });
+
   describe("Axios errors", () => {
     const axiosError: AxiosError = {
       isAxiosError: true,
