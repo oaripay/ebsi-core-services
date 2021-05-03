@@ -27,6 +27,7 @@ import { PaginatedList } from "../../src/shared/interfaces";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { multihashEncode } from "../../src/shared/utils/multihash.utils";
+import { requestSiopJwt } from "../utils/siopJwt";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -51,7 +52,9 @@ interface SupertestRevisionsResponse {
 describe("Policies (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let adminTestWallet: ethers.Wallet;
+  let testClientWallet: ethers.Wallet;
+  let configService: ConfigService<ApiConfig>;
+  let testUserAccessToken: string;
 
   const createPolicy = (
     n: string | number
@@ -90,13 +93,23 @@ describe("Policies (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
-      ConfigService
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    testClientWallet = new ethers.Wallet(
+      prefixWith0x(configService.get("testClientPrivateKey"))
     );
 
-    adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("adminTestPrivateKey"))
-    );
+    // Generate a valid Client JWT (SIOP) for the tests
+    const domain = configService.get<string>("domain");
+    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    const didRegistry = `${domain}${apiUrlPrefix}/identifiers`;
+
+    testUserAccessToken = await requestSiopJwt({
+      didRegistry,
+      clientDid: configService.get<string>("testClientDid"),
+      clientPrivateKey: configService.get<string>("testClientPrivateKey"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+    });
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -110,12 +123,13 @@ describe("Policies (e2e)", () => {
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
+          .auth(testUserAccessToken, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method,
             params: [
               {
-                from: adminTestWallet.address,
+                from: testClientWallet.address,
                 policyId,
                 policyData,
               },
@@ -129,7 +143,7 @@ describe("Policies (e2e)", () => {
           result: {
             chainId: expect.any(String) as string,
             data: expect.any(String) as string,
-            from: adminTestWallet.address,
+            from: testClientWallet.address,
             gasLimit: expect.any(String) as string,
             gasPrice: expect.any(String) as string,
             nonce: expect.any(String) as string,
@@ -161,12 +175,13 @@ describe("Policies (e2e)", () => {
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
+          .auth(testUserAccessToken, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method,
             params: [
               {
-                from: adminTestWallet.address,
+                from: testClientWallet.address,
                 policyId,
                 policyData,
               },
@@ -179,11 +194,12 @@ describe("Policies (e2e)", () => {
           JSON.parse(JSON.stringify(unsignedTransaction))
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await adminTestWallet.signTransaction(uTx);
+        const sgnTx = await testClientWallet.signTransaction(uTx);
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
+          .auth(testUserAccessToken, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method: "signedTransaction",

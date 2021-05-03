@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
-import { ContractService } from "../../shared/services/contract.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { DidRegistry } from "../../contracts/did-registry";
 import { remove0xPrefix } from "../../shared/utils";
 
@@ -8,11 +8,7 @@ import { remove0xPrefix } from "../../shared/utils";
 export default class IdentifiersService {
   private readonly logger = new Logger(IdentifiersService.name);
 
-  private didRegistryContract: DidRegistry;
-
-  constructor(private contractService: ContractService) {
-    this.didRegistryContract = this.contractService.getContract();
-  }
+  constructor(private ledgerService: LedgerService) {}
 
   async getIdentifiers(
     page: number,
@@ -20,22 +16,23 @@ export default class IdentifiersService {
     controllerId?: string
   ): ReturnType<DidRegistry["getDidRecordIdentifiers"]> {
     if (controllerId) {
-      return this.didRegistryContract.getDidRecordIdentifiersByControllerId(
-        controllerId,
-        page,
-        pageSize
-      );
+      return (
+        await this.ledgerService.getContract()
+      ).getDidRecordIdentifiersByControllerId(controllerId, page, pageSize);
     }
 
-    return this.didRegistryContract.getDidRecordIdentifiers(page, pageSize);
+    return (await this.ledgerService.getContract()).getDidRecordIdentifiers(
+      page,
+      pageSize
+    );
   }
 
   async getIdentifier(did: string): Promise<{ [x: string]: unknown }> {
     try {
       const hexDid = `0x${Buffer.from(did).toString("hex")}`;
-      const latesteDidDoc = await this.didRegistryContract.getLatestDidDocumentVersion(
-        hexDid
-      );
+      const latesteDidDoc = await (
+        await this.ledgerService.getContract()
+      ).getLatestDidDocumentVersion(hexDid);
       return JSON.parse(
         Buffer.from(remove0xPrefix(latesteDidDoc), "hex").toString()
       ) as { [x: string]: unknown };
@@ -54,11 +51,12 @@ export default class IdentifiersService {
   ): ReturnType<DidRegistry["getDidDocumentVersionIds"]> {
     if (validAt) {
       // TODO: filter for a specific date-time and find the did document version ID valide at that time.
+      // https://ec.europa.eu/cefdigital/tracker/browse/EBSIINT-2932
     }
 
     const hexDid = `0x${Buffer.from(did).toString("hex")}`;
 
-    return this.didRegistryContract.getDidDocumentVersionIds(
+    return (await this.ledgerService.getContract()).getDidDocumentVersionIds(
       hexDid,
       page,
       pageSize
@@ -71,7 +69,9 @@ export default class IdentifiersService {
   ): Promise<{ [x: string]: unknown }> {
     try {
       const hexDid = `0x${Buffer.from(did).toString("hex")}`;
-      await this.didRegistryContract.getLatestDidDocumentVersion(hexDid);
+      await (
+        await this.ledgerService.getContract()
+      ).getLatestDidDocumentVersion(hexDid);
     } catch (e) {
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${did} not found`,
@@ -79,9 +79,9 @@ export default class IdentifiersService {
     }
 
     try {
-      const versionInfo = await this.didRegistryContract.getDidDocumentVersionInfo(
-        versionId
-      );
+      const versionInfo = await (
+        await this.ledgerService.getContract()
+      ).getDidDocumentVersionInfo(versionId);
       return JSON.parse(
         Buffer.from(remove0xPrefix(versionInfo), "hex").toString()
       ) as { [x: string]: unknown };
@@ -100,12 +100,9 @@ export default class IdentifiersService {
   ): ReturnType<DidRegistry["getDidDocumentVersionMetadataIds"]> {
     const hexDid = `0x${Buffer.from(did).toString("hex")}`;
 
-    return this.didRegistryContract.getDidDocumentVersionMetadataIds(
-      hexDid,
-      versionId,
-      page,
-      pageSize
-    );
+    return (
+      await this.ledgerService.getContract()
+    ).getDidDocumentVersionMetadataIds(hexDid, versionId, page, pageSize);
   }
 
   async getIdentifierVersionMetadata(
@@ -115,7 +112,9 @@ export default class IdentifiersService {
   ): Promise<{ [x: string]: unknown }> {
     try {
       const hexDid = `0x${Buffer.from(did).toString("hex")}`;
-      await this.didRegistryContract.getLatestDidDocumentVersion(hexDid);
+      await (
+        await this.ledgerService.getContract()
+      ).getLatestDidDocumentVersion(hexDid);
     } catch (e) {
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${did} not found`,
@@ -123,9 +122,9 @@ export default class IdentifiersService {
     }
 
     try {
-      const versionInfo = await this.didRegistryContract.getDidDocumentVersionInfo(
-        versionId
-      );
+      const versionInfo = await (
+        await this.ledgerService.getContract()
+      ).getDidDocumentVersionInfo(versionId);
       if (versionInfo === "0x") throw new Error();
     } catch (e) {
       throw new NotFoundError("Version Not Found", {
@@ -134,9 +133,9 @@ export default class IdentifiersService {
     }
 
     try {
-      const metadata = await this.didRegistryContract.getDidDocumentVersionMetadata(
-        metadataId
-      );
+      const metadata = await (
+        await this.ledgerService.getContract()
+      ).getDidDocumentVersionMetadata(metadataId);
 
       return JSON.parse(
         Buffer.from(remove0xPrefix(metadata), "hex").toString()

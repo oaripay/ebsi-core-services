@@ -25,6 +25,7 @@ import {
 interface Administrator {
   wallet: ethers.Wallet;
   attribute: { [x: string]: unknown };
+  did: string;
 }
 
 interface DidDocument {
@@ -178,9 +179,8 @@ export async function deployDidRegistryContract(
 
 export async function insertAdmin(
   contract: DidRegistry,
-  adminAddress: string
+  adminDid: string
 ): Promise<{ [x: string]: unknown }> {
-  const adminDid = `did:ebsi:${adminAddress.toLowerCase()}`;
   const attribute = {
     "@context": {
       name: {
@@ -194,16 +194,17 @@ export async function insertAdmin(
 
   const bufferAttribute = Buffer.from(JSON.stringify(attribute));
 
-  await contract.insertAdministrator(adminDid, bufferAttribute);
+  await contract.insertAdministrator(adminDid.toLowerCase(), bufferAttribute);
 
   return attribute;
 }
 
 export async function insertDidDocument(
   contract: DidRegistry,
-  ethersProvider: ethers.providers.Web3Provider
+  ethersProvider: ethers.providers.Web3Provider,
+  did: string,
+  defaultController?: ethers.Wallet
 ): Promise<DidDocument> {
-  const did = createDid();
   const didDocument = createDidDocument(did);
   const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
 
@@ -225,7 +226,8 @@ export async function insertDidDocument(
   const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
   const didVersionMetadataHex = `0x${didVersionMetadataBuffer.toString("hex")}`;
 
-  const controller = ethers.Wallet.createRandom().connect(ethersProvider);
+  const controller =
+    defaultController ?? ethers.Wallet.createRandom().connect(ethersProvider);
 
   await contract.insertDidDocument(
     identifier,
@@ -405,22 +407,12 @@ export async function setupTestEnv(
 }> {
   const provider = ganache.provider();
   const ethersProvider = new ethers.providers.Web3Provider(provider);
+  const didDocuments: DidDocument[] = [];
 
   // Deploy contract
   const didRegistryContract = await deployDidRegistryContract(ethersProvider);
 
   // Insert fake data
-  const createAdminWallet = async () => {
-    // Create random wallet and connect it so we can use it later to send transactions
-    const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
-    const attribute = await insertAdmin(didRegistryContract, wallet.address);
-    return { wallet, attribute };
-  };
-
-  const administrators = await range(0, opts.administratorsTotal ?? 1)
-    .pipe(mergeMap(createAdminWallet), toArray())
-    .toPromise();
-
   const hashAlgorithms = await Promise.all([
     // Make sure to always register "sha2-256" first
     insertHashAlgorithm(didRegistryContract, "sha2-256"),
@@ -429,16 +421,45 @@ export async function setupTestEnv(
       .map(() => insertHashAlgorithm(didRegistryContract)),
   ]);
 
+  const createAdminWallet = async () => {
+    // Create random wallet and connect it so we can use it later to send transactions
+    const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
+    const did = createDid().toLowerCase();
+
+    // Insert a DID document controlled by the random wallet
+    const adminDidDocument = await insertDidDocument(
+      didRegistryContract,
+      ethersProvider,
+      did,
+      wallet
+    );
+
+    didDocuments.push(adminDidDocument);
+
+    const attribute = await insertAdmin(didRegistryContract, did);
+    return { wallet, attribute, did };
+  };
+
+  const administrators = await range(0, opts.administratorsTotal ?? 1)
+    .pipe(mergeMap(createAdminWallet), toArray())
+    .toPromise();
+
   const didMethods = await Promise.all(
     Array(opts.didMethodsTotal ?? 1)
       .fill(0)
       .map(() => insertDidMethod(didRegistryContract))
   );
 
-  const didDocuments = await Promise.all(
-    Array(opts.didDocuments ?? 1)
-      .fill(0)
-      .map(() => insertDidDocument(didRegistryContract, ethersProvider))
+  didDocuments.push(
+    ...(await Promise.all(
+      Array(
+        Math.max((opts.didDocuments ?? 1) - (opts.administratorsTotal ?? 1), 0)
+      )
+        .fill(0)
+        .map(() =>
+          insertDidDocument(didRegistryContract, ethersProvider, createDid())
+        )
+    ))
   );
 
   const policyRevisions = {};

@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Param } from "@nestjs/common";
+import { Controller, Get, Query, Param, UseGuards } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import AdministratorsService from "./administrators.service";
 import {
@@ -16,6 +16,8 @@ import {
 import { PaginationQuery } from "../../shared/dto/pagination-query";
 import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
+import { SiopJwtAuthGuard } from "../auth/guards/siop-jwt-auth.guard";
+import { Client, ClientInfo } from "../auth/decorators";
 
 @Controller("/administrators")
 export default class AdministratorsController {
@@ -25,9 +27,13 @@ export default class AdministratorsController {
   ) {}
 
   @Get("")
+  @UseGuards(SiopJwtAuthGuard)
   async getAdministrators(
-    @Query() query: PaginationQuery
+    @Query() query: PaginationQuery,
+    @Client() client: ClientInfo
   ): Promise<PaginatedList<DidLink>> {
+    await this.administratorsService.allowAdministratorsOnly(client.did);
+
     const administrators = await this.administratorsService.getAdministrators(
       query["page[after]"],
       query["page[size]"]
@@ -46,18 +52,29 @@ export default class AdministratorsController {
   }
 
   @Get("/:did")
+  @UseGuards(SiopJwtAuthGuard)
   async getAdministrator(
-    @Param() params: { did?: string }
+    @Param() params: { did?: string },
+    @Client() client: ClientInfo
   ): Promise<AdministratorResponseObject> {
     const { did } = params;
+
+    if (did !== client.did) {
+      await this.administratorsService.allowAdministratorsOnly(client.did);
+    }
+
     return this.administratorsService.getAdministrator(did);
   }
 
   @Get("/:did/attributes")
+  @UseGuards(SiopJwtAuthGuard)
   async getAdministratorAttributes(
     @Param() params: { did: string },
-    @Query() query: PaginationQuery
+    @Query() query: PaginationQuery,
+    @Client() client: ClientInfo
   ): Promise<PaginatedList<IdLink>> {
+    await this.administratorsService.allowAdministratorsOnly(client.did);
+
     const { did } = params;
 
     const attributes = await this.administratorsService.getAttributes(did);
@@ -75,9 +92,13 @@ export default class AdministratorsController {
   }
 
   @Get("/:did/attributes/:attributeId")
+  @UseGuards(SiopJwtAuthGuard)
   async getAdministratorAttribute(
-    @Param() params: { did: string; attributeId: string }
+    @Param() params: { did: string; attributeId: string },
+    @Client() client: ClientInfo
   ): Promise<AttributeDetailsObject> {
+    await this.administratorsService.allowAdministratorsOnly(client.did);
+
     const { did, attributeId } = params;
 
     const attribute = await this.administratorsService.getAttribute(
@@ -92,10 +113,14 @@ export default class AdministratorsController {
   }
 
   @Get("/:did/attributes/:attributeId/revisions")
+  @UseGuards(SiopJwtAuthGuard)
   async getAdministratorAttributeRevisions(
     @Param() params: { did: string; attributeId: string },
-    @Query() query: PaginationQuery
+    @Query() query: PaginationQuery,
+    @Client() client: ClientInfo
   ): Promise<PaginatedList<AttributeObject>> {
+    await this.administratorsService.allowAdministratorsOnly(client.did);
+
     const { did, attributeId } = params;
 
     const {

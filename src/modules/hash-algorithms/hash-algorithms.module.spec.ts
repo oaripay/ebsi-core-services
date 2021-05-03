@@ -19,6 +19,7 @@ import {
 } from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { LedgerService } from "../ledger/ledger.service";
 
 const HASH_ALGORITHMS_TOTAL = 3;
 
@@ -29,6 +30,7 @@ describe("HashAlgorithms Module", () => {
   let server: HttpServer;
   let didRegistryContract: DidRegistry;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let ledgerService: LedgerService;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -59,6 +61,12 @@ describe("HashAlgorithms Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    // Mock Contract service
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
+    jest
+      .spyOn(ledgerService, "getContract")
+      .mockImplementation(async () => Promise.resolve(didRegistryContract));
   });
 
   afterAll(async () => {

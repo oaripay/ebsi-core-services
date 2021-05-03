@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
-import { ContractService } from "../../shared/services/contract.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { DidRegistry } from "../../contracts/did-registry";
 import { multihashEncode } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
@@ -10,17 +10,13 @@ import { PolicyRevisions } from "./policies.interface";
 export class PoliciesService {
   private readonly logger = new Logger(PoliciesService.name);
 
-  private didRegistryContract: DidRegistry;
-
-  constructor(private contractService: ContractService) {
-    this.didRegistryContract = this.contractService.getContract();
-  }
+  constructor(private ledgerService: LedgerService) {}
 
   async getPolicies(
     page: number,
     pageSize: number
   ): ReturnType<DidRegistry["getPolicies"]> {
-    return this.didRegistryContract.getPolicies(page, pageSize);
+    return (await this.ledgerService.getContract()).getPolicies(page, pageSize);
   }
 
   async getPolicy(policyId: string): Promise<[string, string]> {
@@ -28,7 +24,9 @@ export class PoliciesService {
 
     try {
       // Preserve case! Don't lowercase the policyId
-      policy = await this.didRegistryContract.getPolicy(policyId);
+      policy = await (await this.ledgerService.getContract()).getPolicy(
+        policyId
+      );
     } catch (e) {
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
@@ -53,12 +51,10 @@ export class PoliciesService {
   ): Promise<PolicyRevisions> {
     let revisions: AsyncReturnType<DidRegistry["getPolicyRevisions"]>;
 
+    const contract = await this.ledgerService.getContract();
+
     try {
-      revisions = await this.didRegistryContract.getPolicyRevisions(
-        policyId,
-        page,
-        pageSize
-      );
+      revisions = await contract.getPolicyRevisions(policyId, page, pageSize);
     } catch (e) {
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
@@ -66,7 +62,7 @@ export class PoliciesService {
     }
 
     const getPoliciesByRevisions = revisions.items.map((hash) =>
-      this.didRegistryContract.getPolicyByHash(hash)
+      contract.getPolicyByHash(hash)
     );
 
     let policies: AsyncReturnType<DidRegistry["getPolicyByHash"]>[];

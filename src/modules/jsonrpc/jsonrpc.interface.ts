@@ -4,16 +4,3 @@ export interface JsonRpcResponseObject {
   result: unknown;
   error?: unknown;
 }
-
-export interface AxiosResponseJsonRpc {
-  status: number;
-  data: JsonRpcResponseObject;
-}
-
-export interface AxiosErrorResponse {
-  message: string;
-  response: {
-    status: number;
-    data: unknown;
-  };
-}

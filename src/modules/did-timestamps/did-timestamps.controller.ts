@@ -22,6 +22,8 @@ export class DidTimestampsController {
   async getDidTimestamps(
     @Query() query: PaginationQuery
   ): Promise<PaginatedList<TimestampLink>> {
+    // TODO: implement https://ec.europa.eu/cefdigital/tracker/browse/EBSIINT-2933
+    // GET /did-timestamps?identifier={did}&version-id={version-id}
     const didTimestamps = await this.didTimestampsService.getDidTimestamps(
       query["page[after]"],
       query["page[size]"]

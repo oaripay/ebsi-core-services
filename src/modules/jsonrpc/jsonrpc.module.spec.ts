@@ -1,7 +1,7 @@
-import axios from "axios";
 import request from "supertest";
 import crypto from "crypto";
 import { Test, TestingModule } from "@nestjs/testing";
+import { ConfigService } from "@nestjs/config";
 import {
   INestApplication,
   ValidationPipe,
@@ -14,9 +14,11 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import { Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
+import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import canonicalize from "canonicalize";
 import { JsonRpcModule } from "./jsonrpc.module";
-import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   UnsignedTransaction,
@@ -52,6 +54,8 @@ import {
   createMetadata,
   createDidMethod,
 } from "../../../tests/utils/data";
+import { ApiConfig } from "../../config/configuration";
+import { LedgerService } from "../ledger/ledger.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -97,18 +101,20 @@ interface DidMethodDataset {
 
 jest.setTimeout(300000);
 
-const ADMINS_TOTAL = 1;
+const ADMINS_TOTAL = 2;
 
 describe("JsonRpc Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let didRegistryContract: DidRegistry;
-  let jsonRpcService: JsonRpcService;
+  let configService: ConfigService<ApiConfig>;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
-  let provider: ethers.providers.Web3Provider;
+  let ledgerService: LedgerService;
+  let appAccessToken: string;
+  let userAccessToken: string;
+  let defaultSignerSiopAccessToken: string;
 
-  const createAdministrator = (wallet: ethers.Wallet) => {
-    const did = `did:ebsi:${wallet.address.toLowerCase()}`;
+  const createAdministrator = (did: string) => {
     const json = {
       // any object here
       any: "Any attribute here",
@@ -138,10 +144,10 @@ describe("JsonRpc Module", () => {
     };
   }
 
-  const newAdminWallet = ethers.Wallet.createRandom();
-  const adminV1 = createAdministrator(newAdminWallet);
-  const adminV2 = createAdministrator(newAdminWallet);
-  const adminV3 = createAdministrator(newAdminWallet);
+  const adminDid = createDid();
+  const adminV1 = createAdministrator(adminDid);
+  const adminV2 = createAdministrator(adminDid);
+  const adminV3 = createAdministrator(adminDid);
 
   const policy1 = createPolicy();
   const policy2 = createPolicy();
@@ -217,8 +223,6 @@ describe("JsonRpc Module", () => {
     });
     didRegistryContract = testEnv.didRegistryContract;
 
-    provider = testEnv.provider;
-
     // Mock DidRegistry and TAR contract
     jest
       .spyOn(DidRegistry__factory, "connect")
@@ -242,38 +246,42 @@ describe("JsonRpc Module", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
-
-    // Make sure we never use axios.post in tests ;-)
-    jest.spyOn(axios, "post").mockImplementation(() => {
-      throw new Error("Forgot to mock an axios call?");
-    });
-
-    // Instead of calling EBSI Ledger API, use didRegistryContract directly
-    const signer = ethers.Wallet.createRandom().connect(provider);
-    jest
-      .spyOn(jsonRpcService, "callBesuAuth")
-      .mockImplementation(async (_method: string, params: unknown[]) => {
-        if (_method === "eth_sendRawTransaction") {
-          const tx = await didRegistryContract
-            .connect(signer)
-            .provider.sendTransaction(params[0] as string);
-
-          return tx.hash;
-        }
-
-        if (_method === "eth_estimateGas") {
-          return didRegistryContract.provider.estimateGas(
-            params[0] as ethers.providers.TransactionRequest
-          );
-        }
-
-        return Promise.reject(new Error("Unknown method"));
-      });
+    configService = moduleFixture.get<ConfigService>(ConfigService);
 
     didDocument = prepareDidDocument(controllerDid);
     updatedDidDocument = prepareDidDocument(controllerDid);
     didMethod = prepareDidMethod();
+
+    // Mock Contract service
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
+    jest
+      .spyOn(ledgerService, "getContract")
+      .mockImplementation(async () => Promise.resolve(didRegistryContract));
+
+    // Generate JWTs
+    appAccessToken = await createJWT(
+      { sub: "random-app" },
+      {
+        issuer: "any",
+        signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+      }
+    );
+
+    userAccessToken = await createJWT(
+      { sub: adminDid },
+      {
+        issuer: "any",
+        signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+      }
+    );
+
+    defaultSignerSiopAccessToken = await createJWT(
+      { sub: testEnv.administrators[0].did },
+      {
+        issuer: "any",
+        signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+      }
+    );
   });
 
   afterAll(async () => {
@@ -282,10 +290,97 @@ describe("JsonRpc Module", () => {
   });
 
   // Generic tests
+  it("should reject a POST without JWT", async () => {
+    expect.assertions(3);
+
+    const response = await request(server).post("/jsonrpc").send();
+
+    expect(response.body).toStrictEqual({
+      detail: "Invalid or missing JWT",
+      status: 401,
+      title: "Unauthorized",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(401);
+    expect(
+      (response.headers as { "content-type": string })["content-type"]
+    ).toStrictEqual(expect.stringContaining("application/problem+json"));
+  });
+
+  it("should reject a POST with an invalid app token", async () => {
+    expect.assertions(4);
+
+    // Mock reject JWT
+    const verifyAccessTokenSpy = jest
+      .spyOn(OAuth2Session.prototype, "verifyAccessToken")
+      .mockImplementation(async () =>
+        Promise.reject(new Error("error message"))
+      );
+
+    const response = await request(server)
+      .post("/jsonrpc")
+      .auth(appAccessToken, { type: "bearer" })
+      .send();
+
+    expect(response.body).toStrictEqual({
+      detail: "Invalid JWT: error message",
+      status: 401,
+      title: "Unauthorized",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(401);
+    expect(
+      (response.headers as { "content-type": string })["content-type"]
+    ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    expect(verifyAccessTokenSpy).toHaveBeenCalledWith(
+      appAccessToken,
+      configService.get("authorisationApiName")
+    );
+  });
+
+  it("should reject a POST with an invalid user token", async () => {
+    expect.assertions(4);
+
+    // Mock reject JWT
+    const verifyAccessTokenSpy = jest
+      .spyOn(SiopSession.prototype, "verifyAccessToken")
+      .mockImplementation(async () =>
+        Promise.reject(new Error("error message"))
+      );
+
+    const response = await request(server)
+      .post("/jsonrpc")
+      .auth(userAccessToken, { type: "bearer" })
+      .send();
+
+    expect(response.body).toStrictEqual({
+      detail: "Invalid JWT: error message",
+      status: 401,
+      title: "Unauthorized",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(401);
+    expect(
+      (response.headers as { "content-type": string })["content-type"]
+    ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    expect(verifyAccessTokenSpy).toHaveBeenCalledWith(
+      userAccessToken,
+      configService.get("authorisationApiDid")
+    );
+  });
+
   it("should throw Bad Request for a bad JSON-RPC call", async () => {
     expect.assertions(2);
 
-    const response = await request(server).post("/jsonrpc").send();
+    // Mock access token verification
+    jest
+      .spyOn(OAuth2Session.prototype, "verifyAccessToken")
+      .mockImplementation(async () => Promise.resolve({}));
+
+    const response = await request(server)
+      .post("/jsonrpc")
+      .auth(appAccessToken, { type: "bearer" })
+      .send();
 
     expect(response.body).toStrictEqual({
       title: "Bad Request",
@@ -323,8 +418,14 @@ describe("JsonRpc Module", () => {
     const sgnTx = await wallet.signTransaction(uTx);
     const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
+    // Mock access token verification
+    jest
+      .spyOn(OAuth2Session.prototype, "verifyAccessToken")
+      .mockImplementation(async () => Promise.resolve({}));
+
     const responseSend = await request(server)
       .post("/jsonrpc")
+      .auth(appAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "signedTransaction",
@@ -358,12 +459,20 @@ describe("JsonRpc Module", () => {
   it("should throw an Invalid Request error for bad method", async () => {
     expect.assertions(2);
 
-    const response = await request(server).post("/jsonrpc").send({
-      jsonrpc: "2.0",
-      method: "unknown-method",
-      params: [],
-      id: 123,
-    });
+    // Mock access token verification
+    jest
+      .spyOn(OAuth2Session.prototype, "verifyAccessToken")
+      .mockImplementation(async () => Promise.resolve({}));
+
+    const response = await request(server)
+      .post("/jsonrpc")
+      .auth(appAccessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "unknown-method",
+        params: [],
+        id: 123,
+      });
 
     expect(response.body).toStrictEqual({
       jsonrpc: "2.0",
@@ -378,7 +487,8 @@ describe("JsonRpc Module", () => {
     expect(response.status).toBe(400);
   });
 
-  it("should return throw an error if the signer is not a registered admin", async () => {
+  // Only SIOP JWT are allowed to call insertAdministrator
+  it("should throw an error if an app tries to call insertAdministrator", async () => {
     expect.assertions(4);
 
     const { did } = adminV1;
@@ -391,8 +501,14 @@ describe("JsonRpc Module", () => {
       from: signer.address,
     } as InsertAdministratorParam;
 
+    // Mock access token verification
+    jest
+      .spyOn(OAuth2Session.prototype, "verifyAccessToken")
+      .mockImplementation(async () => Promise.resolve({}));
+
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
+      .auth(appAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "insertAdministrator",
@@ -426,6 +542,7 @@ describe("JsonRpc Module", () => {
 
     const responseSend = await request(server)
       .post("/jsonrpc")
+      .auth(appAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "signedTransaction",
@@ -445,7 +562,173 @@ describe("JsonRpc Module", () => {
     expect(responseSend.body).toStrictEqual({
       error: {
         code: -32600,
-        message: `Administrator did:ebsi:${signer.address.toLowerCase()} was not found in the DID Registry`,
+        message: "Only administrators can access this method",
+      },
+      id: "45",
+      jsonrpc: "2.0",
+    });
+    expect(responseSend.status).toBe(400);
+  });
+
+  it("should throw an error if the signer is not a registered admin", async () => {
+    expect.assertions(4);
+
+    const { did } = adminV1;
+
+    const signer = ethers.Wallet.createRandom();
+
+    const param: JsonRpcParams = {
+      attributeData: adminV1.attributeData,
+      did: did.toLowerCase(),
+      from: signer.address,
+    } as InsertAdministratorParam;
+
+    // Mock access token verification
+    jest
+      .spyOn(SiopSession.prototype, "verifyAccessToken")
+      .mockImplementation(async () => Promise.resolve({}));
+
+    const responseBuild: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(userAccessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "insertAdministrator",
+        params: [param],
+        id: 231,
+      });
+
+    expect(responseBuild.body).toStrictEqual({
+      jsonrpc: "2.0",
+      id: 231,
+      result: {
+        chainId: expect.any(String) as string,
+        data: expect.any(String) as string,
+        from: param.from,
+        gasLimit: expect.any(String) as string,
+        gasPrice: expect.any(String) as string,
+        nonce: expect.any(String) as string,
+        to: expect.any(String) as string,
+        value: "0x0",
+      },
+    });
+    expect(responseBuild.status).toBe(200);
+
+    const unsignedTransaction = responseBuild.body.result;
+    const uTx = formatEthersUnsignedTransaction(
+      JSON.parse(JSON.stringify(unsignedTransaction))
+    );
+    uTx.chainId = Number(uTx.chainId);
+    const sgnTx = await signer.signTransaction(uTx);
+    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+    const responseSend = await request(server)
+      .post("/jsonrpc")
+      .auth(userAccessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "signedTransaction",
+        params: [
+          {
+            protocol: "eth",
+            unsignedTransaction,
+            r,
+            s,
+            v: `0x${Number(v).toString(16)}`,
+            signedRawTransaction: sgnTx,
+          },
+        ],
+        id: "45",
+      });
+
+    expect(responseSend.body).toStrictEqual({
+      error: {
+        code: -32600,
+        message: `Administrator ${adminDid} was not found in the DID Registry`,
+      },
+      id: "45",
+      jsonrpc: "2.0",
+    });
+    expect(responseSend.status).toBe(400);
+  });
+
+  it("should throw an error if the signer doesn't control the DID", async () => {
+    expect.assertions(4);
+
+    const { did } = adminV1;
+
+    const signer = testEnv.administrators[1].wallet;
+
+    const param: JsonRpcParams = {
+      attributeData: adminV1.attributeData,
+      did: did.toLowerCase(),
+      from: signer.address,
+    } as InsertAdministratorParam;
+
+    // Mock access token verification
+    jest
+      .spyOn(SiopSession.prototype, "verifyAccessToken")
+      .mockImplementation(async () => Promise.resolve({}));
+
+    const responseBuild: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "insertAdministrator",
+        params: [param],
+        id: 231,
+      });
+
+    expect(responseBuild.body).toStrictEqual({
+      jsonrpc: "2.0",
+      id: 231,
+      result: {
+        chainId: expect.any(String) as string,
+        data: expect.any(String) as string,
+        from: param.from,
+        gasLimit: expect.any(String) as string,
+        gasPrice: expect.any(String) as string,
+        nonce: expect.any(String) as string,
+        to: expect.any(String) as string,
+        value: "0x0",
+      },
+    });
+    expect(responseBuild.status).toBe(200);
+
+    const unsignedTransaction = responseBuild.body.result;
+    const uTx = formatEthersUnsignedTransaction(
+      JSON.parse(JSON.stringify(unsignedTransaction))
+    );
+    uTx.chainId = Number(uTx.chainId);
+    const sgnTx = await signer.signTransaction(uTx);
+    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+    const responseSend = await request(server)
+      .post("/jsonrpc")
+      .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "signedTransaction",
+        params: [
+          {
+            protocol: "eth",
+            unsignedTransaction,
+            r,
+            s,
+            v: `0x${Number(v).toString(16)}`,
+            signedRawTransaction: sgnTx,
+          },
+        ],
+        id: "45",
+      });
+
+    expect(responseSend.body).toStrictEqual({
+      error: {
+        code: -32600,
+        message: `The DID ${
+          testEnv.administrators[0].did
+        } is not controlled by the address ${signer.address.toLowerCase()}`,
       },
       id: "45",
       jsonrpc: "2.0",
@@ -484,6 +767,11 @@ describe("JsonRpc Module", () => {
 
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
       expect.assertions(4);
+
+      // Mock access token verification
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({}));
 
       const { did } = adminV1;
       let param: JsonRpcParams = null;
@@ -780,6 +1068,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -813,6 +1102,7 @@ describe("JsonRpc Module", () => {
 
       const responseSend = await request(server)
         .post("/jsonrpc")
+        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",
@@ -839,6 +1129,11 @@ describe("JsonRpc Module", () => {
 
     it("should accept a request without id", async () => {
       expect.assertions(2);
+
+      // Mock access token verification
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({}));
 
       const signer = testEnv.administrators[0].wallet;
       let param: JsonRpcParams = null;
@@ -1074,6 +1369,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild = await request(server)
         .post("/jsonrpc")
+        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1091,6 +1387,11 @@ describe("JsonRpc Module", () => {
 
     it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
       expect.assertions(6);
+
+      // Mock access token verification
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({}));
 
       const signer = testEnv.administrators[0].wallet;
 
@@ -1118,7 +1419,7 @@ describe("JsonRpc Module", () => {
           } as InsertAdministratorParam;
 
           expectedErrorMessage2 =
-            "property params[0].did has failed the following constraints: isLowercase, isDid";
+            "property params[0].did has failed the following constraints: isDid";
 
           param3 = {
             did: adminV1.did,
@@ -1145,7 +1446,7 @@ describe("JsonRpc Module", () => {
           } as UpdateAdministratorParam;
 
           expectedErrorMessage2 =
-            "property params[0].did has failed the following constraints: isLowercase, isDid";
+            "property params[0].did has failed the following constraints: isDid";
 
           param3 = {
             did: adminV1.did,
@@ -1623,6 +1924,7 @@ describe("JsonRpc Module", () => {
 
       const response1 = await request(server)
         .post("/jsonrpc")
+        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1642,6 +1944,7 @@ describe("JsonRpc Module", () => {
 
       const response2 = await request(server)
         .post("/jsonrpc")
+        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1661,6 +1964,7 @@ describe("JsonRpc Module", () => {
 
       const response3 = await request(server)
         .post("/jsonrpc")
+        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1681,6 +1985,11 @@ describe("JsonRpc Module", () => {
 
     it("should throw an error when the unsignedTransaction has been tampered", async () => {
       expect.assertions(6);
+
+      // Mock access token verification
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({}));
 
       const signer = testEnv.administrators[0].wallet;
 
@@ -1995,6 +2304,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild1: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -2007,6 +2317,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild2: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -2028,6 +2339,7 @@ describe("JsonRpc Module", () => {
       // Tampering signatures
       const responseSend1 = await request(server)
         .post("/jsonrpc")
+        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",
@@ -2059,6 +2371,7 @@ describe("JsonRpc Module", () => {
       transaction1.from = transaction2.from;
       const responseSend2 = await request(server)
         .post("/jsonrpc")
+        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",

@@ -46,6 +46,7 @@ import {
   createMetadata,
   createDidMethod,
 } from "../utils/data";
+import { requestSiopJwt } from "../utils/siopJwt";
 
 type JsonRpcParams =
   | InsertDidDocumentParam
@@ -95,7 +96,9 @@ interface DidMethodDataset {
 describe("DID Registry (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let adminTestWallet: ethers.Wallet;
+  let testClientWallet: ethers.Wallet;
+  let configService: ConfigService<ApiConfig>;
+  let testUserAccessToken: string;
 
   const controllerDid = createDid();
 
@@ -192,17 +195,27 @@ describe("DID Registry (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
-      ConfigService
-    );
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
-    adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("adminTestPrivateKey"))
+    testClientWallet = new ethers.Wallet(
+      prefixWith0x(configService.get("testClientPrivateKey"))
     );
 
     newDidDocument = prepareDidDocument(controllerDid);
     updatedDidDocument = prepareDidDocument(controllerDid);
     didMethod = prepareDidMethod();
+
+    // Generate a valid Client JWT (SIOP) for the tests
+    const domain = configService.get<string>("domain");
+    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    const didRegistry = `${domain}${apiUrlPrefix}/identifiers`;
+
+    testUserAccessToken = await requestSiopJwt({
+      didRegistry,
+      clientDid: configService.get<string>("testClientDid"),
+      clientPrivateKey: configService.get<string>("testClientPrivateKey"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+    });
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -222,7 +235,7 @@ describe("DID Registry (e2e)", () => {
       expect.assertions(5);
 
       let params: JsonRpcParams = null;
-      let signer = adminTestWallet;
+      let signer = testClientWallet;
 
       switch (method) {
         case "insertDidDocument": {
@@ -416,6 +429,7 @@ describe("DID Registry (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -449,6 +463,7 @@ describe("DID Registry (e2e)", () => {
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",
@@ -1680,7 +1695,7 @@ describe("DID Registry (e2e)", () => {
         blockNumber: expect.any(Number) as number,
         data: `0x${timestampDataBuffer.toString("hex")}`,
         hash: multihashEncode(canonicalizedDidDocumentHash, "sha2-256"),
-        timestampedBy: adminTestWallet.address,
+        timestampedBy: testClientWallet.address,
       } as DidTimestampResponseObject);
 
       expect(response.status).toBe(200);

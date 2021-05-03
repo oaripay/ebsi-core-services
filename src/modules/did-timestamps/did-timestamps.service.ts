@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { coerceCode, HashName } from "multihashes";
 import { DidTimestampResponseObject } from "./did-timestamps.interface";
-import { ContractService } from "../../shared/services/contract.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { DidRegistry } from "../../contracts/did-registry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { multihashEncode } from "../../shared/utils";
@@ -11,17 +11,16 @@ import { multihashEncode } from "../../shared/utils";
 export class DidTimestampsService {
   private readonly logger = new Logger(DidTimestampsService.name);
 
-  private didRegistryContract: DidRegistry;
-
-  constructor(private contractService: ContractService) {
-    this.didRegistryContract = this.contractService.getContract();
-  }
+  constructor(private ledgerService: LedgerService) {}
 
   async getDidTimestamps(
     page: number,
     pageSize: number
   ): ReturnType<DidRegistry["getDidTimestamps"]> {
-    return this.didRegistryContract.getDidTimestamps(page, pageSize);
+    return (await this.ledgerService.getContract()).getDidTimestamps(
+      page,
+      pageSize
+    );
   }
 
   async getDidTimestamp(
@@ -30,18 +29,18 @@ export class DidTimestampsService {
     let timestamp: AsyncReturnType<DidRegistry["getDidTimestampById"]>;
 
     try {
-      timestamp = await this.didRegistryContract.getDidTimestampById(
-        timestampId
-      );
+      timestamp = await (
+        await this.ledgerService.getContract()
+      ).getDidTimestampById(timestampId);
     } catch (e) {
       throw new NotFoundError("Timestamp Not Found", {
         detail: `Timestamp ${timestampId} not found`,
       });
     }
 
-    const hashAlg = await this.didRegistryContract.getHashAlgorithmById(
-      timestamp.hash.algorithm
-    );
+    const hashAlg = await (
+      await this.ledgerService.getContract()
+    ).getHashAlgorithmById(timestamp.hash.algorithm);
 
     let alg = hashAlg.ianaName as HashName;
 

@@ -22,6 +22,7 @@ import { DidRegistry__factory } from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { multihashEncode } from "../../shared/utils";
+import { LedgerService } from "../ledger/ledger.service";
 
 jest.setTimeout(120000);
 
@@ -31,6 +32,7 @@ describe("DidTimestamps Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let ledgerService: LedgerService;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -60,6 +62,12 @@ describe("DidTimestamps Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    // Mock Contract service
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
+    jest
+      .spyOn(ledgerService, "getContract")
+      .mockImplementation(async () => Promise.resolve(didRegistryContract));
   });
 
   afterAll(async () => {
