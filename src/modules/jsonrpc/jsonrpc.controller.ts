@@ -1,8 +1,11 @@
-import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
+// EBSIINT-2939 temporary revert
+// import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
+import { Controller, Body, Post, HttpCode } from "@nestjs/common";
 import { JsonRpcService } from "./jsonrpc.service";
 import { InvalidRequestJsonRpcError } from "./errors";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
-import { OAuth2OrSiopJwtAuthGuard } from "../auth/guards";
+// EBSIINT-2939 temporary revert
+// import { OAuth2OrSiopJwtAuthGuard } from "../auth/guards";
 import {
   JsonRpcDto,
   RequestSignedTransactionDto,
@@ -24,7 +27,8 @@ import {
   RequestAppendDidDocumentVersionMetadataDto,
   RequestDetachDidDocumentVersionMetadataDto,
 } from "./dto";
-import { Subject, SubjectInfo } from "../auth/decorators";
+// EBSIINT-2939 temporary revert
+// import { Subject, SubjectInfo } from "../auth/decorators";
 
 function formatJsonRpcResponse(
   result: unknown,
@@ -38,11 +42,13 @@ export default class AppController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
   @HttpCode(200)
-  @UseGuards(OAuth2OrSiopJwtAuthGuard)
+  // EBSIINT-2939 temporary revert
+  // @UseGuards(OAuth2OrSiopJwtAuthGuard)
   @Post()
   async jsonRPC(
-    @Body() body: JsonRpcDto,
-    @Subject() subject: SubjectInfo
+    @Body() body: JsonRpcDto
+    // EBSIINT-2939 temporary revert
+    // @Subject() subject: SubjectInfo
   ): Promise<JsonRpcResponseObject> {
     const { method, id } = body;
     switch (method) {
@@ -167,7 +173,9 @@ export default class AppController {
       }
       case "signedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(
-          subject.sub,
+          // EBSIINT-2939 temporary revert
+          // subject.sub,
+          "did:ebsi:remove-me",
           body as RequestSignedTransactionDto,
           id
         );

@@ -134,7 +134,8 @@ describe("Administrators (e2e)", () => {
   });
 
   // Generic /jsonrpc tests
-  describe("/jsonrpc (generic tests)", () => {
+  // EBSIINT-2939 temporary revert
+  describe.skip("/jsonrpc (generic tests)", () => {
     it("should reject a transaction signed by a private key that doesn't control the DID", async () => {
       expect.assertions(2);
 
@@ -337,7 +338,8 @@ describe("Administrators (e2e)", () => {
   });
 
   describe("/administrators", () => {
-    it("should reject a GET without JWT", async () => {
+    // EBSIINT-2939 temporary revert
+    it.skip("should reject a GET without JWT", async () => {
       expect.assertions(3);
 
       const response = await request(server).get("/administrators");
@@ -354,7 +356,8 @@ describe("Administrators (e2e)", () => {
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
-    it("should reject a GET with an invalid token", async () => {
+    // EBSIINT-2939 temporary revert
+    it.skip("should reject a GET with an invalid token", async () => {
       expect.assertions(3);
 
       const response = await request(server)

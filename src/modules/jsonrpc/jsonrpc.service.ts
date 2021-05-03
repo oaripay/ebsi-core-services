@@ -148,6 +148,8 @@ export class JsonRpcService {
       return;
     }
 
+    // EBSIINT-2939 temporary revert
+    /*
     // Only allow client ID with DID (SIOP JWT)
     if (!clientId || !clientId.startsWith("did:ebsi:")) {
       throw new Error("Only administrators can access this method");
@@ -162,8 +164,17 @@ export class JsonRpcService {
         `Administrator ${clientId} was not found in the DID Registry`
       );
     }
+    */
+    // If the function name is in the list, check if user did is an admin
+    const did = `did:ebsi:${controllerAddress.toLowerCase()}`;
+    try {
+      await (await this.ledgerService.getContract()).getAdministrator(did);
+    } catch (e) {
+      throw new Error(`Administrator ${did} was not found in the DID Registry`);
+    }
 
-    await this.verifyDidRegistry(controllerAddress, clientId);
+    // EBSIINT-2939 temporary revert
+    // await this.verifyDidRegistry(controllerAddress, clientId);
   }
 
   async verifyTransaction(

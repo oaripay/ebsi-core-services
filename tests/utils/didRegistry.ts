@@ -424,7 +424,10 @@ export async function setupTestEnv(
   const createAdminWallet = async () => {
     // Create random wallet and connect it so we can use it later to send transactions
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
-    const did = createDid().toLowerCase();
+
+    // EBSIINT-2939 temporary revert
+    // const did = createDid().toLowerCase();
+    const did = `did:ebsi:${wallet.address.toLowerCase()}`;
 
     // Insert a DID document controlled by the random wallet
     const adminDidDocument = await insertDidDocument(

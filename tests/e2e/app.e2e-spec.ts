@@ -64,7 +64,8 @@ describe("/did-registry/v2 (generic tests)", () => {
     });
   });
 
-  describe("POST /jsonrpc", () => {
+  // EBSIINT-2939 temporary revert
+  describe.skip("POST /jsonrpc", () => {
     it("should reject a POST without JWT", async () => {
       expect.assertions(3);
 

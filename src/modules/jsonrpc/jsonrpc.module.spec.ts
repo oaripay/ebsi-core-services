@@ -290,7 +290,8 @@ describe("JsonRpc Module", () => {
   });
 
   // Generic tests
-  it("should reject a POST without JWT", async () => {
+  // EBSIINT-2939 temporary revert
+  it.skip("should reject a POST without JWT", async () => {
     expect.assertions(3);
 
     const response = await request(server).post("/jsonrpc").send();
@@ -307,7 +308,8 @@ describe("JsonRpc Module", () => {
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
-  it("should reject a POST with an invalid app token", async () => {
+  // EBSIINT-2939 temporary revert
+  it.skip("should reject a POST with an invalid app token", async () => {
     expect.assertions(4);
 
     // Mock reject JWT
@@ -338,7 +340,8 @@ describe("JsonRpc Module", () => {
     );
   });
 
-  it("should reject a POST with an invalid user token", async () => {
+  // EBSIINT-2939 temporary revert
+  it.skip("should reject a POST with an invalid user token", async () => {
     expect.assertions(4);
 
     // Mock reject JWT
@@ -488,7 +491,8 @@ describe("JsonRpc Module", () => {
   });
 
   // Only SIOP JWT are allowed to call insertAdministrator
-  it("should throw an error if an app tries to call insertAdministrator", async () => {
+  // EBSIINT-2939 temporary revert
+  it.skip("should throw an error if an app tries to call insertAdministrator", async () => {
     expect.assertions(4);
 
     const { did } = adminV1;
@@ -570,7 +574,8 @@ describe("JsonRpc Module", () => {
     expect(responseSend.status).toBe(400);
   });
 
-  it("should throw an error if the signer is not a registered admin", async () => {
+  // EBSIINT-2939 temporary revert
+  it.skip("should throw an error if the signer is not a registered admin", async () => {
     expect.assertions(4);
 
     const { did } = adminV1;
@@ -652,7 +657,8 @@ describe("JsonRpc Module", () => {
     expect(responseSend.status).toBe(400);
   });
 
-  it("should throw an error if the signer doesn't control the DID", async () => {
+  // EBSIINT-2939 temporary revert
+  it.skip("should throw an error if the signer doesn't control the DID", async () => {
     expect.assertions(4);
 
     const { did } = adminV1;

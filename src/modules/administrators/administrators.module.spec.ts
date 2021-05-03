@@ -89,7 +89,8 @@ describe("Administrators Module", () => {
   });
 
   describe("GET /administrators", () => {
-    it("should reject a GET without JWT", async () => {
+    // EBSIINT-2939 temporary revert
+    it.skip("should reject a GET without JWT", async () => {
       expect.assertions(3);
 
       const response = await request(server).get("/administrators");
@@ -106,7 +107,8 @@ describe("Administrators Module", () => {
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
-    it("should reject a GET with an invalid token", async () => {
+    // EBSIINT-2939 temporary revert
+    it.skip("should reject a GET with an invalid token", async () => {
       expect.assertions(4);
 
       const verifyAccessTokenSpy = jest
