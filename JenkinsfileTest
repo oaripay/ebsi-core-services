@@ -12,6 +12,7 @@ pipeline {
         TEST_APP_ID='0x893637a56318eeb621b50c9669d2533e9ac2579f699b3da194c41663010023ca'
         TEST_APP_NAME='storage-api'
         TEST_APP_PRIVATE_KEY=credentials('API_PRIVATE_KEY_STORAGE')
+        AUTHORISATION_CREDENTIAL_SCHEMA='https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313338312e332e31322e332e322e332e3738'
     }
     stages {
         stage('Checkout') {

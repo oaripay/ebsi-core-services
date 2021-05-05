@@ -19,6 +19,7 @@ export interface ApiConfig {
   didResolver: string;
   applicationId: string;
   applicationDid: string;
+  authorisationCredentialSchema: string;
   testUserDid: string;
   testUserPrivateKey: string;
   testApp: {
@@ -99,6 +100,7 @@ export const loadConfig = (): ApiConfig => {
       defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY,
     applicationId: process.env.APPLICATION_ID,
     applicationDid: process.env.APPLICATION_DID,
+    authorisationCredentialSchema: process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
     testUserDid: process.env.USER_DID || "",
     testUserPrivateKey: process.env.USER_PRIVATE_KEY || "",
     testApp: {
@@ -138,6 +140,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     API_PRIVATE_KEY: Joi.string().required(),
     APPLICATION_ID: Joi.string().required(),
     APPLICATION_DID: Joi.string().required(),
+    AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string().required(),
     USER_DID: Joi.string().required(),
     USER_PRIVATE_KEY: Joi.string().required(),
   }),

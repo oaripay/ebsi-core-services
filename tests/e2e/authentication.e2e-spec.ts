@@ -1,5 +1,4 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import crypto from "crypto";
 import { HttpServer, ValidationPipe } from "@nestjs/common";
 import request from "supertest";
 import {
@@ -9,12 +8,15 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import { Logger } from "@nestjs/common/services/logger.service";
-import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import {
   DidAuthRequestPayload,
   EbsiDidAuth,
   DidAuthResponseCall,
 } from "@cef-ebsi/siop-auth";
+import {
+  Options,
+  validateVerifiableCredential,
+} from "@cef-ebsi/verifiable-credential";
 import { createFakeToken } from "../auxTests";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -105,7 +107,6 @@ describe("/users-onboarding (generic tests)", () => {
     const didAuthResponseCall: DidAuthResponseCall = {
       hexPrivatekey: testUserPrivateKey, // private key managed by the user. Should be passed in hexadecimal format
       did: testUserDid, // User DID
-      state: params.get("state"), // same state received as a Request Payload after verifying it
       nonce: params.get("nonce"), // same nonce received as a Request Payload after verifying it
       redirectUri: params.get("client_id"), // parsed URI from the DID Auth Request payload
     };
@@ -137,7 +138,7 @@ describe("/users-onboarding (generic tests)", () => {
   });
 
   it("should test the full flow", async () => {
-    expect.assertions(8);
+    expect.assertions(9);
     const authenticationRequestResponse: SupertestAuthenticationRequestResponse = await request(
       server
     )
@@ -176,7 +177,6 @@ describe("/users-onboarding (generic tests)", () => {
     const didAuthResponseCall: DidAuthResponseCall = {
       hexPrivatekey: testUserPrivateKey, // private key managed by the user. Should be passed in hexadecimal format
       did: testUserDid, // User DID
-      state: params.get("state"), // same state received as a Request Payload after verifying it
       nonce: params.get("nonce"), // same nonce received as a Request Payload after verifying it
       redirectUri: params.get("client_id"), // parsed URI from the DID Auth Request payload
     };
@@ -225,14 +225,15 @@ describe("/users-onboarding (generic tests)", () => {
       "verifiableCredential"
     );
     // 6- validate the verifiable auth
-    // const options: Options = {
-    //   tirUrl: "test",
-    //   resolverUrl: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
-    // };
-    // const validation = await validateVerifiableCredential(
-    //   response.verifiableCredential,
-    //   options
-    // );
-    // expect(validation).toBe("OK");
+    const options: Options = {
+      tirUrl:
+        "https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers",
+      resolver: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
+    };
+    const validation = await validateVerifiableCredential(
+      authenticationServerResponse.body.verifiableCredential,
+      options
+    );
+    expect(validation).toBe("OK");
   });
 });

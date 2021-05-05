@@ -7,6 +7,7 @@ declare global {
       API_PORT?: string;
       API_URL_PREFIX?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
+      AUTHORISATION_CREDENTIAL_SCHEMA: string;
     }
   }
 }

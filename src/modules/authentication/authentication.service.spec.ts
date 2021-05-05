@@ -107,7 +107,7 @@ describe("authentication module tests", () => {
   });
 
   it("should createVerifiableAuthorisation", async () => {
-    expect.assertions(5);
+    expect.assertions(15);
     const authenticationService: AuthenticationService = new AuthenticationService(
       configService
     );
@@ -117,14 +117,38 @@ describe("authentication module tests", () => {
     );
     expect(response.verifiableCredential.issuanceDate).toBeDefined();
     expect(response.verifiableCredential.proof).toBeDefined();
-    expect(response.verifiableCredential.issuer).toStrictEqual({
-      id: "did:ebsi:6QYJc3tLRhey88WPKC2kv588v1uZ1oid3yfc5Lp5AbYD",
-    });
-    expect(response.verifiableCredential.type).toStrictEqual(
-      "VerifiableCredential"
+    expect(response.verifiableCredential["@context"]).toStrictEqual([
+      "https://www.w3.org/2018/credentials/v1",
+      "https://www.w3.org/2018/credentials/examples/v1",
+      "https://w3c-ccg.github.io/lds-jws2020/contexts/lds-jws2020-v1.json",
+    ]);
+    expect(response.verifiableCredential.id).toContain(
+      "vc:ebsi:authentication#"
     );
+    expect(response.verifiableCredential.type).toStrictEqual([
+      "VerifiableCredential",
+      "VerifiableAuthorisation",
+    ]);
+    expect(response.verifiableCredential.issuer).toStrictEqual(
+      "did:ebsi:6QYJc3tLRhey88WPKC2kv588v1uZ1oid3yfc5Lp5AbYD"
+    );
+    expect(response.verifiableCredential.issuanceDate).toBeDefined();
+    expect(response.verifiableCredential.validFrom).toBeDefined();
+    expect(response.verifiableCredential.validFrom).toBe(
+      response.verifiableCredential.issuanceDate
+    );
+    expect(response.verifiableCredential.validFrom).toBeDefined();
+    expect(
+      response.verifiableCredential.validFrom <
+        response.verifiableCredential.expirationDate
+    ).toBeTruthy();
     expect(response.verifiableCredential.credentialSubject.id).toStrictEqual(
       "did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn"
+    );
+    expect(response.verifiableCredential.credentialSchema).toBeDefined();
+    expect(response.verifiableCredential.credentialSchema).toHaveProperty("id");
+    expect(response.verifiableCredential.credentialSchema).toHaveProperty(
+      "type"
     );
   });
 });

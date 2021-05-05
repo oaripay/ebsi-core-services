@@ -3,6 +3,7 @@ import { compactVerify } from "jose/jws/compact/verify";
 import { parseJwk } from "jose/jwk/parse";
 import { createJWT, decodeJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { ConfigService } from "@nestjs/config";
+import { v4 as uuidv4 } from "uuid";
 import querystring from "querystring";
 import {
   createCredential,
@@ -140,9 +141,27 @@ export default class AuthenticationService {
   async createVerifiableAuthorisation(
     subjectDid: string
   ): Promise<VerifiableAuthorization> {
+    const issuanceDate = new Date();
+    const expirationDate = new Date(
+      issuanceDate.getTime() + 1000 * 60 * 60 * 24 * 182 // 365/2 = 6 months
+    );
     const credential = createCredential({
+      "@context": [
+        "https://www.w3.org/2018/credentials/v1",
+        "https://www.w3.org/2018/credentials/examples/v1",
+        "https://w3c-ccg.github.io/lds-jws2020/contexts/lds-jws2020-v1.json",
+      ],
+      id: `vc:ebsi:authentication#${uuidv4()}`,
+      type: ["VerifiableCredential", "VerifiableAuthorisation"],
+      issuer: this.applicationDid,
+      issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+      validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+      expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
       credentialSubject: { id: subjectDid },
-      issuer: { id: this.applicationDid },
+      credentialSchema: {
+        id: this.configService.get<string>("authorisationCredentialSchema"),
+        type: "OID",
+      },
     });
     const signer = ES256KSigner(this.privateKey);
     const jwt = (
