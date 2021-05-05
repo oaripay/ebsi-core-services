@@ -112,10 +112,12 @@ describe("HashAlgorithms (e2e)", () => {
             break;
           }
           case "updateHashAlgorithm": {
-            // TODO: get hashAlgorithmId dynamically
+            const response = await request(server).get("/hash-algorithms");
+            const hashAlgorithmId =
+              (response.body as { total: number }).total - 1;
             params = {
               from: testClientWallet.address,
-              hashAlgorithmId: 1,
+              hashAlgorithmId,
               outputLength: 256,
               ianaName:
                 validHashAlgorithms[
