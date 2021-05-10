@@ -14,12 +14,10 @@ import {
 import { FastifyInstance } from "fastify";
 import { SmartContractsModule } from "./smart-contracts.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import {
-  LedgerSCRegistry,
-  LedgerSCRegistry__factory,
-} from "../../contracts/trusted-ledgers-sc";
+import { LedgerSCRegistry } from "../../contracts/trusted-ledgers-sc";
 import { setupTestEnv } from "../../../tests/utils/ledgerScRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { ContractService } from "../../shared/services/contract.service";
 
 jest.setTimeout(60000);
 
@@ -31,6 +29,7 @@ describe("SmartContracts Module", () => {
   let server: HttpServer;
   let ledgerScRegistryContract: LedgerSCRegistry;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let contractService: ContractService;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -41,11 +40,6 @@ describe("SmartContracts Module", () => {
 
     ledgerScRegistryContract = testEnv.ledgerScRegistryContract;
 
-    // Mock Timestamp and TAR contract
-    jest
-      .spyOn(LedgerSCRegistry__factory, "connect")
-      .mockImplementation(() => ledgerScRegistryContract);
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [SmartContractsModule],
     }).compile();
@@ -53,6 +47,8 @@ describe("SmartContracts Module", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
+
+    contractService = moduleFixture.get<ContractService>(ContractService);
 
     // Turn off logger
     Logger.overrideLogger(false);
@@ -62,6 +58,13 @@ describe("SmartContracts Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    // Mock TLSCR contract
+    jest
+      .spyOn(contractService, "getContract")
+      .mockImplementation(async () =>
+        Promise.resolve(ledgerScRegistryContract)
+      );
   });
 
   afterAll(async () => {

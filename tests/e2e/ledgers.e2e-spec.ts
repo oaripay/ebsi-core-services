@@ -27,6 +27,7 @@ import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonr
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
+import { requestSiopJwt } from "../utils/siopJwt";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -52,6 +53,7 @@ describe("Ledgers (e2e)", () => {
     ledgerInfo: { [x: string]: unknown };
     revisionHash: string;
   }[] = [];
+  let testUserAccessToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -71,12 +73,11 @@ describe("Ledgers (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
-      ConfigService
-    );
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("adminTestPrivateKey"))
+      prefixWith0x(configService.get("testAdminPrivateKey"))
     );
 
     ledgerName = `ledger-name-${crypto.randomBytes(8).toString("hex")}`;
@@ -88,6 +89,18 @@ describe("Ledgers (e2e)", () => {
     };
     ledgerInfo = Buffer.from(JSON.stringify(rawLedgerInfo));
     ledgerInfoId = ethers.utils.sha256(ledgerInfo);
+
+    // Generate a valid Client JWT (SIOP) for the tests
+    const didRegistry = `${configService.get<string>(
+      "didRegistryApiUrl"
+    )}/identifiers`;
+
+    testUserAccessToken = await requestSiopJwt({
+      didRegistry,
+      clientDid: configService.get<string>("testAdminDid"),
+      clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+    });
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -165,6 +178,7 @@ describe("Ledgers (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -198,6 +212,7 @@ describe("Ledgers (e2e)", () => {
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",

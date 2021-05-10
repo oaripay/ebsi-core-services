@@ -63,4 +63,48 @@ describe("/trusted-ledgers-smart-contracts-registry/v1 (generic tests)", () => {
       expect(response.status).toBe(404);
     });
   });
+
+  describe("POST /jsonrpc", () => {
+    it("should reject a POST without JWT", async () => {
+      expect.assertions(3);
+
+      const response = await request(app.getHttpServer())
+        .post("/jsonrpc")
+        .send();
+
+      expect(response.body).toStrictEqual({
+        detail: "Invalid or missing JWT",
+        status: 401,
+        title: "Unauthorized",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should reject a POST with an invalid token", async () => {
+      expect.assertions(3);
+
+      const response = await request(app.getHttpServer())
+        .post("/jsonrpc")
+        .auth(
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+          { type: "bearer" }
+        )
+        .send();
+
+      expect(response.body).toStrictEqual({
+        detail: "Invalid JWT: No supported signature types for algorithm HS256",
+        status: 401,
+        title: "Unauthorized",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+  });
 });

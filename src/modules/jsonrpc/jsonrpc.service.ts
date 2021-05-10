@@ -1,5 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
 import {
@@ -23,7 +23,6 @@ import {
   ArgsUpdateLedgerName,
   RequestUpdateLedgerNameDto,
 } from "./dto";
-import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
 import {
   formatEthersUnsignedTransaction,
@@ -31,72 +30,119 @@ import {
   validateClass,
 } from "./jsonrpc.utils";
 import { ContractService } from "../../shared/services/contract.service";
-import { LedgerSCRegistry } from "../../contracts/trusted-ledgers-sc";
 import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
 export class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
 
-  private ledgerScRegistryContract: LedgerSCRegistry;
-
   private chainId: string = null;
+
+  private trustedAppsRegistry: string;
+
+  private didRegistry: string;
 
   constructor(
     private configService: ConfigService<ApiConfig>,
     private contractService: ContractService
   ) {
-    this.ledgerScRegistryContract = this.contractService.getContract();
+    this.trustedAppsRegistry = this.configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    );
+    this.didRegistry = configService.get<string>("didRegistryApiUrl");
   }
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
-      const {
-        chainId,
-      } = await this.ledgerScRegistryContract.provider.getNetwork();
+      const { chainId } = await (
+        await this.contractService.getContract()
+      ).provider.getNetwork();
       this.chainId = ethers.BigNumber.from(chainId).toHexString();
     }
     return this.chainId;
   }
 
   async getBlockNumber(): Promise<number> {
-    return this.ledgerScRegistryContract.provider.getBlockNumber();
+    return (await this.contractService.getContract()).provider.getBlockNumber();
   }
 
-  async callBesuAuth(method: string, params: unknown[]): Promise<unknown> {
-    const url = `${this.configService.get<string>("ledger")}/blockchains/besu`;
-    const data = { jsonrpc: "2.0", method, params, id: 1 };
+  async estimateGas(
+    transaction: UnsignedTransaction
+  ): Promise<ethers.BigNumber> {
+    const { from, to, data, value } = transaction;
 
+    return (await this.contractService.getContract()).provider.estimateGas({
+      from,
+      to,
+      data,
+      value,
+    });
+  }
+
+  async isDidControlledByAddress(
+    did: string,
+    controllerAddress: string,
+    currentPage = 1
+  ): Promise<boolean> {
+    const pageSize = 50;
+
+    const { data } = await axios.get<{
+      items: { did: string }[];
+      total: number;
+    }>(
+      `${this.didRegistry}/identifiers?controller=${controllerAddress}&page[size]=${pageSize}&page[after]=${currentPage}`
+    );
+
+    // Check if DID is in the list
+    if (
+      data.items
+        .map((item) => item.did.toLowerCase())
+        .includes(did.toLowerCase())
+    ) {
+      return true;
+    }
+
+    // Recursive call if there are more pages
+    if (currentPage * pageSize < data.total) {
+      return this.isDidControlledByAddress(
+        did,
+        controllerAddress,
+        currentPage + 1
+      );
+    }
+
+    return false;
+  }
+
+  async verifyTrustedAppsRegistryAdministrator(did: string): Promise<void> {
     try {
-      const response: AxiosResponseJsonRpc = await axios.post(url, data);
-      if (response.data.error) {
-        throw new Error(JSON.stringify(response.data.error));
-      }
-      return response.data.result;
+      await axios.get(`${this.trustedAppsRegistry}/administrators/${did}`);
     } catch (error) {
-      const errorAxios = error as AxiosErrorResponse;
-      if (errorAxios.response && errorAxios.response.data) {
-        let message: string;
-        if (typeof errorAxios.response.data === "object")
-          message = JSON.stringify(errorAxios.response.data);
-        else message = errorAxios.response.data as string;
-        throw new Error(message);
-      }
+      if ((error as AxiosError).response?.status === 404)
+        throw new Error(
+          `${did} not found as administrator in the Trusted Apps Registry`
+        );
       throw error;
     }
   }
 
-  async estimateGas(transaction: UnsignedTransaction): Promise<string> {
-    const { from, to, data, value } = transaction;
-
-    return this.callBesuAuth("eth_estimateGas", [
-      { from, to, data, value },
-    ]) as Promise<string>;
-  }
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async checkWritePermission(func: string, address: string): Promise<void> {
-    // TODO: implement EBSI admin verification?
+  async checkWritePermission(
+    func: string,
+    address: string,
+    clientId: string
+  ): Promise<void> {
+    // Check DID Registry
+    if (!(await this.isDidControlledByAddress(clientId, address))) {
+      throw new Error(
+        `The DID ${clientId} is not controlled by the address ${address}`
+      );
+    }
+
+    // Verify if user is registered as an administrator in the TAR
+    await this.verifyTrustedAppsRegistryAdministrator(
+      clientId.toLocaleLowerCase()
+    );
   }
 
   async verifyTransaction(
@@ -134,73 +180,75 @@ export class JsonRpcService {
         `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`
       );
 
-    if (unsignedTransaction.to !== this.ledgerScRegistryContract.address)
+    if (
+      unsignedTransaction.to !==
+      (await this.contractService.getContract()).address
+    )
       throw new Error(
-        `Invalid unsignedTransaction.to. Expected ${this.ledgerScRegistryContract.address}. Received ${unsignedTransaction.to}`
+        `Invalid unsignedTransaction.to. Expected ${
+          (await this.contractService.getContract()).address
+        }. Received ${unsignedTransaction.to}`
       );
 
     // verify function and parameters enconded in unsignedTransaction.data
-    const {
-      args,
-      functionFragment,
-    } = this.ledgerScRegistryContract.interface.parseTransaction(
-      unsignedTransaction
-    );
+    const { args, functionFragment } = (
+      await this.contractService.getContract()
+    ).interface.parseTransaction(unsignedTransaction);
 
     switch (functionFragment.name) {
       case "insertLedgerInfo": {
         await validateClass(
           ArgsInsertLedgerInfo,
-          (args as unknown) as ArgsInsertLedgerInfo
+          args as unknown as ArgsInsertLedgerInfo
         );
         break;
       }
       case "updateLedgerInfoById": {
         await validateClass(
           ArgsUpdateLedgerInfoById,
-          (args as unknown) as ArgsUpdateLedgerInfoById
+          args as unknown as ArgsUpdateLedgerInfoById
         );
         break;
       }
       case "updateLedgerInfoByName": {
         await validateClass(
           ArgsUpdateLedgerInfoByName,
-          (args as unknown) as ArgsUpdateLedgerInfoByName
+          args as unknown as ArgsUpdateLedgerInfoByName
         );
         break;
       }
       case "updateLedgerName": {
         await validateClass(
           ArgsUpdateLedgerName,
-          (args as unknown) as ArgsUpdateLedgerName
+          args as unknown as ArgsUpdateLedgerName
         );
         break;
       }
       case "insertSmartContractInfo": {
         await validateClass(
           ArgsInsertSmartContractInfo,
-          (args as unknown) as ArgsInsertSmartContractInfo
+          args as unknown as ArgsInsertSmartContractInfo
         );
         break;
       }
       case "updateSmartContractInfoById": {
         await validateClass(
           ArgsUpdateSmartContractInfoById,
-          (args as unknown) as ArgsUpdateSmartContractInfoById
+          args as unknown as ArgsUpdateSmartContractInfoById
         );
         break;
       }
       case "updateSmartContractInfoByName": {
         await validateClass(
           ArgsUpdateSmartContractInfoByName,
-          (args as unknown) as ArgsUpdateSmartContractInfoByName
+          args as unknown as ArgsUpdateSmartContractInfoByName
         );
         break;
       }
       case "updateSmartContractName": {
         await validateClass(
           ArgsUpdateSmartContractName,
-          (args as unknown) as ArgsUpdateSmartContractName
+          args as unknown as ArgsUpdateSmartContractName
         );
         break;
       }
@@ -220,13 +268,13 @@ export class JsonRpcService {
     from: string,
     params: string
   ): Promise<UnsignedTransaction> {
-    const nonceInt = await this.ledgerScRegistryContract.provider.getTransactionCount(
-      from
-    );
+    const nonceInt = await (
+      await this.contractService.getContract()
+    ).provider.getTransactionCount(from);
 
     const unsignedTransaction: UnsignedTransaction = {
       from,
-      to: this.ledgerScRegistryContract.address,
+      to: (await this.contractService.getContract()).address,
       data: params,
       value: "0x0",
       nonce: ethers.BigNumber.from(nonceInt).toHexString(),
@@ -235,17 +283,21 @@ export class JsonRpcService {
       gasPrice: "0x0",
     };
 
-    let gasEstimation = "unset";
+    let gasEstimation: string | ethers.BigNumber = "unset";
 
     try {
       gasEstimation = await this.estimateGas(unsignedTransaction);
-      unsignedTransaction.gasLimit = ethers.BigNumber.from(
-        Math.ceil(1.4 * Number(gasEstimation))
-      ).toHexString();
+      // Multiply by 1.4
+      unsignedTransaction.gasLimit = gasEstimation
+        .mul(14)
+        .div(10)
+        .toHexString();
     } catch (error) {
       this.logger.warn(
         `Gas could not be estimated.${
-          gasEstimation === "unset" ? "" : `Received ${gasEstimation}.`
+          gasEstimation === "unset"
+            ? ""
+            : `Received ${gasEstimation.toString()}.`
         } Using 0x1000000`
       );
       unsignedTransaction.gasLimit = "0x1000000";
@@ -263,10 +315,9 @@ export class JsonRpcService {
 
       const { from, name, info } = body.params[0];
 
-      const data = this.ledgerScRegistryContract.interface.encodeFunctionData(
-        "insertLedgerInfo",
-        [name, info]
-      );
+      const data = (
+        await this.contractService.getContract()
+      ).interface.encodeFunctionData("insertLedgerInfo", [name, info]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -285,10 +336,12 @@ export class JsonRpcService {
 
       const { from, ledgerInfoId, info } = body.params[0];
 
-      const data = this.ledgerScRegistryContract.interface.encodeFunctionData(
-        "updateLedgerInfoById",
-        [ledgerInfoId, info]
-      );
+      const data = (
+        await this.contractService.getContract()
+      ).interface.encodeFunctionData("updateLedgerInfoById", [
+        ledgerInfoId,
+        info,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -307,10 +360,9 @@ export class JsonRpcService {
 
       const { from, name, info } = body.params[0];
 
-      const data = this.ledgerScRegistryContract.interface.encodeFunctionData(
-        "updateLedgerInfoByName",
-        [name, info]
-      );
+      const data = (
+        await this.contractService.getContract()
+      ).interface.encodeFunctionData("updateLedgerInfoByName", [name, info]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -329,10 +381,9 @@ export class JsonRpcService {
 
       const { from, oldName, newName } = body.params[0];
 
-      const data = this.ledgerScRegistryContract.interface.encodeFunctionData(
-        "updateLedgerName",
-        [oldName, newName]
-      );
+      const data = (
+        await this.contractService.getContract()
+      ).interface.encodeFunctionData("updateLedgerName", [oldName, newName]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -351,10 +402,9 @@ export class JsonRpcService {
 
       const { from, name, info } = body.params[0];
 
-      const data = this.ledgerScRegistryContract.interface.encodeFunctionData(
-        "insertSmartContractInfo",
-        [name, info]
-      );
+      const data = (
+        await this.contractService.getContract()
+      ).interface.encodeFunctionData("insertSmartContractInfo", [name, info]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -373,10 +423,12 @@ export class JsonRpcService {
 
       const { from, smartContractInfoId, info } = body.params[0];
 
-      const data = this.ledgerScRegistryContract.interface.encodeFunctionData(
-        "updateSmartContractInfoById",
-        [smartContractInfoId, info]
-      );
+      const data = (
+        await this.contractService.getContract()
+      ).interface.encodeFunctionData("updateSmartContractInfoById", [
+        smartContractInfoId,
+        info,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -395,10 +447,12 @@ export class JsonRpcService {
 
       const { from, name, info } = body.params[0];
 
-      const data = this.ledgerScRegistryContract.interface.encodeFunctionData(
-        "updateSmartContractInfoByName",
-        [name, info]
-      );
+      const data = (
+        await this.contractService.getContract()
+      ).interface.encodeFunctionData("updateSmartContractInfoByName", [
+        name,
+        info,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -417,10 +471,12 @@ export class JsonRpcService {
 
       const { from, oldName, newName } = body.params[0];
 
-      const data = this.ledgerScRegistryContract.interface.encodeFunctionData(
-        "updateSmartContractName",
-        [oldName, newName]
-      );
+      const data = (
+        await this.contractService.getContract()
+      ).interface.encodeFunctionData("updateSmartContractName", [
+        oldName,
+        newName,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -431,6 +487,7 @@ export class JsonRpcService {
   }
 
   async sendTransaction(
+    clientId: string,
     body: RequestSignedTransactionDto,
     id?: number | string
   ): Promise<string> {
@@ -440,11 +497,12 @@ export class JsonRpcService {
       const request = body.params[0];
       const { signer, functionName } = await this.verifyTransaction(request);
 
-      await this.checkWritePermission(functionName, signer);
-      const res = (await this.callBesuAuth("eth_sendRawTransaction", [
-        request.signedRawTransaction,
-      ])) as string;
-      return res;
+      await this.checkWritePermission(functionName, signer, clientId);
+
+      const tx = await (
+        await this.contractService.getContract()
+      ).provider.sendTransaction(request.signedRawTransaction);
+      return tx.hash;
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;

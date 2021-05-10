@@ -64,11 +64,12 @@ export class SmartContractsController {
   ): Promise<PaginatedList<GetRevisionsResponse>> {
     const { smartContractInfoId } = params;
 
-    const revisions = await this.smartContractsService.getSmartContractRevisions(
-      smartContractInfoId,
-      query["page[after]"],
-      query["page[size]"]
-    );
+    const revisions =
+      await this.smartContractsService.getSmartContractRevisions(
+        smartContractInfoId,
+        query["page[after]"],
+        query["page[size]"]
+      );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");

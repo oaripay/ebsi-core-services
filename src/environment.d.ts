@@ -6,12 +6,26 @@ declare global {
       EBSI_ENV: "local" | "test" | "pilot" | "prod";
       API_PRIVATE_KEY: string;
       API_PORT?: string;
+      API_KID: string;
       API_URL_PREFIX?: string;
+      API_NAME?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-      LEDGER?: string;
-      CONTRACT_ADDR: string;
       DOMAIN?: string;
-      ADMIN_TEST_PRIVATE_KEY?: string;
+      // Ledger & SC
+      LEDGER_API_URL?: string;
+      LEDGER_API_NAME?: string;
+      CONTRACT_ADDR: string;
+      // Authorisation API
+      AUTHORISATION_API_DID: string;
+      AUTHORISATION_API_NAME?: string;
+      AUTHORISATION_API_URL?: string;
+      // DID Registry API
+      DID_REGISTRY_API_URL?: string;
+      // TAR API
+      TRUSTED_APPS_REGISTRY_API_URL?: string;
+      // Test vars
+      TEST_ADMIN_DID?: string;
+      TEST_ADMIN_PRIVATE_KEY?: string;
     }
   }
 }

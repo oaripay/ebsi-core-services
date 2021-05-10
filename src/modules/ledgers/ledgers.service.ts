@@ -9,11 +9,7 @@ import { LedgerInfoIdsList, RevisionsList } from "./ledgers.interface";
 export class LedgersService {
   private readonly logger = new Logger(LedgersService.name);
 
-  private ledgerScRegistryContract: LedgerSCRegistry;
-
-  constructor(private contractService: ContractService) {
-    this.ledgerScRegistryContract = this.contractService.getContract();
-  }
+  constructor(private contractService: ContractService) {}
 
   async getLedgers(
     page: number,
@@ -22,9 +18,9 @@ export class LedgersService {
   ): Promise<LedgerInfoIdsList> {
     if (name) {
       try {
-        const ledger = await this.ledgerScRegistryContract.getLedgerInfoIdByName(
-          name
-        );
+        const ledger = await (
+          await this.contractService.getContract()
+        ).getLedgerInfoIdByName(name);
 
         return {
           items: [ledger],
@@ -38,10 +34,9 @@ export class LedgersService {
       }
     }
 
-    const result = await this.ledgerScRegistryContract.getLedgerInfoIds(
-      page,
-      pageSize
-    );
+    const result = await (
+      await this.contractService.getContract()
+    ).getLedgerInfoIds(page, pageSize);
 
     return {
       items: result.items,
@@ -55,9 +50,9 @@ export class LedgersService {
     >;
 
     try {
-      ledgerInfo = await this.ledgerScRegistryContract.getLatestLedgerInfoById(
-        ledgerInfoId
-      );
+      ledgerInfo = await (
+        await this.contractService.getContract()
+      ).getLatestLedgerInfoById(ledgerInfoId);
     } catch (error) {
       throw new NotFoundError("Ledger Not Found", {
         detail: `Ledger ${ledgerInfoId} not found`,
@@ -77,18 +72,18 @@ export class LedgersService {
     pageSize: number
   ): Promise<RevisionsList> {
     try {
-      await this.ledgerScRegistryContract.getLatestLedgerInfoById(ledgerInfoId);
+      await (
+        await this.contractService.getContract()
+      ).getLatestLedgerInfoById(ledgerInfoId);
     } catch (error) {
       throw new NotFoundError("Ledger Not Found", {
         detail: `Ledger ${ledgerInfoId} not found`,
       });
     }
 
-    const result = await this.ledgerScRegistryContract.getLedgerInfoRevisionIds(
-      ledgerInfoId,
-      page,
-      pageSize
-    );
+    const result = await (
+      await this.contractService.getContract()
+    ).getLedgerInfoRevisionIds(ledgerInfoId, page, pageSize);
 
     return {
       items: result.items,
@@ -102,7 +97,9 @@ export class LedgersService {
   ): Promise<unknown> {
     // Make sure it exists
     try {
-      await this.ledgerScRegistryContract.getLatestLedgerInfoById(ledgerInfoId);
+      await (
+        await this.contractService.getContract()
+      ).getLatestLedgerInfoById(ledgerInfoId);
     } catch (error) {
       throw new NotFoundError("Ledger Not Found", {
         detail: `Ledger ${ledgerInfoId} not found`,
@@ -114,9 +111,9 @@ export class LedgersService {
     >;
 
     try {
-      ledgerInfo = await this.ledgerScRegistryContract.getLedgerInfoByRevisionId(
-        revisionHash
-      );
+      ledgerInfo = await (
+        await this.contractService.getContract()
+      ).getLedgerInfoByRevisionId(revisionHash);
 
       if (!ledgerInfo || ledgerInfo === "0x") {
         throw new Error("not found");

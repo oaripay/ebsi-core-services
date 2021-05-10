@@ -12,11 +12,7 @@ import {
 export class SmartContractsService {
   private readonly logger = new Logger(SmartContractsService.name);
 
-  private ledgerScRegistryContract: LedgerSCRegistry;
-
-  constructor(private contractService: ContractService) {
-    this.ledgerScRegistryContract = this.contractService.getContract();
-  }
+  constructor(private contractService: ContractService) {}
 
   async getSmartContracts(
     page: number,
@@ -25,9 +21,9 @@ export class SmartContractsService {
   ): Promise<SmartContractInfoIdsList> {
     if (name) {
       try {
-        const smartContract = await this.ledgerScRegistryContract.getSmartContractInfoIdByName(
-          name
-        );
+        const smartContract = await (
+          await this.contractService.getContract()
+        ).getSmartContractInfoIdByName(name);
 
         return {
           items: [smartContract],
@@ -41,10 +37,9 @@ export class SmartContractsService {
       }
     }
 
-    const result = await this.ledgerScRegistryContract.getSmartContractInfoIds(
-      page,
-      pageSize
-    );
+    const result = await (
+      await this.contractService.getContract()
+    ).getSmartContractInfoIds(page, pageSize);
 
     return {
       items: result.items,
@@ -58,9 +53,9 @@ export class SmartContractsService {
     >;
 
     try {
-      smartContractInfo = await this.ledgerScRegistryContract.getLatestSmartContractInfoById(
-        smartContractInfoId
-      );
+      smartContractInfo = await (
+        await this.contractService.getContract()
+      ).getLatestSmartContractInfoById(smartContractInfoId);
     } catch (error) {
       throw new NotFoundError("Smart Contract Not Found", {
         detail: `Smart contract ${smartContractInfoId} not found`,
@@ -80,20 +75,18 @@ export class SmartContractsService {
     pageSize: number
   ): Promise<RevisionsList> {
     try {
-      await this.ledgerScRegistryContract.getLatestSmartContractInfoById(
-        smartContractInfoId
-      );
+      await (
+        await this.contractService.getContract()
+      ).getLatestSmartContractInfoById(smartContractInfoId);
     } catch (error) {
       throw new NotFoundError("Smart Contract Not Found", {
         detail: `Smart contract ${smartContractInfoId} not found`,
       });
     }
 
-    const result = await this.ledgerScRegistryContract.getSmartContractInfoRevisionIds(
-      smartContractInfoId,
-      page,
-      pageSize
-    );
+    const result = await (
+      await this.contractService.getContract()
+    ).getSmartContractInfoRevisionIds(smartContractInfoId, page, pageSize);
 
     return {
       items: result.items,
@@ -107,9 +100,9 @@ export class SmartContractsService {
   ): Promise<unknown> {
     // Make sure it exists
     try {
-      await this.ledgerScRegistryContract.getLatestSmartContractInfoById(
-        smartContractInfoId
-      );
+      await (
+        await this.contractService.getContract()
+      ).getLatestSmartContractInfoById(smartContractInfoId);
     } catch (error) {
       throw new NotFoundError("Smart Contract Not Found", {
         detail: `Smart contract ${smartContractInfoId} not found`,
@@ -121,9 +114,9 @@ export class SmartContractsService {
     >;
 
     try {
-      smartContractInfo = await this.ledgerScRegistryContract.getSmartContractInfoByRevisionId(
-        revisionHash
-      );
+      smartContractInfo = await (
+        await this.contractService.getContract()
+      ).getSmartContractInfoByRevisionId(revisionHash);
 
       if (!smartContractInfo || smartContractInfo === "0x") {
         throw new Error("not found");
