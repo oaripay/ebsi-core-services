@@ -2,6 +2,7 @@ import request from "supertest";
 import crypto from "crypto";
 import { ethers } from "ethers";
 import { Test, TestingModule } from "@nestjs/testing";
+import { ConfigService } from "@nestjs/config";
 import {
   INestApplication,
   ValidationPipe,
@@ -13,7 +14,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
-import { loadConfig } from "../../src/config/configuration";
+import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import {
@@ -27,6 +28,7 @@ import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonr
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { prefixWith0x } from "../../src/shared/utils";
 import { PaginatedList } from "../../src/shared/interfaces";
+import { requestSiopJwt } from "../utils/siopJwt";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -58,10 +60,9 @@ interface SupertestAttributeResponse {
 describe("Issuers (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
-
-  const { adminTestPrivateKey } = loadConfig();
-
-  const wallet = new ethers.Wallet(prefixWith0x(adminTestPrivateKey));
+  let configService: ConfigService<ApiConfig>;
+  let adminTestWallet: ethers.Wallet;
+  let testUserAccessToken: string;
 
   const createIssuer = () => {
     const did = `did:ebsi:test-${new Date().toISOString()}`;
@@ -104,6 +105,24 @@ describe("Issuers (e2e)", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    adminTestWallet = new ethers.Wallet(
+      prefixWith0x(configService.get("testAdminPrivateKey"))
+    );
+
+    // Generate a valid Client JWT (SIOP) for the tests
+    const didRegistry = `${configService.get<string>(
+      "didRegistryApiUrl"
+    )}/identifiers`;
+
+    testUserAccessToken = await requestSiopJwt({
+      didRegistry,
+      clientDid: configService.get<string>("testAdminDid"),
+      clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+    });
   });
 
   describe("/issuers", () => {
@@ -148,9 +167,8 @@ describe("Issuers (e2e)", () => {
         server
       ).get("/issuers");
       expect(issuersResponse.status).toBe(200);
-      const { did }: DidLink = issuersResponse.body.items[
-        issuersResponse.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        issuersResponse.body.items[issuersResponse.body.items.length - 1];
 
       const response: SupertestIssuerResponse = await request(server).get(
         `/issuers/${did}`
@@ -185,9 +203,8 @@ describe("Issuers (e2e)", () => {
 
       expect(issuers.status).toBe(200);
 
-      const { did }: DidLink = issuers.body.items[
-        issuers.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        issuers.body.items[issuers.body.items.length - 1];
       const response: SupertestAttributesResponse = await request(server).get(
         `/issuers/${did}/attributes`
       );
@@ -229,9 +246,8 @@ describe("Issuers (e2e)", () => {
       );
       expect(issuers.status).toBe(200);
 
-      const { did }: DidLink = issuers.body.items[
-        issuers.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        issuers.body.items[issuers.body.items.length - 1];
 
       const responseAttributes: SupertestAttributesResponse = await request(
         server
@@ -262,9 +278,8 @@ describe("Issuers (e2e)", () => {
       );
       expect(issuers.status).toBe(200);
 
-      const { did }: DidLink = issuers.body.items[
-        issuers.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        issuers.body.items[issuers.body.items.length - 1];
 
       // consult a random attribute
       const attributeId =
@@ -297,9 +312,8 @@ describe("Issuers (e2e)", () => {
       expect(response2.status).toBe(404);
 
       // consult an attribute from a different did
-      const { did: did2 }: DidLink = issuers.body.items[
-        issuers.body.items.length - 2
-      ];
+      const { did: did2 }: DidLink =
+        issuers.body.items[issuers.body.items.length - 2];
       const responseAttributes: SupertestAttributesResponse = await request(
         server
       ).get(`/issuers/${did2}/attributes`);
@@ -330,9 +344,8 @@ describe("Issuers (e2e)", () => {
         "/issuers"
       );
       expect(issuers.status).toBe(200);
-      const { did }: DidLink = issuers.body.items[
-        issuers.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        issuers.body.items[issuers.body.items.length - 1];
 
       const responseIssuer: SupertestIssuerResponse = await request(server).get(
         `/issuers/${did}`
@@ -379,12 +392,13 @@ describe("Issuers (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
           params: [
             {
-              from: wallet.address,
+              from: adminTestWallet.address,
               did,
               attribute,
               ...(prevAttributeHash && { prevAttributeHash }),
@@ -399,7 +413,7 @@ describe("Issuers (e2e)", () => {
         result: {
           chainId: expect.any(String) as string,
           data: expect.any(String) as string,
-          from: wallet.address,
+          from: adminTestWallet.address,
           gasLimit: expect.any(String) as string,
           gasPrice: expect.any(String) as string,
           nonce: expect.any(String) as string,
@@ -451,12 +465,13 @@ describe("Issuers (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
           params: [
             {
-              from: wallet.address,
+              from: adminTestWallet.address,
               did,
               attribute,
               ...(prevAttributeHash && { prevAttributeHash }),
@@ -470,11 +485,12 @@ describe("Issuers (e2e)", () => {
         JSON.parse(JSON.stringify(unsignedTransaction))
       );
       uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await wallet.signTransaction(uTx);
+      const sgnTx = await adminTestWallet.signTransaction(uTx);
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",

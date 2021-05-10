@@ -1,8 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { PolicyRevisions } from "./policies.interface";
-import LedgerService from "../../shared/services/ledger.service";
+import { LedgerService } from "../../shared/services/ledger.service";
 import { Tir } from "../../contracts";
 import { generateMultihash } from "../../shared/utils/multihash.utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
@@ -11,20 +10,13 @@ import { AsyncReturnType } from "../../shared/types/async-return-type";
 export class PoliciesService {
   private readonly logger = new Logger(PoliciesService.name);
 
-  private tirContract: Tir;
-
-  constructor(
-    private ledgerService: LedgerService,
-    private configService: ConfigService
-  ) {
-    this.tirContract = this.ledgerService.getContract();
-  }
+  constructor(private ledgerService: LedgerService) {}
 
   async getPolicies(
     page: number,
     pageSize: number
   ): ReturnType<Tir["getPolicies"]> {
-    return this.tirContract.getPolicies(page, pageSize);
+    return (await this.ledgerService.getContract()).getPolicies(page, pageSize);
   }
 
   async getPolicy(policyId: string): Promise<[string, string]> {
@@ -32,7 +24,9 @@ export class PoliciesService {
 
     try {
       // Preserve case! Don't lowercase the policyId
-      policy = await this.tirContract.getPolicy(policyId);
+      policy = await (
+        await this.ledgerService.getContract()
+      ).getPolicy(policyId);
     } catch (e) {
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
@@ -58,19 +52,18 @@ export class PoliciesService {
     let revisions: AsyncReturnType<Tir["getPolicyRevisions"]>;
 
     try {
-      revisions = await this.tirContract.getPolicyRevisions(
-        policyId,
-        page,
-        pageSize
-      );
+      revisions = await (
+        await this.ledgerService.getContract()
+      ).getPolicyRevisions(policyId, page, pageSize);
     } catch (e) {
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
       });
     }
 
+    const contract = await this.ledgerService.getContract();
     const getPoliciesByRevisions = revisions.items.map((hash) =>
-      this.tirContract.getPolicyByHash(hash)
+      contract.getPolicyByHash(hash)
     );
 
     let policies: AsyncReturnType<Tir["getPolicyByHash"]>[];

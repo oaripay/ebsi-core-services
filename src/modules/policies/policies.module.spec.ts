@@ -14,9 +14,9 @@ import { FastifyInstance } from "fastify";
 import { PoliciesModule } from "./policies.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { generateMultihash } from "../../shared/utils";
-import { Tir__factory } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tir";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { LedgerService } from "../../shared/services/ledger.service";
 
 jest.setTimeout(90000);
 
@@ -36,9 +36,6 @@ describe("Policies Module", () => {
     });
     const { tirContract } = testEnv;
 
-    // Mock TAR contract
-    jest.spyOn(Tir__factory, "connect").mockImplementation(() => tirContract);
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [PoliciesModule],
     }).compile();
@@ -55,6 +52,12 @@ describe("Policies Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    // Mock TIR contract
+    const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
+    jest
+      .spyOn(ledgerService, "getContract")
+      .mockImplementation(async () => Promise.resolve(tirContract));
   });
 
   afterAll(async () => {
@@ -261,9 +264,8 @@ describe("Policies Module", () => {
       const { policies, policyRevisions } = testEnv;
       const { policyId } = policies[0];
       // Get last revision of this policy
-      const { policyData, policyHash } = policyRevisions[policyId][
-        policyRevisions[policyId].length - 1
-      ];
+      const { policyData, policyHash } =
+        policyRevisions[policyId][policyRevisions[policyId].length - 1];
 
       const expectedPolicy = policyData;
       const expectedHash = generateMultihash(policyHash);

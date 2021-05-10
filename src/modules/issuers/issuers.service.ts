@@ -1,7 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
-import LedgerService from "../../shared/services/ledger.service";
+import { LedgerService } from "../../shared/services/ledger.service";
 import { AttributeObject, IssuerResponseObject } from "./issuers.interface";
 import { Tir } from "../../contracts";
 import { prefixWith0x } from "../../shared/utils";
@@ -11,20 +10,13 @@ import { AsyncReturnType } from "../../shared/types/async-return-type";
 export class IssuersService {
   private readonly logger = new Logger(IssuersService.name);
 
-  private tirContract: Tir;
-
-  constructor(
-    private ledgerService: LedgerService,
-    private configService: ConfigService
-  ) {
-    this.tirContract = this.ledgerService.getContract();
-  }
+  constructor(private ledgerService: LedgerService) {}
 
   async getIssuers(
     page: number,
     pageSize: number
   ): ReturnType<Tir["getIssuers"]> {
-    return this.tirContract.getIssuers(page, pageSize);
+    return (await this.ledgerService.getContract()).getIssuers(page, pageSize);
   }
 
   async getAttribute(attributeId: string): Promise<AttributeObject> {
@@ -34,7 +26,9 @@ export class IssuersService {
     let attributeByHash: AsyncReturnType<Tir["getIssuerAttributeByHash"]>;
 
     try {
-      attributeByHash = await this.tirContract.getIssuerAttributeByHash(hash);
+      attributeByHash = await (
+        await this.ledgerService.getContract()
+      ).getIssuerAttributeByHash(hash);
     } catch (e) {
       throw new NotFoundError("Attribute Not Found", {
         detail: `Attribute ${hash} not found`,
@@ -58,7 +52,9 @@ export class IssuersService {
     let attributesLastHash: string[];
 
     try {
-      attributesLastHash = await this.tirContract.getIssuer(did);
+      attributesLastHash = await (
+        await this.ledgerService.getContract()
+      ).getIssuer(did);
 
       if (attributesLastHash.length === 0) {
         throw new Error();
@@ -90,7 +86,9 @@ export class IssuersService {
     let attributesLastHash: string[];
 
     try {
-      attributesLastHash = await this.tirContract.getIssuer(did);
+      attributesLastHash = await (
+        await this.ledgerService.getContract()
+      ).getIssuer(did);
     } catch (e) {
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,
@@ -105,7 +103,9 @@ export class IssuersService {
     // Known issue: if there are more than 50 revisions, didIncludesAttribute may wrongly return false
     const revisionHashesList = await Promise.all(
       attributesLastHash.map(async (hash) => {
-        return this.tirContract.getIssuerAttributeRevisions(hash, 1, 50);
+        return (
+          await this.ledgerService.getContract()
+        ).getIssuerAttributeRevisions(hash, 1, 50);
       })
     );
 
@@ -122,11 +122,9 @@ export class IssuersService {
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
 
-    const revisionHashes = await this.tirContract.getIssuerAttributeRevisions(
-      hash,
-      page,
-      pageSize
-    );
+    const revisionHashes = await (
+      await this.ledgerService.getContract()
+    ).getIssuerAttributeRevisions(hash, page, pageSize);
 
     const revisions = await Promise.all(
       revisionHashes.items.map(async (revisionHash) => {

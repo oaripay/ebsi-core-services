@@ -1,7 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
-import LedgerService from "../../shared/services/ledger.service";
+import {
+  ForbiddenError,
+  NotFoundError,
+} from "@cef-ebsi/problem-details-errors";
+import { LedgerService } from "../../shared/services/ledger.service";
 import {
   AttributeObject,
   AdministratorResponseObject,
@@ -14,20 +16,16 @@ import { AsyncReturnType } from "../../shared/types/async-return-type";
 export class AdministratorsService {
   private readonly logger = new Logger(AdministratorsService.name);
 
-  private tirContract: Tir;
-
-  constructor(
-    private ledgerService: LedgerService,
-    private configService: ConfigService
-  ) {
-    this.tirContract = this.ledgerService.getContract();
-  }
+  constructor(private ledgerService: LedgerService) {}
 
   async getAdministrators(
     page: number,
     pageSize: number
   ): ReturnType<Tir["getAdministrators"]> {
-    return this.tirContract.getAdministrators(page, pageSize);
+    return (await this.ledgerService.getContract()).getAdministrators(
+      page,
+      pageSize
+    );
   }
 
   async getAttribute(attributeId: string): Promise<AttributeObject> {
@@ -39,9 +37,9 @@ export class AdministratorsService {
     >;
 
     try {
-      attributeByHash = await this.tirContract.getAdministratorAttributeByHash(
-        hash
-      );
+      attributeByHash = await (
+        await this.ledgerService.getContract()
+      ).getAdministratorAttributeByHash(hash);
     } catch (e) {
       throw new NotFoundError("Attribute Not Found", {
         detail: `Attribute ${hash} not found`,
@@ -64,7 +62,9 @@ export class AdministratorsService {
     let attributesLastHash: string[];
 
     try {
-      attributesLastHash = await this.tirContract.getAdministrator(did);
+      attributesLastHash = await (
+        await this.ledgerService.getContract()
+      ).getAdministrator(did);
 
       if (attributesLastHash.length === 0) {
         throw new Error();
@@ -98,9 +98,9 @@ export class AdministratorsService {
     let attributesLastHash: string[];
 
     try {
-      attributesLastHash = await this.tirContract.getAdministrator(
-        administratorDid
-      );
+      attributesLastHash = await (
+        await this.ledgerService.getContract()
+      ).getAdministrator(administratorDid);
     } catch (e) {
       throw new NotFoundError("Administrator Not Found", {
         detail: `Administrator ${administratorDid} not found`,
@@ -115,7 +115,9 @@ export class AdministratorsService {
     // Known issue: if there are more than 50 revisions, didIncludesAttribute may wrongly return false
     const revisionHashesList = await Promise.all(
       attributesLastHash.map(async (hash) => {
-        return this.tirContract.getAdministratorAttributeRevisions(hash, 1, 50);
+        return (
+          await this.ledgerService.getContract()
+        ).getAdministratorAttributeRevisions(hash, 1, 50);
       })
     );
 
@@ -131,11 +133,9 @@ export class AdministratorsService {
   ): Promise<{ revisions: AttributeObject[]; total: number }> {
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
-    const revisionHashes = await this.tirContract.getAdministratorAttributeRevisions(
-      hash,
-      page,
-      pageSize
-    );
+    const revisionHashes = await (
+      await this.ledgerService.getContract()
+    ).getAdministratorAttributeRevisions(hash, page, pageSize);
 
     const revisions = await Promise.all(
       revisionHashes.items.map(async (revisionHash) => {
@@ -144,6 +144,18 @@ export class AdministratorsService {
     );
 
     return { revisions, total: revisionHashes.total.toNumber() };
+  }
+
+  async allowAdministratorsOnly(did: string): Promise<void> {
+    try {
+      await (
+        await this.ledgerService.getContract()
+      ).getAdministrator(did.toLowerCase());
+    } catch (e) {
+      throw new ForbiddenError(ForbiddenError.defaultTitle, {
+        detail: "JWT subject is not an administrator.",
+      });
+    }
   }
 }
 

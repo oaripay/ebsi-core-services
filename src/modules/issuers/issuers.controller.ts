@@ -107,14 +107,12 @@ export class IssuersController {
       });
     }
 
-    const {
-      revisions,
-      total,
-    } = await this.issuersService.getIssuerAttributeIdRevisions(
-      attributeId,
-      query["page[after]"],
-      query["page[size]"]
-    );
+    const { revisions, total } =
+      await this.issuersService.getIssuerAttributeIdRevisions(
+        attributeId,
+        query["page[after]"],
+        query["page[size]"]
+      );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");

@@ -1,5 +1,7 @@
+import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
+import { ConfigService } from "@nestjs/config";
 import {
   INestApplication,
   ValidationPipe,
@@ -12,12 +14,16 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
+import { Session } from "@cef-ebsi/siop-auth";
+import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { AdministratorsModule } from "./administrators.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { AttributeObject } from "./administrators.interface";
-import { Tir__factory } from "../../contracts";
+import { Tir } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tir";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { ApiConfig } from "../../config/configuration";
+import { LedgerService } from "../../shared/services/ledger.service";
 
 jest.setTimeout(90000);
 
@@ -27,16 +33,18 @@ describe("Administrators Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let configService: ConfigService<ApiConfig>;
+  let admin0AccessToken: string;
+  let admin0AccessTokenPayload: { [x: string]: unknown };
+  let tirContract: Tir;
+  let ledgerService: LedgerService;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv({
       administratorsTotal: ADMINISTRATORS_TOTAL,
     });
-    const { tirContract } = testEnv;
-
-    // Mock TIR contract
-    jest.spyOn(Tir__factory, "connect").mockImplementation(() => tirContract);
+    tirContract = testEnv.tirContract;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AdministratorsModule],
@@ -46,6 +54,9 @@ describe("Administrators Module", () => {
       new FastifyAdapter()
     );
 
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
+
     // Turn off logger
     Logger.overrideLogger(false);
 
@@ -54,6 +65,31 @@ describe("Administrators Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    // Generate JWTs
+    admin0AccessTokenPayload = { sub: testEnv.administrators[0].did };
+    admin0AccessToken = await createJWT(admin0AccessTokenPayload, {
+      issuer: "any",
+      signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+    });
+  });
+
+  beforeEach(() => {
+    // Mock TIR contract
+    jest
+      .spyOn(ledgerService, "getContract")
+      .mockImplementation(async () => Promise.resolve(tirContract));
+
+    // Mock access token verification
+    jest
+      .spyOn(Session.prototype, "verifyAccessToken")
+      .mockImplementation(async () =>
+        Promise.resolve(admin0AccessTokenPayload)
+      );
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
   });
 
   afterAll(async () => {
@@ -62,10 +98,58 @@ describe("Administrators Module", () => {
   });
 
   describe("GET /administrators", () => {
-    it("should return a paginated collection of administrators", async () => {
+    it("should reject a GET without JWT", async () => {
       expect.assertions(3);
 
       const response = await request(server).get("/administrators");
+
+      expect(response.body).toStrictEqual({
+        detail: "Invalid or missing JWT",
+        status: 401,
+        title: "Unauthorized",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should reject a GET with an invalid token", async () => {
+      expect.assertions(4);
+
+      const verifyAccessTokenSpy = jest
+        .spyOn(Session.prototype, "verifyAccessToken")
+        .mockImplementation(async () =>
+          Promise.reject(new Error("error message"))
+        );
+
+      const response = await request(server)
+        .get("/administrators")
+        .auth("jwt", { type: "bearer" });
+
+      expect(response.body).toStrictEqual({
+        detail: "Invalid JWT: error message",
+        status: 401,
+        title: "Unauthorized",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+      expect(verifyAccessTokenSpy).toHaveBeenCalledWith(
+        "jwt",
+        configService.get("authorisationApiDid")
+      );
+    });
+
+    it("should return a paginated collection of administrators", async () => {
+      expect.assertions(3);
+
+      const response = await request(server)
+        .get("/administrators")
+        .auth(admin0AccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
@@ -96,9 +180,9 @@ describe("Administrators Module", () => {
     it("should handle the pagination properly", async () => {
       expect.assertions(12);
 
-      const response1 = await request(server).get(
-        "/administrators?page[size]=2"
-      );
+      const response1 = await request(server)
+        .get("/administrators?page[size]=2")
+        .auth(admin0AccessToken, { type: "bearer" });
 
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining("/administrators") as string,
@@ -124,9 +208,10 @@ describe("Administrators Module", () => {
       expect(response1.status).toBe(200);
 
       // next page
-      const response2 = await request(server).get(
-        "/administrators?page[after]=2&page[size]=2"
-      );
+      const response2 = await request(server)
+        .get("/administrators?page[after]=2&page[size]=2")
+        .auth(admin0AccessToken, { type: "bearer" });
+
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining("/administrators") as string,
         items: expect.arrayContaining([]) as Array<string>,
@@ -151,9 +236,10 @@ describe("Administrators Module", () => {
       expect(response2.status).toBe(200);
 
       // big page
-      const response3 = await request(server).get(
-        "/administrators?page[after]=100&page[size]=2"
-      );
+      const response3 = await request(server)
+        .get("/administrators?page[after]=100&page[size]=2")
+        .auth(admin0AccessToken, { type: "bearer" });
+
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining("/administrators") as string,
         items: expect.arrayContaining([]) as Array<string>,
@@ -178,9 +264,10 @@ describe("Administrators Module", () => {
       expect(response3.status).toBe(200);
 
       // page after defined but page size undefined
-      const response4 = await request(server).get(
-        "/administrators?page[after]=1"
-      );
+      const response4 = await request(server)
+        .get("/administrators?page[after]=1")
+        .auth(admin0AccessToken, { type: "bearer" });
+
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining("/administrators") as string,
         items: expect.arrayContaining([]) as Array<string>,
@@ -208,9 +295,10 @@ describe("Administrators Module", () => {
     it("should throw a Bad Request for bad pagination", async () => {
       expect.assertions(8);
 
-      const response1 = await request(server).get(
-        "/administrators?page[size]=100"
-      );
+      const response1 = await request(server)
+        .get("/administrators?page[size]=100")
+        .auth(admin0AccessToken, { type: "bearer" });
+
       expect(response1.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
@@ -219,9 +307,10 @@ describe("Administrators Module", () => {
       });
       expect(response1.status).toBe(400);
 
-      const response2 = await request(server).get(
-        "/administrators?page[size]=0"
-      );
+      const response2 = await request(server)
+        .get("/administrators?page[size]=0")
+        .auth(admin0AccessToken, { type: "bearer" });
+
       expect(response2.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
@@ -230,9 +319,10 @@ describe("Administrators Module", () => {
       });
       expect(response2.status).toBe(400);
 
-      const response3 = await request(server).get(
-        "/administrators?page[after]=0"
-      );
+      const response3 = await request(server)
+        .get("/administrators?page[after]=0")
+        .auth(admin0AccessToken, { type: "bearer" });
+
       expect(response3.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
@@ -241,9 +331,10 @@ describe("Administrators Module", () => {
       });
       expect(response3.status).toBe(400);
 
-      const response4 = await request(server).get(
-        "/administrators?page[after]=abc"
-      );
+      const response4 = await request(server)
+        .get("/administrators?page[after]=abc")
+        .auth(admin0AccessToken, { type: "bearer" });
+
       expect(response4.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
@@ -260,9 +351,11 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did;
 
-      const response = await request(server).get(`/administrators/${adminDid}`);
+      const response = await request(server)
+        .get(`/administrators/${adminDid}`)
+        .auth(admin0AccessToken, { type: "bearer" });
 
       const data = Buffer.from(
         JSON.stringify({
@@ -291,9 +384,9 @@ describe("Administrators Module", () => {
     it("should throw an error if the administrator is not found", async () => {
       expect.assertions(2);
 
-      const response = await request(server).get(
-        "/administrators/no-administrator"
-      );
+      const response = await request(server)
+        .get("/administrators/no-administrator")
+        .auth(admin0AccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual({
         title: "Administrator Not Found",
@@ -310,9 +403,11 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did;
       const url = `/administrators/${adminDid}/attributes`;
-      const response = await request(server).get(url);
+      const response = await request(server)
+        .get(url)
+        .auth(admin0AccessToken, { type: "bearer" });
 
       const data = Buffer.from(
         JSON.stringify({
@@ -359,7 +454,7 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did;
       const data = Buffer.from(
         JSON.stringify({
           "@context": {
@@ -373,11 +468,9 @@ describe("Administrators Module", () => {
       const dataHash = ethers.utils.sha256(data).slice(2);
 
       const url = `/administrators/${adminDid}/attributes/${dataHash}`;
-
-      // const data = Buffer.from(JSON.stringify(jsonlds[1]));
-      // const dataBase64 = data.toString("base64");
-      // const dataHash = ethers.utils.sha256(data);
-      const response = await request(server).get(url);
+      const response = await request(server)
+        .get(url)
+        .auth(admin0AccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual({
         did: adminDid,
@@ -393,13 +486,15 @@ describe("Administrators Module", () => {
       expect.assertions(6);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did;
       const url = `/administrators/${adminDid}/attributes`;
 
       // Consult a random attribute
       const attributeId =
         "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
-      const response1 = await request(server).get(`${url}/${attributeId}`);
+      const response1 = await request(server)
+        .get(`${url}/${attributeId}`)
+        .auth(admin0AccessToken, { type: "bearer" });
 
       expect(response1.body).toStrictEqual({
         detail: expect.stringContaining(
@@ -412,9 +507,9 @@ describe("Administrators Module", () => {
       expect(response1.status).toBe(404);
 
       // Consult an attribute from a random did
-      const response2 = await request(server).get(
-        `/administrators/did:ebsi:unknown/attributes/${attributeId}`
-      );
+      const response2 = await request(server)
+        .get(`/administrators/did:ebsi:unknown/attributes/${attributeId}`)
+        .auth(admin0AccessToken, { type: "bearer" });
 
       expect(response2.body).toStrictEqual({
         detail: expect.stringContaining(
@@ -427,7 +522,7 @@ describe("Administrators Module", () => {
       expect(response2.status).toBe(404);
 
       // Consult an attribute from a different did
-      const admin2Did = `did:ebsi:${administrators[1].address.toLowerCase()}`;
+      const admin2Did = administrators[1].did;
       const data2 = Buffer.from(
         JSON.stringify({
           "@context": {
@@ -438,7 +533,9 @@ describe("Administrators Module", () => {
         })
       );
       const attributeId4 = ethers.utils.sha256(data2);
-      const response3 = await request(server).get(`${url}/${attributeId4}`);
+      const response3 = await request(server)
+        .get(`${url}/${attributeId4}`)
+        .auth(admin0AccessToken, { type: "bearer" });
 
       expect(response3.body).toStrictEqual({
         detail: expect.stringContaining(
@@ -458,7 +555,7 @@ describe("Administrators Module", () => {
       expect.assertions(3);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did;
       const data = Buffer.from(
         JSON.stringify({
           "@context": {
@@ -472,7 +569,9 @@ describe("Administrators Module", () => {
 
       const url = `/administrators/${adminDid}/attributes/${dataHash}/revisions`;
 
-      const response = await request(server).get(url);
+      const response = await request(server)
+        .get(url)
+        .auth(admin0AccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
@@ -504,7 +603,7 @@ describe("Administrators Module", () => {
       expect.assertions(6);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did;
       const data = Buffer.from(
         JSON.stringify({
           "@context": {
@@ -518,7 +617,9 @@ describe("Administrators Module", () => {
 
       const url = `/administrators/${adminDid}/attributes/${dataHash}/revisions`;
 
-      const response1 = await request(server).get(`${url}?page[size]=3`);
+      const response1 = await request(server)
+        .get(`${url}?page[size]=3`)
+        .auth(admin0AccessToken, { type: "bearer" });
 
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(url) as string,
@@ -544,9 +645,10 @@ describe("Administrators Module", () => {
       expect(response1.status).toBe(200);
 
       // next page
-      const response2 = await request(server).get(
-        `${url}?page[after]=2&page[size]=3`
-      );
+      const response2 = await request(server)
+        .get(`${url}?page[after]=2&page[size]=3`)
+        .auth(admin0AccessToken, { type: "bearer" });
+
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(url) as string,
         items: expect.arrayContaining([]) as AttributeObject[],
@@ -575,7 +677,7 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did;
       const data = Buffer.from(
         JSON.stringify({
           "@context": {
@@ -587,9 +689,9 @@ describe("Administrators Module", () => {
       );
       const dataHash = ethers.utils.sha256(data).slice(2);
 
-      const response = await request(server).get(
-        `/administrators/unknown-admin/attributes/${dataHash}/revisions`
-      );
+      const response = await request(server)
+        .get(`/administrators/unknown-admin/attributes/${dataHash}/revisions`)
+        .auth(admin0AccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual({
         title: "Administrator Not Found",
@@ -604,11 +706,11 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did;
 
-      const response = await request(server).get(
-        `/administrators/${adminDid}/attributes/wrong-hash/revisions`
-      );
+      const response = await request(server)
+        .get(`/administrators/${adminDid}/attributes/wrong-hash/revisions`)
+        .auth(admin0AccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual({
         title: "Attribute Not Found",
@@ -623,7 +725,7 @@ describe("Administrators Module", () => {
       expect.assertions(4);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did;
       const data = Buffer.from(
         JSON.stringify({
           "@context": {
@@ -637,7 +739,9 @@ describe("Administrators Module", () => {
 
       const url = `/administrators/${adminDid}/attributes/${dataHash}/revisions`;
 
-      const response1 = await request(server).get(`${url}?page[size]=100`);
+      const response1 = await request(server)
+        .get(`${url}?page[size]=100`)
+        .auth(admin0AccessToken, { type: "bearer" });
 
       expect(response1.body).toStrictEqual({
         title: "Bad Request",
@@ -647,7 +751,9 @@ describe("Administrators Module", () => {
       });
       expect(response1.status).toBe(400);
 
-      const response2 = await request(server).get(`${url}?page[size]=0`);
+      const response2 = await request(server)
+        .get(`${url}?page[size]=0`)
+        .auth(admin0AccessToken, { type: "bearer" });
 
       expect(response2.body).toStrictEqual({
         title: "Bad Request",

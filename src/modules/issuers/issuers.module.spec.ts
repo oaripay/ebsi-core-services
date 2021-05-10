@@ -15,9 +15,9 @@ import { FastifyInstance } from "fastify";
 import { IssuersModule } from "./issuers.module";
 import { AttributeObject } from "./issuers.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { Tir__factory } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tir";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { LedgerService } from "../../shared/services/ledger.service";
 
 jest.setTimeout(90000);
 
@@ -37,9 +37,6 @@ describe("Issuers Module", () => {
     });
     const { tirContract } = testEnv;
 
-    // Mock TIR contract
-    jest.spyOn(Tir__factory, "connect").mockImplementation(() => tirContract);
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [IssuersModule],
     }).compile();
@@ -56,6 +53,12 @@ describe("Issuers Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    // Mock TIR contract
+    const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
+    jest
+      .spyOn(ledgerService, "getContract")
+      .mockImplementation(async () => Promise.resolve(tirContract));
   });
 
   afterAll(async () => {

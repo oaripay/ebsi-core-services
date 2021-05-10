@@ -9,6 +9,13 @@ import {
   abi,
   bytecode,
 } from "../../submodules/trusted-issuers-registry-ethereum-sc/build/contracts/Pagination.json";
+import { createDid } from "./data";
+
+interface Administrator {
+  wallet: ethers.Wallet;
+  attribute: { [x: string]: unknown };
+  did: string;
+}
 
 interface PolicyObject {
   policyId: string;
@@ -42,20 +49,21 @@ export async function deployTirContract(
 
 export async function insertAdmin(
   contract: Tir,
-  adminAddress: string
-): Promise<ethers.ContractTransaction> {
-  const adminDid = `did:ebsi:${adminAddress.toLowerCase()}`;
-  const bufferAttribute = Buffer.from(
-    JSON.stringify({
-      "@context": {
-        name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
-        description: "http://tir-api-test.org/description",
-      },
-      name: `test-${adminDid}`,
-    })
-  );
+  adminDid: string
+): Promise<{ [x: string]: unknown }> {
+  const attribute = {
+    "@context": {
+      name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
+      description: "http://tir-api-test.org/description",
+    },
+    name: `test-${adminDid}`,
+  };
 
-  return contract.insertAdministrator(adminDid, bufferAttribute);
+  const bufferAttribute = Buffer.from(JSON.stringify(attribute));
+
+  await contract.insertAdministrator(adminDid.toLowerCase(), bufferAttribute);
+
+  return attribute;
 }
 
 export async function insertIssuer(contract: Tir): Promise<IssuerObject> {
@@ -133,7 +141,7 @@ export async function setupTestEnv(
 ): Promise<{
   provider: ethers.providers.Web3Provider;
   tirContract: Tir;
-  administrators: ethers.Wallet[];
+  administrators: Administrator[];
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
   issuers: IssuerObject[];
@@ -151,8 +159,9 @@ export async function setupTestEnv(
   const createAdminWallet = async () => {
     // Create random wallet and connect it so we can use it later to send transactions
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
-    await insertAdmin(tirContract, wallet.address);
-    return wallet;
+    const did = createDid().toLowerCase();
+    const attribute = await insertAdmin(tirContract, did);
+    return { wallet, attribute, did };
   };
 
   const administrators = await range(0, opts.administratorsTotal)
