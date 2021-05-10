@@ -5,13 +5,20 @@ import Joi from "joi";
 export interface ApiConfig {
   apiPort: number;
   apiPrivateKey: string;
+  apiKid: string;
   apiUrlPrefix: string;
+  apiName: string;
+  authorisationApiDid: string;
+  authorisationApiName: string;
+  authorisationApiUrl: string;
   contractAddr: string;
+  didRegistryApiUrl: string;
   domain: string;
   logLevel: string;
   besuRpcNode: string;
-  adminTestPrivateKey: string;
   externalEbsiApiHealthCheck: string;
+  testAdminDid: string;
+  testAdminPrivateKey: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -21,24 +28,32 @@ const defaultConfig = {
     BESU_RPC_NODE: "https://www.test.intebsi.xyz/jsonrpc",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LOG_LEVEL: "debug",
+    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
+    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
   },
   test: {
     DOMAIN: "https://api.test.intebsi.xyz",
     BESU_RPC_NODE: "https://www.test.intebsi.xyz/jsonrpc",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LOG_LEVEL: "info",
+    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
+    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
   },
   pilot: {
     DOMAIN: "https://api.preprod.ebsi.eu",
     BESU_RPC_NODE: "https://www.preprod.ebsi.eu/jsonrpc",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
     LOG_LEVEL: "warn",
+    AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v1",
+    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v2",
   },
   prod: {
     DOMAIN: "https://api.ebsi.eu",
     BESU_RPC_NODE: "https://www.ebsi.eu/jsonrpc",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
     LOG_LEVEL: "error",
+    AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v1",
+    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2",
   },
 };
 
@@ -49,17 +64,34 @@ export const loadConfig = (): ApiConfig => {
   const { EBSI_ENV } = process.env;
 
   return {
-    adminTestPrivateKey: process.env.ADMIN_TEST_PRIVATE_KEY || "",
+    // TAR API variables
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-apps-registry/v2",
-    contractAddr: process.env.CONTRACT_ADDR,
+    apiName: process.env.API_NAME || "trusted-apps-registry-api",
+    apiKid: process.env.API_KID,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
-    besuRpcNode:
-      process.env.BESU_RPC_NODE || defaultConfig[EBSI_ENV].BESU_RPC_NODE,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    // Ledger & SC
+    besuRpcNode:
+      process.env.BESU_RPC_NODE || defaultConfig[EBSI_ENV].BESU_RPC_NODE,
+    contractAddr: process.env.CONTRACT_ADDR,
+    // Authorisation API
+    authorisationApiName:
+      process.env.AUTHORISATION_API_NAME || "authorisation-api",
+    authorisationApiDid: process.env.AUTHORISATION_API_DID,
+    authorisationApiUrl:
+      process.env.AUTHORISATION_API_URL ||
+      defaultConfig[EBSI_ENV].AUTHORISATION_API_URL,
+    // DID Registry API
+    didRegistryApiUrl:
+      process.env.DID_REGISTRY_API_URL ||
+      defaultConfig[EBSI_ENV].DID_REGISTRY_API_URL,
+    // Test variables
+    testAdminDid: process.env.TEST_ADMIN_DID,
+    testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
   };
 };
 
@@ -77,9 +109,12 @@ export const ApiConfigModule = ConfigModule.forRoot({
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
+    // TAR specific variables
     API_PORT: Joi.string().default("3000"),
     API_PRIVATE_KEY: Joi.string().required(),
     API_URL_PREFIX: Joi.string(),
+    API_NAME: Joi.string(),
+    API_KID: Joi.string().uri().required(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -88,10 +123,19 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug"
     ),
-    // TAR specific variables
-    ADMIN_TEST_PRIVATE_KEY: Joi.string(),
     DOMAIN: Joi.string().uri(),
-    BESU_RPC_NODE: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
+    // Ledger
+    BESU_RPC_NODE: Joi.string().uri(),
+    CONTRACT_ADDR: Joi.string().required(),
+    // Authorisation API
+    AUTHORISATION_API_NAME: Joi.string(),
+    AUTHORISATION_API_DID: Joi.string().required(),
+    AUTHORISATION_API_URL: Joi.string().uri(),
+    // DID Registry API
+    DID_REGISTRY_API_URL: Joi.string().uri(),
+    // Test vars
+    TEST_ADMIN_DID: Joi.string(),
+    TEST_ADMIN_PRIVATE_KEY: Joi.string(),
   }),
 });

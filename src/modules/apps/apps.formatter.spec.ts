@@ -29,20 +29,17 @@ describe("formatApps", () => {
     expect(formatApps(apps, total, page, pageSize, "")).toStrictEqual({
       items: [
         {
-          id:
-            "0x40571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d09a8",
+          id: "0x40571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d09a8",
           name: "app-1:with/specialChars",
           href: `/0x40571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d09a8`,
         },
         {
-          id:
-            "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909",
+          id: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909",
           name: "app-2",
           href: `/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909`,
         },
         {
-          id:
-            "0x24571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d091c",
+          id: "0x24571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d091c",
           name: "app-3",
           href: `/0x24571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d091c`,
         },

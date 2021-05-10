@@ -50,6 +50,7 @@ export default class AdministratorsController {
     @Param() params: { did?: string }
   ): Promise<AdministratorResponseObject> {
     const { did } = params;
+
     return this.administratorsService.getAdministrator(did);
   }
 
@@ -98,15 +99,13 @@ export default class AdministratorsController {
   ): Promise<PaginatedList<AttributeObject>> {
     const { did, attributeId } = params;
 
-    const {
-      revisions,
-      total,
-    } = await this.administratorsService.getAdministratorAttributeRevisions(
-      attributeId,
-      did,
-      query["page[after]"],
-      query["page[size]"]
-    );
+    const { revisions, total } =
+      await this.administratorsService.getAdministratorAttributeRevisions(
+        attributeId,
+        did,
+        query["page[after]"],
+        query["page[size]"]
+      );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");

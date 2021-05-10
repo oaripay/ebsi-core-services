@@ -66,6 +66,7 @@ describe("Administrators Module", () => {
       expect.assertions(3);
 
       const response = await request(server).get("/administrators");
+
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/administrators?page[after]=1&page[size]=10"
@@ -98,6 +99,7 @@ describe("Administrators Module", () => {
       const response1 = await request(server).get(
         "/administrators?page[size]=2"
       );
+
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
           "/administrators?page[after]=1&page[size]=2"
@@ -127,6 +129,7 @@ describe("Administrators Module", () => {
       const response2 = await request(server).get(
         "/administrators?page[after]=2&page[size]=2"
       );
+
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           "/administrators?page[after]=2&page[size]=2"
@@ -156,6 +159,7 @@ describe("Administrators Module", () => {
       const response3 = await request(server).get(
         "/administrators?page[after]=100&page[size]=2"
       );
+
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           "/administrators?page[after]=100&page[size]=2"
@@ -185,6 +189,7 @@ describe("Administrators Module", () => {
       const response4 = await request(server).get(
         "/administrators?page[after]=1"
       );
+
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           "/administrators?page[after]=1&page[size]=10"
@@ -217,6 +222,7 @@ describe("Administrators Module", () => {
       const response1 = await request(server).get(
         "/administrators?page[size]=100"
       );
+
       expect(response1.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
@@ -228,6 +234,7 @@ describe("Administrators Module", () => {
       const response2 = await request(server).get(
         "/administrators?page[size]=0"
       );
+
       expect(response2.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
@@ -239,6 +246,7 @@ describe("Administrators Module", () => {
       const response3 = await request(server).get(
         "/administrators?page[after]=0"
       );
+
       expect(response3.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
@@ -250,6 +258,7 @@ describe("Administrators Module", () => {
       const response4 = await request(server).get(
         "/administrators?page[after]=abc"
       );
+
       expect(response4.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
@@ -266,19 +275,12 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did.toLowerCase();
+      const adminAttribute = administrators[0].attribute;
 
       const response = await request(server).get(`/administrators/${adminDid}`);
 
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
-            description: "http://tar-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(adminAttribute));
       const dataBase64 = data.toString("base64");
       const dataHash = ethers.utils.sha256(data);
 
@@ -316,21 +318,14 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did.toLowerCase();
+      const adminAttribute = administrators[0].attribute;
 
       const response = await request(server).get(
         `/administrators/${adminDid}/attributes`
       );
 
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
-            description: "http://tar-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(adminAttribute));
       const dataHash = ethers.utils.sha256(data).slice(2);
 
       expect(response.body).toStrictEqual({
@@ -371,23 +366,17 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did.toLowerCase();
+      const adminAttribute = administrators[0].attribute;
 
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
-            description: "http://tar-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(adminAttribute));
 
       const dataBase64 = data.toString("base64");
       const dataHash = ethers.utils.sha256(data);
       const response = await request(server).get(
         `/administrators/${adminDid}/attributes/${dataHash}`
       );
+
       expect(response.body).toStrictEqual({
         did: adminDid,
         attribute: {
@@ -402,8 +391,8 @@ describe("Administrators Module", () => {
       expect.assertions(6);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
-      const admin2Did = `did:ebsi:${administrators[1].address.toLowerCase()}`;
+      const adminDid = administrators[0].did.toLowerCase();
+      const admin2Did = administrators[1].did.toLowerCase();
 
       // Consult a random attribute
       const attributeId =
@@ -481,17 +470,10 @@ describe("Administrators Module", () => {
       expect.assertions(3);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did.toLowerCase();
+      const adminAttribute = administrators[0].attribute;
 
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
-            description: "http://tar-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(adminAttribute));
 
       const dataHash = ethers.utils.sha256(data);
 
@@ -529,17 +511,10 @@ describe("Administrators Module", () => {
       expect.assertions(12);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did.toLowerCase();
+      const adminAttribute = administrators[0].attribute;
 
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
-            description: "http://tar-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(adminAttribute));
 
       const dataHash = ethers.utils.sha256(data);
 
@@ -576,6 +551,7 @@ describe("Administrators Module", () => {
       const response2 = await request(server).get(
         `/administrators/${adminDid}/attributes/${dataHash}/revisions?page[after]=2&page[size]=3`
       );
+
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(urlPath) as string,
         items: expect.arrayContaining([]) as AttributeObject[],
@@ -603,6 +579,7 @@ describe("Administrators Module", () => {
       const response3 = await request(server).get(
         `/administrators/${adminDid}/attributes/${dataHash}/revisions?page[after]=100&page[size]=3`
       );
+
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(urlPath) as string,
         items: expect.arrayContaining([]) as AttributeObject[],
@@ -630,6 +607,7 @@ describe("Administrators Module", () => {
       const response4 = await request(server).get(
         `/administrators/${adminDid}/attributes/${dataHash}/revisions?page[after]=1`
       );
+
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(urlPath) as string,
         items: expect.arrayContaining([]) as AttributeObject[],
@@ -658,17 +636,9 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminAttribute = administrators[0].attribute;
 
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
-            description: "http://tar-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(adminAttribute));
 
       const dataHash = ethers.utils.sha256(data);
 
@@ -689,7 +659,7 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did.toLowerCase();
 
       const response = await request(server).get(
         `/administrators/${adminDid}/attributes/wrong-hash/revisions`
@@ -708,17 +678,10 @@ describe("Administrators Module", () => {
       expect.assertions(4);
 
       const { administrators } = testEnv;
-      const adminDid = `did:ebsi:${administrators[0].address.toLowerCase()}`;
+      const adminDid = administrators[0].did.toLowerCase();
+      const adminAttribute = administrators[0].attribute;
 
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
-            description: "http://tar-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(adminAttribute));
 
       const dataHash = ethers.utils.sha256(data);
 

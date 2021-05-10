@@ -261,9 +261,8 @@ describe("Policies Module", () => {
       const { policies, policyRevisions } = testEnv;
       const { policyId } = policies[0];
       // Get last revision of this policy
-      const { policyData, policyHash } = policyRevisions[policyId][
-        policyRevisions[policyId].length - 1
-      ];
+      const { policyData, policyHash } =
+        policyRevisions[policyId][policyRevisions[policyId].length - 1];
 
       const expectedPolicy = policyData;
       const expectedHash = generateMultihash(policyHash);

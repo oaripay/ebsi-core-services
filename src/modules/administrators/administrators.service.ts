@@ -117,11 +117,12 @@ export default class AdministratorsService {
     await this.getAttribute(attributeId, adminDid);
 
     const hash = prefixWith0x(attributeId);
-    const revisionHashes = await this.tarContract.getAdministratorAttributeRevisions(
-      hash,
-      page,
-      pageSize
-    );
+    const revisionHashes =
+      await this.tarContract.getAdministratorAttributeRevisions(
+        hash,
+        page,
+        pageSize
+      );
 
     const revisions = await Promise.all(
       revisionHashes.items.map(async (revisionHash) => {

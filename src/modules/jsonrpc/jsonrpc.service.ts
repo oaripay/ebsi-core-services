@@ -55,11 +55,14 @@ export class JsonRpcService {
 
   private chainId: string = null;
 
+  private didRegistry: string;
+
   constructor(
     private configService: ConfigService<ApiConfig>,
     private ledgerService: LedgerService
   ) {
     this.tarContract = this.ledgerService.getContract();
+    this.didRegistry = configService.get<string>("didRegistryApiUrl");
   }
 
   async getChainId(): Promise<string> {
@@ -98,15 +101,58 @@ export class JsonRpcService {
     ]) as Promise<string>;
   }
 
-  async checkWritePermission(address: string): Promise<void> {
+  async isDidControlledByAddress(
+    did: string,
+    controllerAddress: string,
+    currentPage = 1
+  ): Promise<boolean> {
+    const pageSize = 50;
+
+    const { data } = await axios.get<{
+      items: { did: string }[];
+      total: number;
+    }>(
+      `${this.didRegistry}/identifiers?controller=${controllerAddress}&page[size]=${pageSize}&page[after]=${currentPage}`
+    );
+
+    // Check if DID is in the list
+    if (
+      data.items
+        .map((item) => item.did.toLowerCase())
+        .includes(did.toLowerCase())
+    ) {
+      return true;
+    }
+
+    // Recursive call if there are more pages
+    if (currentPage * pageSize < data.total) {
+      return this.isDidControlledByAddress(
+        did,
+        controllerAddress,
+        currentPage + 1
+      );
+    }
+
+    return false;
+  }
+
+  async checkWritePermission(address: string, clientId: string): Promise<void> {
     /* TODO: check -->
       - Actor DID must be registered in the DID Registry
       - The actor must be authorized for the write operation in the TAR SC
-        - EBSI Admin is authorized in the Trusted IAM SC - query the Trusted IAM Registry API: /administrators
-        - Domain admin is authorized in the TAR SC - Query the SC: /administrators
     */
-    const did = `did:ebsi:${address.toLowerCase()}`;
-    // verify the did is in the TAR Registry
+
+    // Check DID Registry
+
+    if (!(await this.isDidControlledByAddress(clientId, address))) {
+      throw new Error(
+        `The DID ${clientId} is not controlled by the address ${address}`
+      );
+    }
+
+    const did = clientId.toLowerCase();
+
+    // Verify the DID is in the TAR Registry
     try {
       await this.tarContract.getAdministrator(did);
     } catch (e) {
@@ -155,101 +201,99 @@ export class JsonRpcService {
       );
 
     // verify function and parameters enconded in unsignedTransaction.data
-    const {
-      args,
-      functionFragment,
-    } = this.tarContract.interface.parseTransaction(unsignedTransaction);
+    const { args, functionFragment } =
+      this.tarContract.interface.parseTransaction(unsignedTransaction);
 
     switch (functionFragment.name) {
       case "deleteAppAdministrator": {
         await validateClass(
           ArgsDeleteAppAdministrator,
-          (args as unknown) as ArgsDeleteAppAdministrator
+          args as unknown as ArgsDeleteAppAdministrator
         );
         break;
       }
       case "insertApp": {
-        await validateClass(ArgsInsertApp, (args as unknown) as ArgsInsertApp);
+        await validateClass(ArgsInsertApp, args as unknown as ArgsInsertApp);
         break;
       }
       case "insertAppAdministrator": {
         await validateClass(
           ArgsInsertAppAdministrator,
-          (args as unknown) as ArgsInsertAppAdministrator
+          args as unknown as ArgsInsertAppAdministrator
         );
         break;
       }
       case "insertAppInfo": {
         await validateClass(
           ArgsInsertAppInfo,
-          (args as unknown) as ArgsInsertAppInfo
+          args as unknown as ArgsInsertAppInfo
         );
         break;
       }
       case "insertAdministrator": {
         await validateClass(
           ArgsInsertAdministrator,
-          (args as unknown) as ArgsInsertAdministrator
+          args as unknown as ArgsInsertAdministrator
         );
         break;
       }
       case "updateAdministrator": {
         await validateClass(
           ArgsUpdateAdministrator,
-          (args as unknown) as ArgsUpdateAdministrator
+          args as unknown as ArgsUpdateAdministrator
         );
         break;
       }
       case "updateApp": {
-        await validateClass(ArgsUpdateApp, (args as unknown) as ArgsUpdateApp);
+        await validateClass(ArgsUpdateApp, args as unknown as ArgsUpdateApp);
         break;
       }
       case "insertRevocation": {
         await validateClass(
           ArgsInsertRevocation,
-          (args as unknown) as ArgsInsertRevocation
+          args as unknown as ArgsInsertRevocation
         );
         break;
       }
       case "insertPolicy": {
         await validateClass(
           ArgsInsertPolicy,
-          (args as unknown) as ArgsInsertPolicy
+          args as unknown as ArgsInsertPolicy
         );
         break;
       }
       case "insertAppPublicKey": {
         await validateClass(
           ArgsInsertAppPublicKey,
-          (args as unknown) as ArgsInsertAppPublicKey
+          args as unknown as ArgsInsertAppPublicKey
         );
         break;
       }
       case "updateAppPublicKey": {
         await validateClass(
           ArgsUpdateAppPublicKey,
-          (args as unknown) as ArgsUpdateAppPublicKey
+          args as unknown as ArgsUpdateAppPublicKey
         );
         break;
       }
       case "updatePolicy": {
         await validateClass(
           ArgsUpdatePolicy,
-          (args as unknown) as ArgsUpdatePolicy
+          args as unknown as ArgsUpdatePolicy
         );
         break;
       }
       case "insertAuthorization": {
         await validateClass(
           ArgsInsertAuthorization,
-          (args as unknown) as ArgsInsertAuthorization
+          args as unknown as ArgsInsertAuthorization
         );
         break;
       }
       case "updateAuthorization": {
         await validateClass(
           ArgsUpdateAuthorization,
-          (args as unknown) as ArgsUpdateAuthorization
+          args as unknown as ArgsUpdateAuthorization
         );
         break;
       }
@@ -515,14 +559,8 @@ export class JsonRpcService {
     try {
       await validateClass(RequestInsertAppPublicKeyDto, body);
 
-      const {
-        from,
-        applicationId,
-        publicKey,
-        status,
-        notBefore,
-        notAfter,
-      } = body.params[0];
+      const { from, applicationId, publicKey, status, notBefore, notAfter } =
+        body.params[0];
 
       const data = this.tarContract.interface.encodeFunctionData(
         "insertAppPublicKey",
@@ -635,13 +673,8 @@ export class JsonRpcService {
     try {
       await validateClass(RequestUpdateAuthorizationDto, body);
 
-      const {
-        from,
-        authorizationId,
-        status,
-        permissions,
-        notAfter,
-      } = body.params[0];
+      const { from, authorizationId, status, permissions, notAfter } =
+        body.params[0];
 
       const data = this.tarContract.interface.encodeFunctionData(
         "updateAuthorization",
@@ -657,6 +690,7 @@ export class JsonRpcService {
   }
 
   async sendTransaction(
+    clientId: string,
     body: RequestSignedTransactionDto,
     id?: number | string
   ): Promise<string> {
@@ -666,7 +700,7 @@ export class JsonRpcService {
       const request = body.params[0];
       const signer = await this.verifyTransaction(request);
 
-      await this.checkWritePermission(signer);
+      await this.checkWritePermission(signer, clientId);
 
       return (await this.callBesuAuth("eth_sendRawTransaction", [
         request.signedRawTransaction,

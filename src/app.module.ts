@@ -7,10 +7,12 @@ import { AdministratorsModule } from "./modules/administrators/administrators.mo
 import { PoliciesModule } from "./modules/policies/policies.module";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { HealthController } from "./health.controller";
+import { AuthModule } from "./modules/auth/auth.module";
 
 @Module({
   imports: [
     ApiConfigModule,
+    AuthModule,
     TerminusModule,
     AppsModule,
     AdministratorsModule,

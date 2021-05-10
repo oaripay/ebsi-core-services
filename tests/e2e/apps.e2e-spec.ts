@@ -41,6 +41,7 @@ import { prefixWith0x } from "../../src/shared/utils";
 import LedgerService from "../../src/shared/services/ledger.service";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { PaginatedList } from "../../src/shared/interfaces";
+import { requestSiopJwt } from "../utils/siopJwt";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -79,10 +80,10 @@ describe("Apps (e2e)", () => {
   let server: HttpServer;
   let ledgerService: LedgerService;
   let adminTestWallet: ethers.Wallet;
+  let testUserAccessToken: string;
 
   const publicKeyRaw = `-----BEGIN ${crypto.randomBytes(12).toString("hex")}`;
   const publicKeyBuffer = Buffer.from(publicKeyRaw, "utf8");
-  // const publicKeyBase64 = publicKeyBuffer.toString("base64");
   const publicKeyId = ethers.utils.sha256(publicKeyBuffer);
   const applicationId = publicKeyId;
   const info = {
@@ -118,15 +119,26 @@ describe("Apps (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
-      ConfigService
-    );
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("adminTestPrivateKey"))
+      prefixWith0x(configService.get("testAdminPrivateKey"))
     );
 
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
+
+    // Generate a valid Client JWT (SIOP) for the tests
+    const didRegistry = `${configService.get<string>(
+      "didRegistryApiUrl"
+    )}/identifiers`;
+
+    testUserAccessToken = await requestSiopJwt({
+      didRegistry,
+      clientDid: configService.get<string>("testAdminDid"),
+      clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+    });
   });
 
   describe("/apps", () => {
@@ -323,9 +335,8 @@ describe("Apps (e2e)", () => {
       );
 
       expect(appsResponse.status).toBe(200);
-      const { id, name }: AppLink = appsResponse.body.items[
-        appsResponse.body.items.length - 1
-      ];
+      const { id, name }: AppLink =
+        appsResponse.body.items[appsResponse.body.items.length - 1];
 
       const response: SupertestAppResponse = await request(server).get(
         `/apps/${id}`
@@ -449,6 +460,7 @@ describe("Apps (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -585,8 +597,6 @@ describe("Apps (e2e)", () => {
           } as InsertAppPublicKeyParam;
           break;
         case "updateAppPublicKey":
-          // update app public key
-
           // this public key is already created with the previous "insertApp" call
           param = {
             from: adminTestWallet.address,
@@ -601,6 +611,7 @@ describe("Apps (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -618,6 +629,7 @@ describe("Apps (e2e)", () => {
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",
@@ -665,10 +677,8 @@ describe("Apps (e2e)", () => {
           const authsResponse: SupertestAuthorizationsResponse = await request(
             server
           ).get(`/apps/${appId}/authorizations`);
-          const {
-            authorizationId,
-            requesterApplicationName,
-          } = authsResponse.body.items[0];
+          const { authorizationId, requesterApplicationName } =
+            authsResponse.body.items[0];
           const response = await request(server).get(
             `/apps/${appId}/authorizations/${authorizationId}`
           );

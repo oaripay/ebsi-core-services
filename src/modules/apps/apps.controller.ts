@@ -117,12 +117,13 @@ export default class AppsController {
     let authorizations: { items: AuthorizationItemObject[]; total: number };
     let extraQuery = "";
     if (query.requesterApplicationId) {
-      authorizations = await this.appsService.getAuthorizationsByRequesterApplicationId(
-        resourceApplicationId,
-        query.requesterApplicationId,
-        pageAfter,
-        pageSize
-      );
+      authorizations =
+        await this.appsService.getAuthorizationsByRequesterApplicationId(
+          resourceApplicationId,
+          query.requesterApplicationId,
+          pageAfter,
+          pageSize
+        );
       extraQuery = `&requesterApplicationId=${query.requesterApplicationId}`;
     } else {
       authorizations = await this.appsService.getAuthorizations(

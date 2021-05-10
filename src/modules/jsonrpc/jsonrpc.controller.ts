@@ -1,4 +1,6 @@
-import { Controller, Body, Post, HttpCode } from "@nestjs/common";
+import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
+import { SiopJwtAuthGuard } from "../auth/guards";
+import { Client, ClientInfo } from "../auth/decorators";
 import { JsonRpcService } from "./jsonrpc.service";
 import { InvalidRequestJsonRpcError } from "./errors";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -33,15 +35,20 @@ export default class AppController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
   @HttpCode(200)
+  @UseGuards(SiopJwtAuthGuard)
   @Post()
-  async jsonRPC(@Body() body: JsonRpcDto): Promise<JsonRpcResponseObject> {
+  async jsonRPC(
+    @Body() body: JsonRpcDto,
+    @Client() client: ClientInfo
+  ): Promise<JsonRpcResponseObject> {
     const { method, id } = body;
     switch (method) {
       case "deleteAppAdministrator": {
-        const transaction = await this.jsonRpcService.buildTransactionDeleteAppAdministrator(
-          body as RequestDeleteAppAdministratorDto,
-          id
-        );
+        const transaction =
+          await this.jsonRpcService.buildTransactionDeleteAppAdministrator(
+            body as RequestDeleteAppAdministratorDto,
+            id
+          );
         return jsonRpcResponse(transaction, id);
       }
       case "insertApp": {
@@ -52,31 +59,35 @@ export default class AppController {
         return jsonRpcResponse(transaction, id);
       }
       case "insertAppAdministrator": {
-        const transaction = await this.jsonRpcService.buildTransactionInsertAppAdministrator(
-          body as RequestInsertAppAdministratorDto,
-          id
-        );
+        const transaction =
+          await this.jsonRpcService.buildTransactionInsertAppAdministrator(
+            body as RequestInsertAppAdministratorDto,
+            id
+          );
         return jsonRpcResponse(transaction, id);
       }
       case "insertAppInfo": {
-        const transaction = await this.jsonRpcService.buildTransactionInsertAppInfo(
-          body as RequestInsertAppInfoDto,
-          id
-        );
+        const transaction =
+          await this.jsonRpcService.buildTransactionInsertAppInfo(
+            body as RequestInsertAppInfoDto,
+            id
+          );
         return jsonRpcResponse(transaction, id);
       }
       case "insertAdministrator": {
-        const transaction = await this.jsonRpcService.buildTransactionInsertAdministrator(
-          body as RequestInsertAdministratorDto,
-          id
-        );
+        const transaction =
+          await this.jsonRpcService.buildTransactionInsertAdministrator(
+            body as RequestInsertAdministratorDto,
+            id
+          );
         return jsonRpcResponse(transaction, id);
       }
       case "updateAdministrator": {
-        const transaction = await this.jsonRpcService.buildTransactionUpdateAdministrator(
-          body as RequestUpdateAdministratorDto,
-          id
-        );
+        const transaction =
+          await this.jsonRpcService.buildTransactionUpdateAdministrator(
+            body as RequestUpdateAdministratorDto,
+            id
+          );
         return jsonRpcResponse(transaction, id);
       }
       case "updateApp": {
@@ -87,56 +98,64 @@ export default class AppController {
         return jsonRpcResponse(transaction, id);
       }
       case "insertRevocation": {
-        const transaction = await this.jsonRpcService.buildTransactionInsertRevocation(
-          body as RequestInsertRevocationDto,
-          id
-        );
+        const transaction =
+          await this.jsonRpcService.buildTransactionInsertRevocation(
+            body as RequestInsertRevocationDto,
+            id
+          );
         return jsonRpcResponse(transaction, id);
       }
       case "insertAppPublicKey": {
-        const transaction = await this.jsonRpcService.buildTransactionInsertAppPublicKey(
-          body as RequestInsertAppPublicKeyDto,
-          id
-        );
+        const transaction =
+          await this.jsonRpcService.buildTransactionInsertAppPublicKey(
+            body as RequestInsertAppPublicKeyDto,
+            id
+          );
         return jsonRpcResponse(transaction, id);
       }
       case "updateAppPublicKey": {
-        const transaction = await this.jsonRpcService.buildTransactionUpdateAppPublicKey(
-          body as RequestUpdateAppPublicKeyDto,
-          id
-        );
+        const transaction =
+          await this.jsonRpcService.buildTransactionUpdateAppPublicKey(
+            body as RequestUpdateAppPublicKeyDto,
+            id
+          );
         return jsonRpcResponse(transaction, id);
       }
       case "insertPolicy": {
-        const transaction = await this.jsonRpcService.buildTransactionInsertPolicy(
-          body as RequestInsertPolicyDto,
-          id
-        );
+        const transaction =
+          await this.jsonRpcService.buildTransactionInsertPolicy(
+            body as RequestInsertPolicyDto,
+            id
+          );
         return jsonRpcResponse(transaction, id);
       }
       case "updatePolicy": {
-        const transaction = await this.jsonRpcService.buildTransactionUpdatePolicy(
-          body as RequestUpdatePolicyDto,
-          id
-        );
+        const transaction =
+          await this.jsonRpcService.buildTransactionUpdatePolicy(
+            body as RequestUpdatePolicyDto,
+            id
+          );
         return jsonRpcResponse(transaction, id);
       }
       case "insertAuthorization": {
-        const transaction = await this.jsonRpcService.buildTransactionInsertAuthorization(
-          body as RequestInsertAuthorizationDto,
-          id
-        );
+        const transaction =
+          await this.jsonRpcService.buildTransactionInsertAuthorization(
+            body as RequestInsertAuthorizationDto,
+            id
+          );
         return jsonRpcResponse(transaction, id);
       }
       case "updateAuthorization": {
-        const transaction = await this.jsonRpcService.buildTransactionUpdateAuthorization(
-          body as RequestUpdateAuthorizationDto,
-          id
-        );
+        const transaction =
+          await this.jsonRpcService.buildTransactionUpdateAuthorization(
+            body as RequestUpdateAuthorizationDto,
+            id
+          );
         return jsonRpcResponse(transaction, id);
       }
       case "signedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(
+          client.did,
           body as RequestSignedTransactionDto,
           id
         );

@@ -17,6 +17,13 @@ import {
   abi,
   bytecode,
 } from "../../submodules/trusted-apps-registry-ethereum-sc/build/contracts/Pagination.json";
+import { createDid } from "./data";
+
+interface Administrator {
+  wallet: ethers.Wallet;
+  attribute: { [x: string]: unknown };
+  did: string;
+}
 
 interface PolicyObject {
   policyId: string;
@@ -103,20 +110,24 @@ export async function deployTarContract(
 
 export async function insertAdmin(
   contract: Tar,
-  adminAddress: string
-): Promise<ethers.ContractTransaction> {
-  const adminDid = `did:ebsi:${adminAddress.toLowerCase()}`;
-  const bufferAttribute = Buffer.from(
-    JSON.stringify({
-      "@context": {
-        name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
-        description: "http://tar-api-test.org/description",
+  adminDid: string
+): Promise<{ [x: string]: unknown }> {
+  const attribute = {
+    "@context": {
+      name: {
+        "@id": "http://did-registry-api-test.org/name",
+        "@type": "@id",
       },
-      name: `test-${adminDid}`,
-    })
-  );
+      description: "http://did-registry-api-test.org/description",
+    },
+    name: `test-${adminDid}`,
+  };
 
-  return contract.insertAdministrator(adminDid, bufferAttribute);
+  const bufferAttribute = Buffer.from(JSON.stringify(attribute));
+
+  await contract.insertAdministrator(adminDid.toLowerCase(), bufferAttribute);
+
+  return attribute;
 }
 
 export async function insertPolicy(contract: Tar): Promise<PolicyObject> {
@@ -250,7 +261,7 @@ export async function setupTestEnv(
 ): Promise<{
   provider: ethers.providers.Web3Provider;
   tarContract: Tar;
-  administrators: ethers.Wallet[];
+  administrators: Administrator[];
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
   apps: AppObject[];
@@ -267,11 +278,13 @@ export async function setupTestEnv(
   const createAdminWallet = async () => {
     // Create random wallet and connect it so we can use it later to send transactions
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
-    await insertAdmin(tarContract, wallet.address);
-    return wallet;
+
+    const did = createDid().toLowerCase();
+    const attribute = await insertAdmin(tarContract, did);
+    return { wallet, attribute, did };
   };
 
-  const administrators = await range(0, opts.administratorsTotal)
+  const administrators = await range(0, opts.administratorsTotal ?? 1)
     .pipe(mergeMap(createAdminWallet), toArray())
     .toPromise();
 

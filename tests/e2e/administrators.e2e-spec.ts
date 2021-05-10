@@ -28,6 +28,8 @@ import { PaginatedList } from "../../src/shared/interfaces";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
+import { requestSiopJwt } from "../utils/siopJwt";
+import { createDid } from "../utils/data";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -60,9 +62,10 @@ describe("Administrators (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
+  let testUserAccessToken: string;
 
   const createAdministrator = () => {
-    const did = `did:ebsi:test-${new Date().toISOString()}`.toLowerCase();
+    const did = createDid().toLowerCase();
     const json = {
       // any object here
       any: "Any attribute here",
@@ -100,13 +103,24 @@ describe("Administrators (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
-      ConfigService
-    );
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("adminTestPrivateKey"))
+      prefixWith0x(configService.get("testAdminPrivateKey"))
     );
+
+    // Generate a valid Client JWT (SIOP) for the tests
+    const didRegistry = `${configService.get<string>(
+      "didRegistryApiUrl"
+    )}/identifiers`;
+
+    testUserAccessToken = await requestSiopJwt({
+      didRegistry,
+      clientDid: configService.get<string>("testAdminDid"),
+      clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+    });
   });
 
   describe("/administrators", () => {
@@ -147,18 +161,20 @@ describe("Administrators (e2e)", () => {
   describe("/administrators/{did}", () => {
     it("should return a specific administrator", async () => {
       expect.assertions(3);
-      const administratorsResponse: SupertestAdministratorsResponse = await request(
-        server
-      ).get("/administrators");
+      const administratorsResponse: SupertestAdministratorsResponse =
+        await request(server).get("/administrators");
 
       expect(administratorsResponse.status).toBe(200);
-      const { did }: DidLink = administratorsResponse.body.items[
-        administratorsResponse.body.items.length - 1
-      ];
+
+      const { did }: DidLink =
+        administratorsResponse.body.items[
+          administratorsResponse.body.items.length - 1
+        ];
 
       const response: SupertestAdministratorResponse = await request(
         server
       ).get(`/administrators/${did}`);
+
       expect(response.body).toStrictEqual({
         did: did.toLowerCase(),
         attributes: expect.arrayContaining([]) as AttributeObject[],
@@ -168,9 +184,11 @@ describe("Administrators (e2e)", () => {
 
     it("should throw an error if the administrator is not found", async () => {
       expect.assertions(2);
+
       const response = await request(server).get(
         "/administrators/unknown-administrator"
       );
+
       expect(response.body).toStrictEqual({
         title: "Administrator Not Found",
         status: 404,
@@ -191,9 +209,8 @@ describe("Administrators (e2e)", () => {
 
       expect(administrators.status).toBe(200);
 
-      const { did }: DidLink = administrators.body.items[
-        administrators.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        administrators.body.items[administrators.body.items.length - 1];
       const response: SupertestAdministratorsResponse = await request(
         server
       ).get(`/administrators/${did}/attributes`);
@@ -236,9 +253,8 @@ describe("Administrators (e2e)", () => {
 
       expect(administrators.status).toBe(200);
 
-      const { did }: DidLink = administrators.body.items[
-        administrators.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        administrators.body.items[administrators.body.items.length - 1];
       const responseAttributes: SupertestAttributesResponse = await request(
         server
       ).get(`/administrators/${did}/attributes`);
@@ -269,9 +285,8 @@ describe("Administrators (e2e)", () => {
 
       expect(administrators.status).toBe(200);
 
-      const { did }: DidLink = administrators.body.items[
-        administrators.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        administrators.body.items[administrators.body.items.length - 1];
 
       // consult a random attribute
       const attributeId =
@@ -306,9 +321,8 @@ describe("Administrators (e2e)", () => {
       expect(response2.status).toBe(404);
 
       // consult an attribute from a different did
-      const { did: did2 }: DidLink = administrators.body.items[
-        administrators.body.items.length - 2
-      ];
+      const { did: did2 }: DidLink =
+        administrators.body.items[administrators.body.items.length - 2];
       const responseAttributes: SupertestAttributesResponse = await request(
         server
       ).get(`/administrators/${did2}/attributes`);
@@ -342,13 +356,11 @@ describe("Administrators (e2e)", () => {
 
       expect(administrators.status).toBe(200);
 
-      const { did }: DidLink = administrators.body.items[
-        administrators.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        administrators.body.items[administrators.body.items.length - 1];
 
-      const administratorResponse: SupertestAdministratorResponse = await request(
-        server
-      ).get(`/administrators/${did}`);
+      const administratorResponse: SupertestAdministratorResponse =
+        await request(server).get(`/administrators/${did}`);
 
       expect(administratorResponse.status).toBe(200);
 
@@ -394,6 +406,7 @@ describe("Administrators (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -491,6 +504,7 @@ describe("Administrators (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -514,6 +528,7 @@ describe("Administrators (e2e)", () => {
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",
