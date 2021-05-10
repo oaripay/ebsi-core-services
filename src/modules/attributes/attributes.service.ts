@@ -3,10 +3,14 @@ import {
   BadRequestError,
   ForbiddenError,
   NotFoundError,
+  InternalServerError,
 } from "@cef-ebsi/problem-details-errors";
 import { ConfigService } from "@nestjs/config";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+import { v4 as uuidV4 } from "uuid";
 import jsonpatch from "jsonpatch";
+import { decodeJWT } from "@cef-ebsi/did-jwt";
+import { Agent } from "@cef-ebsi/oauth2-auth";
 import { ApiConfig } from "../../config/configuration";
 import {
   AttributeResponseObject,
@@ -15,7 +19,7 @@ import {
   CassandraResponse,
 } from "./attributes.interface";
 import { AttributeBodyDto, PatchAttributeBody } from "./dto";
-import { encrypt, decrypt } from "../../shared/utils";
+import { encrypt, decrypt, logAxiosError } from "../../shared/utils";
 
 interface PageOpts {
   fetchSize: number;
@@ -23,6 +27,9 @@ interface PageOpts {
 }
 
 const SHARED_PREFIX = "__shared__";
+
+// Refresh the token if it expires in less than 10 seconds
+const REFRESH_LIMIT = 10 * 1000;
 
 @Injectable()
 export class AttributesService {
@@ -32,32 +39,103 @@ export class AttributesService {
 
   private secret: string;
 
-  private storage: string;
+  private storageApiUrl: string;
 
   private storageUri: string;
 
-  // private accessToken: string;
+  private accessTokenExp: number;
+
+  private accessToken: string;
+
+  private agent: Agent;
+
+  private authorisationApiUrl: string;
 
   constructor(private configService: ConfigService<ApiConfig>) {
-    this.storage = this.configService.get<string>("storage");
-    this.storageUri = `${this.storage}/stores/distributed`;
-    this.urlJsonrpcStorage = `${this.storage}/stores/distributed/jsonrpc`;
     this.secret = this.configService.get<string>("encryptionSecret");
+    this.storageApiUrl = this.configService.get<string>("storageApiUrl");
+    this.storageUri = `${this.storageApiUrl}/stores/distributed`;
+    this.urlJsonrpcStorage = `${this.storageApiUrl}/stores/distributed/jsonrpc`;
+
+    this.authorisationApiUrl = this.configService.get<string>(
+      "authorisationApiUrl"
+    );
+    const privKey = this.configService.get<string>("apiPrivateKey");
+    this.agent = new Agent(privKey, {
+      issuer: this.configService.get<string>("apiName"),
+      kid: this.configService.get<string>("apiKid"),
+    });
+  }
+
+  async checkSession(): Promise<void> {
+    if (
+      !this.accessTokenExp ||
+      Date.now() + REFRESH_LIMIT > this.accessTokenExp * 1000
+    ) {
+      this.accessToken = await this.getAccessToken();
+    }
+  }
+
+  private async getAccessToken() {
+    const nonce = uuidV4();
+
+    const requestComponent = await this.agent.createRequestPayload(
+      this.configService.get<string>("storageApiName"),
+      { nonce }
+    );
+
+    // Send request payload to Authorisation API
+    try {
+      const res = await axios.post(
+        `${this.authorisationApiUrl}/oauth2-sessions`,
+        requestComponent
+      );
+
+      const accessToken = await this.agent.verifyAuthenticationResponse(
+        res.data,
+        nonce
+      );
+
+      const { payload } = decodeJWT(accessToken);
+      this.accessTokenExp = payload.exp;
+
+      return accessToken;
+    } catch (err) {
+      if (err instanceof Error) {
+        if ((err as AxiosError).isAxiosError) {
+          logAxiosError(err as AxiosError, this.logger);
+        } else {
+          this.logger.error(err.message, err.stack);
+        }
+      } else {
+        this.logger.error(err);
+      }
+      throw new InternalServerError();
+    }
   }
 
   async storageJsonrpc(
     params: (string | PageOpts)[]
   ): Promise<CassandraResponse> {
-    // TODO: check token expiration and login again
+    await this.checkSession();
+
+    const data = {
+      jsonrpc: "2.0",
+      method: "cassandra_call",
+      params,
+      id: Math.trunc(Math.random() * 1000),
+    };
+
+    const opts = {
+      headers: {
+        Authorization: `Bearer ${this.accessToken}`,
+      },
+    };
 
     const response: AxiosResponseJsonRpc = await axios.post(
       this.urlJsonrpcStorage,
-      {
-        jsonrpc: "2.0",
-        method: "cassandra_call",
-        params,
-        id: Math.trunc(Math.random() * 1000),
-      }
+      data,
+      opts
     );
     return response.data.result as CassandraResponse;
   }

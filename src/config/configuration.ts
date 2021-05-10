@@ -7,10 +7,25 @@ export interface ApiConfig {
   apiPrivateKey: string;
   encryptionSecret: string;
   apiUrlPrefix: string;
+  apiName: string;
+  apiKid: string;
+  authorisationApiName: string;
+  authorisationApiDid: string;
+  authorisationApiUrl: string;
+  storageApiName: string;
+  storageApiUrl: string;
+  didRegistryApiUrl: string;
   domain: string;
   logLevel: string;
-  storage: string;
   externalEbsiApiHealthCheck: string;
+  testUser1: {
+    did: string;
+    privateKey: string;
+  };
+  testUser2: {
+    did: string;
+    privateKey: string;
+  };
 }
 
 // Example of default values to be used, depending on the environment
@@ -18,26 +33,34 @@ const defaultConfig = {
   local: {
     LOG_LEVEL: "debug",
     DOMAIN: "https://api.test.intebsi.xyz",
-    STORAGE: "https://api.test.intebsi.xyz/storage/v2",
+    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
+    STORAGE_API_URL: "https://api.test.intebsi.xyz/storage/v2",
+    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
     HEALTH_CHECK: `https://api.test.intebsi.xyz/docs/`,
   },
   test: {
     LOG_LEVEL: "info",
     DOMAIN: "https://api.test.intebsi.xyz",
-    STORAGE: "https://api.test.intebsi.xyz/storage/v2",
+    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
+    STORAGE_API_URL: "https://api.test.intebsi.xyz/storage/v2",
+    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
     HEALTH_CHECK: `https://api.test.intebsi.xyz/docs/`,
   },
   pilot: {
     LOG_LEVEL: "warn",
     DOMAIN: "https://api.pilot.ebsi.xyz",
-    STORAGE: "https://api.pilot.ebsi.xyz/storage/v2",
-    HEALTH_CHECK: `https://api.pilot.ebsi.xyz/docs/`,
+    AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v1",
+    STORAGE_API_URL: "https://api.preprod.ebsi.eu/storage/v2",
+    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v2",
+    HEALTH_CHECK: `https://api.preprod.ebsi.eu/docs/`,
   },
   prod: {
     LOG_LEVEL: "error",
     DOMAIN: "https://api.prod.ebsi.xyz",
-    STORAGE: "https://api.prod.ebsi.xyz/storage/v2",
-    HEALTH_CHECK: `https://api.prod.ebsi.xyz/docs/`,
+    AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v1",
+    STORAGE_API_URL: "https://api.ebsi.eu/storage/v2",
+    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2",
+    HEALTH_CHECK: `https://api.ebsi.eu/docs/`,
   },
 };
 
@@ -52,11 +75,32 @@ export const loadConfig = (): ApiConfig => {
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     encryptionSecret: process.env.ENCRYPTION_SECRET,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/proxy-data-hub/v2",
+    apiName: process.env.API_NAME || "proxy-data-hub-api",
+    apiKid: process.env.API_KID,
+    authorisationApiName:
+      process.env.AUTHORISATION_API_NAME || "authorisation-api",
+    authorisationApiDid: process.env.AUTHORISATION_API_DID,
+    authorisationApiUrl:
+      process.env.AUTHORISATION_API_URL ||
+      defaultConfig[EBSI_ENV].AUTHORISATION_API_URL,
+    storageApiName: process.env.STORAGE_API_NAME || "storage-api",
+    storageApiUrl:
+      process.env.STORAGE_API_URL || defaultConfig[EBSI_ENV].STORAGE_API_URL,
+    didRegistryApiUrl:
+      process.env.DID_REGISTRY_API_URL ||
+      defaultConfig[EBSI_ENV].DID_REGISTRY_API_URL,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
-    storage: process.env.STORAGE || defaultConfig[EBSI_ENV].STORAGE,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    testUser1: {
+      did: process.env.TEST_USER_DID_1,
+      privateKey: process.env.TEST_USER_PRIVATE_KEY_1,
+    },
+    testUser2: {
+      did: process.env.TEST_USER_DID_2,
+      privateKey: process.env.TEST_USER_PRIVATE_KEY_2,
+    },
   };
 };
 
@@ -77,6 +121,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
     API_PORT: Joi.string().default("3000"),
     API_PRIVATE_KEY: Joi.string().required(),
     API_URL_PREFIX: Joi.string(),
+    API_NAME: Joi.string(),
+    API_KID: Joi.string().required(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -88,7 +134,16 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Proxy data hub specific variables
     ENCRYPTION_SECRET: Joi.string().required(),
     DOMAIN: Joi.string().uri(),
-    STORAGE: Joi.string().uri(),
+    AUTHORISATION_API_NAME: Joi.string(),
+    AUTHORISATION_API_DID: Joi.string().required(),
+    AUTHORISATION_API_URL: Joi.string().uri(),
+    STORAGE_API_NAME: Joi.string(),
+    STORAGE_API_URL: Joi.string().uri(),
+    DID_REGISTRY_API_URL: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
+    TEST_USER_DID_1: Joi.string(),
+    TEST_USER_PRIVATE_KEY_1: Joi.string(),
+    TEST_USER_DID_2: Joi.string(),
+    TEST_USER_PRIVATE_KEY_2: Joi.string(),
   }),
 });

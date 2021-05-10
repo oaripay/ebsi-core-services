@@ -6,18 +6,22 @@ import {
   HttpServer,
   Logger,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import crypto from "crypto";
 import base64url from "base64url";
-import { FastifyInstance } from "fastify";
+import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import { Agent } from "@cef-ebsi/oauth2-auth";
+import { JWTPayload } from "@cef-ebsi/did-jwt";
 import jsonwebtoken from "jsonwebtoken";
+import { FastifyInstance } from "fastify";
 import axios from "axios";
 import { AttributesModule } from "./attributes.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { loadConfig } from "../../config/configuration";
+import { ApiConfig } from "../../config/configuration";
 import {
   AttributeCassandraModel,
   AttributeResponseObject,
@@ -34,28 +38,43 @@ interface JsonrpcCall {
 describe("Attributes Module", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let configService: ConfigService<ApiConfig>;
   const mockAxios = jest.spyOn(axios, "post");
   let numberCall = 0;
 
-  const { domain, apiUrlPrefix, storage, encryptionSecret } = loadConfig();
-  const apiUrl = `${domain}${apiUrlPrefix}`;
-  const did = `did:ebsi:0x${crypto.randomBytes(32).toString("hex")}`;
+  const accessTokenApi = jsonwebtoken.sign({}, "secret", {
+    audience: "proxy-data-hub-api",
+    issuer: "authorisation-api",
+    expiresIn: 3600,
+  });
+
+  const headerJwt = {
+    headers: {
+      Authorization: `Bearer ${accessTokenApi}`,
+    },
+  };
+
+  const testUser = {
+    token: "user",
+    did: "did:ebsi:user",
+  };
+  const testFakeUser = {
+    token: "fake user",
+    did: "did:ebsi:fakeuser",
+  };
+
+  let domain: string;
+  let apiUrlPrefix: string;
+  let storageApiUrl: string;
+  let encryptionSecret: string;
+  let apiUrl: string;
+
   const attributeData = base64url.encode(
     crypto.randomBytes(15).toString("hex")
   );
-  const validToken = jsonwebtoken.sign(
-    {
-      did,
-    },
-    "secret",
-    {
-      audience: "proxy-data-hub-api",
-      issuer: "authorisation-api",
-    }
-  );
 
   const createAttributeCassandra = (): AttributeCassandraModel => ({
-    did,
+    did: testUser.did,
     visibility: "private",
     shared_with: "",
     content_type: "application/json+ld",
@@ -64,7 +83,7 @@ describe("Attributes Module", () => {
     hash: multihashEncode(
       crypto
         .createHash("sha3-256")
-        .update(`${attributeData}${did}`)
+        .update(`${attributeData}${testUser.did}`)
         .digest("hex"),
       "sha3-256"
     ),
@@ -95,6 +114,25 @@ describe("Attributes Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    configService = moduleFixture.get<ConfigService>(ConfigService);
+    domain = configService.get("domain");
+    apiUrlPrefix = configService.get("apiUrlPrefix");
+    storageApiUrl = configService.get("storageApiUrl");
+    encryptionSecret = configService.get("encryptionSecret");
+    apiUrl = `${domain}${apiUrlPrefix}`;
+
+    jest.spyOn(SiopSession.prototype, "verifyAccessToken").mockImplementation(
+      (token: string): Promise<JWTPayload> => {
+        if (token === testUser.token)
+          return Promise.resolve({ sub: testUser.did });
+        throw new Error("verifyAccessToken failed");
+      }
+    );
+
+    jest
+      .spyOn(Agent.prototype, "verifyAuthenticationResponse")
+      .mockImplementation(async () => Promise.resolve(accessTokenApi));
   });
 
   afterAll(async () => {
@@ -104,23 +142,33 @@ describe("Attributes Module", () => {
 
   describe("GET /attributes", () => {
     it("should get attributes associated to the did", async () => {
-      expect.assertions(4);
+      expect.assertions(5);
 
-      mockAxios.mockImplementation(async () =>
-        Promise.resolve({
+      mockAxios.mockImplementation(async (url) => {
+        if (url.includes("/oauth2-sessions"))
+          return Promise.resolve({ data: {} });
+        return Promise.resolve({
           data: {
             result: {
               pageState: "abc",
               rows: Array(2).fill(createAttributeCassandra()),
             },
           },
-        })
-      );
+        });
+      });
 
       const response = await request(server)
         .get("/attributes?page[size]=2")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send();
+
+      // expect proxy-data-hub-api creates a new session on auth api
+      numberCall += 1;
+      expect(mockAxios).toHaveBeenNthCalledWith(
+        numberCall,
+        expect.stringContaining("/oauth2-sessions"),
+        expect.objectContaining({}) as { clientAssertion: string }
+      );
 
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
@@ -133,11 +181,12 @@ describe("Attributes Module", () => {
             method: "cassandra_call",
             params: [
               "select * from attribute_storage where did = ? allow filtering",
-              did,
+              testUser.did,
               { fetchSize: 2 },
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
@@ -175,7 +224,7 @@ describe("Attributes Module", () => {
       let pageAfter = encrypt("123abc", encryptionSecret);
       let response = await request(server)
         .get(`/attributes?page[after]=${pageAfter}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send();
 
       numberCall += 1;
@@ -189,11 +238,12 @@ describe("Attributes Module", () => {
             method: "cassandra_call",
             params: [
               "select * from attribute_storage where did = ? allow filtering",
-              did,
+              testUser.did,
               { fetchSize: 10, pageState: "123abc" },
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
@@ -221,7 +271,7 @@ describe("Attributes Module", () => {
       pageAfter = encrypt("__shared__123abc", encryptionSecret);
       response = await request(server)
         .get(`/attributes?page[after]=${pageAfter}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send();
 
       numberCall += 1;
@@ -235,11 +285,12 @@ describe("Attributes Module", () => {
             method: "cassandra_call",
             params: [
               "select * from attribute_storage where shared_with = ? allow filtering",
-              did,
+              testUser.did,
               { fetchSize: 10, pageState: "123abc" },
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
@@ -282,7 +333,7 @@ describe("Attributes Module", () => {
       const hash = `0x${crypto.randomBytes(32).toString("hex")}`;
       const response = await request(server)
         .get(`/attributes/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send();
 
       numberCall += 1;
@@ -296,7 +347,8 @@ describe("Attributes Module", () => {
             method: "cassandra_call",
             params: ["select * from attribute_storage where hash = ?", hash],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
@@ -327,7 +379,7 @@ describe("Attributes Module", () => {
 
       let response = await request(server)
         .get(`/attributes/${attributeCassandra.hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send();
 
       numberCall += 1;
@@ -344,7 +396,8 @@ describe("Attributes Module", () => {
               attributeCassandra.hash,
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
@@ -358,7 +411,7 @@ describe("Attributes Module", () => {
       attributeCassandra.shared_with = "did:ebsi:shared_with_other";
       response = await request(server)
         .get(`/attributes/${attributeCassandra.hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send();
 
       numberCall += 1;
@@ -375,7 +428,8 @@ describe("Attributes Module", () => {
               attributeCassandra.hash,
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
@@ -402,7 +456,7 @@ describe("Attributes Module", () => {
 
       const response = await request(server)
         .get(`/attributes/${attributeCassandra.hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send();
 
       numberCall += 1;
@@ -419,11 +473,12 @@ describe("Attributes Module", () => {
               attributeCassandra.hash,
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
-        storageUri: `${storage}/stores/distributed`,
+        storageUri: `${storageApiUrl}/stores/distributed`,
         hash: attributeCassandra.hash,
         did: attributeCassandra.did,
         sharedWith: attributeCassandra.shared_with,
@@ -471,11 +526,12 @@ describe("Attributes Module", () => {
               attributeCassandra.hash,
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
-        storageUri: `${storage}/stores/distributed`,
+        storageUri: `${storageApiUrl}/stores/distributed`,
         hash: attributeCassandra.hash,
         did: attributeCassandra.did,
         visibility: attributeCassandra.visibility,
@@ -487,10 +543,10 @@ describe("Attributes Module", () => {
       expect(response.status).toBe(200);
 
       // shared with the user
-      attributeCassandra.shared_with = did;
+      attributeCassandra.shared_with = testUser.did;
       response = await request(server)
         .get(`/attributes/${attributeCassandra.hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send();
 
       numberCall += 1;
@@ -507,11 +563,12 @@ describe("Attributes Module", () => {
               attributeCassandra.hash,
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
-        storageUri: `${storage}/stores/distributed`,
+        storageUri: `${storageApiUrl}/stores/distributed`,
         hash: attributeCassandra.hash,
         did: attributeCassandra.did,
         visibility: attributeCassandra.visibility,
@@ -526,14 +583,27 @@ describe("Attributes Module", () => {
 
   describe("POST /attributes", () => {
     it("should reject unauthorized requests", async () => {
-      expect.assertions(2);
+      expect.assertions(4);
 
-      const response = await request(server).post("/attributes").send({});
+      let response = await request(server).post("/attributes").send({});
       expect(response.body).toStrictEqual({
         title: "Unauthorized",
         status: 401,
         type: "about:blank",
-        detail: "Invalid or missing JWT",
+        detail: "Missing JWT",
+      });
+      expect(response.status).toBe(401);
+
+      response = await request(server)
+        .post("/attributes")
+        .auth(testFakeUser.token, { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        title: "Unauthorized",
+        status: 401,
+        type: "about:blank",
+        detail: "verifyAccessToken failed",
       });
       expect(response.status).toBe(401);
     });
@@ -543,14 +613,14 @@ describe("Attributes Module", () => {
 
       let response = await request(server)
         .post("/attributes")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send({});
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
         type: "about:blank",
         detail: JSON.stringify([
-          `storageUri must be equal to ${storage}/stores/distributed`,
+          `storageUri must be equal to ${storageApiUrl}/stores/distributed`,
           "did must be a valid DID string",
           "contentType must be MIME type format",
           "data must be base64url encoded",
@@ -560,7 +630,7 @@ describe("Attributes Module", () => {
 
       response = await request(server)
         .post("/attributes")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send({
           visibility: "???",
           sharedWith: "no did",
@@ -572,7 +642,7 @@ describe("Attributes Module", () => {
         status: 400,
         type: "about:blank",
         detail: JSON.stringify([
-          `storageUri must be equal to ${storage}/stores/distributed`,
+          `storageUri must be equal to ${storageApiUrl}/stores/distributed`,
           "did must be a valid DID string",
           "visibility must be one of the following values: private, shared",
           "sharedWith must be a valid DID string",
@@ -586,10 +656,10 @@ describe("Attributes Module", () => {
 
       response = await request(server)
         .post("/attributes")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send({
-          storageUri: `${storage}/stores/distributed`,
-          did,
+          storageUri: `${storageApiUrl}/stores/distributed`,
+          did: testUser.did,
           visibility: "private",
           contentType: "application/json+ld",
           dataLabel: "document",
@@ -606,10 +676,10 @@ describe("Attributes Module", () => {
 
       response = await request(server)
         .post("/attributes")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send({
-          storageUri: `${storage}/stores/distributed`,
-          did,
+          storageUri: `${storageApiUrl}/stores/distributed`,
+          did: testUser.did,
           visibility: "private",
           contentType: "application/json+ld",
           dataLabel: "document",
@@ -631,8 +701,8 @@ describe("Attributes Module", () => {
       });
 
       const attribute = {
-        storageUri: `${storage}/stores/distributed`,
-        did,
+        storageUri: `${storageApiUrl}/stores/distributed`,
+        did: testUser.did,
         visibility: "shared",
         sharedWith: "did:ebsi:12245",
         contentType: "application/json+ld",
@@ -643,7 +713,7 @@ describe("Attributes Module", () => {
 
       response = await request(server)
         .post("/attributes")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send(attribute);
 
       numberCall += 1;
@@ -660,7 +730,8 @@ describe("Attributes Module", () => {
               expect.any(String) as string,
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
@@ -682,8 +753,8 @@ describe("Attributes Module", () => {
       });
 
       const attribute = {
-        storageUri: `${storage}/stores/distributed`,
-        did,
+        storageUri: `${storageApiUrl}/stores/distributed`,
+        did: testUser.did,
         visibility: "private",
         contentType: "application/json+ld",
         data: base64url.encode("encrypted data"),
@@ -693,7 +764,7 @@ describe("Attributes Module", () => {
 
       const response = await request(server)
         .post("/attributes")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send(attribute);
 
       numberCall += 1;
@@ -710,7 +781,8 @@ describe("Attributes Module", () => {
               expect.any(String) as string,
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       numberCall += 1;
@@ -733,7 +805,8 @@ describe("Attributes Module", () => {
               attribute.dataLabel,
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
@@ -757,7 +830,7 @@ describe("Attributes Module", () => {
 
       const response = await request(server)
         .delete(`/attributes/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send();
 
       numberCall += 1;
@@ -771,7 +844,8 @@ describe("Attributes Module", () => {
             method: "cassandra_call",
             params: ["select did from attribute_storage where hash = ?", hash],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
@@ -795,7 +869,7 @@ describe("Attributes Module", () => {
 
       const response = await request(server)
         .delete(`/attributes/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send();
 
       numberCall += 1;
@@ -809,14 +883,15 @@ describe("Attributes Module", () => {
             method: "cassandra_call",
             params: ["select did from attribute_storage where hash = ?", hash],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
         title: "Forbidden",
         status: 403,
         type: "about:blank",
-        detail: `${did} is not the owner of attribute ${hash}`,
+        detail: `${testUser.did} is not the owner of attribute ${hash}`,
       });
       expect(response.status).toBe(403);
     });
@@ -828,7 +903,7 @@ describe("Attributes Module", () => {
       mockAxios.mockImplementation(async (url: string, data: JsonrpcCall) => {
         if (data.params[0].startsWith("select")) {
           return Promise.resolve({
-            data: { result: { rows: [{ did }] } },
+            data: { result: { rows: [{ did: testUser.did }] } },
           });
         }
 
@@ -839,7 +914,7 @@ describe("Attributes Module", () => {
 
       const response = await request(server)
         .delete(`/attributes/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send();
 
       numberCall += 1;
@@ -853,7 +928,8 @@ describe("Attributes Module", () => {
             method: "cassandra_call",
             params: ["select did from attribute_storage where hash = ?", hash],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       numberCall += 1;
@@ -867,7 +943,8 @@ describe("Attributes Module", () => {
             method: "cassandra_call",
             params: ["delete from attribute_storage where hash = ?", hash],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({});
@@ -881,7 +958,7 @@ describe("Attributes Module", () => {
 
       let response = await request(server)
         .patch("/attributes/123456789")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send([
           { op: "replace", path: "/storageUri", value: "https://example.com" },
         ]);
@@ -895,7 +972,7 @@ describe("Attributes Module", () => {
 
       response = await request(server)
         .patch("/attributes/123456789")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send([{ op: "replace", path: "/did", value: "did:ebsi:123" }]);
       expect(response.body).toStrictEqual({
         title: "Bad Request",
@@ -907,7 +984,7 @@ describe("Attributes Module", () => {
 
       response = await request(server)
         .patch("/attributes/123456789")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send([{ op: "replace", path: "/data", value: "xfeGevej" }]);
       expect(response.body).toStrictEqual({
         title: "Bad Request",
@@ -919,7 +996,7 @@ describe("Attributes Module", () => {
 
       response = await request(server)
         .patch("/attributes/123456789")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send([{ op: "unknown-op", path: "/visibility", value: "shared" }]);
       expect(response.body).toStrictEqual({
         title: "Bad Request",
@@ -931,7 +1008,7 @@ describe("Attributes Module", () => {
 
       response = await request(server)
         .patch("/attributes/0x123456789")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send([
           { op: "replace", path: "/visibility", value: "invalid-visibility" },
         ]);
@@ -954,7 +1031,7 @@ describe("Attributes Module", () => {
 
       const response = await request(server)
         .patch("/attributes/123456789")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send([{ op: "replace", path: "/visibility", value: "shared" }]);
 
       numberCall += 1;
@@ -971,7 +1048,8 @@ describe("Attributes Module", () => {
               expect.any(String) as string,
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
@@ -1003,7 +1081,7 @@ describe("Attributes Module", () => {
 
       const response = await request(server)
         .patch("/attributes/123456789")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send([{ op: "replace", path: "/visibility", value: "shared" }]);
 
       numberCall += 1;
@@ -1020,14 +1098,15 @@ describe("Attributes Module", () => {
               expect.any(String) as string,
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
         title: "Forbidden",
         status: 403,
         type: "about:blank",
-        detail: `${did} is not the owner of attribute 123456789`,
+        detail: `${testUser.did} is not the owner of attribute 123456789`,
       });
       expect(response.status).toBe(403);
     });
@@ -1050,7 +1129,7 @@ describe("Attributes Module", () => {
 
       const response = await request(server)
         .patch(`/attributes/${attributeCassandra.hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser.token, { type: "bearer" })
         .send([
           { op: "replace", path: "/visibility", value: "shared" },
           { op: "replace", path: "/contentType", value: "application/json" },
@@ -1072,7 +1151,8 @@ describe("Attributes Module", () => {
               attributeCassandra.hash,
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       numberCall += 1;
@@ -1093,11 +1173,12 @@ describe("Attributes Module", () => {
               attributeCassandra.hash,
             ],
           }),
-        ]
+        ],
+        headerJwt
       );
 
       expect(response.body).toStrictEqual({
-        storageUri: `${storage}/stores/distributed`,
+        storageUri: `${storageApiUrl}/stores/distributed`,
         hash: attributeCassandra.hash,
         did: attributeCassandra.did,
         visibility: "shared",

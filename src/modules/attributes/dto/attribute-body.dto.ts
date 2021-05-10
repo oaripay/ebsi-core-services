@@ -10,9 +10,9 @@ import { IsBase64url, IsDid } from "../../../shared/validators";
 import { Visibility } from "../attributes.interface";
 import { loadConfig } from "../../../config/configuration";
 
-const { storage } = loadConfig();
+const { storageApiUrl } = loadConfig();
 export class AttributeBodyDto {
-  @Equals(`${storage}/stores/distributed`)
+  @Equals(`${storageApiUrl}/stores/distributed`)
   storageUri: string;
 
   @IsDid()

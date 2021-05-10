@@ -13,7 +13,6 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
-import { AttributesModule } from "../modules/attributes/attributes.module";
 import { AllExceptionsFilter } from "./http-exception.filter";
 
 const mockGetResponse = jest.fn().mockImplementation(() => ({
@@ -47,7 +46,7 @@ describe("All exception filter tests", () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AttributesModule],
+      imports: [],
       providers: [AllExceptionsFilter],
     }).compile();
 
@@ -118,6 +117,22 @@ describe("All exception filter tests", () => {
         title: "Bad Request",
         detail,
         status: 400,
+        type: "about:blank",
+      },
+    });
+  });
+
+  it("should handle uncaught Error", () => {
+    const exception = new Error("uncaught error");
+    const response = service.catch(exception, mockArgumentsHost);
+    expect(response).toStrictEqual({
+      code: 500,
+      type: "application/problem+json",
+      send: {
+        detail:
+          "The server encountered an internal error and was unable to complete your request",
+        status: 500,
+        title: "Internal Server Error",
         type: "about:blank",
       },
     });

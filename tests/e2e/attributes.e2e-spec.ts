@@ -2,19 +2,20 @@ import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { HttpServer, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import base64url from "base64url";
-import jsonwebtoken from "jsonwebtoken";
 import { Logger } from "@nestjs/common/services/logger.service";
 import { AppModule } from "../../src/app.module";
+import { ApiConfig, loadConfig } from "../../src/config/configuration";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { loadConfig } from "../../src/config/configuration";
 import { AttributeResponseObject } from "../../src/modules/attributes/attributes.interface";
 import { PaginatedList } from "../../src/shared/interfaces";
+import { siopAuthentication } from "../utils/auth";
 
 jest.setTimeout(60000);
 
@@ -22,39 +23,29 @@ describe("Attributes", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
 
-  const { domain, apiUrlPrefix, storage } = loadConfig();
+  let testUser1: {
+    did: string;
+    privateKey: string;
+    token?: string;
+  };
+
+  let testUser2: {
+    did: string;
+    privateKey: string;
+    token?: string;
+  };
+
+  const { domain, apiUrlPrefix, storageApiUrl } = loadConfig();
   const apiUrl = `${domain}${apiUrlPrefix}`;
-  const did = `did:ebsi:0x${crypto.randomBytes(20).toString("hex")}`;
-  const did2 = `did:ebsi:0x${crypto.randomBytes(20).toString("hex")}`;
-  const validToken = jsonwebtoken.sign(
-    {
-      did,
-    },
-    "secret",
-    {
-      audience: "proxy-data-hub-api",
-      issuer: "authorisation-api",
-    }
-  );
-  const validToken2 = jsonwebtoken.sign(
-    {
-      did: did2,
-    },
-    "secret",
-    {
-      audience: "proxy-data-hub-api",
-      issuer: "authorisation-api",
-    }
-  );
 
   const createAttribute = (visibility?: string, sharedWithMe?: boolean) => ({
-    storageUri: `${storage}/stores/distributed`,
-    did,
+    storageUri: `${storageApiUrl}/stores/distributed`,
+    did: testUser1.did,
     visibility,
     ...(sharedWithMe && {
       // The owner is a different did, but it is shared with the user
-      did: did2,
-      sharedWith: did,
+      did: testUser2.did,
+      sharedWith: testUser1.did,
     }),
     contentType: "application/json+ld",
     data: base64url.encode(crypto.randomBytes(15).toString("hex")),
@@ -65,8 +56,40 @@ describe("Attributes", () => {
   const insertAttribute = async (visibility?: string, sharedWithMe?: boolean) =>
     request(server)
       .post("/attributes")
-      .auth(sharedWithMe ? validToken2 : validToken, { type: "bearer" })
+      .auth(sharedWithMe ? testUser2.token : testUser1.token, {
+        type: "bearer",
+      })
       .send(createAttribute(visibility, sharedWithMe));
+
+  const deleteAttribute = async (hash: string, token: string) =>
+    request(server)
+      .delete(`/attributes/${hash}`)
+      .auth(token, { type: "bearer" })
+      .send();
+
+  const getAllAttributes = async (token: string) =>
+    request(server)
+      .get("/attributes?page[size]=50")
+      .auth(token, { type: "bearer" })
+      .send();
+
+  const deleteAllAttributes = async () => {
+    const tokens = [testUser1.token, testUser2.token];
+    await Promise.all(
+      tokens.map(async (token) => {
+        const response = (await getAllAttributes(token)) as {
+          body: {
+            items: { hash: string }[];
+          };
+        };
+        return Promise.all(
+          response.body.items.map(async (item) => {
+            return deleteAttribute(item.hash, token);
+          })
+        );
+      })
+    );
+  };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -84,11 +107,27 @@ describe("Attributes", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
+      ConfigService
+    );
+
+    testUser1 = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser1");
+    testUser2 = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser2");
+    testUser1.token = await siopAuthentication(testUser1);
+    testUser2.token = await siopAuthentication(testUser2);
   });
 
   describe("GET /attributes", () => {
     it("should get attributes associated to the did", async () => {
       expect.assertions(9);
+      await deleteAllAttributes();
       /* eslint-disable no-await-in-loop */
       for (let i = 0; i < 3; i += 1) await insertAttribute();
       await insertAttribute("shared", true);
@@ -98,14 +137,14 @@ describe("Attributes", () => {
       let path = "/attributes?page[size]=2";
       let response = await request(server)
         .get(path)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send();
       expect(response.body).toStrictEqual({
         self: `${apiUrl}${path}`,
         items: expect.arrayContaining([
           expect.objectContaining({
-            did,
-            sharedWith: expect.not.stringContaining(did) as string,
+            did: testUser1.did,
+            sharedWith: expect.not.stringContaining(testUser1.did) as string,
           }),
         ]) as AttributeResponseObject[],
         links: {
@@ -130,14 +169,14 @@ describe("Attributes", () => {
       // Second page
       response = await request(server)
         .get(path)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send();
       expect(response.body).toStrictEqual({
         self: `${apiUrl}${path}`,
         items: expect.arrayContaining([
           expect.objectContaining({
-            did,
-            sharedWith: expect.not.stringContaining(did) as string,
+            did: testUser1.did,
+            sharedWith: expect.not.stringContaining(testUser1.did) as string,
           }),
         ]) as AttributeResponseObject[],
         links: {
@@ -162,15 +201,15 @@ describe("Attributes", () => {
       // Third page: Shared attributes
       response = await request(server)
         .get(path)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send();
       expect(response.body).toStrictEqual({
         self: `${apiUrl}${path}`,
         items: expect.arrayContaining([
           expect.objectContaining({
             // Not the owner but it is shared
-            did: expect.not.stringContaining(did) as string,
-            sharedWith: did,
+            did: expect.not.stringContaining(testUser1.did) as string,
+            sharedWith: testUser1.did,
           }),
         ]) as AttributeResponseObject[],
         links: {},
@@ -189,7 +228,7 @@ describe("Attributes", () => {
       const hash = `0x${crypto.randomBytes(32).toString("hex")}`;
       const response = await request(server)
         .get(`/attributes/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send();
       expect(response.body).toStrictEqual({
         title: "Attribute Not Found",
@@ -228,7 +267,7 @@ describe("Attributes", () => {
 
       const response = await request(server)
         .get(`/attributes/${expectedAttribute.hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send();
 
       delete expectedAttribute.proof;
@@ -263,7 +302,7 @@ describe("Attributes", () => {
 
       response = await request(server)
         .get(`/attributes/${expectedAttribute.hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send();
 
       delete expectedAttribute.proof;
@@ -281,7 +320,7 @@ describe("Attributes", () => {
         title: "Unauthorized",
         status: 401,
         type: "about:blank",
-        detail: "Invalid or missing JWT",
+        detail: "Missing JWT",
       });
       expect(response.status).toBe(401);
     });
@@ -291,14 +330,14 @@ describe("Attributes", () => {
 
       let response = await request(server)
         .post("/attributes")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send({});
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
         type: "about:blank",
         detail: JSON.stringify([
-          `storageUri must be equal to ${storage}/stores/distributed`,
+          `storageUri must be equal to ${storageApiUrl}/stores/distributed`,
           "did must be a valid DID string",
           "contentType must be MIME type format",
           "data must be base64url encoded",
@@ -308,10 +347,10 @@ describe("Attributes", () => {
 
       response = await request(server)
         .post("/attributes")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send({
-          storageUri: `${storage}/stores/distributed`,
-          did,
+          storageUri: `${storageApiUrl}/stores/distributed`,
+          did: testUser1.did,
           visibility: "private",
           contentType: "application/json+ld",
           dataLabel: "document",
@@ -333,7 +372,7 @@ describe("Attributes", () => {
       attribute2.data = data;
       response = await request(server)
         .post("/attributes")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send(attribute2);
       expect(response.body).toStrictEqual({
         title: "Bad Request",
@@ -351,7 +390,7 @@ describe("Attributes", () => {
 
       const response = await request(server)
         .post("/attributes")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send(attribute);
 
       delete attribute.visibility;
@@ -370,7 +409,7 @@ describe("Attributes", () => {
 
       const response = await request(server)
         .delete(`/attributes/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -391,7 +430,7 @@ describe("Attributes", () => {
 
       const response = await request(server)
         .delete(`/attributes/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({});
@@ -405,7 +444,7 @@ describe("Attributes", () => {
 
       let response = await request(server)
         .patch("/attributes/123456789")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send([
           { op: "replace", path: "/storageUri", value: "https://example.com" },
         ]);
@@ -419,7 +458,7 @@ describe("Attributes", () => {
 
       response = await request(server)
         .patch("/attributes/123456789")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send([{ op: "replace", path: "/did", value: "did:ebsi:123" }]);
       expect(response.body).toStrictEqual({
         title: "Bad Request",
@@ -431,7 +470,7 @@ describe("Attributes", () => {
 
       response = await request(server)
         .patch("/attributes/123456789")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send([{ op: "replace", path: "/data", value: "xfeGevej" }]);
       expect(response.body).toStrictEqual({
         title: "Bad Request",
@@ -443,7 +482,7 @@ describe("Attributes", () => {
 
       response = await request(server)
         .patch("/attributes/123456789")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send([{ op: "unknown-op", path: "/visibility", value: "shared" }]);
       expect(response.body).toStrictEqual({
         title: "Bad Request",
@@ -455,7 +494,7 @@ describe("Attributes", () => {
 
       response = await request(server)
         .patch("/attributes/0x123456789")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send([
           { op: "replace", path: "/visibility", value: "invalid-visibility" },
         ]);
@@ -474,7 +513,7 @@ describe("Attributes", () => {
 
       const response = await request(server)
         .patch(`/attributes/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send([{ op: "replace", path: "/visibility", value: "shared" }]);
 
       expect(response.body).toStrictEqual({
@@ -495,14 +534,14 @@ describe("Attributes", () => {
 
       const response = await request(server)
         .patch(`/attributes/${hash}`)
-        .auth(validToken2, { type: "bearer" })
+        .auth(testUser2.token, { type: "bearer" })
         .send([{ op: "replace", path: "/visibility", value: "shared" }]);
 
       expect(response.body).toStrictEqual({
         title: "Forbidden",
         status: 403,
         type: "about:blank",
-        detail: `${did2} is not the owner of attribute ${hash}`,
+        detail: `${testUser2.did} is not the owner of attribute ${hash}`,
       });
       expect(response.status).toBe(403);
     });
@@ -516,7 +555,7 @@ describe("Attributes", () => {
 
       let response = await request(server)
         .patch(`/attributes/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send([
           { op: "replace", path: "/visibility", value: "shared" },
           { op: "replace", path: "/contentType", value: "application/json" },
@@ -525,9 +564,9 @@ describe("Attributes", () => {
         ]);
 
       const expectedAttribute = {
-        storageUri: `${storage}/stores/distributed`,
+        storageUri: `${storageApiUrl}/stores/distributed`,
         hash,
-        did,
+        did: testUser1.did,
         visibility: "shared",
         sharedWith: "did:ebsi:1234",
         contentType: "application/json",
@@ -539,7 +578,7 @@ describe("Attributes", () => {
 
       response = await request(server)
         .get(`/attributes/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUser1.token, { type: "bearer" })
         .send();
       expect(response.body).toStrictEqual(expectedAttribute);
       expect(response.status).toBe(200);

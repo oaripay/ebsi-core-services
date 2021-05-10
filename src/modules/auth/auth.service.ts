@@ -1,22 +1,36 @@
 import { Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JWTPayload } from "@cef-ebsi/did-jwt";
+import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
-import { UserInfo, JwtPayload } from "./auth.interface";
+import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
 export class AuthService {
-  async validateToken(payload: JwtPayload): Promise<UserInfo> {
-    // Custom validation
-    if (!payload.did) {
+  private authorisationApiDid: string;
+
+  private siopSession: SiopSession;
+
+  constructor(private configService: ConfigService<ApiConfig>) {
+    this.authorisationApiDid = configService.get<string>("authorisationApiDid");
+    this.siopSession = new SiopSession({
+      didRegistry: `${configService.get<string>(
+        "didRegistryApiUrl"
+      )}/identifiers`,
+    });
+  }
+
+  async validateToken(token: string): Promise<JWTPayload> {
+    try {
+      return await this.siopSession.verifyAccessToken(
+        token,
+        this.authorisationApiDid
+      );
+    } catch (error) {
       throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
-        detail: "Invalid JWT: DID is missing",
+        detail: (error as Error).message,
       });
     }
-
-    // Perform other verifications...
-    await Promise.resolve();
-
-    // Populate "user" object
-    return { did: payload.did };
   }
 }
 
