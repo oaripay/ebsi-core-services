@@ -166,7 +166,7 @@ paths:
   /trusted-schemas-registry/v1/schemas/{schemaId}/revisions:
     get:
       tags:
-        - Trusted Schemas Registry API
+        - Trusted Schemas Registry
       summary: Get schema's revisions
       description: Get schemas's revisions. Endpoint returns a paginated list of items.
       operationId: get-trusted-schemas-registry-v1-schemas-revisions
@@ -256,7 +256,7 @@ paths:
   /trusted-schemas-registry/v1/schemas/{schemaId}/revisions/{schemaRevisionId}:
     get:
       tags:
-        - Trusted Schemas Registry API
+        - Trusted Schemas Registry
       summary: Get schema reviision by its ID
       description: Returns a trusted schema revision by its ID
       operationId: get-trusted-schemas-registry-v1-schema-revision
@@ -321,7 +321,7 @@ paths:
   ? /trusted-schemas-registry/v1/schemas/{schemaId}/revisions/{schemaRevisionId}/metadata
   : get:
       tags:
-        - Trusted Schemas Registry API
+        - Trusted Schemas Registry
       summary: Get schema revision's metadata
       description: Get schemas revision's metadata. Endpoint returns a paginated list of items.
       operationId: get-trusted-schemas-registry-v1-schemas-revision-metadata-list
@@ -423,7 +423,7 @@ paths:
   ? /trusted-schemas-registry/v1/schemas/{schemaId}/revisions/{schemaRevisionId}/metadata/{metadataId}
   : get:
       tags:
-        - Trusted Schemas Registry API
+        - Trusted Schemas Registry
       summary: Get schema revision metadata by its ID
       description: Returns a trusted schema revision metadata by its ID
       operationId: get-trusted-schemas-registry-v1-schema-revision-metadata
@@ -580,7 +580,7 @@ paths:
   /trusted-schemas-registry/v2/administrators/{did}:
     get:
       tags:
-        - Trusted Issuers Registry
+        - Trusted Schemas Registry
       operationId: get-trusted-schemas-registry-v2-administrators-did
       summary: Get administrator by its Decentralized Identifier
       description: Returns a trusted administrator by its decentralized identifier
@@ -638,7 +638,7 @@ paths:
   /trusted-schemas-registry/v1/administrators/{did}/attributes:
     get:
       tags:
-        - Trusted Apps Registry
+        - Trusted Schemas Registry
       summary: List the attributes of an administrator
       description: Returns a list of attributes for a given administrator
       responses:
@@ -739,7 +739,7 @@ paths:
   /trusted-issuers-registry/v2/administrators/{did}/attributes/{attributeId}:
     get:
       tags:
-        - Trusted Issuers Registry
+        - Trusted Schemas Registry
       operationId: get-trusted-issuers-registry-v2-administrators-did-attributes-attributeid
       summary: Get a specific attribute
       description: Returns the corresponding attribute of a given administrator
@@ -803,7 +803,7 @@ paths:
   ? /trusted-schemas-registry/v1/administrators/{did}/attributes/{attributeId}/revisions
   : get:
       tags:
-        - Trusted Apps Registry
+        - Trusted Schemas Registry
       summary: List the revisions of an attribute
       description: |
         Returns a list of revisions for a given attribute attached to a given administrator.

@@ -14,9 +14,9 @@ import { FastifyInstance } from "fastify";
 import { PoliciesModule } from "./policies.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { generateMultihash } from "../../shared/utils";
-import { SchemaSCRegistry__factory } from "../../contracts/trusted-schemas";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { ContractService } from "../../shared/services/contract.service";
 
 const POLICIES_TOTAL = 12;
 const POLICIES_REVISIONS_TOTAL = 5;
@@ -25,6 +25,7 @@ describe("Policies Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let contractService: ContractService;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -32,12 +33,6 @@ describe("Policies Module", () => {
       policiesTotal: POLICIES_TOTAL,
       policiesRevisionsTotal: POLICIES_REVISIONS_TOTAL,
     });
-    const { schemasRegistryContract } = testEnv;
-
-    // Mock TSR contract
-    jest
-      .spyOn(SchemaSCRegistry__factory, "connect")
-      .mockImplementation(() => schemasRegistryContract);
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [PoliciesModule],
@@ -47,6 +42,8 @@ describe("Policies Module", () => {
       new FastifyAdapter()
     );
 
+    contractService = moduleFixture.get<ContractService>(ContractService);
+
     // Turn off logger
     Logger.overrideLogger(false);
 
@@ -55,6 +52,13 @@ describe("Policies Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    // Mock TSR contract
+    jest
+      .spyOn(contractService, "getContract")
+      .mockImplementation(async () =>
+        Promise.resolve(testEnv.schemasRegistryContract)
+      );
   });
 
   afterAll(async () => {
@@ -261,9 +265,8 @@ describe("Policies Module", () => {
       const { policies, policyRevisions } = testEnv;
       const { policyId } = policies[0];
       // Get last revision of this policy
-      const { policyData, policyHash } = policyRevisions[policyId][
-        policyRevisions[policyId].length - 1
-      ];
+      const { policyData, policyHash } =
+        policyRevisions[policyId][policyRevisions[policyId].length - 1];
 
       const expectedPolicy = policyData;
       const expectedHash = generateMultihash(policyHash);

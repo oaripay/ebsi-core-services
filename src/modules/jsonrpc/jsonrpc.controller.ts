@@ -1,4 +1,4 @@
-import { Controller, Body, Post, HttpCode } from "@nestjs/common";
+import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
 import { JsonRpcService } from "./jsonrpc.service";
 import { InvalidRequestJsonRpcError } from "./errors";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -13,6 +13,8 @@ import {
   RequestUpdateSchemaDto,
   RequestUpdateMetadataDto,
 } from "./dto";
+import { SiopJwtAuthGuard } from "../auth/guards";
+import { Client, ClientInfo } from "../auth/decorators";
 
 function jsonRpcResponse(
   result: unknown,
@@ -21,20 +23,25 @@ function jsonRpcResponse(
   return { jsonrpc: "2.0", id: id ?? null, result };
 }
 
+@UseGuards(SiopJwtAuthGuard)
 @Controller("/jsonrpc")
 export default class AppController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
   @HttpCode(200)
   @Post()
-  async jsonRPC(@Body() body: JsonRpcDto): Promise<JsonRpcResponseObject> {
+  async jsonRPC(
+    @Body() body: JsonRpcDto,
+    @Client() client: ClientInfo
+  ): Promise<JsonRpcResponseObject> {
     const { method, id } = body;
     switch (method) {
       case "insertAdministrator": {
-        const result = await this.jsonRpcService.buildTransactionInsertAdministrator(
-          body as RequestInsertAdministratorDto,
-          id
-        );
+        const result =
+          await this.jsonRpcService.buildTransactionInsertAdministrator(
+            body as RequestInsertAdministratorDto,
+            id
+          );
         return jsonRpcResponse(result, id);
       }
       case "insertPolicy": {
@@ -59,10 +66,11 @@ export default class AppController {
         return jsonRpcResponse(result, id);
       }
       case "updateAdministrator": {
-        const transaction = await this.jsonRpcService.buildTransactionUpdateAdministrator(
-          body as RequestUpdateAdministratorDto,
-          id
-        );
+        const transaction =
+          await this.jsonRpcService.buildTransactionUpdateAdministrator(
+            body as RequestUpdateAdministratorDto,
+            id
+          );
         return jsonRpcResponse(transaction, id);
       }
       case "updateSchema": {
@@ -81,6 +89,7 @@ export default class AppController {
       }
       case "signedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(
+          client.did,
           body as RequestSignedTransactionDto,
           id
         );

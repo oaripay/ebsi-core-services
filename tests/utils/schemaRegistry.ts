@@ -9,6 +9,13 @@ import {
   SchemaLib__factory,
 } from "../../src/contracts/trusted-schemas";
 import PaginationArtifact from "../../submodules/trusted-schemas-registry-ethereum-sc/artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol/Pagination.json";
+import { createDid } from "./data";
+
+interface Administrator {
+  wallet: ethers.Wallet;
+  attribute: { [x: string]: unknown };
+  did: string;
+}
 
 interface SchemaObject {
   schema: unknown;
@@ -223,20 +230,21 @@ export async function deploySchemasRegistryContract(
 
 export async function insertAdmin(
   contract: SchemaSCRegistry,
-  adminAddress: string
-): Promise<ethers.ContractTransaction> {
-  const adminDid = `did:ebsi:${adminAddress.toLowerCase()}`;
-  const bufferAttribute = Buffer.from(
-    JSON.stringify({
-      "@context": {
-        name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
-        description: "http://tar-api-test.org/description",
-      },
-      name: `test-${adminDid}`,
-    })
-  );
+  adminDid: string
+): Promise<{ [x: string]: unknown }> {
+  const attribute = {
+    "@context": {
+      name: { "@id": "http://tsr-api-test.org/name", "@type": "@id" },
+      description: "http://tsr-api-test.org/description",
+    },
+    name: `test-${adminDid}`,
+  };
 
-  return contract.insertAdministrator(adminDid, bufferAttribute);
+  const bufferAttribute = Buffer.from(JSON.stringify(attribute));
+
+  await contract.insertAdministrator(adminDid.toLowerCase(), bufferAttribute);
+
+  return attribute;
 }
 
 export interface SetupOptions {
@@ -260,7 +268,7 @@ export async function setupTestEnv(
 ): Promise<{
   provider: ethers.providers.Web3Provider;
   schemasRegistryContract: SchemaSCRegistry;
-  administrators: ethers.Wallet[];
+  administrators: Administrator[];
   schemas: SchemaObject[];
   schemaRevisions: SchemaObject[];
   schemaMetadata: SchemaMetadataObject[];
@@ -278,8 +286,9 @@ export async function setupTestEnv(
   const createAdminWallet = async () => {
     // Create random wallet and connect it so we can use it later to send transactions
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
-    await insertAdmin(schemasRegistryContract, wallet.address);
-    return wallet;
+    const did = createDid().toLowerCase();
+    const attribute = await insertAdmin(schemasRegistryContract, did);
+    return { wallet, attribute, did };
   };
 
   const administrators = await range(0, opts.administratorsTotal ?? 1)

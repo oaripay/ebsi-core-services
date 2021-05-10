@@ -15,13 +15,10 @@ import {
 import { FastifyInstance } from "fastify";
 import { SchemasModule } from "./schemas.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import {
-  SchemaSCRegistry,
-  SchemaSCRegistry__factory,
-} from "../../contracts/trusted-schemas";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { ItemsList } from "./schemas.interface";
+import { ContractService } from "../../shared/services/contract.service";
 
 const SCHEMAS_TOTAL = 3;
 const SCHEMA_REVISIONS_TOTAL = 3;
@@ -30,8 +27,8 @@ const SCHEMA_METADATA_TOTAL = 3;
 describe("Schemas Module", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let schemasRegistryContract: SchemaSCRegistry;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let contractService: ContractService;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -41,13 +38,6 @@ describe("Schemas Module", () => {
       schemaMetadataTotal: SCHEMA_METADATA_TOTAL,
     });
 
-    schemasRegistryContract = testEnv.schemasRegistryContract;
-
-    // Mock Timestamp and TAR contract
-    jest
-      .spyOn(SchemaSCRegistry__factory, "connect")
-      .mockImplementation(() => schemasRegistryContract);
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [SchemasModule],
     }).compile();
@@ -55,6 +45,8 @@ describe("Schemas Module", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
+
+    contractService = moduleFixture.get<ContractService>(ContractService);
 
     // Turn off logger
     Logger.overrideLogger(false);
@@ -64,6 +56,13 @@ describe("Schemas Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    // Mock TSR contract
+    jest
+      .spyOn(contractService, "getContract")
+      .mockImplementation(async () =>
+        Promise.resolve(testEnv.schemasRegistryContract)
+      );
   });
 
   afterAll(async () => {

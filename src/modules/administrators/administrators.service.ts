@@ -1,11 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
+import {
+  ForbiddenError,
+  NotFoundError,
+} from "@cef-ebsi/problem-details-errors";
 import {
   AdministratorResponseObject,
   AttributeObject,
 } from "./administrators.interface";
-import { ApiConfig } from "../../config/configuration";
 import { ContractService } from "../../shared/services/contract.service";
 import { SchemaSCRegistry } from "../../contracts/trusted-schemas";
 import { prefixWith0x } from "../../shared/utils";
@@ -15,20 +16,16 @@ import { AsyncReturnType } from "../../shared/types/async-return-type";
 export default class AdministratorsService {
   private readonly logger = new Logger(AdministratorsService.name);
 
-  private schemasContract: SchemaSCRegistry;
-
-  constructor(
-    private contractService: ContractService,
-    private configService: ConfigService<ApiConfig>
-  ) {
-    this.schemasContract = this.contractService.getContract();
-  }
+  constructor(private contractService: ContractService) {}
 
   async getAdministrators(
     page: number,
     pageSize: number
   ): ReturnType<SchemaSCRegistry["getAdministrators"]> {
-    return this.schemasContract.getAdministrators(page, pageSize);
+    return (await this.contractService.getContract()).getAdministrators(
+      page,
+      pageSize
+    );
   }
 
   async getAttribute(
@@ -38,7 +35,9 @@ export default class AdministratorsService {
     // If `adminDid` is passed, make sure the admin exists
     if (adminDid) {
       try {
-        await this.schemasContract.getAdministrator(adminDid);
+        await (
+          await this.contractService.getContract()
+        ).getAdministrator(adminDid);
       } catch (e) {
         throw new NotFoundError("Administrator Not Found", {
           detail: `Administrator ${adminDid} not found`,
@@ -54,9 +53,9 @@ export default class AdministratorsService {
     >;
 
     try {
-      attributeByHash = await this.schemasContract.getAdministratorAttributeByHash(
-        hash
-      );
+      attributeByHash = await (
+        await this.contractService.getContract()
+      ).getAdministratorAttributeByHash(hash);
     } catch (e) {
       throw new NotFoundError("Attribute Not Found", {
         detail: `Attribute ${hash} not found`,
@@ -86,7 +85,9 @@ export default class AdministratorsService {
     let attributesLastHash: string[];
 
     try {
-      attributesLastHash = await this.schemasContract.getAdministrator(did);
+      attributesLastHash = await (
+        await this.contractService.getContract()
+      ).getAdministrator(did);
 
       if (attributesLastHash.length === 0) {
         throw new Error();
@@ -122,11 +123,9 @@ export default class AdministratorsService {
     await this.getAttribute(attributeId, adminDid);
 
     const hash = prefixWith0x(attributeId);
-    const revisionHashes = await this.schemasContract.getAdministratorAttributeRevisions(
-      hash,
-      page,
-      pageSize
-    );
+    const revisionHashes = await (
+      await this.contractService.getContract()
+    ).getAdministratorAttributeRevisions(hash, page, pageSize);
 
     const revisions = await Promise.all(
       revisionHashes.items.map(async (revisionHash) => {
@@ -135,5 +134,17 @@ export default class AdministratorsService {
     );
 
     return { revisions, total: revisionHashes.total.toNumber() };
+  }
+
+  async allowAdministratorsOnly(did: string): Promise<void> {
+    try {
+      await (
+        await this.contractService.getContract()
+      ).getAdministrator(did.toLowerCase());
+    } catch (e) {
+      throw new ForbiddenError(ForbiddenError.defaultTitle, {
+        detail: "JWT subject is not an administrator.",
+      });
+    }
   }
 }

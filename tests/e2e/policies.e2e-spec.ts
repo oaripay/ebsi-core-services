@@ -24,8 +24,9 @@ import {
   PolicyResponseObject,
 } from "../../src/modules/policies/policies.interface";
 import { PaginatedList } from "../../src/shared/interfaces";
-import { prefixWith0x } from "../../src/shared/utils";
+import { generateMultihash, prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
+import { requestSiopJwt } from "../utils/siopJwt";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -51,6 +52,7 @@ describe("Policies (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
+  let testUserAccessToken: string;
 
   const createPolicy = (
     n: string | number
@@ -89,13 +91,24 @@ describe("Policies (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
-      ConfigService
-    );
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("adminTestPrivateKey"))
+      prefixWith0x(configService.get("testAdminPrivateKey"))
     );
+
+    // Generate a valid Client JWT (SIOP) for the tests
+    const didRegistry = `${configService.get<string>(
+      "didRegistryApiUrl"
+    )}/identifiers`;
+
+    testUserAccessToken = await requestSiopJwt({
+      didRegistry,
+      clientDid: configService.get<string>("testAdminDid"),
+      clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+    });
   });
 
   describe("/policies", () => {
@@ -142,9 +155,8 @@ describe("Policies (e2e)", () => {
       ).get("/policies");
 
       expect(policiesResponse.status).toBe(200);
-      const { policyId }: PolicyLink = policiesResponse.body.items[
-        policiesResponse.body.items.length - 1
-      ];
+      const { policyId }: PolicyLink =
+        policiesResponse.body.items[policiesResponse.body.items.length - 1];
 
       const response: SupertestPolicyResponse = await request(server).get(
         `/policies/${encodeURIComponent(policyId)}`
@@ -179,9 +191,8 @@ describe("Policies (e2e)", () => {
       ).get("/policies");
 
       expect(policiesResponse.status).toBe(200);
-      const { policyId }: PolicyLink = policiesResponse.body.items[
-        policiesResponse.body.items.length - 1
-      ];
+      const { policyId }: PolicyLink =
+        policiesResponse.body.items[policiesResponse.body.items.length - 1];
 
       const response: SupertestRevisionsResponse = await request(server).get(
         `/policies/${encodeURIComponent(policyId)}/revisions`
@@ -258,6 +269,7 @@ describe("Policies (e2e)", () => {
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
+          .auth(testUserAccessToken, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method,
@@ -295,7 +307,7 @@ describe("Policies (e2e)", () => {
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should insert a new policy", async () => {
-        expect.assertions(3);
+        expect.assertions(5);
 
         const { policyId } = newPolicy;
         let policyData: string;
@@ -315,6 +327,7 @@ describe("Policies (e2e)", () => {
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
+          .auth(testUserAccessToken, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method,
@@ -338,6 +351,7 @@ describe("Policies (e2e)", () => {
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
+          .auth(testUserAccessToken, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method: "signedTransaction",
@@ -366,7 +380,7 @@ describe("Policies (e2e)", () => {
         expect(receipt.status).toBe("0x1");
 
         // get policy
-        /* const policyResponse = await request(server).get(
+        const policyResponse = await request(server).get(
           `/policies/${policyId}`
         );
 
@@ -380,7 +394,7 @@ describe("Policies (e2e)", () => {
           policy: bufferPolicyData.toString("base64"),
           hash: expectedHash,
         });
-        expect(policyResponse.status).toBe(200); */
+        expect(policyResponse.status).toBe(200);
       });
     }
   );

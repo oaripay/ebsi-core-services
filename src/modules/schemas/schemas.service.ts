@@ -14,17 +14,12 @@ const MAX_CONCURRENT_PROMISES = 10;
 export class SchemasService {
   private readonly logger = new Logger(SchemasService.name);
 
-  private schemaScRegistryContract: SchemaSCRegistry;
-
-  constructor(private contractService: ContractService) {
-    this.schemaScRegistryContract = this.contractService.getContract();
-  }
+  constructor(private contractService: ContractService) {}
 
   async getSchemas(page: number, pageSize: number): Promise<ItemsList> {
-    const result = await this.schemaScRegistryContract.getSchemaIds(
-      page,
-      pageSize
-    );
+    const result = await (
+      await this.contractService.getContract()
+    ).getSchemaIds(page, pageSize);
 
     return {
       items: result.items,
@@ -36,9 +31,9 @@ export class SchemasService {
     let schema: AsyncReturnType<SchemaSCRegistry["getLatestSchemaRevision"]>;
 
     try {
-      schema = await this.schemaScRegistryContract.getLatestSchemaRevision(
-        schemaId
-      );
+      schema = await (
+        await this.contractService.getContract()
+      ).getLatestSchemaRevision(schemaId);
     } catch (error) {
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -60,7 +55,9 @@ export class SchemasService {
   ): Promise<ItemsList> {
     // Make sure the schema exists
     try {
-      await this.schemaScRegistryContract.getLatestSchemaRevision(schemaId);
+      await (
+        await this.contractService.getContract()
+      ).getLatestSchemaRevision(schemaId);
     } catch (error) {
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -73,33 +70,30 @@ export class SchemasService {
       const allRevisionsIds: string[] = [];
 
       // Get the first MAX_RESULTS_PER_PAGE revisions IDs
-      const revisions = await this.schemaScRegistryContract.getSchemaRevisionIds(
-        schemaId,
-        1,
-        MAX_RESULTS_PER_PAGE
-      );
+      const revisions = await (
+        await this.contractService.getContract()
+      ).getSchemaRevisionIds(schemaId, 1, MAX_RESULTS_PER_PAGE);
       allRevisionsIds.push(...revisions.items);
       const total = revisions.total.toNumber();
 
       const limit = pLimit(MAX_CONCURRENT_PROMISES); // Limit concurrent promises
 
       if (total > MAX_RESULTS_PER_PAGE) {
+        const contract = await this.contractService.getContract();
         // We need to fetch the next pages
         allRevisionsIds.push(
           ...(
             await Promise.all(
               // From page 2 to page "Math.ceil(total / MAX_RESULTS_PER_PAGE)"
-              range(
-                2,
-                Math.ceil(total / MAX_RESULTS_PER_PAGE)
-              ).map((pageIndex) =>
-                limit(() =>
-                  this.schemaScRegistryContract.getSchemaRevisionIds(
-                    schemaId,
-                    pageIndex,
-                    MAX_RESULTS_PER_PAGE
+              range(2, Math.ceil(total / MAX_RESULTS_PER_PAGE)).map(
+                (pageIndex) =>
+                  limit(() =>
+                    contract.getSchemaRevisionIds(
+                      schemaId,
+                      pageIndex,
+                      MAX_RESULTS_PER_PAGE
+                    )
                   )
-                )
               )
             )
           ).reduce((arr, row) => arr.concat(row.items), [] as string[])
@@ -107,13 +101,10 @@ export class SchemasService {
       }
 
       // For each revision ID, get latest metadata
+      const contract = await this.contractService.getContract();
       const allMetadata = await Promise.all(
         allRevisionsIds.map((id) =>
-          limit(() =>
-            this.schemaScRegistryContract.getLatestSchemaRevisionMetadataByRevisionId(
-              id
-            )
-          )
+          limit(() => contract.getLatestSchemaRevisionMetadataByRevisionId(id))
         )
       );
 
@@ -155,11 +146,9 @@ export class SchemasService {
     }
 
     // Get the revisions
-    const revisions = await this.schemaScRegistryContract.getSchemaRevisionIds(
-      schemaId,
-      page,
-      pageSize
-    );
+    const revisions = await (
+      await this.contractService.getContract()
+    ).getSchemaRevisionIds(schemaId, page, pageSize);
 
     return {
       items: revisions.items,
@@ -173,7 +162,9 @@ export class SchemasService {
   ): Promise<unknown> {
     // Make sure the schema exists
     try {
-      await this.schemaScRegistryContract.getLatestSchemaRevision(schemaId);
+      await (
+        await this.contractService.getContract()
+      ).getLatestSchemaRevision(schemaId);
     } catch (error) {
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -183,9 +174,9 @@ export class SchemasService {
     // Get revision
     let revision: AsyncReturnType<SchemaSCRegistry["getSchemaRevision"]>;
     try {
-      revision = await this.schemaScRegistryContract.getSchemaRevision(
-        schemaRevisionId
-      );
+      revision = await (
+        await this.contractService.getContract()
+      ).getSchemaRevision(schemaRevisionId);
     } catch (error) {
       throw new NotFoundError("Revision Not Found", {
         detail: `Revision ${schemaRevisionId} not found`,
@@ -207,7 +198,9 @@ export class SchemasService {
   ): Promise<ItemsList> {
     // Make sure the schema exists
     try {
-      await this.schemaScRegistryContract.getLatestSchemaRevision(schemaId);
+      await (
+        await this.contractService.getContract()
+      ).getLatestSchemaRevision(schemaId);
     } catch (error) {
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -216,7 +209,9 @@ export class SchemasService {
 
     // Make sure the revision exists
     try {
-      await this.schemaScRegistryContract.getSchemaRevision(schemaRevisionId);
+      await (
+        await this.contractService.getContract()
+      ).getSchemaRevision(schemaRevisionId);
     } catch (error) {
       throw new NotFoundError("Revision Not Found", {
         detail: `Revision ${schemaRevisionId} not found`,
@@ -224,11 +219,9 @@ export class SchemasService {
     }
 
     // Get metadata
-    const metadata = await this.schemaScRegistryContract.getSchemaRevisionMetadataIds(
-      schemaRevisionId,
-      page,
-      pageSize
-    );
+    const metadata = await (
+      await this.contractService.getContract()
+    ).getSchemaRevisionMetadataIds(schemaRevisionId, page, pageSize);
 
     return {
       items: metadata.items,
@@ -243,7 +236,9 @@ export class SchemasService {
   ): Promise<unknown> {
     // Make sure the schema exists
     try {
-      await this.schemaScRegistryContract.getLatestSchemaRevision(schemaId);
+      await (
+        await this.contractService.getContract()
+      ).getLatestSchemaRevision(schemaId);
     } catch (error) {
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -252,7 +247,9 @@ export class SchemasService {
 
     // Make sure the revision exists
     try {
-      await this.schemaScRegistryContract.getSchemaRevision(schemaRevisionId);
+      await (
+        await this.contractService.getContract()
+      ).getSchemaRevision(schemaRevisionId);
     } catch (error) {
       throw new NotFoundError("Revision Not Found", {
         detail: `Revision ${schemaRevisionId} not found`,
@@ -264,9 +261,9 @@ export class SchemasService {
       SchemaSCRegistry["getSchemaRevisionMetadataByMetadataId"]
     >;
     try {
-      metadata = await this.schemaScRegistryContract.getSchemaRevisionMetadataByMetadataId(
-        metadataId
-      );
+      metadata = await (
+        await this.contractService.getContract()
+      ).getSchemaRevisionMetadataByMetadataId(metadataId);
     } catch (error) {
       throw new NotFoundError("Metadata Not Found", {
         detail: `Metadata ${metadataId} not found`,

@@ -1,5 +1,4 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { ContractService } from "../../shared/services/contract.service";
 import { SchemaSCRegistry } from "../../contracts/trusted-schemas";
@@ -11,20 +10,16 @@ import { PolicyRevisions } from "./policies.interface";
 export default class PoliciesService {
   private readonly logger = new Logger(PoliciesService.name);
 
-  private schemasContract: SchemaSCRegistry;
-
-  constructor(
-    private contractService: ContractService,
-    private configService: ConfigService
-  ) {
-    this.schemasContract = this.contractService.getContract();
-  }
+  constructor(private contractService: ContractService) {}
 
   async getPolicies(
     page: number,
     pageSize: number
   ): ReturnType<SchemaSCRegistry["getPolicies"]> {
-    return this.schemasContract.getPolicies(page, pageSize);
+    return (await this.contractService.getContract()).getPolicies(
+      page,
+      pageSize
+    );
   }
 
   async getPolicy(policyId: string): Promise<[string, string]> {
@@ -32,7 +27,9 @@ export default class PoliciesService {
 
     try {
       // Preserve case! Don't lowercase the policyId
-      policy = await this.schemasContract.getPolicy(policyId);
+      policy = await (
+        await this.contractService.getContract()
+      ).getPolicy(policyId);
     } catch (e) {
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
@@ -58,19 +55,18 @@ export default class PoliciesService {
     let revisions: AsyncReturnType<SchemaSCRegistry["getPolicyRevisions"]>;
 
     try {
-      revisions = await this.schemasContract.getPolicyRevisions(
-        policyId,
-        page,
-        pageSize
-      );
+      revisions = await (
+        await this.contractService.getContract()
+      ).getPolicyRevisions(policyId, page, pageSize);
     } catch (e) {
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
       });
     }
 
+    const contract = await this.contractService.getContract();
     const getPoliciesByRevisions = revisions.items.map((hash) =>
-      this.schemasContract.getPolicyByHash(hash)
+      contract.getPolicyByHash(hash)
     );
 
     let policies: AsyncReturnType<SchemaSCRegistry["getPolicyByHash"]>[];
