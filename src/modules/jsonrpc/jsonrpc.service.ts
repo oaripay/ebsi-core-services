@@ -1,11 +1,9 @@
 import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { Client, QueryOptions, types } from "cassandra-driver";
 import { RequestCassandraCallDto } from "./dto";
 import { InvalidRequestJsonRpcError } from "./errors";
 import { validateClass, isReadOperation } from "./jsonrpc.utils";
 import { CassandraService } from "../cassandra/cassandra.service";
-import { ApiConfig } from "../../config/configuration";
 import { CassandraConsistency } from "../../config/cassandra.config";
 
 @Injectable()
@@ -16,10 +14,7 @@ export class JsonRpcService implements OnApplicationBootstrap {
 
   private consistency: CassandraConsistency;
 
-  constructor(
-    private configService: ConfigService<ApiConfig>,
-    private cassandraService: CassandraService
-  ) {}
+  constructor(private cassandraService: CassandraService) {}
 
   onApplicationBootstrap(): void {
     this.cassandraClient = this.cassandraService.getClient();

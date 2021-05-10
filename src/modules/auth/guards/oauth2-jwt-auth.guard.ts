@@ -2,21 +2,19 @@ import { ExecutionContext, Injectable } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { Observable } from "rxjs";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
-import { UserInfo } from "../auth.interface";
+import { AppInfo } from "../auth.interface";
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard("jwt") {
+export class OAuth2JwtAuthGuard extends AuthGuard("oauth2-jwt") {
   canActivate(
     context: ExecutionContext
   ): boolean | Promise<boolean> | Observable<boolean> {
-    // Add your custom authentication logic here
-    // for example, call super.logIn(request) to establish a session.
     return super.canActivate(context);
   }
 
-  handleRequest<UserInfo>(err: Error, user: UserInfo, info: unknown): UserInfo {
+  handleRequest<AppInfo>(err: Error, appInfo: AppInfo, info: unknown): AppInfo {
     // You can throw an exception based on either "info" or "err" arguments
-    if (err || info || !user) {
+    if (err || info || !appInfo) {
       throw (
         err ||
         new UnauthorizedError(UnauthorizedError.defaultTitle, {
@@ -25,8 +23,8 @@ export class JwtAuthGuard extends AuthGuard("jwt") {
       );
     }
 
-    return user;
+    return appInfo;
   }
 }
 
-export default JwtAuthGuard;
+export default OAuth2JwtAuthGuard;

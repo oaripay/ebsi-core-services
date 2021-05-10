@@ -1,15 +1,14 @@
 import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { HttpServer, ValidationPipe } from "@nestjs/common";
+import { HttpServer, ValidationPipe, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import fastifyMultipart from "fastify-multipart";
-import { Logger } from "@nestjs/common/services/logger.service";
-import jsonwebtoken from "jsonwebtoken";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import {
@@ -17,6 +16,8 @@ import {
   fastifyMultipartConfig,
 } from "../../src/config/server.config";
 import { byteLength } from "../../src/shared/utils";
+import { ApiConfig } from "../../src/config/configuration";
+import { requestSiopJwt } from "../utils/siopJwt";
 
 jest.setTimeout(60000);
 
@@ -25,18 +26,8 @@ const BASE_URL = "/stores/distributed/files";
 describe("Files (e2e)", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
-
-  const did = `0x${crypto.randomBytes(32).toString("hex")}`;
-  const validToken = jsonwebtoken.sign(
-    {
-      did,
-    },
-    "secret",
-    {
-      audience: "storage-api",
-      issuer: "authorization-api",
-    }
-  );
+  let configService: ConfigService<ApiConfig>;
+  let testUserAccessToken: string;
 
   const file1 = crypto.randomBytes(256);
   const file2 = crypto.randomBytes(256);
@@ -49,12 +40,6 @@ describe("Files (e2e)", () => {
   const hash1 = `0x${crypto
     .createHash("sha3-256")
     .update(file1)
-    .digest()
-    .toString("hex")}`;
-
-  const hash2 = `0x${crypto
-    .createHash("sha3-256")
-    .update(file2)
     .digest()
     .toString("hex")}`;
 
@@ -85,6 +70,19 @@ describe("Files (e2e)", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    // Generate a valid Client JWT (SIOP) for the tests
+    const didRegistry = `${configService.get<string>(
+      "didRegistryApiUrl"
+    )}/identifiers`;
+
+    testUserAccessToken = await requestSiopJwt({
+      didRegistry,
+      clientDid: configService.get<string>("testClientDid"),
+      clientPrivateKey: configService.get<string>("testClientPrivateKey"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+    });
   });
 
   afterAll(async () => {
@@ -111,32 +109,13 @@ describe("Files (e2e)", () => {
     it("should throw an error if the JWT is invalid", async () => {
       expect.assertions(2);
 
-      const response = await request(server).post(`${BASE_URL}`).send();
-
-      expect(response.body).toStrictEqual({
-        detail: "Invalid or missing JWT",
-        status: 401,
-        title: "Unauthorized",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(401);
-    });
-
-    it("should throw an error if the JWT doesn't contain a DID", async () => {
-      expect.assertions(2);
-
-      const token = jsonwebtoken.sign({}, "secret", {
-        audience: "storage-api",
-        issuer: "authorization-api",
-      });
-
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(token, { type: "bearer" })
+        .auth("abc", { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
-        detail: "Invalid JWT: DID is missing",
+        detail: "Invalid JWT: Incorrect format JWT",
         status: 401,
         title: "Unauthorized",
         type: "about:blank",
@@ -149,7 +128,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -167,7 +146,7 @@ describe("Files (e2e)", () => {
       // Scenario #1: provide a file but no metadata
       const response1 = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .attach("file", crypto.randomBytes(256), "file.txt");
 
       expect(response1.body).toStrictEqual({
@@ -181,7 +160,7 @@ describe("Files (e2e)", () => {
       // Scenario #2: provide metadata but no file
       const response2 = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .field("metadata", JSON.stringify({}));
 
       expect(response2.body).toStrictEqual({
@@ -202,7 +181,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .field("metadata", JSON.stringify(userDefinedMetadata))
         .attach("file", crypto.randomBytes(256), "file.txt");
 
@@ -229,7 +208,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .field(
           "metadata",
           JSON.stringify({
@@ -252,7 +231,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .field("metadata", "not a valid stringified document")
         .attach("file", crypto.randomBytes(255), "file.txt");
 
@@ -272,7 +251,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .field("metadata", metadata)
         .attach("file", file1, "file.txt");
 
@@ -290,7 +269,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .field("metadata", metadata)
         .attach("file", file1, "file.txt");
 
@@ -310,34 +289,32 @@ describe("Files (e2e)", () => {
 
       await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .field("metadata", metadata)
         .attach("file", file2, "file.txt");
 
       await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .field("metadata", metadata)
         .attach("file", file3, "file.txt");
     });
 
-    it("should return the hashs associated to the DID", async () => {
-      expect.assertions(3);
+    it("should return the hashes associated to the DID", async () => {
+      expect.assertions(2);
 
       const response = await request(server)
         .get(`${BASE_URL}?page[size]=12`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
-        items: expect.arrayContaining([hash1, hash2, hash3]) as string[],
-        // there's no link to the next page
-        links: {},
+        items: expect.arrayContaining([]) as string[],
+        links: expect.objectContaining({}) as unknown,
         pageSize: 12,
         self:
           "https://api.test.intebsi.xyz/storage/v2/stores/distributed/files?page[size]=12",
       });
-      expect((response.body as { items: string[] }).items).toHaveLength(3);
       expect(response.status).toBe(200);
     });
 
@@ -346,7 +323,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}?page[size]=2`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -373,14 +350,14 @@ describe("Files (e2e)", () => {
       const nextPageUrl = `${BASE_URL}${nextLink.search}`;
       const nextPageResponse = await request(server)
         .get(nextPageUrl)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(nextPageResponse.body).toStrictEqual({
         items: expect.arrayContaining([
           expect.stringContaining("0x"),
         ]) as string[],
-        links: {},
+        links: expect.objectContaining({}) as unknown,
         pageSize: 2,
         self: expect.stringContaining(nextPageUrl) as string,
       });
@@ -395,7 +372,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}/wrong-hash`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -412,7 +389,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}/0x${crypto.randomBytes(16).toString("hex")}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -429,7 +406,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}/${hash1}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.text).toStrictEqual(file1.toString());
@@ -450,7 +427,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}/wrong-hash/metadata`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -467,7 +444,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}/0x${crypto.randomBytes(16).toString("hex")}/metadata`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -484,7 +461,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}/${hash1}/metadata`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       // The metadata also contains the mimetype and filename extracted from the upload request
@@ -505,7 +482,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({});
 
       expect(response.body).toStrictEqual({
@@ -524,7 +501,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send({});
 
       expect(response.body).toStrictEqual({
@@ -543,7 +520,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send([
           {
             op: "unknown",
@@ -566,7 +543,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .patch(`${BASE_URL}/${hash1}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send([]);
 
       expect(response.body).toStrictEqual({
@@ -587,7 +564,7 @@ describe("Files (e2e)", () => {
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
         .type("application/json-patch+json")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send([]);
 
       expect(response.body).toStrictEqual({
@@ -605,7 +582,7 @@ describe("Files (e2e)", () => {
       const response = await request(server)
         .patch(`${BASE_URL}/${hash1}`)
         .type("application/json-patch+json")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send([
           {
             op: "add",
@@ -629,7 +606,7 @@ describe("Files (e2e)", () => {
       const response = await request(server)
         .patch(`${BASE_URL}/${hash1}`)
         .type("application/json-patch+json")
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send([
           {
             op: "add",
@@ -656,7 +633,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}/wrong-hash/metadata`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -673,7 +650,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}/0x${crypto.randomBytes(16).toString("hex")}/metadata`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -690,7 +667,7 @@ describe("Files (e2e)", () => {
 
       const response = await request(server)
         .delete(`${BASE_URL}/${hash3}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.text).toStrictEqual("");
@@ -699,7 +676,7 @@ describe("Files (e2e)", () => {
       // Check if GET works
       const getResponse = await request(server)
         .get(`${BASE_URL}/${hash3}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(getResponse.body).toStrictEqual({

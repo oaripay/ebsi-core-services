@@ -1,20 +1,29 @@
 import request from "supertest";
 import crypto from "crypto";
-import { v4 as uuidv4 } from "uuid";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { Agent } from "@cef-ebsi/oauth2-auth";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { AppModule } from "../../src/app.module";
 import { fastifyAdapterConfig } from "../../src/config/server.config";
+import { ApiConfig } from "../../src/config/configuration";
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
+  let configService: ConfigService<ApiConfig>;
+
+  const tarEndoint =
+    "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps";
+  const authorisationApi = "https://api.test.intebsi.xyz/authorisation/v1";
+
+  let accessToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -33,6 +42,34 @@ describe("JsonRpc Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    // Generate a valid JWT for the tests
+    const agentAppName = configService.get<string>("testAppName");
+    type TarItem = {
+      id: string;
+      name: string;
+      href: string;
+    };
+    const tarResponse = await request(tarEndoint).get(`?name=${agentAppName}`);
+
+    const kid = (tarResponse.body as {
+      items: TarItem[];
+    }).items[0].href;
+    const privKey = configService.get<string>("testAppPrivateKey");
+
+    const nonce = "123";
+    const agent = new Agent(privKey, { issuer: agentAppName, kid });
+    const requestComponent = await agent.createRequestPayload("storage-api", {
+      nonce,
+    });
+
+    // Send request payload to Authorisation API
+    const res = await request(authorisationApi)
+      .post("/oauth2-sessions")
+      .send(requestComponent);
+
+    accessToken = await agent.verifyAuthenticationResponse(res.body, nonce);
   });
 
   afterAll(async () => {
@@ -40,11 +77,55 @@ describe("JsonRpc Module", () => {
   });
 
   // Generic tests
+  it("should reject a POST without JWT", async () => {
+    expect.assertions(3);
+
+    const response = await request(server)
+      .post("/stores/distributed/jsonrpc")
+      .send();
+
+    expect(response.body).toStrictEqual({
+      detail: "Invalid or missing JWT",
+      status: 401,
+      title: "Unauthorized",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(401);
+    expect(
+      (response.headers as { "content-type": string })["content-type"]
+    ).toStrictEqual(expect.stringContaining("application/problem+json"));
+  });
+
+  it("should reject a POST with an invalid token", async () => {
+    expect.assertions(3);
+
+    const response = await request(server)
+      .post("/stores/distributed/jsonrpc")
+      .auth(
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+        { type: "bearer" }
+      )
+      .send();
+
+    expect(response.body).toStrictEqual({
+      detail:
+        "Invalid JWT: The token algorithm must be 'ES256K'. Received 'HS256'",
+      status: 401,
+      title: "Unauthorized",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(401);
+    expect(
+      (response.headers as { "content-type": string })["content-type"]
+    ).toStrictEqual(expect.stringContaining("application/problem+json"));
+  });
+
   it("should throw Bad Request for a bad JSON-RPC call", async () => {
     expect.assertions(2);
 
     const response = await request(server)
       .post("/stores/distributed/jsonrpc")
+      .auth(accessToken, { type: "bearer" })
       .send();
 
     expect(response.body).toStrictEqual({
@@ -62,6 +143,7 @@ describe("JsonRpc Module", () => {
 
     const response = await request(server)
       .post("/stores/distributed/jsonrpc")
+      .auth(accessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "cassandra_call",
@@ -82,9 +164,17 @@ describe("JsonRpc Module", () => {
     expect(response.status).toBe(400);
   });
 
-  const notificationId: string = uuidv4();
   const attributeHash = `0x${crypto.randomBytes(32).toString("hex")}`;
   const didUser = `did:ebsi:0x${crypto.randomBytes(20).toString("hex")}`;
+  const notificationPayload = {
+    schemaId: "...",
+    payload: crypto.randomBytes(32).toString("hex"),
+  };
+  const notificationMessage = JSON.stringify(notificationPayload);
+  const notificationId = `0x${crypto
+    .createHash("sha3-256")
+    .update(notificationMessage)
+    .digest("hex")}`;
 
   const queries = [
     [
@@ -92,7 +182,7 @@ describe("JsonRpc Module", () => {
       notificationId,
       `did:ebsi:0x${crypto.randomBytes(20).toString("hex")}`,
       didUser,
-      '{"schemaId":"...", "payload": "...", ...}',
+      notificationMessage,
       86400,
     ],
     [
@@ -127,6 +217,7 @@ describe("JsonRpc Module", () => {
       expect.assertions(2);
       const response = await request(server)
         .post("/stores/distributed/jsonrpc")
+        .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "cassandra_call",

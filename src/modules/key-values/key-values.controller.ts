@@ -21,8 +21,8 @@ import {
 } from "./dto";
 import { formatKeys } from "./key-values.formatter";
 import { ApiConfig } from "../../config/configuration";
-import { JwtAuthGuard } from "../auth/guards";
-import { User, UserInfo } from "../auth/decorators";
+import { SiopJwtAuthGuard } from "../auth/guards";
+import { User, ClientInfo } from "../auth/decorators";
 import { PaginatedList } from "../../shared/interfaces";
 
 @Controller("/stores/distributed/key-values")
@@ -33,11 +33,11 @@ export class KeyValuesController {
   ) {}
 
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   @Get()
   async getKeys(
     @Query() query: GetKeyValuesQuery,
-    @User() user: UserInfo
+    @User() user: ClientInfo
   ): Promise<PaginatedList<string>> {
     const { did } = user;
     const pageAfter = query["page[after]"];
@@ -59,11 +59,11 @@ export class KeyValuesController {
   }
 
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   @Get("/:key")
   async getKeyValue(
     @Param() params: GetKeyValueParams,
-    @User() user: UserInfo
+    @User() user: ClientInfo
   ): Promise<string> {
     const { key } = params;
     const { did } = user;
@@ -71,12 +71,12 @@ export class KeyValuesController {
     return this.keyValuesService.getKeyValue({ did, key });
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   @Put("/:key")
   async putKeyValue(
     @Param() params: PutKeyValueParams,
     @Body() value: string,
-    @User() user: UserInfo,
+    @User() user: ClientInfo,
     @Response() res: FastifyReply
   ): Promise<FastifyReply> {
     const { key } = params;
@@ -95,11 +95,11 @@ export class KeyValuesController {
   }
 
   @HttpCode(204)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   @Delete("/:key")
   async deleteKeyValue(
     @Param() params: DeleteKeyValueParams,
-    @User() user: UserInfo
+    @User() user: ClientInfo
   ): Promise<void> {
     const { key } = params;
     const { did } = user;

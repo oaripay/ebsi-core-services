@@ -1,17 +1,18 @@
 import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { HttpServer, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { HttpServer, ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
-import { Logger } from "@nestjs/common/services/logger.service";
-import jsonwebtoken from "jsonwebtoken";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { fastifyAdapterConfig } from "../../src/config/server.config";
+import { ApiConfig } from "../../src/config/configuration";
+import { requestSiopJwt } from "../utils/siopJwt";
 
 jest.setTimeout(60000);
 
@@ -20,24 +21,14 @@ const BASE_URL = "/stores/distributed/key-values";
 describe("Key-Values (e2e)", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
+  let configService: ConfigService<ApiConfig>;
+  let testUserAccessToken: string;
 
   const key = `key-${crypto.randomBytes(16).toString("hex")}`;
   const key2 = `key-${crypto.randomBytes(16).toString("hex")}`;
   const key3 = `key-${crypto.randomBytes(16).toString("hex")}`;
   const value = `value-${crypto.randomBytes(16).toString("hex")}`;
   const value2 = `value-${crypto.randomBytes(16).toString("hex")}`;
-  const did = `0x${crypto.randomBytes(32).toString("hex")}`;
-
-  const validToken = jsonwebtoken.sign(
-    {
-      did,
-    },
-    "secret",
-    {
-      audience: "storage-api",
-      issuer: "authorization-api",
-    }
-  );
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -50,6 +41,8 @@ describe("Key-Values (e2e)", () => {
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe());
 
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
     Logger.overrideLogger(false);
 
     app.useGlobalFilters(new AllExceptionsFilter());
@@ -57,6 +50,18 @@ describe("Key-Values (e2e)", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    // Generate a valid Client JWT (SIOP) for the tests
+    const didRegistry = `${configService.get<string>(
+      "didRegistryApiUrl"
+    )}/identifiers`;
+
+    testUserAccessToken = await requestSiopJwt({
+      didRegistry,
+      clientDid: configService.get<string>("testClientDid"),
+      clientPrivateKey: configService.get<string>("testClientPrivateKey"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+    });
   });
 
   afterAll(async () => {
@@ -98,29 +103,6 @@ describe("Key-Values (e2e)", () => {
       expect(response.status).toBe(401);
     });
 
-    it("should throw an error if the JWT doesn't contain a DID", async () => {
-      expect.assertions(2);
-
-      const token = jsonwebtoken.sign({}, "secret", {
-        audience: "storage-api",
-        issuer: "authorization-api",
-      });
-
-      const response = await request(server)
-        .put(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
-        .type("text/plain")
-        .send(value);
-
-      expect(response.body).toStrictEqual({
-        detail: "Invalid JWT: DID is missing",
-        status: 401,
-        title: "Unauthorized",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(401);
-    });
-
     it("should throw an error if the payload is not a string", async () => {
       expect.assertions(2);
 
@@ -128,7 +110,7 @@ describe("Key-Values (e2e)", () => {
 
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .type("json")
         .send(badValue);
 
@@ -146,7 +128,7 @@ describe("Key-Values (e2e)", () => {
 
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -164,7 +146,7 @@ describe("Key-Values (e2e)", () => {
 
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -183,13 +165,13 @@ describe("Key-Values (e2e)", () => {
       // Insert 2 more key-values for the next tests
       await request(server)
         .put(`${BASE_URL}/${key2}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .type("text/plain")
         .send(value);
 
       await request(server)
         .put(`${BASE_URL}/${key3}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .type("text/plain")
         .send(value);
     });
@@ -199,7 +181,7 @@ describe("Key-Values (e2e)", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}?page[size]=2`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -224,7 +206,7 @@ describe("Key-Values (e2e)", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}?page[size]=2`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       const nextLink = new URL(
@@ -235,7 +217,7 @@ describe("Key-Values (e2e)", () => {
       const nextPageUrl = `${BASE_URL}${nextLink.search}`;
       const nextPageResponse = await request(server)
         .get(nextPageUrl)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(nextPageResponse.body).toStrictEqual({
@@ -256,7 +238,7 @@ describe("Key-Values (e2e)", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}/wrong-key`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -273,7 +255,7 @@ describe("Key-Values (e2e)", () => {
 
       const response = await request(server)
         .get(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.text).toStrictEqual(value2);
@@ -287,7 +269,7 @@ describe("Key-Values (e2e)", () => {
 
       const response = await request(server)
         .delete(`${BASE_URL}/wrong-key`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -304,7 +286,7 @@ describe("Key-Values (e2e)", () => {
 
       const response = await request(server)
         .delete(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(response.text).toStrictEqual("");
@@ -313,7 +295,7 @@ describe("Key-Values (e2e)", () => {
       // Check if GET works
       const getResponse = await request(server)
         .get(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
       expect(getResponse.body).toStrictEqual({

@@ -1,8 +1,9 @@
-import { Controller, Body, Post, HttpCode } from "@nestjs/common";
+import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
 import { JsonRpcService } from "./jsonrpc.service";
 import { InvalidRequestJsonRpcError } from "./errors";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import { JsonRpcDto, RequestCassandraCallDto } from "./dto";
+import { OAuth2JwtAuthGuard } from "../auth/guards";
 
 function jsonRpcResponse(
   result: unknown,
@@ -16,6 +17,7 @@ export class JsonRpcController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
   @HttpCode(200)
+  @UseGuards(OAuth2JwtAuthGuard)
   @Post()
   async jsonRPC(@Body() body: JsonRpcDto): Promise<JsonRpcResponseObject> {
     const { method, id } = body;

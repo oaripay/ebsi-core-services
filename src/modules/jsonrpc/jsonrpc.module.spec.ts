@@ -1,15 +1,19 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import axios from "axios";
+import { Session } from "@cef-ebsi/oauth2-auth";
 import { Client, types } from "cassandra-driver";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { CassandraService } from "../cassandra/cassandra.service";
+import { ApiConfig } from "../../config/configuration";
 
 jest.mock("cassandra-driver");
 
@@ -18,8 +22,14 @@ describe("JsonRpc Module", () => {
   let server: HttpServer;
   let mockCassandra: jest.SpyInstance;
   let cassandraService: CassandraService;
+  let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
+    // Prevent leaking tests (they should not be able to call axios.get)
+    jest.spyOn(axios, "get").mockImplementation((url: string) => {
+      throw new Error(`Leaking unit test: trying to GET ${url}`);
+    });
+
     // Mock Cassandra
     mockCassandra = jest.spyOn(Client.prototype, "execute");
     mockCassandra.mockImplementation(() => {
@@ -48,6 +58,7 @@ describe("JsonRpc Module", () => {
     server = app.getHttpServer() as HttpServer;
 
     cassandraService = moduleFixture.get<CassandraService>(CassandraService);
+    configService = moduleFixture.get<ConfigService>(ConfigService);
   });
 
   afterAll(async () => {
@@ -55,11 +66,66 @@ describe("JsonRpc Module", () => {
   });
 
   // Generic tests
-  it("should throw Bad Request for a bad JSON-RPC call", async () => {
-    expect.assertions(2);
+  it("should reject a POST without JWT", async () => {
+    expect.assertions(3);
 
     const response = await request(server)
       .post("/stores/distributed/jsonrpc")
+      .send();
+
+    expect(response.body).toStrictEqual({
+      detail: "Invalid or missing JWT",
+      status: 401,
+      title: "Unauthorized",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(401);
+    expect(
+      (response.headers as { "content-type": string })["content-type"]
+    ).toStrictEqual(expect.stringContaining("application/problem+json"));
+  });
+
+  it("should reject a POST with an invalid token", async () => {
+    expect.assertions(4);
+
+    const verifyAccessTokenSpy = jest
+      .spyOn(Session.prototype, "verifyAccessToken")
+      .mockImplementation(async () =>
+        Promise.reject(new Error("error message"))
+      );
+
+    const response = await request(server)
+      .post("/stores/distributed/jsonrpc")
+      .auth("jwt", { type: "bearer" })
+      .send();
+
+    expect(response.body).toStrictEqual({
+      detail: "Invalid JWT: error message",
+      status: 401,
+      title: "Unauthorized",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(401);
+    expect(
+      (response.headers as { "content-type": string })["content-type"]
+    ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    expect(verifyAccessTokenSpy).toHaveBeenCalledWith(
+      "jwt",
+      configService.get("authorisationApiName")
+    );
+  });
+
+  it("should throw Bad Request for a bad JSON-RPC call", async () => {
+    expect.assertions(2);
+
+    // Mock access token verification
+    jest
+      .spyOn(Session.prototype, "verifyAccessToken")
+      .mockImplementation(async () => Promise.resolve({}));
+
+    const response = await request(server)
+      .post("/stores/distributed/jsonrpc")
+      .auth("jwt", { type: "bearer" })
       .send();
 
     expect(response.body).toStrictEqual({
@@ -75,8 +141,14 @@ describe("JsonRpc Module", () => {
   it("should throw an error when the parameters of callCassandra are invalid", async () => {
     expect.assertions(4);
 
+    // Mock access token verification
+    jest
+      .spyOn(Session.prototype, "verifyAccessToken")
+      .mockImplementation(async () => Promise.resolve({}));
+
     let response = await request(server)
       .post("/stores/distributed/jsonrpc")
+      .auth("jwt", { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "cassandra_call",
@@ -98,6 +170,7 @@ describe("JsonRpc Module", () => {
 
     response = await request(server)
       .post("/stores/distributed/jsonrpc")
+      .auth("jwt", { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "cassandra_call",
@@ -125,7 +198,7 @@ describe("JsonRpc Module", () => {
   describe.each([
     [
       "insert into notification_storage (id, sender, receiver, message) values (?, ?, ?, ?) using ttl ?",
-      "7d504817-e570-4939-8931-973500f25b34",
+      "0x1a04db115c5c5e429c8d45a297a2c4590bf60c97995332ccee1ff1f25a220c02",
       "did:ebsi:0x14ec91AC9FFa3499bC6a418fc0A5B5531D1a20E3",
       "did:ebsi:0xe08BbfED79c5D66b723086E9D28d70C0d12c9DB8",
       '{"schemaId":"...", "payload": "...", ...}',
@@ -137,7 +210,7 @@ describe("JsonRpc Module", () => {
     ],
     [
       "delete from notification_storage where id = ?",
-      "7d504817-e570-4939-8931-973500f25b34",
+      "0x1a04db115c5c5e429c8d45a297a2c4590bf60c97995332ccee1ff1f25a220c02",
     ],
     [
       "insert into attribute_storage (hash, did, visibility, content_type, data, data_label) values (?, ?, ?, ?, ?, ?)",
@@ -168,8 +241,15 @@ describe("JsonRpc Module", () => {
   ])("calling %j", (...args) => {
     it("should proxy a call to cassandra", async () => {
       expect.assertions(3);
+
+      // Mock access token verification
+      jest
+        .spyOn(Session.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({}));
+
       const response = await request(server)
         .post("/stores/distributed/jsonrpc")
+        .auth("jwt", { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "cassandra_call",

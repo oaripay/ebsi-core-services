@@ -1,4 +1,4 @@
-import { FastifyMultipartOptions } from "fastify-multipart";
+import { FastifyMultipartAttactFieldsToBodyOptions } from "fastify-multipart";
 
 // https://www.fastify.io/docs/latest/Server
 export const fastifyAdapterConfig = {
@@ -12,7 +12,7 @@ export const fastifyAdapterConfig = {
 };
 
 // https://github.com/fastify/fastify-multipart
-export const fastifyMultipartConfig: FastifyMultipartOptions = {
+export const fastifyMultipartConfig: FastifyMultipartAttactFieldsToBodyOptions = {
   limits: {
     fieldNameSize: 100, // Max field name size in bytes
     fieldSize: 6 * 1024 * 1024, // Max field value size in bytes

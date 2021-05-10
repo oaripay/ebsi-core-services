@@ -2,18 +2,21 @@ import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import jsonwebtoken from "jsonwebtoken";
+import axios from "axios";
+import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { mapping, Client } from "cassandra-driver";
 import { KeyValuesModule } from "./key-values.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { AppUsageModel, KeyValueModel } from "../cassandra/models";
 import { CassandraService } from "../cassandra/cassandra.service";
 import { byteLength } from "../../shared/utils";
+import { ApiConfig } from "../../config/configuration";
 
 const BASE_URL = "/stores/distributed/key-values";
 
@@ -23,6 +26,8 @@ describe("Key-Values Module", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
   let cassandraService: CassandraService;
+  let configService: ConfigService<ApiConfig>;
+
   const mockedKeyValueFind = jest.fn();
   const mockedKeyValueInsert = jest.fn();
   const mockedKeyValueUpdate = jest.fn();
@@ -34,16 +39,6 @@ describe("Key-Values Module", () => {
   const mockedCassandraClientExecute = jest.fn();
 
   const did = `0x${crypto.randomBytes(32).toString("hex")}`;
-  const validToken = jsonwebtoken.sign(
-    {
-      did,
-    },
-    "secret",
-    {
-      audience: "storage-api",
-      issuer: "authorization-api",
-    }
-  );
 
   beforeAll(async () => {
     jest
@@ -72,6 +67,11 @@ describe("Key-Values Module", () => {
       .spyOn(Client.prototype, "execute")
       .mockImplementation(mockedCassandraClientExecute);
 
+    // Prevent leaking tests (they should not be able to call axios.get)
+    jest.spyOn(axios, "get").mockImplementation((url: string) => {
+      throw new Error(`Leaking unit test: trying to GET ${url}`);
+    });
+
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [KeyValuesModule],
@@ -98,6 +98,7 @@ describe("Key-Values Module", () => {
     server = app.getHttpServer() as HttpServer;
 
     cassandraService = moduleFixture.get<CassandraService>(CassandraService);
+    configService = moduleFixture.get<ConfigService>(ConfigService);
   });
 
   afterEach(() => {
@@ -110,6 +111,85 @@ describe("Key-Values Module", () => {
   });
 
   describe(`GET ${BASE_URL}`, () => {
+    it("should reject a request without a JWT", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get(`${BASE_URL}`).send();
+
+      expect(response.body).toStrictEqual({
+        detail: "Invalid or missing JWT",
+        status: 401,
+        title: "Unauthorized",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should reject an invalid token", async () => {
+      expect.assertions(4);
+
+      const verifyAccessTokenSpy = jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () =>
+          Promise.reject(new Error("error message"))
+        );
+
+      const response = await request(server)
+        .get(`${BASE_URL}`)
+        .auth("jwt", { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        detail: "Invalid JWT: error message",
+        status: 401,
+        title: "Unauthorized",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+      expect(verifyAccessTokenSpy).toHaveBeenCalledWith(
+        "jwt",
+        configService.get("authorisationApiDid")
+      );
+    });
+
+    it("should reject a token without a DID", async () => {
+      expect.assertions(4);
+
+      const verifyAccessTokenSpy = jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () =>
+          Promise.resolve({
+            // Missing "did"
+          })
+        );
+
+      const response = await request(server)
+        .get(`${BASE_URL}`)
+        .auth("jwt", { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        detail: "Invalid JWT: missing sub",
+        status: 401,
+        title: "Unauthorized",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+      expect(verifyAccessTokenSpy).toHaveBeenCalledWith(
+        "jwt",
+        configService.get("authorisationApiDid")
+      );
+    });
+
     it("should return the keys associated to the DID", async () => {
       expect.assertions(3);
 
@@ -122,9 +202,14 @@ describe("Key-Values Module", () => {
         ],
       }));
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .get(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(mockedCassandraClientExecute).toHaveBeenCalledWith(
@@ -167,9 +252,14 @@ describe("Key-Values Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .get(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(mockedKeyValueFind).toHaveBeenCalledWith({ did, key });
@@ -197,9 +287,14 @@ describe("Key-Values Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .get(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(mockedKeyValueFind).toHaveBeenCalledWith({ did, key });
@@ -235,13 +330,20 @@ describe("Key-Values Module", () => {
       const key = "test";
       const value = "value";
 
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () =>
+          Promise.reject(new Error("error message"))
+        );
+
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
+        .auth("jwt", { type: "bearer" })
         .type("text/plain")
         .send(value);
 
       expect(response.body).toStrictEqual({
-        detail: "Invalid or missing JWT",
+        detail: "Invalid JWT: error message",
         status: 401,
         title: "Unauthorized",
         type: "about:blank",
@@ -255,19 +357,22 @@ describe("Key-Values Module", () => {
       const key = "test";
       const value = "value";
 
-      const token = jsonwebtoken.sign({}, "secret", {
-        audience: "storage-api",
-        issuer: "authorization-api",
-      });
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () =>
+          Promise.resolve({
+            // Missing "did"
+          })
+        );
 
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .type("text/plain")
         .send(value);
 
       expect(response.body).toStrictEqual({
-        detail: "Invalid JWT: DID is missing",
+        detail: "Invalid JWT: missing sub",
         status: 401,
         title: "Unauthorized",
         type: "about:blank",
@@ -281,20 +386,14 @@ describe("Key-Values Module", () => {
       const key = "test";
       const value = { value: 3 };
 
-      const token = jsonwebtoken.sign(
-        {
-          did: "0x123",
-        },
-        "secret",
-        {
-          audience: "storage-api",
-          issuer: "authorization-api",
-        }
-      );
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
 
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(token, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .type("json")
         .send(value);
 
@@ -313,9 +412,14 @@ describe("Key-Values Module", () => {
       const key = crypto.randomBytes(129).toString("hex"); // 129 * 2 = 258 > 256
       const value = "value";
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -337,9 +441,14 @@ describe("Key-Values Module", () => {
       const key = crypto.randomBytes(201).toString("hex"); // 201 * 2 = 402 > 400 that we've set in FastifyAdapter
       const value = "value";
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -364,9 +473,14 @@ describe("Key-Values Module", () => {
       const key = "key";
       const value = crypto.randomBytes(3 * 1024 * 1024).toString("hex"); // 6MiB > 5MiB
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -390,9 +504,14 @@ describe("Key-Values Module", () => {
       const key = "key";
       const value = crypto.randomBytes(6 * 1024 * 1024).toString("hex"); // 12MiB > 10MiB that we've set in FastifyAdapter
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -434,9 +553,14 @@ describe("Key-Values Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -482,9 +606,14 @@ describe("Key-Values Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -530,9 +659,14 @@ describe("Key-Values Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .put(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         // because superagent automatically serializes the value sent
         // e.g. "value" -> "\"value\"", when the content-type is json or form
         // we use "text/plain" to avoid serialization
@@ -567,9 +701,14 @@ describe("Key-Values Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .delete(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(mockedKeyValueFind).toHaveBeenCalledWith({ did, key });
@@ -609,9 +748,14 @@ describe("Key-Values Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .delete(`${BASE_URL}/${key}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(mockedKeyValueFind).toHaveBeenCalledWith({ did, key });

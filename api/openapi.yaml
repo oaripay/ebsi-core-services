@@ -12,7 +12,8 @@ info:
 
     * File Storage API: provides CRUD operations for files in the off-chain distributed storage.
 
-    * Key-Value Storage API: provides CRUD operations for Key-Value (with data value in JSON format) in the off-chain distributed storage.
+    * Key-Value Storage API: provides CRUD operations for Key-Value (with data value in JSON
+    format) in the off-chain distributed storage.
 
     It also has a special JSON-RPC endpoint that serves as a proxy between Core
     APIs and the distributed storage. Only the Storage API has direct access to
@@ -200,8 +201,8 @@ paths:
                   jsonrpc: "2.0"
                   method: cassandra_call
                   params:
-                    - insert into notification_storage (id, sender, receiver, message) values (?, ?, ?, ?) using ttl ?
-                    - "7d504817-e570-4939-8931-973500f25b34"
+                    - "insert into notification_storage (id, sender, receiver, message) values (?, ?, ?, ?) using ttl ?"
+                    - "0x1a04db115c5c5e429c8d45a297a2c4590bf60c97995332ccee1ff1f25a220c02"
                     - did:ebsi:0x14ec91AC9FFa3499bC6a418fc0A5B5531D1a20E3
                     - did:ebsi:0xe08BbfED79c5D66b723086E9D28d70C0d12c9DB8
                     - '{"schemaId":"...", "payload": "...", ...}'
@@ -221,7 +222,7 @@ paths:
                   method: cassandra_call
                   params:
                     - delete from notification_storage where id = ?
-                    - "7d504817-e570-4939-8931-973500f25b34"
+                    - "0x1a04db115c5c5e429c8d45a297a2c4590bf60c97995332ccee1ff1f25a220c02"
                   id: 1
               Insert Attribute:
                 value:
@@ -260,7 +261,8 @@ paths:
                   params:
                     - select * from attribute_storage where did = ? allow filtering
                     - did:ebsi:0xe08BbfED79c5D66b723086E9D28d70C0d12c9DB8
-                    - { fetchSize: 50, pageState: "abcdef" }
+                    - fetchSize: 50
+                      pageState: "abcdef"
                   id: 1
               Delete Attribute:
                 value:
@@ -284,7 +286,7 @@ paths:
                     id: 1
                     result:
                       rows:
-                        - id: "7d504817-e570-4939-8931-973500f25b34"
+                        - id: "0x1a04db115c5c5e429c8d45a297a2c4590bf60c97995332ccee1ff1f25a220c02"
                           sender: did:ebsi:0x14ec91AC9FFa3499bC6a418fc0A5B5531D1a20E3
                           receiver: did:ebsi:0xe08BbfED79c5D66b723086E9D28d70C0d12c9DB8
                           message: '{"schemaId":"...", "payload": "...", ...}'
@@ -1450,7 +1452,9 @@ tags:
   - name: Key-Value Storage
     description: Interact with Key-Value Storage (Only used by external apps)
   - name: Proxy
-    description: Storage API serving as proxy between the client and Cassandra (Internal use, not open to the public)
+    description: |
+      Storage API serving as proxy between the client and Cassandra (Internal use, not open to the
+      public)
 servers:
   - url: "http://localhost"
     description: Local Computer Environment

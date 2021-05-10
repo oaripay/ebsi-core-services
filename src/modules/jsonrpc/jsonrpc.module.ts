@@ -3,9 +3,10 @@ import { ApiConfigModule } from "../../config/configuration";
 import { JsonRpcController } from "./jsonrpc.controller";
 import { JsonRpcService } from "./jsonrpc.service";
 import { CassandraModule } from "../cassandra/cassandra.module";
+import { AuthModule } from "../auth/auth.module";
 
 @Module({
-  imports: [ApiConfigModule, CassandraModule],
+  imports: [ApiConfigModule, AuthModule, CassandraModule],
   controllers: [JsonRpcController],
   providers: [Logger, JsonRpcService],
 })

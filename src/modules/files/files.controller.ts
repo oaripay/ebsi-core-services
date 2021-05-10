@@ -21,8 +21,8 @@ import { FilesService } from "./files.service";
 import { FileMetadata, PostFileResponseObject } from "./files.interface";
 import { formatFiles } from "./files.formatter";
 import { ApiConfig } from "../../config/configuration";
-import { JwtAuthGuard } from "../auth/guards";
-import { User, UserInfo } from "../auth/decorators";
+import { SiopJwtAuthGuard } from "../auth/guards";
+import { User, ClientInfo } from "../auth/decorators";
 import {
   DeleteFileParams,
   GetFileParams,
@@ -43,11 +43,11 @@ export class FilesController {
   ) {}
 
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   @Get()
   async getKeys(
     @Query() query: GetFilesQuery,
-    @User() user: UserInfo
+    @User() user: ClientInfo
   ): Promise<PaginatedList<string>> {
     const { did } = user;
     const pageAfter = query["page[after]"];
@@ -68,11 +68,11 @@ export class FilesController {
     return formatFiles(hashes, pageAfter, pageState, pageSize, baseUrl);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   @Get("/:hash")
   async getFile(
     @Param() params: GetFileParams,
-    @User() user: UserInfo,
+    @User() user: ClientInfo,
     @Response() res: FastifyReply
   ): Promise<FastifyReply> {
     const { hash } = params;
@@ -95,11 +95,11 @@ export class FilesController {
   }
 
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   @Get("/:hash/metadata")
   async getFileMetadata(
     @Param() params: GetFileMetadataParams,
-    @User() user: UserInfo
+    @User() user: ClientInfo
   ): Promise<FileMetadata> {
     const { hash } = params;
     const { did } = user;
@@ -107,12 +107,12 @@ export class FilesController {
     return this.filesService.getFileMetadata({ did, hash });
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   @Post("")
   @HttpCode(201)
   async postFile(
     @Request() req: FastifyRequest,
-    @User() user: UserInfo
+    @User() user: ClientInfo
   ): Promise<PostFileResponseObject> {
     if (!req.isMultipart()) {
       throw new BadRequestError(BadRequestError.defaultTitle, {
@@ -127,13 +127,13 @@ export class FilesController {
   }
 
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   @Patch("/:hash")
   async patchFile(
     @Param() params: PatchFileParams,
     @Headers("content-type") contentType: string,
     @Body(new ParseArrayPipe({ items: PatchFileBody })) patch: PatchFileBody[],
-    @User() user: UserInfo
+    @User() user: ClientInfo
   ): Promise<FileMetadata> {
     if (contentType !== "application/json-patch+json") {
       throw new BadRequestError(BadRequestError.defaultTitle, {
@@ -149,11 +149,11 @@ export class FilesController {
   }
 
   @HttpCode(204)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   @Delete("/:hash")
   async deleteFile(
     @Param() params: DeleteFileParams,
-    @User() user: UserInfo
+    @User() user: ClientInfo
   ): Promise<void> {
     const { hash } = params;
     const { did } = user;

@@ -1,9 +1,7 @@
-export interface UserInfo {
+export interface ClientInfo {
   did: string;
 }
 
-export interface JwtPayload {
-  sub: string;
-  username: string;
-  did: string;
+export interface AppInfo {
+  name: string;
 }

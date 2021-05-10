@@ -2,13 +2,15 @@ import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import axios from "axios";
 import { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import fastifyMultipart from "fastify-multipart";
-import jsonwebtoken from "jsonwebtoken";
+import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { mapping, Client } from "cassandra-driver";
 import { FilesModule } from "./files.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -16,6 +18,7 @@ import { AppUsageModel, FileModel } from "../cassandra/models";
 import { FilesRepository } from "../cassandra/repositories";
 import { CassandraService } from "../cassandra/cassandra.service";
 import { fastifyMultipartConfig } from "../../config/server.config";
+import { ApiConfig } from "../../config/configuration";
 import { byteLength } from "../../shared/utils";
 
 const BASE_URL = "/stores/distributed/files";
@@ -27,6 +30,7 @@ describe("Files Module", () => {
   let server: HttpServer;
   let filesRepository: FilesRepository;
   let cassandraService: CassandraService;
+  let configService: ConfigService<ApiConfig>;
 
   const mockedFileFind = jest.fn();
   const mockedFileInsert = jest.fn();
@@ -39,16 +43,6 @@ describe("Files Module", () => {
   const mockedCassandraClientExecute = jest.fn();
 
   const did = `0x${crypto.randomBytes(16).toString("hex")}`;
-  const validToken = jsonwebtoken.sign(
-    {
-      did,
-    },
-    "secret",
-    {
-      audience: "storage-api",
-      issuer: "authorization-api",
-    }
-  );
 
   beforeAll(async () => {
     jest
@@ -76,6 +70,11 @@ describe("Files Module", () => {
     jest
       .spyOn(Client.prototype, "execute")
       .mockImplementation(mockedCassandraClientExecute);
+
+    // Prevent leaking tests (they should not be able to call axios.get)
+    jest.spyOn(axios, "get").mockImplementation((url: string) => {
+      throw new Error(`Leaking unit test: trying to GET ${url}`);
+    });
 
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -106,6 +105,7 @@ describe("Files Module", () => {
 
     filesRepository = moduleFixture.get<FilesRepository>(FilesRepository);
     cassandraService = moduleFixture.get<CassandraService>(CassandraService);
+    configService = moduleFixture.get<ConfigService>(ConfigService);
   });
 
   afterEach(() => {
@@ -118,6 +118,85 @@ describe("Files Module", () => {
   });
 
   describe(`GET ${BASE_URL}`, () => {
+    it("should reject a request without a JWT", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get(`${BASE_URL}`).send();
+
+      expect(response.body).toStrictEqual({
+        detail: "Invalid or missing JWT",
+        status: 401,
+        title: "Unauthorized",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should reject an invalid token", async () => {
+      expect.assertions(4);
+
+      const verifyAccessTokenSpy = jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () =>
+          Promise.reject(new Error("error message"))
+        );
+
+      const response = await request(server)
+        .get(`${BASE_URL}`)
+        .auth("jwt", { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        detail: "Invalid JWT: error message",
+        status: 401,
+        title: "Unauthorized",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+      expect(verifyAccessTokenSpy).toHaveBeenCalledWith(
+        "jwt",
+        configService.get("authorisationApiDid")
+      );
+    });
+
+    it("should reject a token without a DID", async () => {
+      expect.assertions(4);
+
+      const verifyAccessTokenSpy = jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () =>
+          Promise.resolve({
+            // Missing "sub"
+          })
+        );
+
+      const response = await request(server)
+        .get(`${BASE_URL}`)
+        .auth("jwt", { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        detail: "Invalid JWT: missing sub",
+        status: 401,
+        title: "Unauthorized",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+      expect(verifyAccessTokenSpy).toHaveBeenCalledWith(
+        "jwt",
+        configService.get("authorisationApiDid")
+      );
+    });
+
     it("should return the hash associated to the DID", async () => {
       expect.assertions(3);
 
@@ -150,20 +229,16 @@ describe("Files Module", () => {
         rows,
       }));
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .get(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
-      expect(mockedCassandraClientExecute).toHaveBeenCalledWith(
-        "select hash from file_storage where did = ?",
-        [did],
-        {
-          fetchSize: 10,
-          prepare: true,
-          consistency: cassandraService.getConsistency().read,
-        }
-      );
       expect(response.body).toStrictEqual({
         items: rows.map((row) => row.hash),
         links: {
@@ -176,6 +251,15 @@ describe("Files Module", () => {
           "https://api.test.intebsi.xyz/storage/v2/stores/distributed/files?page[size]=10",
       });
       expect(response.status).toBe(200);
+      expect(mockedCassandraClientExecute).toHaveBeenCalledWith(
+        "select hash from file_storage where did = ?",
+        [did],
+        {
+          fetchSize: 10,
+          prepare: true,
+          consistency: cassandraService.getConsistency().read,
+        }
+      );
     });
   });
 
@@ -185,9 +269,14 @@ describe("Files Module", () => {
 
       const hash = "test";
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .get(`${BASE_URL}/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -213,9 +302,14 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .get(`${BASE_URL}/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
@@ -251,9 +345,14 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .get(`${BASE_URL}/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
@@ -271,9 +370,14 @@ describe("Files Module", () => {
 
       const hash = "test";
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .get(`${BASE_URL}/${hash}/metadata`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -299,9 +403,14 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .get(`${BASE_URL}/${hash}/metadata`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
@@ -338,9 +447,14 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .get(`${BASE_URL}/${hash}/metadata`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
@@ -369,9 +483,14 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .get(`${BASE_URL}/${hash}/metadata`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
@@ -406,10 +525,19 @@ describe("Files Module", () => {
     it("should throw an error if the JWT is invalid", async () => {
       expect.assertions(2);
 
-      const response = await request(server).post(`${BASE_URL}`).send();
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () =>
+          Promise.reject(new Error("error message"))
+        );
+
+      const response = await request(server)
+        .post(`${BASE_URL}`)
+        .auth("jwt", { type: "bearer" })
+        .send();
 
       expect(response.body).toStrictEqual({
-        detail: "Invalid or missing JWT",
+        detail: "Invalid JWT: error message",
         status: 401,
         title: "Unauthorized",
         type: "about:blank",
@@ -420,18 +548,21 @@ describe("Files Module", () => {
     it("should throw an error if the JWT doesn't contain a DID", async () => {
       expect.assertions(2);
 
-      const token = jsonwebtoken.sign({}, "secret", {
-        audience: "storage-api",
-        issuer: "authorization-api",
-      });
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () =>
+          Promise.resolve({
+            // Missing DID
+          })
+        );
 
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(token, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
-        detail: "Invalid JWT: DID is missing",
+        detail: "Invalid JWT: missing sub",
         status: 401,
         title: "Unauthorized",
         type: "about:blank",
@@ -442,9 +573,14 @@ describe("Files Module", () => {
     it("should throw an error if the request is not multipart/form-data", async () => {
       expect.assertions(2);
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -459,10 +595,15 @@ describe("Files Module", () => {
     it("should throw an error if params (file, metadata) are missing", async () => {
       expect.assertions(4);
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       // Scenario #1: provide a file but no metadata
       const response1 = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .attach("file", crypto.randomBytes(256), "file.txt");
 
       expect(response1.body).toStrictEqual({
@@ -476,7 +617,7 @@ describe("Files Module", () => {
       // Scenario #2: provide metadata but no file
       const response2 = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .field("metadata", JSON.stringify({}));
 
       expect(response2.body).toStrictEqual({
@@ -495,9 +636,14 @@ describe("Files Module", () => {
         test: crypto.randomBytes(Math.floor(2.6 * 1024 * 1024)).toString("hex"), // this means ~5.2MiB payload, over 5MiB limit
       };
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .field("metadata", JSON.stringify(userDefinedMetadata))
         .attach("file", crypto.randomBytes(256), "file.txt");
 
@@ -522,9 +668,14 @@ describe("Files Module", () => {
     it("should throw an error if the file is too big", async () => {
       expect.assertions(2);
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .field(
           "metadata",
           JSON.stringify({
@@ -545,9 +696,14 @@ describe("Files Module", () => {
     it("should throw an error if the metadata is not a valid stringified JSON document", async () => {
       expect.assertions(2);
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .field("metadata", "not a valid stringified document")
         .attach("file", crypto.randomBytes(255), "file.txt");
 
@@ -584,9 +740,14 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .field("metadata", metadata)
         .attach("file", file, "file.txt");
 
@@ -636,9 +797,14 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .field("metadata", metadata)
         .attach("file", file, "file.txt");
 
@@ -690,9 +856,14 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .post(`${BASE_URL}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .field("metadata", metadata)
         .attach("file", file, "file.txt");
 
@@ -728,9 +899,14 @@ describe("Files Module", () => {
 
       const hash = "test";
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send({});
 
       expect(response.body).toStrictEqual({
@@ -747,9 +923,14 @@ describe("Files Module", () => {
 
       const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send({});
 
       expect(response.body).toStrictEqual({
@@ -766,9 +947,14 @@ describe("Files Module", () => {
 
       const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send([
           {
             op: "unknown",
@@ -791,9 +977,14 @@ describe("Files Module", () => {
 
       const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send([]);
 
       expect(response.body).toStrictEqual({
@@ -820,10 +1011,15 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
         .type("application/json-patch+json")
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send([]);
 
       expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
@@ -877,10 +1073,15 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
         .type("application/json-patch+json")
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send([
           {
             op: "add",
@@ -934,10 +1135,15 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
         .type("application/json-patch+json")
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send([
           {
             op: "add",
@@ -998,10 +1204,15 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
         .type("application/json-patch+json")
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send([
           {
             op: "add",
@@ -1072,10 +1283,15 @@ describe("Files Module", () => {
         .spyOn(filesRepository, "updateFileMetadata")
         .mockImplementationOnce(() => Promise.resolve());
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
         .type("application/json-patch+json")
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send([
           {
             op: "add",
@@ -1111,9 +1327,14 @@ describe("Files Module", () => {
 
       const hash = "test";
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .delete(`${BASE_URL}/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -1139,9 +1360,14 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .delete(`${BASE_URL}/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
@@ -1190,9 +1416,14 @@ describe("Files Module", () => {
         });
       });
 
+      // Mock access token verification (return DID)
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({ sub: did }));
+
       const response = await request(server)
         .delete(`${BASE_URL}/${hash}`)
-        .auth(validToken, { type: "bearer" })
+        .auth("jwt", { type: "bearer" })
         .send();
 
       expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
