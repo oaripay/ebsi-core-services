@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { Test, TestingModule } from "@nestjs/testing";
 import { HttpServer, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import request from "supertest";
 import {
   FastifyAdapter,
@@ -11,26 +12,68 @@ import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { EbsiValidationPipe } from "../../src/pipes/ebsi-validation.pipe";
 import { Notification } from "../../src/modules/notifications/notifications.interface";
-import {
-  createNotification,
-  createToken,
-  randomDid,
-} from "../utils/notifications";
+import { createNotification } from "../utils/notifications";
+import { ApiConfig } from "../../src/config/configuration";
+import { siopAuthentication } from "../utils/auth";
 
 jest.setTimeout(30000);
 
 describe("Notifications module (e2e)", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
-  const did = randomDid();
-  const token = createToken(did);
 
-  const expectedNotifications = [...Array(11).keys()].map(() =>
-    createNotification(did)
-  );
-  expectedNotifications.sort((a, b) =>
-    a.issuanceDate > b.issuanceDate ? 1 : -1
-  );
+  let testUser1: {
+    did: string;
+    privateKey: string;
+    token?: string;
+  };
+
+  let testUser2: {
+    did: string;
+    privateKey: string;
+    token?: string;
+  };
+
+  let expectedNotifications: Notification[];
+
+  const deleteNotification = async (id: string, token: string) =>
+    request(server)
+      .delete(`/notifications/${id}`)
+      .auth(token, { type: "bearer" })
+      .send();
+
+  const getAllNotifications = async (token: string) =>
+    request(server)
+      .get("/notifications?page[size]=50")
+      .auth(token, { type: "bearer" })
+      .send();
+
+  const deleteAllNotifications = async () => {
+    const tokens = [testUser1.token, testUser2.token];
+    await Promise.all(
+      tokens.map(async (token) => {
+        const response = (await getAllNotifications(token)) as {
+          body: {
+            items: {
+              _links: {
+                self: {
+                  href: string;
+                };
+              };
+            }[];
+          };
+        };
+        return Promise.all(
+          response.body.items.map(async (item) => {
+            // eslint-disable-next-line no-underscore-dangle
+            const { href } = item._links.self;
+            const id = href.substring(href.lastIndexOf("/") + 1);
+            return deleteNotification(id, token);
+          })
+        );
+      })
+    );
+  };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -50,10 +93,39 @@ describe("Notifications module (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
+    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
+      ConfigService
+    );
+
+    testUser1 = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser1");
+    testUser2 = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser2");
+    testUser1.token = await siopAuthentication(testUser1);
+    testUser2.token = await siopAuthentication(testUser2);
+
+    // delete notifications of testUser1 and testUser2
+    await deleteAllNotifications();
+
+    // notifications from testUser2 to testUser1
+    expectedNotifications = [...Array(11).keys()].map(() =>
+      createNotification(testUser2.did, testUser1.did)
+    );
+    expectedNotifications.sort((a, b) =>
+      a.issuanceDate > b.issuanceDate ? 1 : -1
+    );
+
     // create multiple notifications
     await Promise.all(
       expectedNotifications.slice(0, 10).map((n) => {
-        return request(server).post("/notifications").send(n);
+        return request(server)
+          .post("/notifications")
+          .auth(testUser2.token, { type: "bearer" })
+          .send(n);
       })
     );
   });
@@ -74,6 +146,7 @@ describe("Notifications module (e2e)", () => {
 
       const response = await request(server)
         .post("/notifications")
+        .auth(testUser2.token, { type: "bearer" })
         .send(notification);
 
       expect(response.body).toStrictEqual(notification);
@@ -98,6 +171,7 @@ describe("Notifications module (e2e)", () => {
 
       response = await request(server)
         .post("/notifications")
+        .auth(testUser1.token, { type: "bearer" })
         .send(notification);
 
       expect(response.body).toStrictEqual({
@@ -119,6 +193,7 @@ describe("Notifications module (e2e)", () => {
 
       response = await request(server)
         .post("/notifications")
+        .auth(testUser1.token, { type: "bearer" })
         .send(notification);
 
       expect(response.body).toStrictEqual({
@@ -135,255 +210,66 @@ describe("Notifications module (e2e)", () => {
   });
 
   describe("GET /notifications", () => {
+    let nextPage = "";
     it("should return a list of notifications", async () => {
       expect.assertions(2);
       const response = await request(server)
         .get("/notifications")
-        .set("Authorization", `Bearer ${token}`);
+        .auth(testUser1.token, { type: "bearer" })
+        .send();
+
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/notifications?page[after]=1&page[size]=10"
-        ) as string,
-        items: expectedNotifications.slice(0, 10).map((notif) => {
-          const id = crypto
-            .createHash("sha3-256")
-            .update(JSON.stringify(notif), "utf8")
-            .digest("hex");
-          return {
-            ...notif,
-            _links: {
-              self: {
-                href: expect.stringContaining(`/notifications/${id}`) as string,
-              },
-            },
-          };
-        }),
+        self: expect.stringContaining("/notifications?page[size]=10") as string,
+        items: expect.arrayContaining([]) as { id: string }[],
         total: 11,
         pageSize: 10,
         links: {
-          first: expect.stringContaining(
-            "/notifications?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/notifications?page[after]=1&page[size]=10"
-          ) as string,
           next: expect.stringContaining(
-            "/notifications?page[after]=2&page[size]=10"
-          ) as string,
-          last: expect.stringContaining(
-            "/notifications?page[after]=2&page[size]=10"
+            "/notifications?page[after]="
           ) as string,
         },
       });
+      const { next } = (response.body as { links: { next: string } }).links;
+      [nextPage] = next.split("page[after]=")[1].split("&");
       expect(response.status).toBe(200);
     });
 
-    it("should return a list with only 1 notification", async () => {
+    it("should return the next page with only 1 notification", async () => {
       expect.assertions(2);
-      const pageAfter = 2;
       const pageSize = 10;
       const response = await request(server)
-        .get(`/notifications?page[after]=${pageAfter}&page[size]=${pageSize}`)
-        .set("Authorization", `Bearer ${token}`);
+        .get(`/notifications?page[after]=${nextPage}&page[size]=${pageSize}`)
+        .auth(testUser1.token, { type: "bearer" })
+        .send();
+
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          "/notifications?page[after]=2&page[size]=10"
+          `/notifications?page[after]=${nextPage}&page[size]=10`
         ) as string,
-        items: expectedNotifications.slice(10, 11).map((notif) => {
-          const id = crypto
-            .createHash("sha3-256")
-            .update(JSON.stringify(notif), "utf8")
-            .digest("hex");
-          return {
-            ...notif,
-            _links: {
-              self: {
-                href: expect.stringContaining(`/notifications/${id}`) as string,
-              },
-            },
-          };
-        }),
+        items: expect.arrayContaining([]) as { id: string }[],
         total: 11,
         pageSize: 10,
-        links: {
-          first: expect.stringContaining(
-            "/notifications?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/notifications?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining(
-            "/notifications?page[after]=2&page[size]=10"
-          ) as string,
-          last: expect.stringContaining(
-            "/notifications?page[after]=2&page[size]=10"
-          ) as string,
-        },
+        links: {},
       });
       expect(response.status).toBe(200);
     });
 
     it("should return page 1 with 2 notifications", async () => {
       expect.assertions(2);
-      const pageAfter = 1;
       const pageSize = 2;
       const response = await request(server)
-        .get(`/notifications?page[after]=${pageAfter}&page[size]=${pageSize}`)
-        .set("Authorization", `Bearer ${token}`);
-      expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/notifications?page[after]=1&page[size]=2"
-        ) as string,
-        items: expectedNotifications.slice(0, 2).map((notif) => {
-          const id = crypto
-            .createHash("sha3-256")
-            .update(JSON.stringify(notif), "utf8")
-            .digest("hex");
-          return {
-            ...notif,
-            _links: {
-              self: {
-                href: expect.stringContaining(`/notifications/${id}`) as string,
-              },
-            },
-          };
-        }),
-        total: 11,
-        pageSize: 2,
-        links: {
-          first: expect.stringContaining(
-            "/notifications?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/notifications?page[after]=1&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/notifications?page[after]=2&page[size]=2"
-          ) as string,
-          last: expect.stringContaining(
-            "/notifications?page[after]=6&page[size]=2"
-          ) as string,
-        },
-      });
-      expect(response.status).toBe(200);
-    });
+        .get(`/notifications?page[size]=${pageSize}`)
+        .auth(testUser1.token, { type: "bearer" })
+        .send();
 
-    it("should return page 3 with 2 notifications", async () => {
-      expect.assertions(2);
-      const pageAfter = 3;
-      const pageSize = 2;
-      const response = await request(server)
-        .get(`/notifications?page[after]=${pageAfter}&page[size]=${pageSize}`)
-        .set("Authorization", `Bearer ${token}`);
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/notifications?page[after]=3&page[size]=2"
-        ) as string,
-        items: expectedNotifications.slice(4, 6).map((notif) => {
-          const id = crypto
-            .createHash("sha3-256")
-            .update(JSON.stringify(notif), "utf8")
-            .digest("hex");
-          return {
-            ...notif,
-            _links: {
-              self: {
-                href: expect.stringContaining(`/notifications/${id}`) as string,
-              },
-            },
-          };
-        }),
+        self: expect.stringContaining(`/notifications?page[size]=2`) as string,
+        items: expect.arrayContaining([]) as { id: string }[],
         total: 11,
         pageSize: 2,
         links: {
-          first: expect.stringContaining(
-            "/notifications?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/notifications?page[after]=2&page[size]=2"
-          ) as string,
           next: expect.stringContaining(
-            "/notifications?page[after]=4&page[size]=2"
-          ) as string,
-          last: expect.stringContaining(
-            "/notifications?page[after]=6&page[size]=2"
-          ) as string,
-        },
-      });
-      expect(response.status).toBe(200);
-    });
-
-    it("should return page 6 with only 1 notifications", async () => {
-      expect.assertions(2);
-      const pageAfter = 6;
-      const pageSize = 2;
-      const response = await request(server)
-        .get(`/notifications?page[after]=${pageAfter}&page[size]=${pageSize}`)
-        .set("Authorization", `Bearer ${token}`);
-      expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/notifications?page[after]=6&page[size]=2"
-        ) as string,
-        items: expectedNotifications.slice(10, 11).map((notif) => {
-          const id = crypto
-            .createHash("sha3-256")
-            .update(JSON.stringify(notif), "utf8")
-            .digest("hex");
-          return {
-            ...notif,
-            _links: {
-              self: {
-                href: expect.stringContaining(`/notifications/${id}`) as string,
-              },
-            },
-          };
-        }),
-        total: 11,
-        pageSize: 2,
-        links: {
-          first: expect.stringContaining(
-            "/notifications?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/notifications?page[after]=5&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/notifications?page[after]=6&page[size]=2"
-          ) as string,
-          last: expect.stringContaining(
-            "/notifications?page[after]=6&page[size]=2"
-          ) as string,
-        },
-      });
-      expect(response.status).toBe(200);
-    });
-
-    it("should return last page when page > lastPage", async () => {
-      expect.assertions(2);
-      const pageAfter = 20;
-      const pageSize = 2;
-      const response = await request(server)
-        .get(`/notifications?page[after]=${pageAfter}&page[size]=${pageSize}`)
-        .set("Authorization", `Bearer ${token}`);
-      expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/notifications?page[after]=20&page[size]=2"
-        ) as string,
-        items: [],
-        total: 11,
-        pageSize: 2,
-        links: {
-          first: expect.stringContaining(
-            "/notifications?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/notifications?page[after]=6&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/notifications?page[after]=6&page[size]=2"
-          ) as string,
-          last: expect.stringContaining(
-            "/notifications?page[after]=6&page[size]=2"
+            "/notifications?page[after]="
           ) as string,
         },
       });
@@ -401,7 +287,9 @@ describe("Notifications module (e2e)", () => {
         .digest("hex");
       const response = await request(server)
         .get(`/notifications/${notificationId}`)
-        .set("Authorization", `Bearer ${token}`);
+        .auth(testUser1.token, { type: "bearer" })
+        .send();
+
       expect(response.body).toStrictEqual(notification);
       expect(response.status).toBe(200);
     });
@@ -411,9 +299,11 @@ describe("Notifications module (e2e)", () => {
       const notificationId = "fakeId";
       const response = await request(server)
         .get(`/notifications/${notificationId}`)
-        .set("Authorization", `Bearer ${token}`);
+        .auth(testUser1.token, { type: "bearer" })
+        .send();
+
       expect(response.body).toStrictEqual({
-        detail: "Id parameter not found",
+        detail: "Notification fakeId not found",
         status: 404,
         title: "Notification Not Found",
         type: "about:blank",
@@ -423,8 +313,6 @@ describe("Notifications module (e2e)", () => {
 
     it("should throw NotFoundError if specified notification does not match receiver", async () => {
       expect.assertions(2);
-      const anotherDid = randomDid();
-      const anotherToken = createToken(anotherDid);
       const [notification] = expectedNotifications;
       const notificationId = crypto
         .createHash("sha3-256")
@@ -432,14 +320,16 @@ describe("Notifications module (e2e)", () => {
         .digest("hex");
       const response = await request(server)
         .get(`/notifications/${notificationId}`)
-        .set("Authorization", `Bearer ${anotherToken}`);
+        .auth(testUser2.token, { type: "bearer" })
+        .send();
+
       expect(response.body).toStrictEqual({
-        detail: "Id parameter not found",
-        status: 404,
-        title: "Notification Not Found",
+        detail: `The notification was not sent to ${testUser2.did}`,
+        status: 403,
+        title: "Forbidden",
         type: "about:blank",
       });
-      expect(response.status).toBe(404);
+      expect(response.status).toBe(403);
     });
   });
 
@@ -447,25 +337,31 @@ describe("Notifications module (e2e)", () => {
     it("should delete the notification", async () => {
       expect.assertions(5);
 
-      const notification = createNotification(did);
+      const notification = createNotification(testUser2.did, testUser1.did);
       const responseInsert = await request(server)
         .post("/notifications")
+        .auth(testUser2.token, { type: "bearer" })
         .send(notification);
+
       expect(responseInsert.status).toBe(201);
       const { location } = responseInsert.headers as { location: string };
       const id = location.slice(location.lastIndexOf("/") + 1);
 
       const response = await request(server)
         .delete(`/notifications/${id}`)
-        .set("Authorization", `Bearer ${token}`);
+        .auth(testUser1.token, { type: "bearer" })
+        .send();
+
       expect(response.body).toStrictEqual({});
       expect(response.status).toBe(204);
 
       const responseGet = await request(server)
         .get(`/notifications/${id}`)
-        .set("Authorization", `Bearer ${token}`);
+        .auth(testUser1.token, { type: "bearer" })
+        .send();
+
       expect(responseGet.body).toStrictEqual({
-        detail: "Id parameter not found",
+        detail: `Notification ${id} not found`,
         status: 404,
         title: "Notification Not Found",
         type: "about:blank",
@@ -476,15 +372,17 @@ describe("Notifications module (e2e)", () => {
     it("should delete the notification after the ttl", async () => {
       expect.assertions(3);
 
-      const notification = createNotification(did);
-      // expiration in 10 seconds
+      const notification = createNotification(testUser2.did, testUser1.did);
+      // expiration in 5 seconds
       const ttl = 5000; // ms
       notification.expirationDate = new Date(
         new Date(notification.issuanceDate).getTime() + ttl
       ).toISOString();
       const responseInsert = await request(server)
         .post("/notifications")
+        .auth(testUser2.token, { type: "bearer" })
         .send(notification);
+
       expect(responseInsert.status).toBe(201);
       const { location } = responseInsert.headers as { location: string };
       const id = location.slice(location.lastIndexOf("/") + 1);
@@ -494,9 +392,11 @@ describe("Notifications module (e2e)", () => {
 
       const responseGet = await request(server)
         .get(`/notifications/${id}`)
-        .set("Authorization", `Bearer ${token}`);
+        .auth(testUser1.token, { type: "bearer" })
+        .send();
+
       expect(responseGet.body).toStrictEqual({
-        detail: "Id parameter not found",
+        detail: `Notification ${id} not found`,
         status: 404,
         title: "Notification Not Found",
         type: "about:blank",
@@ -508,9 +408,11 @@ describe("Notifications module (e2e)", () => {
       expect.assertions(2);
       const response = await request(server)
         .delete(`/notifications/fakeId`)
-        .set("Authorization", `Bearer ${token}`);
+        .auth(testUser1.token, { type: "bearer" })
+        .send();
+
       expect(response.body).toStrictEqual({
-        detail: "Id parameter not found",
+        detail: "Notification fakeId not found",
         status: 404,
         title: "Notification Not Found",
         type: "about:blank",

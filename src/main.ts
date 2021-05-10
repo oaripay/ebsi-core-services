@@ -33,7 +33,7 @@ async function bootstrap(): Promise<void> {
 
   const configService = app.get<ConfigService<ApiConfig>>(ConfigService);
   const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
-  const apiUrlOrigin = configService.get<string>("apiUrlOrigin");
+  const domain = configService.get<string>("domain");
   const port = configService.get<number>("apiPort");
   const logLevel = configService.get<string>("logLevel");
 
@@ -48,7 +48,7 @@ async function bootstrap(): Promise<void> {
     `Starting API with:
 - NODE_ENV: ${process.env.NODE_ENV}
 - API_URL_PREFIX: ${apiUrlPrefix}
-- API_URL_ORIGIN: ${apiUrlOrigin}
+- DOMAIN: ${domain}
 - API_PORT: ${port}
 - LOG_LEVEL: ${logLevel}
 `,

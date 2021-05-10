@@ -33,7 +33,7 @@ export interface Notification {
   proof: Proof;
 }
 
-export interface NotificationWithLinks extends Notification {
+export interface NotificationResponseObject extends Notification {
   _links: {
     self: {
       href: string;
@@ -41,12 +41,31 @@ export interface NotificationWithLinks extends Notification {
   };
 }
 
-export interface DecodedToken {
-  aud: string;
-  iss: string;
-  did: string;
-  nonce: string;
-  sub: string;
-  iat: string;
-  exp: string;
+export interface JsonRpcResponseObject {
+  jsonrpc: string;
+  id: string | number;
+  result: unknown;
+  error?: unknown;
+}
+
+export interface NotificationCassandraModel {
+  id: string;
+  sender: string;
+  receiver: string;
+  message: string;
+}
+
+export interface AxiosResponseJsonRpc {
+  status: number;
+  data: JsonRpcResponseObject;
+}
+
+export interface CassandraResponse {
+  rows: unknown[];
+  pageState: string;
+}
+
+export interface PageOpts {
+  fetchSize: number;
+  pageState: string;
 }

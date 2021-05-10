@@ -7,10 +7,22 @@ declare global {
       API_PRIVATE_KEY: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      API_URL_ORIGIN?: string;
+      API_NAME?: string;
+      API_KID: string;
+      AUTHORISATION_API_NAME?: string;
+      AUTHORISATION_API_DID: string;
+      AUTHORISATION_API_URL?: string;
+      STORAGE_API_NAME?: string;
+      STORAGE_API_URL?: string;
+      DID_REGISTRY_API_URL?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
+      ENCRYPTION_SECRET: string;
+      DOMAIN?: string;
       HEALTH_CHECK?: string;
-      STORAGE?: string;
+      TEST_USER_DID_1?: string;
+      TEST_USER_PRIVATE_KEY_1?: string;
+      TEST_USER_DID_2?: string;
+      TEST_USER_PRIVATE_KEY_2?: string;
     }
   }
 }

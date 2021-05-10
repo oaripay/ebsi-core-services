@@ -5,24 +5,30 @@ import {
   Delete,
   Body,
   Query,
+  UseGuards,
   Param,
   Response,
+  HttpCode,
   Logger,
-  Req,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyRequest, FastifyReply } from "fastify";
-import jwtDecode from "jwt-decode";
+import { FastifyReply } from "fastify";
+import {
+  BadRequestError,
+  ForbiddenError,
+} from "@cef-ebsi/problem-details-errors";
 import { NotificationsService } from "./notifications.service";
 import {
-  PaginatedResponse,
   Notification,
-  NotificationWithLinks,
-  DecodedToken,
+  NotificationResponseObject,
 } from "./notifications.interface";
+import { JwtAuthGuard } from "../auth/guards";
+import { User, UserInfo } from "../auth/decorators";
 import { ApiConfig } from "../../config/configuration";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
-import { PaginationQuery } from "./dto/pagination-query.dto";
+import { formatNotifications } from "./notifications.formatter";
+import { PaginatedList } from "../../shared/interfaces";
+import { GetNotificationsDto } from "./dto/get-attributes.dto";
 
 @Controller("/notifications")
 export class NotificationsController {
@@ -35,16 +41,26 @@ export class NotificationsController {
     private configService: ConfigService<ApiConfig>
   ) {
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
-    const apiUrlOrigin = configService.get<string>("apiUrlOrigin");
-    this.baseUrl = `${apiUrlOrigin}${apiUrlPrefix}/notifications`;
+    const domain = configService.get<string>("domain");
+    this.baseUrl = `${domain}${apiUrlPrefix}/notifications`;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post("")
-  async create(
+  async insertNotification(
     @Body() createNotificationDto: CreateNotificationDto,
+    @User() user: UserInfo,
     @Response() res: FastifyReply
   ): Promise<FastifyReply> {
-    const { notification, id } = await this.notificationsService.create(
+    if (user.did !== createNotificationDto.from)
+      throw new BadRequestError("DID Mismatch", {
+        detail: `DID Mismatch: The did of the Bearer token (${user.did}) must be equal to the did in the from field (${createNotificationDto.from})`,
+      });
+
+    const {
+      notification,
+      id,
+    } = await this.notificationsService.insertNotification(
       createNotificationDto
     );
 
@@ -53,55 +69,71 @@ export class NotificationsController {
     return res.code(201).header("Location", location).send(notification);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get("")
-  async findAll(
-    @Req() request: FastifyRequest,
-    @Query() query: PaginationQuery,
-    @Response() res: FastifyReply
-  ): Promise<FastifyReply> {
-    // TODO implement proper middleware to handle the token
-    const { headers } = request;
-    const decodedToken = jwtDecode(headers.authorization);
-    const notifications: PaginatedResponse<NotificationWithLinks> = await this.notificationsService.findAll(
-      (decodedToken as DecodedToken).did,
-      query["page[after]"],
-      query["page[size]"],
-      this.baseUrl
+  async getNotifications(
+    @Query() query: GetNotificationsDto,
+    @User() user: UserInfo
+  ): Promise<PaginatedList<NotificationResponseObject>> {
+    const currentPage = query["page[after]"];
+    const pageSize = query["page[size]"];
+
+    const {
+      notifications,
+      pageAfter: nextPage,
+      total,
+    } = await this.notificationsService.getNotifications(
+      user.did,
+      currentPage,
+      pageSize
     );
-    return res.code(200).send(notifications);
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/notifications`;
+
+    return formatNotifications(
+      notifications,
+      currentPage,
+      nextPage,
+      pageSize,
+      baseUrl,
+      total
+    );
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get("/:id")
-  async find(
-    @Req() request: FastifyRequest,
+  async getNotification(
     @Param() params: { id: string },
-    @Response() res: FastifyReply
-  ): Promise<FastifyReply> {
-    // TODO implement proper middleware to handle the token
-    const { headers } = request;
-    const decodedToken = jwtDecode(headers.authorization);
+    @User() user: UserInfo
+  ): Promise<Notification> {
     const { id } = params;
-    const notification: Notification = await this.notificationsService.find(
-      (decodedToken as DecodedToken).did,
-      id
-    );
-    return res.code(200).send(notification);
+    const notification = await this.notificationsService.getNotification(id);
+    if (notification.to !== user.did)
+      throw new ForbiddenError(ForbiddenError.defaultTitle, {
+        detail: `The notification was not sent to ${user.did}`,
+      });
+    return notification;
   }
 
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(204)
   @Delete("/:id")
-  async delete(
-    @Req() request: FastifyRequest,
+  async deleteNotification(
     @Param() params: { id: string },
-    @Response() res: FastifyReply
-  ): Promise<FastifyReply> {
-    const { headers } = request;
-    const decodedToken = jwtDecode(headers.authorization);
+    @User() user: UserInfo
+  ): Promise<void> {
     const { id } = params;
-    await this.notificationsService.delete(
-      (decodedToken as DecodedToken).did,
-      id
-    );
-    return res.code(204).send();
+
+    const notification = await this.notificationsService.getNotification(id);
+
+    if (notification.to !== user.did)
+      throw new ForbiddenError(ForbiddenError.defaultTitle, {
+        detail: `The notification was not sent to ${user.did}`,
+      });
+
+    await this.notificationsService.deleteNotification(id);
   }
 }
 

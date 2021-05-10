@@ -8,10 +8,12 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
-import { CassandraService } from "../cassandra/cassandra.service";
+import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import { Agent } from "@cef-ebsi/oauth2-auth";
+import { JWTPayload } from "@cef-ebsi/did-jwt";
+import jsonwebtoken from "jsonwebtoken";
 import { NotificationsModule } from "./notifications.module";
-import { Notification } from "./notifications.interface";
+import { CassandraResponse, Notification } from "./notifications.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { EbsiValidationPipe } from "../../pipes/ebsi-validation.pipe";
 import {
@@ -22,6 +24,44 @@ import {
 describe("Notifications module", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let selectCountResponse: CassandraResponse;
+  let selectResponse: CassandraResponse;
+  let modifyResponse: CassandraResponse;
+
+  function cassandraResponse(rows: unknown[], pageState: string = null) {
+    return {
+      info: { isSchemaInAgreement: true },
+      first: () => rows[0],
+      rows,
+      pageState,
+    };
+  }
+
+  function cassandraResponseCount(count: number) {
+    return cassandraResponse([{ count: Number(count).toString() }]);
+  }
+
+  const sender = {
+    did: "did:ebsi:sender",
+    token: createToken("did:ebsi:sender"),
+  };
+
+  const receiver = {
+    did: "did:ebsi:receiver",
+    token: createToken("did:ebsi:receiver"),
+  };
+
+  const accessTokenApi = jsonwebtoken.sign(
+    {
+      sub: "notifications-api",
+    },
+    "secret",
+    {
+      audience: "storage-api",
+      issuer: "authorisation-api",
+      expiresIn: 3600,
+    }
+  );
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -40,6 +80,51 @@ describe("Notifications module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    jest.spyOn(axios, "get").mockImplementation(async (url) => {
+      if (url.includes(sender.did) || url.includes(receiver.did))
+        return Promise.resolve({
+          data: {
+            document: "did document",
+          },
+        });
+      throw new Error("Forgot to mock axios get?");
+    });
+
+    jest.spyOn(axios, "post").mockImplementation(async (url, data) => {
+      if (url.includes("/oauth2-sessions")) return { data: {} };
+      if (!url.includes("/jsonrpc"))
+        throw new Error(`Forgot to mock axios post? url: ${url}`);
+      const d = data as { params: string[] };
+      if (!d.params) throw new Error("mock: data does not have params");
+      const { params } = d;
+      if (!Array.isArray(params))
+        throw new Error("mock: data must be an Array");
+      if (params[0].includes("count(*)"))
+        return Promise.resolve({
+          data: { result: selectCountResponse },
+        });
+      if (params[0].includes("select"))
+        return Promise.resolve({
+          data: { result: selectResponse },
+        });
+      return Promise.resolve({
+        data: { result: modifyResponse },
+      });
+    });
+
+    jest.spyOn(SiopSession.prototype, "verifyAccessToken").mockImplementation(
+      (token: string): Promise<JWTPayload> => {
+        if (token === sender.token) return Promise.resolve({ sub: sender.did });
+        if (token === receiver.token)
+          return Promise.resolve({ sub: receiver.did });
+        throw new Error("verifyAccessToken failed");
+      }
+    );
+
+    jest
+      .spyOn(Agent.prototype, "verifyAuthenticationResponse")
+      .mockImplementation(async () => Promise.resolve(accessTokenApi));
   });
 
   afterAll(async () => {
@@ -47,37 +132,40 @@ describe("Notifications module", () => {
     await app.close();
   });
 
+  describe("JWT Authentication", () => {
+    it("should reject bad authentication", async () => {
+      expect.assertions(2);
+      const response = await request(server)
+        .post("/notifications")
+        .auth("bad token", { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        title: "Unauthorized",
+        status: 401,
+        detail: "verifyAccessToken failed",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+    });
+  });
+
   describe("POST /notifications", () => {
     it("should accept a valid payload", async () => {
-      function cassandraResponse(rows: unknown[], pageState: string = null) {
-        return {
-          info: { isSchemaInAgreement: true },
-          first: () => rows[0],
-          rows,
-          pageState,
-        };
-      }
-
       expect.assertions(3);
 
-      const notification = createNotification();
+      const notification = createNotification(sender.did, receiver.did);
 
       const notificationId = crypto
         .createHash("sha3-256")
         .update(JSON.stringify(notification), "utf8")
         .digest("hex");
 
-      const mockExecute = jest.spyOn(axios, "post");
-      mockExecute.mockImplementation(() => {
-        return Promise.resolve({
-          data: {
-            result: cassandraResponse([]),
-          },
-        });
-      });
+      modifyResponse = cassandraResponse([]);
 
       const response = await request(server)
         .post("/notifications")
+        .auth(sender.token, { type: "bearer" })
         .send(notification);
 
       expect(response.body).toStrictEqual(notification);
@@ -89,7 +177,6 @@ describe("Notifications module", () => {
           ) as string,
         })
       );
-      jest.resetAllMocks();
     });
 
     it("should reject invalid payloads", async () => {
@@ -99,11 +186,12 @@ describe("Notifications module", () => {
       let response: request.Response;
 
       // Invalid date
-      notification = createNotification();
+      notification = createNotification(sender.did, receiver.did);
       notification.expirationDate = "2019-11-17T14:00:00W";
 
       response = await request(server)
         .post("/notifications")
+        .auth(sender.token, { type: "bearer" })
         .send(notification);
 
       expect(response.body).toStrictEqual({
@@ -120,11 +208,12 @@ describe("Notifications module", () => {
       expect(response.status).toBe(400);
 
       // Invalid from
-      notification = createNotification();
+      notification = createNotification(sender.did, receiver.did);
       notification.from = "Joe";
 
       response = await request(server)
         .post("/notifications")
+        .auth(sender.token, { type: "bearer" })
         .send(notification);
 
       expect(response.body).toStrictEqual({
@@ -139,13 +228,14 @@ describe("Notifications module", () => {
       expect(response.status).toBe(400);
 
       // Invalid proof: bad nested properties
-      notification = createNotification();
+      notification = createNotification(sender.did, receiver.did);
       notification.proof = ({
         fake: "no proof here",
       } as unknown) as Notification["proof"];
 
       response = await request(server)
         .post("/notifications")
+        .auth(sender.token, { type: "bearer" })
         .send(notification);
 
       expect(response.body).toStrictEqual({
@@ -182,11 +272,12 @@ describe("Notifications module", () => {
       expect(response.status).toBe(400);
 
       // Invalid proof: not object
-      notification = createNotification();
+      notification = createNotification(sender.did, receiver.did);
       notification.proof = ("not object but string" as unknown) as Notification["proof"];
 
       response = await request(server)
         .post("/notifications")
+        .auth(sender.token, { type: "bearer" })
         .send(notification);
 
       expect(response.body).toStrictEqual({
@@ -205,11 +296,12 @@ describe("Notifications module", () => {
       expect(response.status).toBe(400);
 
       // Invalid proof: null
-      notification = createNotification();
+      notification = createNotification(sender.did, receiver.did);
       notification.proof = (null as unknown) as Notification["proof"];
 
       response = await request(server)
         .post("/notifications")
+        .auth(sender.token, { type: "bearer" })
         .send(notification);
 
       expect(response.body).toStrictEqual({
@@ -229,13 +321,14 @@ describe("Notifications module", () => {
       expect(response.status).toBe(400);
 
       // Expiration date greater than 5 days
-      notification = createNotification();
+      notification = createNotification(sender.did, receiver.did);
       notification.expirationDate = new Date(
         new Date(notification.issuanceDate).getTime() + 6 * 86400 * 1000
       ).toISOString();
 
       response = await request(server)
         .post("/notifications")
+        .auth(sender.token, { type: "bearer" })
         .send(notification);
 
       expect(response.body).toStrictEqual({
@@ -246,18 +339,21 @@ describe("Notifications module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(400);
-      jest.resetAllMocks();
     });
   });
 
   describe("GET /notifications", () => {
     it("should return a list of notification", async () => {
       expect.assertions(2);
-      const did = "did:ebsi:test";
-      const token = createToken(did);
       const resultNotifications = [
-        { notification: createNotification(did), id: "id1" },
-        { notification: createNotification(did), id: "id2" },
+        {
+          notification: createNotification(sender.did, receiver.did),
+          id: "id1",
+        },
+        {
+          notification: createNotification(sender.did, receiver.did),
+          id: "id2",
+        },
       ];
 
       const storedNotifications = resultNotifications.map((r) => {
@@ -269,21 +365,20 @@ describe("Notifications module", () => {
         };
       });
 
+      selectCountResponse = cassandraResponseCount(2);
+
+      selectResponse = cassandraResponse(storedNotifications, "123");
+
       resultNotifications.sort((a, b) =>
         a.notification.issuanceDate > b.notification.issuanceDate ? 1 : -1
       );
 
-      jest
-        .spyOn(CassandraService.prototype, "getNotifications")
-        .mockResolvedValue(storedNotifications);
-
       const response = await request(server)
         .get("/notifications")
-        .set("Authorization", `Bearer ${token}`);
+        .auth(receiver.token, { type: "bearer" })
+        .send();
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/notifications?page[after]=1&page[size]=10"
-        ) as string,
+        self: expect.stringContaining("/notifications?page[size]=10") as string,
         items: resultNotifications
           .map((result) => {
             return {
@@ -301,32 +396,23 @@ describe("Notifications module", () => {
         total: 2,
         pageSize: 10,
         links: {
-          first: expect.stringContaining(
-            "/notifications?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/notifications?page[after]=1&page[size]=10"
-          ) as string,
           next: expect.stringContaining(
-            "/notifications?page[after]=1&page[size]=10"
-          ) as string,
-          last: expect.stringContaining(
-            "/notifications?page[after]=1&page[size]=10"
+            "/notifications?page[after]="
           ) as string,
         },
       });
       expect(response.status).toBe(200);
-      jest.resetAllMocks();
     });
   });
 
   describe("GET /notifications/{id}", () => {
     it("should return specified notification", async () => {
       expect.assertions(2);
-      const did = "did:ebsi:test";
-      const token = createToken(did);
       const resultNotifications = [
-        { notification: createNotification(did), id: "id1" },
+        {
+          notification: createNotification(sender.did, receiver.did),
+          id: "id1",
+        },
       ];
       const storedNotifications = resultNotifications.map((r) => {
         return {
@@ -336,56 +422,50 @@ describe("Notifications module", () => {
           message: JSON.stringify(r.notification),
         };
       });
-      jest
-        .spyOn(CassandraService.prototype, "getNotification")
-        .mockResolvedValue(storedNotifications[0]);
+
+      selectCountResponse = cassandraResponseCount(1);
+      selectResponse = cassandraResponse(storedNotifications, "123");
 
       const notificationId = storedNotifications[0].id;
 
       const response = await request(server)
         .get(`/notifications/${notificationId}`)
-        .set("Authorization", `Bearer ${token}`);
+        .auth(receiver.token, { type: "bearer" })
+        .send();
 
       expect(response.body).toStrictEqual(resultNotifications[0].notification);
       expect(response.status).toBe(200);
-      jest.resetAllMocks();
     });
 
     it("should throw NotFoundError if notification does not exist", async () => {
       expect.assertions(2);
-      const did = "did:ebsi:test";
-      const token = createToken(did);
-      jest
-        .spyOn(CassandraService.prototype, "getNotification")
-        .mockImplementation(() => {
-          throw new NotFoundError("Notification Not Found", {
-            detail: `Id parameter not found`,
-          });
-        });
 
       const notificationId = "789xyz";
 
+      selectResponse = cassandraResponse([]);
+
       const response = await request(server)
         .get(`/notifications/${notificationId}`)
-        .set("Authorization", `Bearer ${token}`);
+        .auth(receiver.token, { type: "bearer" })
+        .send();
 
       expect(response.body).toStrictEqual({
-        detail: "Id parameter not found",
+        detail: `Notification ${notificationId} not found`,
         status: 404,
         title: "Notification Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);
-      jest.resetAllMocks();
     });
   });
   describe("DELETE /notifications/{id}", () => {
     it("should delete the notification", async () => {
       expect.assertions(2);
-      const did = "did:ebsi:test";
-      const token = createToken(did);
       const resultNotifications = [
-        { notification: createNotification(did), id: "id1" },
+        {
+          notification: createNotification(sender.did, receiver.did),
+          id: "id1",
+        },
       ];
       const storedNotifications = resultNotifications.map((r) => {
         return {
@@ -395,18 +475,15 @@ describe("Notifications module", () => {
           message: JSON.stringify(r.notification),
         };
       });
-      jest
-        .spyOn(CassandraService.prototype, "getNotification")
-        .mockResolvedValue(storedNotifications[0]);
-      jest
-        .spyOn(CassandraService.prototype, "deleteNotification")
-        .mockResolvedValue();
+
+      selectResponse = cassandraResponse(storedNotifications);
+
       const response = await request(server)
         .delete("/notifications/123")
-        .set("Authorization", `Bearer ${token}`);
+        .auth(receiver.token, { type: "bearer" })
+        .send();
       expect(response.body).toStrictEqual({});
       expect(response.status).toBe(204);
-      jest.resetAllMocks();
     });
   });
 });
