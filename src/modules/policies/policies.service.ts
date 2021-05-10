@@ -24,9 +24,9 @@ export class PoliciesService {
 
     try {
       // Preserve case! Don't lowercase the policyId
-      policy = await (await this.ledgerService.getContract()).getPolicy(
-        policyId
-      );
+      policy = await (
+        await this.ledgerService.getContract()
+      ).getPolicy(policyId);
     } catch (e) {
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,

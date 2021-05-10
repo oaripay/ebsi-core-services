@@ -134,8 +134,7 @@ describe("Administrators (e2e)", () => {
   });
 
   // Generic /jsonrpc tests
-  // EBSIINT-2939 temporary revert
-  describe.skip("/jsonrpc (generic tests)", () => {
+  describe("/jsonrpc (generic tests)", () => {
     it("should reject a transaction signed by a private key that doesn't control the DID", async () => {
       expect.assertions(2);
 
@@ -338,8 +337,7 @@ describe("Administrators (e2e)", () => {
   });
 
   describe("/administrators", () => {
-    // EBSIINT-2939 temporary revert
-    it.skip("should reject a GET without JWT", async () => {
+    it("should reject a GET without JWT", async () => {
       expect.assertions(3);
 
       const response = await request(server).get("/administrators");
@@ -356,8 +354,7 @@ describe("Administrators (e2e)", () => {
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
-    // EBSIINT-2939 temporary revert
-    it.skip("should reject a GET with an invalid token", async () => {
+    it("should reject a GET with an invalid token", async () => {
       expect.assertions(3);
 
       const response = await request(server)
@@ -415,16 +412,16 @@ describe("Administrators (e2e)", () => {
   describe("/administrators/{did}", () => {
     it("should return a specific administrator", async () => {
       expect.assertions(3);
-      const administratorsResponse: SupertestAdministratorsResponse = await request(
-        server
-      )
-        .get("/administrators")
-        .auth(testUserAccessToken, { type: "bearer" });
+      const administratorsResponse: SupertestAdministratorsResponse =
+        await request(server)
+          .get("/administrators")
+          .auth(testUserAccessToken, { type: "bearer" });
 
       expect(administratorsResponse.status).toBe(200);
-      const { did }: DidLink = administratorsResponse.body.items[
-        administratorsResponse.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        administratorsResponse.body.items[
+          administratorsResponse.body.items.length - 1
+        ];
 
       const response: SupertestAdministratorResponse = await request(server)
         .get(`/administrators/${did}`)
@@ -465,9 +462,8 @@ describe("Administrators (e2e)", () => {
 
       expect(administrators.status).toBe(200);
 
-      const { did }: DidLink = administrators.body.items[
-        administrators.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        administrators.body.items[administrators.body.items.length - 1];
       const response: SupertestAdministratorsResponse = await request(server)
         .get(`/administrators/${did}/attributes`)
         .auth(testUserAccessToken, { type: "bearer" });
@@ -512,9 +508,8 @@ describe("Administrators (e2e)", () => {
 
       expect(administrators.status).toBe(200);
 
-      const { did }: DidLink = administrators.body.items[
-        administrators.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        administrators.body.items[administrators.body.items.length - 1];
       const responseAttributes: SupertestAttributesResponse = await request(
         server
       )
@@ -550,9 +545,8 @@ describe("Administrators (e2e)", () => {
 
       expect(administrators.status).toBe(200);
 
-      const { did }: DidLink = administrators.body.items[
-        administrators.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        administrators.body.items[administrators.body.items.length - 1];
 
       // consult a random attribute
       const attributeId =
@@ -588,9 +582,8 @@ describe("Administrators (e2e)", () => {
       expect(response2.status).toBe(404);
 
       // consult an attribute from a different did
-      const { did: did2 }: DidLink = administrators.body.items[
-        administrators.body.items.length - 2
-      ];
+      const { did: did2 }: DidLink =
+        administrators.body.items[administrators.body.items.length - 2];
       const responseAttributes: SupertestAttributesResponse = await request(
         server
       )
@@ -629,15 +622,13 @@ describe("Administrators (e2e)", () => {
 
       expect(administrators.status).toBe(200);
 
-      const { did }: DidLink = administrators.body.items[
-        administrators.body.items.length - 1
-      ];
+      const { did }: DidLink =
+        administrators.body.items[administrators.body.items.length - 1];
 
-      const administratorResponse: SupertestAdministratorResponse = await request(
-        server
-      )
-        .get(`/administrators/${did}`)
-        .auth(testUserAccessToken, { type: "bearer" });
+      const administratorResponse: SupertestAdministratorResponse =
+        await request(server)
+          .get(`/administrators/${did}`)
+          .auth(testUserAccessToken, { type: "bearer" });
 
       expect(administratorResponse.status).toBe(200);
 

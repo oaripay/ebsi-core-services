@@ -235,9 +235,11 @@ describe("HashAlgorithms (e2e)", () => {
       expect.assertions(2);
 
       const respHashAlgorithms = await request(server).get("/hash-algorithms");
-      const { hashAlgorithmId } = (respHashAlgorithms.body as {
-        items: HashAlgorithmLink[];
-      }).items[0];
+      const { hashAlgorithmId } = (
+        respHashAlgorithms.body as {
+          items: HashAlgorithmLink[];
+        }
+      ).items[0];
 
       const response = await request(server).get(
         `/hash-algorithms/${hashAlgorithmId}`

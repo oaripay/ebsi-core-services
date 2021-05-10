@@ -298,10 +298,8 @@ describe("DidTimestamps Module", () => {
       expect.assertions(2);
 
       const { didDocuments, didRegistryContract } = testEnv;
-      const {
-        canonicalizedDidDocumentHash,
-        timestampDataBuffer,
-      } = didDocuments[0];
+      const { canonicalizedDidDocumentHash, timestampDataBuffer } =
+        didDocuments[0];
 
       const timestampId = ethers.utils.sha256(canonicalizedDidDocumentHash);
 

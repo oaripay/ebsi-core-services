@@ -1,6 +1,4 @@
-// EBSIINT-2939 temporary revert
-// import { Controller, Get, Query, Param, UseGuards } from "@nestjs/common";
-import { Controller, Get, Query, Param } from "@nestjs/common";
+import { Controller, Get, Query, Param, UseGuards } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import AdministratorsService from "./administrators.service";
 import {
@@ -18,9 +16,8 @@ import {
 import { PaginationQuery } from "../../shared/dto/pagination-query";
 import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
-// EBSIINT-2939 temporary revert
-// import { SiopJwtAuthGuard } from "../auth/guards/siop-jwt-auth.guard";
-// import { Client, ClientInfo } from "../auth/decorators";
+import { SiopJwtAuthGuard } from "../auth/guards/siop-jwt-auth.guard";
+import { Client, ClientInfo } from "../auth/decorators";
 
 @Controller("/administrators")
 export default class AdministratorsController {
@@ -30,15 +27,12 @@ export default class AdministratorsController {
   ) {}
 
   @Get("")
-  // EBSIINT-2939 temporary revert
-  // @UseGuards(SiopJwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   async getAdministrators(
-    @Query() query: PaginationQuery
-    // EBSIINT-2939 temporary revert
-    // @Client() client: ClientInfo
+    @Query() query: PaginationQuery,
+    @Client() client: ClientInfo
   ): Promise<PaginatedList<DidLink>> {
-    // EBSIINT-2939 temporary revert
-    // await this.administratorsService.allowAdministratorsOnly(client.did);
+    await this.administratorsService.allowAdministratorsOnly(client.did);
 
     const administrators = await this.administratorsService.getAdministrators(
       query["page[after]"],
@@ -58,36 +52,32 @@ export default class AdministratorsController {
   }
 
   @Get("/:did")
-  // EBSIINT-2939 temporary revert
-  // @UseGuards(SiopJwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   async getAdministrator(
-    @Param() params: { did?: string }
-    // EBSIINT-2939 temporary revert
-    // @Client() client: ClientInfo
+    @Param() params: { did?: string },
+    @Client() client: ClientInfo
   ): Promise<AdministratorResponseObject> {
     const { did } = params;
 
-    // EBSIINT-2939 temporary revert
-    // if (did !== client.did) {
-    //   await this.administratorsService.allowAdministratorsOnly(client.did);
-    // }
+    if (did !== client.did) {
+      await this.administratorsService.allowAdministratorsOnly(client.did);
+    }
 
     return this.administratorsService.getAdministrator(did);
   }
 
   @Get("/:did/attributes")
-  // EBSIINT-2939 temporary revert
-  // @UseGuards(SiopJwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   async getAdministratorAttributes(
     @Param() params: { did: string },
-    @Query() query: PaginationQuery
-    // EBSIINT-2939 temporary revert
-    // @Client() client: ClientInfo
+    @Query() query: PaginationQuery,
+    @Client() client: ClientInfo
   ): Promise<PaginatedList<IdLink>> {
-    // EBSIINT-2939 temporary revert
-    // await this.administratorsService.allowAdministratorsOnly(client.did);
-
     const { did } = params;
+
+    if (did !== client.did) {
+      await this.administratorsService.allowAdministratorsOnly(client.did);
+    }
 
     const attributes = await this.administratorsService.getAttributes(did);
 
@@ -104,17 +94,16 @@ export default class AdministratorsController {
   }
 
   @Get("/:did/attributes/:attributeId")
-  // EBSIINT-2939 temporary revert
-  // @UseGuards(SiopJwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   async getAdministratorAttribute(
-    @Param() params: { did: string; attributeId: string }
-    // EBSIINT-2939 temporary revert
-    // @Client() client: ClientInfo
+    @Param() params: { did: string; attributeId: string },
+    @Client() client: ClientInfo
   ): Promise<AttributeDetailsObject> {
-    // EBSIINT-2939 temporary revert
-    // await this.administratorsService.allowAdministratorsOnly(client.did);
-
     const { did, attributeId } = params;
+
+    if (did !== client.did) {
+      await this.administratorsService.allowAdministratorsOnly(client.did);
+    }
 
     const attribute = await this.administratorsService.getAttribute(
       attributeId,
@@ -128,28 +117,25 @@ export default class AdministratorsController {
   }
 
   @Get("/:did/attributes/:attributeId/revisions")
-  // EBSIINT-2939 temporary revert
-  // @UseGuards(SiopJwtAuthGuard)
+  @UseGuards(SiopJwtAuthGuard)
   async getAdministratorAttributeRevisions(
     @Param() params: { did: string; attributeId: string },
-    @Query() query: PaginationQuery
-    // EBSIINT-2939 temporary revert
-    // @Client() client: ClientInfo
+    @Query() query: PaginationQuery,
+    @Client() client: ClientInfo
   ): Promise<PaginatedList<AttributeObject>> {
-    // EBSIINT-2939 temporary revert
-    // await this.administratorsService.allowAdministratorsOnly(client.did);
-
     const { did, attributeId } = params;
 
-    const {
-      revisions,
-      total,
-    } = await this.administratorsService.getAdministratorAttributeRevisions(
-      attributeId,
-      did,
-      query["page[after]"],
-      query["page[size]"]
-    );
+    if (did !== client.did) {
+      await this.administratorsService.allowAdministratorsOnly(client.did);
+    }
+
+    const { revisions, total } =
+      await this.administratorsService.getAdministratorAttributeRevisions(
+        attributeId,
+        did,
+        query["page[after]"],
+        query["page[size]"]
+      );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");

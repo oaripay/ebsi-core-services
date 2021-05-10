@@ -291,9 +291,8 @@ describe("Policies (e2e)", () => {
       ).get("/policies");
 
       expect(policiesResponse.status).toBe(200);
-      const { policyId }: PolicyLink = policiesResponse.body.items[
-        policiesResponse.body.items.length - 1
-      ];
+      const { policyId }: PolicyLink =
+        policiesResponse.body.items[policiesResponse.body.items.length - 1];
 
       const response: SupertestPolicyResponse = await request(server).get(
         `/policies/${encodeURIComponent(policyId)}`
@@ -328,9 +327,8 @@ describe("Policies (e2e)", () => {
       ).get("/policies");
 
       expect(policiesResponse.status).toBe(200);
-      const { policyId }: PolicyLink = policiesResponse.body.items[
-        policiesResponse.body.items.length - 1
-      ];
+      const { policyId }: PolicyLink =
+        policiesResponse.body.items[policiesResponse.body.items.length - 1];
 
       const response: SupertestRevisionsResponse = await request(server).get(
         `/policies/${encodeURIComponent(policyId)}/revisions`

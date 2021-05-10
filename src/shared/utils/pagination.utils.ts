@@ -28,12 +28,8 @@ export function paginate<T>(
   pageSize: number,
   extraQuery = ""
 ): PaginatedList<T> {
-  const {
-    firstPage,
-    prevPage,
-    nextPage,
-    lastPage,
-  } = compute1BasedPaginationLinks(total, page, pageSize);
+  const { firstPage, prevPage, nextPage, lastPage } =
+    compute1BasedPaginationLinks(total, page, pageSize);
 
   return {
     self: `${baseUrl}?page[after]=${page}&page[size]=${pageSize}${extraQuery}`,

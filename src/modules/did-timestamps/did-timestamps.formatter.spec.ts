@@ -29,20 +29,17 @@ describe("formatDidTimestamps", () => {
         {
           timestampId:
             "0x535e508bfc78dc7f3ea88e5360db61883a9df528aa5c9f8a33d71cd0e40a5c00",
-          href:
-            "/0x535e508bfc78dc7f3ea88e5360db61883a9df528aa5c9f8a33d71cd0e40a5c00",
+          href: "/0x535e508bfc78dc7f3ea88e5360db61883a9df528aa5c9f8a33d71cd0e40a5c00",
         },
         {
           timestampId:
             "0x72866048a2ae1b63c0068b720e390c829671e3d34536c956ebb1500b82dadbfb",
-          href:
-            "/0x72866048a2ae1b63c0068b720e390c829671e3d34536c956ebb1500b82dadbfb",
+          href: "/0x72866048a2ae1b63c0068b720e390c829671e3d34536c956ebb1500b82dadbfb",
         },
         {
           timestampId:
             "0xc260b7e206dee85b3e820570e6baceba29f7421b45a4a8b7b16ce01f71767269",
-          href:
-            "/0xc260b7e206dee85b3e820570e6baceba29f7421b45a4a8b7b16ce01f71767269",
+          href: "/0xc260b7e206dee85b3e820570e6baceba29f7421b45a4a8b7b16ce01f71767269",
         },
       ],
       links: {

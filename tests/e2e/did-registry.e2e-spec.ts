@@ -258,7 +258,7 @@ describe("DID Registry (e2e)", () => {
           params = {
             from: signer.address,
             identifier,
-            hashAlgorithmId: 0,
+            hashAlgorithmId: 1,
             hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
@@ -284,7 +284,7 @@ describe("DID Registry (e2e)", () => {
           params = {
             from: signer.address,
             identifier,
-            hashAlgorithmId: 0,
+            hashAlgorithmId: 1,
             hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
@@ -377,7 +377,7 @@ describe("DID Registry (e2e)", () => {
           params = {
             from: signer.address,
             identifier,
-            hashAlgorithmId: 0,
+            hashAlgorithmId: 1,
             hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
@@ -385,10 +385,8 @@ describe("DID Registry (e2e)", () => {
           break;
         }
         case "detachDidDocumentVersionHash": {
-          const {
-            didDocumentBuffer,
-            canonicalizedDidDocumentHash,
-          } = updatedDidDocument;
+          const { didDocumentBuffer, canonicalizedDidDocumentHash } =
+            updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
@@ -396,7 +394,7 @@ describe("DID Registry (e2e)", () => {
           params = {
             from: signer.address,
             identifier,
-            hashAlgorithmId: 0,
+            hashAlgorithmId: 1,
             hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
@@ -404,10 +402,8 @@ describe("DID Registry (e2e)", () => {
         }
         case "appendDidDocumentVersionMetadata":
         case "detachDidDocumentVersionMetadata": {
-          const {
-            didDocumentBuffer,
-            didVersionMetadataBuffer,
-          } = updatedDidDocument;
+          const { didDocumentBuffer, didVersionMetadataBuffer } =
+            updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
@@ -1345,10 +1341,8 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the identifier is not a valid did", async () => {
       expect.assertions(2);
 
-      const {
-        didDocumentBuffer,
-        didVersionMetadataBuffer,
-      } = updatedDidDocument;
+      const { didDocumentBuffer, didVersionMetadataBuffer } =
+        updatedDidDocument;
       const versionId = ethers.utils.sha256(didDocumentBuffer);
       const metadataId = ethers.utils.sha256(didVersionMetadataBuffer);
 
@@ -1368,10 +1362,8 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the identifier is not found", async () => {
       expect.assertions(2);
 
-      const {
-        didDocumentBuffer,
-        didVersionMetadataBuffer,
-      } = updatedDidDocument;
+      const { didDocumentBuffer, didVersionMetadataBuffer } =
+        updatedDidDocument;
       const versionId = ethers.utils.sha256(didDocumentBuffer);
       const metadataId = ethers.utils.sha256(didVersionMetadataBuffer);
 
@@ -1680,10 +1672,8 @@ describe("DID Registry (e2e)", () => {
     it("should return a specific DID timestamp", async () => {
       expect.assertions(2);
 
-      const {
-        canonicalizedDidDocumentHash,
-        timestampDataBuffer,
-      } = updatedDidDocument;
+      const { canonicalizedDidDocumentHash, timestampDataBuffer } =
+        updatedDidDocument;
 
       const timestampId = ethers.utils.sha256(canonicalizedDidDocumentHash);
 

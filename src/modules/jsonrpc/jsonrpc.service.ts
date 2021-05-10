@@ -1,5 +1,4 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import {
   RequestSignedTransactionDto,
@@ -48,7 +47,6 @@ import {
 } from "./jsonrpc.utils";
 import { LedgerService } from "../ledger/ledger.service";
 import { prefixWith0x, remove0xPrefix } from "../../shared/utils";
-import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
 export class JsonRpcService {
@@ -56,16 +54,7 @@ export class JsonRpcService {
 
   private chainId: string = null;
 
-  private didRegistry: string;
-
-  constructor(
-    private ledgerService: LedgerService,
-    configService: ConfigService<ApiConfig>
-  ) {
-    const domain = configService.get<string>("domain");
-    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
-    this.didRegistry = `${domain}${apiUrlPrefix}/identifiers`;
-  }
+  constructor(private ledgerService: LedgerService) {}
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
@@ -92,39 +81,38 @@ export class JsonRpcService {
 
   async verifyDidRegistry(
     controllerAddress: string,
-    did: string
-  ): Promise<void> {
-    let currentPage = 1;
-    const items: string[] = [];
+    did: string,
+    currentPage = 1
+  ): Promise<boolean> {
+    const pageSize = 50;
 
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      /* eslint-disable no-await-in-loop */
-      const data = await (
-        await this.ledgerService.getContract()
-      ).getDidRecordIdentifiersByControllerId(
-        controllerAddress,
-        currentPage,
-        50
-      );
-      /* eslint-enable no-await-in-loop */
-
-      currentPage += 1;
-
-      items.push(...data.items);
-
-      if (currentPage * 50 > data.total.toNumber()) break;
-    }
-
-    const dids = items.map((hexDid) =>
-      Buffer.from(remove0xPrefix(hexDid), "hex").toString("utf8")
+    const data = await (
+      await this.ledgerService.getContract()
+    ).getDidRecordIdentifiersByControllerId(
+      controllerAddress,
+      currentPage,
+      pageSize
     );
 
-    if (!dids.includes(did)) {
-      throw new Error(
-        `The DID ${did} is not controlled by the address ${controllerAddress}`
-      );
+    // Check if DID is in the list
+    if (
+      data.items
+        .map((hexDid) =>
+          Buffer.from(remove0xPrefix(hexDid), "hex")
+            .toString("utf8")
+            .toLowerCase()
+        )
+        .includes(did.toLowerCase())
+    ) {
+      return true;
     }
+
+    // Recursive call if there are more pages
+    if (currentPage * pageSize < data.total.toNumber()) {
+      return this.verifyDidRegistry(controllerAddress, did, currentPage + 1);
+    }
+
+    return false;
   }
 
   async checkWritePermission(
@@ -148,33 +136,27 @@ export class JsonRpcService {
       return;
     }
 
-    // EBSIINT-2939 temporary revert
-    /*
     // Only allow client ID with DID (SIOP JWT)
     if (!clientId || !clientId.startsWith("did:ebsi:")) {
       throw new Error("Only administrators can access this method");
     }
 
     try {
-      await (await this.ledgerService.getContract()).getAdministrator(
-        clientId.toLowerCase()
-      );
+      await (
+        await this.ledgerService.getContract()
+      ).getAdministrator(clientId.toLowerCase());
     } catch (e) {
       throw new Error(
         `Administrator ${clientId} was not found in the DID Registry`
       );
     }
-    */
-    // If the function name is in the list, check if user did is an admin
-    const did = `did:ebsi:${controllerAddress.toLowerCase()}`;
-    try {
-      await (await this.ledgerService.getContract()).getAdministrator(did);
-    } catch (e) {
-      throw new Error(`Administrator ${did} was not found in the DID Registry`);
-    }
 
-    // EBSIINT-2939 temporary revert
-    // await this.verifyDidRegistry(controllerAddress, clientId);
+    // Check DID Registry
+    if (!(await this.verifyDidRegistry(controllerAddress, clientId))) {
+      throw new Error(
+        `The DID ${clientId} is not controlled by the address ${controllerAddress}`
+      );
+    }
   }
 
   async verifyTransaction(
@@ -231,119 +213,119 @@ export class JsonRpcService {
       case "insertAdministrator": {
         await validateClass(
           ArgsInsertAdministrator,
-          (args as unknown) as ArgsInsertAdministrator
+          args as unknown as ArgsInsertAdministrator
         );
         break;
       }
       case "updateAdministrator": {
         await validateClass(
           ArgsUpdateAdministrator,
-          (args as unknown) as ArgsUpdateAdministrator
+          args as unknown as ArgsUpdateAdministrator
         );
         break;
       }
       case "insertPolicy": {
         await validateClass(
           ArgsInsertPolicy,
-          (args as unknown) as ArgsInsertPolicy
+          args as unknown as ArgsInsertPolicy
         );
         break;
       }
       case "updatePolicy": {
         await validateClass(
           ArgsUpdatePolicy,
-          (args as unknown) as ArgsUpdatePolicy
+          args as unknown as ArgsUpdatePolicy
         );
         break;
       }
       case "insertHashAlgorithm": {
         await validateClass(
           ArgsInsertHashAlgorithm,
-          (args as unknown) as ArgsInsertHashAlgorithm
+          args as unknown as ArgsInsertHashAlgorithm
         );
         break;
       }
       case "updateHashAlgorithm": {
         await validateClass(
           ArgsUpdateHashAlgorithm,
-          (args as unknown) as ArgsUpdateHashAlgorithm
+          args as unknown as ArgsUpdateHashAlgorithm
         );
         break;
       }
       case "insertDidDocument": {
         await validateClass(
           ArgsInsertDidDocument,
-          (args as unknown) as ArgsInsertDidDocument
+          args as unknown as ArgsInsertDidDocument
         );
         break;
       }
       case "updateDidDocument": {
         await validateClass(
           ArgsUpdateDidDocument,
-          (args as unknown) as ArgsUpdateDidDocument
+          args as unknown as ArgsUpdateDidDocument
         );
         break;
       }
       case "insertDidController": {
         await validateClass(
           ArgsInsertDidController,
-          (args as unknown) as ArgsInsertDidController
+          args as unknown as ArgsInsertDidController
         );
         break;
       }
       case "updateDidController": {
         await validateClass(
           ArgsUpdateDidController,
-          (args as unknown) as ArgsUpdateDidController
+          args as unknown as ArgsUpdateDidController
         );
         break;
       }
       case "revokeDidController": {
         await validateClass(
           ArgsRevokeDidController,
-          (args as unknown) as ArgsRevokeDidController
+          args as unknown as ArgsRevokeDidController
         );
         break;
       }
       case "insertDidMethod": {
         await validateClass(
           ArgsInsertDidMethod,
-          (args as unknown) as ArgsInsertDidMethod
+          args as unknown as ArgsInsertDidMethod
         );
         break;
       }
       case "updateDidMethod": {
         await validateClass(
           ArgsUpdateDidMethod,
-          (args as unknown) as ArgsUpdateDidMethod
+          args as unknown as ArgsUpdateDidMethod
         );
         break;
       }
       case "appendDidDocumentVersionHash": {
         await validateClass(
           ArgsAppendDidDocumentVersionHash,
-          (args as unknown) as ArgsAppendDidDocumentVersionHash
+          args as unknown as ArgsAppendDidDocumentVersionHash
         );
         break;
       }
       case "detachDidDocumentVersionHash": {
         await validateClass(
           ArgsDetachDidDocumentVersionHash,
-          (args as unknown) as ArgsDetachDidDocumentVersionHash
+          args as unknown as ArgsDetachDidDocumentVersionHash
         );
         break;
       }
       case "appendDidDocumentVersionMetadata": {
         await validateClass(
           ArgsAppendDidDocumentVersionMetadata,
-          (args as unknown) as ArgsAppendDidDocumentVersionMetadata
+          args as unknown as ArgsAppendDidDocumentVersionMetadata
         );
         break;
       }
       case "detachDidDocumentVersionMetadata": {
         await validateClass(
           ArgsDetachDidDocumentVersionMetadata,
-          (args as unknown) as ArgsDetachDidDocumentVersionMetadata
+          args as unknown as ArgsDetachDidDocumentVersionMetadata
         );
         break;
       }
@@ -537,14 +519,8 @@ export class JsonRpcService {
     try {
       await validateClass(RequestUpdateHashAlgorithmDto, body);
 
-      const {
-        from,
-        hashAlgorithmId,
-        outputLength,
-        ianaName,
-        oid,
-        status,
-      } = body.params[0];
+      const { from, hashAlgorithmId, outputLength, ianaName, oid, status } =
+        body.params[0];
 
       const data = (
         await this.ledgerService.getContract()
@@ -643,13 +619,8 @@ export class JsonRpcService {
     try {
       await validateClass(RequestInsertDidControllerDto, body);
 
-      const {
-        from,
-        identifier,
-        newControllerId,
-        notBefore,
-        notAfter,
-      } = body.params[0];
+      const { from, identifier, newControllerId, notBefore, notAfter } =
+        body.params[0];
 
       const data = (
         await this.ledgerService.getContract()
@@ -674,13 +645,8 @@ export class JsonRpcService {
     try {
       await validateClass(RequestUpdateDidControllerDto, body);
 
-      const {
-        from,
-        identifier,
-        newControllerId,
-        notBefore,
-        notAfter,
-      } = body.params[0];
+      const { from, identifier, newControllerId, notBefore, notAfter } =
+        body.params[0];
 
       const data = (
         await this.ledgerService.getContract()
@@ -835,13 +801,8 @@ export class JsonRpcService {
     try {
       await validateClass(RequestDetachDidDocumentVersionHashDto, body);
 
-      const {
-        from,
-        identifier,
-        hashAlgorithmId,
-        hashValue,
-        didVersionInfo,
-      } = body.params[0];
+      const { from, identifier, hashAlgorithmId, hashValue, didVersionInfo } =
+        body.params[0];
 
       const data = (
         await this.ledgerService.getContract()
@@ -866,12 +827,8 @@ export class JsonRpcService {
     try {
       await validateClass(RequestAppendDidDocumentVersionMetadataDto, body);
 
-      const {
-        from,
-        identifier,
-        didVersionInfo,
-        didVersionMetadata,
-      } = body.params[0];
+      const { from, identifier, didVersionInfo, didVersionMetadata } =
+        body.params[0];
 
       const data = (
         await this.ledgerService.getContract()
@@ -895,12 +852,8 @@ export class JsonRpcService {
     try {
       await validateClass(RequestDetachDidDocumentVersionMetadataDto, body);
 
-      const {
-        from,
-        identifier,
-        didVersionInfo,
-        didVersionMetadata,
-      } = body.params[0];
+      const { from, identifier, didVersionInfo, didVersionMetadata } =
+        body.params[0];
 
       const data = (
         await this.ledgerService.getContract()

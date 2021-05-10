@@ -35,9 +35,9 @@ export default class AdministratorsService {
     // If `adminDid` is passed, make sure the admin exists
     if (adminDid) {
       try {
-        await (await this.ledgerService.getContract()).getAdministrator(
-          adminDid
-        );
+        await (
+          await this.ledgerService.getContract()
+        ).getAdministrator(adminDid);
       } catch (e) {
         throw new NotFoundError("Administrator Not Found", {
           detail: `Administrator ${adminDid} not found`,

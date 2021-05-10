@@ -290,8 +290,7 @@ describe("JsonRpc Module", () => {
   });
 
   // Generic tests
-  // EBSIINT-2939 temporary revert
-  it.skip("should reject a POST without JWT", async () => {
+  it("should reject a POST without JWT", async () => {
     expect.assertions(3);
 
     const response = await request(server).post("/jsonrpc").send();
@@ -308,8 +307,7 @@ describe("JsonRpc Module", () => {
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
-  // EBSIINT-2939 temporary revert
-  it.skip("should reject a POST with an invalid app token", async () => {
+  it("should reject a POST with an invalid app token", async () => {
     expect.assertions(4);
 
     // Mock reject JWT
@@ -340,8 +338,7 @@ describe("JsonRpc Module", () => {
     );
   });
 
-  // EBSIINT-2939 temporary revert
-  it.skip("should reject a POST with an invalid user token", async () => {
+  it("should reject a POST with an invalid user token", async () => {
     expect.assertions(4);
 
     // Mock reject JWT
@@ -491,8 +488,7 @@ describe("JsonRpc Module", () => {
   });
 
   // Only SIOP JWT are allowed to call insertAdministrator
-  // EBSIINT-2939 temporary revert
-  it.skip("should throw an error if an app tries to call insertAdministrator", async () => {
+  it("should throw an error if an app tries to call insertAdministrator", async () => {
     expect.assertions(4);
 
     const { did } = adminV1;
@@ -574,8 +570,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.status).toBe(400);
   });
 
-  // EBSIINT-2939 temporary revert
-  it.skip("should throw an error if the signer is not a registered admin", async () => {
+  it("should throw an error if the signer is not a registered admin", async () => {
     expect.assertions(4);
 
     const { did } = adminV1;
@@ -657,8 +652,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.status).toBe(400);
   });
 
-  // EBSIINT-2939 temporary revert
-  it.skip("should throw an error if the signer doesn't control the DID", async () => {
+  it("should throw an error if the signer doesn't control the DID", async () => {
     expect.assertions(4);
 
     const { did } = adminV1;
@@ -1007,10 +1001,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "detachDidDocumentVersionHash": {
-          const {
-            didDocumentBuffer,
-            canonicalizedDidDocumentHash,
-          } = updatedDidDocument;
+          const { didDocumentBuffer, canonicalizedDidDocumentHash } =
+            updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
@@ -1026,10 +1018,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "appendDidDocumentVersionMetadata": {
-          const {
-            didDocumentBuffer,
-            didVersionMetadataBuffer,
-          } = updatedDidDocument;
+          const { didDocumentBuffer, didVersionMetadataBuffer } =
+            updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
@@ -1047,10 +1037,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "detachDidDocumentVersionMetadata": {
-          const {
-            didDocumentBuffer,
-            didVersionMetadataBuffer,
-          } = updatedDidDocument;
+          const { didDocumentBuffer, didVersionMetadataBuffer } =
+            updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
@@ -1328,10 +1316,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "detachDidDocumentVersionHash": {
-          const {
-            didDocumentBuffer,
-            canonicalizedDidDocumentHash,
-          } = updatedDidDocument;
+          const { didDocumentBuffer, canonicalizedDidDocumentHash } =
+            updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
@@ -1348,10 +1334,8 @@ describe("JsonRpc Module", () => {
         }
         case "appendDidDocumentVersionMetadata":
         case "detachDidDocumentVersionMetadata": {
-          const {
-            didDocumentBuffer,
-            didVersionMetadataBuffer,
-          } = updatedDidDocument;
+          const { didDocumentBuffer, didVersionMetadataBuffer } =
+            updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
@@ -1487,13 +1471,13 @@ describe("JsonRpc Module", () => {
           expectedErrorMessage2 =
             "property params[0].status has failed the following constraints: max";
 
-          param3 = ({
+          param3 = {
             from: signer.address,
             outputLength: 256,
             ianaName: "sha-256",
             oid: 1,
             status: 1,
-          } as unknown) as InsertHashAlgorithmParam;
+          } as unknown as InsertHashAlgorithmParam;
 
           expectedErrorMessage3 =
             "property params[0].oid has failed the following constraints: isString";
@@ -1835,10 +1819,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "detachDidDocumentVersionHash": {
-          const {
-            didDocumentBuffer,
-            canonicalizedDidDocumentHash,
-          } = updatedDidDocument;
+          const { didDocumentBuffer, canonicalizedDidDocumentHash } =
+            updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
@@ -1880,10 +1862,8 @@ describe("JsonRpc Module", () => {
         }
         case "appendDidDocumentVersionMetadata":
         case "detachDidDocumentVersionMetadata": {
-          const {
-            didDocumentBuffer,
-            didVersionMetadataBuffer,
-          } = updatedDidDocument;
+          const { didDocumentBuffer, didVersionMetadataBuffer } =
+            updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
@@ -2244,10 +2224,8 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "detachDidDocumentVersionHash": {
-          const {
-            didDocumentBuffer,
-            canonicalizedDidDocumentHash,
-          } = updatedDidDocument;
+          const { didDocumentBuffer, canonicalizedDidDocumentHash } =
+            updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
@@ -2272,10 +2250,8 @@ describe("JsonRpc Module", () => {
         }
         case "appendDidDocumentVersionMetadata":
         case "detachDidDocumentVersionMetadata": {
-          const {
-            didDocumentBuffer,
-            didVersionMetadataBuffer,
-          } = updatedDidDocument;
+          const { didDocumentBuffer, didVersionMetadataBuffer } =
+            updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
