@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import axios from "axios";
-import { createJwt, SimpleSigner } from "@cef-ebsi/did-jwt";
+import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { loadConfig } from "../../src/config/configuration";
 
 const { apiName, authApiName, trustedAppsRegistry, testApp } = loadConfig();
@@ -20,17 +20,19 @@ async function createFakeToken(useKidAuthApi = false): Promise<string> {
     const response = await axios.get(
       `${trustedAppsRegistry}?name=${authApiName}`
     );
-    const { href } = (response.data as {
-      items: { href: string }[];
-    }).items[0];
+    const { href } = (
+      response.data as {
+        items: { href: string }[];
+      }
+    ).items[0];
     kid = href;
   }
-  return createJwt(
+  return createJWT(
     payload,
     {
       alg: "ES256K",
       issuer: authApiName,
-      signer: SimpleSigner(crypto.randomBytes(32).toString("hex")),
+      signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
     },
     {
       kid,

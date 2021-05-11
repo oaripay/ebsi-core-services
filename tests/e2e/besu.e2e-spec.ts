@@ -40,14 +40,14 @@ describe("POST /ledger/v2/blockchains/besu", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
-      ConfigService
-    );
-    const testApp = configService.get<{
-      id: string;
-      name: string;
-      privateKey: string;
-    }>("testApp");
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    const testApp =
+      configService.get<{
+        id: string;
+        name: string;
+        privateKey: string;
+      }>("testApp");
 
     const agent = new Agent(testApp.privateKey, {
       issuer: testApp.name,
@@ -62,15 +62,14 @@ describe("POST /ledger/v2/blockchains/besu", () => {
     const response = await request(authApi)
       .post("/oauth2-sessions")
       .send(requestOauth2);
-    /* token = await agent.verifyAuthenticationResponse(
+    token = await agent.verifyAuthenticationResponse(
       response.body as AkeResponse,
       nonce
-    ); */
-    token = "";
-    fakeToken = await createFakeToken(/* true */);
+    );
+    fakeToken = await createFakeToken(true);
   });
 
-  it.skip("should throw forbidden or unauthorized errors for bad Authentication", async () => {
+  it("should throw forbidden or unauthorized errors for bad Authentication", async () => {
     expect.assertions(4);
 
     let response = await request(server).post("/blockchains/besu").send();

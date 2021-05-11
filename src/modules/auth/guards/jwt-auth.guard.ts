@@ -1,16 +1,12 @@
-import {
-  CanActivate /* , ExecutionContext */,
-  Injectable,
-} from "@nestjs/common";
-// import { UserInfo } from "../auth.interface";
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { UserInfo } from "../auth.interface";
 import { AuthService } from "../auth.service";
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(private authService: AuthService) {}
 
-  /* async */ canActivate(/* context: ExecutionContext */): /* Promise< */ boolean /* > */ {
-    /*
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<{
       headers: {
         authorization: string;
@@ -25,7 +21,6 @@ export class JwtAuthGuard implements CanActivate {
     request.user = {
       sub: payload.sub,
     };
-    */
     return true;
   }
 }

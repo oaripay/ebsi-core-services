@@ -85,7 +85,7 @@ describe("Besu Module", () => {
   });
 
   // Generic tests
-  it.skip("should throw forbidden or unauthorized errors for bad Authentication", async () => {
+  it("should throw forbidden or unauthorized errors for bad Authentication", async () => {
     expect.assertions(4);
 
     let response = await request(server).post("/blockchains/besu").send();
@@ -399,23 +399,23 @@ describe("Besu Module", () => {
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
-    jest.spyOn(axios, "post").mockImplementation(
-      (): Promise<AxiosError<unknown>> => {
-        const err = new Error("test error message");
-        (err as AxiosError).config = {};
-        (err as AxiosError).isAxiosError = true;
-        (err as AxiosError).toJSON = () => ({});
-        (err as AxiosError).response = {
-          data: "Error message",
-          status: 500,
-          statusText: "Internal Error",
-          config: {},
-          headers: {},
-        };
+    jest.spyOn(axios, "post").mockImplementation((): Promise<
+      AxiosError<unknown>
+    > => {
+      const err = new Error("test error message");
+      (err as AxiosError).config = {};
+      (err as AxiosError).isAxiosError = true;
+      (err as AxiosError).toJSON = () => ({});
+      (err as AxiosError).response = {
+        data: "Error message",
+        status: 500,
+        statusText: "Internal Error",
+        config: {},
+        headers: {},
+      };
 
-        return Promise.reject(err);
-      }
-    );
+      return Promise.reject(err);
+    });
 
     const response = await request(server)
       .post("/blockchains/besu")
@@ -444,24 +444,24 @@ describe("Besu Module", () => {
     );
 
     // Let's say Besu answers with
-    jest.spyOn(axios, "post").mockImplementation(
-      (): Promise<AxiosResponse<BesuResponseObject>> => {
-        return Promise.resolve({
-          data: {
-            jsonrpc: "2.0",
-            id: 1,
-            error: {
-              code: -32001,
-              message: "Nonce too low",
-            },
+    jest.spyOn(axios, "post").mockImplementation((): Promise<
+      AxiosResponse<BesuResponseObject>
+    > => {
+      return Promise.resolve({
+        data: {
+          jsonrpc: "2.0",
+          id: 1,
+          error: {
+            code: -32001,
+            message: "Nonce too low",
           },
-          status: 200,
-          statusText: "",
-          headers: {},
-          config: {},
-        });
-      }
-    );
+        },
+        status: 200,
+        statusText: "",
+        headers: {},
+        config: {},
+      });
+    });
 
     const response = await request(server)
       .post("/blockchains/besu")

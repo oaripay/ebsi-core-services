@@ -32,9 +32,8 @@ describe("HealthController", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    httpHealthIndicator = moduleFixture.get<HttpHealthIndicator>(
-      HttpHealthIndicator
-    );
+    httpHealthIndicator =
+      moduleFixture.get<HttpHealthIndicator>(HttpHealthIndicator);
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
   });

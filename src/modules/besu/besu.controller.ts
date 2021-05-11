@@ -1,19 +1,14 @@
-import {
-  Controller,
-  Body,
-  Post,
-  Response /* , UseGuards */,
-} from "@nestjs/common";
+import { Controller, Body, Post, Response, UseGuards } from "@nestjs/common";
 import { FastifyReply } from "fastify";
 import { BesuService } from "./besu.service";
 import { BesuDto } from "./dto";
-// import { JwtAuthGuard } from "../auth/guards";
+import { JwtAuthGuard } from "../auth/guards";
 
 @Controller("/blockchains/besu")
 export class BesuController {
   constructor(private besuService: BesuService) {}
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   async besu(
     @Body() body: BesuDto,
