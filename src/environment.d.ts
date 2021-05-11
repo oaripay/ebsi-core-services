@@ -8,6 +8,10 @@ declare global {
       API_URL_PREFIX?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       AUTHORISATION_CREDENTIAL_SCHEMA: string;
+      EU_LOGIN_VALIDATE_SERVICE_URL?: string;
+      RECAPTCHA_SERVICE_URL?: string;
+      RECAPTCHA_REGISTERED_HOSTNAME?: string;
+      RECAPTCHA_API_KEY: string;
     }
   }
 }

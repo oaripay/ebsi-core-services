@@ -17,12 +17,14 @@ import {
   Options,
   validateVerifiableCredential,
 } from "@cef-ebsi/verifiable-credential";
+import { UserAuthentication } from "src/shared/dto";
 import { createFakeToken } from "../auxTests";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { ApiConfig } from "../../src/config/configuration";
 import {
   AuthenticationResponse,
+  SessionToken,
   VerifiableAuthorization,
 } from "../../src/shared/interfaces";
 import { prefix0x } from "../../src/modules/authentication/authentication.utils";
@@ -37,7 +39,7 @@ interface SupertestAuthenticationResponse {
   body: VerifiableAuthorization;
 }
 
-describe("/users-onboarding (generic tests)", () => {
+describe("/onboarding/v1 authentication e2e tests", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
   let configService: ConfigService<ApiConfig>;
@@ -84,7 +86,7 @@ describe("/users-onboarding (generic tests)", () => {
     expect(authenticationRequest.session_token).toContain("&nonce");
   });
 
-  it.skip("should test the authentication session with a wrong token", async () => {
+  it("should test the authentication session with a wrong token", async () => {
     expect.assertions(3);
     const authenticationRequestResponse: SupertestAuthenticationRequestResponse = await request(
       server
@@ -136,9 +138,23 @@ describe("/users-onboarding (generic tests)", () => {
       });
     expect(authenticationServerResponseWrongToken.status).toBe(401);
   });
-
-  it("should test the full flow", async () => {
-    expect.assertions(9);
+  /**
+   * In order to enable and run the test below successfully, you need to set a one time valid eu-login ticket or a recaptcha token.
+   * EU Login:
+   * 1 - https://ecas.acceptance.ec.europa.eu/cas/login?service=http%3A%2F%2Flocalhost%3A3000%2Fonboarding%2Fauthentication&renew=false
+   * 2 - Login with you EULogin user
+   * 3 - Copy the ticket from redirected URL
+   * 4 - Set ticket variable below
+   * reCAPTCHA:
+   * 1 - Run locally users-onboarding-web-client
+   * 2 - Inspect console and click on Sign in with Captcha
+   * 3 - Copy the token printed
+   * 4 - Set token variable below
+   */
+  it.skip("should test the full flow", async () => {
+    expect.assertions(10);
+    const ticket =
+      "ST-1673653-zLHa6H26OMFjMvVgFxuebgTKhIQlS8UPhiMEh1zRGjVRHWNBctWNee2WUAkNsasS7dAK2Vy99zzic1JOtLxSfD8-NaAc23CqASexIeoxDbDZLC-MYkDIiLRnYFxbxzrhJzTDq3qR6zMHEeeqDC9EwAvy56Hbx4GqfbnuB3lLpnDWALd8DTE6OXC3Y8HqJldiPQYCL0"; // set valid ticket
     const authenticationRequestResponse: SupertestAuthenticationRequestResponse = await request(
       server
     )
@@ -186,36 +202,23 @@ describe("/users-onboarding (generic tests)", () => {
     expect(didAuthResponseJwt.urlEncoded).toBeDefined();
 
     // Obtain valid token
-    /* const testApp = configService.get<{
-      id: string;
-      name: string;
-      privateKey: string;
-    }>("testApp");
-    const agent = new Agent(testApp.privateKey, {
-      issuer: testApp.name,
-      kid: `${configService.get<string>("trustedAppsRegistry")}/${testApp.id}`,
-    });
-    const nonce = crypto.randomBytes(12).toString("base64");
-    const requestOauth2 = await agent.createRequestPayload(
-      configService.get<string>("apiName"),
-      {
-        nonce,
-      }
-    );
-    const authApi = configService.get<string>("authorisationApiUrl");
-    const response = await request(authApi)
-      .post("/oauth2-sessions")
-      .send(requestOauth2);
-    const token = await agent.verifyAuthenticationResponse(
-      response.body as AkeResponse,
-      nonce
-    ); */
+    const body = {
+      onboarding: "eu-login",
+      info: {
+        "eul-ticket": ticket,
+      },
+    } as UserAuthentication;
+    const response = await request(app.getHttpServer())
+      .post(`/sessions`)
+      .send(body);
+    const token = (response.body as SessionToken).Bearer;
+    expect(token).toBeDefined();
     // 4 - RP verifies the response and create the verifiable Authorization and creates the verifiable Authorization (requires bearer token)
     const authenticationServerResponse: SupertestAuthenticationResponse = await request(
       server
     )
       .post("/authentication-responses")
-      // .auth(token, { type: "bearer" })
+      .auth(token, { type: "bearer" })
       .send({
         id_token: didAuthResponseJwt.urlEncoded,
       });

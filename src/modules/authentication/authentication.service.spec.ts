@@ -15,7 +15,7 @@ import {
 } from "../../shared/interfaces";
 import * as utils from "./authentication.utils";
 
-describe("authentication module tests", () => {
+describe("authentication service tests", () => {
   let app: INestApplication;
   let configService: ConfigService<ApiConfig>;
 

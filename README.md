@@ -1,6 +1,6 @@
 ![EBSI Logo](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
 
-# Users onboarding API
+# Users onboarding API (backend)
 
 Users Onboarding API is an EBSI core service to enable users (Natural Persons and Legal Entities) to onboard on EBSI Pre-prod and get an "entry ticket" to get access to the protected EBSI resources.
 For more information see:

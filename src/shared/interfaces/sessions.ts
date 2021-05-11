@@ -1,4 +1,4 @@
-export interface CaptchaAuthenticationInfo {
+export interface CaptchaAuthenticationValidatedInfo {
   success: boolean;
   score: number;
   action: string;
@@ -7,15 +7,21 @@ export interface CaptchaAuthenticationInfo {
   "error-codes"?: unknown;
 }
 
+export interface CaptchaAuthenticationInfo {
+  token: string;
+}
+
+export interface EULoginAuthenticationValidatedInfo {
+  validatedUser: UserEU;
+}
+
 export interface EULoginAuthenticationInfo {
   "eul-ticket": string;
 }
 
 export interface UserEU {
   user: string;
-  departmentNumber: string;
   email: string;
-  employeeNumber: string;
   employeeType: string;
   firstname: string;
   lastname: string;
@@ -25,11 +31,11 @@ export interface UserEU {
   locale: string;
   assuranceLevel: string;
   uid: string;
-  orgId: string;
   teleworkingPriority: string;
   loginDate: string;
   sso: string;
   ticketType: string;
+  [x: string]: unknown;
 }
 
 export interface SessionToken {

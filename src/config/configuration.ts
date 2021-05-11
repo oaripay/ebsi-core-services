@@ -20,6 +20,11 @@ export interface ApiConfig {
   applicationId: string;
   applicationDid: string;
   authorisationCredentialSchema: string;
+  euloginService: string;
+  euloginServiceParam: string;
+  recaptchaService: string;
+  recaptchaRegisteredHostname: string;
+  recaptchaApiKey: string;
   testUserDid: string;
   testUserPrivateKey: string;
   testApp: {
@@ -39,6 +44,11 @@ const defaultConfig = {
     TRUSTED_APPS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
     DID_RESOLVER: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
+    EU_LOGIN_VALIDATE_SERVICE_URL:
+      "https://ecas.acceptance.ec.europa.eu/cas/TicketValidationService",
+    EULOGIN_SERVICE_PARAM:
+      "http://localhost:3000/users-onboarding/authentication",
+    RECAPTCHA_REGISTERED_HOSTNAME: "localhost",
     LOG_LEVEL: "debug",
   },
   test: {
@@ -49,6 +59,11 @@ const defaultConfig = {
     TRUSTED_APPS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
     DID_RESOLVER: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
+    EU_LOGIN_VALIDATE_SERVICE_URL:
+      "https://ecas.acceptance.ec.europa.eu/cas/TicketValidationService",
+    EULOGIN_SERVICE_PARAM:
+      "https://app.test.intebsi.xyz/users-onboarding/authentication",
+    RECAPTCHA_REGISTERED_HOSTNAME: "api.test.intebsi.xyz",
     LOG_LEVEL: "info",
   },
   pilot: {
@@ -59,6 +74,11 @@ const defaultConfig = {
     TRUSTED_APPS_REGISTRY:
       "https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps",
     DID_RESOLVER: "https://api.preprod.ebsi.eu/did-registry/v2/identifiers",
+    EU_LOGIN_VALIDATE_SERVICE_URL:
+      "https://ecas.ec.europa.eu/cas/TicketValidationService",
+    EULOGIN_SERVICE_PARAM:
+      "https://app.preprod.ebsi.eu/users-onboarding/authentication",
+    RECAPTCHA_REGISTERED_HOSTNAME: "api.preprod.ebsi.eu",
     LOG_LEVEL: "warn",
   },
   prod: {
@@ -68,6 +88,11 @@ const defaultConfig = {
     AUTHORISATION: "https://api.ebsi.eu/authorisation/v1",
     TRUSTED_APPS_REGISTRY: "https://api.ebsi.eu/trusted-apps-registry/v2/apps",
     DID_RESOLVER: "https://api.ebsi.eu/did-registry/v2/identifiers",
+    EU_LOGIN_VALIDATE_SERVICE_URL:
+      "https://ecas.ec.europa.eu/cas/TicketValidationService",
+    EULOGIN_SERVICE_PARAM:
+      "https://app.ebsi.eu/users-onboarding/authentication",
+    RECAPTCHA_REGISTERED_HOSTNAME: "api.ebsi.eu",
     LOG_LEVEL: "error",
   },
 };
@@ -101,6 +126,17 @@ export const loadConfig = (): ApiConfig => {
     applicationId: process.env.APPLICATION_ID,
     applicationDid: process.env.APPLICATION_DID,
     authorisationCredentialSchema: process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
+    euloginService:
+      process.env.EU_LOGIN_VALIDATE_SERVICE_URL ||
+      defaultConfig[EBSI_ENV].EU_LOGIN_VALIDATE_SERVICE_URL,
+    euloginServiceParam: defaultConfig[EBSI_ENV].EULOGIN_SERVICE_PARAM,
+    recaptchaService:
+      process.env.RECAPTCHA_SERVICE_URL ||
+      "https://www.google.com/recaptcha/api",
+    recaptchaRegisteredHostname:
+      process.env.RECAPTCHA_REGISTERED_HOSTNAME ||
+      defaultConfig[EBSI_ENV].RECAPTCHA_REGISTERED_HOSTNAME,
+    recaptchaApiKey: process.env.RECAPTCHA_API_KEY,
     testUserDid: process.env.USER_DID || "",
     testUserPrivateKey: process.env.USER_PRIVATE_KEY || "",
     testApp: {
@@ -135,7 +171,10 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug"
     ),
-    // Users Onboarding specific variables
+    EU_LOGIN_VALIDATE_SERVICE_URL: Joi.string().uri(),
+    RECAPTCHA_SERVICE_URL: Joi.string().uri(),
+    RECAPTCHA_REGISTERED_HOSTNAME: Joi.string(),
+    RECAPTCHA_API_KEY: Joi.string().required(),
     HEALTH_CHECK: Joi.string(),
     API_PRIVATE_KEY: Joi.string().required(),
     APPLICATION_ID: Joi.string().required(),

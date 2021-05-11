@@ -1,10 +1,11 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Post, UseGuards } from "@nestjs/common";
 import {
   VerifiableAuthorization,
   AuthenticationResponse,
   AuthenticationRequest,
   AuhtenticationResponseRequest,
 } from "src/shared/interfaces";
+import { JwtAuthGuard } from "../auth/guards";
 import AuthenticationService from "./authentication.service";
 
 @Controller("/")
@@ -21,8 +22,7 @@ export class AuthenticationController {
     return authenticationResponse;
   }
 
-  // TEMPORARILY DISABLED FOR DEMO
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Post("/authentication-responses")
   async authenticationResponse(
     @Body() body: AuhtenticationResponseRequest

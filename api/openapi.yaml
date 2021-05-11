@@ -17,6 +17,87 @@ info:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
 paths:
+  /users-onboarding/v1/sessions:
+    post:
+      tags:
+        - Users Onboarding API
+      summary: Sessions
+      description: The endpoint validates the EU Login/reCAPTCHA response and returns a session token.
+      operationId: post-users-onboarding-api-sessions
+      requestBody:
+        required: true
+        description: |
+          It requires to provide either the EULogin or reCAPTCHA response.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                onboarding:
+                  description: Either eu-login or reCAPTCHA.
+                  type: string
+                info:
+                  description: Additional onboarding information
+                  type: object
+            examples:
+              EULogin:
+                value:
+                  onboarding: "eu-login"
+                  info:
+                    eul-ticket: "EU Login ticket number"
+              reCAPTCHA:
+                value:
+                  onboarding: "recaptcha"
+                  info:
+                    success: true
+                    score: 1
+                    action: "onboarding"
+                    challenge_ts: 1616575166
+                    hostname: "api.ebsi.eu"
+                    error-codes:
+                      - optional
+      responses:
+        201:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  Bearer:
+                    type: string
+                    description: Session token
+              examples:
+                Success:
+                  value:
+                    Bearer: eyJhbGciOiJFUzI1NiIsImN0eSI6IkpXVCIsImtpZCI6IiIsInR5cCI6IkpXVCJ9.eyJhdEhhc2giOiI4Rlo1YzdROTlWaldETU14Nis4WUt2dTVVTVNuQWpwdWFzSDg1L1JUb3M0PSIsImV4cCI6MTYxNjU3NjEyMCwiaWF0IjoxNjE2NTc2MDAwLCJpc3MiOiJVc2VycyBPbmJvYXJkaW5nIEFQSSIsIm5vbmNlIjoiMDRhYjEzNzUtMGU1MS00YjUyLWE4NTUtM2UxYmY3NWJkOTViIiwic3ViIjoiVXNlcnMgT25ib2FyZGluZyBBUEkifQ.BWfmeyyyN-4CruvkBYOQahsWH5TZEpFn8FU1BY6iazVuxpz2QccN6KEOhIzTDV_cy-lKb64vDO2YjAzcMfJfaw
+        400:
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Request Error:
+                  $ref: "#/components/examples/BadRequest"
+        404:
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Not Found:
+                  $ref: "#/components/examples/NotFound"
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /users-onboarding/v1/authentication-requests:
     post:
       tags:
@@ -90,8 +171,8 @@ paths:
       summary: Authentication responses
       description: The user performs a request to this endpoint so as the user onboarding api accept his/her authentication response, validates it and returns a Verifiable Authorisation.
       operationId: post-users-onboarding-api-authentication-responses
-      #security:
-      #  - bearerAuth: []
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -100,7 +181,7 @@ paths:
               type: object
               properties:
                 id_token:
-                  description: id token created by the user candidate to be validated. Notice that this value holds more than the JWT but also parameters like state.
+                  description: did auth id token created by the user candidate to be validated. Notice that this value holds more than the JWT but also parameters like state.
                   type: string
             examples:
               scope:

@@ -17,10 +17,7 @@ export class JwtAuthGuard implements CanActivate {
     if (!headers.authorization || !headers.authorization.startsWith("Bearer "))
       return false;
     const token = headers.authorization.replace("Bearer ", "");
-    const payload = await this.authService.validateToken(token);
-    request.user = {
-      sub: payload.sub,
-    };
+    await this.authService.validateToken(token);
     return true;
   }
 }
