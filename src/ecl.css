@@ -1,0 +1,46 @@
+/* ECL Fixes */
+
+@media (min-width: 996px) {
+  /* Fix margins */
+  .ecl-site-header-harmonised__login-toggle[aria-expanded="true"] {
+    margin-bottom: -1.5rem;
+    padding-bottom: 2.25rem;
+  }
+
+  /* Align login box to the right instead of left and fix margin */
+  .ecl-site-header-harmonised__login-box {
+    right: 0;
+    left: auto;
+    margin-top: calc(1.5rem - 1px);
+  }
+
+  .ecl-table__header {
+    vertical-align: middle;
+  }
+}
+
+.ecl-table__cell {
+  overflow-wrap: anywhere;
+  vertical-align: baseline;
+}
+
+.ecl-link {
+  overflow-wrap: anywhere;
+}
+
+.ecl-form-group {
+  width: 100%;
+}
+
+.ecl-unordered-list__item {
+  overflow-wrap: anywhere;
+}
+
+/* Override link color when the row requires white text */
+.ecl-table__row.ecl-u-type-color-white .ecl-link {
+  color: #fff;
+}
+
+.ecl-menu__inner[aria-hidden="true"] {
+  display: none;
+}
