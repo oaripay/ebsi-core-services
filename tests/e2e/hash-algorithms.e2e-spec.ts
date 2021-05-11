@@ -26,6 +26,7 @@ import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { siopAuthentication } from "../utils/auth";
+import { LedgerService } from "../../src/shared/services/ledger.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -37,6 +38,7 @@ type JsonRpcParams = InsertHashAlgorithmParam | UpdateHashAlgorithmParam;
 describe("HashAlgorithms (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let ledgerService: LedgerService;
 
   let testAdmin: {
     did: string;
@@ -73,6 +75,7 @@ describe("HashAlgorithms (e2e)", () => {
     const configService = moduleFixture.get<ConfigService<ApiConfig>>(
       ConfigService
     );
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     const configAdmin = configService.get<{
       did: string;
@@ -281,10 +284,10 @@ describe("HashAlgorithms (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(
-          responseSend.body.result as string,
-          testAdmin.token
+          ledgerService,
+          responseSend.body.result as string
         );
-        expect(receipt.status).toBe("0x1");
+        expect(receipt.status).toBe(1);
       });
     }
   );

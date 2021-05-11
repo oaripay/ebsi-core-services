@@ -28,6 +28,7 @@ import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x, multibase64Encode } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { siopAuthentication } from "../utils/auth";
+import { LedgerService } from "../../src/shared/services/ledger.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -42,6 +43,7 @@ type JsonRpcParams =
 describe("Timestamp (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let ledgerService: LedgerService;
 
   let testAdmin: {
     did: string;
@@ -78,6 +80,7 @@ describe("Timestamp (e2e)", () => {
     const configService = moduleFixture.get<ConfigService<ApiConfig>>(
       ConfigService
     );
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     const configAdmin = configService.get<{
       did: string;
@@ -265,10 +268,10 @@ describe("Timestamp (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(
-          responseSend.body.result as string,
-          testUser.token
+          ledgerService,
+          responseSend.body.result as string
         );
-        expect(receipt.status).toBe("0x1");
+        expect(receipt.status).toBe(1);
       });
 
       it("should work with empty data", async () => {
@@ -354,10 +357,10 @@ describe("Timestamp (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(
-          responseSend.body.result as string,
-          testUser.token
+          ledgerService,
+          responseSend.body.result as string
         );
-        expect(receipt.status).toBe("0x1");
+        expect(receipt.status).toBe(1);
       });
 
       it("should reject impersonating transactions: admin wallet using jwt from user", async () => {

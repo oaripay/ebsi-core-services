@@ -8,6 +8,7 @@ declare global {
       API_PORT?: string;
       API_URL_PREFIX?: string;
       API_NAME?: string;
+      API_KID: string;
       AUTHORISATION_API_NAME?: string;
       AUTHORISATION_API_DID?: string;
       AUTHORISATION_API_URL?: string;

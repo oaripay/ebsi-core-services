@@ -35,6 +35,7 @@ import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x, multibase64Encode } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { siopAuthentication } from "../utils/auth";
+import { LedgerService } from "../../src/shared/services/ledger.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -53,6 +54,7 @@ type JsonRpcParams =
 describe("Records (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let ledgerService: LedgerService;
 
   let testAdmin: {
     did: string;
@@ -92,6 +94,7 @@ describe("Records (e2e)", () => {
     const configService = moduleFixture.get<ConfigService<ApiConfig>>(
       ConfigService
     );
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     const configAdmin = configService.get<{
       did: string;
@@ -482,17 +485,16 @@ describe("Records (e2e)", () => {
 
       // wait to be mined
       const receipt = await waitToBeMined(
-        responseSend.body.result as string,
-        testUser.token
+        ledgerService,
+        responseSend.body.result as string
       );
+
       if (method === "timestampRecordHashes") {
         // we need the blocknumber to be able to compute the recordId
         // created by timestampRecordHashes
-        blockNumber = parseInt(receipt.blockNumber.substring(2), 16);
+        blockNumber = receipt.blockNumber;
       }
-
-      /** */
-      expect(receipt.status).toBe("0x1");
+      expect(receipt.status).toBe(1);
     });
     it("should work with empty data", async () => {
       expect.assertions(5);
@@ -643,17 +645,15 @@ describe("Records (e2e)", () => {
 
       // wait to be mined
       const receipt = await waitToBeMined(
-        responseSend.body.result as string,
-        testUser.token
+        ledgerService,
+        responseSend.body.result as string
       );
       if (method === "timestampRecordHashes") {
         // we need the blocknumber to be able to compute the recordId
         // created by timestampRecordHashes
-        blockNumber = parseInt(receipt.blockNumber.substring(2), 16);
+        blockNumber = receipt.blockNumber;
       }
-
-      /** */
-      expect(receipt.status).toBe("0x1");
+      expect(receipt.status).toBe(1);
     });
   });
 

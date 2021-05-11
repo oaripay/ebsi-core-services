@@ -3,7 +3,7 @@
   "version": "2.0.0-rc.0",
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --moderate",
+    "audit": "audit-ci --moderate -a 1674",
     "prebuild": "rimraf dist",
     "build": "nest build -p tsconfig.production.json",
     "start": "nest start",
@@ -57,6 +57,7 @@
   "devDependencies": {
     "@commitlint/cli": "^12.1.1",
     "@commitlint/config-conventional": "^12.1.1",
+    "@ethersproject/abstract-provider": "^5.1.0",
     "@nestjs/cli": "^7.6.0",
     "@nestjs/schematics": "^7.3.1",
     "@nestjs/testing": "^7.6.15",
@@ -97,5 +98,8 @@
     "reportPath": "coverage",
     "reportFile": "test-reporter.xml",
     "indent": 4
+  },
+  "resolutions": {
+    "ganache-core/lodash": "4.17.21"
   }
 }
