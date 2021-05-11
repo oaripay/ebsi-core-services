@@ -654,8 +654,11 @@ describe("Apps (e2e)", () => {
       expect(responseSend.status).toBe(200);
 
       // wait to be mined
-      const receipt = await waitToBeMined(responseSend.body.result as string);
-      expect(receipt.status).toBe("0x1");
+      const receipt = await waitToBeMined(
+        ledgerService,
+        responseSend.body.result as string
+      );
+      expect(receipt.status).toBe(1);
 
       /* eslint-disable jest/no-conditional-expect */
       switch (method) {
