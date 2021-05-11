@@ -28,6 +28,7 @@ import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { multihashEncode } from "../../src/shared/utils/multihash.utils";
 import { requestSiopJwt } from "../utils/siopJwt";
+import { LedgerService } from "../../src/modules/ledger/ledger.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -55,6 +56,7 @@ describe("Policies (e2e)", () => {
   let testClientWallet: ethers.Wallet;
   let configService: ConfigService<ApiConfig>;
   let testUserAccessToken: string;
+  let ledgerService: LedgerService;
 
   const createPolicy = (
     n: string | number
@@ -94,6 +96,7 @@ describe("Policies (e2e)", () => {
     server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     testClientWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testClientPrivateKey"))
@@ -224,8 +227,11 @@ describe("Policies (e2e)", () => {
         expect(responseSend.status).toBe(200);
 
         // wait to be mined
-        const receipt = await waitToBeMined(responseSend.body.result as string);
-        expect(receipt.status).toBe("0x1");
+        const receipt = await waitToBeMined(
+          ledgerService,
+          responseSend.body.result as string
+        );
+        expect(receipt.status).toBe(1);
 
         // get policy
         const policyResponse = await request(server).get(
