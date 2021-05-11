@@ -29,6 +29,7 @@ import { waitToBeMined } from "../utils/waitToBeMined";
 import { prefixWith0x } from "../../src/shared/utils";
 import { PaginatedList } from "../../src/shared/interfaces";
 import { requestSiopJwt } from "../utils/siopJwt";
+import { LedgerService } from "../../src/shared/services/ledger.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -63,6 +64,7 @@ describe("Issuers (e2e)", () => {
   let configService: ConfigService<ApiConfig>;
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
+  let ledgerService: LedgerService;
 
   const createIssuer = () => {
     const did = `did:ebsi:test-${new Date().toISOString()}`;
@@ -107,6 +109,7 @@ describe("Issuers (e2e)", () => {
     server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testAdminPrivateKey"))
@@ -515,8 +518,11 @@ describe("Issuers (e2e)", () => {
       expect(responseSend.status).toBe(200);
 
       // wait to be mined
-      const receipt = await waitToBeMined(responseSend.body.result as string);
-      expect(receipt.status).toBe("0x1");
+      const receipt = await waitToBeMined(
+        ledgerService,
+        responseSend.body.result as string
+      );
+      expect(receipt.status).toBe(1);
 
       // get issuer
       const issuerResponse = await request(server).get(`/issuers/${did}`);
