@@ -10,10 +10,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     log: true,
   };
 
-  await deployments.deploy(
-    "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
-    opts
-  );
+  await deployments.deploy("Pagination", {
+    ...opts,
+    contract:
+      "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
+  });
 };
 export default func;
 func.tags = ["Pagination"];

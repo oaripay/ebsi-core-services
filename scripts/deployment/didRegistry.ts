@@ -10,10 +10,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     log: true,
   };
 
-  const pagination = await deployments.deploy(
-    "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
-    opts
-  );
+  const pagination = await deployments.deploy("Pagination", {
+    ...opts,
+    contract:
+      "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
+  });
   const optsPagination = {
     from: deployer,
     log: true,
@@ -35,18 +36,21 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   });
   const didMethodLib = await deployments.deploy("DidMethodLib", optsPagination);
 
-  const hashAlgoLib = await deployments.deploy(
-    "contracts/did-registry-ethereum-sc/contracts/did-registry/HashAlgoLib.sol:HashAlgoLib",
-    optsPagination
-  );
-  const policyLib = await deployments.deploy(
-    "contracts/did-registry-ethereum-sc/contracts/did-registry/PolicyLib.sol:PolicyLib",
-    optsPagination
-  );
-  const administratorLib = await deployments.deploy(
-    "contracts/did-registry-ethereum-sc/contracts/did-registry/AdministratorLib.sol:AdministratorLib",
-    optsPagination
-  );
+  const hashAlgoLib = await deployments.deploy("HashAlgoLib", {
+    ...optsPagination,
+    contract:
+      "contracts/did-registry-ethereum-sc/contracts/did-registry/HashAlgoLib.sol:HashAlgoLib",
+  });
+  const policyLib = await deployments.deploy("PolicyLib", {
+    ...optsPagination,
+    contract:
+      "contracts/did-registry-ethereum-sc/contracts/did-registry/PolicyLib.sol:PolicyLib",
+  });
+  const administratorLib = await deployments.deploy("AdministratorLib", {
+    ...optsPagination,
+    contract:
+      "contracts/did-registry-ethereum-sc/contracts/did-registry/AdministratorLib.sol:AdministratorLib",
+  });
 
   const ts = await deployments.deploy("DidRegistry", {
     from: deployer,

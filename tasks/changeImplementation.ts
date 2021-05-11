@@ -50,6 +50,12 @@ task("changeImplementation", "change proxy implementation")
         )
       ).toHexString();
       console.log(`Proxy admin address: ${adminAddr}`);
+      const signers = (await ethers.getSigners())[0];
+      console.log(`Deployer address: ${signers.address}`);
+      if (signers.address.toLowerCase() !== adminAddr.toLowerCase()) {
+        console.log(`Transaction will fail because not the correct admin`);
+        process.exit(0);
+      }
       // the implementation is in the next storage slot as it is part of the same struct
       const implementationAddr = BigNumber.from(
         await ethers.provider.getStorageAt(
@@ -69,7 +75,9 @@ task("changeImplementation", "change proxy implementation")
       ).toHexString();
       console.log(`current version : ${version}`);
 
-      await deployments.run(taskArgs.implementation);
+      await deployments.run(taskArgs.implementation, {
+        writeDeploymentsToFiles: true,
+      });
       const ts = await deployments.get(taskArgs.implementation);
       console.log(`${taskArgs.implementation} deployed at ${ts.address} `);
       let receipt;

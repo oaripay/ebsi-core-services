@@ -94,9 +94,56 @@ running deployment script will add information about deployment like the smart c
 
 if you want to deploy again the smart contract add the `--reset` option
 
+### Deployment 1a
+
+To deploy the smart contract without upgrade-ability use the deploy script with the contract deployment tag
+
 ```sh
-yarn hardhat --network local deploy --tags Timestamp  --gasprice 0 --reset
+yarn hardhat --network local deploy --tags <TAG>  --gasprice 0 --reset
 ```
+
+Note: For TAG please see Deployment Appendix
+
+### Deployment 1b
+
+Step 1: deploy the proxy
+
+```bash
+yarn hardhat --network local deploy --tags OwnedUpgradeabilityProxy --gasprice 0 --reset
+```
+
+Step2: init the proxy
+
+```bash
+yarn hardhat --network local initProxy --proxy PROXY_ADDRESS --implementation TAG --storage STORAGE
+```
+
+PROXY_ADDRESS = the output of the proxy deploy
+TAG = Deployment Tag from the appendix below
+STORAGE = Storage of version location from the appendix below
+
+Step3: Update one deployment
+
+```bash
+yarn hardhat --network local changeImplementation --proxy PROXY_ADDRESS --implementation TAG --storage STORAGE --increment true
+
+```
+
+PROXY_ADDRESS = the output of the proxy deploy
+TAG = Deployment Tag from the appendix below
+STORAGE = Storage of version location from the appendix below
+
+### Deployment Appendix
+
+           | App Name              	| Deployment Tag   	| Storage of version location                             	|
+           :-----:|:-----:|:-----:
+           | TrustedAppsRegistry   	| Tar              	| diamond.standard.tar.storage                            	|
+           | TrustedIssuersRegistry | Tir              	| diamond.standard.tir.storage                            	|
+           | DidRegistry           	| DidRegistry      	| diamond.standard.did.registry.storage                   	|
+           | TrustedSchemaRegistry 	| SchemaSCRegistry 	| diamond.standard.trusted.schema.smart.contracts.storage 	|
+           | TrustedLedgerRegistry 	| LedgerSCRegistry 	| diamond.standard.trusted.ledger.smart.contracts.storage 	|
+           | Timestamp             	| Timestamp        	| diamond.standard.timestamp.storage                      	|
+
 
 ## Scripts
 
@@ -115,6 +162,28 @@ To create or update apps in the Trusted Apps Registry go to the folder `scripts/
 
 ```sh
 yarn hardhat --network local run scripts/trusted-apps-registry/updateApps.ts
+```
+
+
+### Insert Administrators
+
+Add new administrators to the desired Registries (registries must implement `insertAdministrator(string,bytes)` and `getAdministrator(string)`)
+
+```
+npx hardhat --network localWithData insertAdministrator --proxy PROXY_ADDRESS --contract CONTRACT_ARTIFACT
+```
+### Insert Administrator Appendix
+
+           | App Name              	| Deployment Tag   	| Contract ABI artifact                             	|
+           :-----:|:-----:|:-----:
+           | TrustedIssuersRegistry | Tir              	| contracts/trusted-issuers-registry-ethereum-sc/contracts/tir/Tir.sol:Tir                            	|
+
+### Insert App Hash Algo
+
+Add the default hash algorithms to the ledgers (contract ABIs: `DidRegistry`, `Timestamp`)
+
+```
+npx hardhat --network localWithData addHashAlgo --proxy PROXY_ADDRESS --contract CONTRACT 
 ```
 
 # Hardhat console

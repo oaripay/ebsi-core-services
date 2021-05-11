@@ -15,9 +15,12 @@ import * as fs from "fs";
 // when running yarn test
 
 const mnemonicPath = `${__dirname}/.secret.mnemonic`;
+const privKeyPath = `${__dirname}/.secret.privatekey`
 let mnemonic = "test test test test test test test test test test test junk";
+let privKey = "";
 try {
   mnemonic = fs.readFileSync(mnemonicPath).toString().trim();
+  privKey = fs.readFileSync(privKeyPath).toString().trim();
 } catch (err) {
   console.error(err);
 }
@@ -32,11 +35,19 @@ const config: HardhatUserConfig = {
     hardhat: {},
     local: {
       url: `http://localhost:8545`,
+      accounts: [privKey],
+      gas: 20000000,
+      gasPrice: 0,
+      loggingEnabled: true,
+      saveDeployments: true,
+    },
+    localWithData: {
+      url: `http://localhost:8545`,
       accounts,
       gas: 20000000,
       gasPrice: 0,
       loggingEnabled: true,
-      saveDeployments: false,
+      saveDeployments: true,
     },
     ebsi: {
       url: `https://api.prod.ebsi.xyz/ledger/v2/blockchains/besu`,

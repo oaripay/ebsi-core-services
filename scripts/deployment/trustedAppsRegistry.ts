@@ -10,10 +10,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     log: true,
   };
 
-  const pagination = await deployments.deploy(
-    "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
-    opts
-  );
+  const pagination = await deployments.deploy("Pagination", {
+    ...opts,
+    contract:
+      "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
+  });
   const optsPagination = {
     from: deployer,
     log: true,
@@ -25,10 +26,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const appLib = await deployments.deploy("AppLib", optsPagination);
   const authLib = await deployments.deploy("AuthLib", opts);
   const revocationLib = await deployments.deploy("RevocationLib", opts);
-  const policyLib = await deployments.deploy(
-    "contracts/trusted-apps-registry-ethereum-sc/contracts/tar/PolicyLib.sol:PolicyLib",
-    optsPagination
-  );
+  const policyLib = await deployments.deploy("PolicyLib", {
+    ...optsPagination,
+    contract:
+      "contracts/trusted-apps-registry-ethereum-sc/contracts/tar/PolicyLib.sol:PolicyLib",
+  });
   const adminLib = await deployments.deploy(
     "contracts/trusted-apps-registry-ethereum-sc/contracts/tar/AdminLib.sol:AdminLib",
     optsPagination
@@ -49,4 +51,4 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   deployments.log("Trusted Apps Registry deployed at:", ts.address);
 };
 export default func;
-func.tags = ["TrustedAppsRegistry"];
+func.tags = ["Tar"];
