@@ -35,6 +35,11 @@ contract TimestampDetailed is Initializable, TimestampStorage {
         return ts._version;
     }
 
+    function setVersion(uint256 _version) public {
+        Timestamps storage ts = timestampStorage();
+        ts._version = _version;
+    }
+
     /**
      * @dev  timestamps one or more hashes. Up to three hashes can be timestamped at a time.
      */
