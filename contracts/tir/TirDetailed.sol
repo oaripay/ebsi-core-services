@@ -27,5 +27,10 @@ contract TirDetailed is Initializable, TirStorage {
         return ds._version;
     }
 
+    function setVersion(uint256 _version) public {
+        Tir storage ds = tirStorage();
+        ds._version = _version;
+    }
+
     uint256[50] private ______gap;
 }
