@@ -30,6 +30,7 @@ import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { createDid } from "../utils/data";
 import { requestSiopJwt } from "../utils/siopJwt";
+import { ContractService } from "../../src/shared/services/contract.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -63,6 +64,7 @@ describe("Administrators (e2e)", () => {
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
+  let contractService: ContractService;
 
   const createAdministrator = () => {
     const did = createDid().toLowerCase();
@@ -103,6 +105,8 @@ describe("Administrators (e2e)", () => {
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    contractService = moduleFixture.get<ContractService>(ContractService);
 
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testAdminPrivateKey"))
@@ -545,8 +549,11 @@ describe("Administrators (e2e)", () => {
       expect(responseSend.status).toBe(200);
 
       // wait to be mined
-      const receipt = await waitToBeMined(responseSend.body.result as string);
-      expect(receipt.status).toBe("0x1");
+      const receipt = await waitToBeMined(
+        contractService,
+        responseSend.body.result as string
+      );
+      expect(receipt.status).toBe(1);
 
       // get administrator
       const administratorResponse = await request(server)
