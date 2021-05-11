@@ -27,6 +27,7 @@ import { TimestampLink } from "../../src/modules/timestamps/timestamps.interface
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x, multibase64Encode } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
+import { siopAuthentication } from "../utils/auth";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -41,7 +42,20 @@ type JsonRpcParams =
 describe("Timestamp (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let adminTestWallet: ethers.Wallet;
+
+  let testAdmin: {
+    did: string;
+    privateKey: string;
+    wallet: ethers.Wallet;
+    token?: string;
+  };
+
+  let testUser: {
+    did: string;
+    privateKey: string;
+    wallet: ethers.Wallet;
+    token?: string;
+  };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -65,9 +79,25 @@ describe("Timestamp (e2e)", () => {
       ConfigService
     );
 
-    adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("adminTestPrivateKey"))
-    );
+    const configAdmin = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testAdmin");
+    const configUser = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser");
+    testAdmin = {
+      ...configAdmin,
+      wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
+    };
+    testUser = {
+      ...configUser,
+      wallet: new ethers.Wallet(prefixWith0x(configUser.privateKey)),
+    };
+
+    testUser.token = await siopAuthentication(testUser);
+    testAdmin.token = await siopAuthentication(testAdmin);
   });
 
   describe("GET /timestamps", () => {
@@ -150,7 +180,7 @@ describe("Timestamp (e2e)", () => {
         switch (method) {
           case "timestampHashes": {
             param = {
-              from: adminTestWallet.address,
+              from: testUser.wallet.address,
               hashAlgorithmIds: [0, 0],
               hashValues: [
                 `0x${crypto.randomBytes(32).toString("hex")}`,
@@ -175,6 +205,7 @@ describe("Timestamp (e2e)", () => {
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
+          .auth(testUser.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method,
@@ -188,7 +219,7 @@ describe("Timestamp (e2e)", () => {
           result: {
             chainId: expect.any(String) as string,
             data: expect.any(String) as string,
-            from: adminTestWallet.address,
+            from: testUser.wallet.address,
             gasLimit: expect.any(String) as string,
             gasPrice: expect.any(String) as string,
             nonce: expect.any(String) as string,
@@ -203,11 +234,12 @@ describe("Timestamp (e2e)", () => {
           JSON.parse(JSON.stringify(unsignedTransaction))
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await adminTestWallet.signTransaction(uTx);
+        const sgnTx = await testUser.wallet.signTransaction(uTx);
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
+          .auth(testUser.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method: "signedTransaction",
@@ -232,9 +264,13 @@ describe("Timestamp (e2e)", () => {
         expect(responseSend.status).toBe(200);
 
         // wait to be mined
-        const receipt = await waitToBeMined(responseSend.body.result as string);
+        const receipt = await waitToBeMined(
+          responseSend.body.result as string,
+          testUser.token
+        );
         expect(receipt.status).toBe("0x1");
       });
+
       it("should work with empty data", async () => {
         expect.assertions(5);
 
@@ -243,7 +279,7 @@ describe("Timestamp (e2e)", () => {
         switch (method) {
           case "timestampHashes": {
             param = {
-              from: adminTestWallet.address,
+              from: testUser.wallet.address,
               hashAlgorithmIds: [0, 0],
               hashValues: [
                 `0x${crypto.randomBytes(32).toString("hex")}`,
@@ -258,6 +294,7 @@ describe("Timestamp (e2e)", () => {
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
+          .auth(testUser.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method,
@@ -271,7 +308,7 @@ describe("Timestamp (e2e)", () => {
           result: {
             chainId: expect.any(String) as string,
             data: expect.any(String) as string,
-            from: adminTestWallet.address,
+            from: testUser.wallet.address,
             gasLimit: expect.any(String) as string,
             gasPrice: expect.any(String) as string,
             nonce: expect.any(String) as string,
@@ -286,11 +323,12 @@ describe("Timestamp (e2e)", () => {
           JSON.parse(JSON.stringify(unsignedTransaction))
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await adminTestWallet.signTransaction(uTx);
+        const sgnTx = await testUser.wallet.signTransaction(uTx);
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
+          .auth(testUser.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method: "signedTransaction",
@@ -315,8 +353,92 @@ describe("Timestamp (e2e)", () => {
         expect(responseSend.status).toBe(200);
 
         // wait to be mined
-        const receipt = await waitToBeMined(responseSend.body.result as string);
+        const receipt = await waitToBeMined(
+          responseSend.body.result as string,
+          testUser.token
+        );
         expect(receipt.status).toBe("0x1");
+      });
+
+      it("should reject impersonating transactions: admin wallet using jwt from user", async () => {
+        expect.assertions(2);
+
+        let param: JsonRpcParams = null;
+
+        switch (method) {
+          case "timestampHashes": {
+            param = {
+              from: testAdmin.wallet.address,
+              hashAlgorithmIds: [0, 0],
+              hashValues: [
+                `0x${crypto.randomBytes(32).toString("hex")}`,
+                `0x${crypto.randomBytes(32).toString("hex")}`,
+              ],
+              timestampData: [
+                `0x${Buffer.from(
+                  JSON.stringify({ test: 742 }),
+                  "utf8"
+                ).toString("hex")}`,
+                `0x${Buffer.from(
+                  JSON.stringify({ test: 842 }),
+                  "utf8"
+                ).toString("hex")}`,
+              ],
+            } as TimestampHashesParam;
+            break;
+          }
+          default:
+            throw new Error(`Test Error: Invalid method ${method}`);
+        }
+
+        const responseBuild: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testUser.token, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method,
+            params: [param],
+            id: 231,
+          });
+
+        const unsignedTransaction = responseBuild.body.result;
+        const uTx = formatEthersUnsignedTransaction(
+          JSON.parse(JSON.stringify(unsignedTransaction))
+        );
+        uTx.chainId = Number(uTx.chainId);
+        const sgnTx = await testAdmin.wallet.signTransaction(uTx);
+        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+        const responseSend: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testUser.token, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "signedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r,
+                s,
+                v: `0x${Number(v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
+            id: "45",
+          });
+
+        expect(responseSend.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: "45",
+          error: {
+            code: -32600,
+            message: `The DID ${
+              testUser.did
+            } is not controlled by the address ${testAdmin.wallet.address.toLowerCase()}`,
+          },
+        });
+        expect(responseSend.status).toBe(400);
       });
     }
   );

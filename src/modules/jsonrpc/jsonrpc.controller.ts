@@ -1,4 +1,4 @@
-import { Controller, Body, Post, HttpCode } from "@nestjs/common";
+import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
 import { JsonRpcService } from "./jsonrpc.service";
 import { InvalidRequestJsonRpcError } from "./errors";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -16,6 +16,8 @@ import {
   RequestRevokeRecordOwnerDto,
   RequestInsertRecordVersionInfoDto,
 } from "./dto";
+import { JwtAuthGuard } from "../auth/guards";
+import { User, UserInfo } from "../auth/decorators";
 
 function jsonRpcResponse(
   result: unknown,
@@ -29,8 +31,12 @@ export default class AppController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
   @HttpCode(200)
+  @UseGuards(JwtAuthGuard)
   @Post()
-  async jsonRPC(@Body() body: JsonRpcDto): Promise<JsonRpcResponseObject> {
+  async jsonRPC(
+    @Body() body: JsonRpcDto,
+    @User() user: UserInfo
+  ): Promise<JsonRpcResponseObject> {
     const { method, id } = body;
     switch (method) {
       case "insertHashAlgorithm": {
@@ -106,6 +112,7 @@ export default class AppController {
       case "signedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(
           body as RequestSignedTransactionDto,
+          user,
           id
         );
         return jsonRpcResponse(result, id);

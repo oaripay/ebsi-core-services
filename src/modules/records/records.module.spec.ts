@@ -14,14 +14,12 @@ import {
 import { FastifyInstance } from "fastify";
 import { RecordsModule } from "./records.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { Tar } from "../../contracts/trusted-apps-registry/Tar";
-import { Tar__factory } from "../../contracts/trusted-apps-registry/factories/Tar__factory";
 import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
-import { setupTestEnvTar } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { InfoObject, RecordLink } from "./records.interface";
 import { multibase64Encode } from "../../shared/utils";
+import { LedgerService } from "../../shared/services/ledger.service";
 
 const RECORDS_TOTAL = 3;
 
@@ -29,24 +27,20 @@ describe("Records Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let timestampContract: Timestamp;
-  let tarContract: Tar;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
-  let testEnvTar: AsyncReturnType<typeof setupTestEnvTar>;
+  let ledgerService: LedgerService;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv({
       recordsTotal: RECORDS_TOTAL,
     });
-    testEnvTar = await setupTestEnvTar({ administratorsTotal: 1 });
     timestampContract = testEnv.timestampContract;
-    tarContract = testEnvTar.tarContract;
 
-    // Mock Timestamp and TAR contract
+    // Mock Timestamp contract
     jest
       .spyOn(Timestamp__factory, "connect")
       .mockImplementation(() => timestampContract);
-    jest.spyOn(Tar__factory, "connect").mockImplementation(() => tarContract);
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [RecordsModule],
@@ -64,6 +58,12 @@ describe("Records Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    // Mock Contract service
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
+    jest
+      .spyOn(ledgerService, "getContract")
+      .mockImplementation(async () => Promise.resolve(timestampContract));
   });
 
   afterAll(async () => {

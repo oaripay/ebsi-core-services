@@ -25,6 +25,7 @@ import { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algori
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
+import { siopAuthentication } from "../utils/auth";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -36,7 +37,20 @@ type JsonRpcParams = InsertHashAlgorithmParam | UpdateHashAlgorithmParam;
 describe("HashAlgorithms (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let adminTestWallet: ethers.Wallet;
+
+  let testAdmin: {
+    did: string;
+    privateKey: string;
+    wallet: ethers.Wallet;
+    token?: string;
+  };
+
+  let testUser: {
+    did: string;
+    privateKey: string;
+    wallet: ethers.Wallet;
+    token?: string;
+  };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -60,9 +74,25 @@ describe("HashAlgorithms (e2e)", () => {
       ConfigService
     );
 
-    adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("adminTestPrivateKey"))
-    );
+    const configAdmin = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testAdmin");
+    const configUser = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser");
+    testAdmin = {
+      ...configAdmin,
+      wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
+    };
+    testUser = {
+      ...configUser,
+      wallet: new ethers.Wallet(prefixWith0x(configUser.privateKey)),
+    };
+
+    testUser.token = await siopAuthentication(testUser);
+    testAdmin.token = await siopAuthentication(testAdmin);
   });
 
   describe("GET /hash-algorithms", () => {
@@ -159,7 +189,7 @@ describe("HashAlgorithms (e2e)", () => {
         switch (method) {
           case "insertHashAlgorithm": {
             params = {
-              from: adminTestWallet.address,
+              from: testAdmin.wallet.address,
               outputLength: 256,
               ianaName:
                 validHashAlgorithms[
@@ -173,7 +203,7 @@ describe("HashAlgorithms (e2e)", () => {
           case "updateHashAlgorithm": {
             // TODO: get hashAlgorithmId dynamically
             params = {
-              from: adminTestWallet.address,
+              from: testAdmin.wallet.address,
               hashAlgorithmId: 1,
               outputLength: 256,
               ianaName:
@@ -191,6 +221,7 @@ describe("HashAlgorithms (e2e)", () => {
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
+          .auth(testAdmin.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method,
@@ -204,7 +235,7 @@ describe("HashAlgorithms (e2e)", () => {
           result: {
             chainId: expect.any(String) as string,
             data: expect.any(String) as string,
-            from: adminTestWallet.address,
+            from: testAdmin.wallet.address,
             gasLimit: expect.any(String) as string,
             gasPrice: expect.any(String) as string,
             nonce: expect.any(String) as string,
@@ -219,11 +250,12 @@ describe("HashAlgorithms (e2e)", () => {
           JSON.parse(JSON.stringify(unsignedTransaction))
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await adminTestWallet.signTransaction(uTx);
+        const sgnTx = await testAdmin.wallet.signTransaction(uTx);
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
+          .auth(testAdmin.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method: "signedTransaction",
@@ -248,9 +280,86 @@ describe("HashAlgorithms (e2e)", () => {
         expect(responseSend.status).toBe(200);
 
         // wait to be mined
-        const receipt = await waitToBeMined(responseSend.body.result as string);
+        const receipt = await waitToBeMined(
+          responseSend.body.result as string,
+          testAdmin.token
+        );
         expect(receipt.status).toBe("0x1");
       });
     }
   );
+
+  it("should reject impersonating transactions: admin wallet using jwt from user", async () => {
+    expect.assertions(2);
+
+    const validHashAlgorithms = [
+      "sha1",
+      "sha2-256",
+      "sha2-512",
+      "sha3-512",
+      "sha3-384",
+      "sha3-256",
+      "sha3-224",
+    ];
+
+    const param = {
+      from: testAdmin.wallet.address,
+      outputLength: 256,
+      ianaName:
+        validHashAlgorithms[
+          Math.floor(Math.random() * validHashAlgorithms.length)
+        ],
+      oid: "2.16.840.1.101.3.4.2.1",
+      status: 1,
+    } as InsertHashAlgorithmParam;
+
+    const responseBuild: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(testUser.token, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "insertHashAlgorithm",
+        params: [param],
+        id: 231,
+      });
+
+    const unsignedTransaction = responseBuild.body.result;
+    const uTx = formatEthersUnsignedTransaction(
+      JSON.parse(JSON.stringify(unsignedTransaction))
+    );
+    uTx.chainId = Number(uTx.chainId);
+    const sgnTx = await testAdmin.wallet.signTransaction(uTx);
+    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+    const responseSend: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(testUser.token, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "signedTransaction",
+        params: [
+          {
+            protocol: "eth",
+            unsignedTransaction,
+            r,
+            s,
+            v: `0x${Number(v).toString(16)}`,
+            signedRawTransaction: sgnTx,
+          },
+        ],
+        id: "45",
+      });
+
+    expect(responseSend.body).toStrictEqual({
+      jsonrpc: "2.0",
+      id: "45",
+      error: {
+        code: -32600,
+        message: `The DID ${
+          testUser.did
+        } is not controlled by the address ${testAdmin.wallet.address.toLowerCase()}`,
+      },
+    });
+    expect(responseSend.status).toBe(400);
+  });
 });

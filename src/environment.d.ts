@@ -7,13 +7,22 @@ declare global {
       API_PRIVATE_KEY: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
+      API_NAME?: string;
+      AUTHORISATION_API_NAME?: string;
+      AUTHORISATION_API_DID?: string;
+      AUTHORISATION_API_URL?: string;
+      LEDGER_API_NAME?: string;
+      LEDGER_API_URL?: string;
+      TRUSTED_APPS_REGISTRY_API_URL?: string;
+      DID_REGISTRY_API_URL?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-      LEDGER?: string;
       CONTRACT_ADDR: string;
-      TRUSTED_APPS_REGISTRY_CONTRACT_ADDR: string;
       DOMAIN?: string;
-      ADMIN_TEST_PRIVATE_KEY?: string;
       HEALTH_CHECK?: string;
+      TEST_ADMIN_DID?: string;
+      TEST_ADMIN_PRIVATE_KEY?: string;
+      TEST_USER_DID?: string;
+      TEST_USER_PRIVATE_KEY?: string;
     }
   }
 }

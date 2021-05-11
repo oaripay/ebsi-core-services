@@ -1,14 +1,22 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
+import { InternalServerError } from "@cef-ebsi/problem-details-errors";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
+import { Agent } from "@cef-ebsi/oauth2-auth";
+import { decodeJWT } from "@cef-ebsi/did-jwt";
+import axios, { AxiosError } from "axios";
+import { v4 as uuidV4 } from "uuid";
 import { ApiConfig } from "../../config/configuration";
 import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
-import { Tar } from "../../contracts/trusted-apps-registry/Tar";
-import { Tar__factory } from "../../contracts/trusted-apps-registry/factories/Tar__factory";
-import { prefixWith0x } from "../utils";
+import { prefixWith0x, logAxiosError } from "../utils";
+
+// Refresh the token if it expires in less than 10 seconds
+const REFRESH_LIMIT = 10 * 1000;
 
 @Injectable()
-export default class LedgerService {
+export class LedgerService {
+  private readonly logger = new Logger(LedgerService.name);
+
   private ethersWallet: string | ethers.Signer | ethers.providers.Provider;
 
   private ethersProvider:
@@ -19,37 +27,99 @@ export default class LedgerService {
 
   private timestampAddress: string;
 
-  private tarContract: Tar;
+  private accessTokenExp: number;
 
-  private tarAddress: string;
+  private agent: Agent;
+
+  private authorisationApiUrl: string;
 
   constructor(private configService: ConfigService<ApiConfig>) {
-    this.ethersProvider = new ethers.providers.JsonRpcProvider(
-      `${this.configService.get<string>("ledger")}/blockchains/besu`
+    this.timestampAddress = this.configService.get<string>("contractAddr");
+    this.authorisationApiUrl = this.configService.get<string>(
+      "authorisationApiUrl"
     );
+
+    const kid = this.configService.get<string>("apiKid");
+    const privKey = this.configService.get<string>("apiPrivateKey");
+
+    this.agent = new Agent(privKey, {
+      issuer: this.configService.get<string>("apiName"),
+      kid,
+    });
+  }
+
+  private async checkSession(): Promise<void> {
+    if (
+      !this.accessTokenExp ||
+      Date.now() + REFRESH_LIMIT > this.accessTokenExp * 1000
+    ) {
+      await this.refreshConnection();
+    }
+  }
+
+  private async getAccessToken() {
+    const nonce = uuidV4();
+
+    const requestComponent = await this.agent.createRequestPayload(
+      this.configService.get<string>("ledgerApiName"),
+      { nonce }
+    );
+
+    // Send request payload to Authorisation API
+    try {
+      const res = await axios.post(
+        `${this.authorisationApiUrl}/oauth2-sessions`,
+        requestComponent
+      );
+
+      const accessToken = await this.agent.verifyAuthenticationResponse(
+        res.data,
+        nonce
+      );
+
+      const { payload } = decodeJWT(accessToken);
+      this.accessTokenExp = payload.exp;
+
+      return accessToken;
+    } catch (err) {
+      if (err instanceof Error) {
+        if ((err as AxiosError).isAxiosError) {
+          logAxiosError(err as AxiosError, this.logger);
+        } else {
+          this.logger.error(err.message, err.stack);
+        }
+      } else {
+        this.logger.error(err);
+      }
+      throw new InternalServerError();
+    }
+  }
+
+  private async refreshConnection() {
+    const token = await this.getAccessToken();
+
+    this.ethersProvider = new ethers.providers.JsonRpcProvider({
+      url: `${this.configService.get<string>("ledgerApiUrl")}/blockchains/besu`,
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    });
 
     this.ethersWallet = new ethers.Wallet(
       prefixWith0x(this.configService.get<string>("apiPrivateKey")),
       this.ethersProvider
     );
 
-    this.timestampAddress = this.configService.get<string>("contractAddr");
-
     this.timestampContract = Timestamp__factory.connect(
       this.timestampAddress,
       this.ethersWallet
     );
-
-    this.tarAddress = this.configService.get<string>("tarContractAddr");
-
-    this.tarContract = Tar__factory.connect(this.tarAddress, this.ethersWallet);
   }
 
-  getContract(): Timestamp {
+  async getContract(): Promise<Timestamp> {
+    await this.checkSession();
     return this.timestampContract;
   }
-
-  getTarContract(): Tar {
-    return this.tarContract;
-  }
 }
+
+export default LedgerService;

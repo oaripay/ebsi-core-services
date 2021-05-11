@@ -1,5 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
 import {
@@ -27,92 +27,86 @@ import {
   ArgsTimestampRecordVersionHashes,
   ArgsAppendRecordVersionHashes,
 } from "./dto";
-import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
   validateClass,
 } from "./jsonrpc.utils";
-import LedgerService from "../../shared/services/ledger.service";
-import { Timestamp } from "../../contracts/timestamp";
-import { Tar } from "../../contracts/trusted-apps-registry/Tar";
+import { LedgerService } from "../../shared/services/ledger.service";
 import { ApiConfig } from "../../config/configuration";
+import { UserInfo } from "../auth/auth.interface";
 
 @Injectable()
 export class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
 
-  private timestampContract: Timestamp;
+  private trustedAppsRegistry: string;
 
-  private tarContract: Tar;
+  private didRegistry: string;
 
   private chainId: string = null;
-
-  private accessToken: string = null;
-
-  private expAccessToken: number = null;
 
   constructor(
     private configService: ConfigService<ApiConfig>,
     private ledgerService: LedgerService
   ) {
-    this.timestampContract = this.ledgerService.getContract();
-    this.tarContract = this.ledgerService.getTarContract();
+    this.trustedAppsRegistry = this.configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    );
+    this.didRegistry = this.configService.get<string>("didRegistryApiUrl");
   }
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
-      const { chainId } = await this.timestampContract.provider.getNetwork();
+      const { chainId } = await (
+        await this.ledgerService.getContract()
+      ).provider.getNetwork();
       this.chainId = ethers.BigNumber.from(chainId).toHexString();
     }
     return this.chainId;
   }
 
-  async getBlockNumber(): Promise<number> {
-    return this.timestampContract.provider.getBlockNumber();
+  async estimateGas(
+    transaction: UnsignedTransaction
+  ): Promise<ethers.BigNumber> {
+    const { from, to, data, value } = transaction;
+
+    return (await this.ledgerService.getContract()).provider.estimateGas({
+      from,
+      to,
+      data,
+      value,
+    });
   }
 
-  async callBesuAuth(method: string, params: unknown[]): Promise<unknown> {
-    const url = `${this.configService.get<string>("ledger")}/blockchains/besu`;
-    const data = { jsonrpc: "2.0", method, params, id: 1 };
-    const opts = {
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-      },
-    };
+  async verifyTrustedAppsRegistryAdministrator(user: UserInfo): Promise<void> {
     try {
-      const response: AxiosResponseJsonRpc = await axios.post(url, data, opts);
-      if (response.data.error) {
-        throw new Error(JSON.stringify(response.data.error));
-      }
-      return response.data.result;
+      await axios.get(`${this.trustedAppsRegistry}/administrators/${user.sub}`);
     } catch (error) {
-      const errorAxios = error as AxiosErrorResponse;
-      if (errorAxios.response && errorAxios.response.data) {
-        let message: string;
-        if (typeof errorAxios.response.data === "object")
-          message = JSON.stringify(errorAxios.response.data);
-        else message = errorAxios.response.data as string;
-        throw new Error(message);
-      }
+      if ((error as AxiosError).response?.status === 404)
+        throw new Error(
+          `${user.sub} not found as administrator in the Trusted Apps Registry`
+        );
       throw error;
     }
   }
 
-  async estimateGas(transaction: UnsignedTransaction): Promise<string> {
-    const { from, to, data, value } = transaction;
-
-    return this.callBesuAuth("eth_estimateGas", [
-      { from, to, data, value },
-    ]) as Promise<string>;
+  async verifyDidRegistry(address: string, user: UserInfo): Promise<void> {
+    const response = await axios.get(
+      `${this.didRegistry}/identifiers?controller=${address}`
+    );
+    const { items } = response.data as { items: { did: string }[] };
+    if (!items.map((item) => item.did).includes(user.sub))
+      throw new Error(
+        `The DID ${user.sub} is not controlled by the address ${address}`
+      );
   }
 
-  // TODO: implement EBSI admin verification
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async checkWritePermission(
     functionName: string,
-    address: string
+    address: string,
+    user: UserInfo
   ): Promise<void> {
     switch (functionName) {
       /* For the following functions only EBSI Admins
@@ -123,14 +117,8 @@ export class JsonRpcService {
        */
       case "insertHashAlgorithm":
       case "updateHashAlgorithm": {
-        const did = `did:ebsi:${address.toLowerCase()}`;
-        try {
-          await this.tarContract.getAdministrator(did);
-        } catch (e) {
-          throw new Error(
-            `Administrator ${did} was not found in the Trusted Apps Registry`
-          );
-        }
+        await this.verifyDidRegistry(address, user);
+        await this.verifyTrustedAppsRegistryAdministrator(user);
         break;
       }
       /* For the following functions only subjects with access to
@@ -143,15 +131,9 @@ export class JsonRpcService {
       case "appendRecordVersionHashes":
       case "detachRecordVersionHash":
       case "insertRecordVersionInfo":
-        // TODO: Verify that the address is included in the DID Registry
-        break;
-
-      /* For the following functions only existing record owners
-       * are allowed to insert new owners
-       */
       case "insertRecordOwner":
       case "revokeRecordOwner":
-        // TODO: Verify that the address is included in the DID Registry
+        await this.verifyDidRegistry(address, user);
         break;
       default:
         // The rest of the functions are open to the public
@@ -194,16 +176,20 @@ export class JsonRpcService {
         `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`
       );
 
-    if (unsignedTransaction.to !== this.timestampContract.address)
+    if (
+      unsignedTransaction.to !==
+      (await this.ledgerService.getContract()).address
+    )
       throw new Error(
-        `Invalid unsignedTransaction.to. Expected ${this.timestampContract.address}. Received ${unsignedTransaction.to}`
+        `Invalid unsignedTransaction.to. Expected ${
+          (await this.ledgerService.getContract()).address
+        }. Received ${unsignedTransaction.to}`
       );
 
     // verify function and parameters enconded in unsignedTransaction.data
-    const {
-      args,
-      functionFragment,
-    } = this.timestampContract.interface.parseTransaction(unsignedTransaction);
+    const { args, functionFragment } = (
+      await this.ledgerService.getContract()
+    ).interface.parseTransaction(unsignedTransaction);
 
     switch (functionFragment.name) {
       case "insertHashAlgorithm": {
@@ -292,13 +278,13 @@ export class JsonRpcService {
     from: string,
     params: string
   ): Promise<UnsignedTransaction> {
-    const nonceInt = await this.timestampContract.provider.getTransactionCount(
-      from
-    );
+    const nonceInt = await (
+      await this.ledgerService.getContract()
+    ).provider.getTransactionCount(from);
 
     const unsignedTransaction: UnsignedTransaction = {
       from,
-      to: this.timestampContract.address,
+      to: (await this.ledgerService.getContract()).address,
       data: params,
       value: "0x0",
       nonce: ethers.BigNumber.from(nonceInt).toHexString(),
@@ -307,7 +293,7 @@ export class JsonRpcService {
       gasPrice: "0x0",
     };
 
-    let gasEstimation = "unset";
+    let gasEstimation: string | ethers.BigNumber = "unset";
 
     try {
       gasEstimation = await this.estimateGas(unsignedTransaction);
@@ -317,7 +303,9 @@ export class JsonRpcService {
     } catch (error) {
       this.logger.warn(
         `Gas could not be estimated.${
-          gasEstimation === "unset" ? "" : `Received ${gasEstimation}.`
+          gasEstimation === "unset"
+            ? ""
+            : `Received ${gasEstimation.toString()}.`
         } Using 0x1000000`
       );
       unsignedTransaction.gasLimit = "0x1000000";
@@ -335,10 +323,14 @@ export class JsonRpcService {
 
       const { from, outputLength, ianaName, oid, status } = body.params[0];
 
-      const data = this.timestampContract.interface.encodeFunctionData(
-        "insertHashAlgorithm",
-        [outputLength, ianaName, oid, status]
-      );
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("insertHashAlgorithm", [
+        outputLength,
+        ianaName,
+        oid,
+        status,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -364,10 +356,15 @@ export class JsonRpcService {
         status,
       } = body.params[0];
 
-      const data = this.timestampContract.interface.encodeFunctionData(
-        "updateHashAlgorithm",
-        [hashAlgorithmId, outputLength, ianaName, oid, status]
-      );
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("updateHashAlgorithm", [
+        hashAlgorithmId,
+        outputLength,
+        ianaName,
+        oid,
+        status,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -391,10 +388,13 @@ export class JsonRpcService {
         timestampData,
       } = body.params[0];
 
-      const data = this.timestampContract.interface.encodeFunctionData(
-        "timestampHashes",
-        [hashAlgorithmIds, hashValues, timestampData || []]
-      );
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("timestampHashes", [
+        hashAlgorithmIds,
+        hashValues,
+        timestampData || [],
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -413,10 +413,14 @@ export class JsonRpcService {
 
       const { from, recordId, ownerId, notBefore, notAfter } = body.params[0];
 
-      const data = this.timestampContract.interface.encodeFunctionData(
-        "insertRecordOwner",
-        [recordId, ownerId, notBefore, notAfter]
-      );
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("insertRecordOwner", [
+        recordId,
+        ownerId,
+        notBefore,
+        notAfter,
+      ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
@@ -434,10 +438,9 @@ export class JsonRpcService {
 
       const { from, recordId, ownerId } = body.params[0];
 
-      const data = this.timestampContract.interface.encodeFunctionData(
-        "revokeRecordOwner",
-        [recordId, ownerId]
-      );
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("revokeRecordOwner", [recordId, ownerId]);
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
@@ -455,10 +458,13 @@ export class JsonRpcService {
 
       const { from, recordId, versionId, versionInfo } = body.params[0];
 
-      const data = this.timestampContract.interface.encodeFunctionData(
-        "insertRecordVersionInfo",
-        [recordId, versionId, versionInfo]
-      );
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("insertRecordVersionInfo", [
+        recordId,
+        versionId,
+        versionInfo,
+      ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
@@ -476,10 +482,13 @@ export class JsonRpcService {
 
       const { from, recordId, versionId, hashValue } = body.params[0];
 
-      const data = this.timestampContract.interface.encodeFunctionData(
-        "detachRecordVersionHash",
-        [recordId, versionId, hashValue]
-      );
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("detachRecordVersionHash", [
+        recordId,
+        versionId,
+        hashValue,
+      ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
@@ -503,10 +512,14 @@ export class JsonRpcService {
         versionInfo,
       } = body.params[0];
 
-      const data = this.timestampContract.interface.encodeFunctionData(
-        "timestampRecordHashes",
-        [hashAlgorithmIds, hashValues, timestampData || [], versionInfo]
-      );
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("timestampRecordHashes", [
+        hashAlgorithmIds,
+        hashValues,
+        timestampData || [],
+        versionInfo,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -532,16 +545,15 @@ export class JsonRpcService {
         versionInfo,
       } = body.params[0];
 
-      const data = this.timestampContract.interface.encodeFunctionData(
-        "timestampRecordVersionHashes",
-        [
-          recordId,
-          hashAlgorithmIds,
-          hashValues,
-          timestampData || [],
-          versionInfo,
-        ]
-      );
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("timestampRecordVersionHashes", [
+        recordId,
+        hashAlgorithmIds,
+        hashValues,
+        timestampData || [],
+        versionInfo,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -568,17 +580,16 @@ export class JsonRpcService {
         versionInfo,
       } = body.params[0];
 
-      const data = this.timestampContract.interface.encodeFunctionData(
-        "appendRecordVersionHashes",
-        [
-          recordId,
-          versionId,
-          hashAlgorithmIds,
-          hashValues,
-          timestampData || [],
-          versionInfo,
-        ]
-      );
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("appendRecordVersionHashes", [
+        recordId,
+        versionId,
+        hashAlgorithmIds,
+        hashValues,
+        timestampData || [],
+        versionInfo,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -590,6 +601,7 @@ export class JsonRpcService {
 
   async sendTransaction(
     body: RequestSignedTransactionDto,
+    user: UserInfo,
     id?: number | string
   ): Promise<string> {
     try {
@@ -598,11 +610,12 @@ export class JsonRpcService {
       const request = body.params[0];
       const { signer, functionName } = await this.verifyTransaction(request);
 
-      await this.checkWritePermission(functionName, signer);
-      const res = (await this.callBesuAuth("eth_sendRawTransaction", [
-        request.signedRawTransaction,
-      ])) as string;
-      return res;
+      await this.checkWritePermission(functionName, signer, user);
+
+      const tx = await (
+        await this.ledgerService.getContract()
+      ).provider.sendTransaction(request.signedRawTransaction);
+      return tx.hash;
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;

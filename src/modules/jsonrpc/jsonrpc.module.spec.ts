@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -9,12 +9,13 @@ import {
 } from "@nestjs/common";
 import { ethers } from "ethers";
 import { FastifyInstance } from "fastify";
+import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import { JWTPayload } from "@cef-ebsi/did-jwt";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { JsonRpcModule } from "./jsonrpc.module";
-import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   DetachRecordVersionHashParam,
@@ -32,11 +33,9 @@ import {
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
-import { Tar } from "../../contracts/trusted-apps-registry/Tar";
-import { Tar__factory } from "../../contracts/trusted-apps-registry/factories/Tar__factory";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
-import { setupTestEnvTar } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { LedgerService } from "../../shared/services/ledger.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -56,31 +55,58 @@ type JsonRpcParams =
   | AppendRecordVersionHashesParam
   | TimestampRecordHashesParam;
 
+const axiosError = (status: number, message: string): AxiosError =>
+  ({
+    response: {
+      status,
+      data: message,
+      statusText: message,
+      headers: {},
+      config: {},
+    },
+    isAxiosError: true,
+    name: "error",
+    message,
+    config: {},
+    toJSON: null,
+  } as AxiosError);
+
 describe("JsonRpc Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let timestampContract: Timestamp;
-  let tarContract: Tar;
-  let jsonRpcService: JsonRpcService;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
-  let testEnvTar: AsyncReturnType<typeof setupTestEnvTar>;
+  let ledgerService: LedgerService;
   const firstHashValue = `0x1234567890123456789012345678901234567890123456789012345678901234`;
   let recordId: string;
   let blockNumber = 0;
   let provider: ethers.providers.Web3Provider;
+  const testAdmin = {
+    token: "admin",
+    did: "did:ebsi:admin",
+    wallet: ethers.Wallet.createRandom(),
+  };
+  const testUser = {
+    token: "user",
+    did: "did:ebsi:user",
+    wallet: ethers.Wallet.createRandom(),
+  };
+  const testFakeUser = {
+    token: "fake user",
+    did: "did:ebsi:fakeuser",
+    wallet: ethers.Wallet.createRandom(),
+  };
+
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv();
-    testEnvTar = await setupTestEnvTar({ administratorsTotal: 1 });
     timestampContract = testEnv.timestampContract;
-    tarContract = testEnvTar.tarContract;
     provider = testEnv.provider;
 
-    // Mock Timestamp and TAR contract
+    // Mock Timestamp contract
     jest
       .spyOn(Timestamp__factory, "connect")
       .mockImplementation(() => timestampContract);
-    jest.spyOn(Tar__factory, "connect").mockImplementation(() => tarContract);
 
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -100,45 +126,213 @@ describe("JsonRpc Module", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
-
     // Make sure we never use axios.post in tests ;-)
     jest.spyOn(axios, "post").mockImplementation(() => {
       throw new Error("Forgot to mock an axios call?");
     });
 
-    // Instead of calling EBSI Ledger API, use timestampContract directly
-    const signer = ethers.Wallet.createRandom().connect(provider);
+    jest.spyOn(axios, "get").mockImplementation(
+      (url): Promise<unknown> => {
+        // accessing administrators in TAR
+        if (url.includes("/administrators")) {
+          if (!url.includes(testAdmin.did)) {
+            throw axiosError(404, "Not found");
+          }
+          return Promise.resolve(true);
+        }
+
+        // accessing did registry
+        if (url.includes("/identifiers?controller")) {
+          if (url.includes(testAdmin.wallet.address.toLowerCase()))
+            return Promise.resolve({
+              data: { items: [{ did: testAdmin.did }] },
+            });
+          if (url.includes(testUser.wallet.address.toLowerCase()))
+            return Promise.resolve({
+              data: { items: [{ did: testUser.did }] },
+            });
+          return Promise.resolve({ data: { items: [] } });
+        }
+
+        throw new Error("Forgot to mock an axios call?");
+      }
+    );
+
+    jest.spyOn(SiopSession.prototype, "verifyAccessToken").mockImplementation(
+      (token: string): Promise<JWTPayload> => {
+        if (token === testAdmin.token)
+          return Promise.resolve({ sub: testAdmin.did });
+        if (token === testUser.token)
+          return Promise.resolve({ sub: testUser.did });
+        throw new Error("verifyAccessToken failed");
+      }
+    );
+
+    // Mock Contract service
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
     jest
-      .spyOn(jsonRpcService, "callBesuAuth")
-      .mockImplementation(async (_method: string, params: unknown[]) => {
-        if (_method === "eth_sendRawTransaction") {
-          const tx = await timestampContract
-            .connect(signer)
-            .provider.sendTransaction(params[0] as string);
-
-          return tx.hash;
-        }
-
-        if (_method === "eth_estimateGas") {
-          return timestampContract.provider.estimateGas(
-            params[0] as ethers.providers.TransactionRequest
-          );
-        }
-
-        return Promise.reject(new Error("Unknown method"));
-      });
+      .spyOn(ledgerService, "getContract")
+      .mockImplementation(async () => Promise.resolve(timestampContract));
   });
 
   afterAll(async () => {
     await app.close();
   });
 
+  describe("JWT Authentication", () => {
+    it("should reject bad authentication", async () => {
+      expect.assertions(2);
+      const response = await request(server)
+        .post("/jsonrpc")
+        .auth(testFakeUser.token, { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        title: "Unauthorized",
+        status: 401,
+        detail: "verifyAccessToken failed",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+    });
+
+    it("should reject impersonating requests", async () => {
+      expect.assertions(2);
+
+      const param: TimestampHashesParam = {
+        from: testUser.wallet.address, // test user in the transaction
+        hashAlgorithmIds: [0],
+        hashValues: [firstHashValue],
+        timestampData: [
+          `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+            "hex"
+          )}`,
+        ],
+      };
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        // admin in the jwt
+        .auth(testAdmin.token, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "timestampHashes",
+          params: [param],
+          id: 231,
+        });
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      // user in the transaction
+      const sgnTx = await testUser.wallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend = await request(server)
+        .post("/jsonrpc")
+        // admin in the jwt
+        .auth(testAdmin.token, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        error: {
+          code: -32600,
+          message: expect.stringContaining(
+            "The DID did:ebsi:admin is not controlled by the address 0x"
+          ) as string,
+        },
+      });
+      expect(responseSend.status).toBe(400);
+    });
+
+    it("should reject users accessing restricted methods", async () => {
+      expect.assertions(2);
+
+      const param: InsertHashAlgorithmParam = {
+        from: testUser.wallet.address,
+        outputLength: 256,
+        ianaName: "sha-256",
+        oid: "2.16.840.1.101.3.4.2.1",
+        status: 1,
+      };
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(testUser.token, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "insertHashAlgorithm",
+          params: [param],
+          id: 231,
+        });
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await testUser.wallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend = await request(server)
+        .post("/jsonrpc")
+        .auth(testUser.token, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        error: {
+          code: -32600,
+          message: expect.stringContaining(
+            "did:ebsi:user not found as administrator in the Trusted Apps Registry"
+          ) as string,
+        },
+      });
+      expect(responseSend.status).toBe(400);
+    });
+  });
+
   // Generic tests
   it("should throw Bad Request for a bad JSON-RPC call", async () => {
     expect.assertions(2);
 
-    const response = await request(server).post("/jsonrpc").send();
+    const response = await request(server)
+      .post("/jsonrpc")
+      .auth(testUser.token, { type: "bearer" })
+      .send();
 
     expect(response.body).toStrictEqual({
       title: "Bad Request",
@@ -152,10 +346,9 @@ describe("JsonRpc Module", () => {
 
   it("should throw an error when sendTransaction is used with a wrong chainId", async () => {
     expect.assertions(2);
-    const wallet = ethers.Wallet.createRandom();
 
     const transaction = {
-      from: wallet.address,
+      from: testUser.wallet.address,
       to: timestampContract.address,
       data: timestampContract.interface.encodeFunctionData(
         "getHashAlgorithms",
@@ -172,11 +365,12 @@ describe("JsonRpc Module", () => {
       JSON.parse(JSON.stringify(transaction))
     );
     uTx.chainId = Number(uTx.chainId);
-    const sgnTx = await wallet.signTransaction(uTx);
+    const sgnTx = await testUser.wallet.signTransaction(uTx);
     const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
     const responseSend = await request(server)
       .post("/jsonrpc")
+      .auth(testUser.token, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "signedTransaction",
@@ -210,16 +404,16 @@ describe("JsonRpc Module", () => {
   // eslint-disable-next-line jest/no-disabled-tests
   it("should throw an error when the sender of a transaction is not in the TAR", async () => {
     expect.assertions(3);
-    const wallet = ethers.Wallet.createRandom();
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
+      .auth(testUser.token, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "insertHashAlgorithm",
         params: [
           {
-            from: wallet.address, // this address is not in the TAR/TIR/TUR/TUR
+            from: testUser.wallet.address,
             outputLength: 256,
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
@@ -239,11 +433,12 @@ describe("JsonRpc Module", () => {
 
     uTx.chainId = Number(uTx.chainId);
 
-    const sgnTx = await wallet.signTransaction(uTx);
+    const sgnTx = await testUser.wallet.signTransaction(uTx);
     const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
     const responseSend = await request(server)
       .post("/jsonrpc")
+      .auth(testUser.token, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "signedTransaction",
@@ -266,7 +461,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          `Administrator did:ebsi:${wallet.address.toLowerCase()} was not found in the Trusted Apps Registry`
+          "did:ebsi:user not found as administrator in the Trusted Apps Registry"
         ) as string,
       },
     });
@@ -276,12 +471,15 @@ describe("JsonRpc Module", () => {
   it("should throw an Invalid Request error for bad method", async () => {
     expect.assertions(2);
 
-    const response = await request(server).post("/jsonrpc").send({
-      jsonrpc: "2.0",
-      method: "unknown-method",
-      params: [],
-      id: 123,
-    });
+    const response = await request(server)
+      .post("/jsonrpc")
+      .auth(testUser.token, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "unknown-method",
+        params: [],
+        id: 123,
+      });
 
     expect(response.body).toStrictEqual({
       jsonrpc: "2.0",
@@ -315,12 +513,10 @@ describe("JsonRpc Module", () => {
 
       let param: JsonRpcParams = null;
 
-      const signer = testEnvTar.administrators[0];
-
       switch (method) {
         case "insertHashAlgorithm": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             outputLength: 256,
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
@@ -330,7 +526,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateHashAlgorithm": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmId: 0, // "0" is the ID of the hash we've just inserted
             outputLength: 256,
             ianaName: "sha-256",
@@ -341,7 +537,7 @@ describe("JsonRpc Module", () => {
         }
         case "timestampHashes": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             hashValues: [firstHashValue],
             timestampData: [
@@ -354,7 +550,7 @@ describe("JsonRpc Module", () => {
         }
         case "timestampRecordHashes": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             hashValues: [firstHashValue],
             timestampData: [
@@ -373,11 +569,11 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [signer.address, blockNumber, firstHashValue]
+              [testAdmin.wallet.address, blockNumber, firstHashValue]
             )
           );
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId,
             versionId: 0,
             hashValue: firstHashValue,
@@ -388,11 +584,11 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [signer.address, blockNumber, firstHashValue]
+              [testAdmin.wallet.address, blockNumber, firstHashValue]
             )
           );
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId,
             ownerId: "owner",
             notBefore: 1042,
@@ -404,11 +600,11 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [signer.address, blockNumber, firstHashValue]
+              [testAdmin.wallet.address, blockNumber, firstHashValue]
             )
           );
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId,
             ownerId: "owner",
           } as RevokeRecordOwnerParam;
@@ -418,11 +614,11 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [signer.address, blockNumber, firstHashValue]
+              [testAdmin.wallet.address, blockNumber, firstHashValue]
             )
           );
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId,
             versionId: 0,
             versionInfo: `0x${Buffer.from(
@@ -436,11 +632,11 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [signer.address, blockNumber, firstHashValue]
+              [testAdmin.wallet.address, blockNumber, firstHashValue]
             )
           );
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId,
             hashAlgorithmIds: [0],
             hashValues: [firstHashValue],
@@ -460,11 +656,11 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [signer.address, blockNumber, firstHashValue]
+              [testAdmin.wallet.address, blockNumber, firstHashValue]
             )
           );
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId,
             versionId: 1,
             hashAlgorithmIds: [0],
@@ -489,6 +685,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testAdmin.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -517,11 +714,12 @@ describe("JsonRpc Module", () => {
         JSON.parse(JSON.stringify(unsignedTransaction))
       );
       uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await signer.signTransaction(uTx);
+      const sgnTx = await testAdmin.wallet.signTransaction(uTx);
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
       const responseSend = await request(server)
         .post("/jsonrpc")
+        .auth(testAdmin.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",
@@ -551,14 +749,13 @@ describe("JsonRpc Module", () => {
 
     it("should accept a request without id", async () => {
       expect.assertions(2);
-      const signer = testEnvTar.administrators[0];
 
       let param: JsonRpcParams = null;
 
       switch (method) {
         case "insertHashAlgorithm": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             outputLength: 256,
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
@@ -568,7 +765,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateHashAlgorithm": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmId: 1,
             outputLength: 256,
             ianaName: "sha-256",
@@ -579,7 +776,7 @@ describe("JsonRpc Module", () => {
         }
         case "timestampHashes": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -594,7 +791,7 @@ describe("JsonRpc Module", () => {
         }
         case "timestampRecordHashes": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -613,7 +810,7 @@ describe("JsonRpc Module", () => {
         }
         case "detachRecordVersionHash": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
             versionId: 0,
@@ -623,7 +820,7 @@ describe("JsonRpc Module", () => {
         }
         case "timestampRecordVersionHashes": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             recordId:
               "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
@@ -644,7 +841,7 @@ describe("JsonRpc Module", () => {
         }
         case "appendRecordVersionHashes": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             versionId: 0,
             recordId:
@@ -666,7 +863,7 @@ describe("JsonRpc Module", () => {
         }
         case "insertRecordOwner": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
             ownerId: "owner",
@@ -677,7 +874,7 @@ describe("JsonRpc Module", () => {
         }
         case "revokeRecordOwner": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
             ownerId: "owner",
@@ -686,7 +883,7 @@ describe("JsonRpc Module", () => {
         }
         case "insertRecordVersionInfo": {
           param = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
             versionId: 0,
@@ -703,6 +900,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild = await request(server)
         .post("/jsonrpc")
+        .auth(testAdmin.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -721,8 +919,6 @@ describe("JsonRpc Module", () => {
     it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
       expect.assertions(6);
 
-      const signer = testEnvTar.administrators[0];
-
       let param1: JsonRpcParams = null;
       let param2: JsonRpcParams = null;
       let param3: JsonRpcParams = null;
@@ -734,7 +930,7 @@ describe("JsonRpc Module", () => {
       switch (method) {
         case "insertHashAlgorithm": {
           param1 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             outputLength: -12,
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
@@ -745,7 +941,7 @@ describe("JsonRpc Module", () => {
             "property params[0].outputLength has failed the following constraints: min";
 
           param2 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             outputLength: 256,
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
@@ -756,7 +952,7 @@ describe("JsonRpc Module", () => {
             "property params[0].status has failed the following constraints: max";
 
           param3 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             outputLength: 256,
             ianaName: "sha-256",
             oid: 1,
@@ -769,7 +965,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateHashAlgorithm": {
           param1 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmId: -1,
             outputLength: 256,
             ianaName: "sha-256",
@@ -781,7 +977,7 @@ describe("JsonRpc Module", () => {
             "property params[0].hashAlgorithmId has failed the following constraints: min";
 
           param2 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmId: 1,
             outputLength: -1,
             ianaName: "sha-256",
@@ -793,7 +989,7 @@ describe("JsonRpc Module", () => {
             "property params[0].outputLength has failed the following constraints: min";
 
           param3 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmId: 1,
             outputLength: 256,
             ianaName: "sha-256",
@@ -807,7 +1003,7 @@ describe("JsonRpc Module", () => {
         }
         case "timestampHashes": {
           param1 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ],
@@ -822,7 +1018,7 @@ describe("JsonRpc Module", () => {
             "property params[0].hashAlgorithmIds has failed the following constraints: min, isInt";
 
           param2 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
@@ -835,7 +1031,7 @@ describe("JsonRpc Module", () => {
             "property params[0].hashValues has failed the following constraints: isHexadecimal";
 
           param3 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -849,7 +1045,7 @@ describe("JsonRpc Module", () => {
         }
         case "timestampRecordHashes": {
           param1 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ],
@@ -868,7 +1064,7 @@ describe("JsonRpc Module", () => {
             "property params[0].hashAlgorithmIds has failed the following constraints: min, isInt";
 
           param2 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
@@ -885,7 +1081,7 @@ describe("JsonRpc Module", () => {
             "property params[0].hashValues has failed the following constraints: isHexadecimal";
 
           param3 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -903,7 +1099,7 @@ describe("JsonRpc Module", () => {
         }
         case "detachRecordVersionHash": {
           param1 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             versionId:
@@ -915,7 +1111,7 @@ describe("JsonRpc Module", () => {
             "property params[0].versionId has failed the following constraints: min, isInt";
 
           param2 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             versionId: 0,
@@ -925,7 +1121,7 @@ describe("JsonRpc Module", () => {
             "property params[0].hashValue has failed the following constraints: isHexadecimal";
 
           param3 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             versionId: 12,
             hashValue: "0x1234567890",
           } as unknown) as DetachRecordVersionHashParam;
@@ -936,7 +1132,7 @@ describe("JsonRpc Module", () => {
         }
         case "timestampRecordVersionHashes": {
           param1 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             hashValues: [
@@ -957,7 +1153,7 @@ describe("JsonRpc Module", () => {
             "property params[0].hashAlgorithmIds has failed the following constraints: min, isInt";
 
           param2 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             hashAlgorithmIds: [0],
@@ -976,7 +1172,7 @@ describe("JsonRpc Module", () => {
             "property params[0].hashValues has failed the following constraints: isHexadecimal";
 
           param3 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             hashAlgorithmIds: [0],
@@ -996,7 +1192,7 @@ describe("JsonRpc Module", () => {
         }
         case "appendRecordVersionHashes": {
           param1 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             versionId: "o",
@@ -1018,7 +1214,7 @@ describe("JsonRpc Module", () => {
             "property params[0].versionId has failed the following constraints: min, isInt";
 
           param2 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             versionId: 12,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -1038,7 +1234,7 @@ describe("JsonRpc Module", () => {
             "property params[0].hashValues has failed the following constraints: isHexadecimal";
 
           param3 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             versionId: 0,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -1059,7 +1255,7 @@ describe("JsonRpc Module", () => {
         }
         case "insertRecordOwner": {
           param1 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ownerId: 0,
@@ -1071,7 +1267,7 @@ describe("JsonRpc Module", () => {
             "property params[0].ownerId has failed the following constraints: isString";
 
           param2 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ownerId: "owner",
@@ -1083,7 +1279,7 @@ describe("JsonRpc Module", () => {
             "property params[0].notBefore has failed the following constraints: min, isInt";
 
           param3 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             ownerId: "owner",
             notBefore: 1,
             notAfter: 12,
@@ -1095,7 +1291,7 @@ describe("JsonRpc Module", () => {
         }
         case "revokeRecordOwner": {
           param1 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ownerId: 0,
@@ -1105,7 +1301,7 @@ describe("JsonRpc Module", () => {
             "property params[0].ownerId has failed the following constraints: isString";
 
           param2 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
           } as unknown) as RevokeRecordOwnerParam;
@@ -1114,7 +1310,7 @@ describe("JsonRpc Module", () => {
             "property params[0].ownerId has failed the following constraints: isString";
 
           param3 = ({
-            from: signer.address,
+            from: testAdmin.wallet.address,
             ownerId: "owner",
           } as unknown) as RevokeRecordOwnerParam;
 
@@ -1124,7 +1320,7 @@ describe("JsonRpc Module", () => {
         }
         case "insertRecordVersionInfo": {
           param1 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x123456789012345678901234567890123456789012345678901234567890123X",
             versionId: 0,
@@ -1138,7 +1334,7 @@ describe("JsonRpc Module", () => {
             "property params[0].recordId has failed the following constraints: isHexadecimal";
 
           param2 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             versionId: -1,
@@ -1152,7 +1348,7 @@ describe("JsonRpc Module", () => {
             "property params[0].versionId has failed the following constraints: min";
 
           param3 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             versionId: 0,
@@ -1172,6 +1368,7 @@ describe("JsonRpc Module", () => {
 
       const response1 = await request(server)
         .post("/jsonrpc")
+        .auth(testAdmin.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1191,6 +1388,7 @@ describe("JsonRpc Module", () => {
 
       const response2 = await request(server)
         .post("/jsonrpc")
+        .auth(testAdmin.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1210,6 +1408,7 @@ describe("JsonRpc Module", () => {
 
       const response3 = await request(server)
         .post("/jsonrpc")
+        .auth(testAdmin.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1231,15 +1430,13 @@ describe("JsonRpc Module", () => {
     it("should throw an error when the unsignedTransaction has been tampered", async () => {
       expect.assertions(6);
 
-      const signer = testEnvTar.administrators[0];
-
       let param1: JsonRpcParams;
       let param2: JsonRpcParams;
 
       switch (method) {
         case "insertHashAlgorithm": {
           param1 = {
-            from: signer.address,
+            from: testUser.wallet.address,
             outputLength: 256,
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
@@ -1247,7 +1444,7 @@ describe("JsonRpc Module", () => {
           } as InsertHashAlgorithmParam;
 
           param2 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             outputLength: 256,
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
@@ -1258,7 +1455,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateHashAlgorithm": {
           param1 = {
-            from: signer.address,
+            from: testUser.wallet.address,
             hashAlgorithmId: 1,
             outputLength: 256,
             ianaName: "sha-256",
@@ -1267,7 +1464,7 @@ describe("JsonRpc Module", () => {
           } as UpdateHashAlgorithmParam;
 
           param2 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmId: 1,
             outputLength: 256,
             ianaName: "sha-256",
@@ -1279,7 +1476,7 @@ describe("JsonRpc Module", () => {
         }
         case "timestampHashes": {
           param1 = {
-            from: signer.address,
+            from: testUser.wallet.address,
             hashAlgorithmIds: [0],
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -1292,7 +1489,7 @@ describe("JsonRpc Module", () => {
           } as TimestampHashesParam;
 
           param2 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmIds: [1],
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -1308,7 +1505,7 @@ describe("JsonRpc Module", () => {
         }
         case "timestampRecordHashes": {
           param1 = {
-            from: signer.address,
+            from: testUser.wallet.address,
             hashAlgorithmIds: [0],
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -1325,7 +1522,7 @@ describe("JsonRpc Module", () => {
           } as TimestampRecordHashesParam;
 
           param2 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             hashValues: [
               "0x0a45567890123456789012345678901234567890123456789012345678901234",
@@ -1345,7 +1542,7 @@ describe("JsonRpc Module", () => {
         }
         case "timestampRecordVersionHashes": {
           param1 = {
-            from: signer.address,
+            from: testUser.wallet.address,
             recordId: firstHashValue,
             hashAlgorithmIds: [0],
             hashValues: [
@@ -1363,7 +1560,7 @@ describe("JsonRpc Module", () => {
           } as TimestampRecordVersionHashesParam;
 
           param2 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId: firstHashValue,
             hashAlgorithmIds: [0],
             hashValues: [
@@ -1384,7 +1581,7 @@ describe("JsonRpc Module", () => {
         }
         case "appendRecordVersionHashes": {
           param1 = {
-            from: signer.address,
+            from: testUser.wallet.address,
             recordId: firstHashValue,
             versionId: 1,
             hashAlgorithmIds: [0],
@@ -1403,7 +1600,7 @@ describe("JsonRpc Module", () => {
           } as AppendRecordVersionHashesParam;
 
           param2 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId: firstHashValue,
             versionId: 1,
             hashAlgorithmIds: [0],
@@ -1425,14 +1622,14 @@ describe("JsonRpc Module", () => {
         }
         case "detachRecordVersionHash": {
           param1 = {
-            from: signer.address,
+            from: testUser.wallet.address,
             recordId: firstHashValue,
             versionId: 0,
             hashValue: "0x125345568a",
           } as DetachRecordVersionHashParam;
 
           param2 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId: firstHashValue,
             versionId: 0,
             hashValue: "0x1234567890",
@@ -1442,7 +1639,7 @@ describe("JsonRpc Module", () => {
         }
         case "insertRecordOwner": {
           param1 = {
-            from: signer.address,
+            from: testUser.wallet.address,
             recordId: firstHashValue,
             ownerId: "owner",
             notBefore: 1042,
@@ -1450,7 +1647,7 @@ describe("JsonRpc Module", () => {
           } as InsertRecordOwnerParam;
 
           param2 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId: firstHashValue,
             ownerId: "ownerchanged",
             notBefore: 1042,
@@ -1461,13 +1658,13 @@ describe("JsonRpc Module", () => {
         }
         case "revokeRecordOwner": {
           param1 = {
-            from: signer.address,
+            from: testUser.wallet.address,
             recordId: firstHashValue,
             ownerId: "owner",
           } as RevokeRecordOwnerParam;
 
           param2 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId: firstHashValue,
             ownerId: "ownerchanged",
           } as RevokeRecordOwnerParam;
@@ -1481,14 +1678,14 @@ describe("JsonRpc Module", () => {
           ).toString("hex")}`;
 
           param1 = {
-            from: signer.address,
+            from: testUser.wallet.address,
             recordId: firstHashValue,
             versionId: 0,
             versionInfo,
           } as InsertRecordVersionInfoParam;
 
           param2 = {
-            from: signer.address,
+            from: testAdmin.wallet.address,
             recordId: firstHashValue,
             versionId: 1,
             versionInfo,
@@ -1502,6 +1699,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild1: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testUser.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1513,6 +1711,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild2: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
+        .auth(testAdmin.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1522,18 +1721,17 @@ describe("JsonRpc Module", () => {
       expect(responseBuild2.status).toBe(200);
       const transaction2 = responseBuild2.body.result as UnsignedTransaction;
 
-      const randomSigner = ethers.Wallet.createRandom();
-
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(JSON.stringify(transaction1))
       );
       uTx.chainId = Number(uTx.chainId);
-      const sgnTx1 = await randomSigner.signTransaction(uTx);
+      const sgnTx1 = await testUser.wallet.signTransaction(uTx);
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx1);
 
       // Tampering signatures
       const responseSend1 = await request(server)
         .post("/jsonrpc")
+        .auth(testUser.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",
@@ -1565,6 +1763,7 @@ describe("JsonRpc Module", () => {
       transaction1.from = transaction2.from;
       const responseSend2 = await request(server)
         .post("/jsonrpc")
+        .auth(testAdmin.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",
@@ -1601,141 +1800,144 @@ describe("JsonRpc Module", () => {
     "timestampRecordHashes",
     "timestampRecordVersionHashes",
     "appendRecordVersionHashes",
-  ])("/jsonrpc with method %s", (method: string) => {
-    it("should return a valid unsigned transaction that we can sign and send to signedTransaction even if timestamp data is empty", async () => {
-      expect.assertions(4);
+  ])(
+    "/jsonrpc with method %s even if timestamp data is empty",
+    (method: string) => {
+      it("should return a valid unsigned transaction that we can sign and send to signedTransaction even if timestamp data is empty", async () => {
+        expect.assertions(4);
 
-      let param: JsonRpcParams = null;
+        let param: JsonRpcParams = null;
 
-      const signer = testEnvTar.administrators[0];
+        switch (method) {
+          case "timestampHashes": {
+            param = {
+              from: testAdmin.wallet.address,
+              hashAlgorithmIds: [0],
+              hashValues: [firstHashValue],
+            } as TimestampHashesParam;
+            break;
+          }
+          case "timestampRecordHashes": {
+            param = {
+              from: testAdmin.wallet.address,
+              hashAlgorithmIds: [0],
+              hashValues: [firstHashValue],
+              versionInfo: `0x${Buffer.from(
+                JSON.stringify({ test: 54 }),
+                "utf8"
+              ).toString("hex")}`,
+            } as TimestampRecordHashesParam;
+            break;
+          }
 
-      switch (method) {
-        case "timestampHashes": {
-          param = {
-            from: signer.address,
-            hashAlgorithmIds: [0],
-            hashValues: [firstHashValue],
-          } as TimestampHashesParam;
-          break;
+          case "timestampRecordVersionHashes": {
+            recordId = ethers.utils.sha256(
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "uint256", "bytes"],
+                [testAdmin.wallet.address, blockNumber, firstHashValue]
+              )
+            );
+            param = {
+              from: testAdmin.wallet.address,
+              recordId,
+              hashAlgorithmIds: [0],
+              hashValues: [firstHashValue],
+              versionInfo: `0x${Buffer.from(
+                JSON.stringify({ test: 54 }),
+                "utf8"
+              ).toString("hex")}`,
+            } as TimestampRecordVersionHashesParam;
+            break;
+          }
+          case "appendRecordVersionHashes": {
+            recordId = ethers.utils.sha256(
+              ethers.utils.defaultAbiCoder.encode(
+                ["address", "uint256", "bytes"],
+                [testAdmin.wallet.address, blockNumber, firstHashValue]
+              )
+            );
+            param = {
+              from: testAdmin.wallet.address,
+              recordId,
+              versionId: 1,
+              hashAlgorithmIds: [0],
+              hashValues: [
+                `0x2234567890123456789012345678901234567890123456789012345678901234`,
+              ],
+              versionInfo: `0x${Buffer.from(
+                JSON.stringify({ test: 54 }),
+                "utf8"
+              ).toString("hex")}`,
+            } as AppendRecordVersionHashesParam;
+            break;
+          }
+          default:
+            throw new Error(`Test Error: Invalid method ${method}`);
         }
-        case "timestampRecordHashes": {
-          param = {
-            from: signer.address,
-            hashAlgorithmIds: [0],
-            hashValues: [firstHashValue],
-            versionInfo: `0x${Buffer.from(
-              JSON.stringify({ test: 54 }),
-              "utf8"
-            ).toString("hex")}`,
-          } as TimestampRecordHashesParam;
-          break;
-        }
 
-        case "timestampRecordVersionHashes": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "uint256", "bytes"],
-              [signer.address, blockNumber, firstHashValue]
-            )
-          );
-          param = {
-            from: signer.address,
-            recordId,
-            hashAlgorithmIds: [0],
-            hashValues: [firstHashValue],
-            versionInfo: `0x${Buffer.from(
-              JSON.stringify({ test: 54 }),
-              "utf8"
-            ).toString("hex")}`,
-          } as TimestampRecordVersionHashesParam;
-          break;
-        }
-        case "appendRecordVersionHashes": {
-          recordId = ethers.utils.sha256(
-            ethers.utils.defaultAbiCoder.encode(
-              ["address", "uint256", "bytes"],
-              [signer.address, blockNumber, firstHashValue]
-            )
-          );
-          param = {
-            from: signer.address,
-            recordId,
-            versionId: 1,
-            hashAlgorithmIds: [0],
-            hashValues: [
-              `0x2234567890123456789012345678901234567890123456789012345678901234`,
-            ],
-            versionInfo: `0x${Buffer.from(
-              JSON.stringify({ test: 54 }),
-              "utf8"
-            ).toString("hex")}`,
-          } as AppendRecordVersionHashesParam;
-          break;
-        }
-        default:
-          throw new Error(`Test Error: Invalid method ${method}`);
-      }
+        const responseBuild: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testAdmin.token, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method,
+            params: [param],
+            id: 231,
+          });
 
-      const responseBuild: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
-        .send({
+        expect(responseBuild.body).toStrictEqual({
           jsonrpc: "2.0",
-          method,
-          params: [param],
           id: 231,
+          result: {
+            chainId: expect.any(String) as string,
+            data: expect.any(String) as string,
+            from: param.from,
+            gasLimit: expect.any(String) as string,
+            gasPrice: expect.any(String) as string,
+            nonce: expect.any(String) as string,
+            to: expect.any(String) as string,
+            value: "0x0",
+          },
         });
+        expect(responseBuild.status).toBe(200);
 
-      expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 231,
-        result: {
-          chainId: expect.any(String) as string,
-          data: expect.any(String) as string,
-          from: param.from,
-          gasLimit: expect.any(String) as string,
-          gasPrice: expect.any(String) as string,
-          nonce: expect.any(String) as string,
-          to: expect.any(String) as string,
-          value: "0x0",
-        },
-      });
-      expect(responseBuild.status).toBe(200);
+        const unsignedTransaction = responseBuild.body.result;
+        const uTx = formatEthersUnsignedTransaction(
+          JSON.parse(JSON.stringify(unsignedTransaction))
+        );
+        uTx.chainId = Number(uTx.chainId);
+        const sgnTx = await testAdmin.wallet.signTransaction(uTx);
+        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
-      const unsignedTransaction = responseBuild.body.result;
-      const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction))
-      );
-      uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await signer.signTransaction(uTx);
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-      const responseSend = await request(server)
-        .post("/jsonrpc")
-        .send({
+        const responseSend = await request(server)
+          .post("/jsonrpc")
+          .auth(testAdmin.token, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "signedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r,
+                s,
+                v: `0x${Number(v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
+            id: "45",
+          });
+        // blocknumber needed to compute the recordid
+        if (method === "timestampRecordHashes") {
+          blockNumber = await provider.getBlockNumber();
+        }
+        expect(responseSend.body).toStrictEqual({
           jsonrpc: "2.0",
-          method: "signedTransaction",
-          params: [
-            {
-              protocol: "eth",
-              unsignedTransaction,
-              r,
-              s,
-              v: `0x${Number(v).toString(16)}`,
-              signedRawTransaction: sgnTx,
-            },
-          ],
           id: "45",
+          result: expect.any(String) as string,
         });
-      // blocknumber needed to compute the recordid
-      if (method === "timestampRecordHashes") {
-        blockNumber = await provider.getBlockNumber();
-      }
-      expect(responseSend.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: "45",
-        result: expect.any(String) as string,
+        expect(responseSend.status).toBe(200);
       });
-      expect(responseSend.status).toBe(200);
-    });
-  });
+    }
+  );
 });

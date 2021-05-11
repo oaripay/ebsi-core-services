@@ -7,10 +7,11 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-const { domain } = loadConfig();
+const { ledgerApiUrl } = loadConfig();
 
 export const waitToBeMined = async (
-  txId: string
+  txId: string,
+  token: string
 ): Promise<{ status: string; blockNumber: string }> => {
   let mined = false;
   let receipt = null;
@@ -18,8 +19,11 @@ export const waitToBeMined = async (
   while (!mined) {
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const responseReceipt: SupertestJsonRpcResponse = await request(domain)
-      .post("/ledger/v2/blockchains/besu")
+    const responseReceipt: SupertestJsonRpcResponse = await request(
+      ledgerApiUrl
+    )
+      .post("/blockchains/besu")
+      .auth(token, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_getTransactionReceipt",

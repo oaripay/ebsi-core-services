@@ -7,7 +7,7 @@ RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yar
 
 FROM base as builder
 COPY submodules submodules
-RUN yarn install --frozen-lockfile --silent
+RUN yarn install --frozen-lockfile --silent && yarn cache clean
 COPY nest-cli.json tsconfig*.json ./
 COPY src src
 RUN yarn build

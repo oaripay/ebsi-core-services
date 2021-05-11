@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
-import LedgerService from "../../shared/services/ledger.service";
+import { LedgerService } from "../../shared/services/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { Timestamp } from "../../contracts/timestamp";
 import { HashAlgorithmResponseObject } from "./hash-algorithms.interface";
@@ -9,17 +9,16 @@ import { HashAlgorithmResponseObject } from "./hash-algorithms.interface";
 export class HashAlgorithmsService {
   private readonly logger = new Logger(HashAlgorithmsService.name);
 
-  private timestampContract: Timestamp;
-
-  constructor(private ledgerService: LedgerService) {
-    this.timestampContract = this.ledgerService.getContract();
-  }
+  constructor(private ledgerService: LedgerService) {}
 
   async getHashAlgorithms(
     page: number,
     pageSize: number
   ): ReturnType<Timestamp["getHashAlgorithms"]> {
-    return this.timestampContract.getHashAlgorithms(page, pageSize);
+    return (await this.ledgerService.getContract()).getHashAlgorithms(
+      page,
+      pageSize
+    );
   }
 
   async getHashAlgorithm(
@@ -28,9 +27,9 @@ export class HashAlgorithmsService {
     let hashAlgorithm: AsyncReturnType<Timestamp["getHashAlgorithmById"]>;
 
     try {
-      hashAlgorithm = await this.timestampContract.getHashAlgorithmById(
-        hashAlgorithmId
-      );
+      hashAlgorithm = await (
+        await this.ledgerService.getContract()
+      ).getHashAlgorithmById(hashAlgorithmId);
     } catch (error) {
       throw new NotFoundError("Hash algorithm Not Found", {
         detail: `Hash algorithm ${hashAlgorithmId} not found`,

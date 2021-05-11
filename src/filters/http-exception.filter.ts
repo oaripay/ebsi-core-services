@@ -13,16 +13,15 @@ import {
   BadRequestError,
 } from "@cef-ebsi/problem-details-errors";
 import { FastifyReply } from "fastify";
+import { AxiosError } from "axios";
 import { InvalidRequestJsonRpcError } from "../modules/jsonrpc/errors";
+import { logAxiosError } from "../shared/utils";
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
-  catch(
-    err: Error | ProblemDetailsError | InvalidRequestJsonRpcError,
-    host: ArgumentsHost
-  ): FastifyReply {
+  catch(err: Error, host: ArgumentsHost): FastifyReply {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
 
@@ -41,8 +40,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
       problemError = new NotFoundError(NotFoundError.defaultTitle, {
         detail: err.message,
       });
-    } else if (err instanceof ProblemDetailsError) {
-      problemError = err;
     } else if (err instanceof BadRequestException) {
       let detail = err.message;
       const resp = err.getResponse();
@@ -56,13 +53,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
       problemError = new BadRequestError(BadRequestError.defaultTitle, {
         detail,
       });
+    } else if (err instanceof ProblemDetailsError) {
+      problemError = err;
     } else {
+      if ((err as AxiosError).isAxiosError) {
+        logAxiosError(err as AxiosError, this.logger);
+      } else {
+        this.logger.error(err.message, err.stack);
+      }
+
       problemError = new InternalServerError(undefined, {
         detail:
           "The server encountered an internal error and was unable to complete your request",
       });
-
-      this.logger.error(err.message, err.stack);
     }
 
     this.logger.debug(

@@ -2,7 +2,7 @@ import { Module, Logger } from "@nestjs/common";
 import { ApiConfigModule } from "../../config/configuration";
 import { HashAlgorithmsController } from "./hash-algorithms.controller";
 import { HashAlgorithmsService } from "./hash-algorithms.service";
-import LedgerService from "../../shared/services/ledger.service";
+import { LedgerService } from "../../shared/services/ledger.service";
 
 @Module({
   imports: [ApiConfigModule],

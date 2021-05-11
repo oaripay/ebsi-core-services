@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import multihash from "multihashes";
-import LedgerService from "../../shared/services/ledger.service";
+import { LedgerService } from "../../shared/services/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { Timestamp } from "../../contracts/timestamp";
 import { TimestampResponseObject } from "./timestamps.interface";
@@ -12,29 +12,28 @@ import { multibase64Decode, multihashEncode } from "../../shared/utils";
 export default class TimestampsService {
   private readonly logger = new Logger(TimestampsService.name);
 
-  private timestampContract: Timestamp;
-
   constructor(
     private ledgerService: LedgerService,
     private configService: ConfigService
-  ) {
-    this.timestampContract = this.ledgerService.getContract();
-  }
+  ) {}
 
   async getTimestamps(
     page: number,
     pageSize: number
   ): ReturnType<Timestamp["getTimestamps"]> {
-    return this.timestampContract.getTimestamps(page, pageSize);
+    return (await this.ledgerService.getContract()).getTimestamps(
+      page,
+      pageSize
+    );
   }
 
   async getTimestamp(timestampId: string): Promise<TimestampResponseObject> {
     let timestamp: AsyncReturnType<Timestamp["getTimestamp"]>;
     try {
       const timestampIdDecoded = multibase64Decode(timestampId);
-      timestamp = await this.timestampContract.getTimestampById(
-        timestampIdDecoded
-      );
+      timestamp = await (
+        await this.ledgerService.getContract()
+      ).getTimestampById(timestampIdDecoded);
     } catch (error) {
       this.logger.error((error as Error).message, (error as Error).stack);
       throw new NotFoundError("Timestamp Not Found", {
@@ -46,8 +45,12 @@ export default class TimestampsService {
 
     // Parallelize SC calls
     const [hashAlgorithm, block] = await Promise.all([
-      this.timestampContract.getHashAlgorithmById(hash.algorithm.toNumber()),
-      this.timestampContract.provider.getBlock(blockNumber.toNumber()),
+      (await this.ledgerService.getContract()).getHashAlgorithmById(
+        hash.algorithm.toNumber()
+      ),
+      (await this.ledgerService.getContract()).provider.getBlock(
+        blockNumber.toNumber()
+      ),
     ]);
 
     // check if ianaName is valid, otherwise fallback to "sha2-256" as a temporary fix
