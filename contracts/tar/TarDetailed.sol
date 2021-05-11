@@ -26,4 +26,12 @@ contract TarDetailed is Initializable, TarStorage {
         Tar storage ds = tarStorage();
         return ds._version;
     }
+
+    /**
+     * @dev Returns the version of the Timestamp SC
+     */
+    function setVersion(uint256 _version) public {
+        Tar storage ds = tarStorage();
+        ds._version = _version;
+    }
 }
