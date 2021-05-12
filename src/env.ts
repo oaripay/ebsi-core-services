@@ -33,17 +33,17 @@ const defaultConfig: { [index: string]: ApiConfig } = {
     REACT_APP_API_URL: "http://localhost:3002/users-onboarding/v1",
   },
   test: {
-    REACT_APP_WALLET: "https://app.intebsi.xyz/users-onboarding",
+    REACT_APP_WALLET: "https://app.test.intebsi.xyz/users-onboarding",
     REACT_APP_EULOGIN: "https://ecas.ec.europa.eu/cas",
     REACT_APP_API_URL: "https://api.test.intebsi.xyz/users-onboarding/v1",
   },
   pilot: {
-    REACT_APP_WALLET: "https://app.ebsi.xyz/users-onboarding",
+    REACT_APP_WALLET: "https://app.preprod.ebsi.xyz/users-onboarding",
     REACT_APP_EULOGIN: "https://ecas.ec.europa.eu/cas",
     REACT_APP_API_URL: "https://api.preprod.ebsi.eu/users-onboarding/v1",
   },
   prod: {
-    REACT_APP_WALLET: "https://app.ebsi.tech.ec.europa.eu/users-onboarding",
+    REACT_APP_WALLET: "https://app.ebsi.xyz/users-onboarding",
     REACT_APP_EULOGIN: "https://ecas.ec.europa.eu/cas",
     REACT_APP_API_URL: "https://api.ebsi.eu/users-onboarding/v1",
   },

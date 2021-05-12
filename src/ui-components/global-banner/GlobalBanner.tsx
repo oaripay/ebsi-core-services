@@ -24,7 +24,7 @@ export function GlobalBanner(): JSX.Element {
       </span>
       <MemoizedLink
         className="ecl-u-type-color-white ecl-u-type-s ecl-u-ml-s"
-        to="/example"
+        to="#"
         variant="standalone"
         icon={{
           shape: "ui--corner-arrow",
