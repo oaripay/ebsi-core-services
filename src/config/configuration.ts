@@ -63,7 +63,7 @@ const defaultConfig = {
       "https://ecas.acceptance.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
       "https://app.test.intebsi.xyz/users-onboarding/authentication",
-    RECAPTCHA_REGISTERED_HOSTNAME: "api.test.intebsi.xyz",
+    RECAPTCHA_REGISTERED_HOSTNAME: "intebsi.xyz",
     LOG_LEVEL: "info",
   },
   pilot: {
@@ -78,7 +78,7 @@ const defaultConfig = {
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
       "https://app.preprod.ebsi.eu/users-onboarding/authentication",
-    RECAPTCHA_REGISTERED_HOSTNAME: "api.preprod.ebsi.eu",
+    RECAPTCHA_REGISTERED_HOSTNAME: "ebsi.eu",
     LOG_LEVEL: "warn",
   },
   prod: {
@@ -92,7 +92,7 @@ const defaultConfig = {
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
       "https://app.ebsi.eu/users-onboarding/authentication",
-    RECAPTCHA_REGISTERED_HOSTNAME: "api.ebsi.eu",
+    RECAPTCHA_REGISTERED_HOSTNAME: "ebsi.eu",
     LOG_LEVEL: "error",
   },
 };

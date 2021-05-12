@@ -143,7 +143,7 @@ export default class SessionsService {
       // see https://developers.google.com/recaptcha/docs/v3 for more details
       if (
         response.data.success &&
-        response.data.hostname === this.recaptchaRegisteredHostname &&
+        response.data.hostname.includes(this.recaptchaRegisteredHostname) &&
         response.data.score > 0.5
       )
         return response.data;
