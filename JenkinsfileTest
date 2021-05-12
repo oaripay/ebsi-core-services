@@ -9,6 +9,13 @@ pipeline {
                 }
             }
         }
+        stage('Lint') {
+            steps {
+                nodejs(nodeJSInstallationName: '14.15.4') {
+                    sh 'yarn lint'
+                }
+            }
+        }
         stage('Unit Test') {
             steps{
                 nodejs(nodeJSInstallationName: '14.15.4') {
