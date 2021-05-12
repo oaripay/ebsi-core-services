@@ -181,8 +181,8 @@ describe("JsonRpc Module", () => {
 
   describe("JWT Authentication", () => {
     it("should reject bad authentication", async () => {
-      expect.assertions(2);
-      const response = await request(server)
+      expect.assertions(4);
+      let response = await request(server)
         .post("/jsonrpc")
         .auth(testFakeUser.token, { type: "bearer" })
         .send();
@@ -191,6 +191,16 @@ describe("JsonRpc Module", () => {
         title: "Unauthorized",
         status: 401,
         detail: "verifyAccessToken failed",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+
+      response = await request(server).post("/jsonrpc").send();
+
+      expect(response.body).toStrictEqual({
+        title: "Unauthorized",
+        status: 401,
+        detail: "Missing JWT",
         type: "about:blank",
       });
       expect(response.status).toBe(401);
