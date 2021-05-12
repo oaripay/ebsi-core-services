@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   onboarding-web-client:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/users-onboarding-web-client:development_ebsiint-deployment-test-webapp_v1.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/intebsi/users-onboarding-web-client:development_ebsiint--2914-users-onboarding-webapp-first-deployment_v1.0.0
     build: ../..
