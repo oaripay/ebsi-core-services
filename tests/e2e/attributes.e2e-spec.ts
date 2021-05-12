@@ -126,7 +126,7 @@ describe("Attributes", () => {
 
   describe("GET /attributes", () => {
     it("should get attributes associated to the did", async () => {
-      expect.assertions(9);
+      expect.assertions(8);
       await deleteAllAttributes();
       /* eslint-disable no-await-in-loop */
       for (let i = 0; i < 3; i += 1) await insertAttribute();
@@ -208,17 +208,14 @@ describe("Attributes", () => {
         items: expect.arrayContaining([
           expect.objectContaining({
             // Not the owner but it is shared
-            did: expect.not.stringContaining(testUser1.did) as string,
+            did: testUser2.did,
             sharedWith: testUser1.did,
           }),
         ]) as AttributeResponseObject[],
-        links: {},
+        links: expect.objectContaining({}) as { next: string },
         pageSize: 2,
       });
       expect(response.status).toBe(200);
-      expect(
-        (response.body as { items: AttributeResponseObject[] }).items
-      ).toHaveLength(1);
     });
   });
 
