@@ -19,9 +19,13 @@ export default class LedgerService {
   private tarAddress: string;
 
   constructor(private configService: ConfigService<ApiConfig>) {
-    this.ethersProvider = new ethers.providers.JsonRpcProvider(
-      this.configService.get<string>("besuRpcNode")
-    );
+    const url = new URL(this.configService.get<string>("besuRpcNode"));
+
+    this.ethersProvider = new ethers.providers.JsonRpcProvider({
+      url: url.href,
+      user: url.username || undefined,
+      password: url.password || undefined,
+    });
 
     this.ethersWallet = new ethers.Wallet(
       prefixWith0x(this.configService.get<string>("apiPrivateKey")),

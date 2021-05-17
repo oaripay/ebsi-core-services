@@ -1,12 +1,12 @@
 import querystring from "querystring";
 import axios from "axios";
+import { v4 as uuidv4 } from "uuid";
 import {
   EbsiDidAuth,
   Agent as SiopAgent,
   DidAuthResponseMode,
 } from "@cef-ebsi/siop-auth";
 import type { AkeResponse } from "@cef-ebsi/siop-auth/dist/Ake";
-import { v4 as uuidv4 } from "uuid";
 
 export const requestSiopJwt = async ({
   didRegistry,
