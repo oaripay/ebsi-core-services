@@ -18,8 +18,8 @@ export const TermsConditions: React.FunctionComponent = () => {
             General terms &amp; conditions for applications.
           </h2>
           <p className="ecl-u-type-paragraph">
-            GENERAL CONDITIONS OF USE OF THE APPLICATION &ldquo;USERS ONBOARDING
-            SERVICE&rdquo;.
+            GENERAL CONDITIONS OF USE OF THE APPLICATION “USERS ONBOARDING
+            SERVICE”.
           </p>
         </div>
         <p className="ecl-u-type-paragraph">
@@ -28,9 +28,9 @@ export const TermsConditions: React.FunctionComponent = () => {
           THE SOFTWARE, RUNNING THE SOFTWARE, AND/OR ANY USE OF THE SOFTWARE,
           AND YOUR ACCEPTANCE SHALL BE EFFECTIVE ON THE EARLIER OF THE DATE ON
           WHICH YOU DOWNLOAD, ACCESS, COPY, OR INSTALL THE SOFTWARE PROVIDED
-          HEREUNDER (THE &ldquo;EFFECTIVE DATE&rdquo;).IF YOU DO NOT AGREE TO
-          THESE TERMS AND CONDITIONS, DO NOT CHECK THE ACCEPTANCE BOX, AND DO
-          NOT DOWNLOAD, ACCESS, COPY, INSTALL OR USE THE SOFTWARE.
+          HEREUNDER (THE “EFFECTIVE DATE”).IF YOU DO NOT AGREE TO THESE TERMS
+          AND CONDITIONS, DO NOT CHECK THE ACCEPTANCE BOX, AND DO NOT DOWNLOAD,
+          ACCESS, COPY, INSTALL OR USE THE SOFTWARE.
         </p>
         <p className="ecl-u-type-paragraph">
           PLEASE READ THE FOLLOWING TERMS AND CONDITIONS CAREFULLY BEFORE
@@ -41,13 +41,12 @@ export const TermsConditions: React.FunctionComponent = () => {
         </p>
         <p className="ecl-u-type-paragraph">
           <strong>Purpose.-</strong> By downloading, using or accessing the EBSI
-          WALLET DID application (the &ldquo;application&rdquo;, or the
-          &ldquo;wallet&rdquo;) you agree to the following terms and conditions
-          of use (collectively, these &ldquo;Terms&rdquo;). Please read these
-          Terms carefully. If you do not agree to all of these Terms, please do
-          not use the application. Your use of the Users Onboarding service
-          application constitutes your acceptance of and agreement to abide by
-          each of these Terms.
+          WALLET DID application (the “application”, or the “wallet”) you agree
+          to the following terms and conditions of use (collectively, these
+          “Terms”). Please read these Terms carefully. If you do not agree to
+          all of these Terms, please do not use the application. Your use of the
+          Users Onboarding service application constitutes your acceptance of
+          and agreement to abide by each of these Terms.
         </p>
         <p className="ecl-u-type-paragraph">
           <strong>
@@ -61,11 +60,11 @@ export const TermsConditions: React.FunctionComponent = () => {
         </p>
         <p className="ecl-u-type-paragraph">
           The application is intended for use, basically, by citizens
-          (hereinafter &ldquo;citizens &rdquo;) residing in EU or accessing from
-          EU, so EU declines all responsibility for the access of persons in
-          jurisdictions where such distribution or use they could be contrary to
-          the norm or regulation. Certain services may not be available or
-          authorized in all jurisdictions or for all persons.
+          (hereinafter “citizens”) residing in EU or accessing from EU, so EU
+          declines all responsibility for the access of persons in jurisdictions
+          where such distribution or use they could be contrary to the norm or
+          regulation. Certain services may not be available or authorized in all
+          jurisdictions or for all persons.
         </p>
         <p className="ecl-u-type-paragraph">
           EU reserves the right to eliminate, limit or prevent access to the
@@ -158,26 +157,26 @@ export const TermsConditions: React.FunctionComponent = () => {
           contents, or for any damages that may, where appropriate, arise from
           them:
         </p>
-        <ul className="ecl-u-type-paragraph">
-          <li>
+        <ul className="ecl-unordered-list">
+          <li className="ecl-unordered-list__item">
             Lack of availability, continuity, access, maintenance and effective
             operation of the application and/or its services and updating,
             accuracy, completeness, relevance, timeliness and reliability of its
             contents, whatever the cause and technical difficulties or problems
             or another nature in which these facts originate.
           </li>
-          <li>
+          <li className="ecl-unordered-list__item">
             The transmission and/or existence of viruses, other elements or
             programs harmful to the devices of the users that could affect them,
             as a consequence of the access, use or examination of the
             application site, or that produced alterations in their electronic
             documents or files.
           </li>
-          <li>
+          <li className="ecl-unordered-list__item">
             Vices or defects of the contents and/or services that are accessed
             through the application.
           </li>
-          <li>
+          <li className="ecl-unordered-list__item">
             For the reception, storage, obtaining, dissemination or transmission
             by the users of the contents of the application.
           </li>
@@ -228,9 +227,12 @@ export const TermsConditions: React.FunctionComponent = () => {
           All legal issues related to the use of your data in the framework of
           the Application (for example, retention periods, recipients, as well
           as your rights) are those collected at{" "}
-          <a className="ecl-link" href="https://www.EU/legal/privacy-policy/">
-            https://www.EU/legal/privacy-policy/
-          </a>{" "}
+          <a
+            className="ecl-link"
+            href="https://ec.europa.eu/info/privacy-policy"
+          >
+            https://ec.europa.eu/info/privacy-policy
+          </a>
           .
         </p>
         <p className="ecl-u-type-paragraph">
@@ -260,7 +262,7 @@ export const TermsConditions: React.FunctionComponent = () => {
           or otherwise.
         </p>
         <br />
-        <p className="bigger ecl-u-type-paragraph">
+        <p className="ecl-u-type-paragraph ecl-u-type-l">
           Specific terms &amp; conditions for subjects and third parties using
           verifiable IDs and attestations Obligations of subjects who receive
           credentials
@@ -296,14 +298,14 @@ export const TermsConditions: React.FunctionComponent = () => {
         <p className="ecl-u-type-paragraph">
           <strong>Obligations of the users.-</strong>
         </p>
-        <ol className="ecl-u-type-paragraph">
-          <li>
+        <ol className="ecl-ordered-list">
+          <li className="ecl-ordered-list__item">
             Service request: the user expressly requests the provision of the
             Users Onboarding service and is obliged to use it in accordance with
             the procedures, service regulations, and, where appropriate, the
             technical components supplied by the EU.
           </li>
-          <li>
+          <li className="ecl-ordered-list__item">
             Accuracy of the information: The user will be obliged to provide the
             necessary data for the provision of the service, and must be
             responsible for ensuring that all the information included, by any
@@ -311,14 +313,14 @@ export const TermsConditions: React.FunctionComponent = () => {
             the service, and is updated during the provision of the service. The
             user must immediately inform the UE of any inaccuracies detected
             once the application has been registered, as well as the changes
-            that occur in the information provided
+            that occur in the information provided.
           </li>
-          <li>
+          <li className="ecl-ordered-list__item">
             Delivery and acceptance of the service: The user accepts these
             conditions at the time of entering their data, and accept the
             service on their mobile device, by checking the corresponding box.
           </li>
-          <li>
+          <li className="ecl-ordered-list__item">
             Obligation of custody: The user is obliged to guard the
             confidentiality of his access to the application, his password for
             the key generation, private keys and encryption secrets. In case of
@@ -327,9 +329,9 @@ export const TermsConditions: React.FunctionComponent = () => {
             through the same application, from an authorized office, through the
             web, or another enabled telephone channel.
           </li>
-          <li>
+          <li className="ecl-ordered-list__item">
             Obligations of correct use: The user is obliged to use the service
-            exclusively for the authorized uses in these Specific terms &amp;
+            exclusively for the authorized uses in these Specific terms &
             conditions. The user must comply with any law and regulation that
             may affect his right to use the system and specifically, the
             applicable regulations regarding trust services in whatever is
@@ -337,7 +339,7 @@ export const TermsConditions: React.FunctionComponent = () => {
             decompilation measures of application without the prior express
             permission of the EU.
           </li>
-          <li>
+          <li className="ecl-ordered-list__item">
             Prohibited transactions: The user undertakes not to use the EBSI
             wallet DID or any other technical support provided by the EU to
             carry out any transaction prohibited by applicable law. Users
@@ -353,8 +355,8 @@ export const TermsConditions: React.FunctionComponent = () => {
         <p className="ecl-u-type-paragraph">
           Obligations of the third parties using verifiable IDs and attestations
         </p>
-        <ol className="ecl-u-type-paragraph">
-          <li>
+        <ol className="ecl-ordered-list">
+          <li className="ecl-ordered-list__item">
             Third parties using verifiable IDs and attestations (Third parties),
             are obliged to provide the services in the manner provided in terms
             and conditions, in the documentation of the applicable Users
@@ -363,39 +365,43 @@ export const TermsConditions: React.FunctionComponent = () => {
             (EU) ) nº 910/2014, of July 23 and the legislation that is dictated
             for its development, to its own pacts
           </li>
-          <li>
+          <li className="ecl-ordered-list__item">
             Specifically, third parties are obligated to:
-            <ul className="ecl-u-type-paragraph">
-              <li>
+            <ul className="ecl-unordered-list">
+              <li className="ecl-unordered-list__item">
                 Identify and authenticate the User or wallet holder, correctly.
               </li>
-              <li>
+              <li className="ecl-unordered-list__item">
                 Safely keep all the information and evidence generated as a
                 result of its activity.
               </li>
-              <li>
+              <li className="ecl-unordered-list__item">
                 Enable the necessary computer and telematic system to validate
                 transactions.
               </li>
-              <li>
-                Fulfil its obligations derived from the GDPR, and specifically
+              <li className="ecl-unordered-list__item">
+                Fulfill its obligations derived from the GDPR, and specifically
                 store the strict information necessary for the provision of the
                 service.
               </li>
             </ul>
           </li>
         </ol>
-        <p className="ecl-u-type-paragraph">
+        <p className="ecl-u-type-paragraph ecl-u-type-l">
           <strong>Terms &amp; conditions for node operators.</strong>
-          <br /> <br />
+        </p>
+        <p className="ecl-u-type-paragraph">
           This document establishes the terms and conditions for node operators.
-          <br /> <br />
+        </p>
+        <p className="ecl-u-type-paragraph">
           <strong>Presentation.-</strong> EBSI Platform is a peer to peer
           network of interconnected nodes of two types:
         </p>
-        <ol className="ecl-u-type-paragraph">
-          <li>EBSI nodes at European level, operate by the Commission</li>
-          <li>
+        <ol className="ecl-ordered-list">
+          <li className="ecl-ordered-list__item">
+            EBSI nodes at European level, operate by the Commission
+          </li>
+          <li className="ecl-ordered-list__item">
             EBSI nodes at a national level, operate by following Member States:
             Italy, Spain, Belgium, France, Sweden, Austria, Malta.
           </li>
@@ -408,22 +414,22 @@ export const TermsConditions: React.FunctionComponent = () => {
           The architecture of each node will be composed of two main functional
           areas:
         </p>
-        <ul className="ecl-u-type-paragraph">
-          <li>
+        <ul className="ecl-unordered-list">
+          <li className="ecl-unordered-list__item">
             A set of four layers comprising components which together provide
             the EBSI infrastructure, which contain capabilities common to all
             use cases. These layers will include generic capabilities and
             connectivity to Blockchain networks.
           </li>
-          <li>
+          <li className="ecl-unordered-list__item">
             A set of two layers comprising use case-specific components enabling
             support for hosting of business applications.
           </li>
         </ul>
         <p className="ecl-u-type-paragraph">
-          <strong>EBSI V1.0 Stack Nodes</strong>
+          <strong>EBSI V2.0 Stack Nodes</strong>
           <br />
-          EBSI 1.0 is a public permissioned network that requires EBSI
+          EBSI 2.0 is a public permissioned network that requires EBSI
           full-stack nodes infrastructure, with several distributed validator
           nodes, basic redundancy, capacity to handle smart contracts, run
           transactions on those smart-contracts, with access control mechanism
@@ -433,38 +439,38 @@ export const TermsConditions: React.FunctionComponent = () => {
           All the members of the consortium (network) will use the same
           open-source EBSI Stack Node template. Each member of the network will
           activate/deactivate any module (container) of the Stack Node Template,
-          based on the predefined agreement in respect to the use cases that
-          will be implemented.
+          based on the predefined agreement in respect to the current
+          configuration or future development of the EBSI components.
           <br />
-          For EBSI v1.0, the nodes will run on the host operating system Linux.
+          For EBSI v2.0, the nodes will run on the host operating system Linux.
           A single Stack Node template is composed of a set of containers, that
           can be run with different containers managers (Docker has been
-          selected for the V1.0) and that can be deployed on Virtual Machines
+          selected for the V2.0) and that can be deployed on Virtual Machines
           node.
           <br />
-          To setup the EBSI v1.0 network, a minimum set of redundant nodes will
+          To setup the EBSI v2.0 network, a minimum set of redundant nodes will
           be deployed by DIGIT for the European Commission. While European
           Commission will utilize its own infrastructure provider (based on the
           existing Cloud Framework contract), each Member State will define one
           or more contributing entities that will setup an EBSI node directly
           within their existing premises or through their own provider. All
-          European Commission&#8217;s nodes will be implemented on VM machines
-          in the cloud, spread in different European geo-locations as depicted
-          below.
+          European Commission’s nodes will be implemented on VM machines in the
+          cloud, data-center grade, spread in different European geo-locations
+          as depicted below.
           <br />
           At any time EBSI team may (and will) assess the overall structure of
           EBSI in order to ensure full decentralization and avoid concentration
           of nodes (e.g. in a specific member state or managed by a specific
           cloud provider).
           <br />
-          All bare metal VM machines used for the EBSI v1.0 Stack Nodes will
+          All bare metal VM machines used for the EBSI v2.0 Stack Nodes will
           have the following minimum technical requirements:
         </p>
-        <ul className="ecl-u-type-paragraph">
-          <li>4vCPU</li>
-          <li>16G RAM</li>
-          <li>1TB SSD</li>
-          <li>Linux OS</li>
+        <ul className="ecl-unordered-list">
+          <li className="ecl-unordered-list__item">4vCPU</li>
+          <li className="ecl-unordered-list__item">16G RAM</li>
+          <li className="ecl-unordered-list__item">1TB SSD</li>
+          <li className="ecl-unordered-list__item">Linux OS</li>
         </ul>
         <p className="ecl-u-type-paragraph">
           Inside each EBSI bare-metal VM node, each sub-component will run in a
@@ -479,7 +485,6 @@ export const TermsConditions: React.FunctionComponent = () => {
           <br />
           The Stack Nodes will be interconnected with each other at containers
           level.
-          <br />
         </p>
         <p className="ecl-u-type-paragraph">
           <strong>General Architecture Aspects </strong>
@@ -489,10 +494,9 @@ export const TermsConditions: React.FunctionComponent = () => {
             className="ecl-link"
             href="https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/Minimum+Technical+Requirements+for+an+EBSI+v1.0+NODE+Deployment"
           >
-            Minimum Technical Requirements for an EBSI v1.0 NODE Deployment
+            Minimum Technical Requirements for an EBSI v2.0 NODE Deployment
             within Member States or Institutions
           </a>
-          <br />
         </p>
         <p className="ecl-u-type-paragraph">
           <strong>Technical Requirements.-</strong> EBSI data stores include
@@ -518,7 +522,7 @@ export const TermsConditions: React.FunctionComponent = () => {
             Terms of usage of hosting a node for the member states.-
           </strong>{" "}
           The Commission or EBP reserves the right to request a takedown of the
-          network or node for the whole network or just one node
+          network or node for the whole network or just one node.
         </p>
         <p className="ecl-u-type-paragraph">
           <strong>
@@ -526,48 +530,48 @@ export const TermsConditions: React.FunctionComponent = () => {
             Obligations.
           </strong>
         </p>
-        <ol className="ecl-u-type-paragraph">
-          <li>
+        <ol className="ecl-ordered-list">
+          <li className="ecl-ordered-list__item">
             Responsibilities at all times during this Agreement:
-            <ul className="ecl-u-type-paragraph">
-              <li>
+            <ul className="ecl-unordered-list">
+              <li className="ecl-unordered-list__item">
                 To comply with the terms of this Agreement and the terms of all
                 other agreements to which you are a party in connection with
                 your performance under this Agreement.
               </li>
-              <li>
+              <li className="ecl-unordered-list__item">
                 To operate the Node in strict compliance with terms of this
                 Agreement and will not take any action not expressly authorized
                 hereunder.
               </li>
-              <li>
+              <li className="ecl-unordered-list__item">
                 To comply with the documentation of the applicable Users
                 Onboarding service DID services, and subject to the current
                 regulatory legislation.
               </li>
-              <li>
+              <li className="ecl-unordered-list__item">
                 You acknowledge and agree to, and will at all times comply with,
                 the Node Information Policy located at:{" "}
                 <a
                   className="ecl-link"
                   href="https://ec.europa.eu/cefdigital/wiki/pages/viewpage.action?pageId=189432828"
                 >
-                  5 - EBSI v1 Node Operator Terms &amp; Conditions
+                  5 - EBSI v2 Node Operator Terms &amp; Conditions
                 </a>
               </li>
-              <li>
+              <li className="ecl-unordered-list__item">
                 To not modify or attempt to modify the Software for any purpose
                 including but not limited to attempting to circumvent the audit,
                 bypass security, manipulate the performance of, or otherwise
                 disrupt the Services, or otherwise interfere with the operation
                 of the EBSI Services.
               </li>
-              <li>
+              <li className="ecl-unordered-list__item">
                 The Node will meet all performance requirements referred to in
                 this Agreement, as well as any performance requirements set
                 forth in the Documentation or other instructions;
               </li>
-              <li>
+              <li className="ecl-unordered-list__item">
                 In connection with your use of the Software and/or operation of
                 a Node hereunder, UE may provide notice of and may, from time to
                 time, require you to affirm and/or re-affirm your agreement to
@@ -577,15 +581,17 @@ export const TermsConditions: React.FunctionComponent = () => {
               </li>
             </ul>
           </li>
-          <li>
+          <li className="ecl-ordered-list__item">
             Restrictions You will not operate the Node except as expressly
             authorized hereunder. Without limiting the generality of the
             foregoing, you will not:
-            <ul className="ecl-u-type-paragraph">
-              <li>Operate more than one Node.</li>
-              <li>
+            <ul className="ecl-unordered-list">
+              <li className="ecl-unordered-list__item">
+                Operate more than one Node.
+              </li>
+              <li className="ecl-unordered-list__item">
                 Operate a Node that does not meet the following technical
-                requirements
+                requirements.
               </li>
             </ul>
           </li>
