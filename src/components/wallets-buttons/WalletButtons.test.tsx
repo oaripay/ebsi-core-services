@@ -27,7 +27,8 @@ describe("Wallet Buttons component", () => {
     expect(setWalletOption).toHaveBeenCalledWith("Mobile Wallet");
   });
 
-  it("call the click the button to display the session for ebsi", () => {
+  // EBSIINT-2997: disable EU Login temporarily
+  it.skip("call the click the button to display the session for ebsi", () => {
     expect.assertions(1);
     const setWalletOption = jest.fn();
     const wrapper = shallow(

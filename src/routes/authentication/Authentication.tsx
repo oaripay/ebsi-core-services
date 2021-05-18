@@ -7,6 +7,7 @@ import { PageHeader } from "../../ui-components/page-header/PageHeader";
 import { WalletButtons } from "../../components/wallets-buttons/WalletButtons";
 import { wallets, session } from "../../types";
 import validateSession from "../../apis/onboarding";
+import { Button } from "../../ui-components/button/Button";
 
 interface State {
   sessionToken: string;
@@ -48,47 +49,55 @@ export function Authentication(): JSX.Element {
   }, []);
   return (
     <>
-      <PageHeader
-        title="Choose your authentication method"
-        className="ecl-u-mt-xl"
-      />
-      <div className="ecl-container">
+      <PageHeader title="Choose your authentication method" />
+      <div className="ecl-container ecl-u-mb-l ecl-u-mb-md-2xl">
+        <WalletButtons setWalletOption={setWalletOption} />
         {wallet === wallets.default.DESKTOP && (
           <>
-            <div className="content-icons">
-              <p className="ecl-message__title">
+            <div className="ecl-u-d-flex ecl-u-align-items-center ecl-u-flex-wrap">
+              <p className="ecl-u-type-bold ecl-u-type-m ecl-u-flex-shrink-0 ecl-u-flex-grow-1">
                 Copy or download your session token.
               </p>
-              <div
-                role="button"
-                onClick={copy}
-                onKeyDown={copy}
-                tabIndex={0}
-                className="copy-icon"
-              >
-                <p className="label">Copy</p>
-                <MemoizedIcon shape="general--copy" size="l" />
+              <div>
+                <Button
+                  onClick={copy}
+                  onKeyDown={copy}
+                  label="Copy"
+                  icon={{
+                    shape: "general--copy",
+                    size: "m",
+                  }}
+                  variant="text"
+                  type="button"
+                />
+                <a
+                  href={`data:text/json;charset=utf-8,${encodeURIComponent(
+                    JSON.stringify({ sessionToken })
+                  )}`}
+                  download="sessionToken.json"
+                  className="ecl-button ecl-button--text ecl-u-type-color-black"
+                >
+                  <span className="ecl-button__container">
+                    <span className="ecl-button__label" data-ecl-label="true">
+                      Download
+                    </span>
+                    <MemoizedIcon
+                      className="ecl-button__icon ecl-button__icon--after"
+                      shape="ui--download"
+                      size="m"
+                    />
+                  </span>
+                </a>
               </div>
-              <a
-                href={`data:text/json;charset=utf-8,${encodeURIComponent(
-                  JSON.stringify({ sessionToken })
-                )}`}
-                download="sessionToken.json"
-                className="download-icon"
-              >
-                <p className="label">Download</p>
-                <MemoizedIcon shape="ui--download" size="l" />
-              </a>
             </div>
-            <code>
-              {" "}
-              <p className="token">{sessionToken}</p>
-            </code>
+            <pre className="ecl-u-bg-grey-10 ecl-u-pa-l token">
+              {sessionToken}
+            </pre>
           </>
         )}
         {wallet === wallets.default.MOBILE && (
           <div>
-            <p className="ecl-message__title">
+            <p className="ecl-u-type-bold ecl-u-type-m">
               Scan the session token with your app.
             </p>
             <QRCode value={sessionToken} size={256} />
@@ -103,7 +112,6 @@ export function Authentication(): JSX.Element {
             </code>
           </div>
         )}
-        <WalletButtons setWalletOption={setWalletOption} />
       </div>
     </>
   );

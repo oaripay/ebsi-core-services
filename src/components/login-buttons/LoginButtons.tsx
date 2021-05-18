@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { CustomCaptcha } from "../custom-captcha/CustomCaptcha";
-import { loginLink } from "../../apis/ecas";
+// EBSIINT-2997: Temporarily disable EU Login
+// import { loginLink } from "../../apis/ecas";
 import { Button } from "../../ui-components/button/Button";
 import validateSession from "../../apis/onboarding";
 import env from "../../env";
@@ -12,9 +13,12 @@ export const LoginButtons: React.FunctionComponent = () => {
   const [captchaToken, setCaptchaToken] = useState("");
   const history = useHistory();
 
+  // EBSIINT-2997: Temporarily disable EU Login
+  /*
   const euLogin = () => {
     window.location.assign(loginLink());
   };
+  */
 
   const captchaLogin = async () => {
     const sessionRequest: session.SessionRequest = {
@@ -32,36 +36,34 @@ export const LoginButtons: React.FunctionComponent = () => {
   };
 
   return (
-    <>
-      <div className="ecl-container">
-        <div className="ecl-row ecl-u-pt-m">
-          <div className="ecl-col-12 ecl-col-sm-6 ecl-col-lg-6">
-            <p className="ecl-u-type-paragraph">
-              I don&#8217;t have an EU Login Account.
-            </p>
-            <Button
-              variant="secondary"
-              type="button"
-              onClick={captchaLogin}
-              label="Onboard with Captcha"
-            />
-          </div>
-          <div className="ecl-col-12 ecl-col-sm-6 ecl-col-lg-6">
-            <p className="ecl-u-type-paragraph">I have an EU Login Account.</p>
-            <GoogleReCaptchaProvider reCaptchaKey={env.REACT_APP_CAPTCHA_KEY}>
-              <CustomCaptcha setCaptchaToken={setCaptchaToken} />
-            </GoogleReCaptchaProvider>
-            <Button
-              variant="primary"
-              type="button"
-              onClick={euLogin}
-              label="Onboard with EU Login"
-              id="euLoginBtn"
-            />
-          </div>
-        </div>
+    <div className="ecl-row ecl-u-mt-m">
+      <div className="ecl-col-12 ecl-col-md-6">
+        <p className="ecl-u-type-paragraph">
+          I don&#8217;t have an EU Login Account.
+        </p>
+        <Button
+          variant="secondary"
+          type="button"
+          onClick={captchaLogin}
+          label="Onboard with Captcha"
+        />
       </div>
-    </>
+      <div className="ecl-col-12 ecl-col-md-6">
+        <p className="ecl-u-type-paragraph">I have an EU Login Account.</p>
+        <GoogleReCaptchaProvider reCaptchaKey={env.REACT_APP_CAPTCHA_KEY}>
+          <CustomCaptcha setCaptchaToken={setCaptchaToken} />
+        </GoogleReCaptchaProvider>
+        <Button
+          variant="primary"
+          type="button"
+          // EBSIINT-2997: Temporarily disable EU Login
+          // onClick={euLogin}
+          label="Onboard with EU Login"
+          id="euLoginBtn"
+          disabled
+        />
+      </div>
+    </div>
   );
 };
 export default LoginButtons;

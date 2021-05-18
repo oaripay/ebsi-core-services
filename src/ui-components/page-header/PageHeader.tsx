@@ -2,8 +2,6 @@
 import React from "react";
 import PropTypes from "prop-types";
 import classnames from "classnames";
-import { useAppMessage } from "../../components/app-message/AppMessage";
-import { MemoizedMessage } from "../message/Message";
 
 export interface PageHeaderProps {
   breadcrumb?: React.ReactNode;
@@ -22,42 +20,25 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
   ...props
 }) => {
   const classNames = classnames(className, "ecl-page-header-harmonised");
-  const { message, hideMessage } = useAppMessage();
 
   return (
-    <>
-      {message.isDisplayed && (
-        <div className="ecl-container">
-          <MemoizedMessage
-            title={message.title}
-            description={message.message}
-            variant={message.type}
-            className="ecl-u-mt-m"
-            closeable
-            onClose={hideMessage}
-          />
-        </div>
-      )}
-      <div {...props} className={classNames}>
-        <div className="ecl-container">
-          {React.isValidElement(breadcrumb) &&
-            React.cloneElement(breadcrumb, {
-              className: "ecl-page-header-harmonised__breadcrumb",
-            })}
-          {meta && (
-            <div className="ecl-page-header-harmonised__meta">{meta}</div>
-          )}
-          {title && (
-            <h1 className="ecl-page-header-harmonised__title">{title}</h1>
-          )}
-          {description && (
-            <p className="ecl-page-header-harmonised__description">
-              {description}
-            </p>
-          )}
-        </div>
+    <div {...props} className={classNames}>
+      <div className="ecl-container">
+        {React.isValidElement(breadcrumb) &&
+          React.cloneElement(breadcrumb, {
+            className: "ecl-page-header-harmonised__breadcrumb",
+          })}
+        {meta && <div className="ecl-page-header-harmonised__meta">{meta}</div>}
+        {title && (
+          <h1 className="ecl-page-header-harmonised__title">{title}</h1>
+        )}
+        {description && (
+          <p className="ecl-page-header-harmonised__description">
+            {description}
+          </p>
+        )}
       </div>
-    </>
+    </div>
   );
 };
 

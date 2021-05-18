@@ -18,7 +18,8 @@ describe("LoginButtons component", () => {
     expect(validateSessionMock).toHaveBeenCalled();
   });
 
-  it("redirect when click the login with EU Login button", () => {
+  // EBSIINT-2997: disable EU Login temporarily
+  it.skip("redirect when click the login with EU Login button", () => {
     expect.assertions(1);
 
     global.window = Object.create(window) as Window & typeof globalThis;

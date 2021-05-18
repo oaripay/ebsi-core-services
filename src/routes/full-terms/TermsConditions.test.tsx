@@ -13,7 +13,7 @@ describe("TermsConditions page", () => {
     expect(titleElement).toBeInTheDocument();
     expect(titleElement).toMatchInlineSnapshot(`
       <h1
-        class="ecl-u-type-heading-1 ecl-u-type-color-white"
+        class="ecl-page-header-harmonised__title"
       >
         Terms and conditions
       </h1>

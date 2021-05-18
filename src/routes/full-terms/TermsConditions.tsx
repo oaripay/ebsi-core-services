@@ -1,5 +1,6 @@
 import React from "react";
 import { useHistory } from "react-router-dom";
+import { PageHeader } from "../../ui-components/page-header/PageHeader";
 
 export const TermsConditions: React.FunctionComponent = () => {
   const history = useHistory();
@@ -10,14 +11,8 @@ export const TermsConditions: React.FunctionComponent = () => {
 
   return (
     <>
-      <header className="ecl-u-bg-blue">
-        <div className="ecl-container ecl-u-pv-m ecl-u-pv-lg-2xl">
-          <h1 className="ecl-u-type-heading-1 ecl-u-type-color-white">
-            Terms and conditions
-          </h1>
-        </div>
-      </header>
-      <main className="ecl-container ecl-u-pv-l">
+      <PageHeader title="Terms and conditions" />
+      <main className="ecl-container ecl-u-pb-l">
         <div className="ecl-u-mt-l ecl-u-mb-2xl">
           <h2 className="ecl-u-type-heading-2">
             General terms &amp; conditions for applications.

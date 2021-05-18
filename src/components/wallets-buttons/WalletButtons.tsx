@@ -14,29 +14,31 @@ export const WalletButtons: React.FunctionComponent<Props> = ({
   };
 
   return (
-    <div className="ecl-container wallet-buttons">
-      <Button
-        variant="secondary"
-        type="button"
-        onClick={() => onSelect(wallets.default.DESKTOP)}
-        label="Desktop Wallet"
-        className="wallet-button"
-      />
+    <>
       <Button
         variant="primary"
         type="button"
-        onClick={() => onSelect(wallets.default.MOBILE)}
-        label="Mobile Wallet"
-        className="wallet-button"
+        onClick={() => onSelect(wallets.default.DESKTOP)}
+        label="Desktop Wallet"
+        className="ecl-u-mr-m ecl-u-mb-s"
       />
       <Button
-        variant="call"
+        variant="secondary"
         type="button"
-        onClick={() => onSelect(wallets.default.EBSI_WALLET)}
-        label="EBSI Web Wallet"
-        className="wallet-button"
+        onClick={() => onSelect(wallets.default.MOBILE)}
+        label="Mobile Wallet"
+        className="ecl-u-mr-m ecl-u-mb-s"
       />
-    </div>
+      <Button
+        variant="secondary"
+        type="button"
+        // Not implemented yet
+        // onClick={() => onSelect(wallets.default.EBSI_WALLET)}
+        label="EBSI Web Wallet"
+        className="ecl-u-mr-m ecl-u-mb-s"
+        disabled
+      />
+    </>
   );
 };
 
