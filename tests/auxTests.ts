@@ -136,6 +136,7 @@ export async function createFakeToken(useKidAuthApi = false): Promise<string> {
       alg: "ES256K",
       issuer: authApiName,
       signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+      canonicalize: true,
     },
     {
       kid,

@@ -171,6 +171,7 @@ export default class SessionsService {
           alg: "ES256K",
           issuer: this.applicationDid,
           signer: ES256KSigner(this.apiPrivateKey),
+          canonicalize: true,
         }
       );
       return { Bearer: token };

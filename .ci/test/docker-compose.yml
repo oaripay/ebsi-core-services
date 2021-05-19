@@ -3,4 +3,4 @@ version: "3.7"
 services:
   users-onboarding-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/users-onboarding-api:pilot_ebsiint-2917-fix-recaptcha-hostname_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/users-onboarding-api:pilot_ebsiint-3008-release-update-libs_v2.0.0

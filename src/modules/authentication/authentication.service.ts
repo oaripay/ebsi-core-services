@@ -169,6 +169,7 @@ export default class AuthenticationService {
         alg: "ES256K",
         issuer: this.applicationDid,
         signer,
+        canonicalize: true,
       })
     ).split(".");
     const detachedJwt = `${jwt[0]}..${jwt[2]}`;

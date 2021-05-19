@@ -26,10 +26,10 @@
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
-    "@cef-ebsi/did-jwt": "^1.0.0-alpha.4",
-    "@cef-ebsi/problem-details-errors": "1.0.0-alpha.3",
-    "@cef-ebsi/siop-auth": "^0.3.2",
-    "@cef-ebsi/verifiable-credential": "^1.0.0-rc.1",
+    "@cef-ebsi/did-jwt": "^1.0.0-alpha.5",
+    "@cef-ebsi/problem-details-errors": "1.0.0-alpha.4",
+    "@cef-ebsi/siop-auth": "^0.5.0",
+    "@cef-ebsi/verifiable-credential": "^1.0.0-rc.2",
     "@nestjs/common": "^7.6.15",
     "@nestjs/config": "^0.6.2",
     "@nestjs/core": "^7.6.15",

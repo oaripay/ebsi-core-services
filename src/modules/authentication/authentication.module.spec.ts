@@ -12,7 +12,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
-import ebsiDidJwt, { JWTVerified } from "@cef-ebsi/did-jwt";
+import { JWTVerified } from "@cef-ebsi/did-jwt";
 import { AuthenticationModule } from "./authentication.module";
 import {
   AuthenticationResponse,
