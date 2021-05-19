@@ -2,8 +2,7 @@ import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { CustomCaptcha } from "../custom-captcha/CustomCaptcha";
-// EBSIINT-2997: Temporarily disable EU Login
-// import { loginLink } from "../../apis/ecas";
+import { loginLink } from "../../apis/ecas";
 import { Button } from "../../ui-components/button/Button";
 import validateSession from "../../apis/onboarding";
 import env from "../../env";
@@ -13,12 +12,15 @@ export const LoginButtons: React.FunctionComponent = () => {
   const [captchaToken, setCaptchaToken] = useState("");
   const history = useHistory();
 
-  // EBSIINT-2997: Temporarily disable EU Login
-  /*
+  const enableEuLogin = new URLSearchParams(window.location.search).has(
+    "eu-login"
+  );
+
   const euLogin = () => {
-    window.location.assign(loginLink());
+    if (enableEuLogin) {
+      window.location.assign(loginLink());
+    }
   };
-  */
 
   const captchaLogin = async () => {
     const sessionRequest: session.SessionRequest = {
@@ -56,11 +58,10 @@ export const LoginButtons: React.FunctionComponent = () => {
         <Button
           variant="primary"
           type="button"
-          // EBSIINT-2997: Temporarily disable EU Login
-          // onClick={euLogin}
+          onClick={euLogin}
           label="Onboard with EU Login"
           id="euLoginBtn"
-          disabled
+          disabled={!enableEuLogin}
         />
       </div>
     </div>
