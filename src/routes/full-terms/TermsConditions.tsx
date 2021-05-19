@@ -468,7 +468,7 @@ export const TermsConditions: React.FunctionComponent = () => {
         </p>
         <ul className="ecl-unordered-list">
           <li className="ecl-unordered-list__item">4vCPU</li>
-          <li className="ecl-unordered-list__item">16G RAM</li>
+          <li className="ecl-unordered-list__item">32G RAM</li>
           <li className="ecl-unordered-list__item">1TB SSD</li>
           <li className="ecl-unordered-list__item">Linux OS</li>
         </ul>
