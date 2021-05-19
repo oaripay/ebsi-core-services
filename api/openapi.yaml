@@ -1338,7 +1338,7 @@ components:
         domain:
           type: string
           description: domain
-          enum: ["ebsi", "external"]
+          enum: ["undefined", "ebsi", "external"]
         administrators:
           type: array
           items:
@@ -1397,7 +1397,7 @@ components:
         status:
           description: "Authorization status: active, revoked"
           type: string
-          enum: ["active", "revoked"]
+          enum: ["undefined", "active", "revoked", "suspended"]
         notBefore:
           description: Date and time before the authorization must be considered invalid.
           type: number

@@ -10,8 +10,8 @@ import {
   AuthorizationResponseObject,
 } from "./apps.interface";
 
-const domainName = ["ebsi", "external"];
-const statusName = ["active", "revoked"];
+const domainName = ["undefined", "ebsi", "external"];
+const statusName = ["undefined", "active", "revoked", "suspended"];
 const permissionToString = (permissionNumber) =>
   permissionNumber === "1" ? "true" : "false";
 

@@ -413,7 +413,7 @@ describe("Apps Module", () => {
       const { apps } = testEnv;
       const { publicKey, name, domain, appAdministrator, applicationId, info } =
         apps[0];
-      const domainName = ["ebsi", "external"][domain];
+      const domainName = ["undefined", "ebsi", "external"][domain];
 
       const response = await request(server).get(`/apps/${applicationId}`);
 

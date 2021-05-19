@@ -6,7 +6,7 @@ export class ArgsUpdateAppPublicKey {
 
   @IsInt()
   @Min(0)
-  @Max(2)
+  @Max(3)
   status: number;
 
   @IsInt()

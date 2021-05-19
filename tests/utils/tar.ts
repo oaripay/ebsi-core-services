@@ -220,7 +220,7 @@ export async function insertAuthorization(
   authorizedAppName: string
 ): Promise<AuthorizationObject> {
   const iss = `did:ebsi:0x${crypto.randomBytes(10).toString("hex")}`;
-  const status = 0; // "active"
+  const status = 1; // "active"
   const permissions = 4; // "0100" read only
   const notBefore = Date.now();
   const notAfter = Date.now() + 365 * 24 * 60 * 60 * 1000;

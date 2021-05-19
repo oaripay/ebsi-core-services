@@ -93,10 +93,10 @@ describe("Apps (e2e)", () => {
 
   const newApp = {
     name: `test-app-${new Date().toISOString()}`,
-    domain: 0,
+    domain: 1,
     appAdministrator: `did:ebsi:some-admin-${new Date().toISOString()}`,
     publicKey: `0x${publicKeyBuffer.toString("hex")}`,
-    status: 0,
+    status: 1,
     notBefore: Math.trunc(Date.now() / 1000),
     notAfter: Math.trunc(Date.now() / 1000) + 365 * 24 * 60 * 60,
   };
@@ -432,7 +432,7 @@ describe("Apps (e2e)", () => {
             authorizedAppName: newApp.name,
             iss: "did:ebsi:0x001F",
             permissions: 12,
-            status: 0,
+            status: 1,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAuthorizationParam;
@@ -443,7 +443,7 @@ describe("Apps (e2e)", () => {
             from: adminTestWallet.address,
             applicationId: publicKeyId,
             name: `test-app-updated-${new Date().toISOString()}`,
-            domain: 1,
+            domain: 2,
           } as UpdateAppParam;
           break;
         case "updateAppPublicKey":
@@ -549,7 +549,7 @@ describe("Apps (e2e)", () => {
             authorizedAppName: newApp.name, // Fun fact: "authorizedAppName" can be the same as "name" cc @ben
             iss: "did:ebsi:0x001F",
             permissions: 12,
-            status: 0,
+            status: 1,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAuthorizationParam;
@@ -570,7 +570,7 @@ describe("Apps (e2e)", () => {
             from: adminTestWallet.address,
             authorizationId,
             permissions: 12,
-            status: 0,
+            status: 2,
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as UpdateAuthorizationParam;
           break;
@@ -581,7 +581,7 @@ describe("Apps (e2e)", () => {
             from: adminTestWallet.address,
             applicationId,
             name: `test-app-updated-${new Date().toISOString()}`,
-            domain: 1,
+            domain: 2,
           } as UpdateAppParam;
           break;
         case "insertAppPublicKey":
@@ -591,7 +591,7 @@ describe("Apps (e2e)", () => {
             publicKey: `0x${Buffer.from(
               `another public key - ${new Date().toISOString()}`
             ).toString("hex")}`,
-            status: 2,
+            status: 3,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppPublicKeyParam;
@@ -601,7 +601,7 @@ describe("Apps (e2e)", () => {
           param = {
             from: adminTestWallet.address,
             publicKeyId,
-            status: 2,
+            status: 3,
             notAfter: Date.now(),
           } as UpdateAppPublicKeyParam;
           break;

@@ -6,7 +6,7 @@ export class ArgsInsertApp {
 
   @IsInt()
   @Min(0)
-  @Max(1)
+  @Max(2)
   domain: number;
 
   @IsString()
@@ -17,7 +17,7 @@ export class ArgsInsertApp {
 
   @IsInt()
   @Min(0)
-  @Max(2)
+  @Max(3)
   status: number;
 
   @IsInt()
