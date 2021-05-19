@@ -30,34 +30,28 @@ const logs = [
 ];
 
 export default (): ethers.Contract => {
-  return ({
-    lastBlockREC: jest.fn(
-      (): Promise<number> => {
-        return of(8571109).toPromise();
-      }
-    ),
+  return {
+    lastBlockREC: jest.fn((): Promise<number> => {
+      return of(8571109).toPromise();
+    }),
     record: jest.fn((): string => {
       return "0xde020FB144Bc3239C1446EB9dE73706A47D5929b";
     }),
-    queryFilter: jest.fn(
-      (): Promise<ethers.providers.Log[]> => {
-        return of(logs).toPromise();
-      }
-    ),
+    queryFilter: jest.fn((): Promise<ethers.providers.Log[]> => {
+      return of(logs).toPromise();
+    }),
     filters: {
-      REC: jest.fn(
-        (): ethers.EventFilter => {
-          return {
-            address: "0x21b38942aA9BC992482627f63814Ffa06DA7e500",
-            topics: [
-              "0x4bb4fe37a0e5e6287dc03d734ce5412bd6aecea7b409a029b4d7776ad90889e3",
-              "0x9d835ec5cc060cbef177a45ec9219e2831c11048aaf130e5f6690619f0f5200a",
-              "0x0000000000000000000000000ef9c28263fd26be9d597925be02085bb1236b59",
-              "0x000000000000000000000000000000000000000000000000000000000005f1e6",
-            ],
-          };
-        }
-      ),
+      REC: jest.fn((): ethers.EventFilter => {
+        return {
+          address: "0x21b38942aA9BC992482627f63814Ffa06DA7e500",
+          topics: [
+            "0x4bb4fe37a0e5e6287dc03d734ce5412bd6aecea7b409a029b4d7776ad90889e3",
+            "0x9d835ec5cc060cbef177a45ec9219e2831c11048aaf130e5f6690619f0f5200a",
+            "0x0000000000000000000000000ef9c28263fd26be9d597925be02085bb1236b59",
+            "0x000000000000000000000000000000000000000000000000000000000005f1e6",
+          ],
+        };
+      }),
     },
-  } as unknown) as ethers.Contract;
+  } as unknown as ethers.Contract;
 };

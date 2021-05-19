@@ -17,9 +17,7 @@ export interface PublicKey {
   jwk: JWK;
 }
 
-export async function generateKeys(
-  alg: string
-): Promise<{
+export async function generateKeys(alg: string): Promise<{
   publicKey: crypto.KeyObject;
   privateKey: crypto.KeyObject;
   publicKeyEncryption?: crypto.KeyObject;

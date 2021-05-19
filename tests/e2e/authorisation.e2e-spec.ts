@@ -11,7 +11,8 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import axios from "axios";
+import canonicalize from "canonicalize";
+import bs58 from "bs58";
 import { parseJwk } from "jose/jwk/parse";
 import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import generateKeyPair from "jose/util/generate_key_pair";
@@ -20,6 +21,7 @@ import SignJWT from "jose/jwt/sign";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import jwtVerify from "jose/jwt/verify";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { v4 as uuidv4 } from "uuid";
 import {
   Ake1SigPayload,
@@ -32,11 +34,15 @@ import {
   DidAuthResponseMode,
 } from "@cef-ebsi/siop-auth";
 import querystring from "querystring";
+import axios from "axios";
+import base64url from "base64url";
 import { AppModule } from "../../src/app.module";
 import { AuthenticationRequestResponse } from "../../src/modules/authorisation/authorisation.interface";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { ApiConfig } from "../../src/config/configuration";
 import { getPublicKey } from "../utils/keys";
+import { createVerifiableAuthorisation } from "../utils/verifiableAuthorisation";
+import { createVP } from "../utils/verfiablePresentation";
 
 function prefix0x(value: string): string {
   return value.startsWith("0x") ? value : `0x${value}`;
@@ -49,7 +55,12 @@ describe("Authorisation (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let appTestId: string;
+  let didRegistry: string;
   let trustedAppsRegistry: string;
+  let trustedIssuersRegistry: string;
+  let authorisationCredentialSchema: string;
+  let onboardingApiPrivateKey: string;
+  let onboardingApiDid: string;
   let apiKid: string;
   let apiDid: string;
   let trustedApp: {
@@ -57,6 +68,10 @@ describe("Authorisation (e2e)", () => {
     apiTarId: string;
     privateKey: string;
     kid: string;
+  };
+  let trustedIssuer: {
+    privateKey: string;
+    did: string;
   };
   let configService: ConfigService<ApiConfig>;
 
@@ -83,7 +98,22 @@ describe("Authorisation (e2e)", () => {
     const apiName = configService.get<string>("apiName");
     const testAppName = configService.get<string>("testAppName");
     const testAppPrivateKey = configService.get<string>("testAppPrivateKey");
+    const testIssuerDid = configService.get<string>("testIssuerDid");
+    const testIssuerPrivateKey = configService.get<string>(
+      "testIssuerPrivateKey"
+    );
     trustedAppsRegistry = configService.get<string>("trustedAppsRegistry");
+    trustedIssuersRegistry = configService.get<string>(
+      "trustedIssuersRegistry"
+    );
+    didRegistry = configService.get<string>("didRegistry");
+    authorisationCredentialSchema = configService.get<string>(
+      "authorisationCredentialSchema"
+    );
+    onboardingApiPrivateKey = prefix0x(
+      configService.get<string>("onboardingApiPrivateKey")
+    );
+    onboardingApiDid = configService.get<string>("onboardingApiDid");
 
     let listAppsByName: {
       data: { items: { id: string }[] };
@@ -103,6 +133,10 @@ describe("Authorisation (e2e)", () => {
       apiTarId: appTestId,
       privateKey: testAppPrivateKey,
       kid: `${trustedAppsRegistry}/${appTestId}`,
+    };
+    trustedIssuer = {
+      privateKey: testIssuerPrivateKey,
+      did: testIssuerDid,
     };
   });
 
@@ -173,6 +207,7 @@ describe("Authorisation (e2e)", () => {
         client_id: expect.any(String) as string,
         nonce: expect.any(String) as string,
         iss: configService.get<string>("apiDid"),
+        claims: expect.objectContaining({}) as { id_token: unknown },
       });
     });
   });
@@ -270,7 +305,7 @@ describe("Authorisation (e2e)", () => {
         kid: trustedApp.kid,
       });
 
-      const authRequest = await agent.createRequestPayload("storage-api", {
+      const authRequest = await agent.createRequestPayload("ledger-api", {
         nonce,
       });
 
@@ -475,15 +510,14 @@ describe("Authorisation (e2e)", () => {
       const uriDecoded = querystring.decode(uri.replace("openid://?", ""));
 
       const nonce = uuidv4();
-      const authenticationResponse = await EbsiDidAuth.createAuthenticationResponse(
-        {
+      const authenticationResponse =
+        await EbsiDidAuth.createAuthenticationResponse({
           hexPrivatekey: prefix0x(configService.get("testClientPrivateKey")),
           did: configService.get("testClientDid"),
           nonce,
           redirectUri: uriDecoded.client_id as string,
           response_mode: DidAuthResponseMode.FORM_POST,
-        }
-      );
+        });
 
       const authResponseDecoded = querystring.decode(
         authenticationResponse.bodyEncoded || ""
@@ -525,9 +559,8 @@ describe("Authorisation (e2e)", () => {
   });
 
   describe("SIOP flow", () => {
-    it("should support the full SIOP flow", async () => {
+    it("should support the full SIOP flow for a known user (registered did)", async () => {
       expect.assertions(1);
-
       // 1. First, the client calls /authentication-requests
       const authenticationRequestsResponse = await request(server)
         .post("/authentication-requests")
@@ -548,15 +581,15 @@ describe("Authorisation (e2e)", () => {
 
       // 3. The client creates an authentication response and gets an ID Token
       const nonce = uuidv4();
-      const authenticationResponse = await EbsiDidAuth.createAuthenticationResponse(
-        {
+      const authenticationResponse =
+        await EbsiDidAuth.createAuthenticationResponse({
           hexPrivatekey: prefix0x(configService.get("testClientPrivateKey")),
           did: configService.get("testClientDid"),
           nonce,
           redirectUri: payload.client_id,
           response_mode: DidAuthResponseMode.FORM_POST,
-        }
-      );
+          claims: {},
+        });
 
       const authResponseDecoded = querystring.decode(
         authenticationResponse.bodyEncoded ?? ""
@@ -564,7 +597,7 @@ describe("Authorisation (e2e)", () => {
 
       const idToken = authResponseDecoded.id_token;
 
-      // 4. The client call /siop-sessions with the ID Token
+      // 4. The client calls /siop-sessions with the ID Token
       const siopSessionsResponse = await request(server)
         .post("/siop-sessions")
         .set("Content-Type", "application/x-www-form-urlencoded")
@@ -582,6 +615,143 @@ describe("Authorisation (e2e)", () => {
       );
 
       expect(accessToken).toBeDefined();
+    });
+
+    it("should support the full SIOP flow for an unknown user (not registered did)", async () => {
+      expect.assertions(2);
+
+      // 1. The user creates an authentication request in Onboarding api
+      // Since this step requires human intervention (eulogin, recaptcha) this test
+      // will skip it and create the response:
+      // A verifiable credential signed by onboarding api
+      const did = `did:ebsi:${bs58.encode(crypto.randomBytes(32))}`;
+      const privateKey = crypto.randomBytes(32).toString("hex");
+      const privateKeyHexEncryption = crypto.randomBytes(32).toString("hex");
+      const publicKeyEncryption = new EbsiWallet(
+        privateKeyHexEncryption
+      ).getPublicKey({ format: "jwk" }) as JsonWebKey;
+      const verifiableCredential = await createVerifiableAuthorisation(
+        did,
+        authorisationCredentialSchema,
+        onboardingApiPrivateKey,
+        onboardingApiDid,
+        didRegistry
+      );
+
+      // 2. The client creates a verifiable presentation using the verifiable credential
+      const vp = await createVP(did, privateKey, verifiableCredential, {
+        resolver: didRegistry,
+        tirUrl: trustedIssuersRegistry,
+      });
+      const nonce = uuidv4();
+      const canonicalizedVP = base64url.encode(canonicalize(vp));
+      // const canonicalizedVP = base64url.encode(JSON.stringify(vp));
+      const authenticationResponse =
+        await EbsiDidAuth.createAuthenticationResponse({
+          hexPrivatekey: prefix0x(privateKey),
+          did,
+          nonce,
+          redirectUri: "/siop-sessions",
+          response_mode: DidAuthResponseMode.FORM_POST,
+          claims: {
+            verified_claims: canonicalizedVP,
+            encryption_key: publicKeyEncryption,
+          } as unknown as {
+            userinfo?: { [x: string]: unknown };
+            id_token?: { [x: string]: unknown };
+          },
+        });
+
+      const authResponseDecoded = querystring.decode(
+        authenticationResponse.bodyEncoded ?? ""
+      );
+
+      const idToken = authResponseDecoded.id_token;
+
+      // 3. The client calls /siop-sessions with the ID Token
+      const siopSessionsResponse = await request(server)
+        .post("/siop-sessions")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send({ id_token: idToken });
+
+      expect(siopSessionsResponse.status).toBe(200);
+
+      // 4. Finally, the client verifies the SIOP authentication response and gets an access token
+      const siopAgent = new SiopAgent({
+        privateKey: prefix0x(privateKeyHexEncryption),
+        didRegistry: configService.get<string>("didRegistry"),
+      });
+
+      const accessToken = await siopAgent.verifyAuthenticationResponse(
+        siopSessionsResponse.body,
+        nonce
+      );
+
+      expect(accessToken).toBeDefined();
+    });
+
+    it("should not support the full SIOP flow for an unknown user (not registered did) if the verifiable authorisation is not signed by Users onboarding API", async () => {
+      expect.assertions(2);
+
+      // 1. A Trusted Issuer (different from onboarding api)
+      // creates a verifiable authorisation
+      const did = `did:ebsi:${bs58.encode(crypto.randomBytes(32))}`;
+      const privateKey = crypto.randomBytes(32).toString("hex");
+      const privateKeyHexEncryption = crypto.randomBytes(32).toString("hex");
+      const publicKeyEncryption = new EbsiWallet(
+        privateKeyHexEncryption
+      ).getPublicKey({ format: "jwk" }) as JsonWebKey;
+      const verifiableCredential = await createVerifiableAuthorisation(
+        did,
+        authorisationCredentialSchema,
+        trustedIssuer.privateKey, // not signed by onboarding api, but by a different Trusted Issuer
+        trustedIssuer.did,
+        didRegistry
+      );
+
+      // 2. The client creates a verifiable presentation using the verifiable credential
+      const vp = await createVP(did, privateKey, verifiableCredential, {
+        resolver: didRegistry,
+        tirUrl: trustedIssuersRegistry,
+      });
+      const nonce = uuidv4();
+      const canonicalizedVP = base64url.encode(canonicalize(vp));
+      // const canonicalizedVP = base64url.encode(JSON.stringify(vp));
+      const authenticationResponse =
+        await EbsiDidAuth.createAuthenticationResponse({
+          hexPrivatekey: prefix0x(privateKey),
+          did,
+          nonce,
+          redirectUri: "/siop-sessions",
+          response_mode: DidAuthResponseMode.FORM_POST,
+          claims: {
+            verified_claims: canonicalizedVP,
+            encryption_key: publicKeyEncryption,
+          } as unknown as {
+            userinfo?: { [x: string]: unknown };
+            id_token?: { [x: string]: unknown };
+          },
+        });
+
+      const authResponseDecoded = querystring.decode(
+        authenticationResponse.bodyEncoded ?? ""
+      );
+
+      const idToken = authResponseDecoded.id_token;
+
+      // 3. The client calls /siop-sessions with the ID Token
+      const siopSessionsResponse = await request(server)
+        .post("/siop-sessions")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send({ id_token: idToken });
+
+      expect(siopSessionsResponse.body).toStrictEqual({
+        detail: `All verifiable credentials must be signed by onboarding api (${onboardingApiDid})`,
+        status: 400,
+        title: "Invalid Verifiable Presentation",
+        type: "about:blank",
+      });
+      expect(siopSessionsResponse.status).toBe(400);
     });
   });
 });

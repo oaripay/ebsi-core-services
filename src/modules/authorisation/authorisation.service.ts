@@ -13,9 +13,20 @@ import {
   EbsiDidAuth,
   Session as SiopSession,
 } from "@cef-ebsi/siop-auth";
+import { decodeJWT } from "@cef-ebsi/did-jwt";
+import {
+  validatePresentation,
+  VerifiablePresentation,
+} from "@cef-ebsi/verifiable-presentation";
+import base64url from "base64url";
 import { ApiConfig } from "../../config/configuration";
 import { AuthenticationRequestResponse } from "./authorisation.interface";
-import { OAuth2SessionDto, SiopSessionDto } from "./dto";
+import {
+  ClaimRequest,
+  ClaimResponse,
+  OAuth2SessionDto,
+  SiopSessionDto,
+} from "./dto";
 
 function prefix0x(value: string): string {
   return value.startsWith("0x") ? value : `0x${value}`;
@@ -39,18 +50,31 @@ export class AuthorisationService {
 
   private siopSession: SiopSession;
 
+  private authorisationCredentialSchema: string;
+
+  private trustedIssuersRegistry: string;
+
+  private onboardingApiDid: string;
+
   constructor(private configService: ConfigService<ApiConfig>) {
     const domain = this.configService.get<string>("domain");
     const urlPrefix = this.configService.get<string>("apiUrlPrefix");
     this.siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
     this.privateKey = prefix0x(this.configService.get<string>("apiPrivateKey"));
+    this.onboardingApiDid = this.configService.get<string>("onboardingApiDid");
     const trustedAppRegistry = this.configService.get<string>(
       "trustedAppsRegistry"
+    );
+    this.trustedIssuersRegistry = this.configService.get<string>(
+      "trustedIssuersRegistry"
     );
     const apiTarId = this.configService.get<string>("apiTarId");
     this.kid = `${trustedAppRegistry}/${apiTarId}`;
     this.didRegistry = this.configService.get<string>("didRegistry");
     this.did = this.configService.get<string>("apiDid");
+    this.authorisationCredentialSchema = this.configService.get<string>(
+      "authorisationCredentialSchema"
+    );
 
     this.oauth2Session = new OAuth2Session(
       this.configService.get<string>("apiPrivateKey"),
@@ -69,11 +93,38 @@ export class AuthorisationService {
   }
 
   async authenticationRequest(): Promise<AuthenticationRequestResponse> {
+    const claimRequest: ClaimRequest = {
+      verified_claims: {
+        verification: {
+          trust_framework: "EBSI",
+          evidence: {
+            type: {
+              value: "verifiable_credential",
+            },
+            document: {
+              type: {
+                essential: true,
+                value: ["VerifiableCredential", "VerifiableAuthorisation"],
+              },
+              credentialSchema: {
+                id: {
+                  essential: true,
+                  value: this.authorisationCredentialSchema,
+                },
+              },
+            },
+          },
+        },
+      },
+    };
     return EbsiDidAuth.createAuthenticationRequest({
       redirectUri: this.siopSessionsUrl,
       hexPrivateKey: this.privateKey,
       kid: this.kid,
       issuer: this.did,
+      claims: {
+        id_token: { ...claimRequest },
+      },
     });
   }
 
@@ -99,10 +150,79 @@ export class AuthorisationService {
   }
 
   async createSiopSession(body: SiopSessionDto): Promise<AkeResponse> {
-    let payload: DidAuthValidationResponse;
+    const { payload } = decodeJWT(body.id_token);
+
+    if (payload.claims && (payload.claims as ClaimResponse).verified_claims) {
+      /**
+       * Using a Verifiable Presentation to request a token
+       * It is assumed that the user doesn't have a DID registered
+       * then the did registry is not consulted
+       */
+
+      // Verifiable Authorisation Verifiable Presentation -- JCS canonicalize + base64url encode
+      const claims = payload.claims as ClaimResponse;
+      const encodedVP = claims.verified_claims;
+      const decodedVP = JSON.parse(
+        base64url.decode(encodedVP)
+      ) as VerifiablePresentation;
+
+      // removing proof field
+      const { proof, ...vp } = decodedVP;
+
+      try {
+        await validatePresentation(vp, {
+          tirUrl: this.trustedIssuersRegistry,
+          resolver: this.didRegistry,
+        });
+      } catch (error) {
+        throw new BadRequestError("Invalid Verifiable Presentation", {
+          detail: (error as Error).message,
+        });
+      }
+
+      // verify there is at least one credential and verify that all
+      // of them are signed by onboarding api
+      if (
+        vp.verifiableCredential.length === 0 ||
+        vp.verifiableCredential
+          .map((vc) => vc.issuer)
+          .filter((issuer) => issuer !== this.onboardingApiDid).length > 0
+      ) {
+        throw new BadRequestError("Invalid Verifiable Presentation", {
+          detail: `All verifiable credentials must be signed by onboarding api (${this.onboardingApiDid})`,
+        });
+      }
+
+      try {
+        return await this.siopSession.createAccessToken({
+          signatureValidation: true,
+          signer: {
+            publicKeyJwk: claims.encryption_key,
+            type: "",
+            id: "",
+            controller: "",
+          },
+          payload: {
+            did: vp.holder,
+            nonce: (payload as { nonce: string }).nonce,
+          },
+        });
+      } catch (error) {
+        throw new BadRequestError(BadRequestError.defaultTitle, {
+          detail: (error as Error).message,
+        });
+      }
+    }
+
+    /**
+     * No Verifiable Presentation is presented
+     * The user is authenticated using the DID Registry
+     */
+
+    let validation: DidAuthValidationResponse;
 
     try {
-      payload = await EbsiDidAuth.verifyAuthenticationResponse(
+      validation = await EbsiDidAuth.verifyAuthenticationResponse(
         body.id_token,
         this.didRegistry,
         this.siopSessionsUrl
@@ -117,7 +237,7 @@ export class AuthorisationService {
       throw error;
     }
 
-    return this.siopSession.createAccessToken(payload);
+    return this.siopSession.createAccessToken(validation);
   }
 }
 
