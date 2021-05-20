@@ -9,6 +9,11 @@ info:
     rules)
     - obtain Smart Contract and Ledger information,
     - optionally it helps to construct unsigned transactions for the operations.
+    For more information see:
+    * [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/UYiWFQ)
+    * [Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/uoiWFQ)
+    * [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/browse)
+    * [Smart Contract Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-ledgers-sc-registry-ethereum-sc/browse)
   version: 1.0.0
   termsOfService: /docs/terms
   contact:
@@ -935,7 +940,9 @@ components:
         status: 500
         detail: Internal error
 servers:
-  - url: http://localhost
+  - url: "http://localhost"
     description: Local Computer Environment
-  - url: https://api.ebsi.xyz
-    description: EBSI Testing Environment
+  - url: "https://api.preprod.ebsi.eu"
+    description: EBSI Pre-production Environment
+  - url: "https://api.ebsi.eu"
+    description: EBSI Production Environment
