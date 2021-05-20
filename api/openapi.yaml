@@ -2210,7 +2210,9 @@ components:
         status: 500
         detail: Internal error
 servers:
-  - url: http://localhost
+  - url: "http://localhost"
     description: Local Computer Environment
-  - url: https://api.ebsi.xyz
-    description: EBSI Testing Environment
+  - url: "https://api.preprod.ebsi.eu"
+    description: EBSI Pre-production Environment
+  - url: "https://api.ebsi.eu"
+    description: EBSI Production Environment
