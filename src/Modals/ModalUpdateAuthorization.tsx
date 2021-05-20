@@ -127,15 +127,21 @@ export function ModalUpdateAuthorization() {
               <Form.Item label="Authorized app" name="authorizationId">
                 <Select style={{ width: "100%" }} onChange={() => {}}>
                   {appCtx.updateAuthorization.data?.authorizedApps?.map(
-                    (app: string) => (
-                      <Select.Option key={app} value={app}>
-                        {
-                          appCtx.filteredDataSource.find(
-                            (param: any) => param.id === app
-                          )?.name
-                        }
-                      </Select.Option>
-                    )
+                    (app: string) => {
+                      let name = appCtx.tableDataSource.find(
+                        (param: any) => param.id === app
+                      )?.name;
+                      if (!name) {
+                        name = appCtx.missingApps.find(
+                          (param: any) => param.id === app
+                        )?.name;
+                      }
+                      return (
+                        <Select.Option key={app} value={app}>
+                          {name}
+                        </Select.Option>
+                      );
+                    }
                   )}
                 </Select>
               </Form.Item>
