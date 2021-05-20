@@ -15,7 +15,7 @@ export function useRegistryContractEventsHook() {
       provider
         .getNetwork()
         .then((network) => {
-          if (network.chainId !== config.EBSI_CHAIN_ID) {
+          if (network.chainId !== Number(config.EBSI_CHAIN_ID)) {
             notification.warn({
               message: "EBSI wrong network",
               description: "Please select corresponding network for EBSI",
