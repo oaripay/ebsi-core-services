@@ -2,8 +2,26 @@ openapi: 3.0.3
 info:
   title: Authorisation API
   description: |
-    Authorisation service is an EBSI core service that manages the user,
-    legal entities and component authentication.
+    The Authorisation API is a core EBSI service responsible to issue Short Term
+    Access Tokens (JWS) to the EBSI Platform for entities (Natural Persons,
+    Legal Entities) and trusted Applications (EBSI or third-party applications)
+    in exchange of their presentation of a long term EBSI Verifiable
+    Authorisation credential, plus their authentication/identification. Access
+    tokens are required by entities and applications to access the protected
+    resources of EBSI.
+
+    Users receive access tokens after they present a valid EBSI Verifiable
+    Authorisation credential and prove ownership over their DID.
+
+    Trusted Applications receive access tokens if they are well registered in
+    the Trusted Apps Registry (application public keys are listed), are
+    authorised there to access the requested protected resources, and
+    successfully prove their private key ownership. We implement the
+    Authenticated Key Exchange cryptographic identification protocol.
+
+    For more information see:
+      * [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/aoiWFQ)
+      * [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api)
   version: 1.0.0
   termsOfService: "/docs/terms"
   contact:
@@ -13,8 +31,12 @@ info:
     name: "EUPL-1.2"
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
 servers:
-  - url: "https://api.ebsi.xyz"
-    description: EBSI Testing Environment
+  - url: "http://localhost"
+    description: Local Computer Environment
+  - url: "https://api.preprod.ebsi.eu"
+    description: EBSI Pre-production Environment
+  - url: "https://api.ebsi.eu"
+    description: EBSI Production Environment
 tags:
   - name: Authorisation API
     description: Manage EBSI User, Legal Entities and Component Authentication

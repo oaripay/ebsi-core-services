@@ -2,18 +2,40 @@
 
 # Authorisation API
 
-Authorisation API is an EBSI core service that manages the user, legal entities and component authentication.
+The Authorisation API is a core EBSI service responsible to issue Short Term Access Tokens (JWS) to the EBSI Platform for entities (Natural Persons, Legal Entities) and trusted Applications (EBSI or third-party applications) in exchange of their presentation of a long term EBSI Verifiable Authorisation credential, plus their authentication/identification. Access tokens are required by entities and applications to access the protected resources of EBSI.
+
+Users receive access tokens after they present a valid EBSI Verifiable Authorisation credential and prove ownership over their DID.
+
+Trusted Applications receive access tokens if they are well registered in the Trusted Apps Registry (application public keys are listed), are authorised there to access the requested protected resources, and successfully prove their private key ownership. We implement the Authenticated Key Exchange cryptographic identification protocol.
+
+For more information see:
+
+- [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/aoiWFQ)
+- API catalogs:
+  - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
+  - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
 
 ## Table of Contents
 
-1. [Getting started](#getting-started)
-2. [Linting](#linting)
-3. [Auditing the dependencies](#auditing-the-dependencies)
-4. [Testing](#testing)
-5. [Load testing with k6](#load-testing-with-k6)
-6. [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
-7. [Cutting a new release](#cutting-a-new-release)
-8. [License](#license)
+- [Authorisation API](#authorisation-api)
+  - [Table of Contents](#table-of-contents)
+  - [Getting started](#getting-started)
+    - [Run the project locally](#run-the-project-locally)
+    - [Run with Docker](#run-with-docker)
+  - [Linting](#linting)
+    - [ESLint](#eslint)
+    - [OpenAPI](#openapi)
+    - [Prettier](#prettier)
+    - [tsc](#tsc)
+    - [Extra: lint Dockerfile](#extra-lint-dockerfile)
+  - [Auditing the dependencies](#auditing-the-dependencies)
+  - [Testing](#testing)
+  - [Load testing with k6](#load-testing-with-k6)
+    - [Start the API server](#start-the-api-server)
+    - [Run the tests](#run-the-tests)
+  - [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
+  - [Cutting a new release](#cutting-a-new-release)
+  - [License](#license)
 
 ## Getting started
 
