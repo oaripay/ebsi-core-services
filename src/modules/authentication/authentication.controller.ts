@@ -16,9 +16,8 @@ export class AuthenticationController {
   async authenticationRequest(
     @Body() body: AuthenticationRequest
   ): Promise<AuthenticationResponse> {
-    const authenticationResponse = await this.authenticationService.startAuthentication(
-      body
-    );
+    const authenticationResponse =
+      await this.authenticationService.startAuthentication(body);
     return authenticationResponse;
   }
 

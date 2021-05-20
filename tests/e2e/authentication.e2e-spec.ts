@@ -66,11 +66,8 @@ describe("/onboarding/v1 authentication e2e tests", () => {
 
   it("should test the response from startAuthentication is correct", async () => {
     expect.assertions(5);
-    const authenticationRequestResponse: SupertestAuthenticationRequestResponse = await request(
-      server
-    )
-      .post("/authentication-requests")
-      .send({
+    const authenticationRequestResponse: SupertestAuthenticationRequestResponse =
+      await request(server).post("/authentication-requests").send({
         scope: "ebsi users onboarding",
       });
     // 1 - User create the request
@@ -88,11 +85,8 @@ describe("/onboarding/v1 authentication e2e tests", () => {
 
   it("should test the authentication session with a wrong token", async () => {
     expect.assertions(3);
-    const authenticationRequestResponse: SupertestAuthenticationRequestResponse = await request(
-      server
-    )
-      .post("/authentication-requests")
-      .send({
+    const authenticationRequestResponse: SupertestAuthenticationRequestResponse =
+      await request(server).post("/authentication-requests").send({
         scope: "ebsi users onboarding",
       });
     // 1 - User create the request
@@ -119,23 +113,19 @@ describe("/onboarding/v1 authentication e2e tests", () => {
 
     // Send the request with a fakeTken
 
-    const authenticationServerResponseWithoutToken: SupertestAuthenticationResponse = await request(
-      server
-    )
-      .post("/authentication-responses")
-      .send({
+    const authenticationServerResponseWithoutToken: SupertestAuthenticationResponse =
+      await request(server).post("/authentication-responses").send({
         id_token: didAuthResponseJwt.urlEncoded,
       });
     expect(authenticationServerResponseWithoutToken.status).toBe(500);
     const fakeToken = await createFakeToken();
-    const authenticationServerResponseWrongToken: SupertestAuthenticationResponse = await request(
-      server
-    )
-      .post("/authentication-responses")
-      .auth(fakeToken, { type: "bearer" })
-      .send({
-        id_token: didAuthResponseJwt.urlEncoded,
-      });
+    const authenticationServerResponseWrongToken: SupertestAuthenticationResponse =
+      await request(server)
+        .post("/authentication-responses")
+        .auth(fakeToken, { type: "bearer" })
+        .send({
+          id_token: didAuthResponseJwt.urlEncoded,
+        });
     expect(authenticationServerResponseWrongToken.status).toBe(401);
   });
   /**
@@ -155,11 +145,8 @@ describe("/onboarding/v1 authentication e2e tests", () => {
     expect.assertions(10);
     const ticket =
       "ST-1673653-zLHa6H26OMFjMvVgFxuebgTKhIQlS8UPhiMEh1zRGjVRHWNBctWNee2WUAkNsasS7dAK2Vy99zzic1JOtLxSfD8-NaAc23CqASexIeoxDbDZLC-MYkDIiLRnYFxbxzrhJzTDq3qR6zMHEeeqDC9EwAvy56Hbx4GqfbnuB3lLpnDWALd8DTE6OXC3Y8HqJldiPQYCL0"; // set valid ticket
-    const authenticationRequestResponse: SupertestAuthenticationRequestResponse = await request(
-      server
-    )
-      .post("/authentication-requests")
-      .send({
+    const authenticationRequestResponse: SupertestAuthenticationRequestResponse =
+      await request(server).post("/authentication-requests").send({
         scope: "ebsi users onboarding",
       });
     // 1 - User create the request
@@ -174,10 +161,11 @@ describe("/onboarding/v1 authentication e2e tests", () => {
     const params = new URLSearchParams(authenticationRequest.session_token);
     const didAuthRequestJwt = params.get("request");
 
-    const requestPayload: DidAuthRequestPayload = await EbsiDidAuth.verifyAuthenticationRequest(
-      didAuthRequestJwt,
-      didResolver as string
-    );
+    const requestPayload: DidAuthRequestPayload =
+      await EbsiDidAuth.verifyAuthenticationRequest(
+        didAuthRequestJwt,
+        didResolver as string
+      );
     const appDid = configService.get<string>("applicationDid");
     expect(requestPayload.iss).toBe(appDid);
     expect(requestPayload.client_id).toBe(
@@ -214,14 +202,13 @@ describe("/onboarding/v1 authentication e2e tests", () => {
     const token = (response.body as SessionToken).Bearer;
     expect(token).toBeDefined();
     // 4 - RP verifies the response and create the verifiable Authorization and creates the verifiable Authorization (requires bearer token)
-    const authenticationServerResponse: SupertestAuthenticationResponse = await request(
-      server
-    )
-      .post("/authentication-responses")
-      .auth(token, { type: "bearer" })
-      .send({
-        id_token: didAuthResponseJwt.urlEncoded,
-      });
+    const authenticationServerResponse: SupertestAuthenticationResponse =
+      await request(server)
+        .post("/authentication-responses")
+        .auth(token, { type: "bearer" })
+        .send({
+          id_token: didAuthResponseJwt.urlEncoded,
+        });
     expect(authenticationServerResponse.status).toBe(201);
     expect(authenticationServerResponse.body).toBeDefined();
     expect(authenticationServerResponse.body).toHaveProperty(

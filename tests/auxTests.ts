@@ -13,9 +13,7 @@ import { loadConfig } from "../src/config/configuration";
 const keyEncoder = new KeyEncoder("secp256k1");
 const { apiName, authApiName, trustedAppsRegistry } = loadConfig();
 
-export async function generateKeys(
-  alg: string
-): Promise<{
+export async function generateKeys(alg: string): Promise<{
   publicKey: crypto.KeyObject;
   privateKey: crypto.KeyObject;
   publicKeyEncryption?: crypto.KeyObject;
@@ -125,9 +123,11 @@ export async function createFakeToken(useKidAuthApi = false): Promise<string> {
     const response = await axios.get(
       `${trustedAppsRegistry}?name=${authApiName}`
     );
-    const { href } = (response.data as {
-      items: { href: string }[];
-    }).items[0];
+    const { href } = (
+      response.data as {
+        items: { href: string }[];
+      }
+    ).items[0];
     kid = href;
   }
   return createJWT(
