@@ -180,7 +180,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     APPLICATION_ID: Joi.string().required(),
     APPLICATION_DID: Joi.string().required(),
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string().required(),
-    USER_DID: Joi.string().required(),
-    USER_PRIVATE_KEY: Joi.string().required(),
+    USER_DID: Joi.string(),
+    USER_PRIVATE_KEY: Joi.string(),
   }),
 });
