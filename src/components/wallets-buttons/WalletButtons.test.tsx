@@ -27,8 +27,7 @@ describe("Wallet Buttons component", () => {
     expect(setWalletOption).toHaveBeenCalledWith("Mobile Wallet");
   });
 
-  // EBSIINT-2997: disable EU Login temporarily
-  it.skip("call the click the button to display the session for ebsi", () => {
+  it("call the click the button to display the session for ebsi", () => {
     expect.assertions(1);
     const setWalletOption = jest.fn();
     const wrapper = shallow(
@@ -37,6 +36,7 @@ describe("Wallet Buttons component", () => {
 
     wrapper.find("Button").at(2).simulate("click");
 
-    expect(setWalletOption).toHaveBeenCalledWith("Ebsi Web Wallet");
+    // Button "EBSI Web Wallet" is disabled, nothing happens
+    expect(setWalletOption).toHaveBeenCalledTimes(0);
   });
 });
