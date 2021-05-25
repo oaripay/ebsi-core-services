@@ -911,23 +911,14 @@ describe("Administrator", () => {
       attr2NewAttrHash,
       attr2NewAttrHashV3,
     ];
-    const attributeVersionsWithFirstHash = await ts.getAdministratorAttributeRevisions(
-      attr2Versions[0],
-      1,
-      10
-    );
+    const attributeVersionsWithFirstHash =
+      await ts.getAdministratorAttributeRevisions(attr2Versions[0], 1, 10);
     expect(attributeVersionsWithFirstHash.items).to.deep.equal(attr2Versions);
-    const attributeVersionsWithSecondHash = await ts.getAdministratorAttributeRevisions(
-      attr2Versions[1],
-      1,
-      10
-    );
+    const attributeVersionsWithSecondHash =
+      await ts.getAdministratorAttributeRevisions(attr2Versions[1], 1, 10);
     expect(attributeVersionsWithSecondHash.items).to.deep.equal(attr2Versions);
-    const attributeVersionsWithThirdHash = await ts.getAdministratorAttributeRevisions(
-      attr2Versions[2],
-      1,
-      10
-    );
+    const attributeVersionsWithThirdHash =
+      await ts.getAdministratorAttributeRevisions(attr2Versions[2], 1, 10);
     expect(attributeVersionsWithThirdHash.items).to.deep.equal(attr2Versions);
   });
   it("update two different attributes for two did", async () => {
@@ -1057,26 +1048,17 @@ describe("Administrator", () => {
     // check that we retrieve the did attribute
     // we should have two attribute version for did2's attribute
     const constDid2Attrib = [firstAttrHash2, did2AttributNewDataHash];
-    const attributeVersionsWithFirstHash = await ts.getAdministratorAttributeRevisions(
-      constDid2Attrib[0],
-      1,
-      10
-    );
+    const attributeVersionsWithFirstHash =
+      await ts.getAdministratorAttributeRevisions(constDid2Attrib[0], 1, 10);
     expect(attributeVersionsWithFirstHash.items).to.deep.equal(constDid2Attrib);
-    const attributeVersionsWithSecondHash = await ts.getAdministratorAttributeRevisions(
-      constDid2Attrib[1],
-      1,
-      10
-    );
+    const attributeVersionsWithSecondHash =
+      await ts.getAdministratorAttributeRevisions(constDid2Attrib[1], 1, 10);
     expect(attributeVersionsWithSecondHash.items).to.deep.equal(
       constDid2Attrib
     );
     // check with on attribut version from did1
-    const attributeVersionsForDid1Attribute = await ts.getAdministratorAttributeRevisions(
-      attr2NewAttrHash,
-      1,
-      10
-    );
+    const attributeVersionsForDid1Attribute =
+      await ts.getAdministratorAttributeRevisions(attr2NewAttrHash, 1, 10);
     expect(attributeVersionsForDid1Attribute.items).to.deep.equal([
       firstAttr2Hash,
       attr2NewAttrHash,

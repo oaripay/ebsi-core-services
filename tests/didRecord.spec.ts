@@ -863,9 +863,8 @@ describe("Record Hashes", () => {
     expect(receipt.items).to.deep.equal([tsId]);
 
     const didVersionInfoPrime = ethers.utils.toUtf8Bytes("didVersionInfoPrime");
-    const didVersionMetadataPrime = ethers.utils.toUtf8Bytes(
-      "didVersionMetadata"
-    );
+    const didVersionMetadataPrime =
+      ethers.utils.toUtf8Bytes("didVersionMetadata");
 
     await expect(
       ts.appendDidDocumentVersionMetadata(
@@ -931,9 +930,8 @@ describe("Record Hashes", () => {
     const receipt = await ts.getDidTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([tsId]);
 
-    const didVersionMetadataPrime = ethers.utils.toUtf8Bytes(
-      "didVersionMetadata"
-    );
+    const didVersionMetadataPrime =
+      ethers.utils.toUtf8Bytes("didVersionMetadata");
 
     await expect(
       ts.appendDidDocumentVersionMetadata(
@@ -1778,9 +1776,14 @@ describe("Record Hashes", () => {
     }
     const didVersionIds = await ts.getDidDocumentVersionDidTimestampIds(did, 1);
     expect(didVersionIds).to.deep.equal([timestampId]);
-    await expect(ts.getDidDocumentVersionDidTimestampIds([], 1)).to.be.revertedWith("identifier empty");
-    await expect(ts.getDidDocumentVersionDidTimestampIds(did1, 2)).to.be.revertedWith("record unknown");
-    await expect(ts.getDidDocumentVersionDidTimestampIds(did, 2)).to.be.revertedWith("unknown version");
-
+    await expect(
+      ts.getDidDocumentVersionDidTimestampIds([], 1)
+    ).to.be.revertedWith("identifier empty");
+    await expect(
+      ts.getDidDocumentVersionDidTimestampIds(did1, 2)
+    ).to.be.revertedWith("record unknown");
+    await expect(
+      ts.getDidDocumentVersionDidTimestampIds(did, 2)
+    ).to.be.revertedWith("unknown version");
   });
 });

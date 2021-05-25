@@ -901,10 +901,9 @@ library DidRecordLib {
         return rs.didVersionMetadataStore[didVersionMetadataId];
     }
 
-
     /**
- * @dev getDidDocumentVersionDidTimestampIds returns version didTimestampIds
- */
+     * @dev getDidDocumentVersionDidTimestampIds returns version didTimestampIds
+     */
     function getDidDocumentVersionDidTimestampIds(
         DidRecordStorage.DidRecords storage rs,
         bytes calldata identifier,
@@ -918,6 +917,8 @@ library DidRecordLib {
         require(r.totalDidVersions > 0, "record unknown");
         require(r.totalDidVersions >= versionId, "unknown version");
 
-        return rs.didRecordsStore[recordId].didVersionsStore[versionId].didTimestampsId;
+        return
+            rs.didRecordsStore[recordId].didVersionsStore[versionId]
+                .didTimestampsId;
     }
 }
