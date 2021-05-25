@@ -1,24 +1,42 @@
 pipeline {
   agent any
+  options {
+      skipDefaultCheckout()
+  }
   stages {
-    stage('SCM') {
-      steps {
-        checkout(scm)
-
-        checkout(scm: [
-            $class: 'GitSCM',
-            branches: [ [name: 'int'] ],
-            userRemoteConfigs: [ [url: 'https://ebsi1-robot@ec.europa.eu/cefdigital/code/scm/ebsi/qa-testing.git', credentialsId: 'b257a49a-5fed-4971-a6df-e05d3200edc0'] ],
-            extensions: [
-                [$class: 'RelativeTargetDirectory', relativeTargetDir: "automation"],
-          ],
-          poll: false
-        ])
+    stage('Checkout') {
+        steps {
+          checkout([
+              $class: 'GitSCM',
+              branches: scm.branches,
+              doGenerateSubmoduleConfigurations: false,
+              extensions: [[
+                  $class: 'SubmoduleOption',
+                  disableSubmodules: false,
+                  parentCredentials: true,
+                  recursiveSubmodules: true,
+                  reference: '',
+                  trackingSubmodules: false
+              ]],
+              submoduleCfg: [],
+              userRemoteConfigs: scm.userRemoteConfigs
+          ])
       }
     }
-    stage('SmartContract Testing') {
+    stage('Setup') {
       steps {
-          sh "automation/SmartContractFuncTests.sh"
+        sh 'yarn install --frozen-lockfile'
+        sh 'yarn compile'
+      }
+    }
+    stage('Test lint') {
+      steps {
+        sh 'yarn run lint'
+      }
+    }
+    stage('Test functional') {
+      steps {
+        sh 'yarn run test'
       }
     }
   }
