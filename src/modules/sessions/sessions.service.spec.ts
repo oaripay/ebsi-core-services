@@ -72,6 +72,7 @@ describe("sessions service tests", () => {
       );
       expect(validation).toBeDefined();
     });
+
     it("should validate eu-login onboarding", async () => {
       expect.assertions(1);
       const userAuthentication: UserAuthentication = {
@@ -88,6 +89,7 @@ describe("sessions service tests", () => {
       );
       expect(validation).toBeDefined();
     });
+
     it("should throw UNSUPPORTED_ONBOARDING error for unsupported onboarding", async () => {
       expect.assertions(1);
       const userAuthentication: UserAuthentication = {
@@ -113,12 +115,14 @@ describe("sessions service tests", () => {
       );
     });
   });
+
   describe("parseEULoginUser", () => {
     it("should parse eu-login user", async () => {
       expect.assertions(1);
       const json = await sessionsService.parseEULoginUser(userEU.toString());
       expect(json.uid).toBe("evatest");
     });
+
     it("should throw ERROR_EUTICKET_PARSE error to parse eu-login user", async () => {
       expect.assertions(1);
       await expect(
@@ -127,7 +131,28 @@ describe("sessions service tests", () => {
         new InvalidUserAuthentication(OnboardingErrors.ERROR_EUTICKET_PARSE)
       );
     });
+
+    it("should throw ERROR_EUTICKET_VALIDATION error when authentication fails", async () => {
+      expect.assertions(1);
+
+      await expect(
+        sessionsService.parseEULoginUser(`<?xml version="1.0" encoding="utf-8"?>
+    <cas:serviceResponse xmlns:cas="https://ecas.ec.europa.eu/cas/schemas"
+        server="EU Login ACCEPTANCE_GENESIS version 1.2.3.a.4567 - 22/03/2021 - 18:39"
+        date="2021-05-25T13:44:05.313+02:00"
+        version="8.3">
+        <cas:authenticationFailure code="INVALID_SERVICE">
+            ticket &apos;ST-XXXXXXXX-YYYYYYYY&apos; does not match supplied service
+        </cas:authenticationFailure>
+    </cas:serviceResponse>`)
+      ).rejects.toThrow(
+        new InvalidUserAuthentication(
+          OnboardingErrors.ERROR_EUTICKET_VALIDATION
+        )
+      );
+    });
   });
+
   describe("validateTicket", () => {
     it("should validate eu-login ticket", async () => {
       expect.assertions(1);
@@ -138,6 +163,7 @@ describe("sessions service tests", () => {
       const validation = await sessionsService.validateTicket("dummyTicket");
       expect(validation).toStrictEqual({ validatedUser: json });
     });
+
     it("should throw error when EUTICKET_NOT_RESOLVED", async () => {
       expect.assertions(1);
       mockedAxios.get.mockResolvedValue({});
@@ -147,6 +173,7 @@ describe("sessions service tests", () => {
         new InvalidUserAuthentication(OnboardingErrors.EUTICKET_NOT_RESOLVED)
       );
     });
+
     it("should throw error when ERROR_EUTICKET_VALIDATION", async () => {
       expect.assertions(1);
       mockedAxios.get.mockResolvedValue({
@@ -164,6 +191,7 @@ describe("sessions service tests", () => {
       );
     });
   });
+
   describe("validateRecaptcha", () => {
     it("should return true for a valid CaptchaAuthenticationInfo", () => {
       expect.assertions(1);
@@ -179,6 +207,7 @@ describe("sessions service tests", () => {
       });
       expect(sessionsService.validateRecaptcha("fakeToken")).toBeTruthy();
     });
+
     it("should return undefined for a unsuccess CaptchaAuthenticationInfo", async () => {
       expect.assertions(1);
       mockedAxios.get.mockResolvedValue({
@@ -195,6 +224,7 @@ describe("sessions service tests", () => {
         await sessionsService.validateRecaptcha("fakeToken")
       ).toBeUndefined();
     });
+
     it("should return undefined for a unknown hostname CaptchaAuthenticationInfo", async () => {
       expect.assertions(1);
       mockedAxios.get.mockResolvedValue({
@@ -212,6 +242,7 @@ describe("sessions service tests", () => {
       ).toBeUndefined();
     });
   });
+
   describe("provideSessionToken", () => {
     it("should create a valid session token for a validated recaptcha UserAuthentication", async () => {
       expect.assertions(3);
@@ -244,6 +275,7 @@ describe("sessions service tests", () => {
         })
       );
     });
+
     it("should create a valid session token for a validated eu-login UserAuthentication", async () => {
       expect.assertions(3);
       const body = {

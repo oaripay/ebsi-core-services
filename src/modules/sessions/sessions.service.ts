@@ -23,6 +23,18 @@ const ASSURANCE_LEVEL = "LOW";
 
 const parseXML = xml2js.parseStringPromise;
 
+type EULoginResponse = {
+  serviceresponse: {
+    authenticationsuccess?: UserEU;
+    authenticationfailure?: {
+      _?: string;
+      $?: {
+        code?: string;
+      };
+    };
+  };
+};
+
 @Injectable()
 export default class SessionsService {
   private readonly logger = new Logger(SessionsService.name);
@@ -65,16 +77,21 @@ export default class SessionsService {
       ];
       return this.validateTicket(ticket);
     }
-    if (userAuthentication.onboarding === "recaptcha")
+
+    if (userAuthentication.onboarding === "recaptcha") {
       return this.validateRecaptcha(
         (userAuthentication.info as CaptchaAuthenticationInfo).token
       );
+    }
+
     throw new InvalidUserAuthentication(
       OnboardingErrors.UNSUPPORTED_ONBOARDING
     );
   }
 
   async parseEULoginUser(xml: string): Promise<UserEU> {
+    let result: EULoginResponse;
+
     try {
       const options = {
         trim: true,
@@ -82,22 +99,25 @@ export default class SessionsService {
         explicitArray: false,
         tagNameProcessors: [XMLprocessors.normalize, XMLprocessors.stripPrefix],
       };
-      const result = (await parseXML(xml, options)) as {
-        serviceresponse: { authenticationsuccess: UserEU };
-      };
-      if (
-        !result?.serviceresponse?.authenticationsuccess ||
-        typeof result.serviceresponse.authenticationsuccess !== "object"
-      )
-        throw new InvalidUserAuthentication(
-          OnboardingErrors.ERROR_EUTICKET_PARSE
-        );
-      return result.serviceresponse.authenticationsuccess;
+
+      result = (await parseXML(xml, options)) as EULoginResponse;
     } catch {
       throw new InvalidUserAuthentication(
         OnboardingErrors.ERROR_EUTICKET_PARSE
       );
     }
+
+    if (
+      !result?.serviceresponse?.authenticationsuccess ||
+      typeof result.serviceresponse.authenticationsuccess !== "object"
+    ) {
+      this.logger.error(result.serviceresponse);
+      throw new InvalidUserAuthentication(
+        OnboardingErrors.ERROR_EUTICKET_VALIDATION
+      );
+    }
+
+    return result.serviceresponse.authenticationsuccess;
   }
 
   async validateTicket(
@@ -111,20 +131,27 @@ export default class SessionsService {
       ticket,
     });
     let userInfo: AxiosResponse;
+
     try {
       userInfo = await axios.get(`${this.euloginService}?${parameters}`);
     } catch (error) {
       throw new InvalidUserAuthentication(error);
     }
-    if (!userInfo || !userInfo.data)
+
+    if (!userInfo || !userInfo.data) {
       throw new InvalidUserAuthentication(
         OnboardingErrors.EUTICKET_NOT_RESOLVED
       );
+    }
+
     const userEU = await this.parseEULoginUser(userInfo.data);
-    if (!userEU)
+
+    if (!userEU) {
       throw new InvalidUserAuthentication(
         OnboardingErrors.ERROR_EUTICKET_VALIDATION
       );
+    }
+
     return { validatedUser: userEU };
   }
 
@@ -135,6 +162,7 @@ export default class SessionsService {
       secret: this.configService.get<string>("recaptchaApiKey"),
       response: token,
     });
+
     try {
       const response = await axios.get<CaptchaAuthenticationValidatedInfo>(
         `${this.recaptchaService}/siteverify?${parameters}`
@@ -152,6 +180,7 @@ export default class SessionsService {
         OnboardingErrors.ERROR_RECAPTCHA_VALIDATION
       );
     }
+
     return undefined;
   }
 

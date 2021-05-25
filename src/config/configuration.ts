@@ -60,7 +60,7 @@ const defaultConfig = {
       "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
     DID_RESOLVER: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
     EU_LOGIN_VALIDATE_SERVICE_URL:
-      "https://ecas.acceptance.ec.europa.eu/cas/TicketValidationService",
+      "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
       "https://app.test.intebsi.xyz/users-onboarding/authentication",
     RECAPTCHA_REGISTERED_HOSTNAME: "intebsi.xyz",
