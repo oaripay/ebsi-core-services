@@ -12,14 +12,8 @@ export const LoginButtons: React.FunctionComponent = () => {
   const [captchaToken, setCaptchaToken] = useState("");
   const history = useHistory();
 
-  const enableEuLogin = new URLSearchParams(window.location.search).has(
-    "eu-login"
-  );
-
   const euLogin = () => {
-    if (enableEuLogin) {
-      window.location.assign(loginLink());
-    }
+    window.location.assign(loginLink());
   };
 
   const captchaLogin = async () => {
@@ -61,7 +55,6 @@ export const LoginButtons: React.FunctionComponent = () => {
           onClick={euLogin}
           label="Onboard with EU Login"
           id="euLoginBtn"
-          disabled={!enableEuLogin}
         />
       </div>
     </div>
