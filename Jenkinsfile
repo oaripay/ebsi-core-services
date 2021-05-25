@@ -1,33 +1,50 @@
 pipeline {
-  agent any
-  stages {
-    stage('SCM') {
-      steps {
-        checkout(scm)
-
-        checkout(scm: [
-            $class: 'GitSCM',
-            branches: [ [name: 'int'] ],
-            userRemoteConfigs: [ [url: 'https://ebsi1-robot@ec.europa.eu/cefdigital/code/scm/ebsi/qa-testing.git', credentialsId: 'b257a49a-5fed-4971-a6df-e05d3200edc0'] ],
-            extensions: [
-                [$class: 'RelativeTargetDirectory', relativeTargetDir: "automation"],
-          ],
-          poll: false
-        ])
-      }
+    agent any
+    options {
+        skipDefaultCheckout()
     }
-    stage('SmartContract Testing') {
-      steps {
-          sh "automation/SmartContractFuncTests.sh"
-      }
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: scm.branches,
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[
+                        $class: 'SubmoduleOption',
+                        disableSubmodules: false,
+                        parentCredentials: true,
+                        recursiveSubmodules: true,
+                        reference: '',
+                        trackingSubmodules: false
+                    ]],
+                    submoduleCfg: [],
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
+            }
+        }
+        stage('Setup') {
+            steps {
+               sh 'yarn install --frozen-lockfile'
+            }
+        }
+        stage('Test lint') {
+            steps {
+                sh 'yarn run lint'
+            }
+        }
+        stage('Test functional') {
+            steps {
+                sh 'yarn run test'
+            }
+        }
     }
-  }
-  post {
-    always {
-      cleanWs()
-      dir("${env.WORKSPACE}@script") {
-        deleteDir()
-      }
+    post {
+        always {
+            cleanWs()
+            dir("${env.WORKSPACE}@script") {
+                deleteDir()
+            }
+        }
     }
-  }
 }
