@@ -1,26 +1,50 @@
-node {
-    stage('Clone repo') {
-        checkout([
-          $class: 'GitSCM',
-          branches: scm.branches,
-          doGenerateSubmoduleConfigurations: false,
-          extensions: [[
-              $class: 'SubmoduleOption',
-              disableSubmodules: false,
-              parentCredentials: true,
-              recursiveSubmodules: true,
-              reference: '',
-              trackingSubmodules: false
-          ]],
-          submoduleCfg: [],
-          userRemoteConfigs: scm.userRemoteConfigs
-      ])
+pipeline {
+  agent any
+  options {
+      skipDefaultCheckout()
+  }
+  stages {
+    stage('Checkout') {
+        steps {
+          checkout([
+              $class: 'GitSCM',
+              branches: scm.branches,
+              doGenerateSubmoduleConfigurations: false,
+              extensions: [[
+                  $class: 'SubmoduleOption',
+                  disableSubmodules: false,
+                  parentCredentials: true,
+                  recursiveSubmodules: true,
+                  reference: '',
+                  trackingSubmodules: false
+              ]],
+              submoduleCfg: [],
+              userRemoteConfigs: scm.userRemoteConfigs
+          ])
+      }
     }
-    stage('Unit test') {
-            nodejs(nodeJSInstallationName: '14.15.4') {
-                sh 'yarn install --frozen-lockfile'
-                sh 'yarn lint'
-                sh 'yarn test'
-            }
+    stage('Setup') {
+      steps {
+        sh 'yarn install --frozen-lockfile'
+      }
     }
+    stage('Test Lint') {
+      steps {
+        sh 'yarn run lint'
+      }
+    }
+    stage('Test functional') {
+      steps {
+        sh 'yarn run test'
+      }
+    }
+  }
+  post {
+    always {
+      cleanWs()
+      dir("${env.WORKSPACE}@script") {
+        deleteDir()
+      }
+    }
+  }
 }
