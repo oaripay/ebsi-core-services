@@ -3,14 +3,15 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { Logger } from "@nestjs/common/services/logger.service";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import { decodeJWT } from "@cef-ebsi/did-jwt";
-import { UserAuthentication } from "src/shared/dto";
 import * as fs from "fs";
 import axios from "axios";
-import { UserEU } from "src/shared/interfaces";
+import { UserAuthentication } from "../../shared/dto";
+import { UserEU } from "../../shared/interfaces";
 import { InvalidUserAuthentication } from "../../errors";
 import { OnboardingErrors } from "../../errors/errorCodes";
 import * as SessionsModule from "./sessions.module";
@@ -25,6 +26,7 @@ describe("sessions service tests", () => {
   let configService: ConfigService<ApiConfig>;
   let sessionsService: SessionsService;
   let userEU: Buffer;
+
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [SessionsModule.default],
@@ -36,13 +38,17 @@ describe("sessions service tests", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
+    Logger.overrideLogger(false);
+
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     sessionsService = new SessionsService(configService);
     userEU = fs.readFileSync("tests/data/ecasTicket.xml");
   });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
+
   afterAll(async () => {
     await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
     await app.close();

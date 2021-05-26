@@ -1,3 +1,4 @@
+import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { UserInfo } from "../auth.interface";
 import AuthService from "../auth.service";
@@ -14,10 +15,20 @@ export class JwtAuthGuard implements CanActivate {
       user: UserInfo;
     }>();
     const { headers } = request;
-    if (!headers.authorization || !headers.authorization.startsWith("Bearer "))
-      return false;
+
+    if (
+      !headers.authorization ||
+      !headers.authorization.startsWith("Bearer ")
+    ) {
+      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
+        detail: "Missing JWT",
+      });
+    }
+
     const token = headers.authorization.replace("Bearer ", "");
+
     await this.authService.validateToken(token);
+
     return true;
   }
 }

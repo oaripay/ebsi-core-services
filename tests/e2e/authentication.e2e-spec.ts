@@ -17,7 +17,7 @@ import {
   Options,
   validateVerifiableCredential,
 } from "@cef-ebsi/verifiable-credential";
-import { UserAuthentication } from "src/shared/dto";
+import { UserAuthentication } from "../../src/shared/dto";
 import { createFakeToken } from "../auxTests";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -84,11 +84,13 @@ describe("/onboarding/v1 authentication e2e tests", () => {
   });
 
   it("should test the authentication session with a wrong token", async () => {
-    expect.assertions(3);
+    expect.assertions(5);
+
     const authenticationRequestResponse: SupertestAuthenticationRequestResponse =
       await request(server).post("/authentication-requests").send({
         scope: "ebsi users onboarding",
       });
+
     // 1 - User create the request
     const authenticationRequest = authenticationRequestResponse.body;
 
@@ -106,18 +108,28 @@ describe("/onboarding/v1 authentication e2e tests", () => {
       nonce: params.get("nonce"), // same nonce received as a Request Payload after verifying it
       redirectUri: params.get("client_id"), // parsed URI from the DID Auth Request payload
     };
+
     const didAuthResponseJwt = await EbsiDidAuth.createAuthenticationResponse(
       didAuthResponseCall
     );
+
     expect(didAuthResponseJwt.urlEncoded).toBeDefined();
 
-    // Send the request with a fakeTken
-
+    // Send the request without a token
     const authenticationServerResponseWithoutToken: SupertestAuthenticationResponse =
       await request(server).post("/authentication-responses").send({
         id_token: didAuthResponseJwt.urlEncoded,
       });
-    expect(authenticationServerResponseWithoutToken.status).toBe(500);
+
+    expect(authenticationServerResponseWithoutToken.status).toBe(401);
+    expect(authenticationServerResponseWithoutToken.body).toStrictEqual({
+      detail: "Missing JWT",
+      status: 401,
+      title: "Unauthorized",
+      type: "about:blank",
+    });
+
+    // Send the request with a fakeToken
     const fakeToken = await createFakeToken();
     const authenticationServerResponseWrongToken: SupertestAuthenticationResponse =
       await request(server)
@@ -126,8 +138,15 @@ describe("/onboarding/v1 authentication e2e tests", () => {
         .send({
           id_token: didAuthResponseJwt.urlEncoded,
         });
+
     expect(authenticationServerResponseWrongToken.status).toBe(401);
+    expect(authenticationServerResponseWrongToken.body).toStrictEqual({
+      status: 401,
+      title: "unexpected issuer found in session token",
+      type: "about:blank",
+    });
   });
+
   /**
    * In order to enable and run the test below successfully, you need to set a one time valid eu-login ticket or a recaptcha token.
    * EU Login:
@@ -143,13 +162,14 @@ describe("/onboarding/v1 authentication e2e tests", () => {
    */
   it.skip("should test the full flow", async () => {
     expect.assertions(10);
+
+    // 1 - User create the request
     const ticket =
       "ST-1673653-zLHa6H26OMFjMvVgFxuebgTKhIQlS8UPhiMEh1zRGjVRHWNBctWNee2WUAkNsasS7dAK2Vy99zzic1JOtLxSfD8-NaAc23CqASexIeoxDbDZLC-MYkDIiLRnYFxbxzrhJzTDq3qR6zMHEeeqDC9EwAvy56Hbx4GqfbnuB3lLpnDWALd8DTE6OXC3Y8HqJldiPQYCL0"; // set valid ticket
     const authenticationRequestResponse: SupertestAuthenticationRequestResponse =
       await request(server).post("/authentication-requests").send({
         scope: "ebsi users onboarding",
       });
-    // 1 - User create the request
     expect(authenticationRequestResponse.status).toBe(201);
     const authenticationRequest = authenticationRequestResponse.body;
     expect(authenticationRequest.session_token).toBeDefined();
@@ -196,11 +216,14 @@ describe("/onboarding/v1 authentication e2e tests", () => {
         "eul-ticket": ticket,
       },
     } as UserAuthentication;
+
     const response = await request(app.getHttpServer())
-      .post(`/sessions`)
+      .post("/sessions")
       .send(body);
+
     const token = (response.body as SessionToken).Bearer;
     expect(token).toBeDefined();
+
     // 4 - RP verifies the response and create the verifiable Authorization and creates the verifiable Authorization (requires bearer token)
     const authenticationServerResponse: SupertestAuthenticationResponse =
       await request(server)
@@ -214,7 +237,8 @@ describe("/onboarding/v1 authentication e2e tests", () => {
     expect(authenticationServerResponse.body).toHaveProperty(
       "verifiableCredential"
     );
-    // 6- validate the verifiable auth
+
+    // 5- validate the verifiable auth
     const options: Options = {
       tirUrl:
         "https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers",

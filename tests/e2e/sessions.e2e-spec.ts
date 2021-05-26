@@ -7,8 +7,8 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { Logger } from "@nestjs/common/services/logger.service";
-import { SessionToken } from "src/shared/interfaces";
-import { UserAuthentication } from "src/shared/dto";
+import { SessionToken } from "../../src/shared/interfaces";
+import { UserAuthentication } from "../../src/shared/dto";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 
@@ -63,6 +63,7 @@ describe("/onboarding/v1 sessions e2e tests", () => {
       expect(token).toBeDefined();
       expect(response.status).toBe(201);
     });
+
     /**
      * In order to enable and run the test below successfully, you need to set a valid recaptcha token
      * 1 - Run locally users-onboarding-web-client

@@ -4,7 +4,7 @@ import {
   AuthenticationResponse,
   AuthenticationRequest,
   AuhtenticationResponseRequest,
-} from "src/shared/interfaces";
+} from "../../shared/interfaces";
 import { JwtAuthGuard } from "../auth/guards";
 import AuthenticationService from "./authentication.service";
 
