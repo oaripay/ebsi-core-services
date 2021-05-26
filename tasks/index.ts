@@ -11,3 +11,4 @@ import "./changeOwnership";
 import "./initializeProxy";
 import "./insertAdministrator";
 import "./addHashAlgo";
+import "./fixTarStatus";

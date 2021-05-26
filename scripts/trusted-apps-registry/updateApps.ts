@@ -149,18 +149,8 @@ async function main() {
   // This can run only after Timestamp have been deployed with a proxy
   const [, admin] = await ethers.getSigners();
 
-  const tarfactory = await ethers.getContractFactory("Tar", {
-    signer: admin,
-    libraries: {
-      AdminLib: randomAddress(),
-      AppLib: randomAddress(),
-      AuthLib: randomAddress(),
-      PolicyLib: randomAddress(),
-      RevocationLib: randomAddress(),
-    },
-  });
-  const proxyAddress = "0x4d06B562588cb61616959806726c5D9f060b0F21";
-  const tar: Tar = tarfactory.attach(proxyAddress) as Tar;
+  const proxyAddress = "0xb16BCbd9C6d4628200f420048B6Bcb7E22e3f24D";
+  const tar: Tar = (await ethers.getContractAt("Tar", proxyAddress, admin)) as Tar;
 
   /* eslint-disable no-await-in-loop */
   // await in loop must be used to use different consecutive nonces in the transactions

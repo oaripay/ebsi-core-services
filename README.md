@@ -164,6 +164,48 @@ To create or update apps in the Trusted Apps Registry go to the folder `scripts/
 yarn hardhat --network local run scripts/trusted-apps-registry/updateApps.ts
 ```
 
+### Update Tar Statuses from 0 to 1 for accepted
+
+```
+npx hardhat --network localWithData fixTarStatus --proxy <PROXY OF TAR> --app <APP_TO_BE_UPDATED> --auth <APP_AUTH>
+```
+Note:
+PROXY OF TAR: address of the proxy of TAR
+APP_TO_BE_UPDATED: the name of the app to be updated, i.e. : users-onboarding-api
+APP_AUTH: list of apps with comma or all to update all, i.e. : users-onboarding-api,ledger-api or all (this parameter can be ommited and it will take all by default)
+
+####APPENDIX LIST OF APPS:
+user-wallet-web-client
+enterprise-wallet-back-end
+iossvat-web-client
+iossvat-back-end
+notaris-web-client
+notaris-back-end
+trusted-issuers-registry-api
+trusted-schemas-registry-api
+trusted-apps-registry-api
+trusted-iam-registry-api
+trusted-ledgers-sc-registry-api
+verifiable-credential-api
+verifiable-presentation-api
+identity-hub-api
+did-registry-api
+eidas-bridge-api
+authorisation-api
+users-onboarding-api
+reverse-proxy
+wallet-api
+timestamp-api
+storage-api
+ledger-api
+notifications-api
+fabric-root-ca
+fabric-ica
+fabric-peer
+fabric-peer-db
+fabric-orderer
+fabric-cli
+proxy-data-hub-api
 
 ### Insert Administrators
 
