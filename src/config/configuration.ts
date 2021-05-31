@@ -9,6 +9,7 @@ export interface ApiConfig {
   apiUrlPrefix: string;
   apiName: string;
   domain: string;
+  localOrigin: string;
   logLevel: string;
   externalEbsiApiHealthCheck: string;
   // Ledger & SC
@@ -87,6 +88,7 @@ export const loadConfig = (): ApiConfig => {
       process.env.API_URL_PREFIX ||
       "/trusted-ledgers-smart-contracts-registry/v1",
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
@@ -145,6 +147,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     HEALTH_CHECK: Joi.string(),
     DOMAIN: Joi.string(),
+    LOCAL_ORIGIN: Joi.string().uri(),
     // Ledger & SC
     CONTRACT_ADDR: Joi.string().required(),
     LEDGER_API_URL: Joi.string().uri(),

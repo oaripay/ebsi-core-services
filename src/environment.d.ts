@@ -11,6 +11,7 @@ declare global {
       API_NAME?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOMAIN?: string;
+      LOCAL_ORIGIN?: string;
       // Ledger & SC
       LEDGER_API_URL?: string;
       LEDGER_API_NAME?: string;
