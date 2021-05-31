@@ -10,6 +10,8 @@ declare global {
       AUTHORISATION_API_NAME?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       BESU_RPC_NODE?: string;
+      DOMAIN?: string;
+      LOCAL_ORIGIN?: string;
       TRUSTED_APPS_REGISTRY?: string;
       AUTHORISATION?: string;
       HEALTH_CHECK?: string;

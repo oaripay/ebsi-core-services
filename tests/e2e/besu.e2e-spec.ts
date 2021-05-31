@@ -1,7 +1,12 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import crypto from "crypto";
-import { INestApplication, ValidationPipe, HttpServer } from "@nestjs/common";
+import {
+  INestApplication,
+  ValidationPipe,
+  HttpServer,
+  Logger,
+} from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -9,7 +14,6 @@ import {
 import { FastifyInstance } from "fastify";
 import { ConfigService } from "@nestjs/config";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { Logger } from "@nestjs/common/services/logger.service";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";

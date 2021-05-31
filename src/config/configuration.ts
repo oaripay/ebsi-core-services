@@ -10,6 +10,8 @@ export interface ApiConfig {
   logLevel: string;
   externalEbsiApiHealthCheck: string;
   besuRpcNode: string;
+  domain: string;
+  localOrigin: string;
   trustedAppsRegistry: string;
   authorisation: string;
   testApp: {
@@ -24,6 +26,7 @@ const defaultConfig = {
   local: {
     LOG_LEVEL: "debug",
     BESU_RPC_NODE: "https://www.test.intebsi.xyz/jsonrpc",
+    DOMAIN: "https://api.test.intebsi.xyz",
     AUTHORISATION: "https://api.test.intebsi.xyz/authorisation/v1",
     TRUSTED_APPS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
@@ -32,6 +35,7 @@ const defaultConfig = {
   test: {
     LOG_LEVEL: "info",
     BESU_RPC_NODE: "https://www.test.intebsi.xyz/jsonrpc",
+    DOMAIN: "https://api.test.intebsi.xyz",
     AUTHORISATION: "https://api.test.intebsi.xyz/authorisation/v1",
     TRUSTED_APPS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
@@ -40,6 +44,7 @@ const defaultConfig = {
   pilot: {
     LOG_LEVEL: "warn",
     BESU_RPC_NODE: "https://www.preprod.ebsi.eu/jsonrpc",
+    DOMAIN: "https://api.preprod.ebsi.eu",
     AUTHORISATION: "https://api.preprod.ebsi.eu/authorisation/v1",
     TRUSTED_APPS_REGISTRY:
       "https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps",
@@ -48,6 +53,7 @@ const defaultConfig = {
   prod: {
     LOG_LEVEL: "error",
     BESU_RPC_NODE: "https://www.ebsi.eu/jsonrpc",
+    DOMAIN: "https://api.ebsi.eu",
     AUTHORISATION: "https://api.ebsi.eu/authorisation/v1",
     TRUSTED_APPS_REGISTRY: "https://api.ebsi.eu/trusted-apps-registry/v2/apps",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
@@ -68,6 +74,8 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     besuRpcNode:
       process.env.BESU_RPC_NODE || defaultConfig[EBSI_ENV].BESU_RPC_NODE,
+    domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    localOrigin: process.env.LOCAL_ORIGIN || "",
     trustedAppsRegistry:
       process.env.TRUSTED_APPS_REGISTRY ||
       defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY,
@@ -110,6 +118,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "debug"
     ),
     BESU_RPC_NODE: Joi.string().uri(),
+    DOMAIN: Joi.string().uri(),
+    LOCAL_ORIGIN: Joi.string().uri(),
     TRUSTED_APPS_REGISTRY: Joi.string().uri(),
     AUTHORISATION: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
