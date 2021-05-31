@@ -11,6 +11,7 @@ export interface ApiConfig {
   apiUrlPrefix: string;
   contractAddr: string;
   domain: string;
+  localOrigin: string;
   logLevel: string;
   ledger: string;
   adminTestPrivateKey: string;
@@ -114,6 +115,7 @@ export const loadConfig = (): ApiConfig => {
     apiUrlPrefix: process.env.API_URL_PREFIX || "/users-onboarding/v1",
     contractAddr: process.env.CONTRACT_ADDR,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     ledger: process.env.LEDGER || defaultConfig[EBSI_ENV].LEDGER,
     externalEbsiApiHealthCheck:
@@ -171,6 +173,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug"
     ),
+    DOMAIN: Joi.string().uri(),
+    LOCAL_ORIGIN: Joi.string().uri(),
     EU_LOGIN_VALIDATE_SERVICE_URL: Joi.string().uri(),
     RECAPTCHA_SERVICE_URL: Joi.string().uri(),
     RECAPTCHA_REGISTERED_HOSTNAME: Joi.string(),
