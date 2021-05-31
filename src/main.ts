@@ -10,6 +10,7 @@ import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
 import { createLogger, consoleTransport } from "./logger/logger";
 import { ApiConfig } from "./config/configuration";
+import { setupInterceptors } from "./axiosInterceptors";
 
 async function bootstrap() {
   const fastifyAdapter = new FastifyAdapter();
@@ -27,6 +28,8 @@ async function bootstrap() {
   const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
   const port = configService.get<number>("apiPort");
   const logLevel = configService.get<string>("logLevel");
+  const domain = configService.get<string>("domain");
+  const localOrigin = configService.get<string>("localOrigin");
 
   // Set logger level
   if (logLevel === "silent") {
@@ -54,6 +57,9 @@ async function bootstrap() {
     }
   );
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+  // Setup axios interceptors
+  setupInterceptors(domain, localOrigin, logger);
 
   logger.log(
     `API start, NODE_ENV: ${process.env.NODE_ENV} port:${port}`,

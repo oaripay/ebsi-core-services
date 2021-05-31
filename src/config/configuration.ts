@@ -10,6 +10,7 @@ export interface ApiConfig {
   apiName: string;
   logLevel: string;
   domain: string;
+  localOrigin: string;
   externalEbsiApiHealthCheck: string;
   // Ledger & SC
   ledgerApiUrl: string;
@@ -72,6 +73,7 @@ export const loadConfig = (): ApiConfig => {
     apiName: process.env.API_NAME || "trusted-issuers-registry-api",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    localOrigin: process.env.LOCAL_ORIGIN || "",
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
     // Ledger & SC
@@ -126,6 +128,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     HEALTH_CHECK: Joi.string(),
     DOMAIN: Joi.string(),
+    LOCAL_ORIGIN: Joi.string().uri(),
     // Ledger & SC
     BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: Joi.string().required(),
     LEDGER_API_URL: Joi.string().uri(),
