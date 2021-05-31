@@ -11,6 +11,7 @@ declare global {
       LEDGER?: string;
       CONTRACT_ADDR: string;
       DOMAIN?: string;
+      LOCAL_ORIGIN?: string;
       ADMIN_TEST_PRIVATE_KEY?: string;
     }
   }
