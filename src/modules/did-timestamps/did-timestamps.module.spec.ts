@@ -291,6 +291,143 @@ describe("DidTimestamps Module", () => {
       });
       expect(response4.status).toBe(400);
     });
+
+    it("should throw a Bad Request for bad parameters", async () => {
+      expect.assertions(8);
+
+      const response1 = await request(server).get(
+        "/did-timestamps?identifier=abc"
+      );
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["identifier must match /^0x/ regular expression"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server).get(
+        "/did-timestamps?version-id=string"
+      );
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["version-id must be a number conforming to the specified constraints"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server).get(
+        "/did-timestamps?identifier=0x1234"
+      );
+      expect(response3.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          "Invalid parameters: make sure to define both 'identifier' and 'version-id'",
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+
+      const response4 = await request(server).get(
+        "/did-timestamps?version-id=1"
+      );
+      expect(response4.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          "Invalid parameters: make sure to define both 'identifier' and 'version-id'",
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+    });
+
+    it("should return an empty list when the filters don't match any record", async () => {
+      expect.assertions(2);
+
+      const identifier = "0x1234";
+      const versionId = 1;
+
+      const response = await request(server).get(
+        `/did-timestamps?identifier=${identifier}&version-id=${versionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+        ) as string,
+        items: [],
+        total: 0,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+          prev: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+          next: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+          last: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should return a paginated collection of DID timestamps filtered by identifier and version ID", async () => {
+      expect.assertions(3);
+
+      const { didDocuments } = testEnv;
+
+      const { identifier } = didDocuments[0];
+      const versionId = 1;
+
+      const response = await request(server).get(
+        `/did-timestamps?identifier=${identifier}&version-id=${versionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+        ) as string,
+        items: expect.arrayContaining(
+          [didDocuments[0]].map((method) => {
+            // Timestamp ID = sha256(canonicalizedDidDocumentHash)
+            const hash = ethers.utils.sha256(
+              method.canonicalizedDidDocumentHash
+            );
+            return {
+              timestampId: hash,
+              href: expect.stringContaining(
+                `/did-timestamps/${hash}`
+              ) as string,
+            } as TimestampLink;
+          })
+        ) as Array<string>,
+        total: 1,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+          prev: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+          next: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+          last: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+        },
+      });
+      expect((response.body as { items: string }).items).toHaveLength(1);
+      expect(response.status).toBe(200);
+    });
   });
 
   describe("GET /did-timestamps/{did}", () => {

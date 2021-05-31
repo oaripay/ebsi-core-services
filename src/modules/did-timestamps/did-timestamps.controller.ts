@@ -6,8 +6,7 @@ import {
   TimestampLink,
   DidTimestampResponseObject,
 } from "./did-timestamps.interface";
-import { GetTimestampParamsDto } from "./dto";
-import { PaginationQuery } from "../../shared/dto/pagination-query";
+import { GetTimestampParamsDto, GetTimestampsQueryDto } from "./dto";
 import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 
@@ -20,13 +19,13 @@ export class DidTimestampsController {
 
   @Get("")
   async getDidTimestamps(
-    @Query() query: PaginationQuery
+    @Query() query: GetTimestampsQueryDto
   ): Promise<PaginatedList<TimestampLink>> {
-    // TODO: implement https://ec.europa.eu/cefdigital/tracker/browse/EBSIINT-2933
-    // GET /did-timestamps?identifier={did}&version-id={version-id}
     const didTimestamps = await this.didTimestampsService.getDidTimestamps(
       query["page[after]"],
-      query["page[size]"]
+      query["page[size]"],
+      query.identifier,
+      query["version-id"]
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -37,7 +36,9 @@ export class DidTimestampsController {
       didTimestamps,
       query["page[after]"],
       query["page[size]"],
-      baseUrl
+      baseUrl,
+      query.identifier,
+      query["version-id"]
     );
   }
 

@@ -3,4 +3,4 @@ version: "3.7"
 services:
   did-registry-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api:test_ebsiint-2939-enable-jwt-auth_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api:test_ebsiint-2933-filter-did-timestamps_v2.0.0

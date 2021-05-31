@@ -1,5 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
+import {
+  BadRequestError,
+  NotFoundError,
+} from "@cef-ebsi/problem-details-errors";
 import { coerceCode, HashName } from "multihashes";
 import { DidTimestampResponseObject } from "./did-timestamps.interface";
 import { LedgerService } from "../ledger/ledger.service";
@@ -15,12 +18,47 @@ export class DidTimestampsService {
 
   async getDidTimestamps(
     page: number,
-    pageSize: number
-  ): ReturnType<DidRegistry["getDidTimestamps"]> {
-    return (await this.ledgerService.getContract()).getDidTimestamps(
-      page,
-      pageSize
-    );
+    pageSize: number,
+    identifier?: string,
+    versionId?: number
+  ): Promise<{
+    items: string[];
+    total: number;
+  }> {
+    // Throw an error if only 1 param (between identifier and versionId) is defined
+    if ((identifier && !versionId) || (!identifier && versionId)) {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail:
+          "Invalid parameters: make sure to define both 'identifier' and 'version-id'",
+      });
+    }
+
+    if (identifier && versionId) {
+      try {
+        const items = await (
+          await this.ledgerService.getContract()
+        ).getDidDocumentVersionDidTimestampIds(identifier, versionId);
+
+        return {
+          items,
+          total: items.length,
+        };
+      } catch {
+        return {
+          items: [],
+          total: 0,
+        };
+      }
+    }
+
+    const didTimestamps = await (
+      await this.ledgerService.getContract()
+    ).getDidTimestamps(page, pageSize);
+
+    return {
+      items: didTimestamps.items,
+      total: didTimestamps.total.toNumber(),
+    };
   }
 
   async getDidTimestamp(

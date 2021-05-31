@@ -1672,6 +1672,83 @@ describe("DID Registry (e2e)", () => {
       });
       expect(response4.status).toBe(400);
     });
+
+    it("should return an empty collection if the identifier and version ID don't match any record", async () => {
+      expect.assertions(2);
+
+      const identifier = "0x1234";
+      const versionId = 1;
+
+      const response = await request(server).get(
+        `/did-timestamps?identifier=${identifier}&version-id=${versionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+        ) as string,
+        items: [],
+        total: 0,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+          prev: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+          next: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+          last: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should return a paginated collection of DID timestamps filtered by identifier and version ID", async () => {
+      expect.assertions(2);
+
+      const identifier = `0x${Buffer.from(
+        updatedDidDocument.controllerDid
+      ).toString("hex")}`;
+      const versionId = 1;
+
+      const response = await request(server).get(
+        `/did-timestamps?identifier=${identifier}&version-id=${versionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+        ) as string,
+        items: expect.arrayContaining([
+          {
+            timestampId: expect.any(String) as string,
+            href: expect.stringContaining(`/did-timestamps/`) as string,
+          } as TimestampLink,
+        ]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+          prev: expect.stringContaining(
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          ) as string,
+          next: expect.stringContaining(
+            "/did-timestamps?page[after]="
+          ) as string,
+          last: expect.stringContaining(
+            "/did-timestamps?page[after]="
+          ) as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
   });
 
   describe("GET /did-timestamps/{did}", () => {

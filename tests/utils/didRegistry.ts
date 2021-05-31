@@ -2,8 +2,10 @@ import crypto from "crypto";
 import { ethers } from "ethers";
 import ganache from "ganache-core";
 import { range } from "rxjs";
-import { mergeMap, toArray } from "rxjs/operators";
 import canonicalize from "canonicalize";
+// ESLint error should be fixed with https://github.com/benmosher/eslint-plugin-import/pull/2097
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { mergeMap, toArray } from "rxjs/operators";
 import {
   DidRegistry,
   DidRegistry__factory,
