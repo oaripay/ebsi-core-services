@@ -13,6 +13,7 @@ export interface ApiConfig {
   authorisationApiUrl: string;
   contractAddr: string;
   domain: string;
+  localOrigin: string;
   logLevel: string;
   ledgerApiUrl: string;
   ledgerApiName: string;
@@ -85,6 +86,7 @@ export const loadConfig = (): ApiConfig => {
       defaultConfig[EBSI_ENV].AUTHORISATION_API_URL,
     contractAddr: process.env.CONTRACT_ADDR,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     ledgerApiUrl:
       process.env.LEDGER_API_URL || defaultConfig[EBSI_ENV].LEDGER_API_URL,
@@ -135,6 +137,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     // DID Registry specific variables
     DOMAIN: Joi.string().uri(),
+    LOCAL_ORIGIN: Joi.string().uri(),
     LEDGER_API_URL: Joi.string().uri(),
     LEDGER_API_NAME: Joi.string(),
     HEALTH_CHECK: Joi.string(),

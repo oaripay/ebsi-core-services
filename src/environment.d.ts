@@ -17,6 +17,7 @@ declare global {
       LEDGER_API_NAME?: string;
       CONTRACT_ADDR: string;
       DOMAIN?: string;
+      LOCAL_ORIGIN?: string;
       TRUSTED_APPS_REGISTRY_API_URL?: string;
       TEST_APP_NAME?: string;
       TEST_APP_KID?: string;

@@ -356,10 +356,10 @@
     did-jwt "^5.4.1"
     did-resolver "^3.1.0"
 
-"@cef-ebsi/oauth2-auth@^1.0.0-alpha.6":
-  version "1.0.0-alpha.6"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-1.0.0-alpha.6.tgz#e7f77beee78af377b085c0b1d8f2d394a1629948"
-  integrity sha512-DcEvgZFqK4SNvGBBs/u89g968HtTFoByf/qdrx7F9c/Ty3sxOw4NGQbhzDKgsci81m/SGNyD1GxSThzQfGyT2A==
+"@cef-ebsi/oauth2-auth@^1.0.0-alpha.7":
+  version "1.0.0-alpha.7"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-1.0.0-alpha.7.tgz#b8f8301aeb8e9cb2b43400333f4c8c0a4cb7bf55"
+  integrity sha512-WqeihcYQ5njHV5yvbrv/pwXazZkZigaUoeVD9/LVk+Wiz5gWPlhC3dRI4qlNO9Q8KthRfv04ptC4rfx8XJ7iXA==
   dependencies:
     "@cef-ebsi/did-jwt" "^1.0.0-alpha.5"
     axios "^0.21.0"
@@ -376,10 +376,10 @@
   resolved "https://registry.yarnpkg.com/@cef-ebsi/problem-details-errors/-/problem-details-errors-1.0.0-alpha.4.tgz#1348eceff2f2f1dadfa605dfc155b42a5813c0a1"
   integrity sha512-lwn8skb/e5sH3tdQO3lvczBgv22Z4YjWfZLgoFFLY+e21azl3LfSFxlO+0mesS47f5UpvwhUOa4v41x47nAXFA==
 
-"@cef-ebsi/siop-auth@^0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-0.5.0.tgz#faf305c8579431953f1ab46dc2a75b4d535981fd"
-  integrity sha512-UESPyC93nMw++Bt+RV8epg4qvsfzs+0PDVtHyZaFnb0sqq6RQvMsyvPdYHAzVZerkbKeszfMIdEpIcoOOvIHWA==
+"@cef-ebsi/siop-auth@^0.5.1":
+  version "0.5.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-0.5.1.tgz#d4036187ce4ab6aeeb1bf2f8125aa20398c57262"
+  integrity sha512-f1TCFJ34Fa20Yc0evrc7UuJD+TqCEYiIhv+gGMALGMt8y5OnOMLLFtSMrJV69gB1rxg7xnk5PFGH1yeaBeZiVg==
   dependencies:
     "@cef-ebsi/did-jwt" "^1.0.0-alpha.5"
     bs58 "^4.0.1"
@@ -8659,7 +8659,7 @@ lodash.merge@^4.6.2:
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.2.tgz#558aa53b43b661e1925a0afdfa36a9a1085fe57a"
   integrity sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==
 
-lodash.set@4.3.2:
+lodash.set@4.3.2, lodash.set@^4.3.2:
   version "4.3.2"
   resolved "https://registry.yarnpkg.com/lodash.set/-/lodash.set-4.3.2.tgz#d8757b1da807dde24816b0d6a84bea1a76230b23"
   integrity sha1-2HV7HagH3eJIFrDWqEvqGnYjCyM=
@@ -9304,6 +9304,16 @@ nice-try@^1.0.4:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
+
+nock@^13.0.11:
+  version "13.0.11"
+  resolved "https://registry.yarnpkg.com/nock/-/nock-13.0.11.tgz#ba733252e720897ca50033205c39db0c7470f331"
+  integrity sha512-sKZltNkkWblkqqPAsjYW0bm3s9DcHRPiMOyKO/PkfJ+ANHZ2+LA2PLe22r4lLrKgXaiSaDQwW3qGsJFtIpQIeQ==
+  dependencies:
+    debug "^4.1.0"
+    json-stringify-safe "^5.0.1"
+    lodash.set "^4.3.2"
+    propagate "^2.0.0"
 
 node-addon-api@^2.0.0:
   version "2.0.2"
@@ -10145,6 +10155,11 @@ prompts@^2.0.1:
   dependencies:
     kleur "^3.0.3"
     sisteransi "^1.0.5"
+
+propagate@^2.0.0:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/propagate/-/propagate-2.0.1.tgz#40cdedab18085c792334e64f0ac17256d38f9a45"
+  integrity sha512-vGrhOavPSTz4QVNuBNdcNXePNdNMaO1xj9yBeH1ScQPjk/rhg9sSlCXPhMkFuaNNW/syTvYqsnbIJxMBfRbbag==
 
 proxy-addr@~2.0.5:
   version "2.0.6"
