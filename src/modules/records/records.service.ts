@@ -129,9 +129,9 @@ export default class RecordsService {
     let record: AsyncReturnType<Timestamp["getRecord"]>;
     const recordId = multibase64Decode(recordIdEncoded);
     try {
-      record = await (await this.ledgerService.getContract()).getRecord(
-        recordId
-      );
+      record = await (
+        await this.ledgerService.getContract()
+      ).getRecord(recordId);
     } catch (error) {
       throw new NotFoundError("Record Not Found", {
         detail: `Record ${recordIdEncoded} not found`,
@@ -140,16 +140,15 @@ export default class RecordsService {
 
     const { ownerIds, revokedOwnerIds, totalVersions } = record;
 
-    const {
-      hashValues: firstVersionTimestamps,
-    } = await this.getAllPages("getRecordVersion", [recordId, 0]);
+    const { hashValues: firstVersionTimestamps } = await this.getAllPages(
+      "getRecordVersion",
+      [recordId, 0]
+    );
 
-    const {
-      hashValues: lastVersionTimestamps,
-    } = await this.getAllPages("getRecordVersion", [
-      recordId,
-      totalVersions.toNumber() - 1,
-    ]);
+    const { hashValues: lastVersionTimestamps } = await this.getAllPages(
+      "getRecordVersion",
+      [recordId, totalVersions.toNumber() - 1]
+    );
 
     return {
       ownerIds,
@@ -164,9 +163,9 @@ export default class RecordsService {
     let record: AsyncReturnType<Timestamp["getRecord"]>;
     const recordId = multibase64Decode(recordIdEncoded);
     try {
-      record = await (await this.ledgerService.getContract()).getRecord(
-        recordId
-      );
+      record = await (
+        await this.ledgerService.getContract()
+      ).getRecord(recordId);
     } catch (error) {
       throw new NotFoundError("Record Not Found", {
         detail: `Record ${recordIdEncoded} not found`,

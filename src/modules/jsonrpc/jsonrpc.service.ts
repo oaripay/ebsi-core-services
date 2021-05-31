@@ -195,70 +195,70 @@ export class JsonRpcService {
       case "insertHashAlgorithm": {
         await validateClass(
           ArgsInsertHashAlgorithm,
-          (args as unknown) as ArgsInsertHashAlgorithm
+          args as unknown as ArgsInsertHashAlgorithm
         );
         break;
       }
       case "updateHashAlgorithm": {
         await validateClass(
           ArgsUpdateHashAlgorithm,
-          (args as unknown) as ArgsUpdateHashAlgorithm
+          args as unknown as ArgsUpdateHashAlgorithm
         );
         break;
       }
       case "timestampHashes": {
         await validateClass(
           ArgsTimestampHashes,
-          (args as unknown) as ArgsTimestampHashes
+          args as unknown as ArgsTimestampHashes
         );
         break;
       }
       case "timestampRecordHashes": {
         await validateClass(
           ArgsTimestampRecordHashes,
-          (args as unknown) as ArgsTimestampRecordHashes
+          args as unknown as ArgsTimestampRecordHashes
         );
         break;
       }
       case "timestampRecordVersionHashes": {
         await validateClass(
           ArgsTimestampRecordVersionHashes,
-          (args as unknown) as ArgsTimestampRecordVersionHashes
+          args as unknown as ArgsTimestampRecordVersionHashes
         );
         break;
       }
       case "appendRecordVersionHashes": {
         await validateClass(
           ArgsAppendRecordVersionHashes,
-          (args as unknown) as ArgsAppendRecordVersionHashes
+          args as unknown as ArgsAppendRecordVersionHashes
         );
         break;
       }
       case "insertRecordOwner": {
         await validateClass(
           ArgsInsertRecordOwner,
-          (args as unknown) as ArgsInsertRecordOwner
+          args as unknown as ArgsInsertRecordOwner
         );
         break;
       }
       case "revokeRecordOwner": {
         await validateClass(
           ArgsRevokeRecordOwner,
-          (args as unknown) as ArgsRevokeRecordOwner
+          args as unknown as ArgsRevokeRecordOwner
         );
         break;
       }
       case "insertRecordVersionInfo": {
         await validateClass(
           ArgsInsertRecordVersionInfo,
-          (args as unknown) as ArgsInsertRecordVersionInfo
+          args as unknown as ArgsInsertRecordVersionInfo
         );
         break;
       }
       case "detachRecordVersionHash": {
         await validateClass(
           ArgsDetachRecordVersionHash,
-          (args as unknown) as ArgsDetachRecordVersionHash
+          args as unknown as ArgsDetachRecordVersionHash
         );
         break;
       }
@@ -347,14 +347,8 @@ export class JsonRpcService {
     try {
       await validateClass(RequestUpdateHashAlgorithmDto, body);
 
-      const {
-        from,
-        hashAlgorithmId,
-        outputLength,
-        ianaName,
-        oid,
-        status,
-      } = body.params[0];
+      const { from, hashAlgorithmId, outputLength, ianaName, oid, status } =
+        body.params[0];
 
       const data = (
         await this.ledgerService.getContract()
@@ -381,12 +375,8 @@ export class JsonRpcService {
     try {
       await validateClass(RequestTimestampHashesDto, body);
 
-      const {
-        from,
-        hashAlgorithmIds,
-        hashValues,
-        timestampData,
-      } = body.params[0];
+      const { from, hashAlgorithmIds, hashValues, timestampData } =
+        body.params[0];
 
       const data = (
         await this.ledgerService.getContract()
@@ -504,13 +494,8 @@ export class JsonRpcService {
     try {
       await validateClass(RequestTimestampRecordHashesDto, body);
 
-      const {
-        from,
-        hashAlgorithmIds,
-        hashValues,
-        timestampData,
-        versionInfo,
-      } = body.params[0];
+      const { from, hashAlgorithmIds, hashValues, timestampData, versionInfo } =
+        body.params[0];
 
       const data = (
         await this.ledgerService.getContract()

@@ -265,9 +265,11 @@ describe("Records Module", () => {
 
       const respRecords = await request(server).get("/records");
 
-      const { recordId } = (respRecords.body as {
-        items: RecordLink[];
-      }).items[0];
+      const { recordId } = (
+        respRecords.body as {
+          items: RecordLink[];
+        }
+      ).items[0];
 
       const response = await request(server).get(`/records/${recordId}`);
 
@@ -318,9 +320,11 @@ describe("Records Module", () => {
   describe("GET /records/{recordId}/versions", () => {
     const getFirstRecordId = async () => {
       const respRecords = await request(server).get("/records");
-      const { recordId } = (respRecords.body as {
-        items: RecordLink[];
-      }).items[0];
+      const { recordId } = (
+        respRecords.body as {
+          items: RecordLink[];
+        }
+      ).items[0];
       return recordId;
     };
 
@@ -483,9 +487,11 @@ describe("Records Module", () => {
   describe("GET /records/{recordId}/versions/{versionId}", () => {
     const getFirstRecordId = async () => {
       const respRecords = await request(server).get("/records");
-      const { recordId } = (respRecords.body as {
-        items: RecordLink[];
-      }).items[0];
+      const { recordId } = (
+        respRecords.body as {
+          items: RecordLink[];
+        }
+      ).items[0];
       return recordId;
     };
 

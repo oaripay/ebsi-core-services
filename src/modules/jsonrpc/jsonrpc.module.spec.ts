@@ -131,42 +131,40 @@ describe("JsonRpc Module", () => {
       throw new Error("Forgot to mock an axios call?");
     });
 
-    jest.spyOn(axios, "get").mockImplementation(
-      (url): Promise<unknown> => {
-        // accessing administrators in TAR
-        if (url.includes("/administrators")) {
-          if (!url.includes(testAdmin.did)) {
-            throw axiosError(404, "Not found");
-          }
-          return Promise.resolve(true);
+    jest.spyOn(axios, "get").mockImplementation((url): Promise<unknown> => {
+      // accessing administrators in TAR
+      if (url.includes("/administrators")) {
+        if (!url.includes(testAdmin.did)) {
+          throw axiosError(404, "Not found");
         }
-
-        // accessing did registry
-        if (url.includes("/identifiers?controller")) {
-          if (url.includes(testAdmin.wallet.address.toLowerCase()))
-            return Promise.resolve({
-              data: { items: [{ did: testAdmin.did }] },
-            });
-          if (url.includes(testUser.wallet.address.toLowerCase()))
-            return Promise.resolve({
-              data: { items: [{ did: testUser.did }] },
-            });
-          return Promise.resolve({ data: { items: [] } });
-        }
-
-        throw new Error("Forgot to mock an axios call?");
+        return Promise.resolve(true);
       }
-    );
 
-    jest.spyOn(SiopSession.prototype, "verifyAccessToken").mockImplementation(
-      (token: string): Promise<JWTPayload> => {
+      // accessing did registry
+      if (url.includes("/identifiers?controller")) {
+        if (url.includes(testAdmin.wallet.address.toLowerCase()))
+          return Promise.resolve({
+            data: { items: [{ did: testAdmin.did }] },
+          });
+        if (url.includes(testUser.wallet.address.toLowerCase()))
+          return Promise.resolve({
+            data: { items: [{ did: testUser.did }] },
+          });
+        return Promise.resolve({ data: { items: [] } });
+      }
+
+      throw new Error("Forgot to mock an axios call?");
+    });
+
+    jest
+      .spyOn(SiopSession.prototype, "verifyAccessToken")
+      .mockImplementation((token: string): Promise<JWTPayload> => {
         if (token === testAdmin.token)
           return Promise.resolve({ sub: testAdmin.did });
         if (token === testUser.token)
           return Promise.resolve({ sub: testUser.did });
         throw new Error("verifyAccessToken failed");
-      }
-    );
+      });
 
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
@@ -961,13 +959,13 @@ describe("JsonRpc Module", () => {
           expectedErrorMessage2 =
             "property params[0].status has failed the following constraints: max";
 
-          param3 = ({
+          param3 = {
             from: testAdmin.wallet.address,
             outputLength: 256,
             ianaName: "sha-256",
             oid: 1,
             status: 1,
-          } as unknown) as InsertHashAlgorithmParam;
+          } as unknown as InsertHashAlgorithmParam;
 
           expectedErrorMessage3 =
             "property params[0].oid has failed the following constraints: isString";
@@ -1012,7 +1010,7 @@ describe("JsonRpc Module", () => {
           break;
         }
         case "timestampHashes": {
-          param1 = ({
+          param1 = {
             from: testAdmin.wallet.address,
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -1022,12 +1020,12 @@ describe("JsonRpc Module", () => {
                 "hex"
               )}`,
             ],
-          } as unknown) as TimestampHashesParam;
+          } as unknown as TimestampHashesParam;
 
           expectedErrorMessage1 =
             "property params[0].hashAlgorithmIds has failed the following constraints: min, isInt";
 
-          param2 = ({
+          param2 = {
             from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             timestampData: [
@@ -1035,26 +1033,26 @@ describe("JsonRpc Module", () => {
                 "hex"
               )}`,
             ],
-          } as unknown) as TimestampHashesParam;
+          } as unknown as TimestampHashesParam;
 
           expectedErrorMessage2 =
             "property params[0].hashValues has failed the following constraints: isHexadecimal";
 
-          param3 = ({
+          param3 = {
             from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ],
             timestampData: [`this is not hex`],
-          } as unknown) as TimestampHashesParam;
+          } as unknown as TimestampHashesParam;
 
           expectedErrorMessage3 =
             "property params[0].timestampData has failed the following constraints: isHexadecimal";
           break;
         }
         case "timestampRecordHashes": {
-          param1 = ({
+          param1 = {
             from: testAdmin.wallet.address,
             hashValues: [
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -1068,12 +1066,12 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 52 }),
               "utf8"
             ).toString("hex")}`,
-          } as unknown) as TimestampRecordHashesParam;
+          } as unknown as TimestampRecordHashesParam;
 
           expectedErrorMessage1 =
             "property params[0].hashAlgorithmIds has failed the following constraints: min, isInt";
 
-          param2 = ({
+          param2 = {
             from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             timestampData: [
@@ -1085,12 +1083,12 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 425 }),
               "utf8"
             ).toString("hex")}`,
-          } as unknown) as TimestampRecordHashesParam;
+          } as unknown as TimestampRecordHashesParam;
 
           expectedErrorMessage2 =
             "property params[0].hashValues has failed the following constraints: isHexadecimal";
 
-          param3 = ({
+          param3 = {
             from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             hashValues: [
@@ -1101,47 +1099,47 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 82 }),
               "utf8"
             ).toString("hex")}`,
-          } as unknown) as TimestampRecordHashesParam;
+          } as unknown as TimestampRecordHashesParam;
 
           expectedErrorMessage3 =
             "property params[0].timestampData has failed the following constraints: isHexadecimal";
           break;
         }
         case "detachRecordVersionHash": {
-          param1 = ({
+          param1 = {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             versionId:
               "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
             hashValue: "0x1234567890",
-          } as unknown) as DetachRecordVersionHashParam;
+          } as unknown as DetachRecordVersionHashParam;
 
           expectedErrorMessage1 =
             "property params[0].versionId has failed the following constraints: min, isInt";
 
-          param2 = ({
+          param2 = {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             versionId: 0,
-          } as unknown) as DetachRecordVersionHashParam;
+          } as unknown as DetachRecordVersionHashParam;
 
           expectedErrorMessage2 =
             "property params[0].hashValue has failed the following constraints: isHexadecimal";
 
-          param3 = ({
+          param3 = {
             from: testAdmin.wallet.address,
             versionId: 12,
             hashValue: "0x1234567890",
-          } as unknown) as DetachRecordVersionHashParam;
+          } as unknown as DetachRecordVersionHashParam;
 
           expectedErrorMessage3 =
             "property params[0].recordId has failed the following constraints: isHexadecimal";
           break;
         }
         case "timestampRecordVersionHashes": {
-          param1 = ({
+          param1 = {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -1157,12 +1155,12 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 482 }),
               "utf8"
             ).toString("hex")}`,
-          } as unknown) as TimestampRecordVersionHashesParam;
+          } as unknown as TimestampRecordVersionHashesParam;
 
           expectedErrorMessage1 =
             "property params[0].hashAlgorithmIds has failed the following constraints: min, isInt";
 
-          param2 = ({
+          param2 = {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -1176,12 +1174,12 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ infotest: 42 }),
               "utf8"
             ).toString("hex")}`,
-          } as unknown) as TimestampRecordVersionHashesParam;
+          } as unknown as TimestampRecordVersionHashesParam;
 
           expectedErrorMessage2 =
             "property params[0].hashValues has failed the following constraints: isHexadecimal";
 
-          param3 = ({
+          param3 = {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -1194,14 +1192,14 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 842 }),
               "utf8"
             ).toString("hex")}`,
-          } as unknown) as TimestampRecordVersionHashesParam;
+          } as unknown as TimestampRecordVersionHashesParam;
 
           expectedErrorMessage3 =
             "property params[0].timestampData has failed the following constraints: isHexadecimal";
           break;
         }
         case "appendRecordVersionHashes": {
-          param1 = ({
+          param1 = {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
@@ -1218,12 +1216,12 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 842 }),
               "utf8"
             ).toString("hex")}`,
-          } as unknown) as AppendRecordVersionHashesParam;
+          } as unknown as AppendRecordVersionHashesParam;
 
           expectedErrorMessage1 =
             "property params[0].versionId has failed the following constraints: min, isInt";
 
-          param2 = ({
+          param2 = {
             from: testAdmin.wallet.address,
             versionId: 12,
             recordId:
@@ -1238,12 +1236,12 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 492 }),
               "utf8"
             ).toString("hex")}`,
-          } as unknown) as AppendRecordVersionHashesParam;
+          } as unknown as AppendRecordVersionHashesParam;
 
           expectedErrorMessage2 =
             "property params[0].hashValues has failed the following constraints: isHexadecimal";
 
-          param3 = ({
+          param3 = {
             from: testAdmin.wallet.address,
             versionId: 0,
             recordId:
@@ -1257,72 +1255,72 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 42 }),
               "utf8"
             ).toString("hex")}`,
-          } as unknown) as AppendRecordVersionHashesParam;
+          } as unknown as AppendRecordVersionHashesParam;
 
           expectedErrorMessage3 =
             "property params[0].timestampData has failed the following constraints: isHexadecimal";
           break;
         }
         case "insertRecordOwner": {
-          param1 = ({
+          param1 = {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ownerId: 0,
             notBefore: 1,
             notAfter: 12,
-          } as unknown) as InsertRecordOwnerParam;
+          } as unknown as InsertRecordOwnerParam;
 
           expectedErrorMessage1 =
             "property params[0].ownerId has failed the following constraints: isString";
 
-          param2 = ({
+          param2 = {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ownerId: "owner",
             notBefore: "1",
             notAfter: 12,
-          } as unknown) as InsertRecordOwnerParam;
+          } as unknown as InsertRecordOwnerParam;
 
           expectedErrorMessage2 =
             "property params[0].notBefore has failed the following constraints: min, isInt";
 
-          param3 = ({
+          param3 = {
             from: testAdmin.wallet.address,
             ownerId: "owner",
             notBefore: 1,
             notAfter: 12,
-          } as unknown) as InsertRecordOwnerParam;
+          } as unknown as InsertRecordOwnerParam;
 
           expectedErrorMessage3 =
             "property params[0].recordId has failed the following constraints: isHexadecimal";
           break;
         }
         case "revokeRecordOwner": {
-          param1 = ({
+          param1 = {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ownerId: 0,
-          } as unknown) as RevokeRecordOwnerParam;
+          } as unknown as RevokeRecordOwnerParam;
 
           expectedErrorMessage1 =
             "property params[0].ownerId has failed the following constraints: isString";
 
-          param2 = ({
+          param2 = {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
-          } as unknown) as RevokeRecordOwnerParam;
+          } as unknown as RevokeRecordOwnerParam;
 
           expectedErrorMessage2 =
             "property params[0].ownerId has failed the following constraints: isString";
 
-          param3 = ({
+          param3 = {
             from: testAdmin.wallet.address,
             ownerId: "owner",
-          } as unknown) as RevokeRecordOwnerParam;
+          } as unknown as RevokeRecordOwnerParam;
 
           expectedErrorMessage3 =
             "property params[0].recordId has failed the following constraints: isHexadecimal";

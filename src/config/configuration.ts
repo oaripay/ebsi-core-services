@@ -15,9 +15,9 @@ export interface ApiConfig {
   ledgerApiUrl: string;
   trustedAppsRegistryApiUrl: string;
   didRegistryApiUrl: string;
-  authExpireTime: number;
   contractAddr: string;
   domain: string;
+  localOrigin: string;
   logLevel: string;
   externalEbsiApiHealthCheck: string;
   testAdmin: {
@@ -81,7 +81,6 @@ export const loadConfig = (): ApiConfig => {
   const { EBSI_ENV } = process.env;
 
   return {
-    authExpireTime: parseInt(process.env.AUTH_EXPIRE_TIME, 10) || 60, // minutes
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/timestamp/v2",
@@ -104,6 +103,7 @@ export const loadConfig = (): ApiConfig => {
       defaultConfig[EBSI_ENV].DID_REGISTRY_API_URL,
     contractAddr: process.env.CONTRACT_ADDR,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
@@ -147,6 +147,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     // Timestamp specific variables
     DOMAIN: Joi.string().uri(),
+    LOCAL_ORIGIN: Joi.string().uri(),
     AUTHORISATION_API_NAME: Joi.string(),
     AUTHORISATION_API_DID: Joi.string().required(),
     AUTHORISATION_API_URL: Joi.string().uri(),

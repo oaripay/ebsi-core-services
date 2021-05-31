@@ -19,6 +19,7 @@ declare global {
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       CONTRACT_ADDR: string;
       DOMAIN?: string;
+      LOCAL_ORIGIN?: string;
       HEALTH_CHECK?: string;
       TEST_ADMIN_DID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;

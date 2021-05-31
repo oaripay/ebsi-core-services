@@ -45,12 +45,12 @@ export default class TimestampsService {
 
     // Parallelize SC calls
     const [hashAlgorithm, block] = await Promise.all([
-      (await this.ledgerService.getContract()).getHashAlgorithmById(
-        hash.algorithm.toNumber()
-      ),
-      (await this.ledgerService.getContract()).provider.getBlock(
-        blockNumber.toNumber()
-      ),
+      (
+        await this.ledgerService.getContract()
+      ).getHashAlgorithmById(hash.algorithm.toNumber()),
+      (
+        await this.ledgerService.getContract()
+      ).provider.getBlock(blockNumber.toNumber()),
     ]);
 
     // check if ianaName is valid, otherwise fallback to "sha2-256" as a temporary fix

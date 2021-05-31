@@ -72,19 +72,20 @@ describe("HashAlgorithms (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
-      ConfigService
-    );
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
-    const configAdmin = configService.get<{
-      did: string;
-      privateKey: string;
-    }>("testAdmin");
-    const configUser = configService.get<{
-      did: string;
-      privateKey: string;
-    }>("testUser");
+    const configAdmin =
+      configService.get<{
+        did: string;
+        privateKey: string;
+      }>("testAdmin");
+    const configUser =
+      configService.get<{
+        did: string;
+        privateKey: string;
+      }>("testUser");
     testAdmin = {
       ...configAdmin,
       wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
@@ -134,9 +135,11 @@ describe("HashAlgorithms (e2e)", () => {
       expect.assertions(2);
 
       const respHashAlgorithms = await request(server).get("/hash-algorithms");
-      const { hashAlgorithmId } = (respHashAlgorithms.body as {
-        items: HashAlgorithmLink[];
-      }).items[0];
+      const { hashAlgorithmId } = (
+        respHashAlgorithms.body as {
+          items: HashAlgorithmLink[];
+        }
+      ).items[0];
 
       const response = await request(server).get(
         `/hash-algorithms/${hashAlgorithmId}`

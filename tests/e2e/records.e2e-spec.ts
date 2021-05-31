@@ -91,19 +91,20 @@ describe("Records (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
-      ConfigService
-    );
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
-    const configAdmin = configService.get<{
-      did: string;
-      privateKey: string;
-    }>("testAdmin");
-    const configUser = configService.get<{
-      did: string;
-      privateKey: string;
-    }>("testUser");
+    const configAdmin =
+      configService.get<{
+        did: string;
+        privateKey: string;
+      }>("testAdmin");
+    const configUser =
+      configService.get<{
+        did: string;
+        privateKey: string;
+      }>("testUser");
     testAdmin = {
       ...configAdmin,
       wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
@@ -149,9 +150,11 @@ describe("Records (e2e)", () => {
       expect.assertions(2);
 
       const respRecords = await request(server).get("/records");
-      const { recordId } = (respRecords.body as {
-        items: RecordLink[];
-      }).items[0];
+      const { recordId } = (
+        respRecords.body as {
+          items: RecordLink[];
+        }
+      ).items[0];
       const response = await request(server).get(`/records/${recordId}`);
 
       expect(response.body).toStrictEqual({
@@ -186,9 +189,11 @@ describe("Records (e2e)", () => {
   describe("GET /records/{recordId}/versions", () => {
     const getFirstRecordId = async () => {
       const respRecords = await request(server).get("/records");
-      const { recordId } = (respRecords.body as {
-        items: RecordLink[];
-      }).items[0];
+      const { recordId } = (
+        respRecords.body as {
+          items: RecordLink[];
+        }
+      ).items[0];
       return recordId;
     };
 
@@ -229,9 +234,11 @@ describe("Records (e2e)", () => {
   describe("GET /records/{recordId}/versions/{versionId}", () => {
     const getFirstRecordId = async () => {
       const respRecords = await request(server).get("/records");
-      const { recordId } = (respRecords.body as {
-        items: RecordLink[];
-      }).items[0];
+      const { recordId } = (
+        respRecords.body as {
+          items: RecordLink[];
+        }
+      ).items[0];
       return recordId;
     };
 

@@ -299,9 +299,11 @@ describe("Timestamps Module", () => {
 
       const respTimestamps = await request(server).get("/timestamps");
 
-      const { timestampId } = (respTimestamps.body as {
-        items: TimestampLink[];
-      }).items[0];
+      const { timestampId } = (
+        respTimestamps.body as {
+          items: TimestampLink[];
+        }
+      ).items[0];
 
       const response = await request(server).get(`/timestamps/${timestampId}`);
 
