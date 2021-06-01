@@ -9,7 +9,6 @@ export interface ApiConfig {
   apiUrlPrefix: string;
   apiDid: string;
   apiTarId: string;
-  authExpireTime: number;
   onboardingApiDid: string;
   onboardingApiPrivateKey: string; // for tests
   trustedAppsRegistry: string;
@@ -17,6 +16,7 @@ export interface ApiConfig {
   didRegistry: string;
   authorisationCredentialSchema: string;
   domain: string;
+  localOrigin: string;
   logLevel: string;
   externalEbsiApiHealthCheck: string;
   testAppName: string;
@@ -77,7 +77,6 @@ export const loadConfig = (): ApiConfig => {
   const { EBSI_ENV } = process.env;
 
   return {
-    authExpireTime: parseInt(process.env.AUTH_EXPIRE_TIME, 10) || 900, // seconds
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiName: process.env.API_NAME || "authorisation-api",
@@ -97,6 +96,7 @@ export const loadConfig = (): ApiConfig => {
     authorisationCredentialSchema: process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    localOrigin: process.env.LOCAL_ORIGIN || "",
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
     testAppName: process.env.TEST_APP_NAME || "",
@@ -138,6 +138,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     // Authorisation specific variables
     DOMAIN: Joi.string().uri(),
+    LOCAL_ORIGIN: Joi.string().uri(),
     ONBOARDING_API_DID: Joi.string().required(),
     ONBOARDING_API_PRIVATE_KEY: Joi.string(),
     TRUSTED_APPS_REGISTRY: Joi.string().uri(),
