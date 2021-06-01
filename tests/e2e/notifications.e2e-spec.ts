@@ -93,18 +93,19 @@ describe("Notifications module (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
-      ConfigService
-    );
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
-    testUser1 = configService.get<{
-      did: string;
-      privateKey: string;
-    }>("testUser1");
-    testUser2 = configService.get<{
-      did: string;
-      privateKey: string;
-    }>("testUser2");
+    testUser1 =
+      configService.get<{
+        did: string;
+        privateKey: string;
+      }>("testUser1");
+    testUser2 =
+      configService.get<{
+        did: string;
+        privateKey: string;
+      }>("testUser2");
     testUser1.token = await siopAuthentication(testUser1);
     testUser2.token = await siopAuthentication(testUser2);
 

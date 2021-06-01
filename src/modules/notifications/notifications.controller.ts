@@ -57,12 +57,8 @@ export class NotificationsController {
         detail: `DID Mismatch: The did of the Bearer token (${user.did}) must be equal to the did in the from field (${createNotificationDto.from})`,
       });
 
-    const {
-      notification,
-      id,
-    } = await this.notificationsService.insertNotification(
-      createNotificationDto
-    );
+    const { notification, id } =
+      await this.notificationsService.insertNotification(createNotificationDto);
 
     const location = `${this.baseUrl}/${id}`;
 

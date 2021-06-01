@@ -11,6 +11,7 @@ import { AllExceptionsFilter } from "./filters/http-exception.filter";
 import { createLogger, consoleTransport } from "./logger/logger";
 import { ApiConfig } from "./config/configuration";
 import { EbsiValidationPipe } from "./pipes/ebsi-validation.pipe";
+import { setupInterceptors } from "./axiosInterceptors";
 
 declare const module: {
   hot: {
@@ -33,9 +34,10 @@ async function bootstrap(): Promise<void> {
 
   const configService = app.get<ConfigService<ApiConfig>>(ConfigService);
   const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
-  const domain = configService.get<string>("domain");
   const port = configService.get<number>("apiPort");
   const logLevel = configService.get<string>("logLevel");
+  const domain = configService.get<string>("domain");
+  const localOrigin = configService.get<string>("localOrigin");
 
   // Set logger level
   if (logLevel === "silent") {
@@ -70,6 +72,9 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(new EbsiValidationPipe());
+
+  // Setup axios interceptors
+  setupInterceptors(domain, localOrigin);
 
   // Notes:
   // - see https://github.com/nestjs/nest/issues/3209

@@ -113,14 +113,14 @@ describe("Notifications module", () => {
       });
     });
 
-    jest.spyOn(SiopSession.prototype, "verifyAccessToken").mockImplementation(
-      (token: string): Promise<JWTPayload> => {
+    jest
+      .spyOn(SiopSession.prototype, "verifyAccessToken")
+      .mockImplementation((token: string): Promise<JWTPayload> => {
         if (token === sender.token) return Promise.resolve({ sub: sender.did });
         if (token === receiver.token)
           return Promise.resolve({ sub: receiver.did });
         throw new Error("verifyAccessToken failed");
-      }
-    );
+      });
 
     jest
       .spyOn(Agent.prototype, "verifyAuthenticationResponse")
@@ -229,9 +229,9 @@ describe("Notifications module", () => {
 
       // Invalid proof: bad nested properties
       notification = createNotification(sender.did, receiver.did);
-      notification.proof = ({
+      notification.proof = {
         fake: "no proof here",
-      } as unknown) as Notification["proof"];
+      } as unknown as Notification["proof"];
 
       response = await request(server)
         .post("/notifications")
@@ -273,7 +273,8 @@ describe("Notifications module", () => {
 
       // Invalid proof: not object
       notification = createNotification(sender.did, receiver.did);
-      notification.proof = ("not object but string" as unknown) as Notification["proof"];
+      notification.proof =
+        "not object but string" as unknown as Notification["proof"];
 
       response = await request(server)
         .post("/notifications")
@@ -297,7 +298,7 @@ describe("Notifications module", () => {
 
       // Invalid proof: null
       notification = createNotification(sender.did, receiver.did);
-      notification.proof = (null as unknown) as Notification["proof"];
+      notification.proof = null as unknown as Notification["proof"];
 
       response = await request(server)
         .post("/notifications")

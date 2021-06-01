@@ -18,6 +18,7 @@ declare global {
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       ENCRYPTION_SECRET: string;
       DOMAIN?: string;
+      LOCAL_ORIGIN?: string;
       HEALTH_CHECK?: string;
       TEST_USER_DID_1?: string;
       TEST_USER_PRIVATE_KEY_1?: string;
