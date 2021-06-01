@@ -16,6 +16,7 @@ export interface ApiConfig {
   storageApiUrl: string;
   didRegistryApiUrl: string;
   domain: string;
+  localOrigin: string;
   logLevel: string;
   externalEbsiApiHealthCheck: string;
   testUser1: {
@@ -90,6 +91,7 @@ export const loadConfig = (): ApiConfig => {
       process.env.DID_REGISTRY_API_URL ||
       defaultConfig[EBSI_ENV].DID_REGISTRY_API_URL,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
@@ -134,6 +136,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Proxy data hub specific variables
     ENCRYPTION_SECRET: Joi.string().required(),
     DOMAIN: Joi.string().uri(),
+    LOCAL_ORIGIN: Joi.string().uri(),
     AUTHORISATION_API_NAME: Joi.string(),
     AUTHORISATION_API_DID: Joi.string().required(),
     AUTHORISATION_API_URL: Joi.string().uri(),

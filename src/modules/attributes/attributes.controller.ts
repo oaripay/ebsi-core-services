@@ -82,14 +82,12 @@ export default class AttributesController {
     const currentPage = query["page[after]"];
     const pageSize = query["page[size]"];
 
-    const {
-      attributes,
-      pageAfter: nextPage,
-    } = await this.attributesService.getAttributes(
-      user.did,
-      currentPage,
-      pageSize
-    );
+    const { attributes, pageAfter: nextPage } =
+      await this.attributesService.getAttributes(
+        user.did,
+        currentPage,
+        pageSize
+      );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");

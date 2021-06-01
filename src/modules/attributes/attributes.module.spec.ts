@@ -122,13 +122,13 @@ describe("Attributes Module", () => {
     encryptionSecret = configService.get("encryptionSecret");
     apiUrl = `${domain}${apiUrlPrefix}`;
 
-    jest.spyOn(SiopSession.prototype, "verifyAccessToken").mockImplementation(
-      (token: string): Promise<JWTPayload> => {
+    jest
+      .spyOn(SiopSession.prototype, "verifyAccessToken")
+      .mockImplementation((token: string): Promise<JWTPayload> => {
         if (token === testUser.token)
           return Promise.resolve({ sub: testUser.did });
         throw new Error("verifyAccessToken failed");
-      }
-    );
+      });
 
     jest
       .spyOn(Agent.prototype, "verifyAuthenticationResponse")

@@ -108,18 +108,19 @@ describe("Attributes", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    const configService = moduleFixture.get<ConfigService<ApiConfig>>(
-      ConfigService
-    );
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
-    testUser1 = configService.get<{
-      did: string;
-      privateKey: string;
-    }>("testUser1");
-    testUser2 = configService.get<{
-      did: string;
-      privateKey: string;
-    }>("testUser2");
+    testUser1 =
+      configService.get<{
+        did: string;
+        privateKey: string;
+      }>("testUser1");
+    testUser2 =
+      configService.get<{
+        did: string;
+        privateKey: string;
+      }>("testUser2");
     testUser1.token = await siopAuthentication(testUser1);
     testUser2.token = await siopAuthentication(testUser2);
   });
@@ -161,10 +162,9 @@ describe("Attributes", () => {
         (response.body as { items: AttributeResponseObject[] }).items
       ).toHaveLength(2);
 
-      path = (response.body as PaginatedList<AttributeResponseObject>).links.next.replace(
-        apiUrl,
-        ""
-      );
+      path = (
+        response.body as PaginatedList<AttributeResponseObject>
+      ).links.next.replace(apiUrl, "");
 
       // Second page
       response = await request(server)
@@ -193,10 +193,9 @@ describe("Attributes", () => {
         (response.body as { items: AttributeResponseObject[] }).items
       ).toHaveLength(1);
 
-      path = (response.body as PaginatedList<AttributeResponseObject>).links.next.replace(
-        apiUrl,
-        ""
-      );
+      path = (
+        response.body as PaginatedList<AttributeResponseObject>
+      ).links.next.replace(apiUrl, "");
 
       // Third page: Shared attributes
       response = await request(server)
@@ -239,9 +238,11 @@ describe("Attributes", () => {
     it("should return forbidden", async () => {
       expect.assertions(2);
 
-      const attribute = ((await insertAttribute()) as {
-        body: AttributeResponseObject;
-      }).body;
+      const attribute = (
+        (await insertAttribute()) as {
+          body: AttributeResponseObject;
+        }
+      ).body;
 
       const response = await request(server)
         .get(`/attributes/${attribute.hash}`)
@@ -258,9 +259,11 @@ describe("Attributes", () => {
     it("should get a specific attribute associated to the did", async () => {
       expect.assertions(2);
 
-      const expectedAttribute = ((await insertAttribute()) as {
-        body: AttributeResponseObject;
-      }).body;
+      const expectedAttribute = (
+        (await insertAttribute()) as {
+          body: AttributeResponseObject;
+        }
+      ).body;
 
       const response = await request(server)
         .get(`/attributes/${expectedAttribute.hash}`)
@@ -278,9 +281,11 @@ describe("Attributes", () => {
       expect.assertions(4);
 
       // shared with everyone without authentication
-      let expectedAttribute = ((await insertAttribute("shared")) as {
-        body: AttributeResponseObject;
-      }).body;
+      let expectedAttribute = (
+        (await insertAttribute("shared")) as {
+          body: AttributeResponseObject;
+        }
+      ).body;
 
       let response = await request(server)
         .get(`/attributes/${expectedAttribute.hash}`)
@@ -293,9 +298,11 @@ describe("Attributes", () => {
       expect(response.status).toBe(200);
 
       // shared with the user
-      expectedAttribute = ((await insertAttribute("shared", true)) as {
-        body: AttributeResponseObject;
-      }).body;
+      expectedAttribute = (
+        (await insertAttribute("shared", true)) as {
+          body: AttributeResponseObject;
+        }
+      ).body;
 
       response = await request(server)
         .get(`/attributes/${expectedAttribute.hash}`)
@@ -362,9 +369,11 @@ describe("Attributes", () => {
       });
       expect(response.status).toBe(400);
 
-      const { data } = ((await insertAttribute()) as {
-        body: AttributeResponseObject;
-      }).body;
+      const { data } = (
+        (await insertAttribute()) as {
+          body: AttributeResponseObject;
+        }
+      ).body;
       const attribute2 = createAttribute();
       attribute2.data = data;
       response = await request(server)
@@ -421,9 +430,11 @@ describe("Attributes", () => {
     it("should delete an attribute", async () => {
       expect.assertions(2);
 
-      const { hash } = ((await insertAttribute()) as {
-        body: AttributeResponseObject;
-      }).body;
+      const { hash } = (
+        (await insertAttribute()) as {
+          body: AttributeResponseObject;
+        }
+      ).body;
 
       const response = await request(server)
         .delete(`/attributes/${hash}`)
@@ -525,9 +536,11 @@ describe("Attributes", () => {
     it("should reject forbidden", async () => {
       expect.assertions(2);
 
-      const { hash } = ((await insertAttribute()) as {
-        body: AttributeResponseObject;
-      }).body;
+      const { hash } = (
+        (await insertAttribute()) as {
+          body: AttributeResponseObject;
+        }
+      ).body;
 
       const response = await request(server)
         .patch(`/attributes/${hash}`)
@@ -546,9 +559,11 @@ describe("Attributes", () => {
     it("should patch an attribute", async () => {
       expect.assertions(4);
 
-      const { hash, data } = ((await insertAttribute()) as {
-        body: AttributeResponseObject;
-      }).body;
+      const { hash, data } = (
+        (await insertAttribute()) as {
+          body: AttributeResponseObject;
+        }
+      ).body;
 
       let response = await request(server)
         .patch(`/attributes/${hash}`)

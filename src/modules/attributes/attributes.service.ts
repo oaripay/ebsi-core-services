@@ -190,21 +190,19 @@ export class AttributesService {
 
     const { pageState: newPageState, rows } = result;
 
-    const items = rows.map(
-      (row): AttributeResponseObject => {
-        const r = row as AttributeCassandraModel;
-        return {
-          storageUri: this.storageUri,
-          hash: r.hash,
-          did: r.did,
-          visibility: r.visibility,
-          sharedWith: r.shared_with,
-          contentType: r.content_type,
-          data: r.data,
-          dataLabel: r.data_label,
-        };
-      }
-    );
+    const items = rows.map((row): AttributeResponseObject => {
+      const r = row as AttributeCassandraModel;
+      return {
+        storageUri: this.storageUri,
+        hash: r.hash,
+        did: r.did,
+        visibility: r.visibility,
+        sharedWith: r.shared_with,
+        contentType: r.content_type,
+        data: r.data,
+        dataLabel: r.data_label,
+      };
+    });
 
     let newPageAfter = "";
     if (newPageState || !readingSharedAttributes) {
