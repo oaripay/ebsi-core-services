@@ -8,6 +8,7 @@ import {
   AppResponseObject,
   AuthorizationItemObject,
   AuthorizationResponseObject,
+  PublicKeyResponseObject,
 } from "./apps.interface";
 
 const domainName = ["undefined", "ebsi", "external"];
@@ -142,6 +143,41 @@ export default class AppsService {
       publicKeys,
       info,
       authorizations,
+    };
+  }
+
+  async getPublicKeys(
+    applicationId: string,
+    page: number,
+    pageSize: number
+  ): ReturnType<Tar["getAppPublicKeyIds"]> {
+    return this.tarContract.getAppPublicKeyIds(applicationId, page, pageSize);
+  }
+
+  async getPublicKey(
+    applicationId: string,
+    publicKeyId: string
+  ): Promise<PublicKeyResponseObject> {
+    let result: AsyncReturnType<Tar["getPublicKey"]>;
+    try {
+      result = await this.tarContract.getPublicKey(publicKeyId);
+    } catch (error) {
+      throw new NotFoundError("Public Key Not Found", {
+        detail: `Public key ${publicKeyId} not found`,
+      });
+    }
+    const { appId, publicKey, status, notBefore, notAfter } = result;
+    if (appId !== applicationId)
+      throw new NotFoundError("Public Key Not Found", {
+        detail: `Public key ${publicKeyId} is not owned by ${applicationId}`,
+      });
+
+    return {
+      applicationId,
+      publicKey: Buffer.from(publicKey.slice(2), "hex").toString("base64"),
+      status: statusName[status],
+      notBefore: notBefore.toNumber(),
+      notAfter: notAfter.toNumber(),
     };
   }
 

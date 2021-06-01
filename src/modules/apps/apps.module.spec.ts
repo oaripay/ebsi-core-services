@@ -7,6 +7,7 @@ import {
   HttpServer,
   Logger,
 } from "@nestjs/common";
+import crypto from "crypto";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -17,6 +18,8 @@ import {
   AppLink,
   AuthorizationLink,
   AuthorizationResponseObject,
+  PublicKeyLink,
+  PublicKeyResponseObject,
 } from "./apps.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Tar__factory } from "../../contracts";
@@ -31,9 +34,19 @@ interface SupertestAppsResponse {
   body: PaginatedList<AppLink>;
 }
 
+interface SupertestPublicKeysResponse {
+  status: number;
+  body: PaginatedList<PublicKeyLink>;
+}
+
 interface SupertestAuthorizationsResponse {
   status: number;
   body: PaginatedList<AuthorizationLink>;
+}
+
+interface SupertestPublicKeyResponse {
+  status: number;
+  body: PublicKeyResponseObject;
 }
 
 const APPS_TOTAL = 12;
@@ -468,6 +481,272 @@ describe("Apps Module", () => {
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
+    });
+  });
+
+  describe("GET /apps/{appId}/public-keys", () => {
+    it("should return a paginated collection of public-keys", async () => {
+      expect.assertions(3);
+      const { applicationId } = testEnv.apps[0];
+      const response: SupertestPublicKeysResponse = await request(server).get(
+        `/apps/${applicationId}/public-keys`
+      );
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/apps/${applicationId}/public-keys?page[after]=1&page[size]=10`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 1,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect(response.body.items).toHaveLength(1);
+      expect(response.status).toBe(200);
+    });
+
+    it("should handle the pagination properly", async () => {
+      expect.assertions(12);
+      const { applicationId } = testEnv.apps[0];
+      const response1: SupertestPublicKeysResponse = await request(server).get(
+        `/apps/${applicationId}/public-keys?page[size]=3`
+      );
+      expect(response1.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/apps/${applicationId}/public-keys?page[after]=1&page[size]=3`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 1,
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=3`
+          ) as string,
+          prev: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=3`
+          ) as string,
+          next: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=3`
+          ) as string,
+          last: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=3`
+          ) as string,
+        },
+      });
+      expect(response1.body.items).toHaveLength(1);
+      expect(response1.status).toBe(200);
+
+      // next page
+      const response2: SupertestPublicKeysResponse = await request(server).get(
+        `/apps/${applicationId}/public-keys?page[after]=2&page[size]=3`
+      );
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining("/apps") as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 1,
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=3`
+          ) as string,
+          prev: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=3`
+          ) as string,
+          next: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=3`
+          ) as string,
+          last: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=3`
+          ) as string,
+        },
+      });
+      expect(response2.body.items).toHaveLength(0);
+      expect(response2.status).toBe(200);
+
+      // big page
+      const response3: SupertestPublicKeysResponse = await request(server).get(
+        `/apps/${applicationId}/public-keys?page[after]=100&page[size]=3`
+      );
+      expect(response3.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/apps/${applicationId}/public-keys?page[after]=100&page[size]=3`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 1,
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=3`
+          ) as string,
+          prev: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=3`
+          ) as string,
+          next: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=3`
+          ) as string,
+          last: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=3`
+          ) as string,
+        },
+      });
+      expect(response3.body.items).toHaveLength(0);
+      expect(response3.status).toBe(200);
+
+      // page after defined but page size undefined
+      const response4: SupertestPublicKeysResponse = await request(server).get(
+        `/apps/${applicationId}/public-keys?page[after]=1`
+      );
+      expect(response4.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/apps/${applicationId}/public-keys`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: 1,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=10`
+          ) as string,
+          prev: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=10`
+          ) as string,
+          next: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=10`
+          ) as string,
+          last: expect.stringContaining(
+            `/apps/${applicationId}/public-keys?page[after]=1&page[size]=10`
+          ) as string,
+        },
+      });
+      expect(response4.body.items).toHaveLength(1);
+      expect(response4.status).toBe(200);
+    });
+
+    it("should throw a Bad Request for bad pagination", async () => {
+      expect.assertions(8);
+      const { applicationId } = testEnv.apps[0];
+      const response1 = await request(server).get(
+        `/apps/${applicationId}/public-keys?page[size]=100`
+      );
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be greater than 50"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server).get(
+        `/apps/${applicationId}/public-keys?page[size]=0`
+      );
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server).get(
+        `/apps/${applicationId}/public-keys?page[after]=0`
+      );
+      expect(response3.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[after] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+
+      const response4 = await request(server).get(
+        `/apps/${applicationId}/public-keys?page[after]=abc`
+      );
+      expect(response4.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+    });
+  });
+
+  describe("GET /apps/{appId}/public-keys/{publicKeyId}", () => {
+    it("should return a specific public key", async () => {
+      expect.assertions(2);
+      const { applicationId } = testEnv.apps[0];
+      const responseKeys: SupertestPublicKeysResponse = await request(
+        server
+      ).get(`/apps/${applicationId}/public-keys`);
+      const publicKeyId = responseKeys.body.items[0].id;
+
+      const response: SupertestPublicKeyResponse = await request(server).get(
+        `/apps/${applicationId}/public-keys/${publicKeyId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        applicationId,
+        publicKey: expect.any(String) as string,
+        status: "active",
+        notBefore: expect.any(Number) as number,
+        notAfter: expect.any(Number) as number,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw not found error for an unknown public key", async () => {
+      expect.assertions(2);
+      const { applicationId } = testEnv.apps[0];
+      // random key
+      const publicKeyId = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      const response: SupertestPublicKeyResponse = await request(server).get(
+        `/apps/${applicationId}/public-keys/${publicKeyId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Public Key Not Found",
+        status: 404,
+        detail: `Public key ${publicKeyId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw not found error for a public key owner by a different applicationId", async () => {
+      expect.assertions(2);
+      const { applicationId } = testEnv.apps[0];
+      const responseKeys: SupertestPublicKeysResponse = await request(
+        server
+      ).get(`/apps/${applicationId}/public-keys`);
+      // random key
+      const publicKeyId = responseKeys.body.items[0].id;
+      const otherAppId = `0x${crypto.randomBytes(32).toString("hex")}`;
+
+      const response: SupertestPublicKeyResponse = await request(server).get(
+        `/apps/${otherAppId}/public-keys/${publicKeyId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Public Key Not Found",
+        status: 404,
+        detail: `Public key ${publicKeyId} is not owned by ${otherAppId}`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
     });
   });
 

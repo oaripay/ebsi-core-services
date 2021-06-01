@@ -3,6 +3,7 @@ import {
   AppObject,
   AuthorizationLink,
   AuthorizationItemObject,
+  PublicKeyLink,
 } from "./apps.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
@@ -23,6 +24,30 @@ export function formatApps(
   }));
 
   return paginate<AppLink>(items, baseUrl, total, page, pageSize, extraQuery);
+}
+
+export function formatPublicKeys(
+  publicKeys: string[],
+  total: number,
+  page: number,
+  pageSize: number,
+  baseUrl: string,
+  extraQuery?: string
+): PaginatedList<PublicKeyLink> {
+  // Reshape items
+  const items = publicKeys.map((publicKey) => ({
+    id: publicKey,
+    href: `${baseUrl}/${publicKey}`,
+  }));
+
+  return paginate<PublicKeyLink>(
+    items,
+    baseUrl,
+    total,
+    page,
+    pageSize,
+    extraQuery
+  );
 }
 
 export function formatAuthorizations(

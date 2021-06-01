@@ -219,6 +219,173 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /trusted-apps-registry/v2/apps/{applicationId}/public-keys:
+    get:
+      tags:
+        - Trusted Apps Registry
+      summary: Get public keys from a specific App
+      description: Returns the public keys of a given applicationId
+      operationId: get-apps-applicationId-public-keys
+      parameters:
+        - name: applicationId
+          in: path
+          schema:
+            type: string
+          example: "0x123456789012345678901234567890123456789012345678901234"
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to public keys
+                  items:
+                    type: array
+                    description: List of public keys
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: ID of the public key
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/public-keys?page[after]=3&page[size]=2
+                    items:
+                      - id: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+                        href: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/public-keys/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
+                      - id: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
+                        href: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/public-keys/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                    total: 4
+                    pageSize: 2
+                    links:
+                      first: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/public-keys?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/public-keys?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/public-keys?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909/public-keys?page[after]=62&page[size]=2
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /trusted-apps-registry/v2/apps/{applicationId}/public-keys/{publicKeyId}:
+    get:
+      tags:
+        - Trusted Apps Registry
+      summary: Get public key by its ID
+      description: Returns the public key by its ID
+      operationId: get-apps-applicationId-public-keys-public-key
+      parameters:
+        - name: applicationId
+          in: path
+          schema:
+            type: string
+          example: "0x123456789012345678901234567890123456789012345678901234"
+          required: true
+        - name: publicKeyId
+          in: path
+          schema:
+            type: string
+          example: "0xfa34567890123456789012345678901234567890123456789012b5"
+          required: true
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  applicationId:
+                    type: string
+                    description: Unique app ID
+                  publicKey:
+                    type: string
+                    description: Public key in base64
+                  status:
+                    type: string
+                    description: Status
+                    enum: ["undefined", "active", "revoked", "suspended"]
+                  notBefore:
+                    description: Date and time before the public key must be considered invalid.
+                    type: number
+                  notAfter:
+                    description: Date and time after the public key must be considered invalid.
+                    type: number
+              examples:
+                Success:
+                  value:
+                    applicationId: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
+                    publicKey: "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0t..."
+                    status: active
+                    notBefore: 1610699786
+                    notAfter: 2610699786
+        400:
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        404:
+          description: Not Found Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Not Found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: Not found
+        500:
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /trusted-apps-registry/v2/apps/{resourceApplicationId}/authorizations:
     get:
       tags:

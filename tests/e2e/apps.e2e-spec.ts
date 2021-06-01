@@ -35,6 +35,8 @@ import {
   AppLink,
   AuthorizationLink,
   AuthorizationResponseObject,
+  PublicKeyResponseObject,
+  PublicKeyLink,
 } from "../../src/modules/apps/apps.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
@@ -61,6 +63,16 @@ interface SupertestAppResponse {
 interface SupertestAuthorizationsResponse {
   status: number;
   body: PaginatedList<AuthorizationLink>;
+}
+
+interface SupertestPublicKeysResponse {
+  status: number;
+  body: PaginatedList<PublicKeyLink>;
+}
+
+interface SupertestPublicKeyResponse {
+  status: number;
+  body: PublicKeyResponseObject;
 }
 
 type JsonRpcParams =
@@ -369,6 +381,75 @@ describe("Apps (e2e)", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe("/apps/{applicationId}/public-keys", () => {
+    it("should return a collection of public keys", async () => {
+      expect.assertions(2);
+      const appsResponse: SupertestAppsResponse = await request(server).get(
+        "/apps"
+      );
+      const { id }: AppLink =
+        appsResponse.body.items[appsResponse.body.items.length - 1];
+      const response: SupertestPublicKeysResponse = await request(server).get(
+        `/apps/${id}/public-keys`
+      );
+
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          self: expect.stringContaining(
+            `/trusted-apps-registry/v2/apps/${id}/public-keys?page[after]=1&page[size]=10`
+          ) as string,
+          items: expect.arrayContaining([]) as string[],
+          total: expect.any(Number) as number,
+          pageSize: expect.any(Number) as number,
+          links: expect.objectContaining({
+            first: expect.stringContaining(
+              `/trusted-apps-registry/v2/apps/${id}/public-keys?page[after]=1&page[size]=10`
+            ) as string,
+            prev: expect.stringContaining(
+              `/trusted-apps-registry/v2/apps/${id}/public-keys?page[after]=1&page[size]=10`
+            ) as string,
+            next: expect.stringContaining(
+              `/trusted-apps-registry/v2/apps/${id}/public-keys?page[after]=`
+            ) as string,
+            last: expect.stringContaining(
+              `/trusted-apps-registry/v2/apps/${id}/public-keys?page[after]=`
+            ) as string,
+          }) as PaginatedList<AppLink>["links"],
+        })
+      );
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /apps/{appId}/public-keys/{publicKeyId}", () => {
+    it("should return a specific public key", async () => {
+      expect.assertions(2);
+      const appsResponse: SupertestAppsResponse = await request(server).get(
+        "/apps"
+      );
+      const { id }: AppLink =
+        appsResponse.body.items[appsResponse.body.items.length - 1];
+      const responseKeys: SupertestPublicKeysResponse = await request(
+        server
+      ).get(`/apps/${id}/public-keys`);
+
+      const pubKeyId = responseKeys.body.items[0].id;
+
+      const response: SupertestPublicKeyResponse = await request(server).get(
+        `/apps/${id}/public-keys/${pubKeyId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        applicationId: id,
+        publicKey: expect.any(String) as string,
+        status: expect.any(String) as string,
+        notBefore: expect.any(Number) as number,
+        notAfter: expect.any(Number) as number,
+      });
+      expect(response.status).toBe(200);
     });
   });
 

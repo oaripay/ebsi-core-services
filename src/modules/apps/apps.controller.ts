@@ -1,7 +1,11 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import AppsService from "./apps.service";
-import { formatApps, formatAuthorizations } from "./apps.formatter";
+import {
+  formatApps,
+  formatAuthorizations,
+  formatPublicKeys,
+} from "./apps.formatter";
 import {
   AppResponseObject,
   AppLink,
@@ -9,14 +13,19 @@ import {
   AuthorizationResponseObject,
   AuthorizationItemObject,
   AuthorizationLink,
+  PublicKeyLink,
+  PublicKeyResponseObject,
 } from "./apps.interface";
 import GetAppsDto from "./dto/get-apps.dto";
 import GetAppDto from "./dto/get-app.dto";
 import GetAuthorizationDto from "./dto/get-authorization.dto";
 import GetAuthorizationsParamDto from "./dto/get-authorizations-param.dto";
 import GetAuthorizationsDto from "./dto/get-authorizations.dto";
+import GetPublicKeysParamDto from "./dto/get-public-keys-param.dto";
 import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
+import PaginationQuery from "../../shared/dto/pagination-query";
+import GetPublicKeyDto from "./dto/get-public-key.dto";
 
 @Controller("/apps")
 export default class AppsController {
@@ -103,6 +112,43 @@ export default class AppsController {
     const app = await this.appsService.getApp(applicationId);
 
     return app;
+  }
+
+  @Get("/:applicationId/public-keys")
+  async getPublicKeys(
+    @Param() params: GetPublicKeysParamDto,
+    @Query() query: PaginationQuery
+  ): Promise<PaginatedList<PublicKeyLink>> {
+    const { applicationId } = params;
+    const pageAfter = query["page[after]"];
+    const pageSize = query["page[size]"];
+
+    const publicKeys = await this.appsService.getPublicKeys(
+      applicationId,
+      pageAfter,
+      pageSize
+    );
+    const { total, items } = publicKeys;
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/apps/${applicationId}/public-keys`;
+
+    return formatPublicKeys(
+      items,
+      total.toNumber(),
+      pageAfter,
+      pageSize,
+      baseUrl
+    );
+  }
+
+  @Get("/:applicationId/public-keys/:publicKeyId")
+  async getPublicKey(
+    @Param() params: GetPublicKeyDto
+  ): Promise<PublicKeyResponseObject> {
+    const { applicationId, publicKeyId } = params;
+
+    return this.appsService.getPublicKey(applicationId, publicKeyId);
   }
 
   @Get("/:resourceApplicationId/authorizations")

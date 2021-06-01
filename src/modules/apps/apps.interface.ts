@@ -9,6 +9,11 @@ export interface AppObject {
   name: string;
 }
 
+export interface PublicKeyLink {
+  id: string;
+  href: string;
+}
+
 export interface AuthorizationLink {
   authorizationId: string;
   requesterApplicationName: string;
@@ -60,4 +65,12 @@ export interface AppResponseObject {
     [x: string]: unknown;
   };
   authorizations: AuthorizationResponseObject[];
+}
+
+export interface PublicKeyResponseObject {
+  applicationId: string;
+  publicKey: string;
+  status: string;
+  notBefore: number;
+  notAfter: number;
 }

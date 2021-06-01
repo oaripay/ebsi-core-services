@@ -174,7 +174,7 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
   const appAdministrator = "did:ebsi:0x001F";
   const publicKey = `pubkey-${crypto.randomBytes(8).toString("hex")}`;
   const applicationId = ethers.utils.sha256(Buffer.from(publicKey, "utf8"));
-  const status = 0; // "active"
+  const status = 1; // "active"
   const notBefore = Date.now();
   const notAfter = Date.now() + 365 * 24 * 60 * 60 * 1000;
   const info = {
