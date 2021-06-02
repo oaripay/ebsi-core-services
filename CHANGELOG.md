@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=247) (2021-06-02)
+
+### 🚀 Features
+
+- intercept Axios requests and redirect them to the local network ([#48](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/pull-requests/48/overview)) - EBSIINT-3039 ([5f19356](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/commits/5f19356221ce7f2fd06998b1e9386b89cba69ab7))
+- oauth2 support ([#49](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/pull-requests/49/overview)) - EBSIINT-3054 ([1354f0d](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/commits/1354f0d8cbca4c0ab3eb17e023aca1a68d4f8916))
+
+### 🐛 Bug Fixes
+
+- ci - ignore advisory ([#50](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/pull-requests/50/overview)) - EBSIINT-3054 ([3826bf2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/commits/3826bf232bdcf3366fcf5bffe74acd10ba1aa0bf))
+
 ## [2.0.0-rc.1](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=247) (2021-05-20)
 
 ### 🚀 Features
