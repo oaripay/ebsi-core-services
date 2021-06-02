@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-web-client/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.3&targetRepoId=406) (2021-06-02)
+
+### 🐛 Bug Fixes
+
+- disable link to terms and conditions ([#29](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-web-client/pull-requests/29/overview)) - EBSIINT-3061 ([670dadd](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-web-client/commits/670dadde0fd96eb1746b83434a90c4abeba5b205))
+
 ## [1.0.0-rc.2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-web-client/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.2&targetRepoId=406) (2021-05-26)
 
 ### 🚀 Features

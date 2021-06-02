@@ -22,7 +22,7 @@ export function Home(): JSX.Element {
 
         if (process.env.REACT_APP_EBSI_ENV === "pilot") {
           return (
-            <PageHeader title="Welcome to the PreProduction environment" />
+            <PageHeader title="Welcome to the Pre Production environment" />
           );
         }
 
