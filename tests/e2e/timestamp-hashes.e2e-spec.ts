@@ -27,7 +27,7 @@ import { TimestampLink } from "../../src/modules/timestamps/timestamps.interface
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x, multibase64Encode } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
-import { siopAuthentication } from "../utils/auth";
+import { oauth2Authentication, siopAuthentication } from "../utils/auth";
 import { LedgerService } from "../../src/shared/services/ledger.service";
 
 interface SupertestJsonRpcResponse {
@@ -54,6 +54,13 @@ describe("Timestamp (e2e)", () => {
 
   let testUser: {
     did: string;
+    privateKey: string;
+    wallet: ethers.Wallet;
+    token?: string;
+  };
+
+  let testApp: {
+    name: string;
     privateKey: string;
     wallet: ethers.Wallet;
     token?: string;
@@ -91,6 +98,11 @@ describe("Timestamp (e2e)", () => {
         did: string;
         privateKey: string;
       }>("testUser");
+    const configApp =
+      configService.get<{
+        name: string;
+        privateKey: string;
+      }>("testApp");
     testAdmin = {
       ...configAdmin,
       wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
@@ -99,9 +111,14 @@ describe("Timestamp (e2e)", () => {
       ...configUser,
       wallet: new ethers.Wallet(prefixWith0x(configUser.privateKey)),
     };
+    testApp = {
+      ...configApp,
+      wallet: new ethers.Wallet(prefixWith0x(configApp.privateKey)),
+    };
 
     testUser.token = await siopAuthentication(testUser);
     testAdmin.token = await siopAuthentication(testAdmin);
+    testApp.token = await oauth2Authentication(testApp);
   });
 
   describe("GET /timestamps", () => {
@@ -445,6 +462,111 @@ describe("Timestamp (e2e)", () => {
           },
         });
         expect(responseSend.status).toBe(400);
+      });
+    }
+  );
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  describe.each(["timestampHashes"])(
+    "/jsonrpc - send transaction for %s using trusted app",
+    (method: string) => {
+      it("should work", async () => {
+        expect.assertions(5);
+
+        let param: JsonRpcParams = null;
+
+        switch (method) {
+          case "timestampHashes": {
+            param = {
+              from: testApp.wallet.address,
+              hashAlgorithmIds: [0, 0],
+              hashValues: [
+                `0x${crypto.randomBytes(32).toString("hex")}`,
+                `0x${crypto.randomBytes(32).toString("hex")}`,
+              ],
+              timestampData: [
+                `0x${Buffer.from(
+                  JSON.stringify({ test: 742 }),
+                  "utf8"
+                ).toString("hex")}`,
+                `0x${Buffer.from(
+                  JSON.stringify({ test: 842 }),
+                  "utf8"
+                ).toString("hex")}`,
+              ],
+            } as TimestampHashesParam;
+            break;
+          }
+          default:
+            throw new Error(`Test Error: Invalid method ${method}`);
+        }
+
+        const responseBuild: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testApp.token, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method,
+            params: [param],
+            id: 231,
+          });
+
+        expect(responseBuild.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: 231,
+          result: {
+            chainId: expect.any(String) as string,
+            data: expect.any(String) as string,
+            from: testApp.wallet.address,
+            gasLimit: expect.any(String) as string,
+            gasPrice: expect.any(String) as string,
+            nonce: expect.any(String) as string,
+            to: expect.any(String) as string,
+            value: expect.any(String) as string,
+          },
+        });
+        expect(responseBuild.status).toBe(200);
+
+        const unsignedTransaction = responseBuild.body.result;
+        const uTx = formatEthersUnsignedTransaction(
+          JSON.parse(JSON.stringify(unsignedTransaction))
+        );
+        uTx.chainId = Number(uTx.chainId);
+        const sgnTx = await testApp.wallet.signTransaction(uTx);
+        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+        const responseSend: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testApp.token, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "signedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r,
+                s,
+                v: `0x${Number(v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
+            id: "45",
+          });
+
+        expect(responseSend.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: "45",
+          result: expect.any(String) as string,
+        });
+        expect(responseSend.status).toBe(200);
+
+        // wait to be mined
+        const receipt = await waitToBeMined(
+          ledgerService,
+          responseSend.body.result as string
+        );
+        expect(receipt.status).toBe(1);
       });
     }
   );

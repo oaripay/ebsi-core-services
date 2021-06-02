@@ -28,6 +28,10 @@ export interface ApiConfig {
     did: string;
     privateKey: string;
   };
+  testApp: {
+    name: string;
+    privateKey: string;
+  };
 }
 
 // Example of default values to be used, depending on the environment
@@ -60,7 +64,7 @@ const defaultConfig = {
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.preprod.ebsi.eu/trusted-apps-registry/v2",
     DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v2",
-    HEALTH_CHECK: `https://api.preprod.ebsi.xyz/docs/`,
+    HEALTH_CHECK: `https://api.preprod.ebsi.eu/docs/`,
   },
   prod: {
     LOG_LEVEL: "error",
@@ -70,7 +74,7 @@ const defaultConfig = {
       "https://api.ebsi.eu/trusted-apps-registry/v2",
     DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2",
     LEDGER_API_URL: "https://api.ebsi.eu/ledger/v2",
-    HEALTH_CHECK: `https://api.prod.ebsi.xyz/docs/`,
+    HEALTH_CHECK: `https://api.ebsi.eu/docs/`,
   },
 };
 
@@ -114,6 +118,10 @@ export const loadConfig = (): ApiConfig => {
     testUser: {
       did: process.env.TEST_USER_DID,
       privateKey: process.env.TEST_USER_PRIVATE_KEY,
+    },
+    testApp: {
+      name: process.env.TEST_APP_NAME,
+      privateKey: process.env.TEST_APP_PRIVATE_KEY,
     },
   };
 };
@@ -161,5 +169,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
     TEST_USER_DID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
+    TEST_APP_NAME: Joi.string(),
+    TEST_APP_PRIVATE_KEY: Joi.string(),
   }),
 });

@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import axios, { AxiosError } from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
+import KeyEncoder from "key-encoder";
 import {
   ArgsInsertHashAlgorithm,
   ArgsUpdateHashAlgorithm,
@@ -36,6 +37,8 @@ import {
 import { LedgerService } from "../../shared/services/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 import { UserInfo } from "../auth/auth.interface";
+
+const keyEncoder = new KeyEncoder("secp256k1");
 
 @Injectable()
 export class JsonRpcService {
@@ -92,15 +95,50 @@ export class JsonRpcService {
     }
   }
 
-  async verifyDidRegistry(address: string, user: UserInfo): Promise<void> {
-    const response = await axios.get(
-      `${this.didRegistry}/identifiers?controller=${address}`
-    );
-    const { items } = response.data as { items: { did: string }[] };
-    if (!items.map((item) => item.did).includes(user.sub))
-      throw new Error(
-        `The DID ${user.sub} is not controlled by the address ${address}`
+  async verifyEthereumAddress(address: string, user: UserInfo): Promise<void> {
+    if (user.login_hint === "did_siop") {
+      // Get and verify the ethereum address from the DID Registry
+      const response = await axios.get(
+        `${this.didRegistry}/identifiers?controller=${address}`
       );
+      const { items } = response.data as { items: { did: string }[] };
+      if (!items.map((item) => item.did).includes(user.sub))
+        throw new Error(
+          `The DID ${user.sub} is not controlled by the address ${address}`
+        );
+    } else {
+      // Get and verify the ethereum address from the Trusted Apps Registry
+      let response = await axios.get(
+        `${this.trustedAppsRegistry}/apps?name=${user.sub}`
+      );
+      const { items } = response.data as { items: { href: string }[] };
+      if (items.length === 0)
+        throw new Error(
+          `App ${user.sub} not found in the Trusted Apps Registry`
+        );
+      const { href } = items[0];
+      response = await axios.get(href);
+      const { publicKeys } = response.data as { publicKeys: string[] };
+      const addresses = publicKeys.map((publicKey) => {
+        try {
+          const publicKeyPem = Buffer.from(publicKey, "base64").toString(
+            "utf8"
+          );
+          const publicKeyHex = keyEncoder.encodePublic(
+            publicKeyPem,
+            "pem",
+            "raw"
+          );
+          return ethers.utils.computeAddress(`0x${publicKeyHex}`).toLowerCase();
+        } catch (error) {
+          return "0x0000000000000000000000000000000000000000";
+        }
+      });
+      if (!addresses.includes(address.toLowerCase()))
+        throw new Error(
+          `Address ${address} can not be derived from public keys of ${user.sub}`
+        );
+    }
   }
 
   async checkWritePermission(
@@ -117,7 +155,7 @@ export class JsonRpcService {
        */
       case "insertHashAlgorithm":
       case "updateHashAlgorithm": {
-        await this.verifyDidRegistry(address, user);
+        await this.verifyEthereumAddress(address, user);
         await this.verifyTrustedAppsRegistryAdministrator(user);
         break;
       }
@@ -133,7 +171,7 @@ export class JsonRpcService {
       case "insertRecordVersionInfo":
       case "insertRecordOwner":
       case "revokeRecordOwner":
-        await this.verifyDidRegistry(address, user);
+        await this.verifyEthereumAddress(address, user);
         break;
       default:
         // The rest of the functions are open to the public

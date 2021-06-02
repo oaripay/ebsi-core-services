@@ -10,7 +10,14 @@ import {
 import { ethers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import {
+  Session as Oauth2Session,
+  JWTPayload as PayloadOauth2,
+} from "@cef-ebsi/oauth2-auth";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import crypto from "crypto";
 import { JWTPayload } from "@cef-ebsi/did-jwt";
+import base64url from "base64url";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -81,20 +88,47 @@ describe("JsonRpc Module", () => {
   let recordId: string;
   let blockNumber = 0;
   let provider: ethers.providers.Web3Provider;
+  const genToken = (sub: string, siop = true) =>
+    `${base64url.encode(
+      JSON.stringify({
+        alg: "ES256K",
+        typ: "JWT",
+      })
+    )}.${base64url.encode(
+      JSON.stringify({
+        sub,
+        ...(siop && { login_hint: "did_siop" }),
+      })
+    )}.${base64url.encode("signature")}`;
   const testAdmin = {
-    token: "admin",
+    token: genToken("admin"),
     did: "did:ebsi:admin",
     wallet: ethers.Wallet.createRandom(),
   };
   const testUser = {
-    token: "user",
+    token: genToken("user"),
     did: "did:ebsi:user",
     wallet: ethers.Wallet.createRandom(),
   };
   const testFakeUser = {
-    token: "fake user",
+    token: genToken("fake user"),
     did: "did:ebsi:fakeuser",
     wallet: ethers.Wallet.createRandom(),
+  };
+
+  const walletApp = ethers.Wallet.createRandom();
+  const publicKeyPemApp = new EbsiWallet(walletApp.privateKey).getPublicKey({
+    format: "pem",
+  }) as string;
+  const testApp = {
+    token: genToken("trusted app", false),
+    name: "my-trusted-app",
+    id: `0x${crypto.randomBytes(32).toString("hex")}`,
+    wallet: walletApp,
+    publicKeys: [
+      Buffer.from(publicKeyPemApp).toString("base64"),
+      crypto.randomBytes(50).toString("base64"), // bad format
+    ],
   };
 
   beforeAll(async () => {
@@ -128,7 +162,7 @@ describe("JsonRpc Module", () => {
 
     // Make sure we never use axios.post in tests ;-)
     jest.spyOn(axios, "post").mockImplementation(() => {
-      throw new Error("Forgot to mock an axios call?");
+      throw new Error("Forgot to mock an axios post call?");
     });
 
     jest.spyOn(axios, "get").mockImplementation((url): Promise<unknown> => {
@@ -138,6 +172,31 @@ describe("JsonRpc Module", () => {
           throw axiosError(404, "Not found");
         }
         return Promise.resolve(true);
+      }
+
+      // accessing apps in TAR by name
+      if (url.includes("/apps?name")) {
+        if (!url.includes(testApp.name)) {
+          return Promise.resolve({ data: { items: [] } });
+        }
+        return Promise.resolve({
+          data: { items: [{ href: `/apps/${testApp.id}` }] },
+        });
+      }
+
+      // accessing apps in TAR by id
+      if (url.includes("/apps/")) {
+        if (!url.includes(testApp.id)) {
+          throw new Error("App not found");
+        }
+        return Promise.resolve({
+          data: {
+            applicationId: testApp.id,
+            name: testApp.name,
+            domain: "ebsi",
+            publicKeys: testApp.publicKeys,
+          },
+        });
       }
 
       // accessing did registry
@@ -152,7 +211,6 @@ describe("JsonRpc Module", () => {
           });
         return Promise.resolve({ data: { items: [] } });
       }
-
       throw new Error("Forgot to mock an axios call?");
     });
 
@@ -160,10 +218,21 @@ describe("JsonRpc Module", () => {
       .spyOn(SiopSession.prototype, "verifyAccessToken")
       .mockImplementation((token: string): Promise<JWTPayload> => {
         if (token === testAdmin.token)
-          return Promise.resolve({ sub: testAdmin.did });
+          return Promise.resolve({
+            sub: testAdmin.did,
+            login_hint: "did_siop",
+          });
         if (token === testUser.token)
-          return Promise.resolve({ sub: testUser.did });
-        throw new Error("verifyAccessToken failed");
+          return Promise.resolve({ sub: testUser.did, login_hint: "did_siop" });
+        throw new Error("verifyAccessToken failed (siop)");
+      });
+
+    jest
+      .spyOn(Oauth2Session.prototype, "verifyAccessToken")
+      .mockImplementation((token: string): Promise<PayloadOauth2> => {
+        if (token === testApp.token)
+          return Promise.resolve({ sub: testApp.name });
+        throw new Error("verifyAccessToken failed (oauth2)");
       });
 
     // Mock Contract service
@@ -188,7 +257,7 @@ describe("JsonRpc Module", () => {
       expect(response.body).toStrictEqual({
         title: "Unauthorized",
         status: 401,
-        detail: "verifyAccessToken failed",
+        detail: "verifyAccessToken failed (siop)",
         type: "about:blank",
       });
       expect(response.status).toBe(401);
@@ -1920,6 +1989,117 @@ describe("JsonRpc Module", () => {
         const responseSend = await request(server)
           .post("/jsonrpc")
           .auth(testAdmin.token, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "signedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r,
+                s,
+                v: `0x${Number(v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
+            id: "45",
+          });
+        // blocknumber needed to compute the recordid
+        if (method === "timestampRecordHashes") {
+          blockNumber = await provider.getBlockNumber();
+        }
+        expect(responseSend.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: "45",
+          result: expect.any(String) as string,
+        });
+        expect(responseSend.status).toBe(200);
+      });
+    }
+  );
+
+  // Tests using trusted apps
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  describe.each(["timestampHashes", "timestampRecordHashes"])(
+    "/jsonrpc with method %s using a Trusted App as user",
+    (method: string) => {
+      it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
+        expect.assertions(4);
+
+        let param: JsonRpcParams = null;
+
+        switch (method) {
+          case "timestampHashes": {
+            param = {
+              from: testApp.wallet.address,
+              hashAlgorithmIds: [0],
+              hashValues: [firstHashValue],
+              timestampData: [
+                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                  "hex"
+                )}`,
+              ],
+            } as TimestampHashesParam;
+            break;
+          }
+          case "timestampRecordHashes": {
+            param = {
+              from: testApp.wallet.address,
+              hashAlgorithmIds: [0],
+              hashValues: [firstHashValue],
+              timestampData: [
+                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                  "hex"
+                )}`,
+              ],
+              versionInfo: `0x${Buffer.from(
+                JSON.stringify({ test: 54 }),
+                "utf8"
+              ).toString("hex")}`,
+            } as TimestampRecordHashesParam;
+            break;
+          }
+          default:
+            throw new Error(`Test Error: Invalid method ${method}`);
+        }
+
+        const responseBuild: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testApp.token, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method,
+            params: [param],
+            id: 231,
+          });
+
+        expect(responseBuild.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: 231,
+          result: {
+            chainId: expect.any(String) as string,
+            data: expect.any(String) as string,
+            from: param.from,
+            gasLimit: expect.any(String) as string,
+            gasPrice: expect.any(String) as string,
+            nonce: expect.any(String) as string,
+            to: expect.any(String) as string,
+            value: "0x0",
+          },
+        });
+        expect(responseBuild.status).toBe(200);
+
+        const unsignedTransaction = responseBuild.body.result;
+        const uTx = formatEthersUnsignedTransaction(
+          JSON.parse(JSON.stringify(unsignedTransaction))
+        );
+        uTx.chainId = Number(uTx.chainId);
+        const sgnTx = await testApp.wallet.signTransaction(uTx);
+        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+        const responseSend = await request(server)
+          .post("/jsonrpc")
+          .auth(testApp.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method: "signedTransaction",
