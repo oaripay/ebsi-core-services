@@ -33,6 +33,9 @@ export class AuthService {
   ): void {
     // Cache requests targeting these hosts
     const cacheableRequestHosts = ["localhost", "127.0.0.1", "api.local"];
+    this.logger.debug(
+      `Checking if the API should store the JWT. requestHost: ${requestHost}`
+    );
     if (
       requestHost &&
       cacheableRequestHosts.find((host) => requestHost.includes(host))
@@ -56,6 +59,7 @@ export class AuthService {
     }
 
     try {
+      this.logger.debug(`Verifying token: ${token}`);
       const payload = await this.session.verifyAccessToken(
         token,
         this.authApiName
@@ -66,6 +70,8 @@ export class AuthService {
 
       return payload;
     } catch (error) {
+      this.logger.debug(`Invalid token: ${token}`);
+      this.logger.debug(error);
       throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
         detail: (error as Error).message,
       });
