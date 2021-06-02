@@ -4,7 +4,8 @@ import { Layout } from "./components/layout/Layout";
 import { Home } from "./routes/home/Home";
 import { NotFound } from "./routes/not-found/NotFound";
 import { Authentication } from "./routes/authentication/Authentication";
-import { TermsConditions } from "./routes/full-terms/TermsConditions";
+// EBSIINT-3061: disable link to Terms and conditions
+// import { TermsConditions } from "./routes/full-terms/TermsConditions";
 import config from "./env";
 
 const { PUBLIC_URL } = config;
@@ -20,7 +21,10 @@ function App(): JSX.Element {
         <Switch>
           <Route exact path="/" component={Home} />
           <Route exact path="/authentication" component={Authentication} />
+          {/* EBSIINT-3061: disable link to Terms and conditions */}
+          {/*
           <Route exact path="/terms" component={TermsConditions} />
+          */}
           <Route path="*">
             <NotFound />
           </Route>

@@ -4,7 +4,9 @@ import { render, screen } from "@testing-library/react";
 import { Authentication } from "./Authentication";
 
 jest.mock("react-router-dom", () => ({
-  ...jest.requireActual("react-router-dom"),
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/no-explicit-any
+  ...(jest.requireActual("react-router-dom") as any),
+  __esModule: true,
   useLocation: () => ({
     pathname: "localhost:3000/example/path",
     search: {

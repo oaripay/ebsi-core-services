@@ -32,7 +32,7 @@ export const LoginButtons: React.FunctionComponent = () => {
   };
 
   return (
-    <div className="ecl-row ecl-u-mt-m">
+    <div className="ecl-row">
       <div className="ecl-col-12 ecl-col-md-6">
         <p className="ecl-u-type-paragraph">
           I don&#8217;t have an EU Login Account.

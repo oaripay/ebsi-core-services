@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import React from "react";
-import { Link } from "react-router-dom";
 import icons from "@ecl/ec-preset-website/dist/images/icons/sprites/icons.svg";
+import { Link } from "react-router-dom";
 
 type Props = {
   isTermsSelected: boolean;
@@ -23,11 +23,10 @@ export const Terms: React.FunctionComponent<Props> = ({
       </header>
       <div className="ecl-card__body">
         <div className="ecl-card__description">
-          Find more information by{" "}
-          <Link to="/terms" className="ecl-link">
-            clicking here
-          </Link>
-          .
+          Find more information by <Link to="/terms">clicking here</Link>.
+        </div>
+        <div className="ecl-card__description">
+          Find more information by clicking here.
         </div>
         <form>
           <div className="ecl-form-group">
