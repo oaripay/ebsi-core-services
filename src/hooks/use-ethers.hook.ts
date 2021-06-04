@@ -3,7 +3,8 @@ import { ethers } from "ethers";
 
 import { config } from "../config";
 
-import TarRegistry from "../tar.json";
+import TarRegistry from "../contracts/tar.json";
+import DidRegistry from "../contracts/DidRegistry.json";
 import { AppContext } from "../AppContext";
 
 export function useEthersHook() {
@@ -27,5 +28,14 @@ export function useEthersHook() {
     return contract.connect(provider.getSigner());
   }, [provider]);
 
-  return { provider, registryContract };
+  const didRegistryContract = useMemo(() => {
+    const contract = new ethers.Contract(
+      config.DID_REGISTRY_ADDRESS,
+      DidRegistry,
+      provider
+    );
+    return contract.connect(provider.getSigner());
+  }, [provider]);
+
+  return { provider, registryContract, didRegistryContract };
 }

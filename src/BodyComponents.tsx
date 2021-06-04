@@ -8,10 +8,12 @@ import { useRegistryContractEventsHook } from "./hooks/use-registry-contract-eve
 import { ModalUpdateApp } from "./Modals/ModalUpdateApp";
 import { ModalUpdateAppPublicKey } from "./Modals/ModalUpdateAppPublicKey";
 import { ModalUpdateAuthorization } from "./Modals/ModalUpdateAuthorization";
+import { useSearchEventsHook } from "./hooks/use-search-events.hook";
 
 export default function BodyComponents(): ReactElement {
   const appCtx = useContext(AppContext);
   useRegistryContractEventsHook();
+  useSearchEventsHook();
 
   if (!appCtx.metamask) {
     return <></>;

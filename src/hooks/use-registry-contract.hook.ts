@@ -68,9 +68,12 @@ export function useRegistryContractHook() {
     );
   }, []);
 
-  const getAppByName = useCallback((appName: string) => {
-    return registryContract.getAppByName(appName);
-  }, []);
+  const getAppByName = useCallback(
+    (appName: string) => {
+      return registryContract.getAppByName(appName);
+    },
+    [registryContract]
+  );
 
   const getAuthorizationsIds = useCallback(
     (applicationId: string, authorizedAppId: string) => {
@@ -175,7 +178,6 @@ export function useRegistryContractHook() {
     return new Promise((resolve) => resolve(false));
   }, []);
 
-  // eslint-disable-next-line no-unused-vars
   const registerApp = useCallback(
     (
       name: string,

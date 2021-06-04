@@ -43,7 +43,9 @@ export function ModalUpdateApp() {
           ]);
 
           const appNames = appCtx.tableDataSource.filter(
-            (item) => item.name === fields.name
+            (item) =>
+              item.name === fields.name &&
+              appCtx.editModal.data.name !== fields.name
           );
 
           if (appNames.length > 0) {

@@ -9,22 +9,28 @@ import {
 
 import { AppContext } from "../AppContext";
 import { useRegistryContractHook } from "./use-registry-contract.hook";
+import { useSearch } from "./use-search";
 
 const { Paragraph } = Typography;
 
 export function useTableHook() {
   const appCtx = useContext(AppContext);
   const { getApplications } = useRegistryContractHook();
+  const { search } = useSearch();
 
   const loadTableData = useCallback(() => {
     appCtx.setTableLoading(true);
+    if (appCtx.searchedTerm) {
+      search(appCtx.searchedTerm);
+      return;
+    }
     getApplications().then((data: any) => {
       appCtx.setTableDataSource(data.tableData);
       getApplications(data.missingAppsFromTable).then((missingApps: any) => {
         appCtx.setMissingApps(missingApps.tableData);
       });
     });
-  }, [getApplications, appCtx.page]);
+  }, [search, getApplications, appCtx.page, appCtx.searchedTerm]);
 
   const columns = [
     {
@@ -107,7 +113,7 @@ export function useTableHook() {
                 <KeyOutlined />
               </Button>
             </Tooltip>
-            <Tooltip title="Update public key">
+            <Tooltip title="Update an existing public key">
               <Button
                 type="default"
                 onClick={() => {
@@ -142,7 +148,7 @@ export function useTableHook() {
                 <PropertySafetyOutlined />
               </Button>
             </Tooltip>
-            <Tooltip title="Update authorization">
+            <Tooltip title="Update an existing authorization">
               <Button
                 type="default"
                 onClick={() => {

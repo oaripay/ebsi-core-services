@@ -126,7 +126,7 @@ export default function ModalInsertPublicKey(): ReactElement {
           <Row>
             <Col lg={24}>
               <Form.Item
-                label="Public key"
+                label="Public key (pemBase64 format)"
                 name="publicKey"
                 rules={[
                   { required: true, message: "Please input public key!" },

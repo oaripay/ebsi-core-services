@@ -32,7 +32,7 @@ export function ModalUpdateAppPublicKey() {
   return (
     <Modal
       width={640}
-      title="Update app public key"
+      title="Update the status of an app public key"
       visible={appCtx.updateAppPublicKey.show}
       okText="Save"
       onOk={() => {
@@ -94,7 +94,6 @@ export function ModalUpdateAppPublicKey() {
           width: "100%",
         }}
       >
-        <h3>Application name must be unique</h3>
         <Form
           layout="vertical"
           form={form}
@@ -106,14 +105,14 @@ export function ModalUpdateAppPublicKey() {
         >
           <Row>
             <Col lg={24}>
-              <Form.Item label="Application id" name="applicationId">
+              <Form.Item label="Application id (unique)" name="applicationId">
                 <Input disabled />
               </Form.Item>
             </Col>
           </Row>
           <Row>
             <Col lg={24}>
-              <Form.Item label="Public key" name="publicKey">
+              <Form.Item label="Select Public key to update" name="publicKey">
                 <Select style={{ width: "100%" }}>
                   {appCtx.updateAppPublicKey.data?.publicKeys.map(
                     (key: string) => (
@@ -128,7 +127,7 @@ export function ModalUpdateAppPublicKey() {
           </Row>
           <Row>
             <Col lg={24}>
-              <Form.Item label="Status" name="status">
+              <Form.Item label="Select new Status" name="status">
                 <Select style={{ width: "100%" }} onChange={() => {}}>
                   <Select.Option value={1}>active</Select.Option>
                   <Select.Option value={2}>revoked</Select.Option>
@@ -140,7 +139,7 @@ export function ModalUpdateAppPublicKey() {
           <Row>
             <Col lg={24}>
               <Form.Item
-                label="Not after"
+                label="Expire date"
                 name="notAfter"
                 rules={[
                   {
