@@ -420,7 +420,10 @@ describe("Authorisation Module", () => {
           },
           issuer: "",
           signer: {
-            publicKeyJwk: client.jwk,
+            publicKeyJwk: { ...client.jwk, kty: "" },
+            id: "",
+            type: "",
+            controller: "",
           },
           jwt: "",
         })
@@ -478,7 +481,10 @@ describe("Authorisation Module", () => {
           },
           issuer: "",
           signer: {
-            publicKeyJwk: client.jwk,
+            publicKeyJwk: { ...client.jwk, kty: "" },
+            id: "",
+            type: "",
+            controller: "",
           },
           jwt: "",
         })
@@ -594,7 +600,10 @@ describe("Authorisation Module", () => {
           },
           issuer: "",
           signer: {
-            publicKeyJwk: client.jwk,
+            publicKeyJwk: { ...client.jwk, kty: "" },
+            id: "",
+            type: "",
+            controller: "",
           },
           jwt: "",
         })

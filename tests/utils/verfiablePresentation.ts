@@ -31,6 +31,8 @@ export async function createVP(
   const vpSigner = ES256KSigner(holderPrivateKey);
 
   const jwtdata = await createJWT(
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     presentation,
     {
       alg: "ES256K",

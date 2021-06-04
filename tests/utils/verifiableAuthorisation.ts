@@ -40,6 +40,8 @@ export async function createVerifiableAuthorisation(
   const signer = ES256KSigner(privateKey);
   const jwt = (
     await createJWT(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       credential,
       {
         alg: "ES256K",
