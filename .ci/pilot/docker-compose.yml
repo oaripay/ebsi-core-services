@@ -3,4 +3,4 @@ version: "3.7"
 services:
   trusted-issuers-registry:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-issuers-registry:pilot_ebsiint-3039-local-apis_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-issuers-registry:pilot_ebsiint-3039-local-apis-fix_v2.0.0

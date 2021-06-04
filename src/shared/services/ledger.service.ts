@@ -95,15 +95,41 @@ export class LedgerService {
     }
   }
 
-  private async refreshConnection() {
-    const token = await this.getAccessToken();
-
+  private setupProvider(url: string, token: string) {
     this.ethersProvider = new ethers.providers.JsonRpcProvider({
-      url: `${this.configService.get<string>("ledgerApiUrl")}/blockchains/besu`,
+      url,
       headers: {
         authorization: `Bearer ${token}`,
       },
     });
+  }
+
+  private async refreshConnection() {
+    const token = await this.getAccessToken();
+
+    const domain = this.configService.get<string>("domain");
+    const localOrigin = this.configService.get<string>("localOrigin");
+    const remoteLedgerApi = `${this.configService.get<string>(
+      "ledgerApiUrl"
+    )}/blockchains/besu`;
+
+    if (domain && localOrigin) {
+      try {
+        const localUrl = remoteLedgerApi.replace(domain, localOrigin);
+        this.logger.debug(`Trying to connect to local Ledger API: ${localUrl}`);
+        this.setupProvider(localUrl, token);
+        await this.ethersProvider.getNetwork();
+        this.logger.debug("Connected to local Ledger API");
+      } catch (e) {
+        this.logger.debug(
+          `Falling back to remote Ledger API: ${remoteLedgerApi}`
+        );
+        this.setupProvider(remoteLedgerApi, token);
+      }
+    } else {
+      this.logger.debug(`Using remote Ledger API: ${remoteLedgerApi}`);
+      this.setupProvider(remoteLedgerApi, token);
+    }
 
     this.ethersWallet = new ethers.Wallet(
       prefixWith0x(this.configService.get<string>("apiPrivateKey")),

@@ -1,6 +1,23 @@
 import { LoggerService } from "@nestjs/common";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
+function hasOwnProperty<X extends unknown, Y extends PropertyKey>(
+  obj: X,
+  prop: Y
+): obj is X & Record<Y, unknown> {
+  return Object.prototype.hasOwnProperty.call(obj, prop) as boolean;
+}
+
+const isNotFoundError = (data?: unknown): boolean => {
+  if (!data || typeof data !== "object" || data === null) return false;
+
+  if (!hasOwnProperty(data, "title") || !hasOwnProperty(data, "status")) {
+    return false;
+  }
+
+  return data.status === 404;
+};
+
 export function setupInterceptors(
   domain: string,
   localOrigin: string,
@@ -42,7 +59,10 @@ export function setupInterceptors(
     // This function is triggered whenever an axios request doesn't return a 2xx
     (error: { config?: AxiosRequestConfig; response?: AxiosResponse }) => {
       if (
-        (!error.response || error.response.status >= 500) &&
+        (!error.response ||
+          error.response.status >= 500 ||
+          (error.response.status === 404 &&
+            !isNotFoundError(error.response.data))) &&
         error.config?.url?.startsWith(localOrigin)
       ) {
         const { config } = error;
