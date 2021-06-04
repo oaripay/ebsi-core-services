@@ -26,9 +26,9 @@
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
-    "@cef-ebsi/did-jwt": "^1.0.0-alpha.5",
-    "@cef-ebsi/problem-details-errors": "1.0.0-alpha.4",
-    "@cef-ebsi/siop-auth": "^0.5.1",
+    "@cef-ebsi/did-jwt": "^1.0.0-alpha.6",
+    "@cef-ebsi/problem-details-errors": "1.0.0-alpha.5",
+    "@cef-ebsi/siop-auth": "^0.5.2",
     "@cef-ebsi/verifiable-credential": "^1.0.0-rc.3",
     "@nestjs/common": "^7.6.17",
     "@nestjs/config": "^0.6.2",
@@ -48,7 +48,7 @@
     "key-encoder": "^2.0.3",
     "nest-winston": "^1.5.0",
     "reflect-metadata": "^0.1.12",
-    "rxjs": "^7.1.0",
+    "rxjs": "^6.6.7",
     "uuid": "^8.3.2",
     "winston": "^3.2.1",
     "xml2js": "^0.4.23"
@@ -59,7 +59,7 @@
     "@nestjs/cli": "^7.6.0",
     "@nestjs/schematics": "^7.3.1",
     "@nestjs/testing": "^7.6.17",
-    "@redocly/openapi-cli": "^1.0.0-beta.48",
+    "@redocly/openapi-cli": "^1.0.0-beta.49",
     "@tsconfig/node14": "^1.0.0",
     "@types/jest": "^26.0.22",
     "@types/k6": "^0.32.0",

@@ -165,12 +165,17 @@ export default class AuthenticationService {
     });
     const signer = ES256KSigner(this.privateKey);
     const jwt = (
-      await createJWT(credential, {
-        alg: "ES256K",
-        issuer: this.applicationDid,
-        signer,
-        canonicalize: true,
-      })
+      await createJWT(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        credential,
+        {
+          alg: "ES256K",
+          issuer: this.applicationDid,
+          signer,
+          canonicalize: true,
+        }
+      )
     ).split(".");
     const detachedJwt = `${jwt[0]}..${jwt[2]}`;
     const requiredProof = {
