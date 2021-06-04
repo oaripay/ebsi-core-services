@@ -1,23 +1,21 @@
 import http from "k6/http";
 import { group, check } from "k6";
 
-const hostname = __ENV.API_HOSTNAME || "0.0.0.0";
-
-const BASE_URL = `http://${hostname}:3000`;
+const BASE_URL = __ENV.BASE_URL || "http://0.0.0.0:3000";
 
 export const options = {
   max_vus: 100,
   vus: 100,
   stages: [
-    { duration: "30s", target: 10 },
-    { duration: "4m", target: 100 },
-    { duration: "30s", target: 0 },
+    { duration: "15s", target: 10 },
+    { duration: "2m", target: 100 },
+    { duration: "15s", target: 0 },
   ],
 };
 
 export default function loadTesting() {
-  group("/trusted-ledgers-smart-contracts-registry/v1", () => {
-    const url = `${BASE_URL}/trusted-ledgers-smart-contracts-registry/v1`;
+  group("/trusted-ledgers-smart-contracts-registry/v1/ledgers", () => {
+    const url = `${BASE_URL}/trusted-ledgers-smart-contracts-registry/v1/ledgers`;
     const request = http.get(url);
     check(request, {
       Success: (r) => r.status === 200,
