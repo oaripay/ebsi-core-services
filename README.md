@@ -29,6 +29,9 @@ For more information see:
     - [Extra: lint Dockerfile](#extra-lint-dockerfile)
   - [Auditing the dependencies](#auditing-the-dependencies)
   - [Testing](#testing)
+  - [Load testing with k6](#load-testing-with-k6)
+    - [Start the API server](#start-the-api-server)
+    - [Run the tests](#run-the-tests)
   - [Serving the OpenAPI specification locally](#serving-the-openapi-specification-locally)
   - [Cutting a new release](#cutting-a-new-release)
   - [License](#license)
@@ -181,6 +184,53 @@ In CI environments, we use a dedicated command that runs unit tests and automati
 
 ```sh
 yarn test:ci
+```
+
+## Load testing with k6
+
+All the commands described below are run from the root folder.
+
+In order to run the tests, you must start a local server and, in parallel, run k6.
+
+### Start the API server
+
+If you have installed all the dependencies locally, run:
+
+```sh
+yarn build
+yarn start:prod
+```
+
+Or if you prefer using Docker Compose:
+
+```sh
+docker-compose up --build
+```
+
+### Run the tests
+
+If you have [installed k6 locally](https://k6.io/docs/getting-started/installation), run:
+
+```sh
+k6 run tests/k6/script.js --no-usage-report
+```
+
+If you prefer to use Docker, first make sure to download the docker image:
+
+```sh
+docker pull loadimpact/k6
+```
+
+Then, run the tests:
+
+```sh
+docker run -i loadimpact/k6 run -e BASE_URL=http://host.docker.internal:3000 --no-usage-report - <tests/k6/script.js
+```
+
+Note: you can also use k6 to test the remote API by configuring BASE_URL:
+
+```sh
+BASE_URL=https://api.test.intebsi.xyz k6 run tests/k6/script.js --no-usage-report
 ```
 
 ## Serving the OpenAPI specification locally
