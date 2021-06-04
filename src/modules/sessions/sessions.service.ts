@@ -201,6 +201,7 @@ export default class SessionsService {
           issuer: this.applicationDid,
           signer: ES256KSigner(this.apiPrivateKey),
           canonicalize: true,
+          expiresIn: 24 * 60 * 60,
         }
       );
       return { Bearer: token };

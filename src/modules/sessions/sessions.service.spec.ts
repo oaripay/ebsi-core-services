@@ -276,6 +276,7 @@ describe("sessions service tests", () => {
         expect.objectContaining({
           iat: expect.any(Number) as number,
           iss: configService.get<string>("applicationDid"),
+          exp: expect.any(Number) as number,
           onboarding: body.onboarding,
           validatedInfo,
         })
@@ -305,6 +306,7 @@ describe("sessions service tests", () => {
         expect.objectContaining({
           iat: expect.any(Number) as number,
           iss: configService.get<string>("applicationDid"),
+          exp: expect.any(Number) as number,
           onboarding: body.onboarding,
           validatedInfo,
         })
