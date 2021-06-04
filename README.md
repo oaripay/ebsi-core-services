@@ -249,7 +249,13 @@ docker pull loadimpact/k6
 Then, run the tests:
 
 ```sh
-docker run -i loadimpact/k6 run -e API_HOSTNAME=host.docker.internal --no-usage-report - <tests/k6/script.js
+docker run -i loadimpact/k6 run -e BASE_URL=http://host.docker.internal:3000 --no-usage-report - <tests/k6/script.js
+```
+
+Note: you can also use k6 to test the remote API by configuring BASE_URL:
+
+```sh
+BASE_URL=https://api.test.intebsi.xyz k6 run tests/k6/script.js --no-usage-report
 ```
 
 ## Serving the OpenAPI specification locally
