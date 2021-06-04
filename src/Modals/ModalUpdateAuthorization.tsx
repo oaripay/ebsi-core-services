@@ -198,7 +198,7 @@ export function ModalUpdateAuthorization() {
                 rules={[
                   {
                     required: true,
-                    message: "Please input a not after date!",
+                    message: "Please input an expire date!",
                   },
                   notAfterDate,
                 ]}

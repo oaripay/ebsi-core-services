@@ -213,12 +213,12 @@ export default function ModalInsertAuth(): ReactElement {
           <Row>
             <Col lg={20}>
               <Form.Item
-                label="Not before"
+                label="Start Date"
                 name="notBefore"
                 rules={[
                   {
                     required: true,
-                    message: "Please input a not before date!",
+                    message: "Please input a start date!",
                   },
                   notBeforeDate,
                 ]}
@@ -230,12 +230,12 @@ export default function ModalInsertAuth(): ReactElement {
           <Row>
             <Col lg={20}>
               <Form.Item
-                label="Not after"
+                label="Expire date"
                 name="notAfter"
                 rules={[
                   {
                     required: true,
-                    message: "Please input a not after date!",
+                    message: "Please input an expire date!",
                   },
                   notAfterDate,
                 ]}
