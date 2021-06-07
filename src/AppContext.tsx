@@ -12,6 +12,7 @@ export type AppContextType = {
   searchedTerm: string;
   page: number;
   setSearchedTerm: (searchedTerm: string) => void;
+  setClearInput: (clearInput: boolean) => void;
   setEditModal: (params: any) => void;
   setInsertPublicKeyModal: (params: any) => void;
   editModal: { show: boolean; data: any };
@@ -24,6 +25,7 @@ export type AppContextType = {
   setAuthorizedAppsModal: (params: any) => void;
   authorizedAppsModal: { show: boolean; data: any };
   metamask: {};
+  clearInput: boolean;
 };
 
 const defaultValue: any = {};
@@ -74,6 +76,7 @@ export function AppProvider({ children }: any) {
 
   const [pageErr, setPageErr] = useState(basePageErr);
   const [metamask, setMetamask] = useState();
+  const [clearInput, setClearInput] = useState(false);
 
   useEffect(() => {
     const Window: any = window;
@@ -230,6 +233,8 @@ export function AppProvider({ children }: any) {
       setPage,
       missingApps: missingAppsState,
       insertPublicKeyModal: insertPublicKeyModalState,
+      clearInput,
+      setClearInput,
     };
   }, [
     appState,
@@ -238,11 +243,14 @@ export function AppProvider({ children }: any) {
     setInsertPublicKeyModal,
     tableDataState,
     setPage,
+    setSearchedTerm,
     authorizedAppsModalState,
     updateAppPublicKeyState,
     updateAuthorizationState,
     updateAuthorizationState,
     metamask,
+    clearInput,
+    setClearInput,
   ]);
 
   return <AppContext.Provider value={props}>{children}</AppContext.Provider>;

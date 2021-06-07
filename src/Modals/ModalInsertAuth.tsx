@@ -15,11 +15,13 @@ import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
 import { AppContext } from "../AppContext";
 import { notAfterDate, notBeforeDate } from "../date-validator";
 import { useTableHook } from "../hooks/use-table-hook";
+import { useEthersHook } from "../hooks/use-ethers.hook";
 
 export default function ModalInsertAuth(): ReactElement {
   const [form] = Form.useForm();
 
   const { insertAuthorization } = useRegistryContractHook();
+  const { didRegistryContract } = useEthersHook();
   const { loadTableData } = useTableHook();
   const appCtx = useContext(AppContext);
 
@@ -61,43 +63,56 @@ export default function ModalInsertAuth(): ReactElement {
               notAfter: fields.notAfter.unix(),
             };
 
-            appCtx.setAuthorizedAppsModal({
-              show: false,
-            });
-
-            insertAuthorization(
-              insertAuthFields.name,
-              insertAuthFields.authorizedAppName,
-              insertAuthFields.iss,
-              insertAuthFields.status,
-              insertAuthFields.permissions,
-              insertAuthFields.notBefore,
-              insertAuthFields.notAfter
-            )
-              .then((tx: any) => {
-                tx.wait(1).then(() => {
-                  loadTableData();
-                  notification.success({
-                    message: "Transaction mined",
-                    description: `A new authorization was added to app ${insertAuthFields.name}!`,
+            didRegistryContract
+              .getDidRecord(
+                `0x${Buffer.from(insertAuthFields.iss).toString("hex")}`
+              )
+              .then(() => {
+                appCtx.setAuthorizedAppsModal({
+                  show: false,
+                });
+                insertAuthorization(
+                  insertAuthFields.name,
+                  insertAuthFields.authorizedAppName,
+                  insertAuthFields.iss,
+                  insertAuthFields.status,
+                  insertAuthFields.permissions,
+                  insertAuthFields.notBefore,
+                  insertAuthFields.notAfter
+                )
+                  .then((tx: any) => {
+                    tx.wait(1).then(() => {
+                      loadTableData();
+                      notification.success({
+                        message: "Transaction mined",
+                        description: `A new authorization was added to app ${insertAuthFields.name}!`,
+                      });
+                    });
+                    form.resetFields();
+                    notification.info({
+                      message: "Transaction",
+                      description: (
+                        <>
+                          <p>A transaction has been broadcasted.</p>
+                        </>
+                      ),
+                    });
+                  })
+                  .catch(() => {
+                    notification.error({
+                      message: "Error",
+                      description:
+                        "A problem appeared on trying to add public key to app. Please make sure you're logged in wallet client. If that didn't fix please contact an admin for further instructions!",
+                    });
                   });
-                });
-                form.resetFields();
-                notification.info({
-                  message: "Transaction",
-                  description: (
-                    <>
-                      <p>A transaction has been broadcasted.</p>
-                    </>
-                  ),
-                });
               })
               .catch(() => {
-                notification.error({
-                  message: "Error",
-                  description:
-                    "A problem appeared on trying to add public key to app. Please make sure you're logged in wallet client. If that didn't fix please contact an admin for further instructions!",
-                });
+                form.setFields([
+                  {
+                    name: "iss",
+                    errors: ["DID not defined in DID Registry"],
+                  },
+                ]);
               });
           });
       }}
@@ -114,7 +129,7 @@ export default function ModalInsertAuth(): ReactElement {
           form={form}
           initialValues={{
             status: 1,
-            permissions: 0,
+            permissions: 15,
           }}
         >
           <Row>
@@ -198,12 +213,12 @@ export default function ModalInsertAuth(): ReactElement {
           <Row>
             <Col lg={20}>
               <Form.Item
-                label="Not before"
+                label="Start Date"
                 name="notBefore"
                 rules={[
                   {
                     required: true,
-                    message: "Please input a not before date!",
+                    message: "Please input a start date!",
                   },
                   notBeforeDate,
                 ]}
@@ -215,12 +230,12 @@ export default function ModalInsertAuth(): ReactElement {
           <Row>
             <Col lg={20}>
               <Form.Item
-                label="Not after"
+                label="Expire date"
                 name="notAfter"
                 rules={[
                   {
                     required: true,
-                    message: "Please input a not after date!",
+                    message: "Please input an expire date!",
                   },
                   notAfterDate,
                 ]}

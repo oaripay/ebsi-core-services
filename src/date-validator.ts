@@ -26,9 +26,7 @@ export const notAfterDate = ({
     const notBefore = getFieldValue("notBefore");
     const notAfter = getFieldValue("notAfter");
     if (notBefore && notAfter && notBefore.diff(notAfter) > 0) {
-      return Promise.reject(
-        new Error("Not after date is less than not before date!")
-      );
+      return Promise.reject(new Error("Expire date is less than start date!"));
     }
     return Promise.resolve();
   },

@@ -120,11 +120,13 @@ export function ModalUpdateAuthorization() {
           form={form}
           initialValues={{
             appId: appCtx.updateAuthorization.data?.authorizationId,
+            permissions: 15,
+            status: 1,
           }}
         >
           <Row>
             <Col lg={24}>
-              <Form.Item label="Authorized app" name="authorizationId">
+              <Form.Item label="Existing Authorized app" name="authorizationId">
                 <Select style={{ width: "100%" }} onChange={() => {}}>
                   {appCtx.updateAuthorization.data?.authorizedApps?.map(
                     (app: string) => {
@@ -149,7 +151,7 @@ export function ModalUpdateAuthorization() {
           </Row>
           <Row>
             <Col lg={24}>
-              <Form.Item label="Status" name="status">
+              <Form.Item label="New status" name="status">
                 <Select style={{ width: "100%" }} onChange={() => {}}>
                   <Select.Option value={1}>active</Select.Option>
                   <Select.Option value={2}>revoked</Select.Option>
@@ -161,7 +163,7 @@ export function ModalUpdateAuthorization() {
           <Row>
             <Col lg={24}>
               <Form.Item
-                label="Permissions"
+                label="New Permissions"
                 name="permissions"
                 rules={[
                   { required: true, message: "Please input permissions!" },
@@ -191,12 +193,12 @@ export function ModalUpdateAuthorization() {
           <Row>
             <Col lg={24}>
               <Form.Item
-                label="Not after"
+                label="Expire date"
                 name="notAfter"
                 rules={[
                   {
                     required: true,
-                    message: "Please input a not after date!",
+                    message: "Please input an expire date!",
                   },
                   notAfterDate,
                 ]}

@@ -7,6 +7,9 @@ export const config = {
   REGISTRY_ADDRESS:
     process.env.REACT_APP_REGISTRY_ADDRESS ||
     "0x4d06b562588cb61616959806726c5d9f060b0f21",
+  DID_REGISTRY_ADDRESS:
+    process.env.REACT_APP_DID_REGISTRY_ADDRESS ||
+    "0x15582f47140ff4bd74843583a1e3111032fb91c8",
   NOTIFICATION_URL:
     process.env.REACT_APP_TAW_TX_URI || "/raw-transaction-signatures",
   REDIRECT_URL: process.env.REACT_APP_REDIRECT_URL || "http://localhost:3000",
