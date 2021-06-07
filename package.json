@@ -28,10 +28,10 @@
     "prepare": "is-ci || husky install"
   },
   "dependencies": {
-    "@cef-ebsi/did-jwt": "^1.0.0-alpha.5",
-    "@cef-ebsi/oauth2-auth": "^1.0.0-alpha.7",
-    "@cef-ebsi/problem-details-errors": "1.0.0-alpha.4",
-    "@cef-ebsi/siop-auth": "^0.5.1",
+    "@cef-ebsi/did-jwt": "^1.0.0-alpha.6",
+    "@cef-ebsi/oauth2-auth": "^1.0.0-alpha.8",
+    "@cef-ebsi/problem-details-errors": "1.0.0-alpha.5",
+    "@cef-ebsi/siop-auth": "^0.5.2",
     "@nestjs/common": "^7.6.17",
     "@nestjs/config": "^0.6.2",
     "@nestjs/core": "^7.6.17",
@@ -85,7 +85,7 @@
     "ganache-core": "^2.13.2",
     "husky": "^6.0.0",
     "is-ci": "^3.0.0",
-    "jest": "^27.0.3",
+    "jest": "^27.0.4",
     "jest-sonar": "^0.2.11",
     "lint-staged": "^11.0.0",
     "nock": "^13.1.0",
