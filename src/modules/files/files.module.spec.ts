@@ -202,22 +202,19 @@ describe("Files Module", () => {
 
       const rows: FileModel[] = [
         {
-          hash:
-            "0x0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555",
+          hash: "0x0355a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b04555",
           did,
           metadata: "{}",
           data: crypto.randomBytes(255),
         },
         {
-          hash:
-            "0x4234a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b044df",
+          hash: "0x4234a07b257bac3b223bd29b3bd3e24f5a53a84885d8bf36e278be0b45b044df",
           did,
           metadata: "{}",
           data: crypto.randomBytes(255),
         },
         {
-          hash:
-            "0xd2a69e5339bd87d7006400c4ab15dad9d8dee752142924fd0a0b637e7d2d63fe",
+          hash: "0xd2a69e5339bd87d7006400c4ab15dad9d8dee752142924fd0a0b637e7d2d63fe",
           did,
           metadata: "{}",
           data: crypto.randomBytes(255),
@@ -247,8 +244,7 @@ describe("Files Module", () => {
           ) as string,
         },
         pageSize: 10,
-        self:
-          "https://api.test.intebsi.xyz/storage/v2/stores/distributed/files?page[size]=10",
+        self: "https://api.test.intebsi.xyz/storage/v2/stores/distributed/files?page[size]=10",
       });
       expect(response.status).toBe(200);
       expect(mockedCassandraClientExecute).toHaveBeenCalledWith(

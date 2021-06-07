@@ -80,7 +80,7 @@ export class FilesService {
 
     const { pageState: rawPageState, rows } = result;
 
-    const items = rows.map((r): string => ((r as unknown) as FileModel).hash);
+    const items = rows.map((r): string => (r as unknown as FileModel).hash);
 
     let encryptedPageState = "";
     if (rawPageState) {

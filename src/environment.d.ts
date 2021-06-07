@@ -23,6 +23,7 @@ declare global {
       // Test vars
       TEST_APP_NAME?: string;
       TEST_APP_PRIVATE_KEY?: string;
+      TEST_APP_KID?: string;
       TEST_CLIENT_DID?: string;
       TEST_CLIENT_PRIVATE_KEY?: string;
       // Cassandra

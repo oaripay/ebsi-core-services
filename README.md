@@ -63,7 +63,7 @@ First, create an `.env.local` file locally. You can duplicate the content of `.e
 
 Please note that you need to fill the `API_PRIVATE_KEY` environment variable with secp256k1 elliptic curve private keys in hexadecimal.
 
-You must at least set `API_PRIVATE_KEY` and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_APP_NAME` and `TEST_APP_PRIVATE_KEY`.
+You must at least set `API_PRIVATE_KEY` and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_APP_KID`, `TEST_CLIENT_DID` and `TEST_CLIENT_PRIVATE_KEY`.
 
 You can also define consistency desired for read/write operations in cassandra (this API is not using lightweight transactions).
 
@@ -207,7 +207,7 @@ yarn audit
 
 ## Testing
 
-Reminder: you need to set `TEST_APP_NAME` and `TEST_APP_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests! They must refer to a valid app registered in the Trusted Apps Registry.
+Reminder: you need to set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_APP_KID`, `TEST_CLIENT_DID` and `TEST_CLIENT_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests! They must refer to a valid app registered in the Trusted Apps Registry.
 
 Before launching the e2e tests, make sure to run Cassandra using the docker-compose.yml in the tests folder:
 

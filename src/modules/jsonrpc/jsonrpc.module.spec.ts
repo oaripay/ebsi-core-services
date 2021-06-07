@@ -14,6 +14,7 @@ import { JsonRpcModule } from "./jsonrpc.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { CassandraService } from "../cassandra/cassandra.service";
 import { ApiConfig } from "../../config/configuration";
+import { AuthService } from "../auth/auth.service";
 
 jest.mock("cassandra-driver");
 
@@ -23,6 +24,7 @@ describe("JsonRpc Module", () => {
   let mockCassandra: jest.SpyInstance;
   let cassandraService: CassandraService;
   let configService: ConfigService<ApiConfig>;
+  let authService: AuthService;
 
   beforeAll(async () => {
     // Prevent leaking tests (they should not be able to call axios.get)
@@ -59,6 +61,7 @@ describe("JsonRpc Module", () => {
 
     cassandraService = moduleFixture.get<CassandraService>(CassandraService);
     configService = moduleFixture.get<ConfigService>(ConfigService);
+    authService = moduleFixture.get<AuthService>(AuthService);
   });
 
   afterAll(async () => {
@@ -143,8 +146,8 @@ describe("JsonRpc Module", () => {
 
     // Mock access token verification
     jest
-      .spyOn(Session.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve({}));
+      .spyOn(authService, "validateOAuth2Token")
+      .mockImplementation(async () => Promise.resolve({ name: "app" }));
 
     let response = await request(server)
       .post("/stores/distributed/jsonrpc")
@@ -244,8 +247,8 @@ describe("JsonRpc Module", () => {
 
       // Mock access token verification
       jest
-        .spyOn(Session.prototype, "verifyAccessToken")
-        .mockImplementation(async () => Promise.resolve({}));
+        .spyOn(authService, "validateOAuth2Token")
+        .mockImplementation(async () => Promise.resolve({ name: "app" }));
 
       const response = await request(server)
         .post("/stores/distributed/jsonrpc")

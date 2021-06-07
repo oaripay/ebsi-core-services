@@ -12,15 +12,16 @@ export const fastifyAdapterConfig = {
 };
 
 // https://github.com/fastify/fastify-multipart
-export const fastifyMultipartConfig: FastifyMultipartAttactFieldsToBodyOptions = {
-  limits: {
-    fieldNameSize: 100, // Max field name size in bytes
-    fieldSize: 6 * 1024 * 1024, // Max field value size in bytes
-    fields: 10, // Max number of non-file fields
-    fileSize: 6 * 1024 * 1024, // For multipart forms, the max file size
-    files: 1, // Max number of file fields
-    headerPairs: 2000, // Max number of header key=>value pairs
-  },
-  attachFieldsToBody: true,
-  throwFileSizeLimit: true,
-};
+export const fastifyMultipartConfig: FastifyMultipartAttactFieldsToBodyOptions =
+  {
+    limits: {
+      fieldNameSize: 100, // Max field name size in bytes
+      fieldSize: 6 * 1024 * 1024, // Max field value size in bytes
+      fields: 10, // Max number of non-file fields
+      fileSize: 6 * 1024 * 1024, // For multipart forms, the max file size
+      files: 1, // Max number of file fields
+      headerPairs: 2000, // Max number of header key=>value pairs
+    },
+    attachFieldsToBody: true,
+    throwFileSizeLimit: true,
+  };

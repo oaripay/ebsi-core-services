@@ -8,20 +8,16 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { Agent } from "@cef-ebsi/oauth2-auth";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { AppModule } from "../../src/app.module";
 import { fastifyAdapterConfig } from "../../src/config/server.config";
 import { ApiConfig } from "../../src/config/configuration";
+import { requestOAuth2Jwt } from "../utils";
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
   let configService: ConfigService<ApiConfig>;
-
-  const tarEndoint =
-    "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps";
-  const authorisationApi = "https://api.test.intebsi.xyz/authorisation/v1";
 
   let accessToken: string;
 
@@ -45,31 +41,13 @@ describe("JsonRpc Module", () => {
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     // Generate a valid JWT for the tests
-    const agentAppName = configService.get<string>("testAppName");
-    type TarItem = {
-      id: string;
-      name: string;
-      href: string;
-    };
-    const tarResponse = await request(tarEndoint).get(`?name=${agentAppName}`);
-
-    const kid = (tarResponse.body as {
-      items: TarItem[];
-    }).items[0].href;
-    const privKey = configService.get<string>("testAppPrivateKey");
-
-    const nonce = "123";
-    const agent = new Agent(privKey, { issuer: agentAppName, kid });
-    const requestComponent = await agent.createRequestPayload("storage-api", {
-      nonce,
+    accessToken = await requestOAuth2Jwt({
+      testAppKid: configService.get<string>("testAppKid"),
+      testAppName: configService.get<string>("testAppName"),
+      testAppPrivateKey: configService.get<string>("testAppPrivateKey"),
+      targetApiName: configService.get<string>("apiName"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
-
-    // Send request payload to Authorisation API
-    const res = await request(authorisationApi)
-      .post("/oauth2-sessions")
-      .send(requestComponent);
-
-    accessToken = await agent.verifyAuthenticationResponse(res.body, nonce);
   });
 
   afterAll(async () => {

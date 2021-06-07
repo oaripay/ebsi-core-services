@@ -23,6 +23,7 @@ export interface ApiConfig {
   // Test variables
   testAppName: string;
   testAppPrivateKey: string;
+  testAppKid: string;
   testClientDid: string;
   testClientPrivateKey: string;
 }
@@ -104,6 +105,7 @@ export const loadConfig = (): ApiConfig => {
     // Test vars
     testAppName: process.env.TEST_APP_NAME,
     testAppPrivateKey: process.env.TEST_APP_PRIVATE_KEY,
+    testAppKid: process.env.TEST_APP_KID,
     testClientDid: process.env.TEST_CLIENT_DID,
     testClientPrivateKey: process.env.TEST_CLIENT_PRIVATE_KEY,
   };
@@ -181,6 +183,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Test variables
     TEST_APP_NAME: Joi.string(),
     TEST_APP_PRIVATE_KEY: Joi.string(),
+    TEST_APP_KID: Joi.string().uri(),
     TEST_CLIENT_DID: Joi.string(),
     TEST_CLIENT_PRIVATE_KEY: Joi.string(),
   }),

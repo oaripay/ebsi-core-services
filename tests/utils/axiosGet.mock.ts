@@ -5,8 +5,9 @@ const keyEncoder = new KeyEncoder("secp256k1");
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const mockAxiosGet = (authorisationApiPublicKey: string) =>
-  jest.spyOn(axios, "get").mockImplementation(
-    (url: string): Promise<Partial<AxiosResponse>> => {
+  jest
+    .spyOn(axios, "get")
+    .mockImplementation((url: string): Promise<Partial<AxiosResponse>> => {
       if (
         url ===
         "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0x1111111111111111111111111111111111111111111111111111111111111111"
@@ -41,8 +42,7 @@ export const mockAxiosGet = (authorisationApiPublicKey: string) =>
               {
                 id: "0x1234",
                 name: "storage-api",
-                href:
-                  "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0x1234",
+                href: "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0x1234",
               },
             ],
           },
@@ -60,8 +60,7 @@ export const mockAxiosGet = (authorisationApiPublicKey: string) =>
               {
                 id: "0x5678",
                 name: "test-api",
-                href:
-                  "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0x5678",
+                href: "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0x5678",
               },
             ],
           },
@@ -79,8 +78,7 @@ export const mockAxiosGet = (authorisationApiPublicKey: string) =>
               {
                 authorizationId: "0x51dd",
                 requesterApplicationName: "test-api",
-                href:
-                  "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0x1234/authorizations/0x51dd",
+                href: "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0x1234/authorizations/0x51dd",
               },
             ],
           },
@@ -114,7 +112,6 @@ export const mockAxiosGet = (authorisationApiPublicKey: string) =>
       }
 
       throw new Error(`Calling a non-mocked endpoint: GET ${url}`);
-    }
-  );
+    });
 
 export default mockAxiosGet;

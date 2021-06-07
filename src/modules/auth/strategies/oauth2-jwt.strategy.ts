@@ -1,6 +1,7 @@
 import { Strategy } from "passport-http-bearer";
 import { PassportStrategy } from "@nestjs/passport";
 import { Injectable } from "@nestjs/common";
+import { FastifyRequest } from "fastify";
 import { AuthService } from "../auth.service";
 import { AppInfo } from "../auth.interface";
 
@@ -10,11 +11,17 @@ export class OAuth2JwtStrategy extends PassportStrategy(
   "oauth2-jwt"
 ) {
   constructor(private authService: AuthService) {
-    super();
+    super({ passReqToCallback: true });
   }
 
-  async validate(bearerToken: string): Promise<AppInfo> {
-    return this.authService.validateOAuth2Token(bearerToken);
+  async validate(
+    request: FastifyRequest,
+    bearerToken: string
+  ): Promise<AppInfo> {
+    return this.authService.validateOAuth2Token(
+      bearerToken,
+      request?.headers?.host
+    );
   }
 }
 

@@ -78,9 +78,7 @@ export class KeyValuesService {
 
     const { pageState: rawPageState, rows } = result;
 
-    const items = rows.map(
-      (r): string => ((r as unknown) as KeyValueModel).key
-    );
+    const items = rows.map((r): string => (r as unknown as KeyValueModel).key);
 
     let encryptedPageState = "";
     if (rawPageState) {

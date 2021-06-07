@@ -17,7 +17,7 @@ import {
 } from "../../src/config/server.config";
 import { byteLength } from "../../src/shared/utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { requestSiopJwt } from "../utils/siopJwt";
+import { requestSiopJwt } from "../utils";
 
 jest.setTimeout(60000);
 
@@ -72,7 +72,7 @@ describe("Files (e2e)", () => {
     server = app.getHttpServer() as HttpServer;
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
-    // Generate a valid Client JWT (SIOP) for the tests
+    // Generate valid Client JWT (SIOP) for the tests
     const didRegistry = `${configService.get<string>(
       "didRegistryApiUrl"
     )}/identifiers`;
@@ -312,8 +312,7 @@ describe("Files (e2e)", () => {
         items: expect.arrayContaining([]) as string[],
         links: expect.objectContaining({}) as unknown,
         pageSize: 12,
-        self:
-          "https://api.test.intebsi.xyz/storage/v2/stores/distributed/files?page[size]=12",
+        self: "https://api.test.intebsi.xyz/storage/v2/stores/distributed/files?page[size]=12",
       });
       expect(response.status).toBe(200);
     });
@@ -336,8 +335,7 @@ describe("Files (e2e)", () => {
           ) as string,
         },
         pageSize: 2,
-        self:
-          "https://api.test.intebsi.xyz/storage/v2/stores/distributed/files?page[size]=2",
+        self: "https://api.test.intebsi.xyz/storage/v2/stores/distributed/files?page[size]=2",
       });
       expect((response.body as { items: string[] }).items).toHaveLength(2);
       expect(response.status).toBe(200);

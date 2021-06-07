@@ -1,14 +1,9 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { Injectable } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
-import { ApiConfig } from "../../config/configuration";
 import { STORES } from "./stores.constants";
+
 @Injectable()
 export class StoresService {
-  private readonly logger = new Logger(StoresService.name);
-
-  constructor(private configService: ConfigService<ApiConfig>) {}
-
   getStores(pageAfter: number, pageSize: number): string[] {
     return STORES.slice(pageAfter - 1, pageAfter + pageSize - 1);
   }
