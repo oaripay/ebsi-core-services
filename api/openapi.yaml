@@ -478,8 +478,8 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  ? /trusted-apps-registry/v2/apps/{resourceApplicationId}/authorizations/{authorizationId}
-  : get:
+  /trusted-apps-registry/v2/apps/{resourceApplicationId}/authorizations/{authorizationId}:
+    get:
       tags:
         - Trusted Apps Registry
       summary: Get authorization by its ID
@@ -871,8 +871,8 @@ paths:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
       operationId: get-trusted-apps-registry-v2-administrators-did-attributes-attributeid
-  ? /trusted-apps-registry/v2/administrators/{did}/attributes/{attributeId}/revisions
-  : get:
+  /trusted-apps-registry/v2/administrators/{did}/attributes/{attributeId}/revisions:
+    get:
       tags:
         - Trusted Apps Registry
       summary: List the revisions of an attribute

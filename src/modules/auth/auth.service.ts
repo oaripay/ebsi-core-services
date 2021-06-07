@@ -28,7 +28,6 @@ export class AuthService {
 
   async validateSiopToken(bearerToken: string): Promise<ClientInfo> {
     // Verify access token with @cef-ebsi/siop-auth
-
     let payload: JWTPayload;
 
     try {
