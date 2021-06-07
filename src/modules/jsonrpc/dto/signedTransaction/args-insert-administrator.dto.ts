@@ -1,8 +1,8 @@
-import { IsHexadecimal } from "class-validator";
-import { IsDid } from "../../../../shared/validators";
+import { IsHexadecimal, Validate } from "class-validator";
+import { IsDidRule } from "../../validators";
 
 export class ArgsInsertAdministrator {
-  @IsDid()
+  @Validate(IsDidRule)
   did: string;
 
   @IsHexadecimal()

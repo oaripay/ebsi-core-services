@@ -5,6 +5,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
+import { useContainer } from "class-validator";
 import { fastifyHelmet } from "fastify-helmet";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
@@ -55,6 +56,7 @@ async function bootstrap(): Promise<void> {
 
   await app.register(fastifyHelmet);
 
+  useContainer(app.select(AppModule), { fallbackOnErrors: true });
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 

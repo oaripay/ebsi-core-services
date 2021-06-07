@@ -136,11 +136,6 @@ export class JsonRpcService {
       return;
     }
 
-    // Only allow client ID with DID (SIOP JWT)
-    if (!clientId || !clientId.startsWith("did:ebsi:")) {
-      throw new Error("Only administrators can access this method");
-    }
-
     try {
       await (
         await this.ledgerService.getContract()

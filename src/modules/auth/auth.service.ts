@@ -52,7 +52,7 @@ export class AuthService {
       });
     }
 
-    if (sub.startsWith("did:ebsi:")) {
+    if (payload.login_hint && payload.login_hint === "did_siop") {
       await this.validateSiopToken(bearerToken);
     } else {
       await this.validateOAuth2Token(bearerToken);

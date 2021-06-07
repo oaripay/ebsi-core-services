@@ -263,9 +263,9 @@ export async function insertDidDocument(
 }
 
 export async function insertDidMethod(
-  contract: DidRegistry
+  contract: DidRegistry,
+  methodName = `did:${crypto.randomBytes(8).toString("hex")}`
 ): Promise<DidMethod> {
-  const methodName = `did:ebsi-${crypto.randomBytes(8).toString("hex")}`;
   const didMethod = createDidMethod();
 
   const didMethodBuffer = Buffer.from(JSON.stringify(didMethod));
@@ -447,11 +447,12 @@ export async function setupTestEnv(
     .pipe(mergeMap(createAdminWallet), toArray())
     .toPromise();
 
-  const didMethods = await Promise.all(
-    Array(opts.didMethodsTotal ?? 1)
+  const didMethods = await Promise.all([
+    insertDidMethod(didRegistryContract, "did:ebsi"),
+    ...Array(Math.max(0, (opts.didMethodsTotal ?? 0) - 1))
       .fill(0)
-      .map(() => insertDidMethod(didRegistryContract))
-  );
+      .map(() => insertDidMethod(didRegistryContract)),
+  ]);
 
   didDocuments.push(
     ...(await Promise.all(

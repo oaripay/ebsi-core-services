@@ -1,8 +1,8 @@
-import { IsHexadecimal, IsOptional } from "class-validator";
-import { IsDid } from "../../../../shared/validators";
+import { IsHexadecimal, IsOptional, Validate } from "class-validator";
+import { IsDidRule } from "../../validators";
 
 export class ArgsUpdateAdministrator {
-  @IsDid()
+  @Validate(IsDidRule)
   did: string;
 
   @IsHexadecimal()

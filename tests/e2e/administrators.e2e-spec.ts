@@ -14,6 +14,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
+import { useContainer } from "class-validator";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import {
@@ -97,6 +98,8 @@ describe("Administrators (e2e)", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
+
+    useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
     // Turn off logger
     Logger.overrideLogger(false);

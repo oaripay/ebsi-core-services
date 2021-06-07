@@ -354,48 +354,48 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@cef-ebsi/did-jwt@^1.0.0-alpha.5":
-  version "1.0.0-alpha.5"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/did-jwt/-/did-jwt-1.0.0-alpha.5.tgz#310a0f8787dd00763f6b77da7c963e355d455c73"
-  integrity sha512-h+m92wSyrwfdFKiy44zfpDLGMefZsAzVF+/CSZpy5By+naZtkPW+1/omcKHCbLzMufax0zbCGSPT6R+tBzrLsw==
+"@cef-ebsi/did-jwt@^1.0.0-alpha.6":
+  version "1.0.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/did-jwt/-/did-jwt-1.0.0-alpha.6.tgz#bb3ac7d196d0ae53803fa86050fc40275bd48a4c"
+  integrity sha512-g5atXYbUrljVihM6T+E1WDt5LEmwf25bi4B/Z5VboQv1d/eFuwrkiAPYOZCPz8bs8nWtzFuRDD0WAqcgEvfJVg==
   dependencies:
     axios "^0.21.1"
-    did-jwt "^5.4.1"
+    did-jwt "^5.5.2"
     did-resolver "^3.1.0"
 
-"@cef-ebsi/oauth2-auth@^1.0.0-alpha.7":
-  version "1.0.0-alpha.7"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-1.0.0-alpha.7.tgz#b8f8301aeb8e9cb2b43400333f4c8c0a4cb7bf55"
-  integrity sha512-WqeihcYQ5njHV5yvbrv/pwXazZkZigaUoeVD9/LVk+Wiz5gWPlhC3dRI4qlNO9Q8KthRfv04ptC4rfx8XJ7iXA==
+"@cef-ebsi/oauth2-auth@^1.0.0-alpha.8":
+  version "1.0.0-alpha.8"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-1.0.0-alpha.8.tgz#2751754ec4c3bcd63165ce0ff9843311cd31dd93"
+  integrity sha512-OwoQqxLJ8I9eGmLFmOXv/KV+gy90VfWMPqm5PWjTpprTOTjE+r44381PHY6T7UBUTW3QW18TrumBwzq7GZYsCA==
   dependencies:
-    "@cef-ebsi/did-jwt" "^1.0.0-alpha.5"
+    "@cef-ebsi/did-jwt" "^1.0.0-alpha.6"
     axios "^0.21.0"
     base64url "^3.0.1"
     elliptic "^6.5.3"
     eth-crypto "^1.9.0"
-    ethers "^5.1.4"
-    jose "^3.12.1"
+    ethers "^5.3.0"
+    jose "^3.12.3"
     key-encoder "^2.0.3"
     uuid "^8.3.1"
 
-"@cef-ebsi/problem-details-errors@1.0.0-alpha.4":
-  version "1.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/problem-details-errors/-/problem-details-errors-1.0.0-alpha.4.tgz#1348eceff2f2f1dadfa605dfc155b42a5813c0a1"
-  integrity sha512-lwn8skb/e5sH3tdQO3lvczBgv22Z4YjWfZLgoFFLY+e21azl3LfSFxlO+0mesS47f5UpvwhUOa4v41x47nAXFA==
+"@cef-ebsi/problem-details-errors@1.0.0-alpha.5":
+  version "1.0.0-alpha.5"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/problem-details-errors/-/problem-details-errors-1.0.0-alpha.5.tgz#8c422dbd7e857a384aaf090870bda1ea83567e60"
+  integrity sha512-wu4JJXr6Xru7MWyBEbSjbRWtynD19nDgv8Fs41OMz802O4n8Sy500iN356gTHiAWBc/QkzkdGI/lC5e8cXCqFA==
 
-"@cef-ebsi/siop-auth@^0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-0.5.1.tgz#d4036187ce4ab6aeeb1bf2f8125aa20398c57262"
-  integrity sha512-f1TCFJ34Fa20Yc0evrc7UuJD+TqCEYiIhv+gGMALGMt8y5OnOMLLFtSMrJV69gB1rxg7xnk5PFGH1yeaBeZiVg==
+"@cef-ebsi/siop-auth@^0.5.2":
+  version "0.5.2"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-0.5.2.tgz#3ceff0ecf48b432a3e7b461407be99a985c22464"
+  integrity sha512-PL7sDSAXngi85q0PD+Y/b0gxDkpZwbGZjKDEf5t3cPvfETe8arhrddOoxxt2BgKTcgYLjTI+p9muZlIIwsjT3Q==
   dependencies:
-    "@cef-ebsi/did-jwt" "^1.0.0-alpha.5"
+    "@cef-ebsi/did-jwt" "^1.0.0-alpha.6"
     bs58 "^4.0.1"
     did-resolver "^3.1.0"
     elliptic "^6.5.4"
     eth-crypto "^1.9.0"
-    ethers "^5.1.4"
-    jose "^3.12.1"
-    js-base64 "^3.6.0"
+    ethers "^5.3.0"
+    jose "^3.12.3"
+    js-base64 "^3.6.1"
     querystring "^0.2.1"
     uuid "^8.3.2"
 
@@ -2124,15 +2124,15 @@
   resolved "https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.1.tgz#283f669ff76d7b8260df8ab7a4262cc83d988256"
   integrity sha512-fZQQafSREFyuZcdWFAExYjBiCL7AUCdgsk80iO0q4yihYYdcIiH28CcuPTGFgLOCC8RlW49GSQxdHwZP+I7CNg==
 
-"@types/node@^12.12.6":
-  version "12.20.14"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.20.14.tgz#9caf7eea0df08b406829889cc015256a6d81ab10"
-  integrity sha512-iFJOS5Q470FF+r4Ol2pSley7/wCNVqf+jgjhtxLLaJcDs+To2iCxlXIkJXrGLD9w9G/oJ9ibySu7z92DCwr7Pg==
-
 "@types/node@*", "@types/node@^14.11.8", "@types/node@^14.14.41":
   version "14.17.2"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.17.2.tgz#1e94476db57ec93a372c7f7d29aa5707cfb92339"
   integrity sha512-sld7b/xmFum66AAKuz/rp/CUO8+98fMpyQ3SBfzzBNGMd/1iHBTAg9oyAvcYlAj46bpc74r91jSw2iFdnx29nw==
+
+"@types/node@^12.12.6":
+  version "12.20.14"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.20.14.tgz#9caf7eea0df08b406829889cc015256a6d81ab10"
+  integrity sha512-iFJOS5Q470FF+r4Ol2pSley7/wCNVqf+jgjhtxLLaJcDs+To2iCxlXIkJXrGLD9w9G/oJ9ibySu7z92DCwr7Pg==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.0"
@@ -4881,7 +4881,7 @@ detect-newline@^3.0.0, detect-newline@^3.1.0:
   resolved "https://registry.yarnpkg.com/detect-newline/-/detect-newline-3.1.0.tgz#576f5dfc63ae1a192ff192d8ad3af6308991b651"
   integrity sha512-TLz+x/vEXm/Y7P7wn1EJFNLxYpUD4TgMosxY6fAVJUnJMbupHBOncxyWUG9OpTaH9EBD7uFI5LfEgmMOc54DsA==
 
-did-jwt@^5.4.1:
+did-jwt@^5.5.2:
   version "5.5.2"
   resolved "https://registry.yarnpkg.com/did-jwt/-/did-jwt-5.5.2.tgz#d35f4968ddd158ddd9594a8fd8c3988ca2c98756"
   integrity sha512-G7N5noSZwDExvhrjqzPC18M3Yo8oqTQWKaUQgtsXw2o4wwntRTgUn2HD3DQ44KIhVnqUt1E98j9bHTpqDfqT8w==
@@ -5886,7 +5886,7 @@ ethers@5.0.32:
     "@ethersproject/web" "5.0.14"
     "@ethersproject/wordlists" "5.0.10"
 
-ethers@^5.1.4, ethers@^5.3.0:
+ethers@^5.3.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.3.0.tgz#1ec14d09c461e8f2554b00cd080e94a3094e7e9d"
   integrity sha512-myN+338S4sFQZvQ9trii7xit8Hu/LnUtjA0ROFOHpUreQc3fgLZEMNVqF3vM1u2D78DIIeG1TbuozVCVlXQWvQ==
@@ -8112,12 +8112,12 @@ joi@^17.3.0:
     "@sideway/formula" "^3.0.0"
     "@sideway/pinpoint" "^2.0.0"
 
-jose@^3.12.1, jose@^3.12.3:
+jose@^3.12.3:
   version "3.12.3"
   resolved "https://registry.yarnpkg.com/jose/-/jose-3.12.3.tgz#9101a95d91b5ddb995e9f4033d3f4a20ff720d01"
   integrity sha512-PtT5I/omolkItXxKu+BhyrBhoYpmJAIPiG+W00BwZ4I3gT9rl8pLnK5cs2ha0LAknMxLVvM3UexcuYwNUkQ7aw==
 
-js-base64@^3.6.0:
+js-base64@^3.6.1:
   version "3.6.1"
   resolved "https://registry.yarnpkg.com/js-base64/-/js-base64-3.6.1.tgz#555aae398b74694b4037af1f8a5a6209d170efbe"
   integrity sha512-Frdq2+tRRGLQUIQOgsIGSCd1VePCS2fsddTG5dTCqR0JHgltXWfsxnY0gIXPoMeRmdom6Oyq+UMOFg5suduOjQ==

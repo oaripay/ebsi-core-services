@@ -9,9 +9,9 @@ import * as bs58 from "bs58";
  *
  * @returns A random EBSI DID
  */
-export const createDid = (): string => {
+export const createDid = (method?: string): string => {
   const buf = crypto.randomBytes(32);
-  return `did:ebsi:${bs58.encode(buf)}`;
+  return `${method || "did:ebsi"}:${bs58.encode(buf)}`;
 };
 
 /**

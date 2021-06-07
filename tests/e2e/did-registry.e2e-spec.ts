@@ -15,6 +15,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import canonicalize from "canonicalize";
+import { useContainer } from "class-validator";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -102,8 +103,6 @@ describe("DID Registry (e2e)", () => {
   let testUserAccessToken: string;
   let ledgerService: LedgerService;
 
-  const controllerDid = createDid();
-
   const prepareDidDocument = (did: string): DidDocumentDataset => {
     const didDocument = createDidDocument(did);
 
@@ -174,10 +173,12 @@ describe("DID Registry (e2e)", () => {
     };
   };
 
+  let didMethod: DidMethodDataset;
+  let controllerDid: string;
+
   let newDidDocument: DidDocumentDataset;
   let updatedDidDocument: DidDocumentDataset;
   const controllers: ethers.Wallet[] = [];
-  let didMethod: DidMethodDataset;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -187,6 +188,8 @@ describe("DID Registry (e2e)", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
+
+    useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
     // Turn off logger
     Logger.overrideLogger(false);
@@ -204,9 +207,11 @@ describe("DID Registry (e2e)", () => {
       prefixWith0x(configService.get("testClientPrivateKey"))
     );
 
+    didMethod = prepareDidMethod();
+    controllerDid = createDid(didMethod.methodName);
+
     newDidDocument = prepareDidDocument(controllerDid);
     updatedDidDocument = prepareDidDocument(controllerDid);
-    didMethod = prepareDidMethod();
 
     // Generate a valid Client JWT (SIOP) for the tests
     const domain = configService.get<string>("domain");
@@ -223,12 +228,12 @@ describe("DID Registry (e2e)", () => {
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each([
+    "insertDidMethod",
     "insertDidDocument",
     "updateDidDocument",
     "insertDidController",
     "updateDidController",
     "revokeDidController",
-    "insertDidMethod",
     "appendDidDocumentVersionHash",
     "detachDidDocumentVersionHash",
     "appendDidDocumentVersionMetadata",

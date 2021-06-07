@@ -18,6 +18,7 @@ import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import canonicalize from "canonicalize";
+import { useContainer } from "class-validator";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
@@ -188,6 +189,41 @@ describe("JsonRpc Module", () => {
     };
   };
 
+  const prepareDidDocumentInvalidDidRegistry = (): DidDocumentDataset => {
+    const did =
+      "did:unregistered-method:0xb9c5714089478a327f09197987f16f9e5d936e8a";
+    const didDocument = createDidDocument(did);
+
+    const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
+
+    // Canonicalize DID Document
+    const canonicalizedDidDocument = canonicalize(didDocument);
+
+    const canonicalizedDidDocumentBuffer = Buffer.from(
+      canonicalizedDidDocument
+    );
+    const canonicalizedDidDocumentHash = ethers.utils.sha256(
+      canonicalizedDidDocumentBuffer
+    );
+
+    const timestampDataBuffer = Buffer.from(
+      JSON.stringify({ data: "test", r: crypto.randomBytes(8).toString("hex") })
+    );
+    const didVersionMetadataBuffer = Buffer.from(
+      JSON.stringify(createMetadata())
+    );
+
+    return {
+      didDocument,
+      didDocumentBuffer,
+      canonicalizedDidDocument,
+      canonicalizedDidDocumentBuffer,
+      canonicalizedDidDocumentHash,
+      timestampDataBuffer,
+      didVersionMetadataBuffer,
+    };
+  };
+
   const prepareDidMethod = (): DidMethodDataset => {
     const didMethod = createDidMethod();
 
@@ -212,6 +248,7 @@ describe("JsonRpc Module", () => {
 
   let didDocument: DidDocumentDataset;
   let updatedDidDocument: DidDocumentDataset;
+  let didDocumentInvalidMethod: DidDocumentDataset;
   const controllers: ethers.Wallet[] = [];
 
   let didMethod: DidMethodDataset;
@@ -237,6 +274,8 @@ describe("JsonRpc Module", () => {
       new FastifyAdapter()
     );
 
+    useContainer(app.select(JsonRpcModule), { fallbackOnErrors: true });
+
     // Turn off logger
     Logger.overrideLogger(false);
 
@@ -250,6 +289,7 @@ describe("JsonRpc Module", () => {
 
     didDocument = prepareDidDocument(controllerDid);
     updatedDidDocument = prepareDidDocument(controllerDid);
+    didDocumentInvalidMethod = prepareDidDocumentInvalidDidRegistry();
     didMethod = prepareDidMethod();
 
     // Mock Contract service
@@ -268,7 +308,7 @@ describe("JsonRpc Module", () => {
     );
 
     userAccessToken = await createJWT(
-      { sub: adminDid },
+      { sub: adminDid, login_hint: "did_siop" },
       {
         issuer: "any",
         signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
@@ -276,7 +316,7 @@ describe("JsonRpc Module", () => {
     );
 
     defaultSignerSiopAccessToken = await createJWT(
-      { sub: testEnv.administrators[0].did },
+      { sub: testEnv.administrators[0].did, login_hint: "did_siop" },
       {
         issuer: "any",
         signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
@@ -562,7 +602,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.body).toStrictEqual({
       error: {
         code: -32600,
-        message: "Only administrators can access this method",
+        message: "Administrator random-app was not found in the DID Registry",
       },
       id: "45",
       jsonrpc: "2.0",
@@ -739,6 +779,7 @@ describe("JsonRpc Module", () => {
   // Tests to be repeated for every method
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each([
+    "insertDidMethod",
     "insertAdministrator",
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
@@ -751,7 +792,6 @@ describe("JsonRpc Module", () => {
     "insertDidController",
     "updateDidController",
     "revokeDidController",
-    "insertDidMethod",
     "updateDidMethod",
     "appendDidDocumentVersionHash",
     "appendDidDocumentVersionHash(with optional params)",
@@ -860,7 +900,6 @@ describe("JsonRpc Module", () => {
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
             "hex"
           )}`;
-
           controllers.push(signer);
 
           param = {
@@ -947,7 +986,7 @@ describe("JsonRpc Module", () => {
         case "insertDidMethod": {
           param = {
             from: signer.address,
-            methodName: "did:ebsi",
+            methodName: `did:${crypto.randomBytes(8).toString("hex")}`,
             ledgerName: "ebsi-besu",
             methodSpec: didMethod.didMethodsBuffer.map(
               (b) => `0x${b.toString("hex")}`
@@ -2381,5 +2420,50 @@ describe("JsonRpc Module", () => {
       });
       expect(responseSend1.status).toBe(400);
     });
+  });
+
+  it("should throw an error if the did method is not registered", async () => {
+    expect.assertions(1);
+    const testMethod = "insertDidDocument";
+    // Mock access token verification
+    jest
+      .spyOn(SiopSession.prototype, "verifyAccessToken")
+      .mockImplementation(async () => Promise.resolve({}));
+    const defaultSigner = testEnv.administrators[0].wallet;
+    const signer = defaultSigner;
+    const {
+      didDocumentBuffer,
+      canonicalizedDidDocumentHash,
+      timestampDataBuffer,
+      didVersionMetadataBuffer,
+    } = didDocumentInvalidMethod;
+
+    const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+    const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+    const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+    const didVersionMetadata = `0x${didVersionMetadataBuffer.toString("hex")}`;
+
+    controllers.push(signer);
+
+    const param: JsonRpcParams = {
+      from: signer.address,
+      identifier,
+      hashAlgorithmId: 0,
+      hashValue: canonicalizedDidDocumentHash,
+      didVersionInfo,
+      timestampData,
+      didVersionMetadata,
+    } as InsertDidDocumentParam;
+
+    const responseBuild: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        testMethod,
+        params: [param],
+        id: 231,
+      });
+    expect(responseBuild.status).toBe(400);
   });
 });
