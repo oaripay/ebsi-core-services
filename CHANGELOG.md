@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=234) (2021-06-08)
+
+### 🚀 Features
+
+- filter DID timestamps by identifier and version ID ([#65](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/65/overview)) - EBSIINT-2933 ([5f25d2b](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/5f25d2b432fa85be9055dafa2f03f90b1d115da1))
+- intercept Axios requests and redirect them to the local network ([#66](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/66/overview)) - EBSIINT-3039 ([98a8b47](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/98a8b472318bda19fc71554f3f0f6ac6c2615ae6))
+
+### 🐛 Bug Fixes
+
+- check did:method is well registered in DID Registry API ([#67](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/67/overview)) - EBSIINT-3041 ([eda6628](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/eda66286a8f551eb623f1ecff7adef6b2b6287ed))
+- handle local API 404 response ([#68](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/68/overview)) - EBSIINT-3039 ([103a172](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/103a17273c370ca7d798f8801364dbbcbbeed0f2))
+
 ## [2.0.0-rc.1](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=234) (2021-05-20)
 
 ### 🚀 Features

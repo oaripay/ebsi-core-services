@@ -1,9 +1,9 @@
 {
   "private": true,
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0-rc.2",
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --moderate -a 1674 1748",
+    "audit": "audit-ci --moderate -a 1674 1748 1753",
     "build": "nest build -p tsconfig.production.json",
     "copy:types": "rimraf src/contracts/did-registry && copyfiles submodules/did-registry-ethereum-sc/src/types/*.ts submodules/did-registry-ethereum-sc/src/types/factories/*.ts src/contracts/did-registry --up 4",
     "lint-staged": "lint-staged",
