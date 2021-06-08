@@ -73,20 +73,16 @@ describe("Attributes", () => {
       .auth(token, { type: "bearer" })
       .send();
 
-  const deleteAllAttributes = async () => {
-    const tokens = [testUser1.token, testUser2.token];
-    await Promise.all(
-      tokens.map(async (token) => {
-        const response = (await getAllAttributes(token)) as {
-          body: {
-            items: { hash: string }[];
-          };
-        };
-        return Promise.all(
-          response.body.items.map(async (item) => {
-            return deleteAttribute(item.hash, token);
-          })
-        );
+  const deleteAllAttributes = async (token: string) => {
+    const response = (await getAllAttributes(token)) as {
+      body: {
+        items: { hash: string }[];
+      };
+    };
+
+    return Promise.all(
+      response.body.items.map(async (item) => {
+        return deleteAttribute(item.hash, token);
       })
     );
   };
@@ -128,11 +124,16 @@ describe("Attributes", () => {
   describe("GET /attributes", () => {
     it("should get attributes associated to the did", async () => {
       expect.assertions(8);
-      await deleteAllAttributes();
-      /* eslint-disable no-await-in-loop */
-      for (let i = 0; i < 3; i += 1) await insertAttribute();
+
+      await deleteAllAttributes(testUser1.token);
+      await deleteAllAttributes(testUser2.token);
+
+      for (let i = 0; i < 3; i += 1) {
+        // eslint-disable-next-line no-await-in-loop
+        await insertAttribute();
+      }
+
       await insertAttribute("shared", true);
-      /* eslint-enable no-await-in-loop */
 
       // First Page
       let path = "/attributes?page[size]=2";
