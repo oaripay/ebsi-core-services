@@ -345,8 +345,8 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  ? /trusted-issuers-registry/v2/administrators/{did}/attributes/{attributeId}/revisions
-  : get:
+  /trusted-issuers-registry/v2/administrators/{did}/attributes/{attributeId}/revisions:
+    get:
       tags:
         - Trusted Issuers Registry
       operationId: get-trusted-issuers-registry-v2-administrators-did-attributes-attributeid-revisions

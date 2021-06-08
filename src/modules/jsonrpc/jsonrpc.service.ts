@@ -103,14 +103,12 @@ export class JsonRpcService {
     return false;
   }
 
-  async checkWritePermission(address: string, clientId: string): Promise<void> {
-    /* TODO: check -->
-      - Actor DID must be registered in the DID Registry
-      - The actor must be authorized for the write operation in the TIR SC
-        - EBSI Admin is authorized in the Trusted IAM SC - query the Trusted IAM Registry API: /administrators
-        - Domain admin is authorized in the TIR SC - Query the SC: /administrators
-    */
-
+  async checkWritePermission(
+    address: string,
+    clientId: string,
+    func: string,
+    args: unknown
+  ): Promise<void> {
     // Check DID Registry
     if (!(await this.isDidControlledByAddress(clientId, address))) {
       throw new Error(
@@ -120,7 +118,15 @@ export class JsonRpcService {
 
     const did = clientId.toLowerCase();
 
-    // Verify the did is in the TIR Registry
+    // An issuer can update his/her own attributes
+    if (
+      func === "updateIssuer" &&
+      (args as ArgsUpdateIssuer).did.toLowerCase() === did
+    ) {
+      return;
+    }
+
+    // Verify if the DID is an admin in the TIR Registry
     try {
       await (await this.ledgerService.getContract()).getAdministrator(did);
     } catch (e) {
@@ -130,7 +136,9 @@ export class JsonRpcService {
     }
   }
 
-  async verifyTransaction(param: SignedTransactionParam): Promise<string> {
+  async verifyTransaction(
+    param: SignedTransactionParam
+  ): Promise<{ signer: string; functionName: string; args: unknown }> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
 
     const unsignedTx = formatEthersUnsignedTransaction(unsignedTransaction);
@@ -227,7 +235,11 @@ export class JsonRpcService {
         );
     }
 
-    return signer;
+    return {
+      signer,
+      functionName: functionFragment.name,
+      args,
+    };
   }
 
   async buildTransaction(
@@ -435,9 +447,11 @@ export class JsonRpcService {
       await validateClass(RequestSignedTransactionDto, body);
 
       const request = body.params[0];
-      const signer = await this.verifyTransaction(request);
+      const { signer, functionName, args } = await this.verifyTransaction(
+        request
+      );
 
-      await this.checkWritePermission(signer, clientId);
+      await this.checkWritePermission(signer, clientId, functionName, args);
 
       const tx = await (
         await this.ledgerService.getContract()

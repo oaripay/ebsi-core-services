@@ -66,6 +66,7 @@ describe("JsonRpc Module", () => {
   let userAccessTokenPayload: { [x: string]: unknown };
   let defaultSignerSiopAccessToken: string;
   let defaultSignerSiopAccessTokenPayload: { [x: string]: unknown };
+  let issuerV1SiopAccessTokenPayload: { [x: string]: unknown };
 
   const createAdministrator = (did: string) => {
     const json = {
@@ -258,6 +259,10 @@ describe("JsonRpc Module", () => {
         signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
       }
     );
+
+    issuerV1SiopAccessTokenPayload = {
+      sub: issuerV1.did,
+    };
   });
 
   beforeEach(() => {
@@ -650,11 +655,21 @@ describe("JsonRpc Module", () => {
       expect.assertions(4);
 
       // Mock access token verification
-      jest
-        .spyOn(SiopSession.prototype, "verifyAccessToken")
-        .mockImplementation(async () =>
-          Promise.resolve(defaultSignerSiopAccessTokenPayload)
-        );
+      if (method === "updateIssuer" && updateAttribute) {
+        // Authenticate as issuer V1
+        jest
+          .spyOn(SiopSession.prototype, "verifyAccessToken")
+          .mockImplementation(async () =>
+            Promise.resolve(issuerV1SiopAccessTokenPayload)
+          );
+      } else {
+        // Authenticate as admin
+        jest
+          .spyOn(SiopSession.prototype, "verifyAccessToken")
+          .mockImplementation(async () =>
+            Promise.resolve(defaultSignerSiopAccessTokenPayload)
+          );
+      }
 
       const signer = testEnv.administrators[0].wallet;
       const param: JsonRpcParams = createParam(method, signer, updateAttribute);

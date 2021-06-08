@@ -12,7 +12,12 @@ module.exports = {
   },
   moduleFileExtensions: ["js", "json", "ts"],
   coverageDirectory: "./coverage/",
-  collectCoverageFrom: ["src/**/*.(t|j)s", "!**/*.d.ts", "!src/main.ts"],
+  collectCoverageFrom: [
+    "src/**/*.(t|j)s",
+    "!**/*.d.ts",
+    "!src/main.ts",
+    "!src/contracts/**/*",
+  ],
   coverageReporters: ["text", "lcov", "json", "clover", "cobertura"],
   testTimeout: 60000,
 };
