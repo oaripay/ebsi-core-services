@@ -3,7 +3,7 @@
   "version": "1.0.0-rc.1",
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --moderate -a 1748",
+    "audit": "audit-ci --moderate -a 1748 1753",
     "prebuild": "rimraf dist",
     "build": "nest build -p tsconfig.production.json",
     "start": "nest start",

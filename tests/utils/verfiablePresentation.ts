@@ -8,8 +8,7 @@ import {
   Presentation,
   VerifiablePresentation,
 } from "@cef-ebsi/verifiable-presentation";
-import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
-import extractIatFromJwt from "./auxTest";
+import { createJWT, decodeJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 
 export async function createVP(
   holderDid: string,
@@ -51,7 +50,7 @@ export async function createVP(
   const signatureValue = {
     proofValue: `${vpToken[0]}..${vpToken[2]}`,
     proofValueName: "jws",
-    iat: extractIatFromJwt(jwtdata),
+    iat: decodeJWT(jwtdata).payload.iat,
   };
   return createVerifiablePresentation(
     presentation,

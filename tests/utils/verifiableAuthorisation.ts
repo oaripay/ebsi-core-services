@@ -5,7 +5,7 @@ import {
   SignatureValue,
   VerifiableCredential,
 } from "@cef-ebsi/verifiable-credential";
-import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import { createJWT, decodeJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { v4 as uuidv4 } from "uuid";
 
 export async function createVerifiableAuthorisation(
@@ -38,25 +38,24 @@ export async function createVerifiableAuthorisation(
     },
   });
   const signer = ES256KSigner(privateKey);
-  const jwt = (
-    await createJWT(
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      credential,
-      {
-        alg: "ES256K",
-        issuer: applicationDid,
-        signer,
-        canonicalize: true,
-      },
-      {
-        alg: "ES256K",
-        typ: "JWT",
-        kid: `${didRegistry}/${applicationDid}#keys-1`,
-      }
-    )
-  ).split(".");
-  const detachedJwt = `${jwt[0]}..${jwt[2]}`;
+  const jwt = await createJWT(
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    credential,
+    {
+      alg: "ES256K",
+      issuer: applicationDid,
+      signer,
+      canonicalize: true,
+    },
+    {
+      alg: "ES256K",
+      typ: "JWT",
+      kid: `${didRegistry}/${applicationDid}#keys-1`,
+    }
+  );
+  const splitJwt = jwt.split(".");
+  const detachedJwt = `${splitJwt[0]}..${splitJwt[2]}`;
   const requiredProof = {
     type: "EcdsaSecp256k1Signature2019",
     proofPurpose: "assertionMethod",
@@ -65,7 +64,7 @@ export async function createVerifiableAuthorisation(
   const signatureValue = {
     proofValue: detachedJwt,
     proofValueName: "jws",
-    iat: Math.floor(new Date().getTime() / 1000),
+    iat: decodeJWT(jwt).payload.iat,
   } as SignatureValue;
   return createVerifiableCredential(credential, requiredProof, signatureValue);
 }
