@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.3&targetRepoId=247) (2021-06-04)
+
+### 🐛 Bug Fixes
+
+- handle local API 404 response ([#52](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/pull-requests/52/overview)) - EBSIINT-3039 ([4c19d19](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/commits/4c19d19d95c843ea41ecf8214091824b724cd67f))
+
 ## [2.0.0-rc.2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=247) (2021-06-02)
 
 ### 🚀 Features
