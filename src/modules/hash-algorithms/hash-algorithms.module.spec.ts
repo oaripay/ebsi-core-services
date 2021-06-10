@@ -275,10 +275,12 @@ describe("HashAlgorithms Module", () => {
 
       const response = await request(server).get("/hash-algorithms/0");
 
+      const firstHashAlgorithm = testEnv.hashAlgorithms[0];
+
       expect(response.body).toStrictEqual({
-        ianaName: expect.any(String) as string,
-        oid: "oid-test",
-        outputLengthBits: 20,
+        ianaName: firstHashAlgorithm.ianaName,
+        oid: firstHashAlgorithm.oid,
+        outputLengthBits: firstHashAlgorithm.outputLength,
         status: "active",
       });
       expect(response.status).toBe(200);

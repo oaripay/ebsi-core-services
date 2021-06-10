@@ -1,26 +1,9 @@
-import {
-  IsEthereumAddress,
-  IsInt,
-  IsHexadecimal,
-  Min,
-  IsOptional,
-} from "class-validator";
-import { IsHexadecimalJSON } from "../../validators";
+import { IsEthereumAddress } from "class-validator";
+import { ArgsTimestampHashes } from "../signedTransaction";
 
-export class TimestampHashesParam {
+export class TimestampHashesParam extends ArgsTimestampHashes {
   @IsEthereumAddress()
   from: string;
-
-  @IsInt({ each: true })
-  @Min(0, { each: true })
-  hashAlgorithmIds: number[];
-
-  @IsHexadecimal({ each: true })
-  hashValues: string[];
-
-  @IsOptional()
-  @IsHexadecimalJSON({ each: true })
-  timestampData: string[];
 }
 
 export default { TimestampHashesParam };

@@ -93,21 +93,29 @@ export async function deployTimestampContract(
 }
 
 const validHashAlgorithms = [
-  "sha1",
-  "sha2-256",
-  "sha2-512",
-  "sha3-512",
-  "sha3-384",
-  "sha3-256",
+  "sha-256",
+  "sha-512",
   "sha3-224",
-];
+  "sha3-256",
+  "sha3-384",
+  "sha3-512",
+] as const;
+
+const outputLengths = {
+  "sha-256": 256,
+  "sha-512": 512,
+  "sha3-224": 224,
+  "sha3-256": 256,
+  "sha3-384": 384,
+  "sha3-512": 512,
+};
 
 export async function insertHashAlgorithm(
   contract: Timestamp
 ): Promise<HashAlgorithmObject> {
-  const outputLength = 20;
   const ianaName =
     validHashAlgorithms[Math.floor(Math.random() * validHashAlgorithms.length)];
+  const outputLength = outputLengths[ianaName];
   const oid = "oid-test";
   const status = 1;
   await contract.insertHashAlgorithm(outputLength, ianaName, oid, status);

@@ -12,7 +12,6 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
-import multihash from "multihashes";
 import { ethers } from "ethers";
 import { TimestampsModule } from "./timestamps.module";
 import { TimestampLink } from "./timestamps.interface";
@@ -20,7 +19,12 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { multibase64Encode, multihashEncode } from "../../shared/utils";
+import {
+  IanaName,
+  ianaNameToMultihashName,
+  multibase64Encode,
+  multihashEncode,
+} from "../../shared/utils";
 import { LedgerService } from "../../shared/services/ledger.service";
 
 const HASHES_TOTAL = 3;
@@ -280,7 +284,9 @@ describe("Timestamps Module", () => {
       // multi-hash (base64 multi-encoded)
       const multihashEncodedHash = multihashEncode(
         hashValue,
-        hashAlgorithms[0].ianaName as multihash.HashName
+        ianaNameToMultihashName(
+          hashAlgorithms[0].ianaName.toLowerCase() as IanaName
+        )
       );
 
       expect(response.body).toStrictEqual({

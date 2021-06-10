@@ -55,6 +55,11 @@ describe("Records (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let ledgerService: LedgerService;
+  let hashAlgorithmId: number;
+  let hashAlgorithmIanaName: string;
+  let hashValue1: string;
+  let hashValue2: string;
+  let blockNumber = 0;
 
   let testAdmin: {
     did: string;
@@ -69,9 +74,6 @@ describe("Records (e2e)", () => {
     wallet: ethers.Wallet;
     token?: string;
   };
-
-  let blockNumber = 0;
-  const firstHashValue = `0x${crypto.randomBytes(32).toString("hex")}`;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -95,16 +97,14 @@ describe("Records (e2e)", () => {
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
-    const configAdmin =
-      configService.get<{
-        did: string;
-        privateKey: string;
-      }>("testAdmin");
-    const configUser =
-      configService.get<{
-        did: string;
-        privateKey: string;
-      }>("testUser");
+    const configAdmin = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testAdmin");
+    const configUser = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser");
     testAdmin = {
       ...configAdmin,
       wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
@@ -116,6 +116,43 @@ describe("Records (e2e)", () => {
 
     testUser.token = await siopAuthentication(testUser);
     testAdmin.token = await siopAuthentication(testAdmin);
+
+    // During the tests, we'll use the last hash algorithm
+    const getHashAlgorithmsResponse = await request(server).get(
+      "/hash-algorithms"
+    );
+    hashAlgorithmId =
+      (getHashAlgorithmsResponse.body as { total: number }).total - 1;
+
+    // Get info about the hash algorithm
+    const getHashAlgorithmResponse = await request(server).get(
+      `/hash-algorithms/${hashAlgorithmId}`
+    );
+    hashAlgorithmIanaName = (
+      getHashAlgorithmResponse.body as { ianaName: string }
+    ).ianaName.toLowerCase();
+
+    const ianaToNodeHashAlg = {
+      "sha-256": "sha256",
+      "sha-512": "sha512",
+      "sha3-224": "sha3-224",
+      "sha3-256": "sha3-256",
+      "sha3-384": "sha3-384",
+      "sha3-512": "sha3-512",
+    };
+
+    // Compute 2 hashes with the last hash algorithm
+    hashValue1 = `0x${crypto
+      .createHash(ianaToNodeHashAlg[hashAlgorithmIanaName])
+      .update(crypto.randomBytes(32).toString("hex"), "hex")
+      .digest()
+      .toString("hex")}`;
+
+    hashValue2 = `0x${crypto
+      .createHash(ianaToNodeHashAlg[hashAlgorithmIanaName])
+      .update(crypto.randomBytes(32).toString("hex"), "hex")
+      .digest()
+      .toString("hex")}`;
   });
 
   describe("GET /records", () => {
@@ -277,11 +314,8 @@ describe("Records (e2e)", () => {
         case "timestampRecordHashes": {
           param = {
             from: testUser.wallet.address,
-            hashAlgorithmIds: [0, 0],
-            hashValues: [
-              firstHashValue,
-              `0x${crypto.randomBytes(32).toString("hex")}`,
-            ],
+            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+            hashValues: [hashValue1, hashValue2],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
                 "hex"
@@ -301,18 +335,15 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, firstHashValue]
+              [testUser.wallet.address, blockNumber, hashValue1]
             )
           );
 
           param = {
             from: testUser.wallet.address,
             recordId,
-            hashAlgorithmIds: [0, 0],
-            hashValues: [
-              firstHashValue,
-              `0x${crypto.randomBytes(32).toString("hex")}`,
-            ],
+            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+            hashValues: [hashValue1, hashValue2],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
                 "hex"
@@ -332,7 +363,7 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, firstHashValue]
+              [testUser.wallet.address, blockNumber, hashValue1]
             )
           );
           const notBefore = new Date().getTime();
@@ -349,7 +380,7 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, firstHashValue]
+              [testUser.wallet.address, blockNumber, hashValue1]
             )
           );
           param = {
@@ -363,7 +394,7 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, firstHashValue]
+              [testUser.wallet.address, blockNumber, hashValue1]
             )
           );
 
@@ -382,14 +413,14 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, firstHashValue]
+              [testUser.wallet.address, blockNumber, hashValue1]
             )
           );
           param = {
             from: testUser.wallet.address,
             recordId,
             versionId: 0,
-            hashValue: firstHashValue,
+            hashValue: hashValue1,
           } as DetachRecordVersionHashParam;
           break;
         }
@@ -397,18 +428,15 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, firstHashValue]
+              [testUser.wallet.address, blockNumber, hashValue1]
             )
           );
           param = {
             from: testUser.wallet.address,
             recordId,
             versionId: 0,
-            hashAlgorithmIds: [0, 0],
-            hashValues: [
-              firstHashValue,
-              `0x${crypto.randomBytes(32).toString("hex")}`,
-            ],
+            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+            hashValues: [hashValue1, hashValue2],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
                 "hex"
@@ -511,11 +539,8 @@ describe("Records (e2e)", () => {
         case "timestampRecordHashes": {
           param = {
             from: testUser.wallet.address,
-            hashAlgorithmIds: [0, 0],
-            hashValues: [
-              firstHashValue,
-              `0x${crypto.randomBytes(32).toString("hex")}`,
-            ],
+            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+            hashValues: [hashValue1, hashValue2],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
               "utf8"
@@ -527,18 +552,15 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, firstHashValue]
+              [testUser.wallet.address, blockNumber, hashValue1]
             )
           );
 
           param = {
             from: testUser.wallet.address,
             recordId,
-            hashAlgorithmIds: [0, 0],
-            hashValues: [
-              firstHashValue,
-              `0x${crypto.randomBytes(32).toString("hex")}`,
-            ],
+            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+            hashValues: [hashValue1, hashValue2],
 
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
@@ -567,18 +589,15 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, firstHashValue]
+              [testUser.wallet.address, blockNumber, hashValue1]
             )
           );
           param = {
             from: testUser.wallet.address,
             recordId,
             versionId: 0,
-            hashAlgorithmIds: [0, 0],
-            hashValues: [
-              firstHashValue,
-              `0x${crypto.randomBytes(32).toString("hex")}`,
-            ],
+            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+            hashValues: [hashValue1, hashValue2],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
               "utf8"
@@ -669,11 +688,8 @@ describe("Records (e2e)", () => {
 
     const param = {
       from: testAdmin.wallet.address,
-      hashAlgorithmIds: [0, 0],
-      hashValues: [
-        firstHashValue,
-        `0x${crypto.randomBytes(32).toString("hex")}`,
-      ],
+      hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+      hashValues: [hashValue1, hashValue2],
       timestampData: [
         `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
           "hex"

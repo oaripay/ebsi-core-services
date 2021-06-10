@@ -1,12 +1,20 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
-import multihash from "multihashes";
+import {
+  InternalServerError,
+  NotFoundError,
+} from "@cef-ebsi/problem-details-errors";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { Timestamp } from "../../contracts/timestamp";
 import { TimestampResponseObject } from "./timestamps.interface";
-import { multibase64Decode, multihashEncode } from "../../shared/utils";
+import {
+  IanaName,
+  multibase64Decode,
+  multihashEncode,
+  isSupportedIanaName,
+  ianaNameToMultihashName,
+} from "../../shared/utils";
 
 @Injectable()
 export default class TimestampsService {
@@ -53,19 +61,21 @@ export default class TimestampsService {
       ).provider.getBlock(blockNumber.toNumber()),
     ]);
 
-    // check if ianaName is valid, otherwise fallback to "sha2-256" as a temporary fix
-    let { ianaName } = hashAlgorithm as { ianaName: multihash.HashName };
-    try {
-      multihash.coerceCode(ianaName);
-    } catch (e) {
-      this.logger.error(
-        `Tried to use ianaName "${ianaName}", falling back to sha2-256`
-      );
-      ianaName = "sha2-256";
+    const ianaName = hashAlgorithm.ianaName.toLowerCase();
+
+    // Check if ianaName is valid
+    if (!isSupportedIanaName(ianaName)) {
+      this.logger.error(`Unsupported IANA name: ${hashAlgorithm.ianaName}`);
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: "Unsupported hash algorithm",
+      });
     }
 
-    // multi-hash (base64 multi-encoded)
-    const multihashEncodedHash = multihashEncode(hash.value, ianaName);
+    // Multi-hash (base64 multi-encoded)
+    const multihashEncodedHash = multihashEncode(
+      hash.value,
+      ianaNameToMultihashName(ianaName as IanaName)
+    );
 
     return {
       hash: multihashEncodedHash,

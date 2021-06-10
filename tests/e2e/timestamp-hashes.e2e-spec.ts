@@ -23,7 +23,6 @@ import {
   TimestampHashesParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { TimestampLink } from "../../src/modules/timestamps/timestamps.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x, multibase64Encode } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
@@ -44,6 +43,10 @@ describe("Timestamp (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let ledgerService: LedgerService;
+  let hashAlgorithmId: number;
+  let hashAlgorithmIanaName: string;
+  let hashValue1: string;
+  let hashValue2: string;
 
   let testAdmin: {
     did: string;
@@ -88,21 +91,18 @@ describe("Timestamp (e2e)", () => {
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
-    const configAdmin =
-      configService.get<{
-        did: string;
-        privateKey: string;
-      }>("testAdmin");
-    const configUser =
-      configService.get<{
-        did: string;
-        privateKey: string;
-      }>("testUser");
-    const configApp =
-      configService.get<{
-        name: string;
-        privateKey: string;
-      }>("testApp");
+    const configAdmin = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testAdmin");
+    const configUser = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser");
+    const configApp = configService.get<{
+      name: string;
+      privateKey: string;
+    }>("testApp");
     testAdmin = {
       ...configAdmin,
       wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
@@ -119,76 +119,43 @@ describe("Timestamp (e2e)", () => {
     testUser.token = await siopAuthentication(testUser);
     testAdmin.token = await siopAuthentication(testAdmin);
     testApp.token = await oauth2Authentication(testApp);
-  });
 
-  describe("GET /timestamps", () => {
-    it("should return a paginated collection of timestamps", async () => {
-      expect.assertions(2);
+    // During the tests, we'll use the last hash algorithm
+    const getHashAlgorithmsResponse = await request(server).get(
+      "/hash-algorithms"
+    );
+    hashAlgorithmId =
+      (getHashAlgorithmsResponse.body as { total: number }).total - 1;
 
-      const response = await request(server).get("/timestamps");
-      expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/timestamps?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: expect.any(Number) as number,
-        pageSize: 10,
-        links: {
-          first: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining("/timestamps?page[after]=") as string,
-          last: expect.stringContaining("/timestamps?page[after]=") as string,
-        },
-      });
-      expect(response.status).toBe(200);
-    });
-  });
+    // Get info about the hash algorithm
+    const getHashAlgorithmResponse = await request(server).get(
+      `/hash-algorithms/${hashAlgorithmId}`
+    );
+    hashAlgorithmIanaName = (
+      getHashAlgorithmResponse.body as { ianaName: string }
+    ).ianaName.toLowerCase();
 
-  describe("GET /timestamps/{timestampId}", () => {
-    it("should return a specific record", async () => {
-      expect.assertions(2);
+    const ianaToNodeHashAlg = {
+      "sha-256": "sha256",
+      "sha-512": "sha512",
+      "sha3-224": "sha3-224",
+      "sha3-256": "sha3-256",
+      "sha3-384": "sha3-384",
+      "sha3-512": "sha3-512",
+    };
 
-      const respTimestamps = await request(server).get("/timestamps");
+    // Compute 2 hashes with the last hash algorithm
+    hashValue1 = `0x${crypto
+      .createHash(ianaToNodeHashAlg[hashAlgorithmIanaName])
+      .update(crypto.randomBytes(32).toString("hex"), "hex")
+      .digest()
+      .toString("hex")}`;
 
-      const { timestampId } = (
-        respTimestamps.body as {
-          items: TimestampLink[];
-        }
-      ).items[0];
-
-      const response = await request(server).get(`/timestamps/${timestampId}`);
-
-      expect(response.body).toStrictEqual({
-        blockNumber: expect.any(Number) as number,
-        data: expect.stringContaining("0x") as string,
-        hash: expect.any(String) as string,
-        timestampedBy: expect.stringContaining("0x") as string,
-        transactionHash: expect.stringContaining("0x") as string,
-      });
-      expect(response.status).toBe(200);
-    });
-
-    it("should throw an error if the record is not found", async () => {
-      expect.assertions(2);
-
-      const timestampId = multibase64Encode(
-        `0x${crypto.randomBytes(32).toString("hex")}`
-      );
-
-      const response = await request(server).get(`/timestamps/${timestampId}`);
-
-      expect(response.body).toStrictEqual({
-        title: "Timestamp Not Found",
-        status: 404,
-        detail: `Timestamp ${timestampId} not found`,
-        type: "about:blank",
-      });
-      expect(response.status).toBe(404);
-    });
+    hashValue2 = `0x${crypto
+      .createHash(ianaToNodeHashAlg[hashAlgorithmIanaName])
+      .update(crypto.randomBytes(32).toString("hex"), "hex")
+      .digest()
+      .toString("hex")}`;
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -204,11 +171,8 @@ describe("Timestamp (e2e)", () => {
           case "timestampHashes": {
             param = {
               from: testUser.wallet.address,
-              hashAlgorithmIds: [0, 0],
-              hashValues: [
-                `0x${crypto.randomBytes(32).toString("hex")}`,
-                `0x${crypto.randomBytes(32).toString("hex")}`,
-              ],
+              hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+              hashValues: [hashValue1, hashValue2],
               timestampData: [
                 `0x${Buffer.from(
                   JSON.stringify({ test: 742 }),
@@ -303,11 +267,8 @@ describe("Timestamp (e2e)", () => {
           case "timestampHashes": {
             param = {
               from: testUser.wallet.address,
-              hashAlgorithmIds: [0, 0],
-              hashValues: [
-                `0x${crypto.randomBytes(32).toString("hex")}`,
-                `0x${crypto.randomBytes(32).toString("hex")}`,
-              ],
+              hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+              hashValues: [hashValue1, hashValue2],
             } as TimestampHashesParam;
             break;
           }
@@ -392,11 +353,8 @@ describe("Timestamp (e2e)", () => {
           case "timestampHashes": {
             param = {
               from: testAdmin.wallet.address,
-              hashAlgorithmIds: [0, 0],
-              hashValues: [
-                `0x${crypto.randomBytes(32).toString("hex")}`,
-                `0x${crypto.randomBytes(32).toString("hex")}`,
-              ],
+              hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+              hashValues: [hashValue1, hashValue2],
               timestampData: [
                 `0x${Buffer.from(
                   JSON.stringify({ test: 742 }),
@@ -463,14 +421,8 @@ describe("Timestamp (e2e)", () => {
         });
         expect(responseSend.status).toBe(400);
       });
-    }
-  );
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-  describe.each(["timestampHashes"])(
-    "/jsonrpc - send transaction for %s using trusted app",
-    (method: string) => {
-      it("should work", async () => {
+      it("should work with a trusted app", async () => {
         expect.assertions(5);
 
         let param: JsonRpcParams = null;
@@ -479,11 +431,8 @@ describe("Timestamp (e2e)", () => {
           case "timestampHashes": {
             param = {
               from: testApp.wallet.address,
-              hashAlgorithmIds: [0, 0],
-              hashValues: [
-                `0x${crypto.randomBytes(32).toString("hex")}`,
-                `0x${crypto.randomBytes(32).toString("hex")}`,
-              ],
+              hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+              hashValues: [hashValue1, hashValue2],
               timestampData: [
                 `0x${Buffer.from(
                   JSON.stringify({ test: 742 }),
@@ -570,4 +519,69 @@ describe("Timestamp (e2e)", () => {
       });
     }
   );
+
+  describe("GET /timestamps", () => {
+    it("should return a paginated collection of timestamps", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/timestamps");
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/timestamps?page[after]=1&page[size]=10"
+        ) as string,
+        items: expect.arrayContaining([]) as Array<string>,
+        total: expect.any(Number) as number,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/timestamps?page[after]=1&page[size]=10"
+          ) as string,
+          prev: expect.stringContaining(
+            "/timestamps?page[after]=1&page[size]=10"
+          ) as string,
+          next: expect.stringContaining("/timestamps?page[after]=") as string,
+          last: expect.stringContaining("/timestamps?page[after]=") as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /timestamps/{timestampId}", () => {
+    it("should return a specific record", async () => {
+      expect.assertions(2);
+
+      const timestampId = ethers.utils.sha256(hashValue1);
+      const encodedHash = multibase64Encode(timestampId);
+
+      const response = await request(server).get(`/timestamps/${encodedHash}`);
+
+      expect(response.body).toStrictEqual({
+        blockNumber: expect.any(Number) as number,
+        data: expect.stringContaining("0x") as string,
+        hash: expect.any(String) as string,
+        timestampedBy: expect.stringContaining("0x") as string,
+        transactionHash: expect.stringContaining("0x") as string,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the record is not found", async () => {
+      expect.assertions(2);
+
+      const timestampId = multibase64Encode(
+        `0x${crypto.randomBytes(32).toString("hex")}`
+      );
+
+      const response = await request(server).get(`/timestamps/${timestampId}`);
+
+      expect(response.body).toStrictEqual({
+        title: "Timestamp Not Found",
+        status: 404,
+        detail: `Timestamp ${timestampId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+  });
 });

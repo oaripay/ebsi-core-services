@@ -39,6 +39,8 @@ import { ApiConfig } from "../../config/configuration";
 import { UserInfo } from "../auth/auth.interface";
 
 const keyEncoder = new KeyEncoder("secp256k1");
+// Cache algorightms' output lengths for 30 minutes
+const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
 
 @Injectable()
 export class JsonRpcService {
@@ -49,6 +51,11 @@ export class JsonRpcService {
   private didRegistry: string;
 
   private chainId: string = null;
+
+  private algIdsToOutputLength: Record<
+    number,
+    { outputLength: number; exp: number }
+  > = {};
 
   constructor(
     private configService: ConfigService<ApiConfig>,
@@ -179,6 +186,62 @@ export class JsonRpcService {
     }
   }
 
+  async checkHashes(
+    hashAlgorithmIds: number[],
+    hashValues: string[]
+  ): Promise<void> {
+    if (hashAlgorithmIds.length !== hashValues.length) {
+      throw new Error(
+        "hashAlgorithmIds and hashValues don't have the same length"
+      );
+    }
+
+    const now = Date.now();
+    const uniqHashAlgorithmIds = [...new Set(hashAlgorithmIds)];
+
+    await Promise.all(
+      uniqHashAlgorithmIds.map(async (algId) => {
+        if (
+          this.algIdsToOutputLength[algId] &&
+          this.algIdsToOutputLength[algId].exp > now
+        ) {
+          // Use cached result
+          return;
+        }
+
+        // Get hash algorithm corresponding to algId
+        try {
+          const hashAlgorithm = await (
+            await this.ledgerService.getContract()
+          ).getHashAlgorithmById(algId);
+
+          const outputLength = hashAlgorithm.outputLength.toNumber();
+
+          this.algIdsToOutputLength[algId] = {
+            outputLength,
+            exp: now + ALGORITHMS_EXP,
+          };
+        } catch (error) {
+          throw new Error(`Can't find hash algorithm with ID: ${algId}`);
+        }
+      })
+    );
+
+    // Compare lengths
+    hashValues.forEach((hashValue, index) => {
+      const algId = hashAlgorithmIds[index];
+      const expectedOutputLength =
+        this.algIdsToOutputLength[algId].outputLength;
+      const hashLength =
+        Buffer.from(hashValue.replace("0x", ""), "hex").byteLength * 8;
+      if (hashLength !== expectedOutputLength) {
+        throw new Error(
+          `Hash ${hashValue}'s length (${hashLength} bits) is different from the expected length (${expectedOutputLength} bits)`
+        );
+      }
+    });
+  }
+
   async verifyTransaction(
     param: SignedTransactionParam
   ): Promise<{ signer: string; functionName: string }> {
@@ -245,31 +308,27 @@ export class JsonRpcService {
         break;
       }
       case "timestampHashes": {
-        await validateClass(
-          ArgsTimestampHashes,
-          args as unknown as ArgsTimestampHashes
-        );
+        const castArgs = args as unknown as ArgsTimestampHashes;
+        await validateClass(ArgsTimestampHashes, castArgs);
+        await this.checkHashes(castArgs.hashAlgorithmIds, castArgs.hashValues);
         break;
       }
       case "timestampRecordHashes": {
-        await validateClass(
-          ArgsTimestampRecordHashes,
-          args as unknown as ArgsTimestampRecordHashes
-        );
+        const castArgs = args as unknown as ArgsTimestampRecordHashes;
+        await validateClass(ArgsTimestampRecordHashes, castArgs);
+        await this.checkHashes(castArgs.hashAlgorithmIds, castArgs.hashValues);
         break;
       }
       case "timestampRecordVersionHashes": {
-        await validateClass(
-          ArgsTimestampRecordVersionHashes,
-          args as unknown as ArgsTimestampRecordVersionHashes
-        );
+        const castArgs = args as unknown as ArgsTimestampRecordVersionHashes;
+        await validateClass(ArgsTimestampRecordVersionHashes, castArgs);
+        await this.checkHashes(castArgs.hashAlgorithmIds, castArgs.hashValues);
         break;
       }
       case "appendRecordVersionHashes": {
-        await validateClass(
-          ArgsAppendRecordVersionHashes,
-          args as unknown as ArgsAppendRecordVersionHashes
-        );
+        const castArgs = args as unknown as ArgsAppendRecordVersionHashes;
+        await validateClass(ArgsAppendRecordVersionHashes, castArgs);
+        await this.checkHashes(castArgs.hashAlgorithmIds, castArgs.hashValues);
         break;
       }
       case "insertRecordOwner": {
@@ -416,6 +475,8 @@ export class JsonRpcService {
       const { from, hashAlgorithmIds, hashValues, timestampData } =
         body.params[0];
 
+      await this.checkHashes(hashAlgorithmIds, hashValues);
+
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("timestampHashes", [
@@ -535,6 +596,8 @@ export class JsonRpcService {
       const { from, hashAlgorithmIds, hashValues, timestampData, versionInfo } =
         body.params[0];
 
+      await this.checkHashes(hashAlgorithmIds, hashValues);
+
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("timestampRecordHashes", [
@@ -567,6 +630,8 @@ export class JsonRpcService {
         timestampData,
         versionInfo,
       } = body.params[0];
+
+      await this.checkHashes(hashAlgorithmIds, hashValues);
 
       const data = (
         await this.ledgerService.getContract()
@@ -602,6 +667,8 @@ export class JsonRpcService {
         timestampData,
         versionInfo,
       } = body.params[0];
+
+      await this.checkHashes(hashAlgorithmIds, hashValues);
 
       const data = (
         await this.ledgerService.getContract()

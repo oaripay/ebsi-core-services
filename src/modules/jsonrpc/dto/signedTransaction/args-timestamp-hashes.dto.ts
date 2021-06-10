@@ -1,25 +1,17 @@
-import {
-  IsArray,
-  ValidateNested,
-  IsHexadecimal,
-  IsOptional,
-} from "class-validator";
-import { Type } from "class-transformer";
+import { IsInt, Min, IsHexadecimal, IsOptional } from "class-validator";
+import { IsHexadecimalJSON } from "../../validators";
 
 export class ArgsTimestampHashes {
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => String)
-  hashAlgorithmIds: string[];
+  @IsInt({ each: true })
+  @Min(0, { each: true })
+  hashAlgorithmIds: number[];
 
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => String)
+  @IsHexadecimal({ each: true })
   hashValues: string[];
 
   @IsOptional()
-  @IsHexadecimal()
-  timestampData: string;
+  @IsHexadecimalJSON({ each: true })
+  timestampData: string[];
 }
 
 export default { ArgsTimestampHashes };

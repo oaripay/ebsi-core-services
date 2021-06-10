@@ -35,6 +35,15 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams = InsertHashAlgorithmParam | UpdateHashAlgorithmParam;
 
+const validHashAlgorithms: Record<string, number> = {
+  "sha-256": 256,
+  "sha-512": 512,
+  "sha3-224": 224,
+  "sha3-256": 256,
+  "sha3-384": 384,
+  "sha3-512": 512,
+} as const;
+
 describe("HashAlgorithms (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
@@ -76,16 +85,14 @@ describe("HashAlgorithms (e2e)", () => {
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
-    const configAdmin =
-      configService.get<{
-        did: string;
-        privateKey: string;
-      }>("testAdmin");
-    const configUser =
-      configService.get<{
-        did: string;
-        privateKey: string;
-      }>("testUser");
+    const configAdmin = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testAdmin");
+    const configUser = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser");
     testAdmin = {
       ...configAdmin,
       wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
@@ -182,40 +189,35 @@ describe("HashAlgorithms (e2e)", () => {
 
         let params: JsonRpcParams = null;
 
-        const validHashAlgorithms = [
-          "sha1",
-          "sha2-256",
-          "sha2-512",
-          "sha3-512",
-          "sha3-384",
-          "sha3-256",
-          "sha3-224",
-        ];
-
         switch (method) {
           case "insertHashAlgorithm": {
+            const hashes = Object.keys(validHashAlgorithms);
+            const randomHash =
+              hashes[Math.floor(Math.random() * hashes.length)];
+
             params = {
               from: testAdmin.wallet.address,
-              outputLength: 256,
-              ianaName:
-                validHashAlgorithms[
-                  Math.floor(Math.random() * validHashAlgorithms.length)
-                ],
+              outputLength: validHashAlgorithms[randomHash],
+              ianaName: randomHash,
               oid: "2.16.840.1.101.3.4.2.1",
               status: 1,
             } as InsertHashAlgorithmParam;
             break;
           }
           case "updateHashAlgorithm": {
-            // TODO: get hashAlgorithmId dynamically
+            const response = await request(server).get("/hash-algorithms");
+            const hashAlgorithmId =
+              (response.body as { total: number }).total - 1;
+
+            const hashes = Object.keys(validHashAlgorithms);
+            const randomHash =
+              hashes[Math.floor(Math.random() * hashes.length)];
+
             params = {
               from: testAdmin.wallet.address,
-              hashAlgorithmId: 1,
-              outputLength: 256,
-              ianaName:
-                validHashAlgorithms[
-                  Math.floor(Math.random() * validHashAlgorithms.length)
-                ],
+              hashAlgorithmId,
+              outputLength: validHashAlgorithms[randomHash],
+              ianaName: randomHash,
               oid: "2.16.840.1.101.3.4.2.2",
               status: 1,
             } as UpdateHashAlgorithmParam;
@@ -298,23 +300,13 @@ describe("HashAlgorithms (e2e)", () => {
   it("should reject impersonating transactions: admin wallet using jwt from user", async () => {
     expect.assertions(2);
 
-    const validHashAlgorithms = [
-      "sha1",
-      "sha2-256",
-      "sha2-512",
-      "sha3-512",
-      "sha3-384",
-      "sha3-256",
-      "sha3-224",
-    ];
+    const hashes = Object.keys(validHashAlgorithms);
+    const randomHash = hashes[Math.floor(Math.random() * hashes.length)];
 
     const param = {
       from: testAdmin.wallet.address,
-      outputLength: 256,
-      ianaName:
-        validHashAlgorithms[
-          Math.floor(Math.random() * validHashAlgorithms.length)
-        ],
+      outputLength: validHashAlgorithms[randomHash],
+      ianaName: randomHash,
       oid: "2.16.840.1.101.3.4.2.1",
       status: 1,
     } as InsertHashAlgorithmParam;

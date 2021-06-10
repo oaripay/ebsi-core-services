@@ -137,7 +137,7 @@ paths:
                 Success:
                   value:
                     outputLengthBits: 256
-                    ianaName: SHA-256
+                    ianaName: sha-256
                     oid: "2.16.840.1.101.3.4.2.1"
                     status: active
         "400":
