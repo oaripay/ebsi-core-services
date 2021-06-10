@@ -35,6 +35,15 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams = InsertHashAlgorithmParam;
 
+const validHashAlgorithms: Record<string, number> = {
+  "sha-256": 256,
+  "sha-512": 512,
+  "sha3-224": 224,
+  "sha3-256": 256,
+  "sha3-384": 384,
+  "sha3-512": 512,
+} as const;
+
 describe("HashAlgorithms (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
@@ -90,25 +99,16 @@ describe("HashAlgorithms (e2e)", () => {
 
         let params: JsonRpcParams = null;
 
-        const validHashAlgorithms = [
-          "sha1",
-          "sha2-256",
-          "sha2-512",
-          "sha3-512",
-          "sha3-384",
-          "sha3-256",
-          "sha3-224",
-        ];
-
         switch (method) {
           case "insertHashAlgorithm": {
+            const hashes = Object.keys(validHashAlgorithms);
+            const randomHash =
+              hashes[Math.floor(Math.random() * hashes.length)];
+
             params = {
               from: testClientWallet.address,
-              outputLength: 256,
-              ianaName:
-                validHashAlgorithms[
-                  Math.floor(Math.random() * validHashAlgorithms.length)
-                ],
+              outputLength: validHashAlgorithms[randomHash],
+              ianaName: randomHash,
               oid: "2.16.840.1.101.3.4.2.1",
               status: 1,
             } as InsertHashAlgorithmParam;
@@ -118,14 +118,16 @@ describe("HashAlgorithms (e2e)", () => {
             const response = await request(server).get("/hash-algorithms");
             const hashAlgorithmId =
               (response.body as { total: number }).total - 1;
+
+            const hashes = Object.keys(validHashAlgorithms);
+            const randomHash =
+              hashes[Math.floor(Math.random() * hashes.length)];
+
             params = {
               from: testClientWallet.address,
               hashAlgorithmId,
-              outputLength: 256,
-              ianaName:
-                validHashAlgorithms[
-                  Math.floor(Math.random() * validHashAlgorithms.length)
-                ],
+              outputLength: validHashAlgorithms[randomHash],
+              ianaName: randomHash,
               oid: "2.16.840.1.101.3.4.2.2",
               status: 1,
             } as UpdateHashAlgorithmParam;

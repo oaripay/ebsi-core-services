@@ -48,11 +48,19 @@ import {
 import { LedgerService } from "../ledger/ledger.service";
 import { prefixWith0x, remove0xPrefix } from "../../shared/utils";
 
+// Cache algorightms' output lengths for 30 minutes
+const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
+
 @Injectable()
 export class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
 
   private chainId: string = null;
+
+  private algIdsToOutputLength: Record<
+    number,
+    { outputLength: number; exp: number }
+  > = {};
 
   constructor(private ledgerService: LedgerService) {}
 
@@ -154,6 +162,45 @@ export class JsonRpcService {
     }
   }
 
+  async checkHash(hashAlgorithmId: number, hashValue: string): Promise<void> {
+    const now = Date.now();
+
+    if (
+      !this.algIdsToOutputLength[hashAlgorithmId] ||
+      this.algIdsToOutputLength[hashAlgorithmId].exp < now
+    ) {
+      // Get hash algorithm corresponding to hashAlgorithmId
+      try {
+        const hashAlgorithm = await (
+          await this.ledgerService.getContract()
+        ).getHashAlgorithmById(hashAlgorithmId);
+
+        const outputLength = hashAlgorithm.outputLength.toNumber();
+
+        // Store in cache
+        this.algIdsToOutputLength[hashAlgorithmId] = {
+          outputLength,
+          exp: now + ALGORITHMS_EXP,
+        };
+      } catch (error) {
+        throw new Error(
+          `Can't find hash algorithm with ID: ${hashAlgorithmId}`
+        );
+      }
+    }
+
+    // Compare lengths
+    const expectedOutputLength =
+      this.algIdsToOutputLength[hashAlgorithmId].outputLength;
+    const hashLength =
+      Buffer.from(hashValue.replace("0x", ""), "hex").byteLength * 8;
+    if (hashLength !== expectedOutputLength) {
+      throw new Error(
+        `Hash ${hashValue}'s length (${hashLength} bits) is different from the expected length (${expectedOutputLength} bits)`
+      );
+    }
+  }
+
   async verifyTransaction(
     param: SignedTransactionParam
   ): Promise<{ signer: string; functionName: string }> {
@@ -248,17 +295,15 @@ export class JsonRpcService {
         break;
       }
       case "insertDidDocument": {
-        await validateClass(
-          ArgsInsertDidDocument,
-          args as unknown as ArgsInsertDidDocument
-        );
+        const castArgs = args as unknown as ArgsInsertDidDocument;
+        await validateClass(ArgsInsertDidDocument, castArgs);
+        await this.checkHash(castArgs.hashAlgorithmId, castArgs.hashValue);
         break;
       }
       case "updateDidDocument": {
-        await validateClass(
-          ArgsUpdateDidDocument,
-          args as unknown as ArgsUpdateDidDocument
-        );
+        const castArgs = args as unknown as ArgsUpdateDidDocument;
+        await validateClass(ArgsUpdateDidDocument, castArgs);
+        await this.checkHash(castArgs.hashAlgorithmId, castArgs.hashValue);
         break;
       }
       case "insertDidController": {
@@ -297,17 +342,15 @@ export class JsonRpcService {
         break;
       }
       case "appendDidDocumentVersionHash": {
-        await validateClass(
-          ArgsAppendDidDocumentVersionHash,
-          args as unknown as ArgsAppendDidDocumentVersionHash
-        );
+        const castArgs = args as unknown as ArgsAppendDidDocumentVersionHash;
+        await validateClass(ArgsAppendDidDocumentVersionHash, castArgs);
+        await this.checkHash(castArgs.hashAlgorithmId, castArgs.hashValue);
         break;
       }
       case "detachDidDocumentVersionHash": {
-        await validateClass(
-          ArgsDetachDidDocumentVersionHash,
-          args as unknown as ArgsDetachDidDocumentVersionHash
-        );
+        const castArgs = args as unknown as ArgsDetachDidDocumentVersionHash;
+        await validateClass(ArgsDetachDidDocumentVersionHash, castArgs);
+        await this.checkHash(castArgs.hashAlgorithmId, castArgs.hashValue);
         break;
       }
       case "appendDidDocumentVersionMetadata": {
@@ -552,6 +595,8 @@ export class JsonRpcService {
         didVersionMetadata,
       } = body.params[0];
 
+      await this.checkHash(hashAlgorithmId, hashValue);
+
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("insertDidDocument", [
@@ -587,6 +632,8 @@ export class JsonRpcService {
         timestampData,
         didVersionMetadata,
       } = body.params[0];
+
+      await this.checkHash(hashAlgorithmId, hashValue);
 
       const data = (
         await this.ledgerService.getContract()
@@ -772,6 +819,8 @@ export class JsonRpcService {
         didVersionInfo,
       } = body.params[0];
 
+      await this.checkHash(hashAlgorithmId, hashValue);
+
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("appendDidDocumentVersionHash", [
@@ -798,6 +847,8 @@ export class JsonRpcService {
 
       const { from, identifier, hashAlgorithmId, hashValue, didVersionInfo } =
         body.params[0];
+
+      await this.checkHash(hashAlgorithmId, hashValue);
 
       const data = (
         await this.ledgerService.getContract()

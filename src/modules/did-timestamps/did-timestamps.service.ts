@@ -1,14 +1,19 @@
 import { Injectable, Logger } from "@nestjs/common";
 import {
   BadRequestError,
+  InternalServerError,
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
-import { coerceCode, HashName } from "multihashes";
 import { DidTimestampResponseObject } from "./did-timestamps.interface";
 import { LedgerService } from "../ledger/ledger.service";
 import { DidRegistry } from "../../contracts/did-registry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { multihashEncode } from "../../shared/utils";
+import {
+  IanaName,
+  multihashEncode,
+  isSupportedIanaName,
+  ianaNameToMultihashName,
+} from "../../shared/utils";
 
 @Injectable()
 export class DidTimestampsService {
@@ -80,18 +85,24 @@ export class DidTimestampsService {
       await this.ledgerService.getContract()
     ).getHashAlgorithmById(timestamp.hash.algorithm);
 
-    let alg = hashAlg.ianaName as HashName;
+    const ianaName = hashAlg.ianaName.toLowerCase();
 
-    try {
-      coerceCode(alg);
-    } catch (e) {
-      // If alg ianaName is not recognized, we fall back to sha2-256
-      // TODO: improve handling of ianaName / we must validate ianaName as input in the jsonrpc module
-      alg = "sha2-256";
+    // Check if ianaName is valid
+    if (!isSupportedIanaName(ianaName)) {
+      this.logger.error(`Unsupported IANA name: ${hashAlg.ianaName}`);
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: "Unsupported hash algorithm",
+      });
     }
 
+    // Multi-hash (base64 multi-encoded)
+    const multihashEncodedHash = multihashEncode(
+      timestamp.hash.value,
+      ianaNameToMultihashName(ianaName as IanaName)
+    );
+
     return {
-      hash: multihashEncode(timestamp.hash.value, alg),
+      hash: multihashEncodedHash,
       timestampedBy: timestamp.timestampedBy,
       blockNumber: timestamp.blockNumber.toNumber(),
       data: timestamp.data,

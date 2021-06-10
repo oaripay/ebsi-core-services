@@ -86,7 +86,6 @@ interface DidDocumentDataset {
   didDocument: { [x: string]: unknown };
   didDocumentBuffer: Buffer;
   canonicalizedDidDocument: string;
-  canonicalizedDidDocumentBuffer: Buffer;
   canonicalizedDidDocumentHash: string;
   timestampDataBuffer: Buffer;
   didVersionMetadataBuffer: Buffer;
@@ -155,43 +154,29 @@ describe("JsonRpc Module", () => {
   const policy3 = createPolicy();
 
   const controllerDid = createDid();
+  const badControllerDid =
+    "did:unregistered-method:0xb9c5714089478a327f09197987f16f9e5d936e8a";
 
-  const prepareDidDocument = (did: string): DidDocumentDataset => {
-    const didDocument = createDidDocument(did);
-
-    const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
-
-    // Canonicalize DID Document
-    const canonicalizedDidDocument = canonicalize(didDocument);
-
-    const canonicalizedDidDocumentBuffer = Buffer.from(
-      canonicalizedDidDocument
-    );
-    const canonicalizedDidDocumentHash = ethers.utils.sha256(
-      canonicalizedDidDocumentBuffer
-    );
-
-    const timestampDataBuffer = Buffer.from(
-      JSON.stringify({ data: "test", r: crypto.randomBytes(8).toString("hex") })
-    );
-    const didVersionMetadataBuffer = Buffer.from(
-      JSON.stringify(createMetadata())
-    );
-
-    return {
-      didDocument,
-      didDocumentBuffer,
-      canonicalizedDidDocument,
-      canonicalizedDidDocumentBuffer,
-      canonicalizedDidDocumentHash,
-      timestampDataBuffer,
-      didVersionMetadataBuffer,
-    };
+  const ianaToNodeHashAlg = {
+    "sha-256": "sha256",
+    "sha-512": "sha512",
+    "sha3-224": "sha3-224",
+    "sha3-256": "sha3-256",
+    "sha3-384": "sha3-384",
+    "sha3-512": "sha3-512",
   };
 
-  const prepareDidDocumentInvalidDidRegistry = (): DidDocumentDataset => {
-    const did =
-      "did:unregistered-method:0xb9c5714089478a327f09197987f16f9e5d936e8a";
+  const computeHash = (value: string, ianaName: string): string =>
+    `0x${crypto
+      .createHash(ianaToNodeHashAlg[ianaName])
+      .update(value, "utf-8")
+      .digest()
+      .toString("hex")}`;
+
+  const prepareDidDocument = (
+    did: string,
+    ianaName: string
+  ): DidDocumentDataset => {
     const didDocument = createDidDocument(did);
 
     const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
@@ -199,11 +184,9 @@ describe("JsonRpc Module", () => {
     // Canonicalize DID Document
     const canonicalizedDidDocument = canonicalize(didDocument);
 
-    const canonicalizedDidDocumentBuffer = Buffer.from(
-      canonicalizedDidDocument
-    );
-    const canonicalizedDidDocumentHash = ethers.utils.sha256(
-      canonicalizedDidDocumentBuffer
+    const canonicalizedDidDocumentHash = computeHash(
+      canonicalizedDidDocument,
+      ianaName
     );
 
     const timestampDataBuffer = Buffer.from(
@@ -217,7 +200,6 @@ describe("JsonRpc Module", () => {
       didDocument,
       didDocumentBuffer,
       canonicalizedDidDocument,
-      canonicalizedDidDocumentBuffer,
       canonicalizedDidDocumentHash,
       timestampDataBuffer,
       didVersionMetadataBuffer,
@@ -287,9 +269,17 @@ describe("JsonRpc Module", () => {
 
     configService = moduleFixture.get<ConfigService>(ConfigService);
 
-    didDocument = prepareDidDocument(controllerDid);
-    updatedDidDocument = prepareDidDocument(controllerDid);
-    didDocumentInvalidMethod = prepareDidDocumentInvalidDidRegistry();
+    const firstHashAlgIanaName = testEnv.hashAlgorithms[0].ianaName;
+
+    didDocument = prepareDidDocument(controllerDid, firstHashAlgIanaName);
+    updatedDidDocument = prepareDidDocument(
+      controllerDid,
+      firstHashAlgIanaName
+    );
+    didDocumentInvalidMethod = prepareDidDocument(
+      badControllerDid,
+      firstHashAlgIanaName
+    );
     didMethod = prepareDidMethod();
 
     // Mock Contract service
@@ -862,7 +852,8 @@ describe("JsonRpc Module", () => {
         case "updateHashAlgorithm": {
           param = {
             from: signer.address,
-            hashAlgorithmId: 0, // "0" is the ID of the hash we've just inserted
+            // ID of the hash we've just inserted via insertHashAlgorithm
+            hashAlgorithmId: testEnv.hashAlgorithms.length,
             outputLength: 256,
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
@@ -1603,19 +1594,19 @@ describe("JsonRpc Module", () => {
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
             "hex"
           )}`;
+          const randomHash = `0x${crypto.randomBytes(37).toString("hex")}`;
 
           param1 = {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
-            hashValue: "0xnot-a-hash",
+            hashValue: randomHash,
             didVersionInfo,
             timestampData,
             didVersionMetadata,
           } as InsertDidDocumentParam;
 
-          expectedErrorMessage1 =
-            "property params[0].hashValue has failed the following constraints: isHexadecimal";
+          expectedErrorMessage1 = `Hash ${randomHash}'s length (296 bits) is different from the expected length (${testEnv.hashAlgorithms[0].outputLength} bits)`;
 
           param2 = {
             from: signer.address,
@@ -1633,15 +1624,14 @@ describe("JsonRpc Module", () => {
           param3 = {
             from: signer.address,
             identifier,
-            hashAlgorithmId: 0,
+            hashAlgorithmId: 193,
             hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
-            timestampData: "0x1234ab",
+            timestampData,
             didVersionMetadata,
           } as InsertDidDocumentParam;
 
-          expectedErrorMessage3 =
-            "property params[0].timestampData has failed the following constraints: isHexadecimalJson";
+          expectedErrorMessage3 = "Can't find hash algorithm with ID: 193";
 
           break;
         }
@@ -2104,9 +2094,11 @@ describe("JsonRpc Module", () => {
             timestampDataBuffer,
             didVersionMetadataBuffer,
           } = didDocument;
+          const { didDocumentBuffer: didDocumentBuffer2 } = updatedDidDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
-          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const didVersionInfo1 = `0x${didDocumentBuffer.toString("hex")}`;
+          const didVersionInfo2 = `0x${didDocumentBuffer2.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
             "hex"
@@ -2117,7 +2109,7 @@ describe("JsonRpc Module", () => {
             identifier,
             hashAlgorithmId: 0,
             hashValue: canonicalizedDidDocumentHash,
-            didVersionInfo,
+            didVersionInfo: didVersionInfo1,
             timestampData,
             didVersionMetadata,
           } as InsertDidDocumentParam;
@@ -2125,9 +2117,9 @@ describe("JsonRpc Module", () => {
           param2 = {
             from: signer.address,
             identifier,
-            hashAlgorithmId: 1,
+            hashAlgorithmId: 0,
             hashValue: canonicalizedDidDocumentHash,
-            didVersionInfo,
+            didVersionInfo: didVersionInfo2,
             timestampData,
             didVersionMetadata,
           } as InsertDidDocumentParam;
@@ -2233,9 +2225,11 @@ describe("JsonRpc Module", () => {
             canonicalizedDidDocumentHash,
             timestampDataBuffer,
           } = updatedDidDocument;
+          const { didDocumentBuffer: didDocumentBuffer2 } = didDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
-          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const didVersionInfo1 = `0x${didDocumentBuffer.toString("hex")}`;
+          const didVersionInfo2 = `0x${didDocumentBuffer2.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
 
           param1 = {
@@ -2243,7 +2237,7 @@ describe("JsonRpc Module", () => {
             identifier,
             hashAlgorithmId: 0,
             hashValue: canonicalizedDidDocumentHash,
-            didVersionInfo,
+            didVersionInfo: didVersionInfo1,
             ...(withOptionalParams && {
               timestampData,
             }),
@@ -2252,9 +2246,9 @@ describe("JsonRpc Module", () => {
           param2 = {
             from: signer.address,
             identifier,
-            hashAlgorithmId: 1,
+            hashAlgorithmId: 0,
             hashValue: canonicalizedDidDocumentHash,
-            didVersionInfo,
+            didVersionInfo: didVersionInfo2,
             ...(withOptionalParams && {
               timestampData,
             }),
@@ -2265,24 +2259,26 @@ describe("JsonRpc Module", () => {
         case "detachDidDocumentVersionHash": {
           const { didDocumentBuffer, canonicalizedDidDocumentHash } =
             updatedDidDocument;
+          const { didDocumentBuffer: didDocumentBuffer2 } = didDocument;
 
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
-          const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+          const didVersionInfo1 = `0x${didDocumentBuffer.toString("hex")}`;
+          const didVersionInfo2 = `0x${didDocumentBuffer2.toString("hex")}`;
 
           param1 = {
             from: signer.address,
             identifier,
             hashAlgorithmId: 0,
             hashValue: canonicalizedDidDocumentHash,
-            didVersionInfo,
+            didVersionInfo: didVersionInfo1,
           } as DetachDidDocumentVersionParam;
 
           param2 = {
             from: signer.address,
             identifier,
-            hashAlgorithmId: 1,
+            hashAlgorithmId: 0,
             hashValue: canonicalizedDidDocumentHash,
-            didVersionInfo,
+            didVersionInfo: didVersionInfo2,
           } as DetachDidDocumentVersionParam;
 
           break;
@@ -2345,6 +2341,7 @@ describe("JsonRpc Module", () => {
           params: [param2],
           id: 232,
         });
+
       expect(responseBuild2.status).toBe(200);
       const transaction2 = responseBuild2.body.result as UnsignedTransaction;
 
@@ -2376,6 +2373,7 @@ describe("JsonRpc Module", () => {
           ],
           id: "45",
         });
+
       expect(responseSend1.body).toStrictEqual({
         jsonrpc: "2.0",
         id: "45",
@@ -2423,12 +2421,14 @@ describe("JsonRpc Module", () => {
   });
 
   it("should throw an error if the did method is not registered", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
     const testMethod = "insertDidDocument";
+
     // Mock access token verification
     jest
       .spyOn(SiopSession.prototype, "verifyAccessToken")
       .mockImplementation(async () => Promise.resolve({}));
+
     const defaultSigner = testEnv.administrators[0].wallet;
     const signer = defaultSigner;
     const {
@@ -2438,7 +2438,7 @@ describe("JsonRpc Module", () => {
       didVersionMetadataBuffer,
     } = didDocumentInvalidMethod;
 
-    const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+    const identifier = `0x${Buffer.from(badControllerDid).toString("hex")}`;
     const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
     const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
     const didVersionMetadata = `0x${didVersionMetadataBuffer.toString("hex")}`;
@@ -2460,10 +2460,21 @@ describe("JsonRpc Module", () => {
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        testMethod,
+        method: testMethod,
         params: [param],
         id: 231,
       });
+
+    expect(responseBuild.body).toStrictEqual({
+      error: {
+        code: -32600,
+        message: expect.stringContaining(
+          "property params[0].identifier has failed the following constraints: isHexadecimalDid"
+        ) as string,
+      },
+      id: 231,
+      jsonrpc: "2.0",
+    });
     expect(responseBuild.status).toBe(400);
   });
 });

@@ -21,7 +21,12 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { multihashEncode, prefixWith0x } from "../../src/shared/utils";
+import {
+  IanaName,
+  ianaNameToMultihashName,
+  multihashEncode,
+  prefixWith0x,
+} from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import {
   InsertDidControllerParam,
@@ -72,7 +77,6 @@ interface DidDocumentDataset {
   didDocument: { [x: string]: unknown };
   didDocumentBuffer: Buffer;
   canonicalizedDidDocument: string;
-  canonicalizedDidDocumentBuffer: Buffer;
   canonicalizedDidDocumentHash: string;
   controllerDid: string;
   timestampDataBuffer: Buffer;
@@ -86,7 +90,6 @@ interface DidMethodDataset {
   didMethods: { [x: string]: unknown }[];
   didMethodsBuffer: Buffer[];
   canonicalizedDidMethods: string[];
-  canonicalizedDidMethodsBuffer: Buffer[];
   canonicalizedDidMethodsHash: string[];
   methodSpec: string[];
   methodSpecHash: string[];
@@ -95,6 +98,15 @@ interface DidMethodDataset {
   status: number;
 }
 
+const ianaToNodeHashAlg = {
+  "sha-256": "sha256",
+  "sha-512": "sha512",
+  "sha3-224": "sha3-224",
+  "sha3-256": "sha3-256",
+  "sha3-384": "sha3-384",
+  "sha3-512": "sha3-512",
+};
+
 describe("DID Registry (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
@@ -102,20 +114,23 @@ describe("DID Registry (e2e)", () => {
   let configService: ConfigService<ApiConfig>;
   let testUserAccessToken: string;
   let ledgerService: LedgerService;
+  let hashAlgorithmIanaName: string;
 
-  const prepareDidDocument = (did: string): DidDocumentDataset => {
+  const prepareDidDocument = (
+    did: string,
+    ianaName: string
+  ): DidDocumentDataset => {
     const didDocument = createDidDocument(did);
 
     const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
 
     const canonicalizedDidDocument = canonicalize(didDocument);
 
-    const canonicalizedDidDocumentBuffer = Buffer.from(
-      canonicalizedDidDocument
-    );
-    const canonicalizedDidDocumentHash = ethers.utils.sha256(
-      canonicalizedDidDocumentBuffer
-    );
+    const canonicalizedDidDocumentHash = `0x${crypto
+      .createHash(ianaToNodeHashAlg[ianaName])
+      .update(canonicalizedDidDocument, "utf-8")
+      .digest()
+      .toString("hex")}`;
 
     const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
     const didVersionMetadata = createMetadata();
@@ -127,7 +142,6 @@ describe("DID Registry (e2e)", () => {
       didDocument,
       didDocumentBuffer,
       canonicalizedDidDocument,
-      canonicalizedDidDocumentBuffer,
       canonicalizedDidDocumentHash,
       controllerDid: did,
       timestampDataBuffer,
@@ -163,7 +177,6 @@ describe("DID Registry (e2e)", () => {
       didMethods: [didMethod],
       didMethodsBuffer: [didMethodBuffer],
       canonicalizedDidMethods: [canonicalizedDidMethod],
-      canonicalizedDidMethodsBuffer: [canonicalizedDidMethodBuffer],
       canonicalizedDidMethodsHash: [canonicalizedDidMethodHash],
       methodSpec,
       methodSpecHash,
@@ -179,6 +192,7 @@ describe("DID Registry (e2e)", () => {
   let newDidDocument: DidDocumentDataset;
   let updatedDidDocument: DidDocumentDataset;
   const controllers: ethers.Wallet[] = [];
+  let hashAlgorithmId: number;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -207,12 +221,6 @@ describe("DID Registry (e2e)", () => {
       prefixWith0x(configService.get("testClientPrivateKey"))
     );
 
-    didMethod = prepareDidMethod();
-    controllerDid = createDid(didMethod.methodName);
-
-    newDidDocument = prepareDidDocument(controllerDid);
-    updatedDidDocument = prepareDidDocument(controllerDid);
-
     // Generate a valid Client JWT (SIOP) for the tests
     const domain = configService.get<string>("domain");
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
@@ -224,6 +232,31 @@ describe("DID Registry (e2e)", () => {
       clientPrivateKey: configService.get<string>("testClientPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
+
+    // During the tests, we'll use the last hash algorithm
+    const getHashAlgorithmsResponse = await request(server).get(
+      "/hash-algorithms"
+    );
+    hashAlgorithmId =
+      (getHashAlgorithmsResponse.body as { total: number }).total - 1;
+
+    // Get info about the hash algorithm
+    const getHashAlgorithmResponse = await request(server).get(
+      `/hash-algorithms/${hashAlgorithmId}`
+    );
+    hashAlgorithmIanaName = (
+      getHashAlgorithmResponse.body as { ianaName: string }
+    ).ianaName.toLowerCase();
+
+    // Generate test data
+    didMethod = prepareDidMethod();
+    controllerDid = createDid(didMethod.methodName);
+
+    newDidDocument = prepareDidDocument(controllerDid, hashAlgorithmIanaName);
+    updatedDidDocument = prepareDidDocument(
+      controllerDid,
+      hashAlgorithmIanaName
+    );
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -266,7 +299,7 @@ describe("DID Registry (e2e)", () => {
           params = {
             from: signer.address,
             identifier,
-            hashAlgorithmId: 1,
+            hashAlgorithmId,
             hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
@@ -292,7 +325,7 @@ describe("DID Registry (e2e)", () => {
           params = {
             from: signer.address,
             identifier,
-            hashAlgorithmId: 1,
+            hashAlgorithmId,
             hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
@@ -385,7 +418,7 @@ describe("DID Registry (e2e)", () => {
           params = {
             from: signer.address,
             identifier,
-            hashAlgorithmId: 1,
+            hashAlgorithmId,
             hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
             timestampData,
@@ -402,7 +435,7 @@ describe("DID Registry (e2e)", () => {
           params = {
             from: signer.address,
             identifier,
-            hashAlgorithmId: 1,
+            hashAlgorithmId,
             hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
@@ -1772,7 +1805,12 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         blockNumber: expect.any(Number) as number,
         data: `0x${timestampDataBuffer.toString("hex")}`,
-        hash: multihashEncode(canonicalizedDidDocumentHash, "sha2-256"),
+        hash: multihashEncode(
+          canonicalizedDidDocumentHash,
+          ianaNameToMultihashName(
+            hashAlgorithmIanaName.toLowerCase() as IanaName
+          )
+        ),
         timestampedBy: testClientWallet.address,
       } as DidTimestampResponseObject);
 

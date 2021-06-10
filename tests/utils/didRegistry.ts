@@ -72,6 +72,33 @@ interface PolicyObject {
   policyHash: string;
 }
 
+const validHashAlgorithms = [
+  "sha-256",
+  "sha-512",
+  "sha3-224",
+  "sha3-256",
+  "sha3-384",
+  "sha3-512",
+] as const;
+
+const outputLengths: Record<string, number> = {
+  "sha-256": 256,
+  "sha-512": 512,
+  "sha3-224": 224,
+  "sha3-256": 256,
+  "sha3-384": 384,
+  "sha3-512": 512,
+};
+
+const ianaToNodeHashAlg = {
+  "sha-256": "sha256",
+  "sha-512": "sha512",
+  "sha3-224": "sha3-224",
+  "sha3-256": "sha3-256",
+  "sha3-384": "sha3-384",
+  "sha3-512": "sha3-512",
+};
+
 export async function deployDidRegistryContract(
   ethersProvider: ethers.providers.Web3Provider
 ): Promise<DidRegistry> {
@@ -205,6 +232,7 @@ export async function insertDidDocument(
   contract: DidRegistry,
   ethersProvider: ethers.providers.Web3Provider,
   did: string,
+  hashAlgorithmIanaName: string,
   defaultController?: ethers.Wallet
 ): Promise<DidDocument> {
   const didDocument = createDidDocument(did);
@@ -213,9 +241,12 @@ export async function insertDidDocument(
   const canonicalizedDidDocument = canonicalize(didDocument);
 
   const canonicalizedDidDocumentBuffer = Buffer.from(canonicalizedDidDocument);
-  const canonicalizedDidDocumentHash = ethers.utils.sha256(
-    canonicalizedDidDocumentBuffer
-  );
+
+  const canonicalizedDidDocumentHash = `0x${crypto
+    .createHash(ianaToNodeHashAlg[hashAlgorithmIanaName])
+    .update(canonicalizedDidDocument, "utf8")
+    .digest()
+    .toString("hex")}`;
 
   const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
   const didVersionMetadata = createMetadata();
@@ -350,24 +381,12 @@ export async function updatePolicy(
   return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
 }
 
-const validHashAlgorithms = [
-  "sha1",
-  "sha2-256",
-  "sha2-512",
-  "sha3-512",
-  "sha3-384",
-  "sha3-256",
-  "sha3-224",
-];
-
 export async function insertHashAlgorithm(
-  contract: DidRegistry,
-  defaultIanaName?: string
+  contract: DidRegistry
 ): Promise<HashAlgorithmObject> {
-  const outputLength = 256;
   const ianaName =
-    defaultIanaName ??
     validHashAlgorithms[Math.floor(Math.random() * validHashAlgorithms.length)];
+  const outputLength = outputLengths[ianaName];
   const oid = "oid-test";
   const status = 1;
   await contract.insertHashAlgorithm(outputLength, ianaName, oid, status);
@@ -415,13 +434,11 @@ export async function setupTestEnv(
   const didRegistryContract = await deployDidRegistryContract(ethersProvider);
 
   // Insert fake data
-  const hashAlgorithms = await Promise.all([
-    // Make sure to always register "sha2-256" first
-    insertHashAlgorithm(didRegistryContract, "sha2-256"),
-    ...Array((opts.hashAlgorithmsTotal ?? 1) - 1)
+  const hashAlgorithms = await Promise.all(
+    Array(opts.hashAlgorithmsTotal ?? 1)
       .fill(0)
-      .map(() => insertHashAlgorithm(didRegistryContract)),
-  ]);
+      .map(() => insertHashAlgorithm(didRegistryContract))
+  );
 
   const createAdminWallet = async () => {
     // Create random wallet and connect it so we can use it later to send transactions
@@ -434,6 +451,7 @@ export async function setupTestEnv(
       didRegistryContract,
       ethersProvider,
       did,
+      hashAlgorithms[0].ianaName,
       wallet
     );
 
@@ -461,7 +479,12 @@ export async function setupTestEnv(
       )
         .fill(0)
         .map(() =>
-          insertDidDocument(didRegistryContract, ethersProvider, createDid())
+          insertDidDocument(
+            didRegistryContract,
+            ethersProvider,
+            createDid(),
+            hashAlgorithms[0].ianaName
+          )
         )
     ))
   );

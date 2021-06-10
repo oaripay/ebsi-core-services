@@ -29,7 +29,7 @@ export const createDidDocument = (did: string): { [x: string]: unknown } => {
     id: did,
     verificationMethod: [
       {
-        id: `${did}#ZC2jXTO6t4R501bfCXv3RxarZyUbdP2w_psLwMuY6ec`,
+        id: `${did}#${crypto.randomBytes(32).toString("hex")}`,
         type: "Ed25519VerificationKey2018",
         controller: did,
         publicKeyBase58: "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",

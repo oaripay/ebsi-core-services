@@ -21,7 +21,11 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { DidRegistry__factory } from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { multihashEncode } from "../../shared/utils";
+import {
+  IanaName,
+  ianaNameToMultihashName,
+  multihashEncode,
+} from "../../shared/utils";
 import { LedgerService } from "../ledger/ledger.service";
 
 jest.setTimeout(120000);
@@ -449,7 +453,12 @@ describe("DidTimestamps Module", () => {
       expect(response.body).toStrictEqual({
         blockNumber: expect.any(Number) as number,
         data: `0x${timestampDataBuffer.toString("hex")}`,
-        hash: multihashEncode(canonicalizedDidDocumentHash, "sha2-256"),
+        hash: multihashEncode(
+          canonicalizedDidDocumentHash,
+          ianaNameToMultihashName(
+            testEnv.hashAlgorithms[0].ianaName.toLowerCase() as IanaName
+          )
+        ),
         timestampedBy: signer,
       } as DidTimestampResponseObject);
 
