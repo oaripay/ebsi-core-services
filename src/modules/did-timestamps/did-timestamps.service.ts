@@ -42,7 +42,10 @@ export class DidTimestampsService {
       try {
         const items = await (
           await this.ledgerService.getContract()
-        ).getDidDocumentVersionDidTimestampIds(identifier, versionId);
+        ).getDidDocumentVersionDidTimestampIds(
+          `0x${Buffer.from(identifier.toLowerCase(), "utf-8").toString("hex")}`,
+          versionId
+        );
 
         return {
           items,

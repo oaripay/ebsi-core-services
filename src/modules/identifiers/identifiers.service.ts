@@ -29,7 +29,7 @@ export default class IdentifiersService {
 
   async getIdentifier(did: string): Promise<{ [x: string]: unknown }> {
     try {
-      const hexDid = `0x${Buffer.from(did).toString("hex")}`;
+      const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
       const latesteDidDoc = await (
         await this.ledgerService.getContract()
       ).getLatestDidDocumentVersion(hexDid);
@@ -54,7 +54,7 @@ export default class IdentifiersService {
       // https://ec.europa.eu/cefdigital/tracker/browse/EBSIINT-2932
     }
 
-    const hexDid = `0x${Buffer.from(did).toString("hex")}`;
+    const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
 
     return (await this.ledgerService.getContract()).getDidDocumentVersionIds(
       hexDid,
@@ -68,7 +68,7 @@ export default class IdentifiersService {
     versionId: string
   ): Promise<{ [x: string]: unknown }> {
     try {
-      const hexDid = `0x${Buffer.from(did).toString("hex")}`;
+      const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
       await (
         await this.ledgerService.getContract()
       ).getLatestDidDocumentVersion(hexDid);
@@ -98,7 +98,7 @@ export default class IdentifiersService {
     page: number,
     pageSize: number
   ): ReturnType<DidRegistry["getDidDocumentVersionMetadataIds"]> {
-    const hexDid = `0x${Buffer.from(did).toString("hex")}`;
+    const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
 
     return (
       await this.ledgerService.getContract()
@@ -111,7 +111,7 @@ export default class IdentifiersService {
     metadataId: string
   ): Promise<{ [x: string]: unknown }> {
     try {
-      const hexDid = `0x${Buffer.from(did).toString("hex")}`;
+      const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
       await (
         await this.ledgerService.getContract()
       ).getLatestDidDocumentVersion(hexDid);

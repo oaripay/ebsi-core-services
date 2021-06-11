@@ -41,7 +41,10 @@ import {
   AppendDidDocumentVersionMetadataParam,
   DetachDidDocumentVersionMetadataParam,
 } from "./dto";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
+import {
+  formatEthersUnsignedTransaction,
+  lowerCaseHexEncodedIdentifier,
+} from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import {
   DidRegistry,
@@ -515,6 +518,19 @@ describe("JsonRpc Module", () => {
       },
     });
     expect(response.status).toBe(400);
+  });
+
+  it("should lower case hex-encoded did", () => {
+    expect.assertions(1);
+    const originalDid = "did:ebsi:AbCd01234";
+    const hexEncodedDid = Buffer.from(originalDid, "utf-8").toString("hex");
+    const hexEncodedLowercaseDid = Buffer.from(
+      originalDid.toLowerCase(),
+      "utf-8"
+    ).toString("hex");
+    expect(lowerCaseHexEncodedIdentifier(hexEncodedDid)).toStrictEqual(
+      `0x${hexEncodedLowercaseDid}`
+    );
   });
 
   // Only SIOP JWT are allowed to call insertAdministrator

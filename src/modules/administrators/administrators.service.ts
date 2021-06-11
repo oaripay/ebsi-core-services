@@ -37,7 +37,7 @@ export default class AdministratorsService {
       try {
         await (
           await this.ledgerService.getContract()
-        ).getAdministrator(adminDid);
+        ).getAdministrator(adminDid.toLowerCase());
       } catch (e) {
         throw new NotFoundError("Administrator Not Found", {
           detail: `Administrator ${adminDid} not found`,
@@ -63,7 +63,7 @@ export default class AdministratorsService {
     }
 
     // If `adminDid` is passed, make sure the attribute belongs to the given administrator
-    if (adminDid && attributeByHash.did !== adminDid) {
+    if (adminDid && attributeByHash.did !== adminDid.toLowerCase()) {
       throw new NotFoundError("Attribute Not Found", {
         detail: `Attribute ${hash} not found`,
       });
@@ -120,7 +120,7 @@ export default class AdministratorsService {
     pageSize: number
   ): Promise<{ revisions: AttributeObject[]; total: number }> {
     // Make sure the attribute exists and it belongs to the given admin
-    await this.getAttribute(attributeId, adminDid);
+    await this.getAttribute(attributeId, adminDid.toLowerCase());
 
     const hash = prefixWith0x(attributeId);
     const revisionHashes = await (

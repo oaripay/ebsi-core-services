@@ -609,7 +609,7 @@ paths:
           name: identifier
           schema:
             type: string
-          description: Identifier (DID) expressed in hexadecimal, e.g. "0x6469643a656273693a336e706e79786c7965696f6273357165696d666971677673386e323364756f7276326867696d797a6e746437"
+          description: DID, e.g. "did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew"
         - in: query
           name: version-id
           schema:
@@ -664,17 +664,17 @@ paths:
                       last: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=13&page[size]=10
                 Filter by identifier and version ID:
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/did-timestamps?identifier=0x6469643a656273693a336e706e79786c7965696f6273357165696d666971677673386e323364756f7276326867696d797a6e746437&version-id=1
+                    self: https://api.ebsi.xyz/did-registry/v2/did-timestamps?identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
                     items:
                       - timestampId: "0x03d19d4f03ae937116956500651fb3cb63218ef3358d333c1d62d334168a85a6"
                         href: https://api.ebsi.xyz/did-registry/v2/did-timestamps/0x03d19d4f03ae937116956500651fb3cb63218ef3358d333c1d62d334168a85a6
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=0x6469643a656273693a336e706e79786c7965696f6273357165696d666971677673386e323364756f7276326867696d797a6e746437&version-id=1
-                      prev: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=0x6469643a656273693a336e706e79786c7965696f6273357165696d666971677673386e323364756f7276326867696d797a6e746437&version-id=1
-                      next: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=0x6469643a656273693a336e706e79786c7965696f6273357165696d666971677673386e323364756f7276326867696d797a6e746437&version-id=1
-                      last: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=0x6469643a656273693a336e706e79786c7965696f6273357165696d666971677673386e323364756f7276326867696d797a6e746437&version-id=1
+                      first: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                      prev: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                      next: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                      last: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
         400:
           description: Bad Request Error
           content:

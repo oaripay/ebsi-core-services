@@ -44,6 +44,7 @@ import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
   validateClass,
+  lowerCaseHexEncodedIdentifier,
 } from "./jsonrpc.utils";
 import { LedgerService } from "../ledger/ledger.service";
 import { prefixWith0x, remove0xPrefix } from "../../shared/utils";
@@ -600,7 +601,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("insertDidDocument", [
-        identifier,
+        lowerCaseHexEncodedIdentifier(identifier),
         hashAlgorithmId,
         hashValue,
         didVersionInfo,
@@ -638,7 +639,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("updateDidDocument", [
-        identifier,
+        lowerCaseHexEncodedIdentifier(identifier),
         hashAlgorithmId,
         hashValue,
         didVersionInfo,
@@ -667,8 +668,8 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("insertDidController", [
-        identifier,
-        newControllerId,
+        lowerCaseHexEncodedIdentifier(identifier),
+        newControllerId.toLowerCase(),
         notBefore,
         notAfter,
       ]);
@@ -693,8 +694,8 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("updateDidController", [
-        identifier,
-        newControllerId,
+        lowerCaseHexEncodedIdentifier(identifier),
+        newControllerId.toLowerCase(),
         notBefore,
         notAfter,
       ]);
@@ -718,8 +719,8 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("revokeDidController", [
-        identifier,
-        oldControllerId,
+        lowerCaseHexEncodedIdentifier(identifier),
+        oldControllerId.toLowerCase(),
       ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -824,7 +825,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("appendDidDocumentVersionHash", [
-        identifier,
+        lowerCaseHexEncodedIdentifier(identifier),
         hashAlgorithmId,
         hashValue,
         timestampData ?? "0x",
@@ -853,7 +854,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("detachDidDocumentVersionHash", [
-        identifier,
+        lowerCaseHexEncodedIdentifier(identifier),
         hashAlgorithmId,
         hashValue,
         didVersionInfo,
@@ -879,7 +880,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("appendDidDocumentVersionMetadata", [
-        identifier,
+        lowerCaseHexEncodedIdentifier(identifier),
         didVersionInfo,
         didVersionMetadata,
       ]);
@@ -904,7 +905,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("detachDidDocumentVersionMetadata", [
-        identifier,
+        lowerCaseHexEncodedIdentifier(identifier),
         didVersionInfo,
         didVersionMetadata,
       ]);

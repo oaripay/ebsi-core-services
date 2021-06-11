@@ -27,10 +27,10 @@ export default class DidMethodsService {
     try {
       method = await (
         await this.ledgerService.getContract()
-      ).getDidMethodByName(name);
+      ).getDidMethodByName(name.toLowerCase());
     } catch (e) {
       throw new NotFoundError("DID Method Not Found", {
-        detail: `DID Method ${name} not found`,
+        detail: `DID Method ${name.toLowerCase()} not found`,
       });
     }
 

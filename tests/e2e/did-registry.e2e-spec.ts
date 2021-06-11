@@ -820,7 +820,7 @@ describe("DID Registry (e2e)", () => {
   });
 
   describe("GET /identifiers/{did}/versions", () => {
-    it("should return a paginated collection of  DID methods", async () => {
+    it("should return a paginated collection of DID methods", async () => {
       expect.assertions(2);
 
       const did = updatedDidDocument.controllerDid;
@@ -1714,32 +1714,32 @@ describe("DID Registry (e2e)", () => {
     it("should return an empty collection if the identifier and version ID don't match any record", async () => {
       expect.assertions(2);
 
-      const identifier = "0x1234";
+      const did = "did:unknown:1234";
       const versionId = 1;
 
       const response = await request(server).get(
-        `/did-timestamps?identifier=${identifier}&version-id=${versionId}`
+        `/did-timestamps?identifier=${did}&version-id=${versionId}`
       );
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
         ) as string,
         items: [],
         total: 0,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
           prev: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
           next: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
           last: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
         },
       });
@@ -1749,18 +1749,16 @@ describe("DID Registry (e2e)", () => {
     it("should return a paginated collection of DID timestamps filtered by identifier and version ID", async () => {
       expect.assertions(2);
 
-      const identifier = `0x${Buffer.from(
-        updatedDidDocument.controllerDid
-      ).toString("hex")}`;
+      const did = updatedDidDocument.controllerDid;
       const versionId = 1;
 
       const response = await request(server).get(
-        `/did-timestamps?identifier=${identifier}&version-id=${versionId}`
+        `/did-timestamps?identifier=${did}&version-id=${versionId}`
       );
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
         ) as string,
         items: expect.arrayContaining([
           {
@@ -1772,10 +1770,10 @@ describe("DID Registry (e2e)", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
           prev: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
           next: expect.stringContaining(
             "/did-timestamps?page[after]="

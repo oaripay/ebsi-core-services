@@ -1,11 +1,11 @@
-import { IsHexadecimal, IsNumber, IsOptional, Matches } from "class-validator";
+import { IsNumber, IsOptional } from "class-validator";
 import { Type } from "class-transformer";
+import { IsDid } from "../../../shared/validators";
 import { PaginationQuery } from "../../../shared/dto";
 
 export class GetTimestampsQueryDto extends PaginationQuery {
   @IsOptional()
-  @IsHexadecimal()
-  @Matches(/^0x/)
+  @IsDid()
   identifier?: string;
 
   @IsOptional()

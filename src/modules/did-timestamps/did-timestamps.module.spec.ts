@@ -305,7 +305,7 @@ describe("DidTimestamps Module", () => {
       expect(response1.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: '["identifier must match /^0x/ regular expression"]',
+        detail: '["identifier must be a valid DID"]',
         type: "about:blank",
       });
       expect(response1.status).toBe(400);
@@ -323,7 +323,7 @@ describe("DidTimestamps Module", () => {
       expect(response2.status).toBe(400);
 
       const response3 = await request(server).get(
-        "/did-timestamps?identifier=0x1234"
+        "/did-timestamps?identifier=did:unknown:1234"
       );
       expect(response3.body).toStrictEqual({
         title: "Bad Request",
@@ -350,32 +350,32 @@ describe("DidTimestamps Module", () => {
     it("should return an empty list when the filters don't match any record", async () => {
       expect.assertions(2);
 
-      const identifier = "0x1234";
+      const did = "did:unknown:1234";
       const versionId = 1;
 
       const response = await request(server).get(
-        `/did-timestamps?identifier=${identifier}&version-id=${versionId}`
+        `/did-timestamps?identifier=${did}&version-id=${versionId}`
       );
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
         ) as string,
         items: [],
         total: 0,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
           prev: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
           next: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
           last: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
         },
       });
@@ -387,16 +387,16 @@ describe("DidTimestamps Module", () => {
 
       const { didDocuments } = testEnv;
 
-      const { identifier } = didDocuments[0];
+      const { did } = didDocuments[0];
       const versionId = 1;
 
       const response = await request(server).get(
-        `/did-timestamps?identifier=${identifier}&version-id=${versionId}`
+        `/did-timestamps?identifier=${did}&version-id=${versionId}`
       );
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+          `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
         ) as string,
         items: expect.arrayContaining(
           [didDocuments[0]].map((method) => {
@@ -416,16 +416,16 @@ describe("DidTimestamps Module", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
           prev: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
           next: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
           last: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${identifier}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
           ) as string,
         },
       });
