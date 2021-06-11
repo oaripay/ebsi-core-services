@@ -1,6 +1,7 @@
 openapi: 3.0.3
 info:
   title: Storage API
+  version: 2.0.0
   description: |
     The Storage API is a generic supporting Core Service of the EBSI platform
     providing access to the Off-chain Storage services of the lower layer Chain &
@@ -21,13 +22,12 @@ info:
 
     For more information see:
 
-    - [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/VYiWFQ)
+    - [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/Storage+API)
     - [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/browse)
-  version: 2.0.0
   termsOfService: /docs/terms
   contact:
-    name: EBSI Support
-    url: https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi
+    name: EBSI Support – Service Desk
+    url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
