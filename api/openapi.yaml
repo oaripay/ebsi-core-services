@@ -1,18 +1,20 @@
 openapi: 3.0.3
 info:
   title: Users Onboarding API
+  version: 1.0.0
   description: |
     Users Onboarding API is an EBSI core service to enable users (Natural
     Persons and Legal Entities) to obtain long-term access to the EBSI
     pre-production network.
+
     For more information see:
-    * [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/koXkFQ)
+
+    * [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/Users+Onboarding+API)
     * [Code repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/browse?at=refs%2Fheads%2Fdevelop)
-  version: 1.0.0
   termsOfService: /docs/terms
   contact:
-    name: EBSI Support
-    url: https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi
+    name: EBSI Support – Service Desk
+    url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
