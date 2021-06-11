@@ -414,9 +414,7 @@ describe("Timestamp (e2e)", () => {
           id: "45",
           error: {
             code: -32600,
-            message: `The DID ${
-              testUser.did
-            } is not controlled by the address ${testAdmin.wallet.address.toLowerCase()}`,
+            message: `The DID ${testUser.did.toLowerCase()} is not controlled by the address ${testAdmin.wallet.address.toLowerCase()}`,
           },
         });
         expect(responseSend.status).toBe(400);

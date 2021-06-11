@@ -102,49 +102,87 @@ export class JsonRpcService {
     }
   }
 
+  async isDidControlledByAddress(
+    did: string,
+    controllerAddress: string,
+    currentPage = 1
+  ): Promise<boolean> {
+    const pageSize = 50;
+
+    const { data } = await axios.get<{
+      items: { did: string }[];
+      total: number;
+    }>(
+      `${this.didRegistry}/identifiers?controller=${controllerAddress}&page[size]=${pageSize}&page[after]=${currentPage}`
+    );
+
+    // Check if DID is in the list
+    if (
+      data.items
+        .map((item) => item.did.toLowerCase())
+        .includes(did.toLowerCase())
+    ) {
+      return true;
+    }
+
+    // Recursive call if there are more pages
+    if (currentPage * pageSize < data.total) {
+      return this.isDidControlledByAddress(
+        did,
+        controllerAddress,
+        currentPage + 1
+      );
+    }
+
+    return false;
+  }
+
   async verifyEthereumAddress(address: string, user: UserInfo): Promise<void> {
     if (user.login_hint === "did_siop") {
-      // Get and verify the ethereum address from the DID Registry
-      const response = await axios.get(
-        `${this.didRegistry}/identifiers?controller=${address}`
-      );
-      const { items } = response.data as { items: { did: string }[] };
-      if (!items.map((item) => item.did).includes(user.sub))
+      if (!(await this.isDidControlledByAddress(user.sub, address))) {
         throw new Error(
           `The DID ${user.sub} is not controlled by the address ${address}`
         );
-    } else {
-      // Get and verify the ethereum address from the Trusted Apps Registry
-      let response = await axios.get(
-        `${this.trustedAppsRegistry}/apps?name=${user.sub}`
+      }
+
+      return;
+    }
+
+    // Get and verify the ethereum address from the Trusted Apps Registry
+    let response = await axios.get(
+      `${this.trustedAppsRegistry}/apps?name=${user.sub}`
+    );
+
+    const { items } = response.data as { items: { href: string }[] };
+
+    if (items.length === 0) {
+      throw new Error(`App ${user.sub} not found in the Trusted Apps Registry`);
+    }
+
+    const { href } = items[0];
+
+    response = await axios.get(href);
+
+    const { publicKeys } = response.data as { publicKeys: string[] };
+
+    const addresses = publicKeys.map((publicKey) => {
+      try {
+        const publicKeyPem = Buffer.from(publicKey, "base64").toString("utf8");
+        const publicKeyHex = keyEncoder.encodePublic(
+          publicKeyPem,
+          "pem",
+          "raw"
+        );
+        return ethers.utils.computeAddress(`0x${publicKeyHex}`).toLowerCase();
+      } catch (error) {
+        return "0x0000000000000000000000000000000000000000";
+      }
+    });
+
+    if (!addresses.includes(address.toLowerCase())) {
+      throw new Error(
+        `Address ${address} can not be derived from public keys of ${user.sub}`
       );
-      const { items } = response.data as { items: { href: string }[] };
-      if (items.length === 0)
-        throw new Error(
-          `App ${user.sub} not found in the Trusted Apps Registry`
-        );
-      const { href } = items[0];
-      response = await axios.get(href);
-      const { publicKeys } = response.data as { publicKeys: string[] };
-      const addresses = publicKeys.map((publicKey) => {
-        try {
-          const publicKeyPem = Buffer.from(publicKey, "base64").toString(
-            "utf8"
-          );
-          const publicKeyHex = keyEncoder.encodePublic(
-            publicKeyPem,
-            "pem",
-            "raw"
-          );
-          return ethers.utils.computeAddress(`0x${publicKeyHex}`).toLowerCase();
-        } catch (error) {
-          return "0x0000000000000000000000000000000000000000";
-        }
-      });
-      if (!addresses.includes(address.toLowerCase()))
-        throw new Error(
-          `Address ${address} can not be derived from public keys of ${user.sub}`
-        );
     }
   }
 
