@@ -1,6 +1,7 @@
 openapi: 3.0.3
 info:
   title: Trusted Apps Registry API
+  version: 2.0.0
   description: |
     Trusted Apps Registry (TAR) API is an EBSI core service. It enables us to interact with the Trusted Apps Registry Smart Contract to:
     * manage (register/update/revoke) trusted EBSI and trusted external applications,
@@ -11,14 +12,13 @@ info:
 
     For more information see:
 
-    * [TAR API Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/SoiWFQ)
-    * [TAR Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/rIiWFQ)
+    * [TAR API Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/Trusted+Apps+Registry+API)
+    * [TAR Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/Trusted+Apps+Registry+Smart+Contract)
     * [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/browse)
-  version: 2.0.0
   termsOfService: /docs/terms
   contact:
-    name: EBSI Support
-    url: https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi
+    name: EBSI Support – Service Desk
+    url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
