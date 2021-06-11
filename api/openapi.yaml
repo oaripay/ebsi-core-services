@@ -20,13 +20,13 @@ info:
     Authenticated Key Exchange cryptographic identification protocol.
 
     For more information see:
-      * [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/aoiWFQ)
+      * [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/Authorisation+API)
       * [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api)
   version: 1.0.0
   termsOfService: "/docs/terms"
   contact:
-    name: "EBSI Support"
-    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
+    name: "EBSI Support – Service Desk"
+    url: "https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11"
   license:
     name: "EUPL-1.2"
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
