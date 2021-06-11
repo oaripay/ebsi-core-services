@@ -3,7 +3,7 @@
   "version": "1.0.0-rc.0",
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --moderate -a 1674 1748",
+    "audit": "audit-ci --moderate -a 1674 1748 1753",
     "build": "nest build -p tsconfig.production.json",
     "copy:types": "rimraf src/contracts/trusted-schemas && copyfiles submodules/trusted-schemas-registry-ethereum-sc/src/types/*.ts submodules/trusted-schemas-registry-ethereum-sc/src/types/factories/*.ts src/contracts/trusted-schemas --up 4",
     "lint-staged": "lint-staged",
