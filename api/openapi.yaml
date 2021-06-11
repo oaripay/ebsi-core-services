@@ -1,6 +1,7 @@
 openapi: 3.0.3
 info:
   title: Trusted Issuers Registry API
+  version: 2.0.0
   description: |
     Trusted Issuers Registry (TIR) is a generic decentralised registry holding information about trusted issuers, like public information, accreditations and other. All information is stored in the smart contract in form of Attribute envelops (like Verifiable Credentials) that are issued by Trusted Issuers or self-issued. Generic Envelop (like Verifiable Credential) validation is performed outside EBSI.
 
@@ -9,16 +10,17 @@ info:
     TIR smart contract is deployed on the permissioned EBSI ledger that has the advantages of being public while at the same time ensuring the highest level of trust and transparency. Furthermore, TIR has high availability due to the redundancy of the EBSI Ledger; has no single point of failure; is transparent, traceable, immutable and cryptographically secure. The immutable nature of the ledger enables one to validate whether an issuer was eligible to issue a specific Verifiable Credential/Claim/Attestation at a certain time.
 
     The TIR service consists of a smart contract (TIR SC) and API (TIR API). The TIR SC is an Ethereum SC is deployed on the EBSI ledger. All public smart contract methods are exposed via APIs. Two types of APIs are delivered, JSON-RPC for write and REST for the read operations. The TIR API enables to manage and verify Trusted Issuers information and accreditations. Accreditation of trusted issuers domain-specific and is outside the EBSI scope.
+
     For more information see:
-      * [TIR API Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/S4iWFQ)
-      * [TIR Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/tYiWFQ)
+
+      * [TIR API Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/Trusted+Issuers+Registry+API)
+      * [TIR Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/Trusted+Issuers+Registry+Smart+Contract)
       * [TIR API Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/browse)
       * [TIR Smart Contract Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-ethereum-sc/browse)
-  version: 2.0.0
   termsOfService: /docs/terms
   contact:
-    name: EBSI Support
-    url: https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi
+    name: EBSI Support – Service Desk
+    url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
