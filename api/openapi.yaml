@@ -1,18 +1,18 @@
 openapi: 3.0.3
 info:
   title: Proxy Data Hub API
+  version: 2.0.0
   description: |
     Proxy Data API is a Core Service of the EBSI platform providing the capability of
     securely storing data controlled by the owner.
 
     For more information see:
-    * [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/HoiWFQ)
+    * [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/Proxy+Data+Hub+API)
     * [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/browse)
-  version: 2.0.0
   termsOfService: "/docs/terms"
   contact:
-    name: "EBSI Support"
-    url: "https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi"
+    name: EBSI Support – Service Desk
+    url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
   license:
     name: "EUPL-1.2"
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
