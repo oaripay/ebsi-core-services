@@ -13,14 +13,14 @@ info:
     - Resolve a version of a DID Document at a certain point in time
 
     For more information see:
-    * [DID Registry API Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/MYiWFQ)
-    * [DID Registry Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/AofkFQ)
+    * [DID Registry API Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/DID+Registry+API)
+    * [DID Registry Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/DID+Registry+Smart+Contract)
     * [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/browse)
   version: 2.0.0
   termsOfService: /docs/terms
   contact:
-    name: EBSI Support
-    url: https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/ebsi
+    name: EBSI Support – Service Desk
+    url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
