@@ -6,6 +6,7 @@ import KeyEncoder from "key-encoder";
 import fromKeyLike from "jose/jwk/from_key_like";
 import generateKeyPair from "jose/util/generate_key_pair";
 import base64url from "base64url";
+import EbsiWallet from "@cef-ebsi/wallet-lib";
 
 const keyEncoder = new KeyEncoder("secp256k1");
 
@@ -45,30 +46,11 @@ export async function generateKeys(alg: string): Promise<{
   };
 }
 
-export function getPublicKeyHex(publicKey: crypto.KeyObject): string {
-  const publicKeyPem = publicKey.export({
-    type: "spki",
-    format: "pem",
-  });
-  const publicKeyHex = keyEncoder.encodePublic(publicKeyPem, "pem", "raw");
-  return publicKeyHex;
-}
-
 export async function getPrivateKeyHex(
   privateKey: crypto.KeyObject
 ): Promise<string> {
   const privateJwk = await fromKeyLike(privateKey);
   return base64url.decode(privateJwk.d, "hex");
-}
-
-export function hex2base64url(dataHex: string): string {
-  const buffer = Buffer.from(dataHex, "hex");
-  const base64 = buffer.toString("base64");
-  const base64urlString = base64
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-  return base64urlString;
 }
 
 export function getPublicKeyId(publicKeyPem: string): string {
@@ -81,12 +63,7 @@ export async function getPublicKey(_privateKey: string): Promise<PublicKey> {
   const ec = new EC("secp256k1");
   const privKey = ec.keyFromPrivate(privateKey);
   const pubPoint = privKey.getPublic();
-  const jwk: JWK = {
-    kty: "EC",
-    crv: "secp256k1",
-    x: hex2base64url(pubPoint.getX().toString("hex")),
-    y: hex2base64url(pubPoint.getY().toString("hex")),
-  };
+  const jwk = EbsiWallet.formatPublicKey(pubPoint, "jwk") as JWK;
   const publicKey = await parseJwk(jwk, "ES256K");
   const publicKeyObject = publicKey as crypto.KeyObject;
   const publicKeyPem = publicKeyObject

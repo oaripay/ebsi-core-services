@@ -534,7 +534,7 @@ describe("Authorisation (e2e)", () => {
         ake1_sig_payload: expect.objectContaining({
           ake1_enc_payload: expect.any(String) as string,
           ake1_nonce: nonce,
-          did: configService.get<string>("testClientDid"),
+          did: configService.get<string>("testClientDid").toLowerCase(),
           iat: expect.any(Number) as number,
           exp: expect.any(Number) as number,
           iss: apiDid,

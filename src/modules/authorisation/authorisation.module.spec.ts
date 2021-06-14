@@ -29,6 +29,7 @@ import querystring from "querystring";
 import * as EbsiDidJwt from "@cef-ebsi/did-jwt/dist/jwt";
 import { Claim } from "@cef-ebsi/siop-auth";
 import base64url from "base64url";
+import bs58 from "bs58";
 import vpLib from "@cef-ebsi/verifiable-presentation";
 import { AuthorisationModule } from "./authorisation.module";
 import { AuthenticationRequestResponse } from "./authorisation.interface";
@@ -76,13 +77,14 @@ async function createClient(alg: string) {
     await generateKeys(alg);
 
   const jwk = await fromKeyLike(publicKey);
+  const did = `did:ebsi:${bs58.encode(crypto.randomBytes(32))}`;
 
   return {
     publicKey,
     privateKey,
     publicKeyEncryption,
     privateKeyEncryption,
-    did: `did:ebsi:${crypto.randomBytes(12).toString("base64")}`,
+    did,
     jwk,
   };
 }

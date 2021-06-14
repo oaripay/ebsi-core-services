@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   authorisation-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/authorisation-api:prod_ebsiint-3039-local-apis-fix_v1.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/authorisation-api:prod_ebsiint-3096-update-vc-lib_v1.0.0
     build: ../..
