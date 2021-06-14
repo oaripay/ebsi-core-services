@@ -164,20 +164,14 @@ export default class AuthenticationService {
       },
     });
     const signer = ES256KSigner(this.privateKey);
-    const jwt = (
-      await createJWT(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        credential,
-        {
-          alg: "ES256K",
-          issuer: this.applicationDid,
-          signer,
-          canonicalize: true,
-        }
-      )
-    ).split(".");
-    const detachedJwt = `${jwt[0]}..${jwt[2]}`;
+    const jwt = await createJWT(credential, {
+      alg: "ES256K",
+      issuer: this.applicationDid,
+      signer,
+      canonicalize: true,
+    });
+    const splitJwt = jwt.split(".");
+    const detachedJwt = `${splitJwt[0]}..${splitJwt[2]}`;
     const requiredProof = {
       type: "EcdsaSecp256k1Signature2019",
       proofPurpose: "assertionMethod",
@@ -186,7 +180,7 @@ export default class AuthenticationService {
     const signatureValue = {
       proofValue: detachedJwt,
       proofValueName: "jws",
-      iat: Math.floor(new Date().getTime() / 1000),
+      iat: decodeJWT(jwt).payload.iat,
     } as SignatureValue;
     const verifiableAuthorisation = createVerifiableCredential(
       credential,
