@@ -11,6 +11,7 @@ contract HashAlgoStorage {
         string ianaName;
         string oid;
         Status status;
+        string multiHash;
     }
 
     struct Algos {

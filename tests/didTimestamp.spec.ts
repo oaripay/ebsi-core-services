@@ -66,9 +66,9 @@ describe("Timestamp Hashes", () => {
     expect(initialVersion).to.equal(42);
     expect(ts.address).to.properAddress;
     // add hashAlgo
-    await ts.insertHashAlgorithm(256, "SHA256", "oid", 1);
-    await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1);
-    await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1);
+    await ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "multiHash");
+    await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1, "multiHash");
+    await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1, "multiHash");
   });
   it("getDidTimestamp should succeed", async () => {
     const hash1 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("e40605e6"));
@@ -156,15 +156,15 @@ describe("Timestamp Hashes", () => {
     ).to.be.revertedWith("hashValue empty");
   });
   it("didTimestampHash should failed for empty value and hash", async () => {
-    await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1)).to.emit(
+    await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "multiHash")).to.emit(
       ts,
       "AddNewHashAlgo"
     );
-    await expect(ts.insertHashAlgorithm(512, "SHA512", "oid", 1)).to.emit(
+    await expect(ts.insertHashAlgorithm(512, "SHA512", "oid", 1, "multiHash")).to.emit(
       ts,
       "AddNewHashAlgo"
     );
-    await expect(ts.insertHashAlgorithm(256, "SHA3-256", "oid", 1)).to.emit(
+    await expect(ts.insertHashAlgorithm(256, "SHA3-256", "oid", 1, "multiHash")).to.emit(
       ts,
       "AddNewHashAlgo"
     );

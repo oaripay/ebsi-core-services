@@ -13,7 +13,8 @@ contract HashAlgoDetailed is HashAlgoStorage {
         string ianaName,
         uint256 outputLength,
         string oid,
-        HashAlgoStorage.Status status
+        HashAlgoStorage.Status status,
+        string multiHash
     );
 
     event UpdateHashAlgo(
@@ -22,7 +23,8 @@ contract HashAlgoDetailed is HashAlgoStorage {
         string ianaName,
         uint256 outputLength,
         string oid,
-        HashAlgoStorage.Status status
+        HashAlgoStorage.Status status,
+        string multiHash
     );
 
     /**
@@ -32,10 +34,11 @@ contract HashAlgoDetailed is HashAlgoStorage {
         uint256 outputLength,
         string memory ianaName,
         string memory oid,
-        Status status
+        Status status,
+        string memory multiHash
     ) external {
         HashAlgos storage hs = hashAlgoStorage();
-        hs.insertHashAlgorithm(outputLength, ianaName, oid, status);
+        hs.insertHashAlgorithm(outputLength, ianaName, oid, status, multiHash);
     }
 
     /**
@@ -46,7 +49,8 @@ contract HashAlgoDetailed is HashAlgoStorage {
         uint256 outputLength,
         string memory ianaName,
         string memory oid,
-        HashAlgoStorage.Status status
+        HashAlgoStorage.Status status,
+        string memory multiHash
     ) external {
         HashAlgos storage hs = hashAlgoStorage();
         hs.updateHashAlgorithm(
@@ -54,7 +58,8 @@ contract HashAlgoDetailed is HashAlgoStorage {
             outputLength,
             ianaName,
             oid,
-            status
+            status,
+            multiHash
         );
     }
 
@@ -68,7 +73,8 @@ contract HashAlgoDetailed is HashAlgoStorage {
             uint256 outputLength,
             string memory ianaName,
             string memory oid,
-            Status status
+            Status status,
+            string memory multiHash
         )
     {
         HashAlgos storage hs = hashAlgoStorage();

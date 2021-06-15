@@ -67,9 +67,9 @@ describe("Record Hashes", () => {
     expect(initialVersion).to.equal(42);
     expect(ts.address).to.be.properAddress;
     // add hashAlgo
-    await ts.insertHashAlgorithm(256, "SHA256", "oid", 1);
-    await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1);
-    await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1);
+    await ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "multiHash");
+    await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1, "multiHash");
+    await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1, "multiHash");
   });
   it("insertDidDocument should failed for incorrect inputs", async () => {
     const hashValue = ethers.utils.sha256(ethers.utils.toUtf8Bytes("e40605e6"));
