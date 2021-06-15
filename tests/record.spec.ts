@@ -46,9 +46,9 @@ describe("Record Hashes", () => {
     expect(initialVersion).to.equal(42);
     expect(ts.address).to.be.properAddress;
     // add hashAlgo
-    await ts.insertHashAlgorithm(256, "SHA256", "oid", 1);
-    await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1);
-    await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1);
+    await ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "");
+    await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1, "");
+    await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1, "");
   });
   it("timestampVersionHashes should failed if > 3", async () => {
     await expect(
