@@ -27,20 +27,50 @@ export default class IdentifiersService {
     );
   }
 
+  private async retrieveIdentifier(
+    hexIdentifier: string
+  ): Promise<{ [x: string]: unknown }> {
+    const latesteDidDoc = await (
+      await this.ledgerService.getContract()
+    ).getLatestDidDocumentVersion(hexIdentifier);
+    return JSON.parse(
+      Buffer.from(remove0xPrefix(latesteDidDoc), "hex").toString()
+    ) as { [x: string]: unknown };
+  }
+
   async getIdentifier(did: string): Promise<{ [x: string]: unknown }> {
     try {
       const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
-      const latesteDidDoc = await (
-        await this.ledgerService.getContract()
-      ).getLatestDidDocumentVersion(hexDid);
-      return JSON.parse(
-        Buffer.from(remove0xPrefix(latesteDidDoc), "hex").toString()
-      ) as { [x: string]: unknown };
+      return await this.retrieveIdentifier(hexDid);
     } catch (e) {
+      // Try to retrieve the original DID
+      if (did !== did.toLowerCase()) {
+        try {
+          const hexOriginalDid = `0x${Buffer.from(did).toString("hex")}`;
+          return await this.retrieveIdentifier(hexOriginalDid);
+        } catch (err) {
+          throw new NotFoundError("Identifier Not Found", {
+            detail: `Identifier ${did} not found`,
+          });
+        }
+      }
+
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${did} not found`,
       });
     }
+  }
+
+  private async retrieveIdentifiersVersions(
+    hexDid: string,
+    page: number,
+    pageSize: number
+  ) {
+    return (await this.ledgerService.getContract()).getDidDocumentVersionIds(
+      hexDid,
+      page,
+      pageSize
+    );
   }
 
   async getIdentifiersVersions(
@@ -54,29 +84,44 @@ export default class IdentifiersService {
       // https://ec.europa.eu/cefdigital/tracker/browse/EBSIINT-2932
     }
 
-    const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
+    try {
+      const hexLowercaseDid = `0x${Buffer.from(did.toLowerCase()).toString(
+        "hex"
+      )}`;
+      return await this.retrieveIdentifiersVersions(
+        hexLowercaseDid,
+        page,
+        pageSize
+      );
+    } catch (e) {
+      // Try to retrieve the requested DID's versions
+      if (did !== did.toLowerCase()) {
+        try {
+          const hexOriginalDid = `0x${Buffer.from(did).toString("hex")}`;
+          return this.retrieveIdentifiersVersions(
+            hexOriginalDid,
+            page,
+            pageSize
+          );
+        } catch (err) {
+          throw new NotFoundError("Identifier Not Found", {
+            detail: `Identifier ${did} not found`,
+          });
+        }
+      }
 
-    return (await this.ledgerService.getContract()).getDidDocumentVersionIds(
-      hexDid,
-      page,
-      pageSize
-    );
+      throw new NotFoundError("Identifier Not Found", {
+        detail: `Identifier ${did} not found`,
+      });
+    }
   }
 
   async getIdentifierVersion(
     did: string,
     versionId: string
   ): Promise<{ [x: string]: unknown }> {
-    try {
-      const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
-      await (
-        await this.ledgerService.getContract()
-      ).getLatestDidDocumentVersion(hexDid);
-    } catch (e) {
-      throw new NotFoundError("Identifier Not Found", {
-        detail: `Identifier ${did} not found`,
-      });
-    }
+    // Make sure the DID exists
+    await this.getIdentifier(did);
 
     try {
       const versionInfo = await (
@@ -110,16 +155,8 @@ export default class IdentifiersService {
     versionId: string,
     metadataId: string
   ): Promise<{ [x: string]: unknown }> {
-    try {
-      const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
-      await (
-        await this.ledgerService.getContract()
-      ).getLatestDidDocumentVersion(hexDid);
-    } catch (e) {
-      throw new NotFoundError("Identifier Not Found", {
-        detail: `Identifier ${did} not found`,
-      });
-    }
+    // Make sure the DID exists
+    await this.getIdentifier(did);
 
     try {
       const versionInfo = await (

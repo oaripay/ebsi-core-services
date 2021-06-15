@@ -196,9 +196,9 @@ describe("Administrators (e2e)", () => {
         id: "45",
         error: {
           code: -32600,
-          message: `The DID ${configService.get<string>(
-            "testClientDid"
-          )} is not controlled by the address ${signer.address.toLowerCase()}`,
+          message: `The DID ${configService
+            .get<string>("testClientDid")
+            .toLowerCase()} is not controlled by the address ${signer.address.toLowerCase()}`,
         },
       });
       expect(responseSend.status).toBe(400);

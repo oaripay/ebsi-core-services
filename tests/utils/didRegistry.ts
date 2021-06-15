@@ -405,6 +405,7 @@ export interface SetupOptions {
   hashAlgorithmsTotal?: number;
   policiesTotal?: number;
   policiesRevisionsTotal?: number;
+  lowercaseDid?: boolean;
 }
 
 export async function setupTestEnv(
@@ -415,6 +416,7 @@ export async function setupTestEnv(
     hashAlgorithmsTotal: 1,
     policiesTotal: 1,
     policiesRevisionsTotal: 1,
+    lowercaseDid: true,
   }
 ): Promise<{
   provider: ethers.providers.Web3Provider;
@@ -444,7 +446,12 @@ export async function setupTestEnv(
     // Create random wallet and connect it so we can use it later to send transactions
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
 
-    const did = createDid().toLowerCase();
+    let did = createDid();
+
+    // To test backward-compatibility, we make .toLowerCase() optional
+    if (opts.lowercaseDid) {
+      did = did.toLowerCase();
+    }
 
     // Insert a DID document controlled by the random wallet
     const adminDidDocument = await insertDidDocument(
