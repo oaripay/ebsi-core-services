@@ -96,16 +96,14 @@ describe("Notifications module (e2e)", () => {
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
-    testUser1 =
-      configService.get<{
-        did: string;
-        privateKey: string;
-      }>("testUser1");
-    testUser2 =
-      configService.get<{
-        did: string;
-        privateKey: string;
-      }>("testUser2");
+    testUser1 = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser1");
+    testUser2 = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser2");
     testUser1.token = await siopAuthentication(testUser1);
     testUser2.token = await siopAuthentication(testUser2);
 
@@ -303,7 +301,7 @@ describe("Notifications module (e2e)", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        detail: `The notification was not sent to ${testUser2.did}`,
+        detail: `The notification was not sent to ${testUser2.did.toLowerCase()}`,
         status: 403,
         title: "Forbidden",
         type: "about:blank",
