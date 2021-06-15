@@ -128,7 +128,7 @@ export class JsonRpcService {
       await (await this.contractService.getContract()).getAdministrator(did);
     } catch (e) {
       throw new Error(
-        `Administrator ${did} was not found in the Trusted Schemas Registry`
+        `Administrator ${clientId} was not found in the Trusted Schemas Registry`
       );
     }
   }

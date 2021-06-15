@@ -85,7 +85,7 @@ describe("JsonRpc Module", () => {
     return { did, attributeData };
   };
 
-  const adminDid = createDid().toLowerCase();
+  const adminDid = createDid();
   const adminV1 = createAdministrator(adminDid);
   const adminV2 = createAdministrator(adminDid);
   const adminV3 = createAdministrator(adminDid);
@@ -481,7 +481,7 @@ describe("JsonRpc Module", () => {
 
     const param: JsonRpcParams = {
       attributeData: adminV1.attributeData,
-      did: did.toLowerCase(),
+      did,
       from: signer.address,
     } as InsertAdministratorParam;
 
@@ -598,7 +598,7 @@ describe("JsonRpc Module", () => {
           // create a new administrator and add attribute1
           param = {
             attributeData: adminV1.attributeData,
-            did: did.toLowerCase(),
+            did,
             from: signer.address,
           } as InsertAdministratorParam;
           break;
@@ -625,7 +625,7 @@ describe("JsonRpc Module", () => {
             // update attribute1: change it to attribute3
             param = {
               attributeData: adminV3.attributeData,
-              did: did.toLowerCase(),
+              did,
               from: signer.address,
               prevAttributeHash: ethers.utils.sha256(
                 Buffer.from(adminV1.attributeData.slice(2), "hex")
@@ -635,7 +635,7 @@ describe("JsonRpc Module", () => {
             // updateIssuer: add attribute2
             param = {
               attributeData: adminV2.attributeData,
-              did: did.toLowerCase(),
+              did,
               from: signer.address,
             } as UpdateAdministratorParam;
           }
@@ -750,7 +750,7 @@ describe("JsonRpc Module", () => {
         case "insertAdministrator": {
           param = {
             attributeData: adminV1.attributeData,
-            did: adminV1.did.toLowerCase(),
+            did: adminV1.did,
             from: signer.address,
           } as InsertAdministratorParam;
           break;
@@ -775,7 +775,7 @@ describe("JsonRpc Module", () => {
         case "updateAdministrator": {
           param = {
             attributeData: adminV1.attributeData,
-            did: adminV1.did.toLowerCase(),
+            did: adminV1.did,
             from: signer.address,
           } as UpdateAdministratorParam;
           break;
@@ -864,7 +864,7 @@ describe("JsonRpc Module", () => {
           } as InsertAdministratorParam;
 
           expectedErrorMessage2 =
-            "property params[0].did has failed the following constraints: isLowercase, isDid";
+            "property params[0].did has failed the following constraints: isDid";
 
           param3 = {
             did: adminV1.did,
@@ -1010,7 +1010,7 @@ describe("JsonRpc Module", () => {
           } as UpdateAdministratorParam;
 
           expectedErrorMessage2 =
-            "property params[0].did has failed the following constraints: isLowercase, isDid";
+            "property params[0].did has failed the following constraints: isDid";
 
           param3 = {
             did: adminV1.did,
