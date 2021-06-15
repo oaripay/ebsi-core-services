@@ -17,7 +17,7 @@ import { AttributeResponseObject } from "../../src/modules/attributes/attributes
 import { PaginatedList } from "../../src/shared/interfaces";
 import { siopAuthentication } from "../utils/auth";
 
-jest.setTimeout(60000);
+jest.setTimeout(120000);
 
 describe("Attributes", () => {
   let app: NestFastifyApplication;
@@ -40,12 +40,12 @@ describe("Attributes", () => {
 
   const createAttribute = (visibility?: string, sharedWithMe?: boolean) => ({
     storageUri: `${storageApiUrl}/stores/distributed`,
-    did: testUser1.did,
+    did: testUser1.did.toLowerCase(),
     visibility,
     ...(sharedWithMe && {
       // The owner is a different did, but it is shared with the user
-      did: testUser2.did,
-      sharedWith: testUser1.did,
+      did: testUser2.did.toLowerCase(),
+      sharedWith: testUser1.did.toLowerCase(),
     }),
     contentType: "application/json+ld",
     data: base64url.encode(crypto.randomBytes(15).toString("hex")),
@@ -107,26 +107,26 @@ describe("Attributes", () => {
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
-    testUser1 =
-      configService.get<{
-        did: string;
-        privateKey: string;
-      }>("testUser1");
-    testUser2 =
-      configService.get<{
-        did: string;
-        privateKey: string;
-      }>("testUser2");
+    testUser1 = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser1");
+    testUser2 = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser2");
     testUser1.token = await siopAuthentication(testUser1);
     testUser2.token = await siopAuthentication(testUser2);
+  });
+
+  beforeEach(async () => {
+    await deleteAllAttributes(testUser1.token);
+    await deleteAllAttributes(testUser2.token);
   });
 
   describe("GET /attributes", () => {
     it("should get attributes associated to the did", async () => {
       expect.assertions(8);
-
-      await deleteAllAttributes(testUser1.token);
-      await deleteAllAttributes(testUser2.token);
 
       for (let i = 0; i < 3; i += 1) {
         // eslint-disable-next-line no-await-in-loop
@@ -145,8 +145,10 @@ describe("Attributes", () => {
         self: `${apiUrl}${path}`,
         items: expect.arrayContaining([
           expect.objectContaining({
-            did: testUser1.did,
-            sharedWith: expect.not.stringContaining(testUser1.did) as string,
+            did: testUser1.did.toLowerCase(),
+            sharedWith: expect.not.stringContaining(
+              testUser1.did.toLowerCase()
+            ) as string,
           }),
         ]) as AttributeResponseObject[],
         links: {
@@ -176,8 +178,10 @@ describe("Attributes", () => {
         self: `${apiUrl}${path}`,
         items: expect.arrayContaining([
           expect.objectContaining({
-            did: testUser1.did,
-            sharedWith: expect.not.stringContaining(testUser1.did) as string,
+            did: testUser1.did.toLowerCase(),
+            sharedWith: expect.not.stringContaining(
+              testUser1.did.toLowerCase()
+            ) as string,
           }),
         ]) as AttributeResponseObject[],
         links: {
@@ -208,8 +212,8 @@ describe("Attributes", () => {
         items: expect.arrayContaining([
           expect.objectContaining({
             // Not the owner but it is shared
-            did: testUser2.did,
-            sharedWith: testUser1.did,
+            did: testUser2.did.toLowerCase(),
+            sharedWith: testUser1.did.toLowerCase(),
           }),
         ]) as AttributeResponseObject[],
         links: expect.objectContaining({}) as { next: string },
@@ -355,7 +359,7 @@ describe("Attributes", () => {
         .auth(testUser1.token, { type: "bearer" })
         .send({
           storageUri: `${storageApiUrl}/stores/distributed`,
-          did: testUser1.did,
+          did: testUser1.did.toLowerCase(),
           visibility: "private",
           contentType: "application/json+ld",
           dataLabel: "document",
@@ -552,7 +556,7 @@ describe("Attributes", () => {
         title: "Forbidden",
         status: 403,
         type: "about:blank",
-        detail: `${testUser2.did} is not the owner of attribute ${hash}`,
+        detail: `${testUser2.did.toLowerCase()} is not the owner of attribute ${hash}`,
       });
       expect(response.status).toBe(403);
     });
@@ -579,7 +583,7 @@ describe("Attributes", () => {
       const expectedAttribute = {
         storageUri: `${storageApiUrl}/stores/distributed`,
         hash,
-        did: testUser1.did,
+        did: testUser1.did.toLowerCase(),
         visibility: "shared",
         sharedWith: "did:ebsi:1234",
         contentType: "application/json",

@@ -543,7 +543,7 @@ describe("Attributes Module", () => {
       expect(response.status).toBe(200);
 
       // shared with the user
-      attributeCassandra.shared_with = testUser.did;
+      attributeCassandra.shared_with = testUser.did.toLowerCase();
       response = await request(server)
         .get(`/attributes/${attributeCassandra.hash}`)
         .auth(testUser.token, { type: "bearer" })
@@ -754,7 +754,7 @@ describe("Attributes Module", () => {
 
       const attribute = {
         storageUri: `${storageApiUrl}/stores/distributed`,
-        did: testUser.did,
+        did: testUser.did.toLowerCase(),
         visibility: "private",
         contentType: "application/json+ld",
         data: base64url.encode("encrypted data"),

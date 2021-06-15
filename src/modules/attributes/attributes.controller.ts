@@ -49,19 +49,19 @@ export default class AttributesController {
     @User() user: UserInfo,
     @Response() res: FastifyReply
   ): Promise<AttributeResponseObject> {
-    const hash = multihashEncode(
-      crypto
-        .createHash("sha3-256")
-        .update(`${body.data}${body.did}`)
-        .digest("hex"),
-      "sha3-256"
-    );
-
-    if (user.did !== body.did) {
+    if (user.did.toLowerCase() !== body.did.toLowerCase()) {
       throw new BadRequestError("DID Mismatch", {
         detail: `DID Mismatch: The did of the Bearer token (${user.did}) must be equal to the did in the attribute (${body.did})`,
       });
     }
+
+    const hash = multihashEncode(
+      crypto
+        .createHash("sha3-256")
+        .update(`${body.data}${body.did.toLowerCase()}`)
+        .digest("hex"),
+      "sha3-256"
+    );
 
     if (await this.attributesService.getDidByAttributeHash(hash)) {
       throw new BadRequestError(BadRequestError.defaultTitle, {
@@ -84,7 +84,7 @@ export default class AttributesController {
 
     const { attributes, pageAfter: nextPage } =
       await this.attributesService.getAttributes(
-        user.did,
+        user.did.toLowerCase(),
         currentPage,
         pageSize
       );
@@ -109,13 +109,16 @@ export default class AttributesController {
     @User() user: UserInfo
   ): Promise<AttributeResponseObject> {
     const attribute = await this.attributesService.getAttribute(params.hash);
-    const { visibility, sharedWith, did } = attribute;
+    const { visibility } = attribute;
+    const did = attribute.did?.toLowerCase() ?? "";
+    const sharedWith = attribute.sharedWith?.toLowerCase() ?? "";
+
     if (
-      did !== user.did &&
+      did !== user.did?.toLowerCase() &&
       (visibility !== "shared" ||
         (visibility === "shared" &&
           sharedWith !== "" &&
-          sharedWith !== user.did))
+          sharedWith !== user.did.toLowerCase()))
     ) {
       throw new ForbiddenError(ForbiddenError.defaultTitle);
     }
@@ -139,7 +142,7 @@ export default class AttributesController {
       });
     }
 
-    if (did !== user.did) {
+    if (did.toLowerCase() !== user.did.toLowerCase()) {
       throw new ForbiddenError(ForbiddenError.defaultTitle, {
         detail: `${user.did} is not the owner of attribute ${hash}`,
       });

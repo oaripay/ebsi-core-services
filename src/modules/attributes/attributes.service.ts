@@ -181,7 +181,7 @@ export class AttributesService {
 
     const result = await this.storageJsonrpc([
       cassandraQuery,
-      did,
+      did.toLowerCase(),
       {
         ...(fetchSize && { fetchSize }),
         ...(pageState && pageState !== "null" && { pageState }),
@@ -195,9 +195,9 @@ export class AttributesService {
       return {
         storageUri: this.storageUri,
         hash: r.hash,
-        did: r.did,
+        did: r.did.toLowerCase(),
         visibility: r.visibility,
-        sharedWith: r.shared_with,
+        sharedWith: r.shared_with?.toLowerCase() ?? "",
         contentType: r.content_type,
         data: r.data,
         dataLabel: r.data_label,
@@ -233,9 +233,9 @@ export class AttributesService {
     return {
       storageUri: this.storageUri,
       hash: r.hash,
-      did: r.did,
+      did: r.did.toLowerCase(),
       visibility: r.visibility,
-      sharedWith: r.shared_with,
+      sharedWith: r.shared_with?.toLowerCase() ?? "",
       contentType: r.content_type,
       data: r.data,
       dataLabel: r.data_label,
@@ -249,9 +249,9 @@ export class AttributesService {
     await this.storageJsonrpc([
       "insert into attribute_storage (hash, did, visibility, shared_with, content_type, data, data_label) values (?, ?, ?, ?, ?, ?, ?)",
       hash,
-      attribute.did,
+      attribute.did.toLowerCase(),
       attribute.visibility ?? "private",
-      attribute.sharedWith ?? "",
+      attribute.sharedWith?.toLowerCase() ?? "",
       attribute.contentType,
       attribute.data,
       attribute.dataLabel ?? "",
@@ -277,7 +277,7 @@ export class AttributesService {
   ): Promise<AttributeResponseObject> {
     const oldAttribute = await this.getAttribute(hash);
 
-    if (did !== oldAttribute.did) {
+    if (did.toLowerCase() !== oldAttribute.did.toLowerCase()) {
       throw new ForbiddenError(ForbiddenError.defaultTitle, {
         detail: `${did} is not the owner of attribute ${hash}`,
       });
@@ -287,7 +287,7 @@ export class AttributesService {
     await this.storageJsonrpc([
       "update attribute_storage set visibility = ?, shared_with = ?, content_type = ?, data_label = ? where hash = ?",
       attribute.visibility ?? "private",
-      attribute.sharedWith ?? "",
+      attribute.sharedWith?.toLowerCase() ?? "",
       attribute.contentType,
       attribute.dataLabel ?? "",
       hash,
