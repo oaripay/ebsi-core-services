@@ -1,9 +1,8 @@
-import { IsLowercase, IsHexadecimal, IsOptional } from "class-validator";
+import { IsHexadecimal, IsOptional } from "class-validator";
 import IsDid from "../../validators/IsDid";
 
 export class ArgsUpdateAdministrator {
   @IsDid()
-  @IsLowercase()
   did: string;
 
   @IsHexadecimal()

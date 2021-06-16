@@ -68,7 +68,7 @@ describe("Administrators (e2e)", () => {
   let ledgerService: LedgerService;
 
   const createAdministrator = () => {
-    const did = createDid().toLowerCase();
+    const did = createDid();
     const json = {
       // any object here
       any: "Any attribute here",
@@ -184,7 +184,7 @@ describe("Administrators (e2e)", () => {
         .auth(testUserAccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual({
-        did: did.toLowerCase(),
+        did,
         attributes: expect.arrayContaining([]) as unknown[],
       });
       expect(response.status).toBe(200);
@@ -563,7 +563,7 @@ describe("Administrators (e2e)", () => {
         .auth(testUserAccessToken, { type: "bearer" });
 
       expect(administratorResponse.body).toStrictEqual({
-        did: did.toLowerCase(),
+        did,
         attributes: expectedAttributes,
       });
       expect(administratorResponse.status).toBe(200);

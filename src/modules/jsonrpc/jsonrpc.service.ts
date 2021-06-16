@@ -131,7 +131,7 @@ export class JsonRpcService {
       await (await this.ledgerService.getContract()).getAdministrator(did);
     } catch (e) {
       throw new Error(
-        `Administrator ${did} was not found in the Trusted Issuers Registry`
+        `Administrator ${clientId} was not found in the Trusted Issuers Registry`
       );
     }
   }

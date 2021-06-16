@@ -177,7 +177,7 @@ describe("Issuers (e2e)", () => {
         `/issuers/${did}`
       );
       expect(response.body).toStrictEqual({
-        did: did.toLowerCase(),
+        did,
         attributes: expect.arrayContaining([]) as unknown[],
       });
       expect(response.status).toBe(200);
@@ -528,7 +528,7 @@ describe("Issuers (e2e)", () => {
       const issuerResponse = await request(server).get(`/issuers/${did}`);
 
       expect(issuerResponse.body).toStrictEqual({
-        did: did.toLowerCase(),
+        did,
         attributes: expectedAttributes,
       });
       expect(issuerResponse.status).toBe(200);

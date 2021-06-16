@@ -46,8 +46,8 @@ export class IssuersService {
     };
   }
 
-  async getAttributes(_did: string): Promise<AttributeObject[]> {
-    const did = _did.toLowerCase();
+  async getAttributes(issuerDid: string): Promise<AttributeObject[]> {
+    const did = issuerDid.toLowerCase();
 
     let attributesLastHash: string[];
 
@@ -61,7 +61,7 @@ export class IssuersService {
       }
     } catch (e) {
       throw new NotFoundError("Issuer Not Found", {
-        detail: `Issuer ${did} not found`,
+        detail: `Issuer ${issuerDid} not found`,
       });
     }
 
@@ -72,8 +72,7 @@ export class IssuersService {
     );
   }
 
-  async getIssuer(_did: string): Promise<IssuerResponseObject> {
-    const did = _did.toLowerCase();
+  async getIssuer(did: string): Promise<IssuerResponseObject> {
     const attributes = await this.getAttributes(did);
     return { did, attributes };
   }
@@ -88,7 +87,7 @@ export class IssuersService {
     try {
       attributesLastHash = await (
         await this.ledgerService.getContract()
-      ).getIssuer(did);
+      ).getIssuer(did.toLowerCase());
     } catch (e) {
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,

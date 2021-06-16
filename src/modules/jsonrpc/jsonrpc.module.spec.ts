@@ -87,7 +87,7 @@ describe("JsonRpc Module", () => {
   };
 
   const createIssuer = () => {
-    const issuerDid = createDid().toLowerCase();
+    const issuerDid = createDid();
     return createAdministrator(issuerDid);
   };
 
@@ -107,7 +107,7 @@ describe("JsonRpc Module", () => {
     };
   }
 
-  const adminDid = createDid().toLowerCase();
+  const adminDid = createDid();
   const adminV1 = createAdministrator(adminDid);
   const adminV2 = createAdministrator(adminDid);
   const adminV3 = createAdministrator(adminDid);
@@ -130,7 +130,7 @@ describe("JsonRpc Module", () => {
         // create a new administrator and add attribute1
         param = {
           attribute: tamper ? adminV2.attribute : adminV1.attribute,
-          did: adminV1.did.toLowerCase(),
+          did: adminV1.did,
           from: signer.address,
         } as InsertAdministratorParam;
         break;
@@ -140,7 +140,7 @@ describe("JsonRpc Module", () => {
           // update attribute1: change it to attribute3
           param = {
             attribute: tamper ? adminV2.attribute : adminV3.attribute,
-            did: adminV1.did.toLowerCase(),
+            did: adminV1.did,
             from: signer.address,
             prevAttributeHash: adminV1.attribute.hash,
           } as UpdateAdministratorParam;
@@ -148,7 +148,7 @@ describe("JsonRpc Module", () => {
           // updateAdministrator: add attribute2
           param = {
             attribute: tamper ? adminV3.attribute : adminV2.attribute,
-            did: adminV1.did.toLowerCase(),
+            did: adminV1.did,
             from: signer.address,
           } as UpdateAdministratorParam;
         }
@@ -158,7 +158,7 @@ describe("JsonRpc Module", () => {
         // create a new administrator and add attribute1
         param = {
           attribute: issuerV1.attribute,
-          did: tamper ? issuerV2.did.toLowerCase() : issuerV1.did.toLowerCase(),
+          did: tamper ? issuerV2.did : issuerV1.did,
           from: signer.address,
         } as InsertIssuerParam;
         break;
@@ -168,9 +168,7 @@ describe("JsonRpc Module", () => {
           // update attribute1: change it to attribute3
           param = {
             attribute: issuerV3.attribute,
-            did: tamper
-              ? issuerV2.did.toLowerCase()
-              : issuerV1.did.toLowerCase(),
+            did: tamper ? issuerV2.did : issuerV1.did,
             from: signer.address,
             prevAttributeHash: issuerV1.attribute.hash,
           } as UpdateIssuerParam;
@@ -178,9 +176,7 @@ describe("JsonRpc Module", () => {
           // updateIssuer: add attribute2
           param = {
             attribute: issuerV2.attribute,
-            did: tamper
-              ? issuerV2.did.toLowerCase()
-              : issuerV1.did.toLowerCase(),
+            did: tamper ? issuerV2.did : issuerV1.did,
             from: signer.address,
           } as UpdateIssuerParam;
         }
@@ -555,7 +551,7 @@ describe("JsonRpc Module", () => {
 
     const param: JsonRpcParams = {
       attribute: adminV1.attribute,
-      did: did.toLowerCase(),
+      did,
       from: signer.address,
     } as InsertAdministratorParam;
 

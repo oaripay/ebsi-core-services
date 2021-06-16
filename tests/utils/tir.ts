@@ -67,8 +67,7 @@ export async function insertAdmin(
 }
 
 export async function insertIssuer(contract: Tir): Promise<IssuerObject> {
-  const wallet = ethers.Wallet.createRandom();
-  const issuerDid = `did:ebsi:${wallet.address.toLowerCase()}`;
+  const issuerDid = createDid();
   const bufferAttribute = Buffer.from(
     JSON.stringify({
       "@context": {
@@ -79,7 +78,7 @@ export async function insertIssuer(contract: Tir): Promise<IssuerObject> {
     })
   );
 
-  await contract.insertIssuer(issuerDid, bufferAttribute);
+  await contract.insertIssuer(issuerDid.toLowerCase(), bufferAttribute);
 
   return {
     did: issuerDid,
@@ -159,7 +158,7 @@ export async function setupTestEnv(
   const createAdminWallet = async () => {
     // Create random wallet and connect it so we can use it later to send transactions
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
-    const did = createDid().toLowerCase();
+    const did = createDid();
     const attribute = await insertAdmin(tirContract, did);
     return { wallet, attribute, did };
   };

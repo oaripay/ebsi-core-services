@@ -59,7 +59,7 @@ export class AdministratorsController {
   ): Promise<AdministratorResponseObject> {
     const { did } = params;
 
-    if (did !== client.did) {
+    if (did?.toLowerCase() !== client.did.toLowerCase()) {
       await this.administratorsService.allowAdministratorsOnly(client.did);
     }
 
@@ -74,7 +74,7 @@ export class AdministratorsController {
   ): Promise<PaginatedList<IdLink>> {
     const { did } = params;
 
-    if (did !== client.did) {
+    if (did?.toLowerCase() !== client.did.toLowerCase()) {
       await this.administratorsService.allowAdministratorsOnly(client.did);
     }
 
@@ -99,7 +99,7 @@ export class AdministratorsController {
   ): Promise<AttributeDetailsObject> {
     const { did, attributeId } = params;
 
-    if (did !== client.did) {
+    if (did?.toLowerCase() !== client.did.toLowerCase()) {
       await this.administratorsService.allowAdministratorsOnly(client.did);
     }
 
@@ -129,7 +129,7 @@ export class AdministratorsController {
   ): Promise<PaginatedList<AttributeObject>> {
     const { did, attributeId } = params;
 
-    if (did !== client.did) {
+    if (did?.toLowerCase() !== client.did.toLowerCase()) {
       await this.administratorsService.allowAdministratorsOnly(client.did);
     }
 

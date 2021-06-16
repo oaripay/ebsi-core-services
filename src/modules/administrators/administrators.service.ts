@@ -71,7 +71,7 @@ export class AdministratorsService {
       }
     } catch (e) {
       throw new NotFoundError("Administrator Not Found", {
-        detail: `Administrator ${did} not found`,
+        detail: `Administrator ${administratorDid} not found`,
       });
     }
 
@@ -82,10 +82,7 @@ export class AdministratorsService {
     );
   }
 
-  async getAdministrator(
-    administratorDid: string
-  ): Promise<AdministratorResponseObject> {
-    const did = administratorDid.toLowerCase();
+  async getAdministrator(did: string): Promise<AdministratorResponseObject> {
     const attributes = await this.getAttributes(did);
     return { did, attributes };
   }
@@ -100,7 +97,7 @@ export class AdministratorsService {
     try {
       attributesLastHash = await (
         await this.ledgerService.getContract()
-      ).getAdministrator(administratorDid);
+      ).getAdministrator(administratorDid.toLowerCase());
     } catch (e) {
       throw new NotFoundError("Administrator Not Found", {
         detail: `Administrator ${administratorDid} not found`,
