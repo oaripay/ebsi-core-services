@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=248) (2021-06-17)
+
+### 🚀 Features
+
+- /public-keys ([#56](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/56/overview)) - EBSIINT-2971 ([21ae20b](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/commits/21ae20b5cc04326463afe3a25024c3915651c326))
+
 ## [2.0.0-rc.1](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=248) (2021-05-20)
 
 ### 🐛 Bug Fixes
