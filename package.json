@@ -1,6 +1,6 @@
 {
   "private": true,
-  "version": "1.0.0-rc.0",
+  "version": "1.0.0-rc.1",
   "license": "EUPL-1.2",
   "scripts": {
     "audit": "audit-ci --moderate -a 1674 1748 1753",
