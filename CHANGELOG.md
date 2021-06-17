@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.3&targetRepoId=234) (2021-06-17)
+
+### 🚀 Features
+
+- validate hashes ([#72](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/72/overview)) - EBSIINT-3046 ([590bf62](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/590bf628c2f9f47352660bd9650baf92414f0d90))
+
+### 🐛 Bug Fixes
+
+- DID Registry API case sensitive support ([#69](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/69/overview)) - EBSIINT-3030 ([f96b2b0](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/f96b2b0990160a53ac9914d39f9d2ebb243b3405))
+- try to fetch original DID if lowercase DID is not found ([#74](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/74/overview)) - EBSIINT-3118 ([5aba8af](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/5aba8af0c3414d9d595820dda67226ef5898a306))
+
 ## [2.0.0-rc.2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=234) (2021-06-08)
 
 ### 🚀 Features
