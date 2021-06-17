@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.3&targetRepoId=251) (2021-06-17)
+
+### 🐛 Bug Fixes
+
+- use lowercase DID for admins and issuers ([#51](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/51/overview)) - EBSIINT-3119 ([597d7fe](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/597d7fec57b440d38d9be34d6e478d7f5f8623d6))
+
 ## [2.0.0-rc.2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=251) (2021-06-08)
 
 ### 🐛 Bug Fixes
