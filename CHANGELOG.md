@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=252) (2021-06-17)
+
+### 🚀 Features
+
+- intercept Axios requests and redirect them to the local network ([#33](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/33/overview)) - EBSIINT-3039 ([5c1db75](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/commits/5c1db75905a1ef3d0be3a4b323079a59d3cba6ec))
+
+### 🐛 Bug Fixes
+
+- handle local API 404 response ([#34](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/34/overview)) - EBSIINT-3039 ([8452c1e](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/commits/8452c1ee868e146f4ca147a1ff621296e2fb46c3))
+- use lowercase DID ([#37](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/37/overview)) - EBSIINT-3123 ([97ceb42](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/commits/97ceb42dc1f05c2fe2c0c7f9a222e944216fadc7))
+
 ## [2.0.0-rc.1](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=252) (2021-05-20)
 
 ### 🐛 Bug Fixes
