@@ -11,7 +11,11 @@ export const multibase64Encode = (str: string): string =>
 export const multibase64Decode = (str: string): string =>
   textDecoder.decode(multibase.decode(textEncoder.encode(str)));
 
-export const multihashEncode = (str: string, alg: multihash.HashName): string =>
+export const multihashEncode = (
+  str: string,
+  alg: multihash.HashName,
+  length?: number
+): string =>
   multihash.toHexString(
-    multihash.encode(multihash.fromHexString(remove0xPrefix(str)), alg)
+    multihash.encode(multihash.fromHexString(remove0xPrefix(str)), alg, length)
   );

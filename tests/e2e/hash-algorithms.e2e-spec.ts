@@ -13,6 +13,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
+import { HashName } from "multihashes";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -35,13 +36,40 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams = InsertHashAlgorithmParam | UpdateHashAlgorithmParam;
 
-const validHashAlgorithms: Record<string, number> = {
-  "sha-256": 256,
-  "sha-512": 512,
-  "sha3-224": 224,
-  "sha3-256": 256,
-  "sha3-384": 384,
-  "sha3-512": 512,
+const validHashAlgorithms: Record<
+  string,
+  { outputLength: number; multihash: HashName; oid: string }
+> = {
+  "sha-256": {
+    outputLength: 256,
+    multihash: "sha2-256",
+    oid: "2.16.840.1.101.3.4.2.1",
+  },
+  "sha-512": {
+    outputLength: 512,
+    multihash: "sha2-512",
+    oid: "2.16.840.1.101.3.4.2.3",
+  },
+  "sha3-224": {
+    outputLength: 224,
+    multihash: "sha3-224",
+    oid: "2.16.840.1.101.3.4.2.7",
+  },
+  "sha3-256": {
+    outputLength: 256,
+    multihash: "sha3-256",
+    oid: "2.16.840.1.101.3.4.2.8",
+  },
+  "sha3-384": {
+    outputLength: 384,
+    multihash: "sha3-384",
+    oid: "2.16.840.1.101.3.4.2.9",
+  },
+  "sha3-512": {
+    outputLength: 512,
+    multihash: "sha3-512",
+    oid: "2.16.840.1.101.3.4.2.10",
+  },
 } as const;
 
 describe("HashAlgorithms (e2e)", () => {
@@ -157,6 +185,7 @@ describe("HashAlgorithms (e2e)", () => {
         oid: expect.any(String) as string,
         outputLengthBits: expect.any(Number) as number,
         status: expect.any(String) as string,
+        multihash: expect.any(String) as string,
       });
       expect(response.status).toBe(200);
     });
@@ -197,10 +226,11 @@ describe("HashAlgorithms (e2e)", () => {
 
             params = {
               from: testAdmin.wallet.address,
-              outputLength: validHashAlgorithms[randomHash],
+              outputLength: validHashAlgorithms[randomHash].outputLength,
               ianaName: randomHash,
-              oid: "2.16.840.1.101.3.4.2.1",
+              oid: validHashAlgorithms[randomHash].oid,
               status: 1,
+              multihash: validHashAlgorithms[randomHash].multihash,
             } as InsertHashAlgorithmParam;
             break;
           }
@@ -216,10 +246,11 @@ describe("HashAlgorithms (e2e)", () => {
             params = {
               from: testAdmin.wallet.address,
               hashAlgorithmId,
-              outputLength: validHashAlgorithms[randomHash],
+              outputLength: validHashAlgorithms[randomHash].outputLength,
               ianaName: randomHash,
-              oid: "2.16.840.1.101.3.4.2.2",
+              oid: validHashAlgorithms[randomHash].oid,
               status: 1,
+              multihash: validHashAlgorithms[randomHash].multihash,
             } as UpdateHashAlgorithmParam;
             break;
           }
@@ -305,10 +336,11 @@ describe("HashAlgorithms (e2e)", () => {
 
     const param = {
       from: testAdmin.wallet.address,
-      outputLength: validHashAlgorithms[randomHash],
+      outputLength: validHashAlgorithms[randomHash].outputLength,
       ianaName: randomHash,
-      oid: "2.16.840.1.101.3.4.2.1",
+      oid: validHashAlgorithms[randomHash].oid,
       status: 1,
+      multihash: validHashAlgorithms[randomHash].multihash,
     } as InsertHashAlgorithmParam;
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)

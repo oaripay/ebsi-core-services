@@ -282,6 +282,7 @@ describe("HashAlgorithms Module", () => {
         oid: firstHashAlgorithm.oid,
         outputLengthBits: firstHashAlgorithm.outputLength,
         status: "active",
+        multihash: firstHashAlgorithm.multihash,
       });
       expect(response.status).toBe(200);
     });

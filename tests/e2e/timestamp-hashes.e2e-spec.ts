@@ -14,6 +14,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
+import { HashName } from "multihashes";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -44,7 +45,7 @@ describe("Timestamp (e2e)", () => {
   let server: HttpServer;
   let ledgerService: LedgerService;
   let hashAlgorithmId: number;
-  let hashAlgorithmIanaName: string;
+  let hashAlgorithMultihash: HashName;
   let hashValue1: string;
   let hashValue2: string;
 
@@ -131,13 +132,13 @@ describe("Timestamp (e2e)", () => {
     const getHashAlgorithmResponse = await request(server).get(
       `/hash-algorithms/${hashAlgorithmId}`
     );
-    hashAlgorithmIanaName = (
-      getHashAlgorithmResponse.body as { ianaName: string }
-    ).ianaName.toLowerCase();
+    hashAlgorithMultihash = (
+      getHashAlgorithmResponse.body as { multihash: HashName }
+    ).multihash;
 
-    const ianaToNodeHashAlg = {
-      "sha-256": "sha256",
-      "sha-512": "sha512",
+    const multihashToNodeHashAlg: { [Key in HashName]?: string } = {
+      "sha2-256": "sha256",
+      "sha2-512": "sha512",
       "sha3-224": "sha3-224",
       "sha3-256": "sha3-256",
       "sha3-384": "sha3-384",
@@ -146,13 +147,13 @@ describe("Timestamp (e2e)", () => {
 
     // Compute 2 hashes with the last hash algorithm
     hashValue1 = `0x${crypto
-      .createHash(ianaToNodeHashAlg[hashAlgorithmIanaName])
+      .createHash(multihashToNodeHashAlg[hashAlgorithMultihash])
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`;
 
     hashValue2 = `0x${crypto
-      .createHash(ianaToNodeHashAlg[hashAlgorithmIanaName])
+      .createHash(multihashToNodeHashAlg[hashAlgorithMultihash])
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`;

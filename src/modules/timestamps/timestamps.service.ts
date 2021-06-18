@@ -1,20 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  InternalServerError,
-  NotFoundError,
-} from "@cef-ebsi/problem-details-errors";
+import { NotFoundError } from "@cef-ebsi/problem-details-errors";
+import { HashName } from "multihashes";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { Timestamp } from "../../contracts/timestamp";
 import { TimestampResponseObject } from "./timestamps.interface";
-import {
-  IanaName,
-  multibase64Decode,
-  multihashEncode,
-  isSupportedIanaName,
-  ianaNameToMultihashName,
-} from "../../shared/utils";
+import { multibase64Decode, multihashEncode } from "../../shared/utils";
 
 @Injectable()
 export default class TimestampsService {
@@ -61,20 +53,12 @@ export default class TimestampsService {
       ).provider.getBlock(blockNumber.toNumber()),
     ]);
 
-    const ianaName = hashAlgorithm.ianaName.toLowerCase();
-
-    // Check if ianaName is valid
-    if (!isSupportedIanaName(ianaName)) {
-      this.logger.error(`Unsupported IANA name: ${hashAlgorithm.ianaName}`);
-      throw new InternalServerError(InternalServerError.defaultTitle, {
-        detail: "Unsupported hash algorithm",
-      });
-    }
-
     // Multi-hash (base64 multi-encoded)
+    const { multiHash, outputLength } = hashAlgorithm;
     const multihashEncodedHash = multihashEncode(
-      hash.value,
-      ianaNameToMultihashName(ianaName as IanaName)
+      timestamp.hash.value,
+      multiHash as HashName,
+      outputLength.toNumber() / 8
     );
 
     return {

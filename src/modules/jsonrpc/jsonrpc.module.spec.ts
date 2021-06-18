@@ -137,9 +137,9 @@ describe("JsonRpc Module", () => {
     timestampContract = testEnv.timestampContract;
     provider = testEnv.provider;
 
-    const ianaToNodeHashAlg = {
-      "sha-256": "sha256",
-      "sha-512": "sha512",
+    const multihashToNodeHashAlg = {
+      "sha2-256": "sha256",
+      "sha2-512": "sha512",
       "sha3-224": "sha3-224",
       "sha3-256": "sha3-256",
       "sha3-384": "sha3-384",
@@ -147,7 +147,7 @@ describe("JsonRpc Module", () => {
     };
 
     firstHashValue = `0x${crypto
-      .createHash(ianaToNodeHashAlg[testEnv.hashAlgorithms[0].ianaName])
+      .createHash(multihashToNodeHashAlg[testEnv.hashAlgorithms[0].multihash])
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`;
@@ -364,6 +364,7 @@ describe("JsonRpc Module", () => {
         ianaName: "sha-256",
         oid: "2.16.840.1.101.3.4.2.1",
         status: 1,
+        multihash: "sha2-256",
       };
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
@@ -510,6 +511,7 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
+            multihash: "sha2-256",
           } as InsertHashAlgorithmParam,
         ],
         id: 231,
@@ -613,6 +615,7 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
+            multihash: "sha2-256",
           } as InsertHashAlgorithmParam;
           break;
         }
@@ -624,6 +627,7 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
+            multihash: "sha2-256",
           } as UpdateHashAlgorithmParam;
           break;
         }
@@ -850,6 +854,7 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
+            multihash: "sha2-256",
           } as InsertHashAlgorithmParam;
           break;
         }
@@ -861,6 +866,7 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
+            multihash: "sha2-256",
           } as UpdateHashAlgorithmParam;
           break;
         }
@@ -1017,6 +1023,7 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
+            multihash: "sha2-256",
           } as InsertHashAlgorithmParam;
 
           expectedErrorMessage1 =
@@ -1028,6 +1035,7 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 3,
+            multihash: "sha2-256",
           } as InsertHashAlgorithmParam;
 
           expectedErrorMessage2 =
@@ -1039,10 +1047,11 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: 1,
             status: 1,
+            multihash: "sha-sha-sha-256",
           } as unknown as InsertHashAlgorithmParam;
 
           expectedErrorMessage3 =
-            "property params[0].oid has failed the following constraints: isString";
+            "property params[0].multihash has failed the following constraints: isMultihash";
           break;
         }
         case "updateHashAlgorithm": {
@@ -1053,6 +1062,7 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
+            multihash: "sha2-256",
           } as UpdateHashAlgorithmParam;
 
           expectedErrorMessage1 =
@@ -1065,6 +1075,7 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
+            multihash: "sha2-256",
           } as UpdateHashAlgorithmParam;
 
           expectedErrorMessage2 =
@@ -1077,10 +1088,11 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 0,
+            multihash: "sha-sha-sha-256",
           } as UpdateHashAlgorithmParam;
 
           expectedErrorMessage3 =
-            "property params[0].status has failed the following constraints: min";
+            "property params[0].multihash has failed the following constraints: isMultihash";
           break;
         }
         case "timestampHashes": {
@@ -1507,6 +1519,7 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
+            multihash: "sha2-256",
           } as InsertHashAlgorithmParam;
 
           param2 = {
@@ -1515,6 +1528,7 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 2,
+            multihash: "sha2-256",
           } as InsertHashAlgorithmParam;
 
           break;
@@ -1527,6 +1541,7 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
+            multihash: "sha2-256",
           } as UpdateHashAlgorithmParam;
 
           param2 = {
@@ -1536,6 +1551,7 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 2,
+            multihash: "sha2-256",
           } as UpdateHashAlgorithmParam;
 
           break;

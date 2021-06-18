@@ -8,4 +8,5 @@ export interface HashAlgorithmResponseObject {
   ianaName: string;
   oid: string;
   status: "active" | "revoked";
+  multihash: string;
 }

@@ -19,12 +19,7 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import {
-  IanaName,
-  ianaNameToMultihashName,
-  multibase64Encode,
-  multihashEncode,
-} from "../../shared/utils";
+import { multibase64Encode, multihashEncode } from "../../shared/utils";
 import { LedgerService } from "../../shared/services/ledger.service";
 
 const HASHES_TOTAL = 3;
@@ -284,9 +279,8 @@ describe("Timestamps Module", () => {
       // multi-hash (base64 multi-encoded)
       const multihashEncodedHash = multihashEncode(
         hashValue,
-        ianaNameToMultihashName(
-          hashAlgorithms[0].ianaName.toLowerCase() as IanaName
-        )
+        hashAlgorithms[0].multihash,
+        hashAlgorithms[0].outputLength / 8
       );
 
       expect(response.body).toStrictEqual({

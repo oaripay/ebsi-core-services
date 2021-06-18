@@ -1,6 +1,7 @@
 import { ethers } from "ethers";
 import crypto from "crypto";
 import ganache from "ganache-core";
+import { HashName } from "multihashes";
 import {
   Timestamp,
   Timestamp__factory,
@@ -15,6 +16,7 @@ interface HashAlgorithmObject {
   ianaName: string;
   oid: string;
   status: number;
+  multihash: HashName;
 }
 
 interface RecordObject {
@@ -101,6 +103,24 @@ const validHashAlgorithms = [
   "sha3-512",
 ] as const;
 
+const ianaToMultihashAlg: Record<string, HashName> = {
+  "sha-256": "sha2-256",
+  "sha-512": "sha2-512",
+  "sha3-224": "sha3-224",
+  "sha3-256": "sha3-256",
+  "sha3-384": "sha3-384",
+  "sha3-512": "sha3-512",
+};
+
+const multihashToNodeHashAlg = {
+  "sha2-256": "sha256",
+  "sha2-512": "sha512",
+  "sha3-224": "sha3-224",
+  "sha3-256": "sha3-256",
+  "sha3-384": "sha3-384",
+  "sha3-512": "sha3-512",
+};
+
 const outputLengths = {
   "sha-256": 256,
   "sha-512": 512,
@@ -118,23 +138,41 @@ export async function insertHashAlgorithm(
   const outputLength = outputLengths[ianaName];
   const oid = "oid-test";
   const status = 1;
-  await contract.insertHashAlgorithm(outputLength, ianaName, oid, status);
+  const multihash = ianaToMultihashAlg[ianaName];
+
+  await contract.insertHashAlgorithm(
+    outputLength,
+    ianaName,
+    oid,
+    status,
+    multihash
+  );
+
   return {
     outputLength,
     ianaName,
     oid,
     status,
+    multihash,
   };
 }
 
 export async function insertRecord(
   contract: Timestamp,
-  sender: string
+  sender: string,
+  hashAlgorithm: HashAlgorithmObject
 ): Promise<RecordObject> {
   const hashAlgorithmIds = Array(3).fill(0);
   const hashValues = Array(3)
     .fill(0)
-    .map(() => `0x${crypto.randomBytes(4).toString("hex")}`);
+    .map(
+      () =>
+        `0x${crypto
+          .createHash(multihashToNodeHashAlg[hashAlgorithm.multihash])
+          .update(crypto.randomBytes(32).toString("hex"), "hex")
+          .digest()
+          .toString("hex")}`
+    );
   const timestampData = Array(3)
     .fill(0)
     .map(() => `0x${crypto.randomBytes(4).toString("hex")}`);
@@ -142,6 +180,7 @@ export async function insertRecord(
     JSON.stringify({ test: "my test" }),
     "utf8"
   ).toString("hex")}`;
+
   await contract.timestampRecordHashes(
     hashAlgorithmIds,
     hashValues,
@@ -150,7 +189,7 @@ export async function insertRecord(
   );
 
   const blockNumber = 2;
-  const types = ["address", "uint256", "uint256"];
+  const types = ["address", "uint256", "bytes"];
   const values = [sender, blockNumber, hashValues[0]];
   const enc = ethers.utils.defaultAbiCoder.encode(types, values);
   const recordId = ethers.utils.sha256(enc);
@@ -164,9 +203,18 @@ export async function insertRecord(
   };
 }
 
-export async function insertHash(contract: Timestamp): Promise<HashObect> {
+export async function insertHash(
+  contract: Timestamp,
+  hashAlgorithm: HashAlgorithmObject
+): Promise<HashObect> {
   const hashAlgorithmIds = [0];
-  const hashValues = [`0x${crypto.randomBytes(4).toString("hex")}`];
+  const hashValues = [
+    `0x${crypto
+      .createHash(multihashToNodeHashAlg[hashAlgorithm.multihash])
+      .update(crypto.randomBytes(32).toString("hex"), "hex")
+      .digest()
+      .toString("hex")}`,
+  ];
   const timestampData = [`0x${crypto.randomBytes(4).toString("hex")}`];
 
   await contract.timestampHashes(hashAlgorithmIds, hashValues, timestampData);
@@ -214,13 +262,13 @@ export async function setupTestEnv(
   const records = await Promise.all(
     Array(opts.recordsTotal)
       .fill(0)
-      .map(() => insertRecord(timestampContract, sender))
+      .map(() => insertRecord(timestampContract, sender, hashAlgorithms[0]))
   );
 
   const hashes = await Promise.all(
     Array(opts.hashesTotal)
       .fill(0)
-      .map(() => insertHash(timestampContract))
+      .map(() => insertHash(timestampContract, hashAlgorithms[0]))
   );
 
   // Return test env variables
