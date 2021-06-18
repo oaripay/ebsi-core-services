@@ -3,6 +3,7 @@ import { ethers } from "ethers";
 import ganache from "ganache-core";
 import { range } from "rxjs";
 import canonicalize from "canonicalize";
+import { HashName } from "multihashes";
 // ESLint error should be fixed with https://github.com/benmosher/eslint-plugin-import/pull/2097
 // eslint-disable-next-line import/no-extraneous-dependencies
 import { mergeMap, toArray } from "rxjs/operators";
@@ -64,6 +65,7 @@ interface HashAlgorithmObject {
   ianaName: string;
   oid: string;
   status: number;
+  multihash: HashName;
 }
 
 interface PolicyObject {
@@ -88,6 +90,15 @@ const outputLengths: Record<string, number> = {
   "sha3-256": 256,
   "sha3-384": 384,
   "sha3-512": 512,
+};
+
+const ianaToMultihashAlg: Record<string, HashName> = {
+  "sha-256": "sha2-256",
+  "sha-512": "sha2-512",
+  "sha3-224": "sha3-224",
+  "sha3-256": "sha3-256",
+  "sha3-384": "sha3-384",
+  "sha3-512": "sha3-512",
 };
 
 const ianaToNodeHashAlg = {
@@ -389,12 +400,22 @@ export async function insertHashAlgorithm(
   const outputLength = outputLengths[ianaName];
   const oid = "oid-test";
   const status = 1;
-  await contract.insertHashAlgorithm(outputLength, ianaName, oid, status);
+  const multihash = ianaToMultihashAlg[ianaName];
+
+  await contract.insertHashAlgorithm(
+    outputLength,
+    ianaName,
+    oid,
+    status,
+    multihash
+  );
+
   return {
     outputLength,
     ianaName,
     oid,
     status,
+    multihash,
   };
 }
 

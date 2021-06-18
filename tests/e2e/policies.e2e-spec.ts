@@ -240,7 +240,9 @@ describe("Policies (e2e)", () => {
 
         const bufferPolicyData = Buffer.from(policyData.slice(2), "hex");
         const expectedHash = multihashEncode(
-          ethers.utils.sha256(bufferPolicyData)
+          ethers.utils.sha256(bufferPolicyData),
+          "sha2-256",
+          32
         );
 
         expect(policyResponse.body).toStrictEqual({

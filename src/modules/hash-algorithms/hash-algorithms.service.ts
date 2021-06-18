@@ -36,7 +36,7 @@ export class HashAlgorithmsService {
       });
     }
 
-    const { outputLength, ianaName, oid, status } = hashAlgorithm;
+    const { outputLength, ianaName, oid, status, multiHash } = hashAlgorithm;
 
     return {
       outputLengthBits: outputLength.toNumber(),
@@ -44,6 +44,7 @@ export class HashAlgorithmsService {
       oid,
       // 1: active - 2: revoked
       status: status === 1 ? "active" : "revoked",
+      multihash: multiHash,
     };
   }
 }

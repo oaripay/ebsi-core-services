@@ -1426,6 +1426,7 @@ paths:
                     ianaName: sha-256
                     oid: "2.16.840.1.101.3.4.2.1"
                     status: active
+                    multihash: sha2-256
         400:
           description: Bad Request
           content:
@@ -1802,6 +1803,7 @@ paths:
                       ianaName: sha-256
                       oid: "2.16.840.1.101.3.4.2.1"
                       status: 1
+                      multihash: sha2-256
                   id: 1
               Build tx to updateHashAlgorithm:
                 value:
@@ -1814,6 +1816,7 @@ paths:
                       ianaName: sha-256
                       oid: "2.16.840.1.101.3.4.2.1"
                       status: 2
+                      multihash: sha2-256
                   id: 1
               Build tx to insertDidDocument:
                 value:
@@ -2187,6 +2190,9 @@ components:
         status:
           type: string
           description: Status of the algorithm (active, revoked).
+        multihash:
+          type: string
+          description: Multihash name
     Policy:
       title: Policy
       type: object

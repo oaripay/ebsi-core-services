@@ -39,8 +39,8 @@ export class PoliciesService {
       "base64"
     );
 
-    // Compute multihash from hash
-    const multihash = multihashEncode(rawPolicyHash);
+    //  sha2-256 multihash from hash
+    const multihash = multihashEncode(rawPolicyHash, "sha2-256", 32);
     return [base64Policy, multihash];
   }
 

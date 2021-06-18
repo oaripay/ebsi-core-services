@@ -275,7 +275,7 @@ describe("Policies Module", () => {
         policyRevisions[policyId][policyRevisions[policyId].length - 1];
 
       const expectedPolicy = policyData;
-      const expectedHash = multihashEncode(policyHash);
+      const expectedHash = multihashEncode(policyHash, "sha2-256", 32);
 
       const response = await request(server).get(
         `/policies/${encodeURIComponent(policyId)}`

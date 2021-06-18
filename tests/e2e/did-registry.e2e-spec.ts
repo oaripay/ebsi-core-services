@@ -16,17 +16,13 @@ import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import canonicalize from "canonicalize";
 import { useContainer } from "class-validator";
+import { HashName } from "multihashes";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import {
-  IanaName,
-  ianaNameToMultihashName,
-  multihashEncode,
-  prefixWith0x,
-} from "../../src/shared/utils";
+import { multihashEncode, prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import {
   InsertDidControllerParam,
@@ -98,9 +94,9 @@ interface DidMethodDataset {
   status: number;
 }
 
-const ianaToNodeHashAlg = {
-  "sha-256": "sha256",
-  "sha-512": "sha512",
+const multihashToNodeHashAlg: { [Key in HashName]?: string } = {
+  "sha2-256": "sha256",
+  "sha2-512": "sha512",
   "sha3-224": "sha3-224",
   "sha3-256": "sha3-256",
   "sha3-384": "sha3-384",
@@ -114,11 +110,13 @@ describe("DID Registry (e2e)", () => {
   let configService: ConfigService<ApiConfig>;
   let testUserAccessToken: string;
   let ledgerService: LedgerService;
-  let hashAlgorithmIanaName: string;
+  let hashAlgorithMultihash: HashName;
+  let hashAlgorithOutputLength: number;
 
   const prepareDidDocument = (
     did: string,
-    ianaName: string
+    multihash: HashName,
+    outputLength: number
   ): DidDocumentDataset => {
     const didDocument = createDidDocument(did);
 
@@ -127,9 +125,10 @@ describe("DID Registry (e2e)", () => {
     const canonicalizedDidDocument = canonicalize(didDocument);
 
     const canonicalizedDidDocumentHash = `0x${crypto
-      .createHash(ianaToNodeHashAlg[ianaName])
+      .createHash(multihashToNodeHashAlg[multihash])
       .update(canonicalizedDidDocument, "utf-8")
       .digest()
+      .slice(0, outputLength)
       .toString("hex")}`;
 
     const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
@@ -244,18 +243,26 @@ describe("DID Registry (e2e)", () => {
     const getHashAlgorithmResponse = await request(server).get(
       `/hash-algorithms/${hashAlgorithmId}`
     );
-    hashAlgorithmIanaName = (
-      getHashAlgorithmResponse.body as { ianaName: string }
-    ).ianaName.toLowerCase();
+    hashAlgorithMultihash = (
+      getHashAlgorithmResponse.body as { multihash: HashName }
+    ).multihash;
+    hashAlgorithOutputLength =
+      (getHashAlgorithmResponse.body as { outputLengthBits: number })
+        .outputLengthBits / 8;
 
     // Generate test data
     didMethod = prepareDidMethod();
     controllerDid = createDid(didMethod.methodName);
 
-    newDidDocument = prepareDidDocument(controllerDid, hashAlgorithmIanaName);
+    newDidDocument = prepareDidDocument(
+      controllerDid,
+      hashAlgorithMultihash,
+      hashAlgorithOutputLength
+    );
     updatedDidDocument = prepareDidDocument(
       controllerDid,
-      hashAlgorithmIanaName
+      hashAlgorithMultihash,
+      hashAlgorithOutputLength
     );
   });
 
@@ -1805,9 +1812,8 @@ describe("DID Registry (e2e)", () => {
         data: `0x${timestampDataBuffer.toString("hex")}`,
         hash: multihashEncode(
           canonicalizedDidDocumentHash,
-          ianaNameToMultihashName(
-            hashAlgorithmIanaName.toLowerCase() as IanaName
-          )
+          hashAlgorithMultihash,
+          hashAlgorithOutputLength
         ),
         timestampedBy: testClientWallet.address,
       } as DidTimestampResponseObject);

@@ -533,15 +533,17 @@ export class JsonRpcService {
     try {
       await validateClass(RequestInsertHashAlgorithmDto, body);
 
-      const { from, outputLength, ianaName, oid, status } = body.params[0];
+      const { from, outputLength, ianaName, oid, status, multihash } =
+        body.params[0];
 
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("insertHashAlgorithm", [
         outputLength,
-        ianaName,
-        oid,
+        ianaName ?? "",
+        oid ?? "",
         status,
+        multihash,
       ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -558,17 +560,25 @@ export class JsonRpcService {
     try {
       await validateClass(RequestUpdateHashAlgorithmDto, body);
 
-      const { from, hashAlgorithmId, outputLength, ianaName, oid, status } =
-        body.params[0];
+      const {
+        from,
+        hashAlgorithmId,
+        outputLength,
+        ianaName,
+        oid,
+        status,
+        multihash,
+      } = body.params[0];
 
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("updateHashAlgorithm", [
         hashAlgorithmId,
         outputLength,
-        ianaName,
-        oid,
+        ianaName ?? "",
+        oid ?? "",
         status,
+        multihash,
       ]);
 
       return await this.buildTransaction(from, data);

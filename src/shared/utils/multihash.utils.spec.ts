@@ -2,7 +2,7 @@ import { multihashEncode } from "./multihash.utils";
 
 describe("multihashEncode", () => {
   it("should produce the expected result", () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     expect(
       multihashEncode(
@@ -22,6 +22,20 @@ describe("multihashEncode", () => {
     ).toStrictEqual(
       "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
     );
+
+    // Should support truncated hashes (here, 8 bytes)
+    expect(
+      multihashEncode(
+        Buffer.from(
+          "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
+          "hex"
+        )
+          .slice(0, 8)
+          .toString("hex"),
+        "sha2-256",
+        8
+      )
+    ).toStrictEqual("120841dd7b6443542e75");
   });
 
   it("should throw an error when the input is not valid", () => {
