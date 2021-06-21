@@ -103,7 +103,7 @@ describe("/onboarding/v1 authentication e2e tests", () => {
     );
 
     const didAuthResponseCall: DidAuthResponseCall = {
-      hexPrivatekey: testUserPrivateKey, // private key managed by the user. Should be passed in hexadecimal format
+      hexPrivateKey: testUserPrivateKey, // private key managed by the user. Should be passed in hexadecimal format
       did: testUserDid, // User DID
       nonce: params.get("nonce"), // same nonce received as a Request Payload after verifying it
       redirectUri: params.get("client_id"), // parsed URI from the DID Auth Request payload
@@ -199,7 +199,7 @@ describe("/onboarding/v1 authentication e2e tests", () => {
     );
 
     const didAuthResponseCall: DidAuthResponseCall = {
-      hexPrivatekey: testUserPrivateKey, // private key managed by the user. Should be passed in hexadecimal format
+      hexPrivateKey: testUserPrivateKey, // private key managed by the user. Should be passed in hexadecimal format
       did: testUserDid, // User DID
       nonce: params.get("nonce"), // same nonce received as a Request Payload after verifying it
       redirectUri: params.get("client_id"), // parsed URI from the DID Auth Request payload
