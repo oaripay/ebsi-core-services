@@ -37,7 +37,7 @@ export interface ClaimRequest {
   verified_claims: VerifiedClaim;
 }
 
-interface JsonWebKey {
+export interface JsonWebKey {
   alg?: string;
   crv?: string;
   e?: string;
@@ -49,12 +49,6 @@ interface JsonWebKey {
   use?: string;
   x?: string;
   y?: string;
-}
-
-export interface ClaimResponse {
-  verified_claims: string;
-  vp_signing_key: JsonWebKey;
-  encryption_key?: JsonWebKey;
 }
 
 export default Verification;

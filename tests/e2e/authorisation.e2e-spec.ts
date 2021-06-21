@@ -512,11 +512,11 @@ describe("Authorisation (e2e)", () => {
       const nonce = uuidv4();
       const authenticationResponse =
         await EbsiDidAuth.createAuthenticationResponse({
-          hexPrivatekey: prefix0x(configService.get("testClientPrivateKey")),
+          hexPrivateKey: prefix0x(configService.get("testClientPrivateKey")),
           did: configService.get("testClientDid"),
           nonce,
           redirectUri: uriDecoded.client_id as string,
-          response_mode: DidAuthResponseMode.FORM_POST,
+          responseMode: DidAuthResponseMode.FORM_POST,
         });
 
       const authResponseDecoded = querystring.decode(
@@ -583,11 +583,11 @@ describe("Authorisation (e2e)", () => {
       const nonce = uuidv4();
       const authenticationResponse =
         await EbsiDidAuth.createAuthenticationResponse({
-          hexPrivatekey: prefix0x(configService.get("testClientPrivateKey")),
+          hexPrivateKey: prefix0x(configService.get("testClientPrivateKey")),
           did: configService.get("testClientDid"),
           nonce,
           redirectUri: payload.client_id,
-          response_mode: DidAuthResponseMode.FORM_POST,
+          responseMode: DidAuthResponseMode.FORM_POST,
           claims: {},
         });
 
@@ -648,17 +648,14 @@ describe("Authorisation (e2e)", () => {
       // const canonicalizedVP = base64url.encode(JSON.stringify(vp));
       const authenticationResponse =
         await EbsiDidAuth.createAuthenticationResponse({
-          hexPrivatekey: prefix0x(privateKey),
+          hexPrivateKey: prefix0x(privateKey),
           did,
           nonce,
           redirectUri: "/siop-sessions",
-          response_mode: DidAuthResponseMode.FORM_POST,
+          responseMode: DidAuthResponseMode.FORM_POST,
           claims: {
             verified_claims: canonicalizedVP,
-            encryption_key: publicKeyEncryption,
-          } as unknown as {
-            userinfo?: { [x: string]: unknown };
-            id_token?: { [x: string]: unknown };
+            encryption_key: { ...publicKeyEncryption },
           },
         });
 
@@ -719,17 +716,14 @@ describe("Authorisation (e2e)", () => {
       // const canonicalizedVP = base64url.encode(JSON.stringify(vp));
       const authenticationResponse =
         await EbsiDidAuth.createAuthenticationResponse({
-          hexPrivatekey: prefix0x(privateKey),
+          hexPrivateKey: prefix0x(privateKey),
           did,
           nonce,
           redirectUri: "/siop-sessions",
-          response_mode: DidAuthResponseMode.FORM_POST,
+          responseMode: DidAuthResponseMode.FORM_POST,
           claims: {
             verified_claims: canonicalizedVP,
-            encryption_key: publicKeyEncryption,
-          } as unknown as {
-            userinfo?: { [x: string]: unknown };
-            id_token?: { [x: string]: unknown };
+            encryption_key: { ...publicKeyEncryption },
           },
         });
 

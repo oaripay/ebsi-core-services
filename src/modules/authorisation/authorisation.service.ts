@@ -9,8 +9,10 @@ import {
   InvalidTokenError,
 } from "@cef-ebsi/oauth2-auth";
 import {
+  DidAuthResponseCall,
   DidAuthValidationResponse,
   EbsiDidAuth,
+  IdToken,
   Session as SiopSession,
 } from "@cef-ebsi/siop-auth";
 import { decodeJWT } from "@cef-ebsi/did-jwt";
@@ -23,9 +25,9 @@ import { ApiConfig } from "../../config/configuration";
 import { AuthenticationRequestResponse } from "./authorisation.interface";
 import {
   ClaimRequest,
-  ClaimResponse,
   OAuth2SessionDto,
   SiopSessionDto,
+  JsonWebKey,
 } from "./dto";
 
 function prefix0x(value: string): string {
@@ -123,7 +125,7 @@ export class AuthorisationService {
       kid: this.kid,
       issuer: this.did,
       claims: {
-        id_token: { ...claimRequest },
+        id_token: { ...claimRequest } as IdToken,
       },
     });
   }
@@ -152,7 +154,10 @@ export class AuthorisationService {
   async createSiopSession(body: SiopSessionDto): Promise<AkeResponse> {
     const { payload } = decodeJWT(body.id_token);
 
-    if (payload.claims && (payload.claims as ClaimResponse).verified_claims) {
+    if (
+      payload.claims &&
+      (payload as DidAuthResponseCall).claims.verified_claims
+    ) {
       /**
        * Using a Verifiable Presentation to request a token
        * It is assumed that the user doesn't have a DID registered
@@ -160,7 +165,7 @@ export class AuthorisationService {
        */
 
       // Verifiable Authorisation Verifiable Presentation -- JCS canonicalize + base64url encode
-      const claims = payload.claims as ClaimResponse;
+      const { claims } = payload as DidAuthResponseCall;
       const encodedVP = claims.verified_claims;
       const decodedVP = JSON.parse(
         base64url.decode(encodedVP)
@@ -197,7 +202,7 @@ export class AuthorisationService {
         return await this.siopSession.createAccessToken({
           signatureValidation: true,
           signer: {
-            publicKeyJwk: claims.encryption_key,
+            publicKeyJwk: claims.encryption_key as unknown as JsonWebKey,
             type: "",
             id: "",
             controller: "",

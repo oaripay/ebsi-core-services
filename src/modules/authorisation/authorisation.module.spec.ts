@@ -27,7 +27,6 @@ import { v4 as uuidv4 } from "uuid";
 import jwtVerify from "jose/jwt/verify";
 import querystring from "querystring";
 import * as EbsiDidJwt from "@cef-ebsi/did-jwt/dist/jwt";
-import { Claim } from "@cef-ebsi/siop-auth";
 import base64url from "base64url";
 import bs58 from "bs58";
 import vpLib from "@cef-ebsi/verifiable-presentation";
@@ -218,7 +217,7 @@ describe("Authorisation Module", () => {
         nonce: expect.any(String) as string,
         iss: configService.get<string>("apiDid"),
         exp: expect.any(Number) as number,
-        claims: expect.any(Object) as Claim,
+        claims: expect.any(Object) as unknown,
       });
       expect(verification.payload.claims).toBeDefined();
       expect(verification.payload.claims).toStrictEqual({
