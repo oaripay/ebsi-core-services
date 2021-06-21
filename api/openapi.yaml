@@ -506,8 +506,10 @@ paths:
                   value:
                     self: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers
                     items:
-                      - did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
-                      - did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
+                      - did: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+                      - did: did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
+                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
                     total: 2
                     pageSize: 10
                     links:
