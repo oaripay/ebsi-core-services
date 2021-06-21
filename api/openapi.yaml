@@ -383,10 +383,10 @@ paths:
                   value:
                     self: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata?page[after]=3&page[size]=2
                     items:
-                      - schemaRevisionId: "0x1234"
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata/0x1234
-                      - schemaRevisionId: "0x5678"
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata/0x5678
+                      - metadataId: "0x85ac0ec7c0cf6ff9771d86b3807cb3aa440d98d1c93ee4778fd9d6a2f09ea966"
+                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata/0x85ac0ec7c0cf6ff9771d86b3807cb3aa440d98d1c93ee4778fd9d6a2f09ea966
+                      - metadataId: "0x227b226d657461223a2276616c7565227d22"
+                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata/0x227b226d657461223a2276616c7565227d22
                     total: 124
                     pageSize: 2
                     links:
