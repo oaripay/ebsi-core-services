@@ -64,6 +64,14 @@ describe("Apps Module", () => {
     const { tarContract } = testEnv;
 
     // Mock TAR contract
+    jest
+      .spyOn(ethers.providers, "WebSocketProvider")
+      .mockImplementation(
+        () =>
+          new ethers.providers.BaseProvider(
+            "any"
+          ) as ethers.providers.WebSocketProvider
+      );
     jest.spyOn(Tar__factory, "connect").mockImplementation(() => tarContract);
 
     const moduleFixture: TestingModule = await Test.createTestingModule({

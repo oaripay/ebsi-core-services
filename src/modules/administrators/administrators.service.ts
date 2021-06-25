@@ -4,7 +4,7 @@ import {
   AdministratorResponseObject,
   AttributeObject,
 } from "./administrators.interface";
-import LedgerService from "../../shared/services/ledger.service";
+import LedgerService from "../ledger/ledger.service";
 import { Tar } from "../../contracts/Tar";
 import { prefixWith0x } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";

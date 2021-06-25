@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { ethers } from "ethers";
-import LedgerService from "../../shared/services/ledger.service";
+import LedgerService from "../ledger/ledger.service";
 import { Tar } from "../../contracts/Tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import {
@@ -98,6 +98,7 @@ export default class AppsService {
     try {
       app = await this.tarContract.getAppById(appId);
     } catch (e) {
+      this.logger.error(e);
       throw new NotFoundError("App Not Found", {
         detail: `App ${appId} not found`,
       });

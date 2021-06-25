@@ -8,6 +8,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
+import { ethers } from "ethers";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
 import { ApiConfig } from "./config/configuration";
@@ -19,6 +20,16 @@ describe("HealthController", () => {
   let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
+    // Mock WebSocketProvider
+    jest
+      .spyOn(ethers.providers, "WebSocketProvider")
+      .mockImplementation(
+        () =>
+          new ethers.providers.BaseProvider(
+            "any"
+          ) as ethers.providers.WebSocketProvider
+      );
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -36,6 +47,11 @@ describe("HealthController", () => {
       moduleFixture.get<HttpHealthIndicator>(HttpHealthIndicator);
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+  });
+
+  afterAll(async () => {
+    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+    await app.close();
   });
 
   describe("check", () => {

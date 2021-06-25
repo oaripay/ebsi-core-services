@@ -28,7 +28,7 @@ import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { generateMultihash } from "../../src/shared/utils/multihash.utils";
 import { requestSiopJwt } from "../utils/siopJwt";
-import LedgerService from "../../src/shared/services/ledger.service";
+import LedgerService from "../../src/modules/ledger/ledger.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -113,6 +113,10 @@ describe("Policies (e2e)", () => {
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describe("/policies", () => {

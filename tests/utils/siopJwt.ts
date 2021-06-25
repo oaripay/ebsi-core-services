@@ -43,11 +43,11 @@ export const requestSiopJwt = async ({
 
   const authenticationResponse = await EbsiDidAuth.createAuthenticationResponse(
     {
-      hexPrivatekey: `0x${clientPrivateKey}`,
+      hexPrivateKey: `0x${clientPrivateKey}`,
       did: clientDid,
       nonce,
       redirectUri: payload.client_id,
-      response_mode: DidAuthResponseMode.FORM_POST,
+      responseMode: DidAuthResponseMode.FORM_POST,
     }
   );
 

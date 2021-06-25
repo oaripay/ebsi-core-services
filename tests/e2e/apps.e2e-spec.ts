@@ -40,7 +40,7 @@ import {
 } from "../../src/modules/apps/apps.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
-import LedgerService from "../../src/shared/services/ledger.service";
+import LedgerService from "../../src/modules/ledger/ledger.service";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { PaginatedList } from "../../src/shared/interfaces";
 import { requestSiopJwt } from "../utils/siopJwt";
@@ -151,6 +151,10 @@ describe("Apps (e2e)", () => {
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describe("/apps", () => {

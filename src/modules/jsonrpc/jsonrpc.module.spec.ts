@@ -42,7 +42,7 @@ import { AttributeObject } from "../administrators/administrators.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Tar, Tar__factory } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tar";
-import LedgerService from "../../shared/services/ledger.service";
+import LedgerService from "../ledger/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { createDid } from "../../../tests/utils/data";
 import { ApiConfig } from "../../config/configuration";
@@ -138,6 +138,14 @@ describe("JsonRpc Module", () => {
     tarContract = testEnv.tarContract;
 
     // Mock TAR contract
+    jest
+      .spyOn(ethers.providers, "WebSocketProvider")
+      .mockImplementation(
+        () =>
+          new ethers.providers.BaseProvider(
+            "any"
+          ) as ethers.providers.WebSocketProvider
+      );
     jest.spyOn(Tar__factory, "connect").mockImplementation(() => tarContract);
 
     // Start server
@@ -195,29 +203,6 @@ describe("JsonRpc Module", () => {
     jest
       .spyOn(jsonRpcService, "isDidControlledByAddress")
       .mockImplementation(async () => Promise.resolve(true));
-
-    // Instead of calling EBSI Ledger API, use tarContract directly
-    const signer = testEnv.administrators[0].wallet;
-
-    jest
-      .spyOn(jsonRpcService, "callBesuAuth")
-      .mockImplementation(async (_method: string, params: unknown[]) => {
-        if (_method === "eth_sendRawTransaction") {
-          const tx = await tarContract
-            .connect(signer)
-            .provider.sendTransaction(params[0] as string);
-
-          return tx.hash;
-        }
-
-        if (_method === "eth_estimateGas") {
-          return tarContract.provider.estimateGas(
-            params[0] as ethers.providers.TransactionRequest
-          );
-        }
-
-        return Promise.reject(new Error("Unknown method"));
-      });
   });
 
   afterEach(() => {

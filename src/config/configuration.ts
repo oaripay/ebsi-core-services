@@ -25,7 +25,7 @@ export interface ApiConfig {
 const defaultConfig = {
   local: {
     DOMAIN: "https://api.test.intebsi.xyz",
-    BESU_RPC_NODE: "https://www.test.intebsi.xyz/jsonrpc",
+    BESU_RPC_NODE: "ws://www.test.intebsi.xyz/jsonrpc",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LOG_LEVEL: "debug",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
@@ -33,7 +33,7 @@ const defaultConfig = {
   },
   test: {
     DOMAIN: "https://api.test.intebsi.xyz",
-    BESU_RPC_NODE: "https://www.test.intebsi.xyz/jsonrpc",
+    BESU_RPC_NODE: "ws://www.test.intebsi.xyz/jsonrpc",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LOG_LEVEL: "info",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
@@ -41,7 +41,7 @@ const defaultConfig = {
   },
   pilot: {
     DOMAIN: "https://api.preprod.ebsi.eu",
-    BESU_RPC_NODE: "https://www.preprod.ebsi.eu/jsonrpc",
+    BESU_RPC_NODE: "ws://www.preprod.ebsi.eu/jsonrpc",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
     LOG_LEVEL: "warn",
     AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v1",
@@ -49,7 +49,7 @@ const defaultConfig = {
   },
   prod: {
     DOMAIN: "https://api.ebsi.eu",
-    BESU_RPC_NODE: "https://www.ebsi.eu/jsonrpc",
+    BESU_RPC_NODE: "ws://www.ebsi.eu/jsonrpc",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
     LOG_LEVEL: "error",
     AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v1",

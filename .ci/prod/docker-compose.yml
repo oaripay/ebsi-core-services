@@ -3,4 +3,4 @@ version: "3.7"
 services:
   trusted-apps-registry:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry:prod_ebsiint-3038-deps_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry:prod_ebsiint-3134-ws_v2.0.0

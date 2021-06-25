@@ -35,14 +35,13 @@ import {
   ArgsUpdateAuthorization,
   SignedTransactionParam,
 } from "./dto";
-import { AxiosResponseJsonRpc, AxiosErrorResponse } from "./jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "./errors";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
   validateClass,
 } from "./jsonrpc.utils";
-import LedgerService from "../../shared/services/ledger.service";
+import LedgerService from "../ledger/ledger.service";
 import { Tar } from "../../contracts/Tar";
 import { ApiConfig } from "../../config/configuration";
 import { prefixWith0x } from "../../shared/utils";
@@ -58,7 +57,7 @@ export class JsonRpcService {
   private didRegistry: string;
 
   constructor(
-    private configService: ConfigService<ApiConfig>,
+    configService: ConfigService<ApiConfig>,
     private ledgerService: LedgerService
   ) {
     this.tarContract = this.ledgerService.getContract();
@@ -73,32 +72,17 @@ export class JsonRpcService {
     return this.chainId;
   }
 
-  async callBesuAuth(method: string, params: unknown[]): Promise<unknown> {
-    const url = this.configService.get<string>("besuRpcNode");
-    const data = { jsonrpc: "2.0", method, params, id: 1 };
-    const opts = {};
-    try {
-      const response: AxiosResponseJsonRpc = await axios.post(url, data, opts);
-      return response.data.result;
-    } catch (error) {
-      const errorAxios = error as AxiosErrorResponse;
-      if (errorAxios.response && errorAxios.response.data) {
-        let message: string;
-        if (typeof errorAxios.response.data === "object")
-          message = JSON.stringify(errorAxios.response.data);
-        else message = errorAxios.response.data as string;
-        throw new Error(message);
-      }
-      throw error;
-    }
-  }
-
-  async estimateGas(transaction: UnsignedTransaction): Promise<string> {
+  async estimateGas(
+    transaction: UnsignedTransaction
+  ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
-    return this.callBesuAuth("eth_estimateGas", [
-      { from, to, data, value },
-    ]) as Promise<string>;
+    return this.tarContract.provider.estimateGas({
+      from,
+      to,
+      data,
+      value,
+    });
   }
 
   async isDidControlledByAddress(
@@ -323,17 +307,21 @@ export class JsonRpcService {
       gasPrice: "0x0",
     };
 
-    let gasEstimation = "unset";
+    let gasEstimation: string | ethers.BigNumber = "unset";
 
     try {
       gasEstimation = await this.estimateGas(unsignedTransaction);
-      unsignedTransaction.gasLimit = ethers.BigNumber.from(
-        Math.ceil(1.4 * Number(gasEstimation))
-      ).toHexString();
+      // Multiply by 1.4
+      unsignedTransaction.gasLimit = gasEstimation
+        .mul(14)
+        .div(10)
+        .toHexString();
     } catch (error) {
       this.logger.warn(
         `Gas could not be estimated.${
-          gasEstimation === "unset" ? "" : `Received ${gasEstimation}.`
+          gasEstimation === "unset"
+            ? ""
+            : `Received ${gasEstimation.toString()}.`
         } Using 0x1000000`
       );
       unsignedTransaction.gasLimit = "0x1000000";
@@ -702,9 +690,11 @@ export class JsonRpcService {
 
       await this.checkWritePermission(signer, clientId);
 
-      return (await this.callBesuAuth("eth_sendRawTransaction", [
-        request.signedRawTransaction,
-      ])) as string;
+      const tx = await this.tarContract.provider.sendTransaction(
+        request.signedRawTransaction
+      );
+
+      return tx.hash;
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
       error.stack = (err as Error).stack;

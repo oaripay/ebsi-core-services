@@ -30,7 +30,7 @@ import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { createDid } from "../utils/data";
-import LedgerService from "../../src/shared/services/ledger.service";
+import LedgerService from "../../src/modules/ledger/ledger.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -124,6 +124,10 @@ describe("Administrators (e2e)", () => {
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describe("/administrators", () => {

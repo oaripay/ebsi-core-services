@@ -11,6 +11,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
+import { ethers } from "ethers";
 import { PoliciesModule } from "./policies.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { generateMultihash } from "../../shared/utils";
@@ -37,6 +38,14 @@ describe("Policies Module", () => {
     const { tarContract } = testEnv;
 
     // Mock TAR contract
+    jest
+      .spyOn(ethers.providers, "WebSocketProvider")
+      .mockImplementation(
+        () =>
+          new ethers.providers.BaseProvider(
+            "any"
+          ) as ethers.providers.WebSocketProvider
+      );
     jest.spyOn(Tar__factory, "connect").mockImplementation(() => tarContract);
 
     const moduleFixture: TestingModule = await Test.createTestingModule({

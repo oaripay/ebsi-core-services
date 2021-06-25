@@ -32,6 +32,10 @@ describe("TAR API (generic tests)", () => {
     server = app.getHttpServer() as HttpServer;
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   describe("GET /health", () => {
     it("should return ok", async () => {
       expect.assertions(2);

@@ -6,6 +6,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
+import { ethers } from "ethers";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
 
@@ -14,6 +15,16 @@ describe("App Module", () => {
   let server: HttpServer;
 
   beforeAll(async () => {
+    // Mock WebSocketProvider
+    jest
+      .spyOn(ethers.providers, "WebSocketProvider")
+      .mockImplementation(
+        () =>
+          new ethers.providers.BaseProvider(
+            "any"
+          ) as ethers.providers.WebSocketProvider
+      );
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -21,6 +32,7 @@ describe("App Module", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
+
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 

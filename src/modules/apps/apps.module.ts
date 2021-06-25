@@ -2,12 +2,12 @@ import { Module, Logger } from "@nestjs/common";
 import { ApiConfigModule } from "../../config/configuration";
 import AppsController from "./apps.controller";
 import AppsService from "./apps.service";
-import LedgerService from "../../shared/services/ledger.service";
+import { LedgerModule } from "../ledger/ledger.module";
 
 @Module({
-  imports: [ApiConfigModule],
+  imports: [ApiConfigModule, LedgerModule],
   controllers: [AppsController],
-  providers: [Logger, AppsService, LedgerService],
+  providers: [Logger, AppsService],
 })
 export class AppsModule {}
 

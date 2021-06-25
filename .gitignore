@@ -5,3 +5,4 @@ node_modules
 key/private.pem
 src/contracts
 yarn-error.log
+.clinic

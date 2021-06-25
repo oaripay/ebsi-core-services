@@ -8,6 +8,7 @@ import { PoliciesModule } from "./modules/policies/policies.module";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { HealthController } from "./health.controller";
 import { AuthModule } from "./modules/auth/auth.module";
+import { LedgerModule } from "./modules/ledger/ledger.module";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { AuthModule } from "./modules/auth/auth.module";
     AdministratorsModule,
     PoliciesModule,
     JsonRpcModule,
+    LedgerModule,
   ],
   controllers: [AppController, HealthController],
   providers: [],
