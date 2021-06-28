@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-web-client/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.4&targetRepoId=406) (2021-06-28)
+
+### 🐛 Bug Fixes
+
+- hide "EBSI Web Wallet" button ([#32](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-web-client/pull-requests/32/overview)) - EBSIINT-3157 ([ad2612f](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-web-client/commits/ad2612fe54d3c61d014df734b4034449e5995f9a))
+
 ## [1.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-web-client/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.3&targetRepoId=406) (2021-06-02)
 
 ### 🐛 Bug Fixes
