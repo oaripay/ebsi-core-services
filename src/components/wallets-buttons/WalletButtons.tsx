@@ -29,6 +29,8 @@ export const WalletButtons: React.FunctionComponent<Props> = ({
         label="Mobile Wallet"
         className="ecl-u-mr-m ecl-u-mb-s"
       />
+      {/* EBSIINT-3157 Hide button */}
+      {/*
       <Button
         variant="secondary"
         type="button"
@@ -38,6 +40,7 @@ export const WalletButtons: React.FunctionComponent<Props> = ({
         className="ecl-u-mr-m ecl-u-mb-s"
         disabled
       />
+      */}
     </>
   );
 };

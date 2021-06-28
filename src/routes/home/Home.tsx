@@ -1,7 +1,8 @@
 // EBSIINT-3061: remove Terms and conditions box
 // import React, { useState } from "react";
 import React from "react";
-import { Terms } from "../../components/terms/Terms";
+// EBSIINT-3061: remove Terms and conditions box
+// import { Terms } from "../../components/terms/Terms";
 import { LoginButtons } from "../../components/login-buttons/LoginButtons";
 import { PageHeader } from "../../ui-components/page-header/PageHeader";
 
