@@ -265,7 +265,7 @@ export async function insertDidDocument(
     JSON.stringify(didVersionMetadata)
   );
 
-  const identifier = `0x${Buffer.from(did).toString("hex")}`;
+  const identifier = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
   const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
   const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
   const didVersionMetadataHex = `0x${didVersionMetadataBuffer.toString("hex")}`;
@@ -282,7 +282,7 @@ export async function insertDidDocument(
     didVersionMetadataHex
   );
 
-  await contract.updateDidController(
+  await contract.insertDidController(
     identifier,
     controller.address,
     Date.now() - 1,
@@ -393,10 +393,10 @@ export async function updatePolicy(
 }
 
 export async function insertHashAlgorithm(
-  contract: DidRegistry
+  contract: DidRegistry,
+  id: number
 ): Promise<HashAlgorithmObject> {
-  const ianaName =
-    validHashAlgorithms[Math.floor(Math.random() * validHashAlgorithms.length)];
+  const ianaName = validHashAlgorithms[id];
   const outputLength = outputLengths[ianaName];
   const oid = "oid-test";
   const status = 1;
@@ -460,7 +460,7 @@ export async function setupTestEnv(
   const hashAlgorithms = await Promise.all(
     Array(opts.hashAlgorithmsTotal ?? 1)
       .fill(0)
-      .map(() => insertHashAlgorithm(didRegistryContract))
+      .map((i: number) => insertHashAlgorithm(didRegistryContract, i))
   );
 
   const createAdminWallet = async () => {

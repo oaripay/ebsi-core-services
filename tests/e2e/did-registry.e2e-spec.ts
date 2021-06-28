@@ -1155,7 +1155,7 @@ describe("DID Registry (e2e)", () => {
             ) as string,
           },
         ]) as Array<string>,
-        total: 3,
+        total: 1,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
@@ -1176,7 +1176,7 @@ describe("DID Registry (e2e)", () => {
     });
 
     it("should handle the pagination properly", async () => {
-      expect.assertions(8);
+      expect.assertions(6);
 
       const { didDocumentBuffer } = updatedDidDocument;
       const did = updatedDidDocument.controllerDid;
@@ -1191,7 +1191,7 @@ describe("DID Registry (e2e)", () => {
           `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
-        total: 3,
+        total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
@@ -1201,42 +1201,14 @@ describe("DID Registry (e2e)", () => {
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
           ) as string,
           next: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
           ) as string,
           last: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
           ) as string,
         },
       });
       expect(response1.status).toBe(200);
-
-      // next page
-      const response2 = await request(server).get(
-        `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
-      );
-      expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: 3,
-        pageSize: 2,
-        links: {
-          first: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
-          prev: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
-          next: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
-          ) as string,
-          last: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
-          ) as string,
-        },
-      });
-      expect(response2.status).toBe(200);
 
       // big page
       const response3 = await request(server).get(
@@ -1247,20 +1219,20 @@ describe("DID Registry (e2e)", () => {
           `/identifiers/${did}/versions/${versionId}/metadata?page[after]=100&page[size]=2`
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
-        total: 3,
+        total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
           ) as string,
           prev: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
           ) as string,
           next: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
           ) as string,
           last: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
+            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
           ) as string,
         },
       });
@@ -1275,7 +1247,7 @@ describe("DID Registry (e2e)", () => {
           `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
-        total: 3,
+        total: 1,
         pageSize: 10,
         links: {
           first: expect.stringContaining(

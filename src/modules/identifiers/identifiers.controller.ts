@@ -103,11 +103,13 @@ export default class IdentifiersController {
   ): Promise<PaginatedList<MetadataIdLink>> {
     const { did, versionId } = params;
 
-    const didMethods = await this.didMethodsService.getIdentifiersVersions(
-      did,
-      query["page[after]"],
-      query["page[size]"]
-    );
+    const didMethods =
+      await this.didMethodsService.getIdentifiersVersionsMetadata(
+        did,
+        versionId,
+        query["page[after]"],
+        query["page[size]"]
+      );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");

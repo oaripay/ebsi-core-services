@@ -89,9 +89,9 @@ describe("Identifiers Module", () => {
             ) as string,
             items: expect.arrayContaining(
               didDocuments.map((doc) => ({
-                did: doc.did,
+                did: doc.did.toLowerCase(),
                 href: expect.stringContaining(
-                  `/identifiers/${doc.did}`
+                  `/identifiers/${doc.did.toLowerCase()}`
                 ) as string,
               }))
             ) as Array<string>,
@@ -134,9 +134,9 @@ describe("Identifiers Module", () => {
             ) as string,
             items: expect.arrayContaining([
               {
-                did: didDocuments[0].did,
+                did: didDocuments[0].did.toLowerCase(),
                 href: expect.stringContaining(
-                  `/identifiers/${didDocuments[0].did}`
+                  `/identifiers/${didDocuments[0].did.toLowerCase()}`
                 ) as string,
               },
             ]) as Array<unknown>,

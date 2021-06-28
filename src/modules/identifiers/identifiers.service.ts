@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
+import { ethers } from "ethers";
 import { LedgerService } from "../ledger/ledger.service";
 import { DidRegistry } from "../../contracts/did-registry";
 import { remove0xPrefix } from "../../shared/utils";
@@ -145,9 +146,23 @@ export default class IdentifiersService {
   ): ReturnType<DidRegistry["getDidDocumentVersionMetadataIds"]> {
     const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
 
-    return (
-      await this.ledgerService.getContract()
-    ).getDidDocumentVersionMetadataIds(hexDid, versionId, page, pageSize);
+    try {
+      return await (
+        await this.ledgerService.getContract()
+      ).getDidDocumentVersionMetadataIds(hexDid, versionId, page, pageSize);
+    } catch (e) {
+      // TODO: remove the require in the smart contract
+      // (function getDidDocumentVersionMetadataIds)
+      return {
+        items: [],
+        total: ethers.BigNumber.from(0),
+        howMany: ethers.BigNumber.from(pageSize),
+        prev: ethers.BigNumber.from(1),
+        next: ethers.BigNumber.from(1),
+      } as unknown as ReturnType<
+        DidRegistry["getDidDocumentVersionMetadataIds"]
+      >;
+    }
   }
 
   async getIdentifierVersionMetadata(
