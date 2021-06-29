@@ -211,10 +211,10 @@ docker-compose up --build
 
 ### Run the tests
 
-If you have [installed k6 locally](https://k6.io/docs/getting-started/installation), run:
+If you have [installed k6 locally](https://k6.io/docs/getting-started/installation), get a valid JWT and run:
 
 ```sh
-k6 run tests/k6/script.js --no-usage-report
+JWT=xxx k6 run tests/k6/script.js --no-usage-report
 ```
 
 If you prefer to use Docker, first make sure to download the docker image:
@@ -226,13 +226,13 @@ docker pull loadimpact/k6
 Then, run the tests:
 
 ```sh
-docker run -i loadimpact/k6 run -e BASE_URL=http://host.docker.internal:3000 --no-usage-report - <tests/k6/script.js
+docker run -i loadimpact/k6 run -e JWT=xxx BASE_URL=http://host.docker.internal:3000 --no-usage-report - <tests/k6/script.js
 ```
 
 Note: you can also use k6 to test the remote API by configuring BASE_URL:
 
 ```sh
-BASE_URL=https://api.test.intebsi.xyz k6 run tests/k6/script.js --no-usage-report
+JWT=xxx BASE_URL=https://api.test.intebsi.xyz k6 run tests/k6/script.js --no-usage-report
 ```
 
 ## Serving the OpenAPI specification locally

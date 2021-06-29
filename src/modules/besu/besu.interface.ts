@@ -4,3 +4,8 @@ export interface BesuResponseObject {
   result?: unknown;
   error?: unknown;
 }
+
+export interface BesuServiceResponse {
+  status: number;
+  data: BesuResponseObject;
+}

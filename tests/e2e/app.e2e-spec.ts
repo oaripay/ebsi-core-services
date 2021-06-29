@@ -32,6 +32,10 @@ describe("/ledger/v2 (generic tests)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   describe("GET /health", () => {
     it("should return ok", async () => {
       expect.assertions(2);

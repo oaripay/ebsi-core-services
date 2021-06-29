@@ -46,12 +46,11 @@ describe("POST /ledger/v2/blockchains/besu", () => {
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-    const testApp =
-      configService.get<{
-        id: string;
-        name: string;
-        privateKey: string;
-      }>("testApp");
+    const testApp = configService.get<{
+      id: string;
+      name: string;
+      privateKey: string;
+    }>("testApp");
 
     const agent = new Agent(testApp.privateKey, {
       issuer: testApp.name,
@@ -71,6 +70,10 @@ describe("POST /ledger/v2/blockchains/besu", () => {
       nonce
     );
     fakeToken = await createFakeToken(true);
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   it("should throw forbidden or unauthorized errors for bad Authentication", async () => {

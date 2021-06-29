@@ -32,7 +32,12 @@ export class AuthService {
     requestHost?: string
   ): void {
     // Cache requests targeting these hosts
-    const cacheableRequestHosts = ["localhost", "127.0.0.1", "api.local"];
+    const cacheableRequestHosts = [
+      "localhost",
+      "127.0.0.1",
+      "api.local",
+      "0.0.0.0",
+    ];
     this.logger.debug(
       `Checking if the API should store the JWT. requestHost: ${requestHost}`
     );

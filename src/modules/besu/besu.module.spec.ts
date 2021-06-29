@@ -14,12 +14,9 @@ import {
 import { Session, JWTPayload } from "@cef-ebsi/oauth2-auth";
 import { ethers } from "ethers";
 import ganache from "ganache-core";
-import axios, { AxiosError, AxiosResponse } from "axios";
-import { InternalServerError } from "@cef-ebsi/problem-details-errors";
 import { BesuModule } from "./besu.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { BesuService } from "./besu.service";
-import { BesuResponseObject } from "./besu.interface";
 import { createFakeToken } from "../../../tests/utils/authorisation";
 
 describe("Besu Module", () => {
@@ -28,12 +25,14 @@ describe("Besu Module", () => {
   let ganacheServer: ganache.Server;
   let besuService: BesuService;
   let token: string;
-  const ganachePort = 8546; // 8545 might already be used for ssh port forwarding
+  const ganachePort = 8547; // 8546 might already be used for ssh port forwarding
   const ganacheUrl = `http://127.0.0.1:${ganachePort}`;
   const mockAuth = jest.spyOn(Session.prototype, "verifyAccessToken");
 
   beforeAll(async () => {
-    const options: ganache.IServerOptions = {};
+    const options: ganache.IServerOptions = {
+      ws: true,
+    };
     ganacheServer = ganache.server(options);
     await new Promise<void>((resolve) => {
       ganacheServer.listen(ganachePort, () => resolve());
@@ -59,11 +58,13 @@ describe("Besu Module", () => {
 
     besuService = moduleFixture.get<BesuService>(BesuService);
 
+    token = await createFakeToken();
+  });
+
+  beforeEach(() => {
     jest
       .spyOn(besuService, "getBesuRpcNode")
       .mockImplementation(() => ganacheUrl);
-
-    token = await createFakeToken();
 
     // mock library
     mockAuth.mockImplementation(
@@ -72,6 +73,10 @@ describe("Besu Module", () => {
           new Error("Forgot to implement the mock for verifyAccessToken?")
         )
     );
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   afterAll(async () => {
@@ -334,22 +339,21 @@ describe("Besu Module", () => {
     expect(response.status).toBe(400);
   });
 
-  it("should handle internal errorr", async () => {
-    expect.assertions(4);
+  it("should handle internal errorr (fails to retrieve chainId)", async () => {
+    expect.assertions(3);
 
     mockAuth.mockImplementation(
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
-    jest.spyOn(axios, "post").mockImplementation(() => {
-      throw new Error("error with connection");
-    });
+    // Fails to retrieve chainId
+    const spy = jest
+      .spyOn(besuService, "getChainId")
+      .mockImplementationOnce(() => {
+        throw new Error("Error getting EBSI chainId");
+      });
 
-    jest
-      .spyOn(besuService, "getBesuRpcNode")
-      .mockImplementation(() => `${ganacheUrl}00`);
-
-    const response1 = await request(server)
+    const response = await request(server)
       .post("/blockchains/besu")
       .auth(token, { type: "bearer" })
       .send({
@@ -359,37 +363,14 @@ describe("Besu Module", () => {
         id: "42",
       });
 
-    expect(response1.body).toStrictEqual({
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(response.body).toStrictEqual({
       title: "Internal Server Error",
       status: 500,
       detail: expect.stringContaining("internal error") as string,
       type: "about:blank",
     });
-    expect(response1.status).toBe(500);
-
-    jest.spyOn(axios, "post").mockImplementation(() => {
-      throw new InternalServerError(InternalServerError.defaultTitle, {
-        detail: "internal error",
-      });
-    });
-
-    const response2 = await request(server)
-      .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "eth_chainId",
-        params: [],
-        id: "42",
-      });
-
-    expect(response2.body).toStrictEqual({
-      title: "Internal Server Error",
-      status: 500,
-      detail: expect.stringContaining("internal error") as string,
-      type: "about:blank",
-    });
-    expect(response2.status).toBe(500);
+    expect(response.status).toBe(500);
   });
 
   it("should return an error when Besu returns an error", async () => {
@@ -399,21 +380,44 @@ describe("Besu Module", () => {
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
-    jest.spyOn(axios, "post").mockImplementation((): Promise<
-      AxiosError<unknown>
-    > => {
-      const err = new Error("test error message");
-      (err as AxiosError).config = {};
-      (err as AxiosError).isAxiosError = true;
-      (err as AxiosError).toJSON = () => ({});
-      (err as AxiosError).response = {
-        data: "Error message",
-        status: 500,
-        statusText: "Internal Error",
-        config: {},
-        headers: {},
-      };
+    jest.spyOn(besuService, "send").mockImplementation(() => {
+      const err = new Error("unkown error");
+      return Promise.reject(err);
+    });
 
+    const response = await request(server)
+      .post("/blockchains/besu")
+      .auth(token, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "eth_chainId",
+        params: [],
+        id: "42",
+      });
+
+    expect(response.body).toStrictEqual({
+      title: "Internal Server Error",
+      status: 500,
+      detail: expect.stringContaining("internal error") as string,
+      type: "about:blank",
+    });
+    expect(response.status).toBe(500);
+  });
+
+  it("should return an error when Besu returns an error that is not parseable", async () => {
+    expect.assertions(2);
+
+    mockAuth.mockImplementation(
+      async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
+    );
+
+    // Let's say Besu answers with an error
+    jest.spyOn(besuService, "send").mockImplementation(() => {
+      const err = new Error();
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      err.response = { unparseable: "reponse" };
       return Promise.reject(err);
     });
 
@@ -443,24 +447,21 @@ describe("Besu Module", () => {
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
-    // Let's say Besu answers with
-    jest.spyOn(axios, "post").mockImplementation((): Promise<
-      AxiosResponse<BesuResponseObject>
-    > => {
-      return Promise.resolve({
-        data: {
-          jsonrpc: "2.0",
-          id: 1,
-          error: {
-            code: -32001,
-            message: "Nonce too low",
-          },
+    // Let's say Besu answers with an error
+    jest.spyOn(besuService, "send").mockImplementation(() => {
+      const err = new Error();
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      err.response = JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        error: {
+          code: -32001,
+          message: "Nonce too low",
         },
-        status: 200,
-        statusText: "",
-        headers: {},
-        config: {},
       });
+      return Promise.reject(err);
     });
 
     const response = await request(server)

@@ -16,13 +16,7 @@ export class BesuController {
   ): Promise<FastifyReply> {
     const ledgerResponse = await this.besuService.sendToBesu(body);
 
-    return (
-      res
-        .code(ledgerResponse.status)
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        .type(ledgerResponse.headers["content-type"])
-        .send(ledgerResponse.data)
-    );
+    return res.code(ledgerResponse.status).send(ledgerResponse.data);
   }
 }
 
