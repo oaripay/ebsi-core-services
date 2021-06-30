@@ -493,7 +493,7 @@ describe("Authorisation (e2e)", () => {
     });
 
     it(`should create a SIOP session for a user that uses alg ${alg}`, async () => {
-      expect.assertions(3);
+      expect.assertions(4);
 
       const domain = configService.get<string>("domain");
       const urlPrefix = configService.get<string>("apiUrlPrefix");
@@ -534,13 +534,18 @@ describe("Authorisation (e2e)", () => {
         ake1_sig_payload: expect.objectContaining({
           ake1_enc_payload: expect.any(String) as string,
           ake1_nonce: nonce,
-          did: configService.get<string>("testClientDid").toLowerCase(),
+          did: expect.any(String) as string,
           iat: expect.any(Number) as number,
           exp: expect.any(Number) as number,
           iss: apiDid,
         }) as Ake1SigPayload,
         did: apiDid,
       });
+      expect(
+        (
+          response.body as { ake1_sig_payload: { did: string } }
+        ).ake1_sig_payload.did.toLowerCase()
+      ).toStrictEqual(configService.get<string>("testClientDid").toLowerCase());
       expect(response.status).toBe(200);
 
       // Check that we can get the access token
