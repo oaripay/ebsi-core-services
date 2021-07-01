@@ -596,11 +596,11 @@ describe("JsonRpc Module", () => {
     "timestampHashes",
     "timestampRecordHashes",
     "insertRecordOwner",
-    "revokeRecordOwner",
     "insertRecordVersionInfo",
     "detachRecordVersionHash",
     "timestampRecordVersionHashes",
     "appendRecordVersionHashes",
+    "revokeRecordOwner",
   ])("/jsonrpc with method %s", (method: string) => {
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
       expect.assertions(4);
@@ -2544,4 +2544,169 @@ describe("JsonRpc Module", () => {
       });
     }
   );
+  // Tests to verify that only record owners can update the records
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  describe.each([
+    "insertRecordOwner",
+    "insertRecordVersionInfo",
+    "detachRecordVersionHash",
+    "timestampRecordVersionHashes",
+    "appendRecordVersionHashes",
+    "revokeRecordOwner",
+  ])("record owners test suite for method %s", (method: string) => {
+    it("should fail when trying to perform a signedTransaction", async () => {
+      expect.assertions(4);
+
+      let param: JsonRpcParams = null;
+
+      switch (method) {
+        case "timestampRecordVersionHashes": {
+          recordId = testEnv.records[0].recordId;
+          param = {
+            from: testAdmin.wallet.address,
+            recordId,
+            hashAlgorithmIds: [0],
+            hashValues: [firstHashValue],
+            timestampData: [
+              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                "hex"
+              )}`,
+            ],
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 54 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as TimestampRecordVersionHashesParam;
+          break;
+        }
+        case "appendRecordVersionHashes": {
+          recordId = testEnv.records[0].recordId;
+          param = {
+            from: testAdmin.wallet.address,
+            recordId,
+            versionId: 1,
+            hashAlgorithmIds: [0],
+            hashValues: [firstHashValue],
+            timestampData: [
+              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                "hex"
+              )}`,
+            ],
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 54 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as AppendRecordVersionHashesParam;
+          break;
+        }
+        case "detachRecordVersionHash": {
+          recordId = testEnv.records[0].recordId;
+          param = {
+            from: testAdmin.wallet.address,
+            recordId,
+            versionId: 0,
+            hashValue: firstHashValue,
+          } as DetachRecordVersionHashParam;
+          break;
+        }
+        case "insertRecordVersionInfo": {
+          recordId = testEnv.records[0].recordId;
+          param = {
+            from: testAdmin.wallet.address,
+            recordId,
+            versionId: 0,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as InsertRecordVersionInfoParam;
+          break;
+        }
+        case "insertRecordOwner": {
+          recordId = testEnv.records[0].recordId;
+          param = {
+            from: testAdmin.wallet.address,
+            recordId,
+            ownerId: "owner",
+            notBefore: 1042,
+            notAfter: 1021201545,
+          } as InsertRecordOwnerParam;
+          break;
+        }
+        case "revokeRecordOwner": {
+          recordId = testEnv.records[0].recordId;
+          param = {
+            from: testAdmin.wallet.address,
+            recordId,
+            ownerId: "owner",
+          } as RevokeRecordOwnerParam;
+          break;
+        }
+        default:
+          throw new Error(`Test Error: Invalid method ${method}`);
+      }
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(testAdmin.token, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param],
+          id: 232,
+        });
+
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 232,
+        result: {
+          chainId: expect.any(String) as string,
+          data: expect.any(String) as string,
+          from: param.from,
+          gasLimit: expect.any(String) as string,
+          gasPrice: expect.any(String) as string,
+          nonce: expect.any(String) as string,
+          to: expect.any(String) as string,
+          value: "0x0",
+        },
+      });
+      expect(responseBuild.status).toBe(200);
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await testAdmin.wallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend = await request(server)
+        .post("/jsonrpc")
+        .auth(testAdmin.token, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        error: {
+          code: -32600,
+          message: `Only record owners can update records`,
+        },
+      });
+      expect(responseSend.status).toBe(400);
+    });
+  });
 });

@@ -33,7 +33,11 @@ import {
   RecordLink,
 } from "../../src/modules/records/records.interface";
 import { ApiConfig } from "../../src/config/configuration";
-import { prefixWith0x, multibase64Encode } from "../../src/shared/utils";
+import {
+  prefixWith0x,
+  multibase64Encode,
+  multibase64Decode,
+} from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { siopAuthentication } from "../utils/auth";
 import { LedgerService } from "../../src/shared/services/ledger.service";
@@ -751,5 +755,181 @@ describe("Records (e2e)", () => {
       },
     });
     expect(responseSend.status).toBe(400);
+  });
+
+  // Tests to verify that only record owners can update the records
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+  describe.each([
+    "insertRecordOwner",
+    "insertRecordVersionInfo",
+    "detachRecordVersionHash",
+    "timestampRecordVersionHashes",
+    "appendRecordVersionHashes",
+    "revokeRecordOwner",
+  ])("record owners test suite for method %s", (method: string) => {
+    it("should fail when trying to perform a signedTransaction", async () => {
+      expect.assertions(6);
+
+      let param: JsonRpcParams = null;
+
+      const response = await request(server).get("/records");
+      expect((response.body as { items: string }).items).not.toHaveLength(0);
+      expect(response.status).toBe(200);
+      const { recordId } = (response.body as { items: string })
+        .items[0] as unknown as RecordLink;
+      const decodedRecordId = multibase64Decode(recordId);
+      switch (method) {
+        case "timestampRecordVersionHashes": {
+          param = {
+            from: testUser.wallet.address,
+            recordId: decodedRecordId,
+            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+            hashValues: [hashValue1, hashValue2],
+            timestampData: [
+              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                "hex"
+              )}`,
+              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
+                "hex"
+              )}`,
+            ],
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as TimestampRecordVersionHashesParam;
+          break;
+        }
+        case "insertRecordOwner": {
+          const notBefore = new Date().getTime();
+          param = {
+            from: testUser.wallet.address,
+            recordId: decodedRecordId,
+            ownerId: "myownerid",
+            notBefore,
+            notAfter: notBefore + 1000000,
+          } as InsertRecordOwnerParam;
+          break;
+        }
+        case "revokeRecordOwner": {
+          param = {
+            from: testUser.wallet.address,
+            recordId: decodedRecordId,
+            ownerId: "myownerid",
+          } as RevokeRecordOwnerParam;
+          break;
+        }
+        case "insertRecordVersionInfo": {
+          param = {
+            from: testUser.wallet.address,
+            recordId: decodedRecordId,
+            versionId: 0,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ test: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as InsertRecordVersionInfoParam;
+          break;
+        }
+        case "detachRecordVersionHash": {
+          param = {
+            from: testUser.wallet.address,
+            recordId: decodedRecordId,
+            versionId: 0,
+            hashValue: hashValue1,
+          } as DetachRecordVersionHashParam;
+          break;
+        }
+        case "appendRecordVersionHashes": {
+          param = {
+            from: testUser.wallet.address,
+            recordId: decodedRecordId,
+            versionId: 0,
+            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+            hashValues: [hashValue1, hashValue2],
+            timestampData: [
+              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                "hex"
+              )}`,
+              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
+                "hex"
+              )}`,
+              // `0x${crypto.randomBytes(32).toString("hex")}`,
+              // `0x${crypto.randomBytes(32).toString("hex")}`,
+            ],
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as AppendRecordVersionHashesParam;
+          break;
+        }
+        default:
+          throw new Error(`Test Error: Invalid method ${method}`);
+      }
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(testUser.token, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param],
+          id: 231,
+        });
+
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        result: {
+          chainId: expect.any(String) as string,
+          data: expect.any(String) as string,
+          from: testUser.wallet.address,
+          gasLimit: expect.any(String) as string,
+          gasPrice: expect.any(String) as string,
+          nonce: expect.any(String) as string,
+          to: expect.any(String) as string,
+          value: expect.any(String) as string,
+        },
+      });
+      expect(responseBuild.status).toBe(200);
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await testUser.wallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(testUser.token, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        error: {
+          code: -32600,
+          message: `Only record owners can update records`,
+        },
+      });
+      expect(responseSend.status).toBe(400);
+    });
   });
 });

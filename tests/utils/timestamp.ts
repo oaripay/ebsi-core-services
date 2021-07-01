@@ -181,14 +181,13 @@ export async function insertRecord(
     "utf8"
   ).toString("hex")}`;
 
-  await contract.timestampRecordHashes(
+  const { blockNumber } = await contract.timestampRecordHashes(
     hashAlgorithmIds,
     hashValues,
     timestampData,
     versionInfo
   );
 
-  const blockNumber = 2;
   const types = ["address", "uint256", "bytes"];
   const values = [sender, blockNumber, hashValues[0]];
   const enc = ethers.utils.defaultAbiCoder.encode(types, values);

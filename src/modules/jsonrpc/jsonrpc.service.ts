@@ -35,6 +35,7 @@ import {
   validateClass,
 } from "./jsonrpc.utils";
 import { LedgerService } from "../../shared/services/ledger.service";
+import RecordsService from "../records/records.service";
 import { ApiConfig } from "../../config/configuration";
 import { UserInfo } from "../auth/auth.interface";
 
@@ -59,7 +60,8 @@ export class JsonRpcService {
 
   constructor(
     private configService: ConfigService<ApiConfig>,
-    private ledgerService: LedgerService
+    private ledgerService: LedgerService,
+    private recordsService: RecordsService
   ) {
     this.trustedAppsRegistry = this.configService.get<string>(
       "trustedAppsRegistryApiUrl"
@@ -186,10 +188,28 @@ export class JsonRpcService {
     }
   }
 
+  async verifyRecordOwner(address: string, recordId: string): Promise<void> {
+    let ownerIds = [];
+    try {
+      const record = await (
+        await this.ledgerService.getContract()
+      ).getRecord(recordId);
+      ownerIds = record.ownerIds.map((r) => r.toLowerCase());
+    } catch (e) {
+      throw new Error(
+        `recordId ${recordId} could not be retrieved: ${(e as Error).message}`
+      );
+    }
+
+    if (!ownerIds.includes(address.toLowerCase()))
+      throw new Error(`Only record owners can update records`);
+  }
+
   async checkWritePermission(
     functionName: string,
     address: string,
-    user: UserInfo
+    user: UserInfo,
+    args: ethers.utils.Result
   ): Promise<void> {
     switch (functionName) {
       /* For the following functions only EBSI Admins
@@ -208,15 +228,29 @@ export class JsonRpcService {
        *  EBSI Timestamp API and SC can write
        */
       case "timestampHashes":
-      case "timestampRecordHashes":
-      case "timestampRecordVersionHashes":
       case "timestampVersionHashes":
+      case "timestampRecordHashes":
+        await this.verifyEthereumAddress(address, user);
+        break;
+      case "timestampRecordVersionHashes":
       case "appendRecordVersionHashes":
       case "detachRecordVersionHash":
       case "insertRecordVersionInfo":
       case "insertRecordOwner":
       case "revokeRecordOwner":
         await this.verifyEthereumAddress(address, user);
+        await this.verifyRecordOwner(
+          address,
+          (
+            args as unknown as
+              | ArgsTimestampRecordVersionHashes
+              | ArgsAppendRecordVersionHashes
+              | ArgsDetachRecordVersionHash
+              | ArgsInsertRecordVersionInfo
+              | ArgsInsertRecordOwner
+              | ArgsRevokeRecordOwner
+          ).recordId
+        );
         break;
       default:
         // The rest of the functions are open to the public
@@ -280,9 +314,11 @@ export class JsonRpcService {
     });
   }
 
-  async verifyTransaction(
-    param: SignedTransactionParam
-  ): Promise<{ signer: string; functionName: string }> {
+  async verifyTransaction(param: SignedTransactionParam): Promise<{
+    signer: string;
+    functionName: string;
+    args: ethers.utils.Result;
+  }> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
 
     const unsignedTx = formatEthersUnsignedTransaction(unsignedTransaction);
@@ -406,6 +442,7 @@ export class JsonRpcService {
     return {
       signer,
       functionName: functionFragment.name,
+      args,
     };
   }
 
@@ -746,9 +783,11 @@ export class JsonRpcService {
       await validateClass(RequestSignedTransactionDto, body);
 
       const request = body.params[0];
-      const { signer, functionName } = await this.verifyTransaction(request);
+      const { signer, functionName, args } = await this.verifyTransaction(
+        request
+      );
 
-      await this.checkWritePermission(functionName, signer, user);
+      await this.checkWritePermission(functionName, signer, user, args);
 
       const tx = await (
         await this.ledgerService.getContract()
