@@ -373,7 +373,8 @@ describe("Administrators (e2e)", () => {
           { type: "bearer" }
         );
       expect(response.body).toStrictEqual({
-        detail: "Invalid JWT: No supported signature types for algorithm HS256",
+        detail:
+          "Invalid JWT: not_supported: No supported signature types for algorithm HS256",
         status: 401,
         title: "Unauthorized",
         type: "about:blank",

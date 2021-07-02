@@ -6,7 +6,12 @@ import {
   DidAuthResponseMode,
 } from "@cef-ebsi/siop-auth";
 import type { AkeResponse } from "@cef-ebsi/siop-auth/dist/Ake";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { v4 as uuidv4 } from "uuid";
+import canonicalize from "canonicalize";
+import base64url from "base64url";
+import { createVP } from "./verifiablePresentation";
+import { createVerifiableAuthorisation } from "./verifiableAuthorisation";
 
 export const requestSiopJwt = async ({
   didRegistry,
@@ -43,11 +48,11 @@ export const requestSiopJwt = async ({
 
   const authenticationResponse = await EbsiDidAuth.createAuthenticationResponse(
     {
-      hexPrivatekey: `0x${clientPrivateKey}`,
+      hexPrivateKey: `0x${clientPrivateKey}`,
       did: clientDid,
       nonce,
       redirectUri: payload.client_id,
-      response_mode: DidAuthResponseMode.FORM_POST,
+      responseMode: DidAuthResponseMode.FORM_POST,
     }
   );
 
@@ -82,4 +87,85 @@ export const requestSiopJwt = async ({
   return accessToken;
 };
 
-export default requestSiopJwt;
+// Get SIOP JWT as a new (unregistered) user
+export const requestNewUserSiopJwt = async ({
+  didRegistry,
+  clientDid,
+  clientPrivateKey,
+  authorisationApiUrl,
+  trustedIssuersRegistryApiUrl,
+  authorisationCredentialSchema,
+  usersOnboardingApiPrivateKey,
+  usersOnboardingApiDid,
+}: {
+  didRegistry: string;
+  clientDid: string;
+  clientPrivateKey: string;
+  authorisationApiUrl: string;
+  trustedIssuersRegistryApiUrl: string;
+  authorisationCredentialSchema: string;
+  usersOnboardingApiPrivateKey: string;
+  usersOnboardingApiDid: string;
+}): Promise<string> => {
+  const publicKeyEncryption = new EbsiWallet(clientPrivateKey).getPublicKey({
+    format: "jwk",
+  }) as JsonWebKey;
+  const verifiableCredential = await createVerifiableAuthorisation(
+    clientDid,
+    authorisationCredentialSchema,
+    usersOnboardingApiPrivateKey,
+    usersOnboardingApiDid,
+    didRegistry
+  );
+
+  const nonce = uuidv4();
+
+  const verifiablePresentation = await createVP({
+    vc: verifiableCredential,
+    didRegistry,
+    trustedIssuersRegistryApiUrl,
+    clientDid,
+    clientPrivateKey,
+  });
+
+  const canonicalizedVP = base64url.encode(
+    canonicalize(verifiablePresentation)
+  );
+
+  const authenticationResponse = await EbsiDidAuth.createAuthenticationResponse(
+    {
+      hexPrivateKey: clientPrivateKey,
+      did: clientDid,
+      nonce,
+      redirectUri: "/siop-sessions",
+      responseMode: DidAuthResponseMode.FORM_POST,
+      claims: {
+        verified_claims: canonicalizedVP,
+        encryption_key: publicKeyEncryption,
+      },
+    }
+  );
+
+  const authResponseDecoded = querystring.decode(
+    authenticationResponse.bodyEncoded
+  );
+
+  const idToken = authResponseDecoded.id_token;
+
+  const siopSessionsResponse = await axios.post(
+    `${authorisationApiUrl}/siop-sessions`,
+    { id_token: idToken }
+  );
+
+  const agent = new SiopAgent({
+    privateKey: clientPrivateKey.slice(2),
+    didRegistry,
+  });
+
+  const accessToken = await agent.verifyAuthenticationResponse(
+    siopSessionsResponse.data,
+    nonce
+  );
+
+  return accessToken;
+};

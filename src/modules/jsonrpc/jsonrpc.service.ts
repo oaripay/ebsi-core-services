@@ -202,6 +202,39 @@ export class JsonRpcService {
     }
   }
 
+  checkDidDocument(
+    clientId: string,
+    identifier: string,
+    didDocument: string
+  ): void {
+    const identifierUtf8 = Buffer.from(
+      remove0xPrefix(identifier),
+      "hex"
+    ).toString("utf-8");
+
+    // Compare JWT's DID with "identifier" param
+    if (clientId.toLowerCase() !== identifierUtf8.toLowerCase()) {
+      throw new Error(
+        `Identifier ${identifierUtf8} doesn't match JWT's DID ${clientId}`
+      );
+    }
+
+    // Check if DID Document's "id" matches with the JWT's DID
+    const parsedDidDocument = JSON.parse(
+      Buffer.from(remove0xPrefix(didDocument), "hex").toString("utf-8")
+    ) as { id?: string };
+
+    if (!parsedDidDocument.id) {
+      throw new Error("DID Document is missing an id");
+    }
+
+    if (clientId.toLowerCase() !== parsedDidDocument.id.toLowerCase()) {
+      throw new Error(
+        `DID Document's "id" ${parsedDidDocument.id} doesn't match JWT's DID ${clientId}`
+      );
+    }
+  }
+
   async verifyTransaction(
     param: SignedTransactionParam
   ): Promise<{ signer: string; functionName: string }> {
@@ -590,6 +623,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionInsertDidDocument(
+    clientId: string,
     body: RequestInsertDidDocumentDto,
     id?: number | string
   ): Promise<UnsignedTransaction> {
@@ -606,6 +640,7 @@ export class JsonRpcService {
         didVersionMetadata,
       } = body.params[0];
 
+      this.checkDidDocument(clientId, identifier, didVersionInfo);
       await this.checkHash(hashAlgorithmId, hashValue);
 
       const data = (
@@ -628,6 +663,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionUpdateDidDocument(
+    clientId: string,
     body: RequestUpdateDidDocumentDto,
     id?: number | string
   ): Promise<UnsignedTransaction> {
@@ -644,6 +680,7 @@ export class JsonRpcService {
         didVersionMetadata,
       } = body.params[0];
 
+      this.checkDidDocument(clientId, identifier, didVersionInfo);
       await this.checkHash(hashAlgorithmId, hashValue);
 
       const data = (
@@ -815,6 +852,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionAppendDidMethodVersionHash(
+    clientId: string,
     body: RequestAppendDidDocumentVersionHashDto,
     id?: number | string
   ): Promise<UnsignedTransaction> {
@@ -830,6 +868,7 @@ export class JsonRpcService {
         didVersionInfo,
       } = body.params[0];
 
+      this.checkDidDocument(clientId, identifier, didVersionInfo);
       await this.checkHash(hashAlgorithmId, hashValue);
 
       const data = (
@@ -850,6 +889,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionDetachDidMethodVersionHash(
+    clientId: string,
     body: RequestDetachDidDocumentVersionHashDto,
     id?: number | string
   ): Promise<UnsignedTransaction> {
@@ -859,6 +899,7 @@ export class JsonRpcService {
       const { from, identifier, hashAlgorithmId, hashValue, didVersionInfo } =
         body.params[0];
 
+      this.checkDidDocument(clientId, identifier, didVersionInfo);
       await this.checkHash(hashAlgorithmId, hashValue);
 
       const data = (
@@ -878,6 +919,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionAppendDidMethodVersionMetadata(
+    clientId: string,
     body: RequestAppendDidDocumentVersionMetadataDto,
     id?: number | string
   ): Promise<UnsignedTransaction> {
@@ -886,6 +928,8 @@ export class JsonRpcService {
 
       const { from, identifier, didVersionInfo, didVersionMetadata } =
         body.params[0];
+
+      this.checkDidDocument(clientId, identifier, didVersionInfo);
 
       const data = (
         await this.ledgerService.getContract()
@@ -903,6 +947,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionDetachDidMethodVersionMetadata(
+    clientId: string,
     body: RequestDetachDidDocumentVersionMetadataDto,
     id?: number | string
   ): Promise<UnsignedTransaction> {
@@ -911,6 +956,8 @@ export class JsonRpcService {
 
       const { from, identifier, didVersionInfo, didVersionMetadata } =
         body.params[0];
+
+      this.checkDidDocument(clientId, identifier, didVersionInfo);
 
       const data = (
         await this.ledgerService.getContract()

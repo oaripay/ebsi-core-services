@@ -19,6 +19,10 @@ export interface ApiConfig {
   ledgerApiName: string;
   externalEbsiApiHealthCheck: string;
   trustedAppsRegistryApiUrl: string;
+  trustedIssuersRegistryApiUrl: string;
+  authorisationCredentialSchema: string;
+  usersOnboardingApiDid: string;
+  usersOnboardingApiPrivateKey: string;
   testAppName: string;
   testAppKid: string;
   testAppPrivateKey: string;
@@ -35,6 +39,8 @@ const defaultConfig = {
     LOG_LEVEL: "debug",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v2",
+    TRUSTED_ISSUERS_REGISTRY_API_URL:
+      "https://api.test.intebsi.xyz/trusted-issuers-registry/v2",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
   },
   test: {
@@ -44,6 +50,8 @@ const defaultConfig = {
     LOG_LEVEL: "info",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v2",
+    TRUSTED_ISSUERS_REGISTRY_API_URL:
+      "https://api.test.intebsi.xyz/trusted-issuers-registry/v2",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
   },
   pilot: {
@@ -53,6 +61,8 @@ const defaultConfig = {
     LOG_LEVEL: "warn",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.preprod.ebsi.eu/trusted-apps-registry/v2",
+    TRUSTED_ISSUERS_REGISTRY_API_URL:
+      "https://api.preprod.ebsi.eu/trusted-issuers-registry/v2",
     AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v1",
   },
   prod: {
@@ -62,6 +72,8 @@ const defaultConfig = {
     LOG_LEVEL: "error",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.ebsi.eu/trusted-apps-registry/v2",
+    TRUSTED_ISSUERS_REGISTRY_API_URL:
+      "https://api.ebsi.eu/trusted-issuers-registry/v2",
     AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v1",
   },
 };
@@ -96,6 +108,14 @@ export const loadConfig = (): ApiConfig => {
     trustedAppsRegistryApiUrl:
       process.env.TRUSTED_APPS_REGISTRY_API_URL ||
       defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY_API_URL,
+    trustedIssuersRegistryApiUrl:
+      process.env.TRUSTED_ISSUERS_REGISTRY_API_URL ||
+      defaultConfig[EBSI_ENV].TRUSTED_ISSUERS_REGISTRY_API_URL,
+    authorisationCredentialSchema:
+      process.env.AUTHORISATION_CREDENTIAL_SCHEMA || "",
+    usersOnboardingApiDid: process.env.USERS_ONBOARDING_API_DID || "",
+    usersOnboardingApiPrivateKey:
+      process.env.USERS_ONBOARDING_API_PRIVATE_KEY || "",
     testAppName: process.env.TEST_APP_NAME,
     testAppKid: process.env.TEST_APP_KID,
     testAppPrivateKey: process.env.TEST_APP_PRIVATE_KEY,
@@ -127,6 +147,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     AUTHORISATION_API_NAME: Joi.string(),
     AUTHORISATION_API_URL: Joi.string().uri(),
     TRUSTED_APPS_REGISTRY_API_URL: Joi.string().uri(),
+    TRUSTED_ISSUERS_REGISTRY_API_URL: Joi.string().uri(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -141,6 +162,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
     LEDGER_API_URL: Joi.string().uri(),
     LEDGER_API_NAME: Joi.string(),
     HEALTH_CHECK: Joi.string(),
+    AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string(),
+    USERS_ONBOARDING_API_DID: Joi.string(),
+    USERS_ONBOARDING_API_PRIVATE_KEY: Joi.string(),
     TEST_APP_NAME: Joi.string(),
     TEST_APP_KID: Joi.string().uri(),
     TEST_APP_PRIVATE_KEY: Joi.string(),

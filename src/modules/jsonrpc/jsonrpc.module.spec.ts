@@ -114,6 +114,7 @@ describe("JsonRpc Module", () => {
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let ledgerService: LedgerService;
   let appAccessToken: string;
+  let adminAccessToken: string;
   let userAccessToken: string;
   let defaultSignerSiopAccessToken: string;
 
@@ -297,7 +298,7 @@ describe("JsonRpc Module", () => {
       }
     );
 
-    userAccessToken = await createJWT(
+    adminAccessToken = await createJWT(
       { sub: adminDid, login_hint: "did_siop" },
       {
         issuer: "any",
@@ -307,6 +308,14 @@ describe("JsonRpc Module", () => {
 
     defaultSignerSiopAccessToken = await createJWT(
       { sub: testEnv.administrators[0].did, login_hint: "did_siop" },
+      {
+        issuer: "any",
+        signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+      }
+    );
+
+    userAccessToken = await createJWT(
+      { sub: controllerDid, login_hint: "did_siop" },
       {
         issuer: "any",
         signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
@@ -380,7 +389,7 @@ describe("JsonRpc Module", () => {
 
     const response = await request(server)
       .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
+      .auth(adminAccessToken, { type: "bearer" })
       .send();
 
     expect(response.body).toStrictEqual({
@@ -394,7 +403,7 @@ describe("JsonRpc Module", () => {
       (response.headers as { "content-type": string })["content-type"]
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
     expect(verifyAccessTokenSpy).toHaveBeenCalledWith(
-      userAccessToken,
+      adminAccessToken,
       configService.get("authorisationApiDid")
     );
   });
@@ -633,7 +642,7 @@ describe("JsonRpc Module", () => {
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
+      .auth(adminAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "insertAdministrator",
@@ -667,7 +676,7 @@ describe("JsonRpc Module", () => {
 
     const responseSend = await request(server)
       .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
+      .auth(adminAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "signedTransaction",
@@ -820,6 +829,7 @@ describe("JsonRpc Module", () => {
       let param: JsonRpcParams = null;
       const defaultSigner = testEnv.administrators[0].wallet;
       let signer = defaultSigner;
+      let accessToken: string;
 
       switch (method) {
         case "insertAdministrator": {
@@ -918,6 +928,8 @@ describe("JsonRpc Module", () => {
             didVersionMetadata,
           } as InsertDidDocumentParam;
 
+          accessToken = userAccessToken;
+
           break;
         }
         case "updateDidDocument": {
@@ -944,6 +956,8 @@ describe("JsonRpc Module", () => {
             timestampData,
             didVersionMetadata,
           } as UpdateDidDocumentParam;
+
+          accessToken = userAccessToken;
 
           break;
         }
@@ -1043,6 +1057,8 @@ describe("JsonRpc Module", () => {
             }),
           } as AppendDidDocumentVersionHashParam;
 
+          accessToken = userAccessToken;
+
           break;
         }
         case "detachDidDocumentVersionHash": {
@@ -1059,6 +1075,8 @@ describe("JsonRpc Module", () => {
             hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
+
+          accessToken = userAccessToken;
 
           break;
         }
@@ -1079,6 +1097,8 @@ describe("JsonRpc Module", () => {
             didVersionMetadata,
           } as AppendDidDocumentVersionMetadataParam;
 
+          accessToken = userAccessToken;
+
           break;
         }
         case "detachDidDocumentVersionMetadata": {
@@ -1098,6 +1118,8 @@ describe("JsonRpc Module", () => {
             didVersionMetadata,
           } as DetachDidDocumentVersionMetadataParam;
 
+          accessToken = userAccessToken;
+
           break;
         }
         default: {
@@ -1107,7 +1129,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1176,6 +1198,7 @@ describe("JsonRpc Module", () => {
 
       const signer = testEnv.administrators[0].wallet;
       let param: JsonRpcParams = null;
+      let accessToken: string;
 
       switch (method) {
         case "insertAdministrator": {
@@ -1251,6 +1274,8 @@ describe("JsonRpc Module", () => {
             didVersionMetadata,
           } as InsertDidDocumentParam;
 
+          accessToken = userAccessToken;
+
           break;
         }
         case "updateDidDocument": {
@@ -1277,6 +1302,8 @@ describe("JsonRpc Module", () => {
             timestampData,
             didVersionMetadata,
           } as UpdateDidDocumentParam;
+
+          accessToken = userAccessToken;
 
           break;
         }
@@ -1360,6 +1387,8 @@ describe("JsonRpc Module", () => {
             }),
           } as AppendDidDocumentVersionHashParam;
 
+          accessToken = userAccessToken;
+
           break;
         }
         case "detachDidDocumentVersionHash": {
@@ -1376,6 +1405,8 @@ describe("JsonRpc Module", () => {
             hashValue: canonicalizedDidDocumentHash,
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
+
+          accessToken = userAccessToken;
 
           break;
         }
@@ -1397,6 +1428,8 @@ describe("JsonRpc Module", () => {
             didVersionMetadata,
           } as AppendDidDocumentVersionMetadataParam;
 
+          accessToken = userAccessToken;
+
           break;
         }
         default: {
@@ -1406,7 +1439,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild = await request(server)
         .post("/jsonrpc")
-        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1423,8 +1456,6 @@ describe("JsonRpc Module", () => {
     });
 
     it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
-      expect.assertions(6);
-
       // Mock access token verification
       jest
         .spyOn(SiopSession.prototype, "verifyAccessToken")
@@ -1432,174 +1463,193 @@ describe("JsonRpc Module", () => {
 
       const signer = testEnv.administrators[0].wallet;
 
-      let param1: JsonRpcParams = null;
-      let param2: JsonRpcParams = null;
-      let param3: JsonRpcParams = null;
-
-      let expectedErrorMessage1;
-      let expectedErrorMessage2;
-      let expectedErrorMessage3;
+      const testSetup: {
+        params: JsonRpcParams;
+        expectedErrorMessage: string;
+        accessToken?: string;
+      }[] = [];
 
       switch (method) {
         case "insertAdministrator": {
-          param1 = {
-            did: adminV1.did,
-            from: signer.address,
-          } as InsertAdministratorParam;
+          testSetup.push({
+            params: {
+              did: adminV1.did,
+              from: signer.address,
+            } as InsertAdministratorParam,
+            expectedErrorMessage:
+              "property params[0].attributeData has failed the following constraints: isHexadecimal",
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].attributeData has failed the following constraints: isHexadecimal";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              attributeData: adminV1.attributeData,
+            } as InsertAdministratorParam,
+            expectedErrorMessage:
+              "property params[0].did has failed the following constraints: isDid",
+          });
 
-          param2 = {
-            from: signer.address,
-            attributeData: adminV1.attributeData,
-          } as InsertAdministratorParam;
+          testSetup.push({
+            params: {
+              did: adminV1.did,
+              attributeData: adminV1.attributeData,
+              from: "bad address",
+            } as InsertAdministratorParam,
+            expectedErrorMessage:
+              "property params[0].from has failed the following constraints: isEthereumAddress",
+          });
 
-          expectedErrorMessage2 =
-            "property params[0].did has failed the following constraints: isDid";
-
-          param3 = {
-            did: adminV1.did,
-            attributeData: adminV1.attributeData,
-            from: "bad address",
-          } as InsertAdministratorParam;
-
-          expectedErrorMessage3 =
-            "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
         }
         case "updateAdministrator": {
-          param1 = {
-            did: adminV1.did,
-            from: signer.address,
-          } as UpdateAdministratorParam;
+          testSetup.push({
+            params: {
+              did: adminV1.did,
+              from: signer.address,
+            } as UpdateAdministratorParam,
+            expectedErrorMessage:
+              "property params[0].attributeData has failed the following constraints: isHexadecimal",
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].attributeData has failed the following constraints: isHexadecimal";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              attributeData: adminV1.attributeData,
+            } as UpdateAdministratorParam,
+            expectedErrorMessage:
+              "property params[0].did has failed the following constraints: isDid",
+          });
 
-          param2 = {
-            from: signer.address,
-            attributeData: adminV1.attributeData,
-          } as UpdateAdministratorParam;
+          testSetup.push({
+            params: {
+              did: adminV1.did,
+              attributeData: adminV1.attributeData,
+              from: "bad address",
+            } as UpdateAdministratorParam,
+            expectedErrorMessage:
+              "property params[0].from has failed the following constraints: isEthereumAddress",
+          });
 
-          expectedErrorMessage2 =
-            "property params[0].did has failed the following constraints: isDid";
-
-          param3 = {
-            did: adminV1.did,
-            attributeData: adminV1.attributeData,
-            from: "bad address",
-          } as UpdateAdministratorParam;
-
-          expectedErrorMessage3 =
-            "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
         }
         case "insertHashAlgorithm": {
-          param1 = {
-            from: signer.address,
-            outputLength: -12,
-            ianaName: "sha-256",
-            oid: "2.16.840.1.101.3.4.2.1",
-            status: 1,
-            multihash: "sha2-256",
-          } as InsertHashAlgorithmParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              outputLength: -12,
+              ianaName: "sha-256",
+              oid: "2.16.840.1.101.3.4.2.1",
+              status: 1,
+              multihash: "sha2-256",
+            } as InsertHashAlgorithmParam,
+            expectedErrorMessage:
+              "property params[0].outputLength has failed the following constraints: min",
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].outputLength has failed the following constraints: min";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              outputLength: 256,
+              ianaName: "sha-256",
+              oid: "2.16.840.1.101.3.4.2.1",
+              status: 3,
+              multihash: "sha2-256",
+            } as InsertHashAlgorithmParam,
+            expectedErrorMessage:
+              "property params[0].status has failed the following constraints: max",
+          });
 
-          param2 = {
-            from: signer.address,
-            outputLength: 256,
-            ianaName: "sha-256",
-            oid: "2.16.840.1.101.3.4.2.1",
-            status: 3,
-            multihash: "sha2-256",
-          } as InsertHashAlgorithmParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              outputLength: 256,
+              ianaName: "",
+              oid: "",
+              status: 1,
+              multihash: "sha-sha-sha-256",
+            } as InsertHashAlgorithmParam,
+            expectedErrorMessage:
+              "property params[0].multihash has failed the following constraints: isMultihash",
+          });
 
-          expectedErrorMessage2 =
-            "property params[0].status has failed the following constraints: max";
-
-          param3 = {
-            from: signer.address,
-            outputLength: 256,
-            ianaName: "",
-            oid: "",
-            status: 1,
-            multihash: "sha-sha-sha-256",
-          } as InsertHashAlgorithmParam;
-
-          expectedErrorMessage3 =
-            "property params[0].multihash has failed the following constraints: isMultihash";
           break;
         }
         case "updateHashAlgorithm": {
-          param1 = {
-            from: signer.address,
-            hashAlgorithmId: -1,
-            outputLength: 256,
-            ianaName: "sha-256",
-            oid: "2.16.840.1.101.3.4.2.1",
-            status: 1,
-            multihash: "sha2-256",
-          } as UpdateHashAlgorithmParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              hashAlgorithmId: -1,
+              outputLength: 256,
+              ianaName: "sha-256",
+              oid: "2.16.840.1.101.3.4.2.1",
+              status: 1,
+              multihash: "sha2-256",
+            } as UpdateHashAlgorithmParam,
+            expectedErrorMessage:
+              "property params[0].hashAlgorithmId has failed the following constraints: min",
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].hashAlgorithmId has failed the following constraints: min";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              hashAlgorithmId: 1,
+              outputLength: -1,
+              ianaName: "sha-256",
+              oid: "2.16.840.1.101.3.4.2.1",
+              status: 1,
+              multihash: "sha2-256",
+            } as UpdateHashAlgorithmParam,
+            expectedErrorMessage:
+              "property params[0].outputLength has failed the following constraints: min",
+          });
 
-          param2 = {
-            from: signer.address,
-            hashAlgorithmId: 1,
-            outputLength: -1,
-            ianaName: "sha-256",
-            oid: "2.16.840.1.101.3.4.2.1",
-            status: 1,
-            multihash: "sha2-256",
-          } as UpdateHashAlgorithmParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              hashAlgorithmId: 1,
+              outputLength: 256,
+              ianaName: "",
+              oid: "",
+              status: 1,
+              multihash: "sha-sha-sha-256",
+            } as UpdateHashAlgorithmParam,
+            expectedErrorMessage:
+              "property params[0].multihash has failed the following constraints: isMultihash",
+          });
 
-          expectedErrorMessage2 =
-            "property params[0].outputLength has failed the following constraints: min";
-
-          param3 = {
-            from: signer.address,
-            hashAlgorithmId: 1,
-            outputLength: 256,
-            ianaName: "",
-            oid: "",
-            status: 1,
-            multihash: "sha-sha-sha-256",
-          } as UpdateHashAlgorithmParam;
-
-          expectedErrorMessage3 =
-            "property params[0].multihash has failed the following constraints: isMultihash";
           break;
         }
         case "insertPolicy":
         case "updatePolicy": {
-          param1 = {
-            ...policy1,
-            from: signer.address,
-          } as InsertPolicyParam;
-          param2 = {
-            ...policy2,
-            from: signer.address,
-          } as InsertPolicyParam;
-          param3 = {
-            ...policy3,
-            from: signer.address,
-          } as InsertPolicyParam;
+          testSetup.push({
+            params: {
+              ...policy1,
+              from: signer.address,
+              policyId: undefined,
+            } as InsertPolicyParam,
+            expectedErrorMessage:
+              "property params[0].policyId has failed the following constraints: isString",
+          });
 
-          delete param1.policyId;
-          expectedErrorMessage1 =
-            "property params[0].policyId has failed the following constraints: isString";
+          testSetup.push({
+            params: {
+              ...policy2,
+              from: signer.address,
+              policyData: undefined,
+            } as InsertPolicyParam,
+            expectedErrorMessage:
+              "property params[0].policyData has failed the following constraints: isHexadecimal",
+          });
 
-          delete param2.policyData;
-          expectedErrorMessage2 =
-            "property params[0].policyData has failed the following constraints: isHexadecimal";
+          testSetup.push({
+            params: {
+              ...policy3,
+              from: "bad address",
+            } as InsertPolicyParam,
+            expectedErrorMessage:
+              "property params[0].from has failed the following constraints: isEthereumAddress",
+          });
 
-          param3.from = "bad address";
-          expectedErrorMessage3 =
-            "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
         }
         case "insertDidDocument":
@@ -1619,204 +1669,283 @@ describe("JsonRpc Module", () => {
           )}`;
           const randomHash = `0x${crypto.randomBytes(37).toString("hex")}`;
 
-          param1 = {
-            from: signer.address,
-            identifier,
-            hashAlgorithmId: 0,
-            hashValue: randomHash,
-            didVersionInfo,
-            timestampData,
-            didVersionMetadata,
-          } as InsertDidDocumentParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              hashAlgorithmId: 0,
+              hashValue: randomHash,
+              didVersionInfo,
+              timestampData,
+              didVersionMetadata,
+            } as InsertDidDocumentParam,
+            expectedErrorMessage: `Hash ${randomHash}'s length (296 bits) is different from the expected length (${testEnv.hashAlgorithms[0].outputLength} bits)`,
+            accessToken: userAccessToken,
+          });
 
-          expectedErrorMessage1 = `Hash ${randomHash}'s length (296 bits) is different from the expected length (${testEnv.hashAlgorithms[0].outputLength} bits)`;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              hashAlgorithmId: 0,
+              hashValue: canonicalizedDidDocumentHash,
+              didVersionInfo: "0x1234ab",
+              timestampData,
+              didVersionMetadata,
+            } as InsertDidDocumentParam,
+            expectedErrorMessage:
+              "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson",
+            accessToken: userAccessToken,
+          });
 
-          param2 = {
-            from: signer.address,
-            identifier,
-            hashAlgorithmId: 0,
-            hashValue: canonicalizedDidDocumentHash,
-            didVersionInfo: "0x1234ab",
-            timestampData,
-            didVersionMetadata,
-          } as InsertDidDocumentParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              hashAlgorithmId: 193,
+              hashValue: canonicalizedDidDocumentHash,
+              didVersionInfo,
+              timestampData,
+              didVersionMetadata,
+            } as InsertDidDocumentParam,
+            expectedErrorMessage: "Can't find hash algorithm with ID: 193",
+            accessToken: userAccessToken,
+          });
 
-          expectedErrorMessage2 =
-            "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier: `0x${Buffer.from("did:ebsi:TeSt").toString("hex")}`,
+              hashAlgorithmId: 0,
+              hashValue: canonicalizedDidDocumentHash,
+              didVersionInfo,
+              timestampData,
+              didVersionMetadata,
+            } as InsertDidDocumentParam,
+            expectedErrorMessage: `Identifier did:ebsi:TeSt doesn't match JWT's DID ${controllerDid}`,
+            accessToken: userAccessToken,
+          });
 
-          param3 = {
-            from: signer.address,
-            identifier,
-            hashAlgorithmId: 193,
-            hashValue: canonicalizedDidDocumentHash,
-            didVersionInfo,
-            timestampData,
-            didVersionMetadata,
-          } as InsertDidDocumentParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              hashAlgorithmId: 0,
+              hashValue: canonicalizedDidDocumentHash,
+              didVersionInfo,
+              timestampData,
+              didVersionMetadata,
+            } as InsertDidDocumentParam,
+            expectedErrorMessage: `Identifier ${controllerDid} doesn't match JWT's DID ${adminDid}`,
+            accessToken: adminAccessToken,
+          });
 
-          expectedErrorMessage3 = "Can't find hash algorithm with ID: 193";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier: `0x${Buffer.from(adminDid).toString("hex")}`,
+              hashAlgorithmId: 0,
+              hashValue: canonicalizedDidDocumentHash,
+              didVersionInfo,
+              timestampData,
+              didVersionMetadata,
+            } as InsertDidDocumentParam,
+            expectedErrorMessage: `DID Document's "id" ${controllerDid} doesn't match JWT's DID ${adminDid}`,
+            accessToken: adminAccessToken,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              hashAlgorithmId: 0,
+              hashValue: canonicalizedDidDocumentHash,
+              // We pass an empty DID Document
+              didVersionInfo: `0x${Buffer.from(JSON.stringify({})).toString(
+                "hex"
+              )}`,
+              timestampData,
+              didVersionMetadata,
+            } as InsertDidDocumentParam,
+            expectedErrorMessage: "DID Document is missing an id",
+            accessToken: userAccessToken,
+          });
 
           break;
         }
         case "insertDidController":
         case "updateDidController": {
-          param1 = {
-            from: signer.address,
-            identifier: `0x${Buffer.from("did:ebsi").toString("hex")}`,
-            newControllerId: ethers.Wallet.createRandom().address,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-          } as InsertDidControllerParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier: `0x${Buffer.from("did:ebsi").toString("hex")}`,
+              newControllerId: ethers.Wallet.createRandom().address,
+              notBefore: 1616408985883,
+              notAfter: 3232818053700,
+            } as InsertDidControllerParam,
+            expectedErrorMessage:
+              "property params[0].identifier has failed the following constraints: isHexadecimalDid",
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].identifier has failed the following constraints: isHexadecimalDid";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+              newControllerId: "0x1234",
+              notBefore: 1616408985883,
+              notAfter: 3232818053700,
+            } as InsertDidControllerParam,
+            expectedErrorMessage:
+              "property params[0].newControllerId has failed the following constraints: isEthereumAddress",
+          });
 
-          param2 = {
-            from: signer.address,
-            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
-            newControllerId: "0x1234",
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-          } as InsertDidControllerParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+              newControllerId: ethers.Wallet.createRandom().address,
+              notBefore: -123,
+              notAfter: 3232818053700,
+            } as InsertDidControllerParam,
+            expectedErrorMessage:
+              "property params[0].notBefore has failed the following constraints: min",
+          });
 
-          expectedErrorMessage2 =
-            "property params[0].newControllerId has failed the following constraints: isEthereumAddress";
-
-          param3 = {
-            from: signer.address,
-            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
-            newControllerId: ethers.Wallet.createRandom().address,
-            notBefore: -123,
-            notAfter: 3232818053700,
-          } as InsertDidControllerParam;
-
-          expectedErrorMessage3 =
-            "property params[0].notBefore has failed the following constraints: min";
           break;
         }
         case "revokeDidController": {
-          param1 = {
-            from: signer.address,
-            identifier: `0x${Buffer.from("did:ebsi").toString("hex")}`,
-            oldControllerId: ethers.Wallet.createRandom().address,
-          } as RevokeDidControllerParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier: `0x${Buffer.from("did:ebsi").toString("hex")}`,
+              oldControllerId: ethers.Wallet.createRandom().address,
+            } as RevokeDidControllerParam,
+            expectedErrorMessage:
+              "property params[0].identifier has failed the following constraints: isHexadecimalDid",
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].identifier has failed the following constraints: isHexadecimalDid";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+              oldControllerId: "0x1234",
+            } as RevokeDidControllerParam,
+            expectedErrorMessage:
+              "property params[0].oldControllerId has failed the following constraints: isEthereumAddress",
+          });
 
-          param2 = {
-            from: signer.address,
-            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
-            oldControllerId: "0x1234",
-          } as RevokeDidControllerParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+            } as RevokeDidControllerParam,
+            expectedErrorMessage:
+              "property params[0].oldControllerId has failed the following constraints: isEthereumAddress",
+          });
 
-          expectedErrorMessage2 =
-            "property params[0].oldControllerId has failed the following constraints: isEthereumAddress";
-
-          param3 = {
-            from: signer.address,
-            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
-          } as RevokeDidControllerParam;
-
-          expectedErrorMessage3 =
-            "property params[0].oldControllerId has failed the following constraints: isEthereumAddress";
           break;
         }
         case "insertDidMethod": {
-          param1 = {
-            from: signer.address,
-            methodName: "did:ebsi",
-            ledgerName: "ebsi-besu",
-            methodSpec: ["0x"],
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 1,
-          } as InsertDidMethodParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              methodName: "did:ebsi",
+              ledgerName: "ebsi-besu",
+              methodSpec: ["0x"],
+              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
+              notBefore: 1616408985883,
+              notAfter: 3232818053700,
+              status: 1,
+            } as InsertDidMethodParam,
+            expectedErrorMessage:
+              "property params[0].methodSpec has failed the following constraints: isHexadecimalJson",
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].methodSpec has failed the following constraints: isHexadecimalJson";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              methodName: "did:ebsi",
+              ledgerName: "ebsi-besu",
+              methodSpec: didMethod.didMethodsBuffer.map(
+                (b) => `0x${b.toString("hex")}`
+              ),
+              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
+              notBefore: 1616408985883,
+              notAfter: 3232818053700,
+              status: 4,
+            } as InsertDidMethodParam,
+            expectedErrorMessage:
+              "property params[0].status has failed the following constraints: max",
+          });
 
-          param2 = {
-            from: signer.address,
-            methodName: "did:ebsi",
-            ledgerName: "ebsi-besu",
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 4,
-          } as InsertDidMethodParam;
-
-          expectedErrorMessage2 =
-            "property params[0].status has failed the following constraints: max";
-
-          param3 = {
-            from: signer.address,
-            methodName: "did:ebsi",
-            ledgerName: "ebsi-besu",
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: -1,
-            status: 2,
-          } as InsertDidMethodParam;
-
-          expectedErrorMessage3 =
-            "property params[0].notAfter has failed the following constraints: min";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              methodName: "did:ebsi",
+              ledgerName: "ebsi-besu",
+              methodSpec: didMethod.didMethodsBuffer.map(
+                (b) => `0x${b.toString("hex")}`
+              ),
+              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
+              notBefore: 1616408985883,
+              notAfter: -1,
+              status: 2,
+            } as InsertDidMethodParam,
+            expectedErrorMessage:
+              "property params[0].notAfter has failed the following constraints: min",
+          });
 
           break;
         }
         case "updateDidMethod": {
-          param1 = {
-            from: signer.address,
-            methodName: "did:ebsi",
-            ledgerName: "ebsi-besu-2",
-            methodSpec: ["0x"],
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 1,
-          } as UpdateDidMethodParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              methodName: "did:ebsi",
+              ledgerName: "ebsi-besu-2",
+              methodSpec: ["0x"],
+              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
+              notBefore: 1616408985883,
+              notAfter: 3232818053700,
+              status: 1,
+            } as UpdateDidMethodParam,
+            expectedErrorMessage:
+              "property params[0].methodSpec has failed the following constraints: isHexadecimalJson",
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].methodSpec has failed the following constraints: isHexadecimalJson";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              methodName: "did:ebsi",
+              ledgerName: "ebsi-besu2",
+              methodSpec: didMethod.didMethodsBuffer.map(
+                (b) => `0x${b.toString("hex")}`
+              ),
+              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
+              notBefore: 1616408985883,
+              notAfter: 3232818053700,
+              status: 4,
+            } as UpdateDidMethodParam,
+            expectedErrorMessage:
+              "property params[0].status has failed the following constraints: max",
+          });
 
-          param2 = {
-            from: signer.address,
-            methodName: "did:ebsi",
-            ledgerName: "ebsi-besu2",
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 4,
-          } as UpdateDidMethodParam;
-
-          expectedErrorMessage2 =
-            "property params[0].status has failed the following constraints: max";
-
-          param3 = {
-            from: signer.address,
-            methodName: "did:ebsi",
-            ledgerName: "ebsi-besu2",
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: -1,
-            status: 1,
-          } as UpdateDidMethodParam;
-
-          expectedErrorMessage3 =
-            "property params[0].notAfter has failed the following constraints: min";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              methodName: "did:ebsi",
+              ledgerName: "ebsi-besu2",
+              methodSpec: didMethod.didMethodsBuffer.map(
+                (b) => `0x${b.toString("hex")}`
+              ),
+              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
+              notBefore: 1616408985883,
+              notAfter: -1,
+              status: 1,
+            } as UpdateDidMethodParam,
+            expectedErrorMessage:
+              "property params[0].notAfter has failed the following constraints: min",
+          });
 
           break;
         }
@@ -1831,42 +1960,48 @@ describe("JsonRpc Module", () => {
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
 
-          param1 = {
-            from: signer.address,
-            identifier,
-            hashAlgorithmId: 0,
-            hashValue: "0xnot-a-hash",
-            didVersionInfo,
-            timestampData,
-          } as AppendDidDocumentVersionHashParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              hashAlgorithmId: 0,
+              hashValue: "0xnot-a-hash",
+              didVersionInfo,
+              timestampData,
+            } as AppendDidDocumentVersionHashParam,
+            expectedErrorMessage:
+              "property params[0].hashValue has failed the following constraints: isHexadecimal",
+            accessToken: userAccessToken,
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].hashValue has failed the following constraints: isHexadecimal";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              hashAlgorithmId: 0,
+              hashValue: canonicalizedDidDocumentHash,
+              didVersionInfo: "0x1234ab",
 
-          param2 = {
-            from: signer.address,
-            identifier,
-            hashAlgorithmId: 0,
-            hashValue: canonicalizedDidDocumentHash,
-            didVersionInfo: "0x1234ab",
+              timestampData,
+            } as AppendDidDocumentVersionHashParam,
+            expectedErrorMessage:
+              "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson",
+            accessToken: userAccessToken,
+          });
 
-            timestampData,
-          } as AppendDidDocumentVersionHashParam;
-
-          expectedErrorMessage2 =
-            "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson";
-
-          param3 = {
-            from: signer.address,
-            identifier,
-            hashAlgorithmId: 0,
-            hashValue: canonicalizedDidDocumentHash,
-            didVersionInfo,
-            timestampData: "0x1234ab",
-          } as AppendDidDocumentVersionHashParam;
-
-          expectedErrorMessage3 =
-            "property params[0].timestampData has failed the following constraints: isHexadecimalJson";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              hashAlgorithmId: 0,
+              hashValue: canonicalizedDidDocumentHash,
+              didVersionInfo,
+              timestampData: "0x1234ab",
+            } as AppendDidDocumentVersionHashParam,
+            expectedErrorMessage:
+              "property params[0].timestampData has failed the following constraints: isHexadecimalJson",
+            accessToken: userAccessToken,
+          });
 
           break;
         }
@@ -1877,38 +2012,44 @@ describe("JsonRpc Module", () => {
           const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
 
-          param1 = {
-            from: signer.address,
-            identifier,
-            hashAlgorithmId: 0,
-            hashValue: "0xnot-a-hash",
-            didVersionInfo,
-          } as DetachDidDocumentVersionParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              hashAlgorithmId: 0,
+              hashValue: "0xnot-a-hash",
+              didVersionInfo,
+            } as DetachDidDocumentVersionParam,
+            expectedErrorMessage:
+              "property params[0].hashValue has failed the following constraints: isHexadecimal",
+            accessToken: userAccessToken,
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].hashValue has failed the following constraints: isHexadecimal";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              hashAlgorithmId: 0,
+              hashValue: canonicalizedDidDocumentHash,
+              didVersionInfo: "0x1234ab",
+            } as DetachDidDocumentVersionParam,
+            expectedErrorMessage:
+              "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson",
+            accessToken: userAccessToken,
+          });
 
-          param2 = {
-            from: signer.address,
-            identifier,
-            hashAlgorithmId: 0,
-            hashValue: canonicalizedDidDocumentHash,
-            didVersionInfo: "0x1234ab",
-          } as DetachDidDocumentVersionParam;
-
-          expectedErrorMessage2 =
-            "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson";
-
-          param3 = {
-            from: signer.address,
-            identifier,
-            hashAlgorithmId: -1,
-            hashValue: canonicalizedDidDocumentHash,
-            didVersionInfo,
-          } as DetachDidDocumentVersionParam;
-
-          expectedErrorMessage3 =
-            "property params[0].hashAlgorithmId has failed the following constraints: min";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              hashAlgorithmId: -1,
+              hashValue: canonicalizedDidDocumentHash,
+              didVersionInfo,
+            } as DetachDidDocumentVersionParam,
+            expectedErrorMessage:
+              "property params[0].hashAlgorithmId has failed the following constraints: min",
+            accessToken: userAccessToken,
+          });
 
           break;
         }
@@ -1923,35 +2064,41 @@ describe("JsonRpc Module", () => {
             "hex"
           )}`;
 
-          param1 = {
-            from: signer.address,
-            identifier: `0x${Buffer.from("did:ebsi").toString("hex")}`,
-            didVersionInfo,
-            didVersionMetadata,
-          } as AppendDidDocumentVersionMetadataParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier: `0x${Buffer.from("did:ebsi").toString("hex")}`,
+              didVersionInfo,
+              didVersionMetadata,
+            } as AppendDidDocumentVersionMetadataParam,
+            expectedErrorMessage:
+              "property params[0].identifier has failed the following constraints: isHexadecimalDid",
+            accessToken: userAccessToken,
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].identifier has failed the following constraints: isHexadecimalDid";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              didVersionInfo: "0x1234ab",
+              didVersionMetadata,
+            } as AppendDidDocumentVersionMetadataParam,
+            expectedErrorMessage:
+              "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson",
+            accessToken: userAccessToken,
+          });
 
-          param2 = {
-            from: signer.address,
-            identifier,
-            didVersionInfo: "0x1234ab",
-            didVersionMetadata,
-          } as AppendDidDocumentVersionMetadataParam;
-
-          expectedErrorMessage2 =
-            "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson";
-
-          param3 = {
-            from: signer.address,
-            identifier,
-            didVersionInfo,
-            didVersionMetadata: "0x",
-          } as AppendDidDocumentVersionMetadataParam;
-
-          expectedErrorMessage3 =
-            "property params[0].didVersionMetadata has failed the following constraints: isHexadecimalJson";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              didVersionInfo,
+              didVersionMetadata: "0x",
+            } as AppendDidDocumentVersionMetadataParam,
+            expectedErrorMessage:
+              "property params[0].didVersionMetadata has failed the following constraints: isHexadecimalJson",
+            accessToken: userAccessToken,
+          });
 
           break;
         }
@@ -1960,65 +2107,35 @@ describe("JsonRpc Module", () => {
         }
       }
 
-      const response1 = await request(server)
-        .post("/jsonrpc")
-        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method,
-          params: [param1],
-          id: 231,
-        });
+      expect.assertions(testSetup.length * 2);
 
-      expect(response1.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 231,
-        error: {
-          code: -32600,
-          message: expect.stringContaining(expectedErrorMessage1) as string,
-        },
-      });
-      expect(response1.status).toBe(400);
+      await Promise.all(
+        testSetup.map(async (setup) => {
+          const response = await request(server)
+            .post("/jsonrpc")
+            .auth(setup.accessToken ?? defaultSignerSiopAccessToken, {
+              type: "bearer",
+            })
+            .send({
+              jsonrpc: "2.0",
+              method,
+              params: [setup.params],
+              id: 231,
+            });
 
-      const response2 = await request(server)
-        .post("/jsonrpc")
-        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method,
-          params: [param2],
-          id: 231,
-        });
-
-      expect(response2.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 231,
-        error: {
-          code: -32600,
-          message: expect.stringContaining(expectedErrorMessage2) as string,
-        },
-      });
-      expect(response2.status).toBe(400);
-
-      const response3 = await request(server)
-        .post("/jsonrpc")
-        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method,
-          params: [param3],
-          id: 231,
-        });
-
-      expect(response3.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 231,
-        error: {
-          code: -32600,
-          message: expect.stringContaining(expectedErrorMessage3) as string,
-        },
-      });
-      expect(response3.status).toBe(400);
+          expect(response.body).toStrictEqual({
+            jsonrpc: "2.0",
+            id: 231,
+            error: {
+              code: -32600,
+              message: expect.stringContaining(
+                setup.expectedErrorMessage
+              ) as string,
+            },
+          });
+          expect(response.status).toBe(400);
+        })
+      );
     });
 
     it("should throw an error when the unsignedTransaction has been tampered", async () => {
@@ -2033,6 +2150,7 @@ describe("JsonRpc Module", () => {
 
       let param1: JsonRpcParams;
       let param2: JsonRpcParams;
+      let accessToken: string;
 
       switch (method) {
         case "insertAdministrator": {
@@ -2150,6 +2268,8 @@ describe("JsonRpc Module", () => {
             timestampData,
             didVersionMetadata,
           } as InsertDidDocumentParam;
+
+          accessToken = userAccessToken;
 
           break;
         }
@@ -2281,6 +2401,8 @@ describe("JsonRpc Module", () => {
             }),
           } as AppendDidDocumentVersionHashParam;
 
+          accessToken = userAccessToken;
+
           break;
         }
         case "detachDidDocumentVersionHash": {
@@ -2308,6 +2430,8 @@ describe("JsonRpc Module", () => {
             didVersionInfo: didVersionInfo2,
           } as DetachDidDocumentVersionParam;
 
+          accessToken = userAccessToken;
+
           break;
         }
         case "appendDidDocumentVersionMetadata":
@@ -2320,9 +2444,8 @@ describe("JsonRpc Module", () => {
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
             "hex"
           )}`;
-          const newControllerDid = createDid();
-          const tamperedIdentifier = `0x${Buffer.from(
-            newControllerDid
+          const tamperedDidVersionMetadata = `0x${Buffer.from(
+            JSON.stringify(createMetadata())
           ).toString("hex")}`;
 
           param1 = {
@@ -2334,10 +2457,12 @@ describe("JsonRpc Module", () => {
 
           param2 = {
             from: signer.address,
-            identifier: tamperedIdentifier,
+            identifier,
             didVersionInfo,
-            didVersionMetadata,
+            didVersionMetadata: tamperedDidVersionMetadata,
           } as AppendDidDocumentVersionMetadataParam;
+
+          accessToken = userAccessToken;
 
           break;
         }
@@ -2348,7 +2473,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild1: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -2361,7 +2486,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild2: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -2384,7 +2509,7 @@ describe("JsonRpc Module", () => {
       // Tampering signatures
       const responseSend1 = await request(server)
         .post("/jsonrpc")
-        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",
@@ -2417,7 +2542,7 @@ describe("JsonRpc Module", () => {
       transaction1.from = transaction2.from;
       const responseSend2 = await request(server)
         .post("/jsonrpc")
-        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",

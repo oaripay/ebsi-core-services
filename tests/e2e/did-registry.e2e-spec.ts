@@ -48,7 +48,7 @@ import {
   createMetadata,
   createDidMethod,
 } from "../utils/data";
-import { requestSiopJwt } from "../utils/siopJwt";
+import { requestNewUserSiopJwt, requestSiopJwt } from "../utils/siopJwt";
 import { LedgerService } from "../../src/modules/ledger/ledger.service";
 
 type JsonRpcParams =
@@ -106,12 +106,14 @@ const multihashToNodeHashAlg: { [Key in HashName]?: string } = {
 describe("DID Registry (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let testClientWallet: ethers.Wallet;
   let configService: ConfigService<ApiConfig>;
-  let testUserAccessToken: string;
   let ledgerService: LedgerService;
   let hashAlgorithMultihash: HashName;
   let hashAlgorithOutputLength: number;
+  let existingUserWallet: ethers.Wallet;
+  let existingUserAccessToken: string;
+  let newUserWallet: ethers.Wallet;
+  let newUserAccessToken: string;
 
   const prepareDidDocument = (
     did: string,
@@ -186,8 +188,7 @@ describe("DID Registry (e2e)", () => {
   };
 
   let didMethod: DidMethodDataset;
-  let controllerDid: string;
-
+  let newUserDid: string;
   let newDidDocument: DidDocumentDataset;
   let updatedDidDocument: DidDocumentDataset;
   const controllers: ethers.Wallet[] = [];
@@ -216,21 +217,9 @@ describe("DID Registry (e2e)", () => {
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
-    testClientWallet = new ethers.Wallet(
+    existingUserWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testClientPrivateKey"))
     );
-
-    // Generate a valid Client JWT (SIOP) for the tests
-    const domain = configService.get<string>("domain");
-    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
-    const didRegistry = `${domain}${apiUrlPrefix}/identifiers`;
-
-    testUserAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testClientDid"),
-      clientPrivateKey: configService.get<string>("testClientPrivateKey"),
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-    });
 
     // During the tests, we'll use the last hash algorithm
     const getHashAlgorithmsResponse = await request(server).get(
@@ -252,18 +241,50 @@ describe("DID Registry (e2e)", () => {
 
     // Generate test data
     didMethod = prepareDidMethod();
-    controllerDid = createDid(didMethod.methodName);
+    newUserDid = createDid(didMethod.methodName);
 
     newDidDocument = prepareDidDocument(
-      controllerDid,
+      newUserDid,
       hashAlgorithMultihash,
       hashAlgorithOutputLength
     );
     updatedDidDocument = prepareDidDocument(
-      controllerDid,
+      newUserDid,
       hashAlgorithMultihash,
       hashAlgorithOutputLength
     );
+
+    // Generate valid Client JWTs (SIOP) for the tests
+    const domain = configService.get<string>("domain");
+    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    const didRegistry = `${domain}${apiUrlPrefix}/identifiers`;
+
+    existingUserAccessToken = await requestSiopJwt({
+      didRegistry,
+      clientDid: configService.get<string>("testClientDid"),
+      clientPrivateKey: configService.get<string>("testClientPrivateKey"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+    });
+
+    const newUserPrivateKey = crypto.randomBytes(32).toString("hex");
+    newUserWallet = new ethers.Wallet(`0x${newUserPrivateKey}`);
+
+    newUserAccessToken = await requestNewUserSiopJwt({
+      didRegistry,
+      clientDid: newUserDid,
+      clientPrivateKey: `0x${newUserPrivateKey}`,
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedIssuersRegistryApiUrl: configService.get<string>(
+        "trustedIssuersRegistryApiUrl"
+      ),
+      authorisationCredentialSchema: configService.get<string>(
+        "authorisationCredentialSchema"
+      ),
+      usersOnboardingApiPrivateKey: configService.get<string>(
+        "usersOnboardingApiPrivateKey"
+      ),
+      usersOnboardingApiDid: configService.get<string>("usersOnboardingApiDid"),
+    });
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -274,6 +295,7 @@ describe("DID Registry (e2e)", () => {
     "insertDidController",
     "updateDidController",
     "revokeDidController",
+    "updateDidMethod",
     "appendDidDocumentVersionHash",
     "detachDidDocumentVersionHash",
     "appendDidDocumentVersionMetadata",
@@ -283,7 +305,8 @@ describe("DID Registry (e2e)", () => {
       expect.assertions(5);
 
       let params: JsonRpcParams = null;
-      let signer = testClientWallet;
+      let signer = newUserWallet;
+      let accessToken = newUserAccessToken;
 
       switch (method) {
         case "insertDidDocument": {
@@ -294,7 +317,7 @@ describe("DID Registry (e2e)", () => {
             didVersionMetadataBuffer,
           } = newDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
@@ -322,7 +345,7 @@ describe("DID Registry (e2e)", () => {
             didVersionMetadataBuffer,
           } = updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
@@ -341,7 +364,7 @@ describe("DID Registry (e2e)", () => {
           break;
         }
         case "insertDidController": {
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const controller = ethers.Wallet.createRandom();
           controllers.push(controller);
 
@@ -355,7 +378,7 @@ describe("DID Registry (e2e)", () => {
           break;
         }
         case "updateDidController": {
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const controller = controllers[controllers.length - 1];
           // Sign with the new controller
           signer = controller;
@@ -370,7 +393,7 @@ describe("DID Registry (e2e)", () => {
           break;
         }
         case "revokeDidController": {
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
 
           params = {
             from: signer.address,
@@ -380,6 +403,9 @@ describe("DID Registry (e2e)", () => {
           break;
         }
         case "insertDidMethod": {
+          signer = existingUserWallet;
+          accessToken = existingUserAccessToken;
+
           params = {
             from: signer.address,
             methodName: didMethod.methodName,
@@ -396,6 +422,9 @@ describe("DID Registry (e2e)", () => {
           break;
         }
         case "updateDidMethod": {
+          signer = existingUserWallet;
+          accessToken = existingUserAccessToken;
+
           params = {
             from: signer.address,
             methodName: didMethod.methodName,
@@ -418,7 +447,7 @@ describe("DID Registry (e2e)", () => {
             timestampDataBuffer,
           } = updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
 
@@ -436,7 +465,7 @@ describe("DID Registry (e2e)", () => {
           const { didDocumentBuffer, canonicalizedDidDocumentHash } =
             updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
 
           params = {
@@ -453,7 +482,7 @@ describe("DID Registry (e2e)", () => {
           const { didDocumentBuffer, didVersionMetadataBuffer } =
             updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
             "hex"
@@ -473,7 +502,7 @@ describe("DID Registry (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(testUserAccessToken, { type: "bearer" })
+        .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -507,7 +536,7 @@ describe("DID Registry (e2e)", () => {
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(testUserAccessToken, { type: "bearer" })
+        .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",
@@ -635,7 +664,7 @@ describe("DID Registry (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         methodName: didMethod.methodName,
-        ledgerName: didMethod.ledgerName, // TODO: TBH I was expecting "ebsi-besu-2" here...
+        ledgerName: "ebsi-besu-2",
         methodSpec: didMethod.didMethodsBuffer.map(
           (b) => `0x${b.toString("hex")}`
         ),
@@ -1787,7 +1816,7 @@ describe("DID Registry (e2e)", () => {
           hashAlgorithMultihash,
           hashAlgorithOutputLength
         ),
-        timestampedBy: testClientWallet.address,
+        timestampedBy: newUserWallet.address,
       } as DidTimestampResponseObject);
 
       expect(response.status).toBe(200);
