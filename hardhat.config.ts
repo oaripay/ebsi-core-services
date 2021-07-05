@@ -1,9 +1,9 @@
 import { task, HardhatUserConfig } from "hardhat/config";
+import "@typechain/hardhat";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-solhint";
 import "@nomiclabs/hardhat-etherscan";
 import "hardhat-abi-exporter";
-import "hardhat-typechain";
 import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
 import "hardhat-gas-reporter";

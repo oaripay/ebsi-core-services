@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
 
-import "./math/SafeMath.sol";
-
 library Pagination {
-    using SafeMath for uint256;
-
     function getPaginationParameters(
         uint256 total,
         uint256 page,
@@ -21,9 +17,9 @@ library Pagination {
         )
     {
         uint256 curPage = page;
-        uint256 mod = total.mod(pageSize);
+        uint256 mod = total % pageSize;
 
-        uint256 lastPage = total.div(pageSize);
+        uint256 lastPage = total / pageSize;
         if (mod > 0) lastPage = lastPage + 1;
 
         // calculate the number of items to get
@@ -36,15 +32,18 @@ library Pagination {
         }
 
         // calculate the cursor
-        cursor = curPage.sub(1) * pageSize;
+        cursor = (curPage - 1) * pageSize;
 
         // calculate prev and next pages
         next = curPage + 1;
         if (next > lastPage) {
             next = lastPage;
         }
+        if (next == 0) {
+            next = 1;
+        }
 
-        prev = curPage.sub(1);
+        prev = curPage - 1;
         if (prev == 0) {
             prev = 1;
         } else if (prev > lastPage) {
@@ -155,15 +154,15 @@ library Pagination {
         uint256 page,
         uint256 pageSize
     )
-    public
-    view
-    returns (
-        bytes[] memory items,
-        uint256 total,
-        uint256 howMany,
-        uint256 prev,
-        uint256 next
-    )
+        public
+        view
+        returns (
+            bytes[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
     {
         uint256 cursor;
         (cursor, howMany, next, prev) = getPaginationParameters(
@@ -180,5 +179,4 @@ library Pagination {
 
         return (items, self.length, howMany, prev, next);
     }
-
 }
