@@ -28,6 +28,7 @@ import {
   UpdateIssuerParam,
   InsertPolicyParam,
   UpdatePolicyParam,
+  ArgsInsertAdministrator,
 } from "./dto";
 import { AttributeObject } from "../administrators/administrators.interface";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
@@ -82,8 +83,9 @@ describe("JsonRpc Module", () => {
       body: dataBase64,
       hash: dataHash,
     };
+    const attributeData = `0x${data.toString("hex")}`;
 
-    return { did, attribute };
+    return { did, attribute, attributeData };
   };
 
   const createIssuer = () => {
@@ -100,10 +102,10 @@ describe("JsonRpc Module", () => {
       data: crypto.randomBytes(16).toString("hex"),
     };
     const data = Buffer.from(JSON.stringify(json));
-    const policy = data.toString("base64");
+    const policyData = `0x${data.toString("hex")}`;
     return {
       policyId,
-      policy,
+      policyData,
     };
   }
 
@@ -129,7 +131,7 @@ describe("JsonRpc Module", () => {
       case "insertAdministrator": {
         // create a new administrator and add attribute1
         param = {
-          attribute: tamper ? adminV2.attribute : adminV1.attribute,
+          attributeData: tamper ? adminV2.attributeData : adminV1.attributeData,
           did: adminV1.did,
           from: signer.address,
         } as InsertAdministratorParam;
@@ -139,7 +141,9 @@ describe("JsonRpc Module", () => {
         if (updateAttribute) {
           // update attribute1: change it to attribute3
           param = {
-            attribute: tamper ? adminV2.attribute : adminV3.attribute,
+            attributeData: tamper
+              ? adminV2.attributeData
+              : adminV3.attributeData,
             did: adminV1.did,
             from: signer.address,
             prevAttributeHash: adminV1.attribute.hash,
@@ -147,7 +151,9 @@ describe("JsonRpc Module", () => {
         } else {
           // updateAdministrator: add attribute2
           param = {
-            attribute: tamper ? adminV3.attribute : adminV2.attribute,
+            attributeData: tamper
+              ? adminV3.attributeData
+              : adminV2.attributeData,
             did: adminV1.did,
             from: signer.address,
           } as UpdateAdministratorParam;
@@ -157,7 +163,7 @@ describe("JsonRpc Module", () => {
       case "insertIssuer": {
         // create a new administrator and add attribute1
         param = {
-          attribute: issuerV1.attribute,
+          attributeData: issuerV1.attributeData,
           did: tamper ? issuerV2.did : issuerV1.did,
           from: signer.address,
         } as InsertIssuerParam;
@@ -167,7 +173,7 @@ describe("JsonRpc Module", () => {
         if (updateAttribute) {
           // update attribute1: change it to attribute3
           param = {
-            attribute: issuerV3.attribute,
+            attributeData: issuerV3.attributeData,
             did: tamper ? issuerV2.did : issuerV1.did,
             from: signer.address,
             prevAttributeHash: issuerV1.attribute.hash,
@@ -175,7 +181,7 @@ describe("JsonRpc Module", () => {
         } else {
           // updateIssuer: add attribute2
           param = {
-            attribute: issuerV2.attribute,
+            attributeData: issuerV2.attributeData,
             did: tamper ? issuerV2.did : issuerV1.did,
             from: signer.address,
           } as UpdateIssuerParam;
@@ -186,7 +192,7 @@ describe("JsonRpc Module", () => {
         param = {
           from: signer.address,
           policyId: tamper ? policy2.policyId : policy1.policyId,
-          policy: policy1.policy,
+          policyData: policy1.policyData,
         } as InsertPolicyParam;
         break;
       }
@@ -194,7 +200,7 @@ describe("JsonRpc Module", () => {
         param = {
           from: signer.address,
           policyId: tamper ? policy2.policyId : policy1.policyId,
-          policy: policy2.policy,
+          policyData: policy2.policyData,
         } as UpdatePolicyParam;
         break;
       }
@@ -444,8 +450,6 @@ describe("JsonRpc Module", () => {
         name: "alice",
       })
     );
-    const dataBase64 = data.toString("base64");
-    const dataHash = ethers.utils.sha256(data);
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
@@ -457,11 +461,8 @@ describe("JsonRpc Module", () => {
           {
             from: wallet.address, // this address is not in the TIR
             did: "did:ebsi:1",
-            attribute: {
-              body: dataBase64,
-              hash: dataHash,
-            },
-          },
+            attributeData: `0x${data.toString("hex")}`,
+          } as ArgsInsertAdministrator,
         ],
         id: 231,
       });
@@ -550,7 +551,7 @@ describe("JsonRpc Module", () => {
     const signer = ethers.Wallet.createRandom();
 
     const param: JsonRpcParams = {
-      attribute: adminV1.attribute,
+      attributeData: adminV1.attributeData,
       did,
       from: signer.address,
     } as InsertAdministratorParam;
@@ -786,9 +787,9 @@ describe("JsonRpc Module", () => {
         case "insertAdministrator":
         case "updateIssuer":
         case "updateAdministrator":
-          delete (param1 as InsertIssuerParam).attribute;
+          delete (param1 as InsertIssuerParam).attributeData;
           expectedErrorMessage1 =
-            "property params[0].attribute has failed the following constraints: isObject";
+            "property params[0].attributeData has failed the following constraints: isHexadecimal";
 
           delete (param2 as InsertIssuerParam).did;
           expectedErrorMessage2 =
@@ -800,9 +801,9 @@ describe("JsonRpc Module", () => {
           break;
         case "insertPolicy":
         case "updatePolicy":
-          delete (param1 as InsertPolicyParam).policy;
+          delete (param1 as InsertPolicyParam).policyData;
           expectedErrorMessage1 =
-            "property params[0].policy has failed the following constraints: isBase64";
+            "property params[0].policyData has failed the following constraints: isHexadecimal";
 
           delete (param2 as InsertPolicyParam).policyId;
           expectedErrorMessage2 =

@@ -492,7 +492,14 @@ paths:
                     type: array
                     description: list of issuers whith their decentralized identifier
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        did:
+                          type: string
+                          description: Issuer's DID
+                        href:
+                          type: string
+                          description: Link to issuer
                   total:
                     type: integer
                     description: Total number of items in a collection
@@ -1176,9 +1183,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
-                      attribute:
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                        hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223730373634663965353838646438306465343133363261373339646362303133227d"
               Build tx to add a new attribute to an administrator:
                 value:
                   jsonrpc: "2.0"
@@ -1187,9 +1192,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
-                      attribute:
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                        hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223730373634663965353838646438306465343133363261373339646362303133227d"
               Build tx to update an attribute of an administrator:
                 value:
                   jsonrpc: "2.0"
@@ -1198,9 +1201,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
-                      attribute:
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                        hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223730373634663965353838646438306465343133363261373339646362303133227d"
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
               Build tx to insert issuer:
                 value:
@@ -1210,18 +1211,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
-                      attribute:
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                        hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-              Build tx to insert policy:
-                value:
-                  jsonrpc: "2.0"
-                  id: 1
-                  method: insertPolicy
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyId: test-policiy-1
-                      policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
+                      attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223730373634663965353838646438306465343133363261373339646362303133227d"
               Build tx to add a new attribute to an issuer:
                 value:
                   jsonrpc: "2.0"
@@ -1230,9 +1220,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
-                      attribute:
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                        hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223730373634663965353838646438306465343133363261373339646362303133227d"
               Build tx to update an attribute of an issuer:
                 value:
                   jsonrpc: "2.0"
@@ -1241,9 +1229,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
-                      attribute:
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                        hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223730373634663965353838646438306465343133363261373339646362303133227d"
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
               Build tx to insert a policy:
                 value:
@@ -1252,7 +1238,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       policyId: policy1234
-                      policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                      policyData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a226538326561613539373665376562396632646432366631343363386161663931227d"
                   id: 1
               Build tx to update a policy:
                 value:
@@ -1261,7 +1247,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       policyId: policy1234
-                      policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                      policyData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a226538326561613539373665376562396632646432366631343363386161663931227d"
                   id: 1
               Send Transaction:
                 value:
@@ -1310,7 +1296,7 @@ paths:
                     jsonrpc: "2.0"
                     id: 1
                     result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
-        "400":
+        400:
           description: Bad request
           content:
             "application/problem+json":
@@ -1352,7 +1338,6 @@ components:
             The HTTP status code generated by the origin server for this occurrence of the problem.
           minimum: 400
           maximum: 600
-          exclusiveMaximum: true
           example: 500
         detail:
           type: string

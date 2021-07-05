@@ -62,7 +62,7 @@ describe("Policies (e2e)", () => {
 
   const createPolicy = (
     n: string | number
-  ): { policyId: string; policy: string } => {
+  ): { policyId: string; policyData: string } => {
     const policyId = `policy-test-${n}`;
     const json = {
       // any object here
@@ -71,13 +71,13 @@ describe("Policies (e2e)", () => {
       data: crypto.randomBytes(16).toString("hex"),
     };
     const data = Buffer.from(JSON.stringify(json));
-    const policy = data.toString("base64");
+    const policyData = `0x${data.toString("hex")}`;
 
-    return { policyId, policy };
+    return { policyId, policyData };
   };
 
   const newPolicy = createPolicy(new Date().toISOString());
-  const { policy: policy2 } = createPolicy(new Date().toISOString());
+  const { policyData: policy2 } = createPolicy(new Date().toISOString());
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -304,7 +304,7 @@ describe("Policies (e2e)", () => {
       it(`should return a new unsigned transaction`, async () => {
         expect.assertions(2);
 
-        const { policyId, policy } = createPolicy(new Date().toISOString());
+        const { policyId, policyData } = createPolicy(new Date().toISOString());
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
@@ -316,7 +316,7 @@ describe("Policies (e2e)", () => {
               {
                 from: adminTestWallet.address,
                 policyId,
-                policy,
+                policyData,
               },
             ],
             id: 231,
@@ -348,14 +348,14 @@ describe("Policies (e2e)", () => {
         expect.assertions(5);
 
         const { policyId } = newPolicy;
-        let policy: string;
+        let policyData: string;
 
         switch (method) {
           case "insertPolicy":
-            policy = newPolicy.policy;
+            policyData = newPolicy.policyData;
             break;
           case "updatePolicy":
-            policy = policy2;
+            policyData = policy2;
             break;
           default:
             break;
@@ -371,7 +371,7 @@ describe("Policies (e2e)", () => {
               {
                 from: adminTestWallet.address,
                 policyId,
-                policy,
+                policyData,
               },
             ],
             id: 231,
@@ -423,13 +423,14 @@ describe("Policies (e2e)", () => {
           `/policies/${policyId}`
         );
 
+        const bufferPolicyData = Buffer.from(policyData.slice(2), "hex");
         const expectedHash = generateMultihash(
-          ethers.utils.sha256(Buffer.from(policy, "base64"))
+          ethers.utils.sha256(bufferPolicyData)
         );
 
         expect(policyResponse.body).toStrictEqual({
           policyId,
-          policy,
+          policy: bufferPolicyData.toString("base64"),
           hash: expectedHash,
         });
         expect(policyResponse.status).toBe(200);

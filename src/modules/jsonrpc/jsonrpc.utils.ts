@@ -17,7 +17,6 @@ import {
   ArgsInsertPolicy,
   ArgsUpdatePolicy,
 } from "./dto";
-import { prefixWith0x } from "../../shared/utils";
 
 type JsonRpcDtos =
   | RequestInsertIssuerDto
@@ -74,14 +73,4 @@ export const validateClass = async (
   if (errors.length > 0) {
     throw new Error(errors.toString());
   }
-};
-
-export const checkHash = (buffer: Buffer, hash: string): void => {
-  const expectedHash = ethers.utils.sha256(buffer);
-  if (prefixWith0x(hash) !== expectedHash)
-    throw new Error(
-      `Invalid issuer.attribute.hash. Received: ${prefixWith0x(
-        hash
-      )}. Expected: ${expectedHash}`
-    );
 };

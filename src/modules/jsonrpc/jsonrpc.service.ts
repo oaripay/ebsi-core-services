@@ -25,7 +25,6 @@ import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
   validateClass,
-  checkHash,
 } from "./jsonrpc.utils";
 import { prefixWith0x } from "../../shared/utils";
 import { ApiConfig } from "../../config/configuration";
@@ -290,15 +289,15 @@ export class JsonRpcService {
     try {
       await validateClass(RequestInsertAdministratorDto, body);
 
-      const { from, did, attribute } = body.params[0];
-      const bufferAttribute = Buffer.from(attribute.body, "base64");
-      checkHash(bufferAttribute, attribute.hash);
+      const { from, did, attributeData } = body.params[0];
+
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("insertAdministrator", [
         did.toLowerCase(),
-        bufferAttribute,
+        attributeData,
       ]);
+
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
@@ -313,12 +312,14 @@ export class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdateAdministratorDto, body);
-      const { from, did, attribute, prevAttributeHash } = body.params[0];
-      const bufferAttribute = Buffer.from(attribute.body, "base64");
-      checkHash(bufferAttribute, attribute.hash);
-      const data = [did.toLowerCase(), bufferAttribute];
+
+      const { from, did, attributeData, prevAttributeHash } = body.params[0];
+      const data = [did.toLowerCase(), attributeData];
+
       if (prevAttributeHash) data.push(prefixWith0x(prevAttributeHash));
+
       let functionSig;
+
       if (prevAttributeHash) {
         // using updateAdministrator function (did, attributeData, lastVersHash)
         functionSig = "updateAdministrator(string,bytes,bytes32)";
@@ -326,6 +327,7 @@ export class JsonRpcService {
         // using updateAdministrator function (did, attributeData)
         functionSig = "updateAdministrator(string,bytes)";
       }
+
       const encodedData = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData(
@@ -348,15 +350,16 @@ export class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertIssuerDto, body);
-      const { from, did, attribute } = body.params[0];
-      const bufferAttribute = Buffer.from(attribute.body, "base64");
-      checkHash(bufferAttribute, attribute.hash);
+
+      const { from, did, attributeData } = body.params[0];
+
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("insertIssuer", [
         did.toLowerCase(),
-        bufferAttribute,
+        attributeData,
       ]);
+
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
@@ -371,12 +374,14 @@ export class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdateIssuerDto, body);
-      const { from, did, attribute, prevAttributeHash } = body.params[0];
-      const bufferAttribute = Buffer.from(attribute.body, "base64");
-      checkHash(bufferAttribute, attribute.hash);
-      const data = [did.toLowerCase(), bufferAttribute];
+
+      const { from, did, attributeData, prevAttributeHash } = body.params[0];
+      const data = [did.toLowerCase(), attributeData];
+
       if (prevAttributeHash) data.push(prefixWith0x(prevAttributeHash));
+
       let functionSig;
+
       if (prevAttributeHash) {
         // using updateIssuer function (did, attributeData, lastVersHash)
         functionSig = "updateIssuer(string,bytes,bytes32)";
@@ -384,6 +389,7 @@ export class JsonRpcService {
         // using updateIssuer function (did, attributeData)
         functionSig = "updateIssuer(string,bytes)";
       }
+
       const encodedData = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData(
@@ -392,6 +398,7 @@ export class JsonRpcService {
         // @ts-ignore
         data
       );
+
       return await this.buildTransaction(from, encodedData);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
@@ -406,11 +413,13 @@ export class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertPolicyDto, body);
-      const { from, policy, policyId } = body.params[0];
-      const bufferPolicy = Buffer.from(policy, "base64");
+
+      const { from, policyData, policyId } = body.params[0];
+
       const data = (
         await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("insertPolicy", [policyId, bufferPolicy]);
+      ).interface.encodeFunctionData("insertPolicy", [policyId, policyData]);
+
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
@@ -425,11 +434,13 @@ export class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdatePolicyDto, body);
-      const { from, policy, policyId } = body.params[0];
-      const bufferPolicy = Buffer.from(policy, "base64");
+
+      const { from, policyData, policyId } = body.params[0];
+
       const data = (
         await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("updatePolicy", [policyId, bufferPolicy]);
+      ).interface.encodeFunctionData("updatePolicy", [policyId, policyData]);
+
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);

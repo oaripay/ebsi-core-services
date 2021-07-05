@@ -1,9 +1,9 @@
 import {
   IsArray,
-  Equals,
   ValidateNested,
   ArrayMinSize,
   ArrayMaxSize,
+  Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { JsonRpcDto } from "../jsonrpc.dto";

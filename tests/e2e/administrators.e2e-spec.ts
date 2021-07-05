@@ -59,6 +59,10 @@ interface SupertestAttributeResponse {
   body: AttributeObject;
 }
 
+interface AttributeObjectWithData extends AttributeObject {
+  data: string;
+}
+
 describe("Administrators (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
@@ -78,9 +82,10 @@ describe("Administrators (e2e)", () => {
     const data = Buffer.from(JSON.stringify(json));
     const dataBase64 = data.toString("base64");
     const dataHash = ethers.utils.sha256(data).slice(2);
-    const attribute = {
+    const attribute: AttributeObjectWithData = {
       body: dataBase64,
       hash: dataHash,
+      data: `0x${data.toString("hex")}`,
     };
 
     return { did, attribute };
@@ -436,7 +441,7 @@ describe("Administrators (e2e)", () => {
             {
               from: adminTestWallet.address,
               did,
-              attribute,
+              attributeData: attribute.data,
               ...(prevAttributeHash && { prevAttributeHash }),
             },
           ],
@@ -473,7 +478,7 @@ describe("Administrators (e2e)", () => {
       expect.assertions(5);
 
       const { did } = newAdministrator;
-      let attribute: AttributeObject;
+      let attribute: AttributeObjectWithData;
       let prevAttributeHash: string = null;
       let expectedAttributes = [];
 
@@ -481,18 +486,41 @@ describe("Administrators (e2e)", () => {
         case "insertAdministrator":
           // create a new administrator and add attribute1
           attribute = attribute1;
-          expectedAttributes = [attribute1];
+          expectedAttributes = [
+            {
+              body: attribute1.body,
+              hash: attribute1.hash,
+            },
+          ];
           break;
         case "updateAdministrator":
           if (updateAttribute) {
             // update attribute1: change it to attribute3
             attribute = attribute3;
             prevAttributeHash = attribute1.hash;
-            expectedAttributes = [attribute3, attribute2];
+            expectedAttributes = [
+              {
+                body: attribute3.body,
+                hash: attribute3.hash,
+              },
+              {
+                body: attribute2.body,
+                hash: attribute2.hash,
+              },
+            ];
           } else {
             // updateIssuer: add attribute2
             attribute = attribute2;
-            expectedAttributes = [attribute1, attribute2];
+            expectedAttributes = [
+              {
+                body: attribute1.body,
+                hash: attribute1.hash,
+              },
+              {
+                body: attribute2.body,
+                hash: attribute2.hash,
+              },
+            ];
           }
           break;
         default:
@@ -509,7 +537,7 @@ describe("Administrators (e2e)", () => {
             {
               from: adminTestWallet.address,
               did,
-              attribute,
+              attributeData: attribute.data,
               ...(prevAttributeHash && { prevAttributeHash }),
             },
           ],
