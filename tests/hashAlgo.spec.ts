@@ -62,10 +62,9 @@ describe("Hash Algorithm", () => {
     expect(ts.address).to.properAddress;
   });
   it("getHashAlgorithmById should succeed", async () => {
-    await expect(ts.insertHashAlgorithm(256, "SHA256", "oid256", 1, "blake2s-232")).to.emit(
-      ts,
-      "AddNewHashAlgo"
-    );
+    await expect(
+      ts.insertHashAlgorithm(256, "SHA256", "oid256", 1, "blake2s-232")
+    ).to.emit(ts, "AddNewHashAlgo");
     const receipt = await ts.getHashAlgorithmById(0);
     expect(receipt.outputLength).to.equal(256);
     expect(receipt.ianaName).to.equal("SHA256");
@@ -98,7 +97,9 @@ describe("Hash Algorithm", () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "blake2s-232"))
       .to.emit(ts, "AddNewHashAlgo")
       .withArgs(0, "SHA256", "SHA256", 256, "oid", 1, "blake2s-232");
-    await expect(ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "blake2s-232"))
+    await expect(
+      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "blake2s-232")
+    )
       .to.emit(ts, "AddNewHashAlgo")
       .withArgs(1, "SHA3-512", "SHA3-512", 512, "oid2", 1, "blake2s-232");
     const receipt = await ts.getHashAlgorithmById(1);
@@ -121,14 +122,12 @@ describe("Hash Algorithm", () => {
     ).to.be.revertedWith("hashAlgorithmId unknown");
   });
   it("updateHashAlgorithm should work", async () => {
-    await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "blake2s-232")).to.emit(
-      ts,
-      "AddNewHashAlgo"
-    );
-    await expect(ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "blake2s-232")).to.emit(
-      ts,
-      "AddNewHashAlgo"
-    );
+    await expect(
+      ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "blake2s-232")
+    ).to.emit(ts, "AddNewHashAlgo");
+    await expect(
+      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "blake2s-232")
+    ).to.emit(ts, "AddNewHashAlgo");
     const receipt = await ts.getHashAlgorithmById(1);
     expect(receipt.outputLength).to.equal(512);
     expect(receipt.ianaName).to.equal("SHA3-512");
@@ -136,7 +135,9 @@ describe("Hash Algorithm", () => {
     expect(receipt.status).to.equal(1);
     expect(receipt.multiHash).to.equal("blake2s-232");
 
-    await expect(ts.updateHashAlgorithm(1, 1024, "SHA4-1024", "oid3", 2, "blake2s-232"))
+    await expect(
+      ts.updateHashAlgorithm(1, 1024, "SHA4-1024", "oid3", 2, "blake2s-232")
+    )
       .to.emit(ts, "UpdateHashAlgo")
       .withArgs(1, "SHA4-1024", "SHA4-1024", 1024, "oid3", 2, "blake2s-232");
     const updated = await ts.getHashAlgorithmById(1);
@@ -152,7 +153,7 @@ describe("Hash Algorithm", () => {
     for (let i = 1; i < 12; i += 1) {
       const name = `SHA-${i}`;
       const oid = `oid${i}`;
-      const multiHash = `multiHash${i}`
+      const multiHash = `multiHash${i}`;
       // Id starts from zero
       resHashIds.push(i - 1);
       // INSERT SHOULD BE DONE IN ORDER !!!
@@ -178,7 +179,7 @@ describe("Hash Algorithm", () => {
     for (let i = 1; i < 12; i += 1) {
       const name = `SHA-${i}`;
       const oid = `oid${i}`;
-      const multiHash = `multiHash${i}`
+      const multiHash = `multiHash${i}`;
 
       // Id starts from zero
       resHashIds.push(i - 1);

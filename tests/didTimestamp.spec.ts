@@ -156,18 +156,15 @@ describe("Timestamp Hashes", () => {
     ).to.be.revertedWith("hashValue empty");
   });
   it("didTimestampHash should failed for empty value and hash", async () => {
-    await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "multiHash")).to.emit(
-      ts,
-      "AddNewHashAlgo"
-    );
-    await expect(ts.insertHashAlgorithm(512, "SHA512", "oid", 1, "multiHash")).to.emit(
-      ts,
-      "AddNewHashAlgo"
-    );
-    await expect(ts.insertHashAlgorithm(256, "SHA3-256", "oid", 1, "multiHash")).to.emit(
-      ts,
-      "AddNewHashAlgo"
-    );
+    await expect(
+      ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "multiHash")
+    ).to.emit(ts, "AddNewHashAlgo");
+    await expect(
+      ts.insertHashAlgorithm(512, "SHA512", "oid", 1, "multiHash")
+    ).to.emit(ts, "AddNewHashAlgo");
+    await expect(
+      ts.insertHashAlgorithm(256, "SHA3-256", "oid", 1, "multiHash")
+    ).to.emit(ts, "AddNewHashAlgo");
 
     const hash1 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("e40605e6"));
     await expect(
