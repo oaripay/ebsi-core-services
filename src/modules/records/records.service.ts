@@ -48,7 +48,11 @@ export default class RecordsService {
   async getAllPages(
     fnName: string,
     params: (string | number)[]
-  ): Promise<{ hashValues: string[]; infoIds: string[] }> {
+  ): Promise<{
+    hashValues: string[];
+    infoIds: string[];
+    totalVersions: number;
+  }> {
     const { hashValues, infoIds, total } = await this.getPage(
       fnName,
       params,
@@ -66,7 +70,7 @@ export default class RecordsService {
     hashValuesNextPages.forEach((pagItems) => {
       hashValues.splice(hashValues.length, 0, ...pagItems);
     });
-    return { hashValues, infoIds };
+    return { hashValues, infoIds, totalVersions: total.toNumber() };
   }
 
   async getRecordIds(
@@ -180,12 +184,12 @@ export default class RecordsService {
     versionId: string
   ): Promise<RecordVersionResponseObject> {
     const recordId = multibase64Decode(recordIdEncoded);
-    const { hashValues, infoIds } = await this.getAllPages("getRecordVersion", [
-      recordId,
-      Number(versionId),
-    ]);
+    const { hashValues, infoIds, totalVersions } = await this.getAllPages(
+      "getRecordVersion",
+      [recordId, Number(versionId)]
+    );
 
-    if (hashValues.length === 0)
+    if (Number(versionId) >= totalVersions)
       throw new NotFoundError("Version Not Found", {
         detail: `Version ${versionId} not found`,
       });
