@@ -101,10 +101,10 @@ export class DidTimestampsService {
     ).getHashAlgorithmById(timestamp.hash.algorithm);
 
     // Multi-hash (base64 multi-encoded)
-    const { multiHash, outputLength } = hashAlg;
+    const { multihash, outputLength } = hashAlg;
     const multihashEncodedHash = multihashEncode(
       timestamp.hash.value,
-      multiHash as HashName,
+      multihash as HashName,
       outputLength.toNumber() / 8
     );
 

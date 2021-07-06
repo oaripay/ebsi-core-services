@@ -9,9 +9,15 @@ import * as bs58 from "bs58";
  *
  * @returns A random EBSI DID
  */
-export const createDid = (method?: string): string => {
+export const createDid = (method?: string, lowercaseDid = false): string => {
   const buf = crypto.randomBytes(32);
-  return `${method || "did:ebsi"}:${bs58.encode(buf)}`;
+  const did = `${method || "did:ebsi"}:${bs58.encode(buf)}`;
+
+  if (lowercaseDid) {
+    return did.toLowerCase();
+  }
+
+  return did;
 };
 
 /**

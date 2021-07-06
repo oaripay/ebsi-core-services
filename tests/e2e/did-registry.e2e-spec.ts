@@ -1296,22 +1296,6 @@ describe("DID Registry (e2e)", () => {
       expect(response4.status).toBe(200);
     });
 
-    it("should throw an error if the identifier is not a valid did", async () => {
-      expect.assertions(2);
-
-      const response = await request(server).get(
-        "/identifiers/invalid/versions"
-      );
-
-      expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
-        detail: '["did must be a valid DID"]',
-        type: "about:blank",
-      });
-      expect(response.status).toBe(400);
-    });
-
     it("should throw a Bad Request for bad pagination", async () => {
       expect.assertions(8);
 
@@ -1363,6 +1347,83 @@ describe("DID Registry (e2e)", () => {
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
+    });
+
+    it("should throw an error if the identifier is not a valid did", async () => {
+      expect.assertions(2);
+
+      const { didDocumentBuffer } = updatedDidDocument;
+      const versionId = ethers.utils.sha256(didDocumentBuffer);
+
+      const response = await request(server).get(
+        `/identifiers/invalid/versions/${versionId}/metadata`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["did must be a valid DID"]',
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the identifier is not found", async () => {
+      expect.assertions(2);
+
+      const { didDocumentBuffer } = updatedDidDocument;
+      const versionId = ethers.utils.sha256(didDocumentBuffer);
+
+      const response = await request(server).get(
+        `/identifiers/did:unknown:unknown/versions/${versionId}/metadata`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Identifier Not Found",
+        status: 404,
+        detail: "Identifier did:unknown:unknown not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw an error if the version ID is not valid", async () => {
+      expect.assertions(2);
+
+      const did = updatedDidDocument.controllerDid;
+      const versionId = "test";
+
+      const response = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["versionId must match /^0x/ regular expression","versionId must be a hexadecimal number"]',
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the version ID is not found", async () => {
+      expect.assertions(2);
+
+      const did = updatedDidDocument.controllerDid;
+      const versionId = ethers.utils.sha256(crypto.randomBytes(32));
+
+      const response = await request(server).get(
+        `/identifiers/${did}/versions/${versionId}/metadata`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Version Not Found",
+        status: 404,
+        detail: `Version ${versionId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
     });
   });
 

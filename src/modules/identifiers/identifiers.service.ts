@@ -1,6 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
-import { ethers } from "ethers";
 import { LedgerService } from "../ledger/ledger.service";
 import { DidRegistry } from "../../contracts/did-registry";
 import { remove0xPrefix } from "../../shared/utils";
@@ -144,24 +143,37 @@ export default class IdentifiersService {
     page: number,
     pageSize: number
   ): ReturnType<DidRegistry["getDidDocumentVersionMetadataIds"]> {
-    const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
+    // Make sure the DID and the Version ID exist
+    await this.getIdentifierVersion(did, versionId);
 
     try {
+      const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
       return await (
         await this.ledgerService.getContract()
       ).getDidDocumentVersionMetadataIds(hexDid, versionId, page, pageSize);
     } catch (e) {
-      // TODO: remove the require in the smart contract
-      // (function getDidDocumentVersionMetadataIds)
-      return {
-        items: [],
-        total: ethers.BigNumber.from(0),
-        howMany: ethers.BigNumber.from(pageSize),
-        prev: ethers.BigNumber.from(1),
-        next: ethers.BigNumber.from(1),
-      } as unknown as ReturnType<
-        DidRegistry["getDidDocumentVersionMetadataIds"]
-      >;
+      // Try to retrieve the original DID
+      if (did !== did.toLowerCase()) {
+        try {
+          const hexOriginalDid = `0x${Buffer.from(did).toString("hex")}`;
+          return await (
+            await this.ledgerService.getContract()
+          ).getDidDocumentVersionMetadataIds(
+            hexOriginalDid,
+            versionId,
+            page,
+            pageSize
+          );
+        } catch (err) {
+          throw new NotFoundError("Identifier Not Found", {
+            detail: `Identifier ${did} not found`,
+          });
+        }
+      }
+
+      throw new NotFoundError("Identifier Not Found", {
+        detail: `Identifier ${did} not found`,
+      });
     }
   }
 
@@ -170,19 +182,8 @@ export default class IdentifiersService {
     versionId: string,
     metadataId: string
   ): Promise<{ [x: string]: unknown }> {
-    // Make sure the DID exists
-    await this.getIdentifier(did);
-
-    try {
-      const versionInfo = await (
-        await this.ledgerService.getContract()
-      ).getDidDocumentVersionInfo(versionId);
-      if (versionInfo === "0x") throw new Error();
-    } catch (e) {
-      throw new NotFoundError("Version Not Found", {
-        detail: `Version ${versionId} not found`,
-      });
-    }
+    // Make sure the DID and the Version ID exist
+    await this.getIdentifierVersion(did, versionId);
 
     try {
       const metadata = await (
