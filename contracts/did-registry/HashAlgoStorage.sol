@@ -5,13 +5,17 @@ contract HashAlgoStorage {
     // The state variables we care about.
     bytes32 public constant REGISTRY_HASHALGO_DIAMOND_STORAGE_POSITION =
         keccak256("diamond.standard.did.registry.hashAlgo.storage");
-    enum Status {undefined, active, revoked}
+    enum Status {
+        undefined,
+        active,
+        revoked
+    }
     struct HashAlgoInfo {
         uint256 outputLength;
         string ianaName;
         string oid;
         Status status;
-        string multiHash;
+        string multihash;
     }
 
     struct Algos {

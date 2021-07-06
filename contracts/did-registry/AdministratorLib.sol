@@ -48,10 +48,11 @@ library AdministratorLib {
 
         // store a link between this hash to the did to easily retrieve it
         ds.attributeMetadataStore[firstAttrHash] = AttributeStorage
-            .AttributeMetadata(did, firstAttrHash);
+        .AttributeMetadata(did, firstAttrHash);
         // store the version hash and data for this attribute
-        AdministratorStorage.AttributeDetails storage atr =
-            iss.attributesStore[firstAttrHash];
+        AdministratorStorage.AttributeDetails storage atr = iss.attributesStore[
+            firstAttrHash
+        ];
 
         // push the new version hash for this attribute
         atr.revisionHashes.push(firstAttrHash);
@@ -97,10 +98,11 @@ library AdministratorLib {
 
         // store a link between this hash to the did to easily retrieve it
         ds.attributeMetadataStore[newAttrHash] = AttributeStorage
-            .AttributeMetadata(did, newAttrHash);
+        .AttributeMetadata(did, newAttrHash);
         // store the version hash and data for this attribute
-        AdministratorStorage.AttributeDetails storage atr =
-            iss.attributesStore[newAttrHash];
+        AdministratorStorage.AttributeDetails storage atr = iss.attributesStore[
+            newAttrHash
+        ];
 
         // push the new version hash for this attribute
         atr.revisionHashes.push(newAttrHash);
@@ -135,8 +137,9 @@ library AdministratorLib {
         AdministratorStorage.Entity storage iss = ds.administratorStore[did];
         require(iss.attributes.length >= 0, "admin unknown");
         // based on the last version hash we can retrive the first version hash for this attribute along with the did
-        bytes32 firstAttrHash =
-            ds.attributeMetadataStore[lastVersHash].attributeId;
+        bytes32 firstAttrHash = ds
+        .attributeMetadataStore[lastVersHash]
+        .attributeId;
         assert(iss.attributesStore[firstAttrHash].revisionHashes.length > 0);
         bytes32 newAttrHash = sha256(attributeData);
         require(
@@ -146,10 +149,11 @@ library AdministratorLib {
         );
         // store a link between this hash, the first hash and the did to easily retrieve it
         ds.attributeMetadataStore[newAttrHash] = AttributeStorage
-            .AttributeMetadata(did, firstAttrHash);
+        .AttributeMetadata(did, firstAttrHash);
         // retrieve the detail info for this attribute
-        AdministratorStorage.AttributeDetails storage atr =
-            iss.attributesStore[firstAttrHash];
+        AdministratorStorage.AttributeDetails storage atr = iss.attributesStore[
+            firstAttrHash
+        ];
         // push the new version hash for this attribute
         atr.revisionHashes.push(newAttrHash);
         // push the new version data for this attribute
@@ -171,8 +175,9 @@ library AdministratorLib {
         bytes32 firstAttrHash
     ) internal {
         AdministratorStorage.Entity storage iss = ds.administratorStore[did];
-        AdministratorStorage.AttributeDetails storage atr =
-            iss.attributesStore[firstAttrHash];
+        AdministratorStorage.AttributeDetails storage atr = iss.attributesStore[
+            firstAttrHash
+        ];
         uint256 attributeVersionCount = atr.revisionHashes.length;
         uint256 attributesCount = iss.attributes.length;
         emit UpdateAdministratorAttribute(
@@ -190,19 +195,20 @@ library AdministratorLib {
         AdministratorStorage.Administrators storage ds,
         string memory did
     ) public view returns (bytes32[] memory) {
-        bytes32[] memory attributesFirstHash =
-            ds.administratorStore[did].attributes;
+        bytes32[] memory attributesFirstHash = ds
+        .administratorStore[did]
+        .attributes;
         require(attributesFirstHash.length > 0, "admin unknown");
-        bytes32[] memory attributesLastHash =
-            new bytes32[](attributesFirstHash.length);
+        bytes32[] memory attributesLastHash = new bytes32[](
+            attributesFirstHash.length
+        );
         //list all the attributes
         for (uint256 index = 0; index < attributesFirstHash.length; index++) {
             // get all the versions for the current attribute
-            bytes32[] memory versions =
-                ds.administratorStore[did].attributesStore[
-                    attributesFirstHash[index]
-                ]
-                    .revisionHashes;
+            bytes32[] memory versions = ds
+            .administratorStore[did]
+            .attributesStore[attributesFirstHash[index]]
+            .revisionHashes;
 
             //get the last version hash for this attribute
             attributesLastHash[index] = versions[versions.length - 1];
@@ -258,8 +264,8 @@ library AdministratorLib {
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
         // retrieve first the did and attrId (firstHash of attribute)
-        AdministratorStorage.AttributeMetadata memory am =
-            ds.attributeMetadataStore[anyAttrVersHash];
+        AdministratorStorage.AttributeMetadata memory am = ds
+        .attributeMetadataStore[anyAttrVersHash];
         require(
             keccak256(bytes(am.did)) != keccak256(bytes("")),
             "attr unknown"
@@ -267,7 +273,9 @@ library AdministratorLib {
 
         // retrieve the issuer and the attribute detail
         return
-            ds.administratorStore[am.did].attributesStore[am.attributeId]
+            ds
+                .administratorStore[am.did]
+                .attributesStore[am.attributeId]
                 .revisionHashes
                 .paginate(page, pageSize);
     }
@@ -277,8 +285,8 @@ library AdministratorLib {
         bytes32 anyAttrVersHash
     ) public view returns (string memory did, bytes memory attribData) {
         // retrieve first the did and attrId (firstHash of attribute)
-        AdministratorStorage.AttributeMetadata memory i =
-            ds.attributeMetadataStore[anyAttrVersHash];
+        AdministratorStorage.AttributeMetadata memory i = ds
+        .attributeMetadataStore[anyAttrVersHash];
         require(
             keccak256(bytes(i.did)) != keccak256(bytes("")),
             "attr unknown"

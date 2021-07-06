@@ -4,7 +4,12 @@ pragma solidity ^0.8.0;
 contract DidMethodStorage {
     bytes32 public constant REGISTRY_DID_METHOD_DIAMOND_STORAGE_POSITION =
         keccak256("diamond.standard.did.registry.did.method.storage");
-    enum MethodStatus {undefined, active, revoked, suspended}
+    enum MethodStatus {
+        undefined,
+        active,
+        revoked,
+        suspended
+    }
 
     struct DidMethodInfoDetails {
         string methodName; // DID method name

@@ -151,8 +151,9 @@ library DidRecordLib {
         r.totalDidVersions++;
         r.didTimestampIdToVersionId[timestampId] = r.totalDidVersions;
 
-        DidRecordStorage.DidVersionDetails storage vd =
-            r.didVersionsStore[r.totalDidVersions];
+        DidRecordStorage.DidVersionDetails storage vd = r.didVersionsStore[
+            r.totalDidVersions
+        ];
         vd.didTimestampsId.push(timestampId);
         vd.didVersionInfoId.push(sha256(didVersionInfo));
         vd.didVersionMetadataId.push(sha256(didVersionMetadata));
@@ -167,9 +168,9 @@ library DidRecordLib {
         }
         rs.didTimestampIdToDidRecordId[timestampId].push(recordId);
         rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)] = r
-            .totalDidVersions;
+        .totalDidVersions;
         rs.didVersionMetadataIdToVersionId[sha256(didVersionMetadata)] = r
-            .totalDidVersions;
+        .totalDidVersions;
         emit DidDocumentUpdated(
             recordId,
             timestampId,
@@ -446,13 +447,15 @@ library DidRecordLib {
             "versionInfo unknown"
         );
 
-        r.didVersionsStore[
+        r
+            .didVersionsStore[
             rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
         ]
             .didTimestampsId
             .push(timestampId);
 
-        r.didVersionsStore[
+        r
+            .didVersionsStore[
             rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
         ]
             .didVersionInfoId
@@ -510,16 +513,18 @@ library DidRecordLib {
             "hash unknown"
         );
         require(
-            r.didVersionsStore[
+            r
+            .didVersionsStore[
                 rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
             ]
-                .didTimestampsId
-                .length > 1,
+            .didTimestampsId
+            .length > 1,
             "last tsId"
         );
         require(
             removeFromArray(
-                r.didVersionsStore[
+                r
+                    .didVersionsStore[
                     rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
                 ]
                     .didTimestampsId,
@@ -574,7 +579,8 @@ library DidRecordLib {
             "versionInfo unknown"
         );
 
-        r.didVersionsStore[
+        r
+            .didVersionsStore[
             rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
         ]
             .didVersionMetadataId
@@ -588,7 +594,7 @@ library DidRecordLib {
             didVersionInfo
         );
         rs.didVersionMetadataIdToVersionId[sha256(didVersionMetadata)] = rs
-            .didVersionInfoIdToVersionId[sha256(didVersionInfo)];
+        .didVersionInfoIdToVersionId[sha256(didVersionInfo)];
     }
 
     /**
@@ -619,7 +625,8 @@ library DidRecordLib {
         );
         require(
             removeFromArray(
-                r.didVersionsStore[
+                r
+                    .didVersionsStore[
                     rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
                 ]
                     .didVersionMetadataId,
@@ -731,10 +738,12 @@ library DidRecordLib {
 
         DidRecordStorage.DidRecord storage r = rs.didRecordsStore[recordId];
         require(r.totalDidVersions != 0, "record unknown");
-        bytes32[] storage didVersionInfoIds =
-            r.didVersionsStore[r.totalDidVersions].didVersionInfoId;
-        bytes32 latestDidVersionInfoId =
-            didVersionInfoIds[didVersionInfoIds.length - 1];
+        bytes32[] storage didVersionInfoIds = r
+        .didVersionsStore[r.totalDidVersions]
+        .didVersionInfoId;
+        bytes32 latestDidVersionInfoId = didVersionInfoIds[
+            didVersionInfoIds.length - 1
+        ];
         return rs.didVersionInfoStore[latestDidVersionInfoId];
     }
 
@@ -884,7 +893,9 @@ library DidRecordLib {
         );
 
         return
-            rs.didRecordsStore[sha256(identifier)].didVersionsStore[
+            rs
+                .didRecordsStore[sha256(identifier)]
+                .didVersionsStore[
                 rs.didVersionInfoIdToVersionId[didVersionInfoId]
             ]
                 .didVersionMetadataId
@@ -918,7 +929,9 @@ library DidRecordLib {
         require(r.totalDidVersions >= versionId, "unknown version");
 
         return
-            rs.didRecordsStore[recordId].didVersionsStore[versionId]
+            rs
+                .didRecordsStore[recordId]
+                .didVersionsStore[versionId]
                 .didTimestampsId;
     }
 }

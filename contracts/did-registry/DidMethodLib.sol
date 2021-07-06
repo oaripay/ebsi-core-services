@@ -60,8 +60,8 @@ library DidMethodLib {
         );
         bytes32 methodHash = sha256(bytes(methodName));
 
-        DidMethodStorage.DidMethodInfoDetails storage method =
-            ds.didMethodInfoStore[methodHash];
+        DidMethodStorage.DidMethodInfoDetails storage method = ds
+        .didMethodInfoStore[methodHash];
 
         require(
             method.status == DidMethodStorage.MethodStatus.undefined,
@@ -120,8 +120,8 @@ library DidMethodLib {
         );
         bytes32 methodHash = sha256(bytes(methodName));
 
-        DidMethodStorage.DidMethodInfoDetails storage method =
-            ds.didMethodInfoStore[methodHash];
+        DidMethodStorage.DidMethodInfoDetails storage method = ds
+        .didMethodInfoStore[methodHash];
 
         require(
             method.status != DidMethodStorage.MethodStatus.undefined,

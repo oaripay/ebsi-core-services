@@ -14,7 +14,7 @@ library HashAlgoLib {
         uint256 outputLength,
         string oid,
         HashAlgoStorage.Status status,
-        string multiHash
+        string multihash
     );
 
     event UpdateHashAlgo(
@@ -24,7 +24,7 @@ library HashAlgoLib {
         uint256 outputLength,
         string oid,
         HashAlgoStorage.Status status,
-        string multiHash
+        string multihash
     );
 
     /**
@@ -36,7 +36,7 @@ library HashAlgoLib {
         string memory ianaName,
         string memory oid,
         HashAlgoStorage.Status status,
-        string memory multiHash
+        string memory multihash
     ) external {
         require(outputLength > 0, "outputLength==0");
         require(uint256(status) > 0, "status==0");
@@ -50,7 +50,7 @@ library HashAlgoLib {
             ianaName,
             oid,
             status,
-            multiHash
+            multihash
         );
 
         // Increment the hashAlgorithms.numberOfAlgorithms value
@@ -63,7 +63,7 @@ library HashAlgoLib {
             outputLength,
             oid,
             status,
-            multiHash
+            multihash
         );
     }
 
@@ -77,7 +77,7 @@ library HashAlgoLib {
         string memory ianaName,
         string memory oid,
         HashAlgoStorage.Status status,
-        string memory multiHash
+        string memory multihash
     ) external {
         require(outputLength > 0, "outputLength==0");
         require(uint256(status) > 0, "status==0");
@@ -96,7 +96,7 @@ library HashAlgoLib {
             ianaName,
             oid,
             status,
-            multiHash
+            multihash
         );
 
         emit UpdateHashAlgo(
@@ -106,7 +106,7 @@ library HashAlgoLib {
             outputLength,
             oid,
             status,
-            multiHash
+            multihash
         );
     }
 
@@ -124,7 +124,7 @@ library HashAlgoLib {
             string memory ianaName,
             string memory oid,
             HashAlgoStorage.Status status,
-            string memory multiHash
+            string memory multihash
         )
     {
         require(
@@ -136,7 +136,7 @@ library HashAlgoLib {
         ianaName = hs.infoStore[hashAlgorithmId].ianaName;
         oid = hs.infoStore[hashAlgorithmId].oid;
         status = hs.infoStore[hashAlgorithmId].status;
-        multiHash = hs.infoStore[hashAlgorithmId].multiHash;
+        multihash = hs.infoStore[hashAlgorithmId].multihash;
     }
 
     /**

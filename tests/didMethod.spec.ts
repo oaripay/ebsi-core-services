@@ -1,9 +1,9 @@
 import { ethers } from "hardhat";
-import { Contract } from "ethers";
 import { expect } from "chai";
+import { DidRegistry } from "../src/types";
 
 describe("Did Method", () => {
-  let ts: Contract;
+  let ts: DidRegistry;
 
   beforeEach(async () => {
     const paginationFactory = await ethers.getContractFactory("Pagination", {});
@@ -55,12 +55,14 @@ describe("Did Method", () => {
         DidRecordLib: didRecordLib.address,
       },
     });
-    ts = await contractFactory.deploy();
+    ts = (await contractFactory.deploy()) as DidRegistry;
     await ts.initialize(42);
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(ts.address).to.properAddress;
   });
+
   it("insertDidMethod should revert for incorrect parameters", async () => {
     const bytes32 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("hash"));
     await expect(
@@ -79,6 +81,7 @@ describe("Did Method", () => {
       ts.insertDidMethod("method", "ledger", [[8]], [bytes32], 1, 2, 0)
     ).to.be.revertedWith("status undefined");
   });
+
   it("insertDidMethod should revert when inserted twice", async () => {
     const bytes32 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("hash"));
     ts.insertDidMethod("method", "ledger", [[8]], [bytes32], 1, 2, 1);
@@ -86,6 +89,7 @@ describe("Did Method", () => {
       ts.insertDidMethod("method", "ledger", [[8]], [bytes32], 1, 2, 1)
     ).to.be.revertedWith("method exist");
   });
+
   it("insertDidMethod should work", async () => {
     const bytes32 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("hash"));
     await expect(
@@ -123,12 +127,14 @@ describe("Did Method", () => {
       ts.updateDidMethod("method", "ledger", [[8]], [bytes32], 1, 2, 0)
     ).to.be.revertedWith("status undefined");
   });
+
   it("updateDidMethod should revert for a new method", async () => {
     const bytes32 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("hash"));
     await expect(
       ts.updateDidMethod("method", "ledger", [[8]], [bytes32], 1, 2, 1)
     ).to.be.revertedWith("method unknown");
   });
+
   it("updateDidMethod should work", async () => {
     const bytes32 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("hash"));
     ts.insertDidMethod("method", "ledger", [[8]], [bytes32], 1, 2, 1);
@@ -148,6 +154,7 @@ describe("Did Method", () => {
         1
       );
   });
+
   it("getDidMethodByName should succeed", async () => {
     const bytes32 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("hash"));
     await expect(
@@ -163,7 +170,7 @@ describe("Did Method", () => {
     expect(receipt.status).to.equal(1);
   });
 
-  it("getDidMethodIds should failed with wrong page and pageSize", async () => {
+  it("getDidMethodIds should fail with wrong page and pageSize", async () => {
     const bytes32 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("hash"));
     for (let i = 1; i < 12; i += 1) {
       const method = `method-${i}`;
@@ -231,7 +238,7 @@ describe("Did Method", () => {
     expect(r1.next).to.equal(1);
   });
 
-  it("getDidMethods should failed with wrong page and pageSize", async () => {
+  it("getDidMethods should fail with wrong page and pageSize", async () => {
     const bytes32 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("hash"));
     for (let i = 1; i < 12; i += 1) {
       const method = `method-${i}`;

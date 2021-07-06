@@ -77,11 +77,13 @@ library PolicyLib {
         PolicyStorage.Policies storage ds,
         string memory policyId
     ) public view returns (bytes memory, bytes32) {
-        bytes32[] memory policyRevisionHashes =
-            ds.policyStore[policyId].revisionHashes;
+        bytes32[] memory policyRevisionHashes = ds
+        .policyStore[policyId]
+        .revisionHashes;
         require(policyRevisionHashes.length > 0, "pol unknown");
-        bytes32 lastHash =
-            policyRevisionHashes[policyRevisionHashes.length - 1];
+        bytes32 lastHash = policyRevisionHashes[
+            policyRevisionHashes.length - 1
+        ];
         return (ds.revisions[lastHash], lastHash);
     }
 
