@@ -240,7 +240,7 @@ describe("JsonRpc Module", () => {
   let didMethod: DidMethodDataset;
 
   beforeAll(async () => {
-    // Spin up test blockchain (ganache)
+    // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv({
       administratorsTotal: ADMINS_TOTAL,
     });
@@ -789,7 +789,6 @@ describe("JsonRpc Module", () => {
   });
 
   // Tests to be repeated for every method
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each([
     "insertDidMethod",
     "insertAdministrator",

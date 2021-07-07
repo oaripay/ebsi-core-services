@@ -6,7 +6,7 @@ import {
   VerifiableCredential,
 } from "@cef-ebsi/verifiable-credential";
 import { createJWT, decodeJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 
 export async function createVerifiableAuthorisation(
   subjectDid: string,
@@ -25,7 +25,7 @@ export async function createVerifiableAuthorisation(
       "https://www.w3.org/2018/credentials/examples/v1",
       "https://w3c-ccg.github.io/lds-jws2020/contexts/lds-jws2020-v1.json",
     ],
-    id: `vc:ebsi:authentication#${uuidv4()}`,
+    id: `vc:ebsi:authentication#${randomUUID()}`,
     type: ["VerifiableCredential", "VerifiableAuthorisation"],
     issuer: applicationDid,
     issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,

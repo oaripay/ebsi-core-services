@@ -29,7 +29,6 @@ jest.setTimeout(120000);
 const DID_METHODS_TOTAL = 3;
 
 describe("DidTimestamps Module", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each(["lowercase", "mixed case"])(
     "(with %s DIDs)",
     (lettercase: string) => {
@@ -39,7 +38,7 @@ describe("DidTimestamps Module", () => {
       let ledgerService: LedgerService;
 
       beforeAll(async () => {
-        // Spin up test blockchain (ganache)
+        // Spin up test blockchain (hardhat)
         testEnv = await setupTestEnv({
           didDocuments: DID_METHODS_TOTAL,
           lowercaseDid: lettercase === "lowercase",

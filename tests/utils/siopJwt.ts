@@ -7,7 +7,7 @@ import {
 } from "@cef-ebsi/siop-auth";
 import type { AkeResponse } from "@cef-ebsi/siop-auth/dist/Ake";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import canonicalize from "canonicalize";
 import base64url from "base64url";
 import { createVP } from "./verifiablePresentation";
@@ -44,7 +44,7 @@ export const requestSiopJwt = async ({
   );
 
   // 3. The client creates an authentication response and gets an ID Token
-  const nonce = uuidv4();
+  const nonce = randomUUID();
 
   const authenticationResponse = await EbsiDidAuth.createAuthenticationResponse(
     {
@@ -118,7 +118,7 @@ export const requestNewUserSiopJwt = async ({
     didRegistry
   );
 
-  const nonce = uuidv4();
+  const nonce = randomUUID();
 
   const verifiablePresentation = await createVP({
     vc: verifiableCredential,

@@ -5,7 +5,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosError } from "axios";
-import { v4 as uuidV4 } from "uuid";
+import { randomUUID } from "crypto";
 import { ApiConfig } from "../../config/configuration";
 import {
   DidRegistry,
@@ -59,7 +59,7 @@ export class LedgerService {
   }
 
   private async getAccessToken() {
-    const nonce = uuidV4();
+    const nonce = randomUUID();
 
     const requestComponent = await this.agent.createRequestPayload(
       this.configService.get<string>("ledgerApiName"),

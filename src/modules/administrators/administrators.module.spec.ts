@@ -39,7 +39,7 @@ describe("Administrators Module", () => {
   let admin0AccessTokenPayload: { [x: string]: unknown };
 
   beforeAll(async () => {
-    // Spin up test blockchain (ganache)
+    // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv({
       administratorsTotal: ADMINISTRATORS_TOTAL,
     });

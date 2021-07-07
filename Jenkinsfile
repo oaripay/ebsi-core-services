@@ -18,7 +18,7 @@ node {
     }
     stage('Unit test') {
         withCredentials([string(credentialsId: 'API_PRIVATE_KEY', variable: 'API_PRIVATE_KEY')]) {
-            nodejs(nodeJSInstallationName: '14.15.4') {
+            nodejs(nodeJSInstallationName: '14.17.2') {
                 sh 'yarn install --frozen-lockfile'
                 sh 'yarn run audit'
                 sh 'yarn lint'

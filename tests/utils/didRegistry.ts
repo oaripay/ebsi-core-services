@@ -1,23 +1,12 @@
+import hre from "hardhat";
+import "@nomiclabs/hardhat-ethers";
 import crypto from "crypto";
 import { ethers } from "ethers";
-import ganache from "ganache-core";
 import { range } from "rxjs";
 import canonicalize from "canonicalize";
 import { HashName } from "multihashes";
-// ESLint error should be fixed with https://github.com/benmosher/eslint-plugin-import/pull/2097
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { mergeMap, toArray } from "rxjs/operators";
-import {
-  DidRegistry,
-  DidRegistry__factory,
-  HashAlgoLib__factory,
-  AdministratorLib__factory,
-  PolicyLib__factory,
-  DidRecordLib__factory,
-  DidMethodLib__factory,
-  DidTimestampLib__factory,
-} from "../../src/contracts/did-registry";
-import PaginationArtifact from "../../submodules/did-registry-ethereum-sc/artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol/Pagination.json";
+import { DidRegistry } from "../../src/contracts/did-registry";
 import {
   createDid,
   createDidDocument,
@@ -110,111 +99,68 @@ const ianaToNodeHashAlg = {
   "sha3-512": "sha3-512",
 };
 
-export async function deployDidRegistryContract(
-  ethersProvider: ethers.providers.Web3Provider
-): Promise<DidRegistry> {
-  const owner = ethersProvider.getSigner();
-
-  /*
-    https://docs.soliditylang.org/en/latest/using-the-compiler.html#library-linking
-
-    "If your contracts use libraries, you will notice that the bytecode contains substrings of the
-    form __$53aea86b7d70b31448b230b20ae141a537$__. These are placeholders for the actual library
-    addresses. The placeholder is a 34 character prefix of the hex encoding of the keccak256 hash
-    of the fully qualified library name. The bytecode file will also contain lines of the form
-    // <placeholder> -> <fq library name> at the end to help identify which libraries the
-    placeholders represent. Note that the fully qualified library name is the path of its source
-    file and the library name separated by :."
-
-    Example:
-
-    ```js
-    const ethers = require("ethers");
-    console.log(
-      ethers.utils.keccak256(
-        Buffer.from("contracts/did-registry/AdministratorLib.sol:AdministratorLib", "utf-8")
-      )
-    );
-    ```
-    -> 0x717aec161b9ae870a8320204794edc6b45ff09d8bb3a0d428046500fccfce81b
-
-    Mapping:
-
-    __$717aec161b9ae870a8320204794edc6b45$__ = "contracts/did-registry/AdministratorLib.sol:AdministratorLib"
-    __$83fd23072f3f71fd0064cd6aa0829166fc$__ = "contracts/did-registry/HashAlgoLib.sol:HashAlgoLib"
-    __$c0ce321b058d74b8a232c7ea24bf1e9537$__ = "contracts/did-registry/PolicyLib.sol:PolicyLib"
-    __$515a15b27d7e720e4d91814eed9672e50c$__ = "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination"
-    __$4f4b3a405fd4509d509fff556f3095a5fd$__ = "contracts/did-registry/DidRecordLib.sol:DidRecordLib"
-    __$5fb82bece21faf6323dd5a8d5ed0063559$__ = "contracts/did-registry/DidTimestampLib.sol:DidTimestampLib"
-    __$b75474ddf77e030e5604a84f9456d5d2be$__ = "contracts/did-registry/DidMethodLib.sol:DidMethodLib"
-
-  */
-
+export async function deployDidRegistryContract(): Promise<DidRegistry> {
   // Deploy libs
-  const paginationAddress = (
-    await new ethers.ContractFactory(
-      PaginationArtifact.abi,
-      PaginationArtifact.bytecode,
-      owner
-    ).deploy()
-  ).address;
+  const paginationFactory = await hre.ethers.getContractFactory("Pagination");
+  const paginationLib = await paginationFactory.deploy();
 
-  const administratorLibAddress = (
-    await new AdministratorLib__factory(
-      {
-        __$515a15b27d7e720e4d91814eed9672e50c$__: paginationAddress,
-      },
-      owner
-    ).deploy()
-  ).address;
-
-  const hashAlgoLibAddress = (await new HashAlgoLib__factory(owner).deploy())
-    .address;
-
-  const didRecordLibAddress = (
-    await new DidRecordLib__factory(
-      {
-        __$515a15b27d7e720e4d91814eed9672e50c$__: paginationAddress,
-      },
-      owner
-    ).deploy()
-  ).address;
-
-  const didMethodLibAddress = (
-    await new DidMethodLib__factory(
-      {
-        __$515a15b27d7e720e4d91814eed9672e50c$__: paginationAddress,
-      },
-      owner
-    ).deploy()
-  ).address;
-
-  const didTimestampLibAddress = (
-    await new DidTimestampLib__factory(owner).deploy()
-  ).address;
-
-  const policyLibAddress = (
-    await new PolicyLib__factory(
-      {
-        __$515a15b27d7e720e4d91814eed9672e50c$__: paginationAddress,
-      },
-      owner
-    ).deploy()
-  ).address;
-
-  const didRegistry = await new DidRegistry__factory(
-    {
-      __$717aec161b9ae870a8320204794edc6b45$__: administratorLibAddress,
-      __$83fd23072f3f71fd0064cd6aa0829166fc$__: hashAlgoLibAddress,
-      __$c0ce321b058d74b8a232c7ea24bf1e9537$__: policyLibAddress,
-      __$4f4b3a405fd4509d509fff556f3095a5fd$__: didRecordLibAddress,
-      __$5fb82bece21faf6323dd5a8d5ed0063559$__: didTimestampLibAddress,
-      __$b75474ddf77e030e5604a84f9456d5d2be$__: didMethodLibAddress,
+  const policyFactory = await hre.ethers.getContractFactory("PolicyLib", {
+    libraries: {
+      Pagination: paginationLib.address,
     },
-    owner
-  ).deploy();
+  });
+  const policyLib = await policyFactory.deploy();
 
-  return didRegistry;
+  const adminFactory = await hre.ethers.getContractFactory("AdministratorLib", {
+    libraries: {
+      Pagination: paginationLib.address,
+    },
+  });
+  const adminLib = await adminFactory.deploy();
+
+  const hashAlgoFactory = await hre.ethers.getContractFactory(
+    "HashAlgoLib",
+    {}
+  );
+  const hashAlgoLib = await hashAlgoFactory.deploy();
+
+  const didTimestampFactory = await hre.ethers.getContractFactory(
+    "DidTimestampLib"
+  );
+  const didTimestampLib = await didTimestampFactory.deploy();
+
+  const didMethodFactory = await hre.ethers.getContractFactory("DidMethodLib", {
+    libraries: {
+      Pagination: paginationLib.address,
+    },
+  });
+  const didMethodLib = await didMethodFactory.deploy();
+
+  const didRecordFactory = await hre.ethers.getContractFactory("DidRecordLib", {
+    libraries: {
+      Pagination: paginationLib.address,
+    },
+  });
+  const didRecordLib = await didRecordFactory.deploy();
+
+  const didRegistryContractFactory = await hre.ethers.getContractFactory(
+    "DidRegistry",
+    {
+      libraries: {
+        PolicyLib: policyLib.address,
+        AdministratorLib: adminLib.address,
+        HashAlgoLib: hashAlgoLib.address,
+        DidTimestampLib: didTimestampLib.address,
+        DidMethodLib: didMethodLib.address,
+        DidRecordLib: didRecordLib.address,
+      },
+    }
+  );
+
+  const didRegistryContract = await didRegistryContractFactory.deploy();
+  await didRegistryContract.initialize(1);
+
+  return didRegistryContract;
 }
 
 export async function insertAdmin(
@@ -241,7 +187,7 @@ export async function insertAdmin(
 
 export async function insertDidDocument(
   contract: DidRegistry,
-  ethersProvider: ethers.providers.Web3Provider,
+  ethersProvider: ethers.providers.JsonRpcProvider,
   did: string,
   hashAlgorithmIanaName: string,
   defaultController?: ethers.Wallet
@@ -440,7 +386,7 @@ export async function setupTestEnv(
     lowercaseDid: true,
   }
 ): Promise<{
-  provider: ethers.providers.Web3Provider;
+  provider: ethers.providers.JsonRpcProvider;
   didRegistryContract: DidRegistry;
   administrators: Administrator[];
   didMethods: DidMethod[];
@@ -449,12 +395,11 @@ export async function setupTestEnv(
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
 }> {
-  const provider = ganache.provider();
-  const ethersProvider = new ethers.providers.Web3Provider(provider);
+  const ethersProvider = hre.ethers.provider;
   const didDocuments: DidDocument[] = [];
 
   // Deploy contract
-  const didRegistryContract = await deployDidRegistryContract(ethersProvider);
+  const didRegistryContract = await deployDidRegistryContract();
 
   // Insert fake data
   const hashAlgorithms = await Promise.all(

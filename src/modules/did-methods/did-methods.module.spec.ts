@@ -30,7 +30,7 @@ describe("DidMethods Module", () => {
   let ledgerService: LedgerService;
 
   beforeAll(async () => {
-    // Spin up test blockchain (ganache)
+    // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv({
       didMethodsTotal: DID_METHODS_TOTAL,
     });
