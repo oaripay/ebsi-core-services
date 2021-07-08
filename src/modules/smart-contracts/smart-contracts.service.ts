@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { ContractService } from "../../shared/services/contract.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { LedgerSCRegistry } from "../../contracts/trusted-ledgers-sc";
+import { LedgerSCRegistry } from "../../contracts";
 import {
   SmartContractInfoIdsList,
   RevisionsList,

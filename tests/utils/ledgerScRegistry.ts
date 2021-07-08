@@ -1,12 +1,8 @@
+import hre from "hardhat";
+import "@nomiclabs/hardhat-ethers";
 import { ethers } from "ethers";
 import crypto from "crypto";
-import ganache from "ganache-core";
-import {
-  LedgerSCRegistry,
-  LedgerSCRegistry__factory,
-  SmartContractLib__factory,
-  LedgerLib__factory,
-} from "../../src/contracts/trusted-ledgers-sc";
+import { LedgerSCRegistry } from "../../src/contracts";
 
 interface LedgerInfoObject {
   ledgerName: string;
@@ -36,52 +32,30 @@ interface SmartContractInfoRevisionObject {
   revisionHash: string;
 }
 
-export async function deployLedgerScRegistryContract(
-  ethersProvider: ethers.providers.Web3Provider
-): Promise<LedgerSCRegistry> {
-  const owner = ethersProvider.getSigner();
-
+export async function deployLedgerScRegistryContract(): Promise<LedgerSCRegistry> {
   // Deploy libs
-  const smartContractLibAddress = (
-    await new SmartContractLib__factory(owner).deploy()
-  ).address;
+  const ledgerLibFactory = await hre.ethers.getContractFactory("LedgerLib");
+  const ledgerLib = await ledgerLibFactory.deploy();
 
-  const ledgerLibAddress = (await new LedgerLib__factory(owner).deploy())
-    .address;
+  const smartContractLibFactory = await hre.ethers.getContractFactory(
+    "SmartContractLib"
+  );
+  const smartContractLib = await smartContractLibFactory.deploy();
 
-  /*
-    https://docs.soliditylang.org/en/latest/using-the-compiler.html#library-linking
-
-    "If your contracts use libraries, you will notice that the bytecode contains substrings of the
-    form __$53aea86b7d70b31448b230b20ae141a537$__. These are placeholders for the actual library
-    addresses. The placeholder is a 34 character prefix of the hex encoding of the keccak256 hash
-    of the fully qualified library name. The bytecode file will also contain lines of the form
-    // <placeholder> -> <fq library name> at the end to help identify which libraries the
-    placeholders represent. Note that the fully qualified library name is the path of its source
-    file and the library name separated by :."
-
-    Example:
-
-    ethers.utils.keccak256(
-      Buffer.from("contracts/ledger-sc-registry/SmartContractLib.sol:SmartContractLib", "utf-8")
-    )
-    -> 0x2fedf458aaa0367c7238d1ce8cd0412607871c3249917176d0d80968ee3223b3
-
-    Mapping:
-
-    __$2fedf458aaa0367c7238d1ce8cd0412607$__ = "contracts/ledger-sc-registry/SmartContractLib.sol:SmartContractLib"
-    __$aed295333e62715bf281536e462bb90727$__ = "contracts/ledger-sc-registry/LedgerLib.sol:LedgerLib"
-  */
-
-  const ledgerSCRegistry = await new LedgerSCRegistry__factory(
+  const ledgersScFactory = await hre.ethers.getContractFactory(
+    "LedgerSCRegistry",
     {
-      __$2fedf458aaa0367c7238d1ce8cd0412607$__: smartContractLibAddress,
-      __$aed295333e62715bf281536e462bb90727$__: ledgerLibAddress,
-    },
-    owner
-  ).deploy();
+      libraries: {
+        LedgerLib: ledgerLib.address,
+        SmartContractLib: smartContractLib.address,
+      },
+    }
+  );
+  const ledgersScRegistry = await ledgersScFactory.deploy();
 
-  return ledgerSCRegistry;
+  await ledgersScRegistry.initialize(1);
+
+  return ledgersScRegistry;
 }
 
 export async function insertLedgerInfo(
@@ -209,19 +183,17 @@ export async function setupTestEnv(
     smartContractsRevisionsTotal: 1,
   }
 ): Promise<{
-  provider: ethers.providers.Web3Provider;
+  provider: ethers.providers.JsonRpcProvider;
   ledgerScRegistryContract: LedgerSCRegistry;
   ledgers: LedgerInfoObject[];
   ledgersRevisions: LedgerInfoRevisionObject[];
   smartContracts: SmartContractInfoObject[];
   smartContractsRevisions: SmartContractInfoRevisionObject[];
 }> {
-  const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
+  const ethersProvider = hre.ethers.provider;
 
   // Deploy contract
-  const ledgerScRegistryContract = await deployLedgerScRegistryContract(
-    ethersProvider
-  );
+  const ledgerScRegistryContract = await deployLedgerScRegistryContract();
 
   // Insert fake data
   const ledgers = await Promise.all(

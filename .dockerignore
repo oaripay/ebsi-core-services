@@ -3,14 +3,13 @@
 
 # Only add what is necessary
 !package.json
+!hardhat.config.ts
 !nest-cli.json
 !tsconfig.production.json
 !tsconfig.json
+!.yarnrc
 !yarn.lock
 !scripts
 !src
 src/contracts
 !submodules/trusted-ledgers-sc-registry-ethereum-sc/contracts
-!submodules/trusted-ledgers-sc-registry-ethereum-sc/package.json
-!submodules/trusted-ledgers-sc-registry-ethereum-sc/yarn.lock
-!submodules/trusted-ledgers-sc-registry-ethereum-sc/hardhat.config.ts

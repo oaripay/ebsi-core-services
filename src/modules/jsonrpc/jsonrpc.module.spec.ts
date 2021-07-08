@@ -33,7 +33,7 @@ import {
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { LedgerSCRegistry } from "../../contracts/trusted-ledgers-sc";
+import { LedgerSCRegistry } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/ledgerScRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { createDid } from "../../../tests/utils/data";
@@ -486,7 +486,6 @@ describe("JsonRpc Module", () => {
   });
 
   // Tests to be repeated for every method
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each([
     "insertLedgerInfo",
     "updateLedgerInfoById",
