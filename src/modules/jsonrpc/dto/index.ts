@@ -5,6 +5,7 @@ export * from "./updateHashAlgorithm";
 export * from "./timestampHashes";
 export * from "./timestampRecordHashes";
 export * from "./timestampRecordVersionHashes";
+export * from "./timestampVersionHashes";
 export * from "./appendRecordVersionHashes";
 export * from "./detachRecordVersionHash";
 export * from "./revokeRecordOwner";

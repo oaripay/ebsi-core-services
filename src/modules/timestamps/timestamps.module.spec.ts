@@ -32,7 +32,7 @@ describe("Timestamps Module", () => {
   let ledgerService: LedgerService;
 
   beforeAll(async () => {
-    // Spin up test blockchain (ganache)
+    // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv({
       recordsTotal: 0,
       hashesTotal: HASHES_TOTAL,

@@ -159,7 +159,6 @@ describe("Timestamp (e2e)", () => {
       .toString("hex")}`;
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each(["timestampHashes"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {

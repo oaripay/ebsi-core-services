@@ -364,7 +364,7 @@ paths:
                       properties:
                         recordId:
                           type: string
-                          description: ID of the record
+                          description: ID of the record (multibase base64url encoded)
                         href:
                           type: string
                           description: Link to the resource
@@ -381,10 +381,10 @@ paths:
                   value:
                     self: https://api.test.ebsi.xyz/timestamp/v2/records?page[after]=3&page[size]=2
                     items:
-                      - recordId: "0x123456"
-                        href: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456
-                      - recordId: "0x987654"
-                        href: https://api.test.ebsi.xyz/timestamp/v2/records/0x987654
+                      - recordId: uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2
+                        href: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2
+                      - recordId: "uMHg3NWExNmFkYmIxZGRiNTVmZWE3NWU0NWY4MjRkYWRjNjAzMjNmMTZkODVmNWRiMjhmZjBjOTg0MTM4MmU0YmEw"
+                        href: https://api.test.ebsi.xyz/timestamp/v2/records/uMHg3NWExNmFkYmIxZGRiNTVmZWE3NWU0NWY4MjRkYWRjNjAzMjNmMTZkODVmNWRiMjhmZjBjOTg0MTM4MmU0YmEw
                     total: 124
                     pageSize: 2
                     links:
@@ -425,7 +425,7 @@ paths:
           name: recordId
           schema:
             type: string
-          description: Record ID
+          description: Record ID (multibase base64url encoded)
           required: true
       responses:
         "200":
@@ -490,7 +490,7 @@ paths:
           name: recordId
           schema:
             type: string
-          description: Record ID
+          description: Record ID (multibase base64url encoded)
           required: true
         - in: query
           name: page[before]
@@ -541,19 +541,19 @@ paths:
               examples:
                 Success:
                   value:
-                    self: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions?page[after]=3&page[size]=2
+                    self: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=3&page[size]=2
                     items:
                       - versionId: 0
-                        href: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions/0
+                        href: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions/0
                       - versionId: 1
-                        href: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions/1
+                        href: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions/1
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions?page[after]=1&page[size]=2
-                      prev: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions?page[after]=2&page[size]=2
-                      next: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions?page[after]=4&page[size]=2
-                      last: https://api.test.ebsi.xyz/timestamp/v2/records/0x123456/versions?page[after]=62&page[size]=2
+                      first: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=1&page[size]=2
+                      prev: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=2&page[size]=2
+                      next: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=4&page[size]=2
+                      last: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -587,7 +587,7 @@ paths:
           name: recordId
           schema:
             type: string
-          description: Record ID
+          description: Record ID (multibase base64url encoded)
           required: true
         - in: path
           name: versionId
@@ -673,7 +673,7 @@ paths:
 
           - **jsonrpc**: Must be exactly '2.0'
           - **method**: Method to be invoked. Possible values: insertHashAlgorithm,
-            updateHashAlgorithm, timestampHashes, timestampRecordHashes,
+            updateHashAlgorithm, timestampHashes, timestampRecordHashes, timestampVersionHashes,
             insertRecordOwner, revokeRecordOwner, timestampRecordVersionHashes,
             appendRecordVersionHashes, detachRecordVersionHash
             insertRecordVersionInfo, signedTransaction.
@@ -749,6 +749,21 @@ paths:
                   method: timestampRecordHashes
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      hashAlgorithmIds:
+                        - 0
+                      hashValues:
+                        - "0x1234567890123456789012345678901234567890123456789012345678901234"
+                      timestampData:
+                        - "0x7b2274657374223a3834327d"
+                      versionInfo: "0x7b2274657374223a34327d"
+                  id: 1
+              Build tx to timestampVersionHashes:
+                value:
+                  jsonrpc: "2.0"
+                  method: timestampVersionHashes
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      versionHash: "0x1234567890123456789012345678901234567890123456789012345678901234"
                       hashAlgorithmIds:
                         - 0
                       hashValues:
@@ -914,7 +929,6 @@ components:
             The HTTP status code generated by the origin server for this occurrence of the problem.
           minimum: 400
           maximum: 600
-          exclusiveMaximum: true
           example: 500
         detail:
           type: string

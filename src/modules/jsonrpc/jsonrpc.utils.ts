@@ -22,6 +22,8 @@ import {
   RequestRevokeRecordOwnerDto,
   ArgsInsertRecordVersionInfo,
   RequestInsertRecordVersionInfoDto,
+  RequestTimestampVersionHashesDto,
+  ArgsTimestampVersionHashes,
 } from "./dto";
 
 export function formatEthersUnsignedTransaction(
@@ -59,6 +61,7 @@ type JsonRpcDtos =
   | RequestTimestampHashesDto
   | RequestTimestampRecordHashesDto
   | RequestTimestampRecordVersionHashesDto
+  | RequestTimestampVersionHashesDto
   | RequestAppendRecordVersionHashesDto
   | RequestDetachRecordVersionHashDto
   | RequestInsertRecordOwnerDto
@@ -71,7 +74,8 @@ type JsonRpcDtos =
   | ArgsInsertRecordOwner
   | ArgsRevokeRecordOwner
   | ArgsTimestampRecordHashes
-  | ArgsInsertRecordVersionInfo;
+  | ArgsInsertRecordVersionInfo
+  | ArgsTimestampVersionHashes;
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,

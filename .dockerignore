@@ -3,17 +3,13 @@
 
 # Only add what is necessary
 !package.json
+!hardhat.config.ts
 !nest-cli.json
 !tsconfig.production.json
 !tsconfig.json
+!.yarnrc
 !yarn.lock
+!scripts
 !src
 src/contracts
 !submodules/timestamp-ethereum-sc/contracts
-!submodules/timestamp-ethereum-sc/package.json
-!submodules/timestamp-ethereum-sc/yarn.lock
-!submodules/timestamp-ethereum-sc/hardhat.config.ts
-!submodules/trusted-apps-registry-ethereum-sc/contracts
-!submodules/trusted-apps-registry-ethereum-sc/package.json
-!submodules/trusted-apps-registry-ethereum-sc/truffle-config.js
-!submodules/trusted-apps-registry-ethereum-sc/yarn.lock

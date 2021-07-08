@@ -31,7 +31,7 @@ describe("Records Module", () => {
   let ledgerService: LedgerService;
 
   beforeAll(async () => {
-    // Spin up test blockchain (ganache)
+    // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv({
       recordsTotal: RECORDS_TOTAL,
     });

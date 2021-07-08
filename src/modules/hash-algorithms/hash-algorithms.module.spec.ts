@@ -28,7 +28,7 @@ describe("HashAlgorithms Module", () => {
   let ledgerService: LedgerService;
 
   beforeAll(async () => {
-    // Spin up test blockchain (ganache)
+    // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv({
       hashAlgorithmsTotal: HASH_ALGORITHMS_TOTAL,
     });

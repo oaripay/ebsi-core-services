@@ -1,6 +1,6 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import request from "supertest";
 import crypto from "crypto";
-// eslint-disable-next-line import/no-extraneous-dependencies
 import * as bs58 from "bs58";
 import { v4 as uuidv4 } from "uuid";
 import { EbsiDidAuth, DidAuthResponseMode, Agent } from "@cef-ebsi/siop-auth";
@@ -73,11 +73,11 @@ export async function siopAuthentication(
 
   const nonce = crypto.randomBytes(10).toString("base64");
   const didAuthJwt = await EbsiDidAuth.createAuthenticationResponse({
-    hexPrivatekey: prefixWith0x(user.privateKey),
+    hexPrivateKey: prefixWith0x(user.privateKey),
     did: user.did,
     nonce,
     redirectUri: uriDecoded.client_id,
-    response_mode: DidAuthResponseMode.FORM_POST,
+    responseMode: DidAuthResponseMode.FORM_POST,
   });
 
   response = await request(authorisationApiUrl)

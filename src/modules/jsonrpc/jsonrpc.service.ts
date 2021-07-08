@@ -27,6 +27,8 @@ import {
   ArgsRevokeRecordOwner,
   ArgsTimestampRecordVersionHashes,
   ArgsAppendRecordVersionHashes,
+  RequestTimestampVersionHashesDto,
+  ArgsTimestampVersionHashes,
 } from "./dto";
 import { InvalidRequestJsonRpcError } from "./errors";
 import {
@@ -399,6 +401,12 @@ export class JsonRpcService {
         await this.checkHashes(castArgs.hashAlgorithmIds, castArgs.hashValues);
         break;
       }
+      case "timestampVersionHashes": {
+        const castArgs = args as unknown as ArgsTimestampVersionHashes;
+        await validateClass(ArgsTimestampVersionHashes, castArgs);
+        await this.checkHashes(castArgs.hashAlgorithmIds, castArgs.hashValues);
+        break;
+      }
       case "appendRecordVersionHashes": {
         const castArgs = args as unknown as ArgsAppendRecordVersionHashes;
         await validateClass(ArgsAppendRecordVersionHashes, castArgs);
@@ -568,6 +576,42 @@ export class JsonRpcService {
         hashAlgorithmIds,
         hashValues,
         timestampData || [],
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionTimestampVersionHashes(
+    body: RequestTimestampVersionHashesDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestTimestampVersionHashesDto, body);
+
+      const {
+        from,
+        hashAlgorithmIds,
+        hashValues,
+        timestampData,
+        versionHash,
+        versionInfo,
+      } = body.params[0];
+
+      await this.checkHashes(hashAlgorithmIds, hashValues);
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("timestampVersionHashes", [
+        versionHash,
+        hashAlgorithmIds,
+        hashValues,
+        timestampData || [],
+        versionInfo,
       ]);
 
       return await this.buildTransaction(from, data);

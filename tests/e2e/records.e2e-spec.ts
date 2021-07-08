@@ -26,6 +26,7 @@ import {
   InsertRecordOwnerParam,
   InsertRecordVersionInfoParam,
   RevokeRecordOwnerParam,
+  TimestampVersionHashesParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import {
@@ -64,7 +65,9 @@ describe("Records (e2e)", () => {
   let hashAlgorithMultihash: HashName;
   let hashValue1: string;
   let hashValue2: string;
-  let blockNumber = 0;
+  let hashValue3: string;
+  let blockNumber1 = 0;
+  let blockNumber2 = 0;
 
   let testAdmin: {
     did: string;
@@ -154,6 +157,12 @@ describe("Records (e2e)", () => {
       .toString("hex")}`;
 
     hashValue2 = `0x${crypto
+      .createHash(multihashToNodeHashAlg[hashAlgorithMultihash])
+      .update(crypto.randomBytes(32).toString("hex"), "hex")
+      .digest()
+      .toString("hex")}`;
+
+    hashValue3 = `0x${crypto
       .createHash(multihashToNodeHashAlg[hashAlgorithMultihash])
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
@@ -301,9 +310,9 @@ describe("Records (e2e)", () => {
     });
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each([
     "timestampRecordHashes",
+    "timestampVersionHashes",
     "timestampRecordVersionHashes",
     "insertRecordOwner",
     "revokeRecordOwner",
@@ -336,11 +345,32 @@ describe("Records (e2e)", () => {
           } as TimestampRecordHashesParam;
           break;
         }
+        case "timestampVersionHashes": {
+          param = {
+            from: testUser.wallet.address,
+            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+            hashValues: [hashValue1, hashValue2],
+            timestampData: [
+              `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+                "hex"
+              )}`,
+              `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
+                "hex"
+              )}`,
+            ],
+            versionHash: hashValue1,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as TimestampVersionHashesParam;
+          break;
+        }
         case "timestampRecordVersionHashes": {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, hashValue1]
+              [testUser.wallet.address, blockNumber1, hashValue1]
             )
           );
 
@@ -368,7 +398,7 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, hashValue1]
+              [testUser.wallet.address, blockNumber1, hashValue1]
             )
           );
           const notBefore = new Date().getTime();
@@ -385,7 +415,7 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, hashValue1]
+              [testUser.wallet.address, blockNumber1, hashValue1]
             )
           );
           param = {
@@ -399,7 +429,7 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, hashValue1]
+              [testUser.wallet.address, blockNumber1, hashValue1]
             )
           );
 
@@ -418,7 +448,7 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, hashValue1]
+              [testUser.wallet.address, blockNumber1, hashValue1]
             )
           );
           param = {
@@ -433,7 +463,7 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, hashValue1]
+              [testUser.wallet.address, blockNumber1, hashValue1]
             )
           );
           param = {
@@ -532,10 +562,11 @@ describe("Records (e2e)", () => {
       if (method === "timestampRecordHashes") {
         // we need the blocknumber to be able to compute the recordId
         // created by timestampRecordHashes
-        blockNumber = receipt.blockNumber;
+        blockNumber1 = receipt.blockNumber;
       }
       expect(receipt.status).toBe(1);
     });
+
     it("should work with empty data", async () => {
       expect.assertions(5);
 
@@ -544,8 +575,8 @@ describe("Records (e2e)", () => {
         case "timestampRecordHashes": {
           param = {
             from: testUser.wallet.address,
-            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
-            hashValues: [hashValue1, hashValue2],
+            hashAlgorithmIds: [hashAlgorithmId],
+            hashValues: [hashValue3],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
               "utf8"
@@ -553,20 +584,32 @@ describe("Records (e2e)", () => {
           } as TimestampRecordHashesParam;
           break;
         }
+        case "timestampVersionHashes": {
+          param = {
+            from: testUser.wallet.address,
+            hashAlgorithmIds: [hashAlgorithmId],
+            hashValues: [hashValue3],
+            versionHash: hashValue3,
+            versionInfo: `0x${Buffer.from(
+              JSON.stringify({ info: 42 }),
+              "utf8"
+            ).toString("hex")}`,
+          } as TimestampVersionHashesParam;
+          break;
+        }
         case "timestampRecordVersionHashes": {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, hashValue1]
+              [testUser.wallet.address, blockNumber2, hashValue3]
             )
           );
 
           param = {
             from: testUser.wallet.address,
             recordId,
-            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
-            hashValues: [hashValue1, hashValue2],
-
+            hashAlgorithmIds: [hashAlgorithmId],
+            hashValues: [hashValue3],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
               "utf8"
@@ -594,15 +637,15 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber, hashValue1]
+              [testUser.wallet.address, blockNumber2, hashValue3]
             )
           );
           param = {
             from: testUser.wallet.address,
             recordId,
             versionId: 0,
-            hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
-            hashValues: [hashValue1, hashValue2],
+            hashAlgorithmIds: [hashAlgorithmId],
+            hashValues: [hashValue3],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
               "utf8"
@@ -682,7 +725,7 @@ describe("Records (e2e)", () => {
       if (method === "timestampRecordHashes") {
         // we need the blocknumber to be able to compute the recordId
         // created by timestampRecordHashes
-        blockNumber = receipt.blockNumber;
+        blockNumber2 = receipt.blockNumber;
       }
       expect(receipt.status).toBe(1);
     });
@@ -758,7 +801,6 @@ describe("Records (e2e)", () => {
   });
 
   // Tests to verify that only record owners can update the records
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each([
     "insertRecordOwner",
     "insertRecordVersionInfo",

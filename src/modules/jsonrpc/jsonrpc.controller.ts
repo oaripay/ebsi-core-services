@@ -15,6 +15,7 @@ import {
   RequestInsertRecordOwnerDto,
   RequestRevokeRecordOwnerDto,
   RequestInsertRecordVersionInfoDto,
+  RequestTimestampVersionHashesDto,
 } from "./dto";
 import { JwtAuthGuard } from "../auth/guards";
 import { User, UserInfo } from "../auth/decorators";
@@ -75,6 +76,14 @@ export default class AppController {
         const result =
           await this.jsonRpcService.buildTransactionTimestampRecordVersionHashes(
             body as RequestTimestampRecordVersionHashesDto,
+            id
+          );
+        return jsonRpcResponse(result, id);
+      }
+      case "timestampVersionHashes": {
+        const result =
+          await this.jsonRpcService.buildTransactionTimestampVersionHashes(
+            body as RequestTimestampVersionHashesDto,
             id
           );
         return jsonRpcResponse(result, id);
