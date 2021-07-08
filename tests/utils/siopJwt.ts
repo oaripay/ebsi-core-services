@@ -1,6 +1,6 @@
 import querystring from "querystring";
 import axios from "axios";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import {
   EbsiDidAuth,
   Agent as SiopAgent,
@@ -39,7 +39,7 @@ export const requestSiopJwt = async ({
   );
 
   // 3. The client creates an authentication response and gets an ID Token
-  const nonce = uuidv4();
+  const nonce = randomUUID();
 
   const authenticationResponse = await EbsiDidAuth.createAuthenticationResponse(
     {

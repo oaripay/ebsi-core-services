@@ -1,23 +1,10 @@
+import hre from "hardhat";
+import "@nomiclabs/hardhat-ethers";
 import crypto from "crypto";
 import { ethers } from "ethers";
-import ganache from "ganache-core";
 import { range } from "rxjs";
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { mergeMap, toArray } from "rxjs/operators";
-import {
-  Tar,
-  Tar__factory,
-  AppLib__factory,
-  AuthLib__factory,
-  PolicyLib__factory,
-  AdminLib__factory,
-  RevocationLib__factory,
-} from "../../src/contracts";
-// Pagination Lib is ignored by TypeChain...
-import {
-  abi,
-  bytecode,
-} from "../../submodules/trusted-apps-registry-ethereum-sc/build/contracts/Pagination.json";
+import { Tar } from "../../src/contracts";
 import { createDid } from "./data";
 
 interface Administrator {
@@ -56,55 +43,53 @@ interface AuthorizationObject {
   notAfter: number;
 }
 
-export async function deployTarContract(
-  ethersProvider: ethers.providers.Web3Provider
-): Promise<Tar> {
-  const owner = ethersProvider.getSigner();
-
+export async function deployTarContract(): Promise<Tar> {
   // Deploy libs
-  const paginationFactory = new ethers.ContractFactory(abi, bytecode, owner);
-  const paginationAddress = (await paginationFactory.deploy()).address;
+  const paginationFactory = await hre.ethers.getContractFactory("Pagination");
+  const pagination = await paginationFactory.deploy();
 
-  const appLibAddress = (
-    await new AppLib__factory(
-      {
-        __Pagination____________________________: paginationAddress,
-      },
-      owner
-    ).deploy()
-  ).address;
-
-  const authLibAddress = (await new AuthLib__factory(owner).deploy()).address;
-  const policyLibAddress = (
-    await new PolicyLib__factory(
-      {
-        __Pagination____________________________: paginationAddress,
-      },
-      owner
-    ).deploy()
-  ).address;
-  const adminLibAddress = (
-    await new AdminLib__factory(
-      {
-        __Pagination____________________________: paginationAddress,
-      },
-      owner
-    ).deploy()
-  ).address;
-  const revocationLibAddress = (
-    await new RevocationLib__factory(owner).deploy()
-  ).address;
-
-  const tarContract = await new Tar__factory(
-    {
-      __AppLib________________________________: appLibAddress,
-      __AuthLib_______________________________: authLibAddress,
-      __PolicyLib_____________________________: policyLibAddress,
-      __AdminLib______________________________: adminLibAddress,
-      __RevocationLib_________________________: revocationLibAddress,
+  const appLibFactory = await hre.ethers.getContractFactory("AppLib", {
+    libraries: {
+      Pagination: pagination.address,
     },
-    owner
-  ).deploy();
+  });
+  const appLib = await appLibFactory.deploy();
+
+  const authLibFactory = await hre.ethers.getContractFactory("AuthLib");
+  const authLib = await authLibFactory.deploy();
+
+  const policyLibFactory = await hre.ethers.getContractFactory("PolicyLib", {
+    libraries: {
+      Pagination: pagination.address,
+    },
+  });
+  const policyLib = await policyLibFactory.deploy();
+
+  const adminLibFactory = await hre.ethers.getContractFactory("AdminLib", {
+    libraries: {
+      Pagination: pagination.address,
+    },
+  });
+  const adminLib = await adminLibFactory.deploy();
+
+  const revocationFactory = await hre.ethers.getContractFactory(
+    "RevocationLib"
+  );
+  const revocationLib = await revocationFactory.deploy();
+
+  const tarFactory = await hre.ethers.getContractFactory("Tar", {
+    libraries: {
+      AppLib: appLib.address,
+      AuthLib: authLib.address,
+      PolicyLib: policyLib.address,
+      AdminLib: adminLib.address,
+      RevocationLib: revocationLib.address,
+    },
+  });
+
+  const tarContract = await tarFactory.deploy();
+
+  await tarContract.initialize(1);
 
   return tarContract;
 }
@@ -260,7 +245,7 @@ export async function setupTestEnv(
     appsTotal: 0,
   }
 ): Promise<{
-  provider: ethers.providers.Web3Provider;
+  provider: ethers.providers.JsonRpcProvider;
   tarContract: Tar;
   administrators: Administrator[];
   policies: PolicyObject[];
@@ -268,10 +253,10 @@ export async function setupTestEnv(
   apps: AppObject[];
   authorizations: [AuthorizationObject, AuthorizationObject][][];
 }> {
-  const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
+  const ethersProvider = hre.ethers.provider;
 
   // Deploy contract
-  const tarContract = await deployTarContract(ethersProvider);
+  const tarContract = await deployTarContract();
 
   // Insert fake data
 
