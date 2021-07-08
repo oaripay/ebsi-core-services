@@ -148,7 +148,6 @@ describe("Schemas (e2e)", () => {
     });
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each(["insertSchema", "updateSchema", "updateMetadata"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {

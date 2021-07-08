@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { formatPolicies, formatRevisions } from "./policies.formatter";
-import { SchemaSCRegistry } from "../../contracts/trusted-schemas";
+import { SchemaSCRegistry } from "../../contracts";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import PoliciesService from "./policies.service";
 

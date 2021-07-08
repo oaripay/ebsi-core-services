@@ -1,14 +1,10 @@
+import hre from "hardhat";
+import "@nomiclabs/hardhat-ethers";
 import crypto from "crypto";
 import { ethers } from "ethers";
-import ganache from "ganache-core";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
-import {
-  SchemaSCRegistry,
-  SchemaSCRegistry__factory,
-  SchemaLib__factory,
-} from "../../src/contracts/trusted-schemas";
-import PaginationArtifact from "../../submodules/trusted-schemas-registry-ethereum-sc/artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol/Pagination.json";
+import { SchemaSCRegistry } from "../../src/contracts";
 import { createDid } from "./data";
 
 interface Administrator {
@@ -165,65 +161,28 @@ export async function updatePolicy(
   return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
 }
 
-export async function deploySchemasRegistryContract(
-  ethersProvider: ethers.providers.Web3Provider
-): Promise<SchemaSCRegistry> {
-  const owner = ethersProvider.getSigner();
+export async function deploySchemasRegistryContract(): Promise<SchemaSCRegistry> {
+  const paginationFactory = await hre.ethers.getContractFactory("Pagination");
+  const pagination = await paginationFactory.deploy();
 
-  // Deploy libs
-  const paginationAddress = (
-    await new ethers.ContractFactory(
-      PaginationArtifact.abi,
-      PaginationArtifact.bytecode,
-      owner
-    ).deploy()
-  ).address;
-
-  /*
-    https://docs.soliditylang.org/en/latest/using-the-compiler.html#library-linking
-
-    "If your contracts use libraries, you will notice that the bytecode contains substrings of the
-    form __$53aea86b7d70b31448b230b20ae141a537$__. These are placeholders for the actual library
-    addresses. The placeholder is a 34 character prefix of the hex encoding of the keccak256 hash
-    of the fully qualified library name. The bytecode file will also contain lines of the form
-    // <placeholder> -> <fq library name> at the end to help identify which libraries the
-    placeholders represent. Note that the fully qualified library name is the path of its source
-    file and the library name separated by :."
-
-    Example:
-
-    ```js
-    const ethers = require("ethers");
-    console.log(
-      ethers.utils.keccak256(
-        Buffer.from("contracts/trusted-schemas-registry/SchemaLib.sol:SchemaLib", "utf-8")
-      )
-    );
-    ```
-    -> 0x88ab2ccec2edd5f1fa8d2957a7a4b5dfb8c55b2964ed57111b971506e0878efa
-
-    Mapping:
-
-    __$88ab2ccec2edd5f1fa8d2957a7a4b5dfb8$__ = "contracts/trusted-schemas-registry/SchemaLib.sol:SchemaLib"
-    __$515a15b27d7e720e4d91814eed9672e50c$__ = "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination"
-  */
-
-  const schemaLibAddress = (
-    await new SchemaLib__factory(
-      {
-        __$515a15b27d7e720e4d91814eed9672e50c$__: paginationAddress,
-      },
-      owner
-    ).deploy()
-  ).address;
-
-  const schemasRegistry = await new SchemaSCRegistry__factory(
-    {
-      __$88ab2ccec2edd5f1fa8d2957a7a4b5dfb8$__: schemaLibAddress,
-      __$515a15b27d7e720e4d91814eed9672e50c$__: paginationAddress,
+  const schemaLibFactory = await hre.ethers.getContractFactory("SchemaLib", {
+    libraries: {
+      Pagination: pagination.address,
     },
-    owner
-  ).deploy();
+  });
+  const schemaLib = await schemaLibFactory.deploy();
+
+  const schemasRegistryFactory = await hre.ethers.getContractFactory(
+    "SchemaSCRegistry",
+    {
+      libraries: {
+        SchemaLib: schemaLib.address,
+        Pagination: pagination.address,
+      },
+    }
+  );
+  const schemasRegistry = await schemasRegistryFactory.deploy();
+  await schemasRegistry.initialize(1);
 
   return schemasRegistry;
 }
@@ -266,7 +225,7 @@ export async function setupTestEnv(
     policiesRevisionsTotal: 1,
   }
 ): Promise<{
-  provider: ethers.providers.Web3Provider;
+  provider: ethers.providers.JsonRpcProvider;
   schemasRegistryContract: SchemaSCRegistry;
   administrators: Administrator[];
   schemas: SchemaObject[];
@@ -275,12 +234,10 @@ export async function setupTestEnv(
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
 }> {
-  const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
+  const ethersProvider = hre.ethers.provider;
 
   // Deploy contract
-  const schemasRegistryContract = await deploySchemasRegistryContract(
-    ethersProvider
-  );
+  const schemasRegistryContract = await deploySchemasRegistryContract();
 
   // Insert fake data
   const createAdminWallet = async () => {

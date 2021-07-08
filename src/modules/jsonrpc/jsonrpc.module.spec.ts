@@ -32,7 +32,7 @@ import {
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { SchemaSCRegistry } from "../../contracts/trusted-schemas";
+import { SchemaSCRegistry } from "../../contracts";
 import {
   PolicyObject,
   setupTestEnv,
@@ -564,7 +564,6 @@ describe("JsonRpc Module", () => {
   });
 
   // Tests to be repeated for every method
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each([
     "insertAdministrator",
     "insertPolicy",

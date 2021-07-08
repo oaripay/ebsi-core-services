@@ -8,7 +8,7 @@ import {
   AttributeObject,
 } from "./administrators.interface";
 import { ContractService } from "../../shared/services/contract.service";
-import { SchemaSCRegistry } from "../../contracts/trusted-schemas";
+import { SchemaSCRegistry } from "../../contracts";
 import { prefixWith0x } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 

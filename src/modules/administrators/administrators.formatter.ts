@@ -1,7 +1,7 @@
 import { DidLink, IdLink, AttributeObject } from "./administrators.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
-import { SchemaSCRegistry } from "../../contracts/trusted-schemas";
+import { SchemaSCRegistry } from "../../contracts";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatAdministrators(

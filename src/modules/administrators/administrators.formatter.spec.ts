@@ -3,7 +3,7 @@ import {
   formatAdministrators,
   formatAttributes,
 } from "./administrators.formatter";
-import { SchemaSCRegistry } from "../../contracts/trusted-schemas";
+import { SchemaSCRegistry } from "../../contracts";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { AttributeObject } from "./administrators.interface";
 

@@ -5,12 +5,9 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosError } from "axios";
-import { v4 as uuidV4 } from "uuid";
+import { randomUUID } from "crypto";
 import { ApiConfig } from "../../config/configuration";
-import {
-  SchemaSCRegistry,
-  SchemaSCRegistry__factory,
-} from "../../contracts/trusted-schemas";
+import { SchemaSCRegistry, SchemaSCRegistry__factory } from "../../contracts";
 import { prefixWith0x, logAxiosError } from "../utils";
 
 // Refresh the token if it expires in less than 10 seconds
@@ -59,7 +56,7 @@ export class ContractService {
   }
 
   private async getAccessToken() {
-    const nonce = uuidV4();
+    const nonce = randomUUID();
 
     const requestComponent = await this.agent.createRequestPayload(
       this.configService.get<string>("ledgerApiName"),

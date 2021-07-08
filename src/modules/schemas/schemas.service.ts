@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import pLimit from "p-limit";
 import { ContractService } from "../../shared/services/contract.service";
-import { SchemaSCRegistry } from "../../contracts/trusted-schemas";
+import { SchemaSCRegistry } from "../../contracts";
 import { ItemsList } from "./schemas.interface";
 import { range } from "./schemas.utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
