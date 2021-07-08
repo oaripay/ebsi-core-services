@@ -1,14 +1,10 @@
+import hre from "hardhat";
+import "@nomiclabs/hardhat-ethers";
 import crypto from "crypto";
 import { ethers } from "ethers";
-import ganache from "ganache-core";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
-import { Tir, Tir__factory } from "../../src/contracts";
-// Pagination Lib is ignored by TypeChain...
-import {
-  abi,
-  bytecode,
-} from "../../submodules/trusted-issuers-registry-ethereum-sc/build/contracts/Pagination.json";
+import { Tir } from "../../src/contracts";
 import { createDid } from "./data";
 
 interface Administrator {
@@ -28,21 +24,18 @@ interface IssuerObject {
   attributeData: Buffer;
 }
 
-export async function deployTirContract(
-  ethersProvider: ethers.providers.Web3Provider
-): Promise<Tir> {
-  const owner = ethersProvider.getSigner();
-
+export async function deployTirContract(): Promise<Tir> {
   // Deploy libs
-  const paginationFactory = new ethers.ContractFactory(abi, bytecode, owner);
-  const paginationAddress = (await paginationFactory.deploy()).address;
+  const paginationFactory = await hre.ethers.getContractFactory("Pagination");
+  const pagination = await paginationFactory.deploy();
 
-  const tirContract = await new Tir__factory(
-    {
-      __Pagination____________________________: paginationAddress,
+  const tirFactory = await hre.ethers.getContractFactory("Tir", {
+    libraries: {
+      Pagination: pagination.address,
     },
-    owner
-  ).deploy();
+  });
+  const tirContract = await tirFactory.deploy();
+  await tirContract.initialize(1);
 
   return tirContract;
 }
@@ -138,19 +131,17 @@ export async function setupTestEnv(
     issuersTotal: 0,
   }
 ): Promise<{
-  provider: ethers.providers.Web3Provider;
+  provider: ethers.providers.JsonRpcProvider;
   tirContract: Tir;
   administrators: Administrator[];
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
   issuers: IssuerObject[];
 }> {
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  const ethersProvider = new ethers.providers.Web3Provider(ganache.provider());
+  const ethersProvider = hre.ethers.provider;
 
   // Deploy contract
-  const tirContract = await deployTirContract(ethersProvider);
+  const tirContract = await deployTirContract();
 
   // Insert fake data
 

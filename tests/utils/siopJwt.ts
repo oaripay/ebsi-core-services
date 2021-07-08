@@ -6,7 +6,7 @@ import {
   DidAuthResponseMode,
 } from "@cef-ebsi/siop-auth";
 import type { AkeResponse } from "@cef-ebsi/siop-auth/dist/Ake";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 
 export const requestSiopJwt = async ({
   didRegistry,
@@ -39,7 +39,7 @@ export const requestSiopJwt = async ({
   );
 
   // 3. The client creates an authentication response and gets an ID Token
-  const nonce = uuidv4();
+  const nonce = randomUUID();
 
   const authenticationResponse = await EbsiDidAuth.createAuthenticationResponse(
     {
