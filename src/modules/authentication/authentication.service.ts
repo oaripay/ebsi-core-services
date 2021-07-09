@@ -3,7 +3,7 @@ import { compactVerify } from "jose/jws/compact/verify";
 import { parseJwk } from "jose/jwk/parse";
 import { createJWT, decodeJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { ConfigService } from "@nestjs/config";
-import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import querystring from "querystring";
 import {
   createCredential,
@@ -151,7 +151,7 @@ export default class AuthenticationService {
         "https://www.w3.org/2018/credentials/examples/v1",
         "https://w3c-ccg.github.io/lds-jws2020/contexts/lds-jws2020-v1.json",
       ],
-      id: `vc:ebsi:authentication#${uuidv4()}`,
+      id: `vc:ebsi:authentication#${randomUUID()}`,
       type: ["VerifiableCredential", "VerifiableAuthorisation"],
       issuer: this.applicationDid,
       issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
