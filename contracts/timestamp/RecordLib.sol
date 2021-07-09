@@ -182,8 +182,6 @@ library RecordLib {
         } else {
             emit RecordedHashes(recordId, timestampIds, bytes32(0));
         }
-        // increment version numbers
-        rs.recordsStore[recordId].totalVersions++;
     }
 
     /**
