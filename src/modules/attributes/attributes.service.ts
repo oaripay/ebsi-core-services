@@ -7,7 +7,7 @@ import {
 } from "@cef-ebsi/problem-details-errors";
 import { ConfigService } from "@nestjs/config";
 import axios, { AxiosError } from "axios";
-import { v4 as uuidV4 } from "uuid";
+import { randomUUID } from "crypto";
 import jsonpatch from "jsonpatch";
 import { decodeJWT } from "@cef-ebsi/did-jwt";
 import { Agent } from "@cef-ebsi/oauth2-auth";
@@ -77,7 +77,7 @@ export class AttributesService {
   }
 
   private async getAccessToken() {
-    const nonce = uuidV4();
+    const nonce = randomUUID();
 
     const requestComponent = await this.agent.createRequestPayload(
       this.configService.get<string>("storageApiName"),
