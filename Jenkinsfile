@@ -1,14 +1,23 @@
 node {
-    stage('Clone repo') {
-        checkout scm
-    }
-    stage('Unit test') {
-        nodejs(nodeJSInstallationName: '14.15.4') {
-            sh 'yarn install --frozen-lockfile'
-            sh 'yarn run audit'
-            sh 'yarn lint'
-            sh 'yarn test:ci'
+    try {
+        stage('Clone repo') {
+            checkout scm
+        }
+        stage('Unit test') {
+            nodejs(nodeJSInstallationName: '14.17.2') {
+                sh 'yarn install --frozen-lockfile'
+                sh 'yarn run audit'
+                sh 'yarn lint'
+                sh 'yarn test:ci'
+            }
+        }
+        ebsi_deploy("clone_repo": false)
+    } catch (e) {
+        throw e
+    } finally {
+        cleanWs()
+        dir("${env.WORKSPACE}@script") {
+            deleteDir()
         }
     }
-    ebsi_deploy("clone_repo": false)
 }

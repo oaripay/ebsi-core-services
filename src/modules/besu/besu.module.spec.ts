@@ -1,3 +1,7 @@
+import hre from "hardhat";
+import "@nomiclabs/hardhat-ethers";
+import type { JsonRpcServer } from "hardhat/types";
+import * as taskNames from "hardhat/builtin-tasks/task-names";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -13,7 +17,6 @@ import {
 } from "@nestjs/platform-fastify";
 import { Session, JWTPayload } from "@cef-ebsi/oauth2-auth";
 import { ethers } from "ethers";
-import ganache from "ganache-core";
 import { BesuModule } from "./besu.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { BesuService } from "./besu.service";
@@ -22,7 +25,7 @@ import { createFakeToken } from "../../../tests/utils/authorisation";
 describe("Besu Module", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let ganacheServer: ganache.Server;
+  let hardhatServer: JsonRpcServer;
   let besuService: BesuService;
   let token: string;
   const ganachePort = 8547; // 8546 might already be used for ssh port forwarding
@@ -30,13 +33,13 @@ describe("Besu Module", () => {
   const mockAuth = jest.spyOn(Session.prototype, "verifyAccessToken");
 
   beforeAll(async () => {
-    const options: ganache.IServerOptions = {
-      ws: true,
-    };
-    ganacheServer = ganache.server(options);
-    await new Promise<void>((resolve) => {
-      ganacheServer.listen(ganachePort, () => resolve());
-    });
+    hardhatServer = (await hre.run(taskNames.TASK_NODE_CREATE_SERVER, {
+      hostname: "localhost",
+      port: ganachePort,
+      provider: hre.network.provider,
+    })) as JsonRpcServer;
+
+    await hardhatServer.listen();
 
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -81,12 +84,7 @@ describe("Besu Module", () => {
 
   afterAll(async () => {
     await app.close();
-    await new Promise<void>((resolve, reject) =>
-      ganacheServer.close((err) => {
-        if (err) reject(err);
-        else resolve();
-      })
-    );
+    await hardhatServer.close();
   });
 
   // Generic tests
@@ -219,13 +217,11 @@ describe("Besu Module", () => {
       jsonrpc: "2.0",
       id: "42",
       error: {
-        code: -32000,
-        data: expect.any(Object) as unknown,
-        message:
-          "Incorrect number of arguments. Method 'eth_sendRawTransaction' requires exactly 1 arguments. Request specified 0 arguments: [null].",
+        code: -32602,
+        message: "Expected exactly 1 arguments and got 0",
       },
     });
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(400);
   });
 
   it("should prevent deploying new smart contracts", async () => {
@@ -235,11 +231,10 @@ describe("Besu Module", () => {
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
-    const provider = new ethers.providers.JsonRpcProvider(ganacheUrl);
     const wallet = ethers.Wallet.createRandom();
 
     const transaction: ethers.providers.TransactionRequest = {
-      nonce: await provider.getTransactionCount(wallet.address),
+      nonce: await hre.ethers.provider.getTransactionCount(wallet.address),
       gasLimit: 221000,
       gasPrice: 0,
       from: wallet.address,

@@ -6,5 +6,6 @@
 !nest-cli.json
 !tsconfig.production.json
 !tsconfig.json
+!.yarnrc
 !yarn.lock
 !src
