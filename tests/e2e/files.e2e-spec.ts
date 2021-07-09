@@ -115,7 +115,7 @@ describe("Files (e2e)", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        detail: "Invalid JWT: Incorrect format JWT",
+        detail: "Invalid JWT: invalid_argument: Incorrect format JWT",
         status: 401,
         title: "Unauthorized",
         type: "about:blank",

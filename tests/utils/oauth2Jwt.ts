@@ -1,6 +1,6 @@
 import { Agent as OAuth2Agent } from "@cef-ebsi/oauth2-auth";
 import axios from "axios";
-import { v4 as uuidV4 } from "uuid";
+import { randomUUID } from "crypto";
 
 export const requestOAuth2Jwt = async ({
   testAppPrivateKey,
@@ -15,7 +15,7 @@ export const requestOAuth2Jwt = async ({
   targetApiName: string;
   authorisationApiUrl: string;
 }): Promise<string> => {
-  const nonce = uuidV4();
+  const nonce = randomUUID();
   const oauth2Agent = new OAuth2Agent(testAppPrivateKey, {
     issuer: testAppName,
     kid: testAppKid,
