@@ -1,5 +1,5 @@
 import request from "supertest";
-import crypto from "crypto";
+import crypto, { randomUUID } from "crypto";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
   INestApplication,
@@ -22,7 +22,6 @@ import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import jwtVerify from "jose/jwt/verify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { v4 as uuidv4 } from "uuid";
 import {
   Ake1SigPayload,
   AkeResponse,
@@ -253,7 +252,7 @@ describe("Authorisation (e2e)", () => {
 
       const apiTarId =
         "0x0000000000000000000000000000000000000000000000000000000000000000";
-      const nonce = uuidv4();
+      const nonce = randomUUID();
       let agent = new OAuth2Agent(crypto.randomBytes(32).toString("hex"), {
         issuer: trustedApp.name,
         kid: `${trustedAppsRegistry}/${apiTarId}`,
@@ -299,7 +298,7 @@ describe("Authorisation (e2e)", () => {
 
     it("should create an OAuth2 session", async () => {
       expect.assertions(3);
-      const nonce = uuidv4();
+      const nonce = randomUUID();
       const agent = new OAuth2Agent(trustedApp.privateKey, {
         issuer: trustedApp.name,
         kid: trustedApp.kid,
@@ -365,7 +364,7 @@ describe("Authorisation (e2e)", () => {
       const domain = configService.get<string>("domain");
       const urlPrefix = configService.get<string>("apiUrlPrefix");
       const siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
-      const nonce = uuidv4();
+      const nonce = randomUUID();
 
       let response = await request(server)
         .post("/siop-sessions")
@@ -427,7 +426,7 @@ describe("Authorisation (e2e)", () => {
         title: "Invalid ID Token",
         status: 400,
         detail:
-          "Unable to resolve DID document for https://self-issued.me: notFound, registry used: https://api.test.intebsi.xyz/did-registry/v2/identifiers",
+          "resolver_error: Unable to resolve DID document for https://self-issued.me: notFound, registry used: https://api.test.intebsi.xyz/did-registry/v2/identifiers",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -486,7 +485,7 @@ describe("Authorisation (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Invalid ID Token",
         status: 400,
-        detail: "Signature invalid for JWT",
+        detail: "invalid_signature: Signature invalid for JWT",
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -509,7 +508,7 @@ describe("Authorisation (e2e)", () => {
 
       const uriDecoded = querystring.decode(uri.replace("openid://?", ""));
 
-      const nonce = uuidv4();
+      const nonce = randomUUID();
       const authenticationResponse =
         await EbsiDidAuth.createAuthenticationResponse({
           hexPrivateKey: prefix0x(configService.get("testClientPrivateKey")),
@@ -585,7 +584,7 @@ describe("Authorisation (e2e)", () => {
       );
 
       // 3. The client creates an authentication response and gets an ID Token
-      const nonce = uuidv4();
+      const nonce = randomUUID();
       const authenticationResponse =
         await EbsiDidAuth.createAuthenticationResponse({
           hexPrivateKey: prefix0x(configService.get("testClientPrivateKey")),
@@ -648,7 +647,7 @@ describe("Authorisation (e2e)", () => {
         resolver: didRegistry,
         tirUrl: trustedIssuersRegistry,
       });
-      const nonce = uuidv4();
+      const nonce = randomUUID();
       const canonicalizedVP = base64url.encode(canonicalize(vp));
       // const canonicalizedVP = base64url.encode(JSON.stringify(vp));
       const authenticationResponse =
@@ -716,7 +715,7 @@ describe("Authorisation (e2e)", () => {
         resolver: didRegistry,
         tirUrl: trustedIssuersRegistry,
       });
-      const nonce = uuidv4();
+      const nonce = randomUUID();
       const canonicalizedVP = base64url.encode(canonicalize(vp));
       // const canonicalizedVP = base64url.encode(JSON.stringify(vp));
       const authenticationResponse =

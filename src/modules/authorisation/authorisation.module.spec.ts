@@ -1,5 +1,5 @@
 import request from "supertest";
-import crypto from "crypto";
+import crypto, { randomUUID } from "crypto";
 import fromKeyLike from "jose/jwk/from_key_like";
 import {
   Session,
@@ -23,7 +23,6 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
-import { v4 as uuidv4 } from "uuid";
 import jwtVerify from "jose/jwt/verify";
 import querystring from "querystring";
 import * as EbsiDidJwt from "@cef-ebsi/did-jwt/dist/jwt";
@@ -274,7 +273,7 @@ describe("Authorisation Module", () => {
         kid: trustedApp.kid,
       });
 
-      const nonce = uuidv4();
+      const nonce = randomUUID();
       const authRequest = await agent.createRequestPayload("storage-api", {
         nonce,
       });
@@ -326,7 +325,7 @@ describe("Authorisation Module", () => {
         kid: trustedApp.kid,
       });
 
-      const nonce = uuidv4();
+      const nonce = randomUUID();
       const authRequest = await agent.createRequestPayload("storage-api", {
         nonce,
       });
@@ -449,7 +448,7 @@ describe("Authorisation Module", () => {
     it(`should create a siop session for a user that uses alg ${alg}`, async () => {
       expect.assertions(2);
 
-      const nonce = uuidv4();
+      const nonce = randomUUID();
 
       const client = await createClient(alg);
 
@@ -514,7 +513,7 @@ describe("Authorisation Module", () => {
 
     it(`should create a siop session for a user that uses alg ${alg} and presents a vp`, async () => {
       expect.assertions(2);
-      const nonce = uuidv4();
+      const nonce = randomUUID();
 
       const client = await createClient(alg);
 
