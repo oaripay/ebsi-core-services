@@ -36,11 +36,11 @@ export async function siopAuthentication(
 
   const nonce = crypto.randomBytes(10).toString("base64");
   const didAuthJwt = await EbsiDidAuth.createAuthenticationResponse({
-    hexPrivatekey: prefixWith0x(user.privateKey),
+    hexPrivateKey: prefixWith0x(user.privateKey),
     did: user.did,
     nonce,
     redirectUri: uriDecoded.client_id,
-    response_mode: DidAuthResponseMode.FORM_POST,
+    responseMode: DidAuthResponseMode.FORM_POST,
   });
 
   response = await request(authorisationApiUrl)

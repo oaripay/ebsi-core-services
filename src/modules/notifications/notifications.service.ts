@@ -7,8 +7,7 @@ import {
   InternalServerError,
 } from "@cef-ebsi/problem-details-errors";
 import axios, { AxiosError } from "axios";
-import { v4 as uuidV4 } from "uuid";
-import crypto from "crypto";
+import crypto, { randomUUID } from "crypto";
 import { decodeJWT } from "@cef-ebsi/did-jwt";
 import { Agent } from "@cef-ebsi/oauth2-auth";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
@@ -80,7 +79,7 @@ export class NotificationsService {
   }
 
   private async getAccessToken() {
-    const nonce = uuidV4();
+    const nonce = randomUUID();
 
     const requestComponent = await this.agent.createRequestPayload(
       this.configService.get<string>("storageApiName"),
