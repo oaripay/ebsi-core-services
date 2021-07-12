@@ -789,6 +789,7 @@ describe("JsonRpc Module", () => {
   });
 
   // Tests to be repeated for every method
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each([
     "insertDidMethod",
     "insertAdministrator",

@@ -4,6 +4,7 @@ import {
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
 import { HashName } from "multihashes";
+import { multibase64Decode } from "../../shared/utils/multibase64.utils";
 import { DidTimestampResponseObject } from "./did-timestamps.interface";
 import { LedgerService } from "../ledger/ledger.service";
 import { DidRegistry } from "../../contracts/did-registry";
@@ -85,11 +86,11 @@ export class DidTimestampsService {
     timestampId: string
   ): Promise<DidTimestampResponseObject> {
     let timestamp: AsyncReturnType<DidRegistry["getDidTimestampById"]>;
-
+    const timestampIdDecoded = multibase64Decode(timestampId);
     try {
       timestamp = await (
         await this.ledgerService.getContract()
-      ).getDidTimestampById(timestampId);
+      ).getDidTimestampById(timestampIdDecoded);
     } catch (e) {
       throw new NotFoundError("Timestamp Not Found", {
         detail: `Timestamp ${timestampId} not found`,

@@ -634,7 +634,7 @@ paths:
                       properties:
                         timestampId:
                           type: string
-                          description: ID of the DID Timestamp
+                          description: Multi-base64url encoded sha256(hash)
                         href:
                           type: string
                           description: Link to the resource
@@ -651,10 +651,10 @@ paths:
                   value:
                     self: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=3&page[size]=10
                     items:
-                      - timestampId: "0x03d19d4f03ae937116956500651fb3cb63218ef3358d333c1d62d334168a85a6"
-                        href: https://api.ebsi.xyz/did-registry/v2/did-timestamps/0x03d19d4f03ae937116956500651fb3cb63218ef3358d333c1d62d334168a85a6
-                      - timestampId: "0x2154615a0b269afd110921467133da03431b7ae3d6a59e8dfdd9e47e88a9c7f5"
-                        href: https://api.ebsi.xyz/did-registry/v2/did-timestamps/0x2154615a0b269afd110921467133da03431b7ae3d6a59e8dfdd9e47e88a9c7f5
+                      - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                        href: https://api.ebsi.xyz/did-registry/v2/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                      - timestampId: uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
+                        href: https://api.ebsi.xyz/did-registry/v2/did-timestamps/uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
                     total: 124
                     pageSize: 10
                     links:
@@ -666,8 +666,8 @@ paths:
                   value:
                     self: https://api.ebsi.xyz/did-registry/v2/did-timestamps?identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
                     items:
-                      - timestampId: "0x03d19d4f03ae937116956500651fb3cb63218ef3358d333c1d62d334168a85a6"
-                        href: https://api.ebsi.xyz/did-registry/v2/did-timestamps/0x03d19d4f03ae937116956500651fb3cb63218ef3358d333c1d62d334168a85a6
+                      - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                        href: https://api.ebsi.xyz/did-registry/v2/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
                     total: 1
                     pageSize: 10
                     links:
@@ -708,7 +708,7 @@ paths:
           in: path
           schema:
             type: string
-          example: "0x03d19d4f03ae937116956500651fb3cb63218ef3358d333c1d62d334168a85a6"
+          example: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
           required: true
       responses:
         200:

@@ -50,6 +50,7 @@ import {
 } from "../utils/data";
 import { requestNewUserSiopJwt, requestSiopJwt } from "../utils/siopJwt";
 import { LedgerService } from "../../src/modules/ledger/ledger.service";
+import { multibase64Encode } from "../../src/shared/utils/multibase64.utils";
 
 type JsonRpcParams =
   | InsertDidDocumentParam
@@ -287,6 +288,7 @@ describe("DID Registry (e2e)", () => {
     });
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each([
     "insertDidMethod",
     "insertDidDocument",
@@ -1862,7 +1864,9 @@ describe("DID Registry (e2e)", () => {
       const { canonicalizedDidDocumentHash, timestampDataBuffer } =
         updatedDidDocument;
 
-      const timestampId = ethers.utils.sha256(canonicalizedDidDocumentHash);
+      const timestampId = multibase64Encode(
+        ethers.utils.sha256(canonicalizedDidDocumentHash)
+      );
 
       const response = await request(server).get(
         `/did-timestamps/${timestampId}`
@@ -1890,8 +1894,7 @@ describe("DID Registry (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["timestampId must match /^0x/ regular expression","timestampId must be a hexadecimal number"]',
+        detail: '["timestampId must be multi-base64url encoded"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1902,12 +1905,15 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the DID timestamp is not found", async () => {
       expect.assertions(2);
 
-      const response = await request(server).get("/did-timestamps/0x1234");
+      const response = await request(server).get(
+        "/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4"
+      );
 
       expect(response.body).toStrictEqual({
         title: "Timestamp Not Found",
         status: 404,
-        detail: "Timestamp 0x1234 not found",
+        detail:
+          "Timestamp uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4 not found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);

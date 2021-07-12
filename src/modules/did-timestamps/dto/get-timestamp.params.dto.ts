@@ -1,8 +1,7 @@
-import { IsHexadecimal, Matches } from "class-validator";
+import { IsMultibase64urlEncoded } from "../../../shared/validators";
 
 export class GetTimestampParamsDto {
-  @IsHexadecimal()
-  @Matches(/^0x/)
+  @IsMultibase64urlEncoded()
   timestampId: string;
 }
 

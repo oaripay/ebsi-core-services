@@ -118,6 +118,7 @@ describe("HashAlgorithms (e2e)", () => {
     });
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each(["insertHashAlgorithm", "updateHashAlgorithm"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {

@@ -1,5 +1,5 @@
 import multihash from "multihashes";
-import { remove0xPrefix } from "./prefixWith0x.utils";
+import { remove0xPrefix } from "./strings.utils";
 
 export const multihashEncode = (
   str: string,

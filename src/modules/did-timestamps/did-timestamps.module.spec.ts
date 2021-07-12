@@ -23,12 +23,14 @@ import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { multihashEncode } from "../../shared/utils";
 import { LedgerService } from "../ledger/ledger.service";
+import { multibase64Encode } from "../../shared/utils/multibase64.utils";
 
 jest.setTimeout(120000);
 
 const DID_METHODS_TOTAL = 3;
 
 describe("DidTimestamps Module", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each(["lowercase", "mixed case"])(
     "(with %s DIDs)",
     (lettercase: string) => {
@@ -98,9 +100,9 @@ describe("DidTimestamps Module", () => {
                   method.canonicalizedDidDocumentHash
                 );
                 return {
-                  timestampId: hash,
+                  timestampId: multibase64Encode(hash),
                   href: expect.stringContaining(
-                    `/did-timestamps/${hash}`
+                    `/did-timestamps/${multibase64Encode(hash)}`
                   ) as string,
                 } as TimestampLink;
               })
@@ -405,9 +407,9 @@ describe("DidTimestamps Module", () => {
                   method.canonicalizedDidDocumentHash
                 );
                 return {
-                  timestampId: hash,
+                  timestampId: multibase64Encode(hash),
                   href: expect.stringContaining(
-                    `/did-timestamps/${hash}`
+                    `/did-timestamps/${multibase64Encode(hash)}`
                   ) as string,
                 } as TimestampLink;
               })
@@ -442,7 +444,9 @@ describe("DidTimestamps Module", () => {
           const { canonicalizedDidDocumentHash, timestampDataBuffer } =
             didDocuments[0];
 
-          const timestampId = ethers.utils.sha256(canonicalizedDidDocumentHash);
+          const timestampId = multibase64Encode(
+            ethers.utils.sha256(canonicalizedDidDocumentHash)
+          );
 
           const response = await request(server).get(
             `/did-timestamps/${timestampId}`
@@ -472,8 +476,7 @@ describe("DidTimestamps Module", () => {
           );
 
           expect(response.body).toStrictEqual({
-            detail:
-              '["timestampId must match /^0x/ regular expression","timestampId must be a hexadecimal number"]',
+            detail: '["timestampId must be multi-base64url encoded"]',
             status: 400,
             title: "Bad Request",
             type: "about:blank",
@@ -484,12 +487,15 @@ describe("DidTimestamps Module", () => {
         it("should throw an error if the DID timestamp is not found", async () => {
           expect.assertions(2);
 
-          const response = await request(server).get("/did-timestamps/0x1234");
+          const response = await request(server).get(
+            "/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4"
+          );
 
           expect(response.body).toStrictEqual({
             title: "Timestamp Not Found",
             status: 404,
-            detail: "Timestamp 0x1234 not found",
+            detail:
+              "Timestamp uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4 not found",
             type: "about:blank",
           });
           expect(response.status).toBe(404);

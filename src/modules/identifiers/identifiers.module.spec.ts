@@ -25,6 +25,7 @@ jest.setTimeout(120000);
 const DID_DOCUMENTS = 3;
 
 describe("Identifiers Module", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each(["lowercase", "mixed case"])(
     "(with %s DIDs)",
     (lettercase: string) => {

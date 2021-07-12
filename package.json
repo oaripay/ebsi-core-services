@@ -47,6 +47,7 @@
     "fastify-helmet": "^5.3.2",
     "joi": "^17.3.0",
     "jose": "^3.14.0",
+    "multibase": "^4.0.4",
     "multihashes": "^4.0.2",
     "nest-winston": "^1.5.0",
     "p-limit": "^3.1.0",
