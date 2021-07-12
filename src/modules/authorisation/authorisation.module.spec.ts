@@ -631,5 +631,136 @@ describe("Authorisation Module", () => {
       });
       expect(response.status).toBe(200);
     });
+
+    it(`should throw bad request error when creating a siop session for a user that uses alg ${alg} and provides an invalid id_token`, async () => {
+      expect.assertions(6);
+      const nonce = randomUUID();
+
+      const client = await createClient(alg);
+
+      const privateKeyHexEncryption = crypto.randomBytes(32).toString("hex");
+      const publicKeyEncryption = (await getPublicKey(privateKeyHexEncryption))
+        .jwk;
+
+      const payload = {
+        nonce,
+        claims: {
+          encryption_key: publicKeyEncryption,
+        },
+      };
+
+      const idToken = await new SignJWT(payload)
+        .setProtectedHeader({
+          alg,
+          typ: "JWT",
+          kid: client.did,
+        })
+        .setIssuedAt()
+        .setIssuer("https://self-issued.me")
+        .setAudience("storage-api")
+        .setExpirationTime("15s")
+        .sign(client.privateKey);
+
+      // Fake verifyEbsiJWT result
+      jest.spyOn(EbsiDidJwt, "verifyEbsiJWT").mockImplementation(async () =>
+        Promise.resolve({
+          payload,
+          didResolutionResult: {
+            didDocument: {
+              id: client.did,
+            },
+            didDocumentMetadata: {},
+            didResolutionMetadata: {},
+          },
+          issuer: "",
+          signer: {
+            publicKeyJwk: { ...client.jwk, kty: "" },
+            id: "",
+            type: "",
+            controller: "",
+          },
+          jwt: "",
+        })
+      );
+      jest
+        .spyOn(vpLib, "validatePresentation")
+        .mockImplementation(async () => Promise.resolve());
+
+      const response = await request(server)
+        .post("/siop-sessions")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send({ id_token: idToken });
+      expect(response.body).toStrictEqual({
+        title: "Invalid id_token payload",
+        status: 400,
+        detail: `verified_claims not found in id_token claims`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+
+      const payloadEmptyVerifiedClaims = {
+        nonce,
+        claims: {
+          verified_claims: {},
+          encryption_key: publicKeyEncryption,
+        },
+      };
+      const idTokenEmptyVerifiedClaims = await new SignJWT(
+        payloadEmptyVerifiedClaims
+      )
+        .setProtectedHeader({
+          alg,
+          typ: "JWT",
+          kid: client.did,
+        })
+        .setIssuedAt()
+        .setIssuer("https://self-issued.me")
+        .setAudience("storage-api")
+        .setExpirationTime("15s")
+        .sign(client.privateKey);
+      const responseEmptyVerifiedClaims = await request(server)
+        .post("/siop-sessions")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send({ id_token: idTokenEmptyVerifiedClaims });
+      expect(responseEmptyVerifiedClaims.body).toStrictEqual({
+        title: "Invalid id_token payload",
+        status: 400,
+        detail: `verified_claims in id_token claims has no fields`,
+        type: "about:blank",
+      });
+      expect(responseEmptyVerifiedClaims.status).toBe(400);
+
+      const payloadVerifiedClaimParse = {
+        nonce,
+        claims: {
+          verified_claims: { test: "test" },
+          encryption_key: publicKeyEncryption,
+        },
+      };
+      const idTokenVerifiedClaimParse = await new SignJWT(
+        payloadVerifiedClaimParse
+      )
+        .setProtectedHeader({
+          alg,
+          typ: "JWT",
+          kid: client.did,
+        })
+        .setIssuedAt()
+        .setIssuer("https://self-issued.me")
+        .setAudience("storage-api")
+        .setExpirationTime("15s")
+        .sign(client.privateKey);
+      const responseVerifiedClaimParse = await request(server)
+        .post("/siop-sessions")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send({ id_token: idTokenVerifiedClaimParse });
+      expect(responseVerifiedClaimParse.body).toStrictEqual({
+        title: "Verifiable Presentation could not be parsed",
+        status: 400,
+        detail: expect.any(String) as string,
+        type: "about:blank",
+      });
+      expect(responseVerifiedClaimParse.status).toBe(400);
+    });
   });
 });

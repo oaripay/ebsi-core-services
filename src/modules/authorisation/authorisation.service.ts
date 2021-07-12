@@ -9,10 +9,10 @@ import {
   InvalidTokenError,
 } from "@cef-ebsi/oauth2-auth";
 import {
-  DidAuthResponseCall,
   DidAuthValidationResponse,
   EbsiDidAuth,
   IdToken,
+  ResponseClaims,
   Session as SiopSession,
 } from "@cef-ebsi/siop-auth";
 import { decodeJWT } from "@cef-ebsi/did-jwt";
@@ -154,10 +154,7 @@ export class AuthorisationService {
   async createSiopSession(body: SiopSessionDto): Promise<AkeResponse> {
     const { payload } = decodeJWT(body.id_token);
 
-    if (
-      payload.claims &&
-      (payload as DidAuthResponseCall).claims.verified_claims
-    ) {
+    if (payload.claims && Object.keys(payload.claims).length !== 0) {
       /**
        * Using a Verifiable Presentation to request a token
        * It is assumed that the user doesn't have a DID registered
@@ -165,11 +162,29 @@ export class AuthorisationService {
        */
 
       // Verifiable Authorisation Verifiable Presentation -- JCS canonicalize + base64url encode
-      const { claims } = payload as DidAuthResponseCall;
-      const encodedVP = claims.verified_claims;
-      const decodedVP = JSON.parse(
-        base64url.decode(encodedVP)
-      ) as VerifiablePresentation;
+      const { claims } = payload;
+      if (!(claims as ResponseClaims).verified_claims)
+        throw new BadRequestError("Invalid id_token payload", {
+          detail: `verified_claims not found in id_token claims`,
+        });
+      if (Object.keys((claims as ResponseClaims).verified_claims).length === 0)
+        throw new BadRequestError("Invalid id_token payload", {
+          detail: `verified_claims in id_token claims has no fields`,
+        });
+      const encodedVP = (claims as ResponseClaims).verified_claims;
+      let decodedVP: VerifiablePresentation;
+      try {
+        decodedVP = JSON.parse(
+          base64url.decode(encodedVP)
+        ) as VerifiablePresentation;
+      } catch (error) {
+        throw new BadRequestError(
+          "Verifiable Presentation could not be parsed",
+          {
+            detail: (error as Error).message,
+          }
+        );
+      }
 
       // removing proof field
       const { proof, ...vp } = decodedVP;
@@ -202,7 +217,8 @@ export class AuthorisationService {
         return await this.siopSession.createAccessToken({
           signatureValidation: true,
           signer: {
-            publicKeyJwk: claims.encryption_key as unknown as JsonWebKey,
+            publicKeyJwk: (claims as ResponseClaims)
+              .encryption_key as unknown as JsonWebKey,
             type: "",
             id: "",
             controller: "",
