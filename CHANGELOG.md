@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.4&targetRepoId=359) (2021-07-13)
+
+### 🐛 Bug Fixes
+
+- throw bad request verified_claims /siop-sessions ([#30](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/30/overview)) - EBSIINT-3173 ([b67e561](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/b67e56174b742b5ab808abef7b7a9f96ac515979))
+- update dependencies and upgrade Node.js to 14.17.2 ([#29](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/29/overview)) - EBSIINT-3174 ([0cd44b5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/0cd44b5071a978372e8e41ab1f610386502d884e))
+
 ## [1.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.3&targetRepoId=359) (2021-06-17)
 
 ### 🐛 Bug Fixes
