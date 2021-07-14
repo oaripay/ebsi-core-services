@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv1.0.0&targetRepoId=359) (2021-07-14)
+
+### 🐛 Bug Fixes
+
+- separately decode and parse error handling ([#33](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/33/overview)) - EBSIINT-3173 ([57254c7](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/57254c7771c346f02e6ad8b84e48a559dc89bb2e))
+
 ## [1.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.4&targetRepoId=359) (2021-07-13)
 
 ### 🐛 Bug Fixes
