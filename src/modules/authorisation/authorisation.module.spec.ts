@@ -632,8 +632,8 @@ describe("Authorisation Module", () => {
       expect(response.status).toBe(200);
     });
 
-    it(`should throw bad request error when creating a siop session for a user that uses alg ${alg} and provides an invalid id_token`, async () => {
-      expect.assertions(6);
+    it(`should throw bad request error when creating a siop session for a user that uses alg ${alg} and provides an invalid id_token: claims without verified_claims`, async () => {
+      expect.assertions(2);
       const nonce = randomUUID();
 
       const client = await createClient(alg);
@@ -661,31 +661,6 @@ describe("Authorisation Module", () => {
         .setExpirationTime("15s")
         .sign(client.privateKey);
 
-      // Fake verifyEbsiJWT result
-      jest.spyOn(EbsiDidJwt, "verifyEbsiJWT").mockImplementation(async () =>
-        Promise.resolve({
-          payload,
-          didResolutionResult: {
-            didDocument: {
-              id: client.did,
-            },
-            didDocumentMetadata: {},
-            didResolutionMetadata: {},
-          },
-          issuer: "",
-          signer: {
-            publicKeyJwk: { ...client.jwk, kty: "" },
-            id: "",
-            type: "",
-            controller: "",
-          },
-          jwt: "",
-        })
-      );
-      jest
-        .spyOn(vpLib, "validatePresentation")
-        .mockImplementation(async () => Promise.resolve());
-
       const response = await request(server)
         .post("/siop-sessions")
         .set("Content-Type", "application/x-www-form-urlencoded")
@@ -697,17 +672,26 @@ describe("Authorisation Module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(400);
+    });
 
-      const payloadEmptyVerifiedClaims = {
+    it(`should throw bad request error when creating a siop session for a user that uses alg ${alg} and provides an invalid id_token: uncoded verified_claims string`, async () => {
+      expect.assertions(2);
+      const nonce = randomUUID();
+
+      const client = await createClient(alg);
+
+      const privateKeyHexEncryption = crypto.randomBytes(32).toString("hex");
+      const publicKeyEncryption = (await getPublicKey(privateKeyHexEncryption))
+        .jwk;
+
+      const payload = {
         nonce,
         claims: {
-          verified_claims: {},
+          verified_claims: "uncoded string",
           encryption_key: publicKeyEncryption,
         },
       };
-      const idTokenEmptyVerifiedClaims = await new SignJWT(
-        payloadEmptyVerifiedClaims
-      )
+      const idToken = await new SignJWT(payload)
         .setProtectedHeader({
           alg,
           typ: "JWT",
@@ -718,28 +702,80 @@ describe("Authorisation Module", () => {
         .setAudience("storage-api")
         .setExpirationTime("15s")
         .sign(client.privateKey);
-      const responseEmptyVerifiedClaims = await request(server)
+
+      const response = await request(server)
         .post("/siop-sessions")
         .set("Content-Type", "application/x-www-form-urlencoded")
-        .send({ id_token: idTokenEmptyVerifiedClaims });
-      expect(responseEmptyVerifiedClaims.body).toStrictEqual({
-        title: "Invalid id_token payload",
+        .send({ id_token: idToken });
+      expect(response.body).toStrictEqual({
+        title: "Uncoded Verifiable Presentation",
         status: 400,
-        detail: `verified_claims in id_token claims has no fields`,
+        detail: `"value" must be a valid base64 string`,
         type: "about:blank",
       });
-      expect(responseEmptyVerifiedClaims.status).toBe(400);
+      expect(response.status).toBe(400);
+    });
 
-      const payloadVerifiedClaimParse = {
+    it(`should throw bad request error when creating a siop session for a user that uses alg ${alg} and provides an invalid id_token: verified_claim contains an object`, async () => {
+      expect.assertions(2);
+      const nonce = randomUUID();
+
+      const client = await createClient(alg);
+
+      const privateKeyHexEncryption = crypto.randomBytes(32).toString("hex");
+      const publicKeyEncryption = (await getPublicKey(privateKeyHexEncryption))
+        .jwk;
+
+      const payload = {
         nonce,
         claims: {
-          verified_claims: { test: "test" },
+          verified_claims: {
+            "@context": ["https://www.w3.org/2018/credentials/v1"],
+            type: "VerifiablePresentation",
+            holder: client.did,
+            verifiableCredential: [
+              {
+                id: "vc:ebsi:authentication#b744b528-af68-43b0-b269-ec291f421aa8",
+                issuer: configService.get<string>("onboardingApiDid"),
+                validFrom: "2021-05-18T15:00:42Z",
+                credentialSubject: {
+                  id: "did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e",
+                },
+                credentialSchema: {
+                  id: "https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313338312e332e31322e332e322e332e3738",
+                  type: "OID",
+                },
+                issuanceDate: "2021-05-18T15:00:42Z",
+                expirationDate: "2021-11-16T15:00:42Z",
+                "@context": [
+                  "https://www.w3.org/2018/credentials/v1",
+                  "https://www.w3.org/2018/credentials/examples/v1",
+                  "https://w3c-ccg.github.io/lds-jws2020/contexts/lds-jws2020-v1.json",
+                ],
+                type: ["VerifiableCredential", "VerifiableAuthorisation"],
+                proof: {
+                  type: "EcdsaSecp256k1Signature2019",
+                  created: "2021-05-18T15:00:42Z",
+                  proofPurpose: "assertionMethod",
+                  verificationMethod:
+                    "did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e#keys-1",
+                  jws: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ..8NLRMISHCKmScoRFZwd7G3Nj5CaOhoH5qTJHkkNV-WQ1cRjITR-USQcmi_qKOr5H4T1jEeGwEYgG5BnmyfPXMA",
+                },
+              },
+            ],
+            proof: {
+              type: "EcdsaSecp256k1Signature2019",
+              created: "2021-05-18T16:30:01Z",
+              proofPurpose: "authentication",
+              verificationMethod:
+                "did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e#keys-1",
+              jws: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE2MjEzNTU0MDEsIkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOiJWZXJpZmlhYmxlUHJlc2VudGF0aW9uIiwidmVyaWZpYWJsZUNyZWRlbnRpYWwiOlt7ImlkIjoidmM6ZWJzaTphdXRoZW50aWNhdGlvbiNiNzQ0YjUyOC1hZjY4LTQzYjAtYjI2OS1lYzI5MWY0MjFhYTgiLCJpc3N1ZXIiOiJkaWQ6ZWJzaTo2UVlKYzN0TFJoZXk4OFdQS0Mya3Y1ODh2MXVaMW9pZDN5ZmM1THA1QWJZRCIsInZhbGlkRnJvbSI6IjIwMjEtMDUtMThUMTU6MDA6NDJaIiwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZWJzaTpBYUVrbjczc2VjRk1VVFNnNHZUTGtoWDc5a0pFOG9hQUs3NDhUb1M4WXM5ZSJ9LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjoiaHR0cHM6Ly9hcGkudGVzdC5pbnRlYnNpLnh5ei90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDMxMmUzMzJlMzYyZTMxMmUzNDJlMzEyZTMxMzMzODMxMmUzMzJlMzEzMjJlMzMyZTMyMmUzMzJlMzczOCIsInR5cGUiOiJPSUQifSwiaXNzdWFuY2VEYXRlIjoiMjAyMS0wNS0xOFQxNTowMDo0MloiLCJleHBpcmF0aW9uRGF0ZSI6IjIwMjEtMTEtMTZUMTU6MDA6NDJaIiwiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy9leGFtcGxlcy92MSIsImh0dHBzOi8vdzNjLWNjZy5naXRodWIuaW8vbGRzLWp3czIwMjAvY29udGV4dHMvbGRzLWp3czIwMjAtdjEuanNvbiJdLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiVmVyaWZpYWJsZUF1dGhvcmlzYXRpb24iXSwicHJvb2YiOnsidHlwZSI6IkVjZHNhU2VjcDI1NmsxU2lnbmF0dXJlMjAxOSIsImNyZWF0ZWQiOiIyMDIxLTA1LTE4VDE1OjAwOjQyWiIsInByb29mUHVycG9zZSI6ImFzc2VydGlvbk1ldGhvZCIsInZlcmlmaWNhdGlvbk1ldGhvZCI6ImRpZDplYnNpOkFhRWtuNzNzZWNGTVVUU2c0dlRMa2hYNzlrSkU4b2FBSzc0OFRvUzhZczllI2tleXMtMSIsImp3cyI6ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSkZVekkxTmtzaWZRLi44TkxSTUlTSENLbVNjb1JGWndkN0czTmo1Q2FPaG9INXFUSkhra05WLVdRMWNSaklUUi1VU1FjbWlfcUtPcjVINFQxakVlR3dFWWdHNUJubXlmUFhNQSJ9fV0sImlzcyI6ImRpZDplYnNpOkFhRWtuNzNzZWNGTVVUU2c0dlRMa2hYNzlrSkU4b2FBSzc0OFRvUzhZczllIn0.qt_-j_XDhPAbMyjyAONPLEx-2SEEaLv6uh5ky1m1DyWvsr_GxyhJ9PMVZekXR6td-nkPGk7uuqA2KLCKQTgMEQ",
+            },
+          },
           encryption_key: publicKeyEncryption,
         },
       };
-      const idTokenVerifiedClaimParse = await new SignJWT(
-        payloadVerifiedClaimParse
-      )
+      const idToken = await new SignJWT(payload)
         .setProtectedHeader({
           alg,
           typ: "JWT",
@@ -750,17 +786,18 @@ describe("Authorisation Module", () => {
         .setAudience("storage-api")
         .setExpirationTime("15s")
         .sign(client.privateKey);
-      const responseVerifiedClaimParse = await request(server)
+
+      const response = await request(server)
         .post("/siop-sessions")
         .set("Content-Type", "application/x-www-form-urlencoded")
-        .send({ id_token: idTokenVerifiedClaimParse });
-      expect(responseVerifiedClaimParse.body).toStrictEqual({
-        title: "Verifiable Presentation could not be parsed",
+        .send({ id_token: idToken });
+      expect(response.body).toStrictEqual({
+        title: "Uncoded Verifiable Presentation",
         status: 400,
         detail: expect.any(String) as string,
         type: "about:blank",
       });
-      expect(responseVerifiedClaimParse.status).toBe(400);
+      expect(response.status).toBe(400);
     });
   });
 });

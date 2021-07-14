@@ -21,6 +21,7 @@ import {
   VerifiablePresentation,
 } from "@cef-ebsi/verifiable-presentation";
 import base64url from "base64url";
+import Joi from "joi";
 import { ApiConfig } from "../../config/configuration";
 import { AuthenticationRequestResponse } from "./authorisation.interface";
 import {
@@ -167,14 +168,19 @@ export class AuthorisationService {
         throw new BadRequestError("Invalid id_token payload", {
           detail: `verified_claims not found in id_token claims`,
         });
-      if (Object.keys((claims as ResponseClaims).verified_claims).length === 0)
-        throw new BadRequestError("Invalid id_token payload", {
-          detail: `verified_claims in id_token claims has no fields`,
-        });
+
       const encodedVP = (claims as ResponseClaims).verified_claims;
-      let decodedVP: VerifiablePresentation;
       try {
-        decodedVP = JSON.parse(
+        Joi.assert(encodedVP, Joi.string().base64({ paddingRequired: false }));
+      } catch (error) {
+        throw new BadRequestError("Uncoded Verifiable Presentation", {
+          detail: (error as Error).message,
+        });
+      }
+
+      let decodedParsedVP: VerifiablePresentation;
+      try {
+        decodedParsedVP = JSON.parse(
           base64url.decode(encodedVP)
         ) as VerifiablePresentation;
       } catch (error) {
@@ -187,7 +193,7 @@ export class AuthorisationService {
       }
 
       // removing proof field
-      const { proof, ...vp } = decodedVP;
+      const { proof, ...vp } = decodedParsedVP;
 
       try {
         await validatePresentation(vp, {
