@@ -2,12 +2,7 @@ import request from "supertest";
 import crypto from "crypto";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 import { FastifyInstance } from "fastify";
 import {
@@ -19,6 +14,7 @@ import { Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import canonicalize from "canonicalize";
 import { useContainer } from "class-validator";
+import { HttpService } from "@nestjs/axios";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
@@ -108,7 +104,7 @@ const ADMINS_TOTAL = 2;
 
 describe("JsonRpc Module", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let didRegistryContract: DidRegistry;
   let configService: ConfigService<ApiConfig>;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
@@ -269,7 +265,7 @@ describe("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     configService = moduleFixture.get<ConfigService>(ConfigService);
 

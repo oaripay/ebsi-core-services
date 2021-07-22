@@ -1,17 +1,18 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { HttpService } from "@nestjs/axios";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
 
 describe("App Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpService;
 
   beforeAll(async () => {
     // Start server
@@ -30,7 +31,7 @@ describe("App Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
   });
 
   afterAll(async () => {

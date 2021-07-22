@@ -1,16 +1,12 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
+import { HttpService } from "@nestjs/axios";
 import { PoliciesModule } from "./policies.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { multihashEncode } from "../../shared/utils";
@@ -26,7 +22,7 @@ const POLICIES_REVISIONS_TOTAL = 5;
 
 describe("Policies Module", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let ledgerService: LedgerService;
 
@@ -58,7 +54,7 @@ describe("Policies Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
