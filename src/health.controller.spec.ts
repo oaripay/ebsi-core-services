@@ -1,6 +1,7 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
+import { HttpService } from "@nestjs/axios";
 import { HealthIndicatorResult, HttpHealthIndicator } from "@nestjs/terminus";
 import { ConfigService } from "@nestjs/config";
 import {
@@ -14,7 +15,7 @@ import { ApiConfig } from "./config/configuration";
 
 describe("HealthController", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let httpHealthIndicator: HttpHealthIndicator;
   let configService: ConfigService<ApiConfig>;
 
@@ -30,7 +31,7 @@ describe("HealthController", () => {
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     httpHealthIndicator =
       moduleFixture.get<HttpHealthIndicator>(HttpHealthIndicator);

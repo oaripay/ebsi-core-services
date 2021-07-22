@@ -11,12 +11,8 @@ import {
 } from "@cef-ebsi/oauth2-auth";
 import SignJWT from "jose/jwt/sign";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
@@ -42,6 +38,8 @@ import { ApiConfig } from "../../config/configuration";
 import { ClaimRequest } from "./dto";
 
 jest.mock("@cef-ebsi/verifiable-presentation", () => ({
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   ...jest.requireActual("@cef-ebsi/verifiable-presentation"),
   validatePresentation: jest.fn(),
 }));
@@ -89,7 +87,7 @@ async function createClient(alg: string) {
 
 describe("Authorisation Module", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let configService: ConfigService<ApiConfig>;
   let apiPrivateKey: string;
   let apiDid: string;
@@ -118,7 +116,7 @@ describe("Authorisation Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     apiPrivateKey = configService.get("apiPrivateKey");
