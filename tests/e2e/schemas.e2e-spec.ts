@@ -2,18 +2,14 @@ import crypto from "crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
+import { HttpService } from "@nestjs/axios";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -51,7 +47,7 @@ const randomOid = () =>
 
 describe("Schemas (e2e)", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
   let contractService: ContractService;
@@ -124,7 +120,7 @@ describe("Schemas (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
