@@ -1,12 +1,7 @@
 import axios, { AxiosError } from "axios";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 import { FastifyInstance } from "fastify";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
@@ -22,6 +17,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { HttpService } from "@nestjs/axios";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
@@ -81,7 +77,7 @@ const axiosError = (status: number, message: string): AxiosError =>
 
 describe("JsonRpc Module", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let timestampContract: Timestamp;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let ledgerService: LedgerService;
@@ -181,7 +177,7 @@ describe("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     // Make sure we never use axios.post in tests ;-)
     jest.spyOn(axios, "post").mockImplementation(() => {

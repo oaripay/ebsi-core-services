@@ -1,11 +1,6 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
 import crypto from "crypto";
 import {
   FastifyAdapter,
@@ -13,6 +8,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
+import { HttpService } from "@nestjs/axios";
 import { TimestampsModule } from "./timestamps.module";
 import { TimestampLink } from "./timestamps.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -26,7 +22,7 @@ const HASHES_TOTAL = 3;
 
 describe("Timestamps Module", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let timestampContract: Timestamp;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let ledgerService: LedgerService;
@@ -59,7 +55,7 @@ describe("Timestamps Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
