@@ -2,7 +2,7 @@ import crypto from "crypto";
 import axios from "axios";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, HttpServer, Logger } from "@nestjs/common";
+import { INestApplication, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -12,6 +12,7 @@ import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { Agent } from "@cef-ebsi/oauth2-auth";
 import { JWTPayload } from "@cef-ebsi/did-jwt";
 import jsonwebtoken from "jsonwebtoken";
+import { HttpService } from "@nestjs/axios";
 import { NotificationsModule } from "./notifications.module";
 import { CassandraResponse, Notification } from "./notifications.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -23,7 +24,7 @@ import {
 
 describe("Notifications module", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let selectCountResponse: CassandraResponse;
   let selectResponse: CassandraResponse;
   let modifyResponse: CassandraResponse;
@@ -79,7 +80,7 @@ describe("Notifications module", () => {
     app.useGlobalPipes(new EbsiValidationPipe());
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     jest.spyOn(axios, "get").mockImplementation(async (url) => {
       if (url.includes(sender.did) || url.includes(receiver.did))

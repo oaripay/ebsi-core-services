@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import { Test, TestingModule } from "@nestjs/testing";
-import { HttpServer, Logger } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import request from "supertest";
 import {
@@ -8,6 +8,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
+import { HttpService } from "@nestjs/axios";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { EbsiValidationPipe } from "../../src/pipes/ebsi-validation.pipe";
@@ -20,7 +21,7 @@ jest.setTimeout(90000);
 
 describe("Notifications module (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpService;
 
   let testUser1: {
     did: string;
@@ -91,7 +92,7 @@ describe("Notifications module (e2e)", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
