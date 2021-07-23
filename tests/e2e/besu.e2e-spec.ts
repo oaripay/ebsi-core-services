@@ -1,12 +1,7 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import crypto from "crypto";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -14,6 +9,7 @@ import {
 import { FastifyInstance } from "fastify";
 import { ConfigService } from "@nestjs/config";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
+import { HttpService } from "@nestjs/axios";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -23,7 +19,7 @@ jest.setTimeout(60000);
 
 describe("POST /ledger/v2/blockchains/besu", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let token: string;
   let fakeToken: string;
 
@@ -42,7 +38,7 @@ describe("POST /ledger/v2/blockchains/besu", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);

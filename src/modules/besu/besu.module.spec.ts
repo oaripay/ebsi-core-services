@@ -4,12 +4,7 @@ import type { JsonRpcServer } from "hardhat/types";
 import * as taskNames from "hardhat/builtin-tasks/task-names";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
 import { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
@@ -17,6 +12,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { Session, JWTPayload } from "@cef-ebsi/oauth2-auth";
 import { ethers } from "ethers";
+import { HttpService } from "@nestjs/axios";
 import { BesuModule } from "./besu.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { BesuService } from "./besu.service";
@@ -24,7 +20,7 @@ import { createFakeToken } from "../../../tests/utils/authorisation";
 
 describe("Besu Module", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let hardhatServer: JsonRpcServer;
   let besuService: BesuService;
   let token: string;
@@ -57,7 +53,7 @@ describe("Besu Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     besuService = moduleFixture.get<BesuService>(BesuService);
 
