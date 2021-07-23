@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { HttpServer, ValidationPipe } from "@nestjs/common";
+import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
@@ -10,6 +10,7 @@ import {
 import { FastifyInstance } from "fastify";
 import base64url from "base64url";
 import { Logger } from "@nestjs/common/services/logger.service";
+import { HttpService } from "@nestjs/axios";
 import { AppModule } from "../../src/app.module";
 import { ApiConfig, loadConfig } from "../../src/config/configuration";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -21,7 +22,7 @@ jest.setTimeout(120000);
 
 describe("Attributes", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpService;
 
   let testUser1: {
     did: string;
@@ -102,7 +103,7 @@ describe("Attributes", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);

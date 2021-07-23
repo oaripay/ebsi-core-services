@@ -1,11 +1,6 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
@@ -19,6 +14,7 @@ import { JWTPayload } from "@cef-ebsi/did-jwt";
 import jsonwebtoken from "jsonwebtoken";
 import { FastifyInstance } from "fastify";
 import axios from "axios";
+import { HttpService } from "@nestjs/axios";
 import { AttributesModule } from "./attributes.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { ApiConfig } from "../../config/configuration";
@@ -37,7 +33,7 @@ interface JsonrpcCall {
 
 describe("Attributes Module", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let configService: ConfigService<ApiConfig>;
   const mockAxios = jest.spyOn(axios, "post");
   let numberCall = 0;
@@ -113,7 +109,7 @@ describe("Attributes Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     configService = moduleFixture.get<ConfigService>(ConfigService);
     domain = configService.get("domain");
