@@ -9,10 +9,11 @@ import {
 } from "@nestjs/platform-fastify";
 import canonicalize from "canonicalize";
 import bs58 from "bs58";
-import { parseJwk } from "jose/jwk/parse";
+import { JWK, parseJwk } from "jose/jwk/parse";
+import jwtDecrypt from "jose/jwt/decrypt";
 import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import generateKeyPair from "jose/util/generate_key_pair";
-import { ec as EC } from "elliptic";
+import fromKeyLike from "jose/jwk/from_key_like";
 import SignJWT from "jose/jwt/sign";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
@@ -38,13 +39,14 @@ import { ApiConfig } from "../../src/config/configuration";
 import { getPublicKey } from "../utils/keys";
 import { createVerifiableAuthorisation } from "../utils/verifiableAuthorisation";
 import { createVP } from "../utils/verfiablePresentation";
+import {
+  createAuthenticationResponseJose,
+  getKeyByAlg,
+} from "../utils/didAuth";
 
 function prefix0x(value: string): string {
   return value.startsWith("0x") ? value : `0x${value}`;
 }
-
-const base64ToBase64Url = (base64: string): string =>
-  base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
 
 describe("Authorisation (e2e)", () => {
   let app: INestApplication;
@@ -334,229 +336,294 @@ describe("Authorisation (e2e)", () => {
     });
   });
 
-  describe.each(["ES256K"])("POST /siop-sessions with alg %s", (alg) => {
-    it("should reject bad requests", async () => {
-      expect.assertions(10);
+  describe.each(["ES256K", "ES256", "RS256", "EdDSA"])(
+    "POST /siop-sessions with alg %s",
+    (alg) => {
+      it("should reject bad requests", async () => {
+        expect.assertions(10);
 
-      const clientDid = configService.get<string>("testClientDid");
-      const ec = new EC("secp256k1");
-      const ecKey = ec.keyFromPrivate(
-        configService.get<string>("testClientPrivateKey")
-      );
-      const jwk = {
-        kty: "EC",
-        crv: "secp256k1",
-        x: base64ToBase64Url(
-          ecKey.getPublic().getX().toArrayLike(Buffer).toString("base64")
-        ),
-        y: base64ToBase64Url(
-          ecKey.getPublic().getY().toArrayLike(Buffer).toString("base64")
-        ),
-        d: base64ToBase64Url(
-          ecKey.getPrivate().toArrayLike(Buffer).toString("base64")
-        ),
-      };
-      const clientPrivateKey = await parseJwk(jwk, "ES256K");
-      const domain = configService.get<string>("domain");
-      const urlPrefix = configService.get<string>("apiUrlPrefix");
-      const siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
-      const nonce = randomUUID();
+        const clientDid = configService.get<string>("testClientDid");
+        const clientPrivateKeys = JSON.parse(
+          Buffer.from(
+            configService.get<string>("testClientPrivateKeysBase64"),
+            "base64"
+          ).toString()
+        ) as {
+          type: string;
+          id: string;
+          privateKeyJwk: JWK | JWK[];
+          publicKeyJwk: JWK | JWK[];
+        }[];
+        const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
 
-      let response = await request(server)
-        .post("/siop-sessions")
-        .set("Content-Type", "application/x-www-form-urlencoded")
-        .send("invalid string");
+        const clientPrivateKey = await parseJwk(
+          alg === "EdDSA"
+            ? (keyObject.privateKeyJwk as JWK[]).find((k) => k.use === "sig")
+            : (keyObject.privateKeyJwk as JWK),
+          alg
+        );
+        const domain = configService.get<string>("domain");
+        const urlPrefix = configService.get<string>("apiUrlPrefix");
+        const siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
+        const nonce = randomUUID();
 
-      expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
-        detail: '["id_token must be a jwt string"]',
-        type: "about:blank",
-      });
-      expect(response.status).toBe(400);
+        let response = await request(server)
+          .post("/siop-sessions")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send("invalid string");
 
-      let payload = {};
-      let idToken = await new SignJWT(payload)
-        .setProtectedHeader({
+        expect(response.body).toStrictEqual({
+          title: "Bad Request",
+          status: 400,
+          detail: '["id_token must be a jwt string"]',
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
+
+        let payload: Record<string, unknown> = {
+          sub_did_verification_method_uri: "https://self-issued.me",
+          sub: clientDid,
+          sub_jwk: {},
+          nonce: "nonce",
+        };
+        let idToken = await new SignJWT(payload)
+          .setProtectedHeader({
+            alg,
+            typ: "JWT",
+          })
+          .setIssuedAt()
+          .setIssuer(clientDid) // wrong issuer
+          .setAudience(siopSessionsUrl)
+          .setExpirationTime("15s")
+          .sign(clientPrivateKey);
+
+        response = await request(server)
+          .post("/siop-sessions")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send({ id_token: idToken });
+
+        expect(response.body).toStrictEqual({
+          title: "Invalid ID Token",
+          status: 400,
+          detail:
+            alg === "ES256K"
+              ? "The Response Token Issuer Claim (iss) MUST be https://self-issued.me"
+              : (expect.stringContaining(
+                  `"iss" must be [https://self-issued.me]`
+                ) as string),
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
+
+        idToken = await new SignJWT(payload)
+          .setProtectedHeader({
+            alg,
+            typ: "JWT",
+            kid: "did:ebsi:1234", // wrong DID
+          })
+          .setIssuedAt()
+          .setIssuer("https://self-issued.me")
+          .setAudience(siopSessionsUrl)
+          .setExpirationTime("15s")
+          .sign(clientPrivateKey);
+
+        response = await request(server)
+          .post("/siop-sessions")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send({ id_token: idToken });
+
+        expect(response.body).toStrictEqual({
+          title: "Invalid ID Token",
+          status: 400,
+          detail:
+            alg === "ES256K"
+              ? "resolver_error: Unable to resolve DID document for https://self-issued.me: notFound, registry used: https://api.test.intebsi.xyz/did-registry/v2/identifiers"
+              : (expect.stringContaining("Not Found") as string),
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
+
+        payload = {
+          sub_did_verification_method_uri: clientDid,
+          sub: clientDid,
+          sub_jwk: {},
+          nonce: undefined, // missing nonce
+        };
+
+        idToken = await new SignJWT(payload)
+          .setProtectedHeader({
+            alg,
+            typ: "JWT",
+            kid: clientDid,
+          })
+          .setIssuedAt()
+          .setIssuer("https://self-issued.me")
+          .setAudience(siopSessionsUrl)
+          .setExpirationTime("15s")
+          .sign(clientPrivateKey);
+
+        response = await request(server)
+          .post("/siop-sessions")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send({ id_token: idToken });
+
+        expect(response.body).toStrictEqual({
+          title: "Invalid ID Token",
+          status: 400,
+          detail:
+            alg === "ES256K"
+              ? "No nonce found in JWT payload"
+              : (expect.stringContaining(
+                  "without its required peers [nonce]"
+                ) as string),
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
+
+        const wrongJwk = await fromKeyLike(
+          (
+            await generateKeyPair(alg)
+          ).privateKey
+        );
+
+        idToken = await createAuthenticationResponseJose({
           alg,
-          typ: "JWT",
-        })
-        .setIssuedAt()
-        .setIssuer(clientDid) // wrong issuer
-        .setAudience(siopSessionsUrl)
-        .setExpirationTime("15s")
-        .sign(clientPrivateKey);
-
-      response = await request(server)
-        .post("/siop-sessions")
-        .set("Content-Type", "application/x-www-form-urlencoded")
-        .send({ id_token: idToken });
-
-      expect(response.body).toStrictEqual({
-        title: "Invalid ID Token",
-        status: 400,
-        detail:
-          "The Response Token Issuer Claim (iss) MUST be https://self-issued.me",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(400);
-
-      idToken = await new SignJWT(payload)
-        .setProtectedHeader({
-          alg,
-          typ: "JWT",
-          kid: "did:ebsi:1234", // wrong DID
-        })
-        .setIssuedAt()
-        .setIssuer("https://self-issued.me")
-        .setAudience(siopSessionsUrl)
-        .setExpirationTime("15s")
-        .sign(clientPrivateKey);
-
-      response = await request(server)
-        .post("/siop-sessions")
-        .set("Content-Type", "application/x-www-form-urlencoded")
-        .send({ id_token: idToken });
-
-      expect(response.body).toStrictEqual({
-        title: "Invalid ID Token",
-        status: 400,
-        detail:
-          "resolver_error: Unable to resolve DID document for https://self-issued.me: notFound, registry used: https://api.test.intebsi.xyz/did-registry/v2/identifiers",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(400);
-
-      payload = {
-        nonce: undefined, // missing nonce
-      };
-
-      idToken = await new SignJWT(payload)
-        .setProtectedHeader({
-          alg,
-          typ: "JWT",
-          kid: clientDid,
-        })
-        .setIssuedAt()
-        .setIssuer("https://self-issued.me")
-        .setAudience(siopSessionsUrl)
-        .setExpirationTime("15s")
-        .sign(clientPrivateKey);
-
-      response = await request(server)
-        .post("/siop-sessions")
-        .set("Content-Type", "application/x-www-form-urlencoded")
-        .send({ id_token: idToken });
-
-      expect(response.body).toStrictEqual({
-        title: "Invalid ID Token",
-        status: 400,
-        detail: "No nonce found in JWT payload",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(400);
-
-      payload = {
-        nonce,
-      };
-
-      const wrongPrivateKey = (await generateKeyPair("ES256K")).privateKey;
-      idToken = await new SignJWT(payload)
-        .setProtectedHeader({
-          alg,
-          typ: "JWT",
-          kid: clientDid,
-        })
-        .setIssuedAt()
-        .setIssuer("https://self-issued.me")
-        .setAudience(siopSessionsUrl)
-        .setExpirationTime("15s")
-        .sign(wrongPrivateKey);
-
-      response = await request(server)
-        .post("/siop-sessions")
-        .set("Content-Type", "application/x-www-form-urlencoded")
-        .send({ id_token: idToken });
-
-      expect(response.body).toStrictEqual({
-        title: "Invalid ID Token",
-        status: 400,
-        detail: "invalid_signature: Signature invalid for JWT",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(400);
-    });
-
-    it(`should create a SIOP session for a user that uses alg ${alg}`, async () => {
-      expect.assertions(4);
-
-      const domain = configService.get<string>("domain");
-      const urlPrefix = configService.get<string>("apiUrlPrefix");
-      const privateKey = prefix0x(configService.get<string>("apiPrivateKey"));
-      const siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
-
-      const { uri } = await EbsiDidAuth.createAuthenticationRequest({
-        redirectUri: siopSessionsUrl,
-        hexPrivateKey: privateKey,
-        kid: apiKid,
-        issuer: apiDid,
-      });
-
-      const uriDecoded = querystring.decode(uri.replace("openid://?", ""));
-
-      const nonce = randomUUID();
-      const authenticationResponse =
-        await EbsiDidAuth.createAuthenticationResponse({
-          hexPrivateKey: prefix0x(configService.get("testClientPrivateKey")),
-          did: configService.get("testClientDid"),
+          keyId: keyObject.id,
           nonce,
-          redirectUri: uriDecoded.client_id as string,
-          responseMode: DidAuthResponseMode.FORM_POST,
+          redirectUri: "redirect_uri",
+          privateKeyJwk:
+            alg === "EdDSA" ? [{ use: "sig", ...wrongJwk }] : wrongJwk,
         });
 
-      const authResponseDecoded = querystring.decode(
-        authenticationResponse.bodyEncoded || ""
-      );
+        response = await request(server)
+          .post("/siop-sessions")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send({ id_token: idToken });
 
-      const response = await request(server)
-        .post("/siop-sessions")
-        .set("Content-Type", "application/x-www-form-urlencoded")
-        .send({ id_token: authResponseDecoded.id_token });
-
-      expect(response.body).toStrictEqual({
-        ake1_enc_payload: expect.any(String) as string,
-        ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
-        ake1_sig_payload: expect.objectContaining({
-          ake1_enc_payload: expect.any(String) as string,
-          ake1_nonce: nonce,
-          did: expect.any(String) as string,
-          iat: expect.any(Number) as number,
-          exp: expect.any(Number) as number,
-          iss: apiDid,
-        }) as Ake1SigPayload,
-        did: apiDid,
+        expect(response.body).toStrictEqual({
+          title: "Invalid ID Token",
+          status: 400,
+          detail:
+            alg === "ES256K"
+              ? "invalid_signature: Signature invalid for JWT"
+              : "ID Token validation failed: signature verification failed",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
       });
-      expect(
-        (
-          response.body as { ake1_sig_payload: { did: string } }
-        ).ake1_sig_payload.did.toLowerCase()
-      ).toStrictEqual(configService.get<string>("testClientDid").toLowerCase());
-      expect(response.status).toBe(200);
 
-      // Check that we can get the access token
-      const client = {
-        privateKey: prefix0x(configService.get<string>("testClientPrivateKey")),
-        did: configService.get<string>("testClientDid"),
-        didRegistry: configService.get<string>("didRegistry"),
-      };
-      const agent = new SiopAgent(client);
-      const accessToken = await agent.verifyAuthenticationResponse(
-        response.body,
-        nonce
-      );
-      expect(accessToken).toBeDefined();
-    });
-  });
+      it(`should create a SIOP session for a user that uses alg ${alg}`, async () => {
+        expect.assertions(4);
+
+        const domain = configService.get<string>("domain");
+        const urlPrefix = configService.get<string>("apiUrlPrefix");
+        const privateKey = prefix0x(configService.get<string>("apiPrivateKey"));
+        const siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
+
+        const { uri } = await EbsiDidAuth.createAuthenticationRequest({
+          redirectUri: siopSessionsUrl,
+          hexPrivateKey: privateKey,
+          kid: apiKid,
+          issuer: apiDid,
+        });
+
+        const uriDecoded = querystring.decode(uri.replace("openid://?", ""));
+
+        const nonce = randomUUID();
+
+        const clientPrivateKeys = JSON.parse(
+          Buffer.from(
+            configService.get<string>("testClientPrivateKeysBase64"),
+            "base64"
+          ).toString()
+        ) as {
+          type: string;
+          id: string;
+          privateKeyJwk: JWK | JWK[];
+          publicKeyJwk: JWK | JWK[];
+        }[];
+        const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
+
+        let idToken: string;
+        if (alg === "ES256K") {
+          const authenticationResponse =
+            await EbsiDidAuth.createAuthenticationResponse({
+              hexPrivateKey: prefix0x(keyObject.privateKeyHexES256K),
+              did: configService.get("testClientDid"),
+              nonce,
+              redirectUri: uriDecoded.client_id as string,
+              responseMode: DidAuthResponseMode.FORM_POST,
+            });
+
+          const authResponseDecoded = querystring.decode(
+            authenticationResponse.bodyEncoded || ""
+          );
+
+          idToken = authResponseDecoded.id_token as string;
+        } else {
+          idToken = await createAuthenticationResponseJose({
+            alg,
+            keyId: keyObject.id,
+            nonce,
+            redirectUri: uriDecoded.client_id as string,
+            privateKeyJwk: keyObject.privateKeyJwk,
+          });
+        }
+
+        const response = await request(server)
+          .post("/siop-sessions")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send({ id_token: idToken });
+
+        expect(response.body).toStrictEqual({
+          ake1_enc_payload: expect.any(String) as string,
+          ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
+          ake1_sig_payload: expect.objectContaining({
+            ake1_enc_payload: expect.any(String) as string,
+            ake1_nonce: nonce,
+            did: expect.any(String) as string,
+            iat: expect.any(Number) as number,
+            exp: expect.any(Number) as number,
+            iss: apiDid,
+          }) as Ake1SigPayload,
+          did: apiDid,
+        });
+        expect(
+          (
+            response.body as { ake1_sig_payload: { did: string } }
+          ).ake1_sig_payload.did.toLowerCase()
+        ).toStrictEqual(
+          configService.get<string>("testClientDid").toLowerCase()
+        );
+        expect(response.status).toBe(200);
+
+        // Check that we can get the access token
+        let accessToken: string;
+
+        if (alg === "ES256K") {
+          const client = {
+            privateKey: prefix0x(keyObject.privateKeyHexES256K),
+            did: configService.get<string>("testClientDid"),
+            didRegistry: configService.get<string>("didRegistry"),
+          };
+          const agent = new SiopAgent(client);
+          accessToken = await agent.verifyAuthenticationResponse(
+            response.body,
+            nonce
+          );
+        } else {
+          const ake1EndPayload = (response.body as { ake1_enc_payload: string })
+            .ake1_enc_payload;
+          const { payload } = await jwtDecrypt(
+            ake1EndPayload,
+            keyObject.privateKeyJwkEncryption as crypto.KeyObject
+          );
+          accessToken = (payload as { access_token: string }).access_token;
+        }
+        expect(accessToken).toBeDefined();
+      });
+    }
+  );
 
   describe("SIOP flow", () => {
     it("should support the full SIOP flow for a known user (registered did)", async () => {
@@ -580,10 +647,23 @@ describe("Authorisation (e2e)", () => {
       );
 
       // 3. The client creates an authentication response and gets an ID Token
+      const clientPrivateKeys = JSON.parse(
+        Buffer.from(
+          configService.get<string>("testClientPrivateKeysBase64"),
+          "base64"
+        ).toString()
+      ) as {
+        type: string;
+        id: string;
+        privateKeyJwk: JWK | JWK[];
+        publicKeyJwk: JWK | JWK[];
+      }[];
+      const keyObject = await getKeyByAlg(clientPrivateKeys, "ES256K");
+
       const nonce = randomUUID();
       const authenticationResponse =
         await EbsiDidAuth.createAuthenticationResponse({
-          hexPrivateKey: prefix0x(configService.get("testClientPrivateKey")),
+          hexPrivateKey: prefix0x(keyObject.privateKeyHexES256K),
           did: configService.get("testClientDid"),
           nonce,
           redirectUri: payload.client_id,
@@ -605,7 +685,7 @@ describe("Authorisation (e2e)", () => {
 
       // 5. Finally, the client verifies the SIOP authentication response and gets an access token
       const siopAgent = new SiopAgent({
-        privateKey: prefix0x(configService.get<string>("testClientPrivateKey")),
+        privateKey: prefix0x(keyObject.privateKeyHexES256K),
         didRegistry: configService.get<string>("didRegistry"),
       });
 
@@ -695,6 +775,7 @@ describe("Authorisation (e2e)", () => {
       const did = `did:ebsi:${bs58.encode(crypto.randomBytes(32))}`;
       const privateKey = crypto.randomBytes(32).toString("hex");
       const privateKeyHexEncryption = crypto.randomBytes(32).toString("hex");
+
       const publicKeyEncryption = new EbsiWallet(
         privateKeyHexEncryption
       ).getPublicKey({ format: "jwk" }) as JsonWebKey;

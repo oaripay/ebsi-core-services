@@ -22,7 +22,7 @@ export interface ApiConfig {
   testAppName: string;
   testAppPrivateKey: string;
   testClientDid: string;
-  testClientPrivateKey: string;
+  testClientPrivateKeysBase64: string;
   testIssuerDid: string;
   testIssuerPrivateKey: string;
 }
@@ -102,7 +102,8 @@ export const loadConfig = (): ApiConfig => {
     testAppName: process.env.TEST_APP_NAME || "",
     testAppPrivateKey: process.env.TEST_APP_PRIVATE_KEY || "",
     testClientDid: process.env.TEST_CLIENT_DID || "",
-    testClientPrivateKey: process.env.TEST_CLIENT_PRIVATE_KEY || "",
+    testClientPrivateKeysBase64:
+      process.env.TEST_CLIENT_PRIVATE_KEYS_BASE64 || "",
     testIssuerDid: process.env.TEST_ISSUER_DID || "",
     testIssuerPrivateKey: process.env.TEST_ISSUER_PRIVATE_KEY || "",
   };
