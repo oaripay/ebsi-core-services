@@ -1,6 +1,6 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import {
@@ -10,6 +10,7 @@ import {
 import axios from "axios";
 import { Session } from "@cef-ebsi/oauth2-auth";
 import { Client, types } from "cassandra-driver";
+import { HttpService } from "@nestjs/axios";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { CassandraService } from "../cassandra/cassandra.service";
@@ -20,7 +21,7 @@ jest.mock("cassandra-driver");
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let mockCassandra: jest.SpyInstance;
   let cassandraService: CassandraService;
   let configService: ConfigService<ApiConfig>;
@@ -57,7 +58,7 @@ describe("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     cassandraService = moduleFixture.get<CassandraService>(CassandraService);
     configService = moduleFixture.get<ConfigService>(ConfigService);

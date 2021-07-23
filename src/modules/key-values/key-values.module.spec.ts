@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import {
@@ -11,6 +11,7 @@ import {
 import axios from "axios";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { mapping, Client } from "cassandra-driver";
+import { HttpService } from "@nestjs/axios";
 import { KeyValuesModule } from "./key-values.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { AppUsageModel, KeyValueModel } from "../cassandra/models";
@@ -24,7 +25,7 @@ jest.mock("cassandra-driver");
 
 describe("Key-Values Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let cassandraService: CassandraService;
   let configService: ConfigService<ApiConfig>;
 
@@ -95,7 +96,7 @@ describe("Key-Values Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     cassandraService = moduleFixture.get<CassandraService>(CassandraService);
     configService = moduleFixture.get<ConfigService>(ConfigService);
