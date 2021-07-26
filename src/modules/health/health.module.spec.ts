@@ -1,6 +1,6 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
+import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
 import { HealthIndicatorResult, HttpHealthIndicator } from "@nestjs/terminus";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";

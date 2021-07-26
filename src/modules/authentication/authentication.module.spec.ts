@@ -3,8 +3,8 @@ import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
   INestApplication,
-  ValidationPipe,
   HttpServer,
+  ValidationPipe,
   Logger,
 } from "@nestjs/common";
 import {
