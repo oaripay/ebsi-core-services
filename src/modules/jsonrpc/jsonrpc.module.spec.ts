@@ -2,12 +2,8 @@ import request from "supertest";
 import axios from "axios";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import { HttpService } from "@nestjs/axios";
 import { ethers } from "ethers";
 import crypto from "crypto";
 import { FastifyInstance } from "fastify";
@@ -57,7 +53,7 @@ jest.setTimeout(90000);
 
 describe("JsonRpc Module", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let tirContract: Tir;
   let jsonRpcService: JsonRpcService;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
@@ -238,7 +234,7 @@ describe("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
     configService = moduleFixture.get<ConfigService>(ConfigService);

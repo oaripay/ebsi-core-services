@@ -1,11 +1,7 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import { HttpService } from "@nestjs/axios";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -25,7 +21,7 @@ const POLICIES_REVISIONS_TOTAL = 5;
 
 describe("Policies Module", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpService;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
 
   beforeAll(async () => {
@@ -51,7 +47,7 @@ describe("Policies Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer() as HttpService;
 
     // Mock TIR contract
     const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
