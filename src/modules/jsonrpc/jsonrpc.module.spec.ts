@@ -4,8 +4,8 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import {
   INestApplication,
-  ValidationPipe,
   HttpServer,
+  ValidationPipe,
   Logger,
 } from "@nestjs/common";
 import { ethers } from "ethers";
@@ -168,7 +168,7 @@ describe("JsonRpc Module", () => {
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    configService = moduleFixture.get<ConfigService>(ConfigService);
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     // Generate JWTs
     userAccessTokenPayload = { sub: adminDid };

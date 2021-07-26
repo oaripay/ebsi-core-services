@@ -2,8 +2,8 @@ import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
   INestApplication,
-  ValidationPipe,
   HttpServer,
+  ValidationPipe,
   Logger,
 } from "@nestjs/common";
 import { ethers } from "ethers";
