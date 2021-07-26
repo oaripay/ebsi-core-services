@@ -94,7 +94,7 @@ describe("JsonRpc Module", () => {
     server = app.getHttpServer() as HttpServer;
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
-    configService = moduleFixture.get<ConfigService>(ConfigService);
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     contractService = moduleFixture.get<ContractService>(ContractService);
 
     // Generate JWTs
