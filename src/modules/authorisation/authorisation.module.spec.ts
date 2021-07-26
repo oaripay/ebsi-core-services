@@ -35,6 +35,7 @@ import {
   getPublicKey,
   generateKeys,
   getPrivateKeyHex,
+  randomPrivateKeySecp256k1,
 } from "../../../tests/utils/keys";
 import { createTestClient } from "../../../tests/utils/createTestClient";
 import { getKeyByAlg } from "../../../tests/utils/didAuth";
@@ -638,7 +639,7 @@ describe("Authorisation Module", () => {
           },
         };
 
-        const privateKeyHexEncryption = crypto.randomBytes(32).toString("hex");
+        const privateKeyHexEncryption = randomPrivateKeySecp256k1();
         const publicKeyEncryption = (
           await getPublicKey(privateKeyHexEncryption)
         ).jwk;
@@ -724,7 +725,7 @@ describe("Authorisation Module", () => {
 
         const client = await createClient(alg);
 
-        const privateKeyHexEncryption = crypto.randomBytes(32).toString("hex");
+        const privateKeyHexEncryption = randomPrivateKeySecp256k1();
         const publicKeyEncryption = (
           await getPublicKey(privateKeyHexEncryption)
         ).jwk;
@@ -767,7 +768,7 @@ describe("Authorisation Module", () => {
 
         const client = await createClient(alg);
 
-        const privateKeyHexEncryption = crypto.randomBytes(32).toString("hex");
+        const privateKeyHexEncryption = randomPrivateKeySecp256k1();
         const publicKeyEncryption = (
           await getPublicKey(privateKeyHexEncryption)
         ).jwk;
@@ -810,7 +811,7 @@ describe("Authorisation Module", () => {
 
         const client = await createClient(alg);
 
-        const privateKeyHexEncryption = crypto.randomBytes(32).toString("hex");
+        const privateKeyHexEncryption = randomPrivateKeySecp256k1();
         const publicKeyEncryption = (
           await getPublicKey(privateKeyHexEncryption)
         ).jwk;

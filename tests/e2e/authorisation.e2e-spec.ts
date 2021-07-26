@@ -36,7 +36,7 @@ import { AppModule } from "../../src/app.module";
 import { AuthenticationRequestResponse } from "../../src/modules/authorisation/authorisation.interface";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { ApiConfig } from "../../src/config/configuration";
-import { getPublicKey } from "../utils/keys";
+import { getPublicKey, randomPrivateKeySecp256k1 } from "../utils/keys";
 import { createVerifiableAuthorisation } from "../utils/verifiableAuthorisation";
 import { createVP } from "../utils/verfiablePresentation";
 import {
@@ -229,7 +229,7 @@ describe("Authorisation (e2e)", () => {
       const token = await createJWT(payload, {
         alg: "ES256K",
         issuer: trustedApp.name,
-        signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+        signer: ES256KSigner(randomPrivateKeySecp256k1()),
       });
 
       response = await request(server).post("/oauth2-sessions").send({
@@ -251,7 +251,7 @@ describe("Authorisation (e2e)", () => {
       const apiTarId =
         "0x0000000000000000000000000000000000000000000000000000000000000000";
       const nonce = randomUUID();
-      let agent = new OAuth2Agent(crypto.randomBytes(32).toString("hex"), {
+      let agent = new OAuth2Agent(randomPrivateKeySecp256k1(), {
         issuer: trustedApp.name,
         kid: `${trustedAppsRegistry}/${apiTarId}`,
       });
@@ -272,7 +272,7 @@ describe("Authorisation (e2e)", () => {
       });
       expect(response.status).toBe(400);
 
-      agent = new OAuth2Agent(crypto.randomBytes(32).toString("hex"), {
+      agent = new OAuth2Agent(randomPrivateKeySecp256k1(), {
         issuer: trustedApp.name,
         kid: trustedApp.kid,
       });
@@ -705,8 +705,8 @@ describe("Authorisation (e2e)", () => {
       // will skip it and create the response:
       // A verifiable credential signed by onboarding api
       const did = `did:ebsi:${bs58.encode(crypto.randomBytes(32))}`;
-      const privateKey = crypto.randomBytes(32).toString("hex");
-      const privateKeyHexEncryption = crypto.randomBytes(32).toString("hex");
+      const privateKey = randomPrivateKeySecp256k1();
+      const privateKeyHexEncryption = randomPrivateKeySecp256k1();
       const publicKeyEncryption = new EbsiWallet(
         privateKeyHexEncryption
       ).getPublicKey({ format: "jwk" }) as JsonWebKey;
@@ -773,8 +773,8 @@ describe("Authorisation (e2e)", () => {
       // 1. A Trusted Issuer (different from onboarding api)
       // creates a verifiable authorisation
       const did = `did:ebsi:${bs58.encode(crypto.randomBytes(32))}`;
-      const privateKey = crypto.randomBytes(32).toString("hex");
-      const privateKeyHexEncryption = crypto.randomBytes(32).toString("hex");
+      const privateKey = randomPrivateKeySecp256k1();
+      const privateKeyHexEncryption = randomPrivateKeySecp256k1();
 
       const publicKeyEncryption = new EbsiWallet(
         privateKeyHexEncryption

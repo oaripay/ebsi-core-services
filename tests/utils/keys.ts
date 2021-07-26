@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import parseJwk, { JWK } from "jose/jwk/parse";
 import { ec as EC } from "elliptic";
+import secp256k1 from "secp256k1";
 import { ethers } from "ethers";
 import KeyEncoder from "key-encoder";
 import fromKeyLike from "jose/jwk/from_key_like";
@@ -9,6 +10,7 @@ import base64url from "base64url";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 
 const keyEncoder = new KeyEncoder("secp256k1");
+const ec = new EC("secp256k1");
 
 export interface PublicKey {
   publicKeyObject: crypto.KeyObject;
@@ -16,6 +18,14 @@ export interface PublicKey {
   publicKeyHex: string;
   publicKeyId: string;
   jwk: JWK;
+}
+
+export function randomPrivateKeySecp256k1(): string {
+  let privateKey: Buffer;
+  do {
+    privateKey = crypto.randomBytes(32);
+  } while (!secp256k1.privateKeyVerify(privateKey));
+  return privateKey.toString("hex");
 }
 
 export async function generateKeys(alg: string): Promise<{
@@ -60,7 +70,6 @@ export function getPublicKeyId(publicKeyPem: string): string {
 export async function getPublicKey(_privateKey: string): Promise<PublicKey> {
   let privateKey = _privateKey;
   if (privateKey.startsWith("0x")) privateKey = privateKey.slice(2);
-  const ec = new EC("secp256k1");
   const privKey = ec.keyFromPrivate(privateKey);
   const pubPoint = privKey.getPublic();
   const jwk = EbsiWallet.formatPublicKey(pubPoint, "jwk") as JWK;
