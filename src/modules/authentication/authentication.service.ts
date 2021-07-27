@@ -4,7 +4,6 @@ import { parseJwk } from "jose/jwk/parse";
 import { createJWT, decodeJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { ConfigService } from "@nestjs/config";
 import { randomUUID } from "crypto";
-import querystring from "querystring";
 import {
   createCredential,
   createVerifiableCredential,
@@ -92,16 +91,13 @@ export default class AuthenticationService {
     if (!responseRequest.id_token)
       throw new InvalidResponse(AuthenticationErrors.ID_TOKEN_MISSING);
     const idToken = responseRequest.id_token;
-
-    const token = idToken.substring(idToken.indexOf("#") + 1);
-    const params = querystring.parse(token);
+    const decodedIdToken = decodeJWT(idToken);
     let kid: string;
     /* TODO:
        - check state and nonce
        - check if the DID is registered in the DID Registry
      */
     // Verify that the JWK public key match with token signature
-    const decodedIdToken = decodeJWT(params.id_token as string);
     if (!decodedIdToken.payload.sub_jwk)
       throw new InvalidUserAuthentication(OnboardingErrors.MISSING_SUB_JWK);
     try {
@@ -110,7 +106,7 @@ export default class AuthenticationService {
         ...decodedIdToken.payload.sub_jwk,
       });
       const { payload, protectedHeader } = await compactVerify(
-        params.id_token as string,
+        idToken,
         publicKey
       );
       if (!payload || !protectedHeader)

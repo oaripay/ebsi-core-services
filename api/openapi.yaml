@@ -51,13 +51,7 @@ paths:
                 value:
                   onboarding: "recaptcha"
                   info:
-                    success: true
-                    score: 1
-                    action: "onboarding"
-                    challenge_ts: 1616575166
-                    hostname: "api.ebsi.eu"
-                    error-codes:
-                      - optional
+                    token: 03AGdBq24EL3Pvtf6wNbAoBHFbrgYCbFQrAtOUTN80C_OTgo5UmdYXXbQwEBzWXpZdHvV18kqy2X3ZO5MjYI7-48aEuzaUSi0d4cyssNOrEDhnQ6Fwkw_nPCsOvqn66_8KSjWAFJWcVSDZYiEa3N8cAuPtisha65ypOSQZGTQO8OtvmX3ots3_3Lg0RYE0FR8nmSHvprBzepB_bNRgIkzFyMQLrWCwT1DIxNlG26fbsYqgHTlqc5_XmLovWoUldx_gptqfsqVw5OhCsf4T_sMSESS6FmNYf_5wW_LLdvtTNcTuENfKFzpJWgTNCrUo7jyBKLJQiuo6d6D0mwO3oWx9JJ2h6cGSRqtMukW5kdO_0kuZ2O7mFKkMo_Godnhf3iHTcNqfIHKvd7hoUbb21SOiLNv4gdQ2v0WyhnZGbPPgGaltpTV5UgboUrCAxhwCsQecjKhW10WAzBaw
       responses:
         201:
           description: Success
@@ -178,8 +172,9 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          application/x-www-form-urlencoded:
             schema:
+              title: DID Auth id_token
               type: object
               properties:
                 id_token:

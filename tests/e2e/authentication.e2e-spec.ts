@@ -164,8 +164,12 @@ describe("/onboarding/v1 authentication e2e tests", () => {
     expect.assertions(10);
 
     // 1 - User create the request
-    const ticket =
-      "ST-1673653-zLHa6H26OMFjMvVgFxuebgTKhIQlS8UPhiMEh1zRGjVRHWNBctWNee2WUAkNsasS7dAK2Vy99zzic1JOtLxSfD8-NaAc23CqASexIeoxDbDZLC-MYkDIiLRnYFxbxzrhJzTDq3qR6zMHEeeqDC9EwAvy56Hbx4GqfbnuB3lLpnDWALd8DTE6OXC3Y8HqJldiPQYCL0"; // set valid ticket
+    // EU Login
+    /* const ticket =
+      "ST-1947933-GjzpRzSjZ7XjjhB7SndFSKF4I591mA6MzKOEbERjv54fTU3MtPFlqQ2fjkAhG7Y3SGlFFMXqqAjjfxzwFsFXXQ0-NaAc23CqASeNGVrGrlImSO-XmrpNlYNoJVltIe7CcDdnl3g0WYJqpJNH6i0k15gZXox9RB3njrGQi20a0DKDrot5FTdnFdHdjDrgZulCddDRG"; // set valid ticket */
+    // recaptcha
+    const captchaToken =
+      "03AGdBq27nbCxxLRMJnqiez4BgqMhQuV5oQXJKQc4-wMyCE57q1gbfQagwS-RDghK_RLve7BWiZGLGbyyNPNgEra5BIJEnV5Pdq1-odRaZFaAkr73mcyDEIBViLb7L2vt1p_1XiSD9TjDl2PguioAUKzBo3OrFsRS-bAus88kEUe-6mjkz7ClIBS3_3voera_LEBmDcSoTmFNmm58Fd6CaKzmSGz9-_wGvHqd7q7BNOt514yrCFMEUfiH7UEJu6l1Nf0j-J8_g-buEF9VIIB0Q3ldm9RoKT_gJ-cB4Uo2IwaD7kD2Cg-9Fr6j39yTvNg0bER_pr5TMhonCO16C1hc6ngBhTcE_B7PFaFm3xmGCytFG-G92oFzl6comRdfyYJOHl5xqyBRjClTuQh7FkW0h8NJikBJEq7pgmhkXQZc7W2v3_MXc3kU7T_M";
     const authenticationRequestResponse: SupertestAuthenticationRequestResponse =
       await request(server).post("/authentication-requests").send({
         scope: "ebsi users onboarding",
@@ -209,29 +213,36 @@ describe("/onboarding/v1 authentication e2e tests", () => {
     );
     expect(didAuthResponseJwt.urlEncoded).toBeDefined();
 
-    // Obtain valid token
-    const body = {
+    // EU Login
+    /* const body = {
       onboarding: "eu-login",
       info: {
         "eul-ticket": ticket,
       },
+    } as UserAuthentication; */
+    // recaptcha
+    const body = {
+      onboarding: "recaptcha",
+      info: {
+        token: captchaToken,
+      },
     } as UserAuthentication;
 
-    const response = await request(app.getHttpServer())
-      .post("/sessions")
-      .send(body);
+    const response = await request(server).post("/sessions").send(body);
 
     const token = (response.body as SessionToken).Bearer;
     expect(token).toBeDefined();
+
+    const idToken = didAuthResponseJwt.urlEncoded.substring(
+      didAuthResponseJwt.urlEncoded.indexOf("#") + 1
+    );
 
     // 4 - RP verifies the response and create the verifiable Authorization and creates the verifiable Authorization (requires bearer token)
     const authenticationServerResponse: SupertestAuthenticationResponse =
       await request(server)
         .post("/authentication-responses")
         .auth(token, { type: "bearer" })
-        .send({
-          id_token: didAuthResponseJwt.urlEncoded,
-        });
+        .send(`${idToken}&state=test`); // check if state is set the api handles it
     expect(authenticationServerResponse.status).toBe(201);
     expect(authenticationServerResponse.body).toBeDefined();
     expect(authenticationServerResponse.body).toHaveProperty(
