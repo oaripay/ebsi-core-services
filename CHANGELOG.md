@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv1.0.0&targetRepoId=234) (2021-07-27)
+
+### 🐛 Bug Fixes
+
+- authentication-responses url encoded body ([#28](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/pull-requests/28/overview)) - EBSIINT-3198 ([ad13341](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/commits/ad1334144bbcaa191f0592cc26ce3dadbe2ab26d))
+- update dependencies and upgrade Node.js to 14.17.2 ([#26](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/pull-requests/26/overview)) - EBSIINT-3174 ([56f8bda](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/commits/56f8bda21b0b7deac3237f796e8d601e9e88ba0d))
+
 ## [1.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.3&targetRepoId=234) (2021-06-17)
 
 ### 🚀 Features
