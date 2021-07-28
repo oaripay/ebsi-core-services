@@ -1,6 +1,6 @@
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
-import { ethers } from "ethers";
+import { ContractTransaction, ethers } from "ethers";
 import crypto from "crypto";
 import { HashName } from "multihashes";
 import { Timestamp } from "../../src/contracts/timestamp";
@@ -25,6 +25,7 @@ interface HashObect {
   hashAlgorithmIds: number[];
   hashValues: string[];
   timestampData: string[];
+  tx: ContractTransaction;
 }
 
 export async function deployTimestampContract(): Promise<Timestamp> {
@@ -184,12 +185,17 @@ export async function insertHash(
   ];
   const timestampData = [`0x${crypto.randomBytes(4).toString("hex")}`];
 
-  await contract.timestampHashes(hashAlgorithmIds, hashValues, timestampData);
+  const tx = await contract.timestampHashes(
+    hashAlgorithmIds,
+    hashValues,
+    timestampData
+  );
 
   return {
     hashAlgorithmIds,
     hashValues,
     timestampData,
+    tx,
   };
 }
 

@@ -1,19 +1,18 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe } from "@nestjs/common";
+import { HttpServer, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { Logger } from "@nestjs/common/services/logger.service";
-import { HttpService } from "@nestjs/axios";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 
 describe("/timestamp/v2 (generic tests)", () => {
   let app: NestFastifyApplication;
-  let server: HttpService;
+  let server: HttpServer;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -30,7 +29,7 @@ describe("/timestamp/v2 (generic tests)", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpService;
+    server = app.getHttpServer() as HttpServer;
   });
 
   describe("GET /health", () => {

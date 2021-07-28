@@ -2,7 +2,12 @@ import crypto from "crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import {
+  INestApplication,
+  ValidationPipe,
+  HttpServer,
+  Logger,
+} from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -10,7 +15,6 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import { HashName } from "multihashes";
-import { HttpService } from "@nestjs/axios";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -38,7 +42,7 @@ type JsonRpcParams =
 
 describe("Timestamp (e2e)", () => {
   let app: INestApplication;
-  let server: HttpService;
+  let server: HttpServer;
   let ledgerService: LedgerService;
   let hashAlgorithmId: number;
   let hashAlgorithMultihash: HashName;
@@ -82,7 +86,7 @@ describe("Timestamp (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpService;
+    server = app.getHttpServer() as HttpServer;
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);

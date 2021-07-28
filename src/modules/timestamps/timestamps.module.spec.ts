@@ -1,6 +1,11 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import {
+  INestApplication,
+  ValidationPipe,
+  HttpServer,
+  Logger,
+} from "@nestjs/common";
 import crypto from "crypto";
 import {
   FastifyAdapter,
@@ -8,12 +13,11 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
-import { HttpService } from "@nestjs/axios";
 import { TimestampsModule } from "./timestamps.module";
 import { TimestampLink } from "./timestamps.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
-import { setupTestEnv } from "../../../tests/utils/timestamp";
+import { setupTestEnv, insertHash } from "../../../tests/utils/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { multibase64Encode, multihashEncode } from "../../shared/utils";
 import { LedgerService } from "../../shared/services/ledger.service";
@@ -22,7 +26,7 @@ const HASHES_TOTAL = 3;
 
 describe("Timestamps Module", () => {
   let app: INestApplication;
-  let server: HttpService;
+  let server: HttpServer;
   let timestampContract: Timestamp;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let ledgerService: LedgerService;
@@ -55,7 +59,7 @@ describe("Timestamps Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpService;
+    server = app.getHttpServer() as HttpServer;
 
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
@@ -309,6 +313,64 @@ describe("Timestamps Module", () => {
         hash: expect.any(String) as string,
         timestampedBy: expect.stringContaining("0x") as string,
         transactionHash: expect.stringContaining("0x") as string,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should return a specific timestamp when there are many transactions in the same block", async () => {
+      expect.assertions(5);
+
+      // Disable auto mine
+      await testEnv.provider.send("evm_setAutomine", [false]);
+
+      // Send multiple tx
+      const hash1 = await insertHash(
+        testEnv.timestampContract,
+        testEnv.hashAlgorithms[0]
+      );
+      const hash2 = await insertHash(
+        testEnv.timestampContract,
+        testEnv.hashAlgorithms[0]
+      );
+      const hash3 = await insertHash(
+        testEnv.timestampContract,
+        testEnv.hashAlgorithms[0]
+      );
+
+      // Mine block
+      await testEnv.provider.send("evm_mine", []);
+      await testEnv.provider.send("evm_setAutomine", [true]);
+
+      // Get block numbers
+      const { blockNumber: blockNumberTx1 } =
+        await testEnv.provider.getTransaction(hash1.tx.hash);
+      const { blockNumber: blockNumberTx2 } =
+        await testEnv.provider.getTransaction(hash2.tx.hash);
+      const { blockNumber: blockNumberTx3 } =
+        await testEnv.provider.getTransaction(hash3.tx.hash);
+
+      // Make sure all the transactions are in the same block
+      expect(blockNumberTx1).not.toBeNull();
+      expect(blockNumberTx1).toStrictEqual(blockNumberTx2);
+      expect(blockNumberTx2).toStrictEqual(blockNumberTx3);
+
+      // Get second hash data
+      const timestampId = multibase64Encode(
+        ethers.utils.sha256(hash2.hashValues[0])
+      );
+
+      const response = await request(server).get(`/timestamps/${timestampId}`);
+
+      // Verify response (especially "transactionHash")
+      expect(response.body).toStrictEqual({
+        blockNumber: blockNumberTx1,
+        data: hash2.timestampData[0],
+        hash: multihashEncode(
+          hash2.hashValues[0],
+          testEnv.hashAlgorithms[0].multihash
+        ),
+        timestampedBy: await testEnv.timestampContract.signer.getAddress(),
+        transactionHash: hash2.tx.hash,
       });
       expect(response.status).toBe(200);
     });
