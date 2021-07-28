@@ -7,6 +7,7 @@ enum OnboardingErrors {
   MISSING_SUB_JWK = "sub_jwk missing in token payload",
   VALIDATION_FAILED = "validation failed",
   ERROR_RECAPTCHA_VALIDATION = "provided recaptcha response validation failed",
+  ERROR_DECODING_ID_TOKEN = "id_token could not be decoded",
 }
 enum AuthenticationErrors {
   INVALID_SCOPE = "Invalid scope",

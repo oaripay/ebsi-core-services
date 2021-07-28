@@ -86,6 +86,18 @@ describe("authentication service tests", () => {
     expect(mockedDidFromKid).toHaveBeenCalledWith(jwtKid);
   });
 
+  it("should throw an error if the id_token can not be decoded", async () => {
+    expect.assertions(1);
+    const authenticationService: AuthenticationService =
+      new AuthenticationService(configService);
+    const mockedAuthRequest = {
+      id_token: "badtoken",
+    };
+    await expect(
+      authenticationService.validateResponse(mockedAuthRequest)
+    ).rejects.toThrow("id_token could not be decoded");
+  });
+
   it("should throw an error if the validation of the response is not ok", async () => {
     expect.assertions(1);
     const authenticationService: AuthenticationService =

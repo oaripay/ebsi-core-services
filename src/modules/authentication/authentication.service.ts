@@ -11,6 +11,7 @@ import {
   SignatureValue,
 } from "@cef-ebsi/verifiable-credential";
 
+import { JWTDecoded } from "did-jwt/lib/JWT";
 import {
   AuhtenticationResponseRequest,
   AuthenticationRequest,
@@ -91,7 +92,14 @@ export default class AuthenticationService {
     if (!responseRequest.id_token)
       throw new InvalidResponse(AuthenticationErrors.ID_TOKEN_MISSING);
     const idToken = responseRequest.id_token;
-    const decodedIdToken = decodeJWT(idToken);
+    let decodedIdToken: JWTDecoded;
+    try {
+      decodedIdToken = decodeJWT(idToken);
+    } catch (error) {
+      throw new InvalidUserAuthentication(
+        `${OnboardingErrors.ERROR_DECODING_ID_TOKEN}: ${error as string}`
+      );
+    }
     let kid: string;
     /* TODO:
        - check state and nonce
