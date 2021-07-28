@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv1.0.0&targetRepoId=234) (2021-07-28)
+
+### 🐛 Bug Fixes
+
+- missing try-catch decoding id_token ([#32](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/pull-requests/32/overview)) - EBSIINT-3204 ([af7c76f](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/commits/af7c76f813f9702244edd33515514380dbda1add))
+
 ## [1.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv1.0.0&targetRepoId=234) (2021-07-27)
 
 ### 🐛 Bug Fixes
