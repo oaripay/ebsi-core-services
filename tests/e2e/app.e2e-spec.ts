@@ -1,12 +1,11 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { Logger } from "@nestjs/common";
+import { Logger, HttpServer } from "@nestjs/common";
 import request from "supertest";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
-import { HttpService } from "@nestjs/axios";
 import { AppModule } from "../../src/app.module";
 import { EbsiValidationPipe } from "../../src/pipes/ebsi-validation.pipe";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -15,7 +14,7 @@ jest.setTimeout(10000);
 
 describe("AppController (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpService;
+  let server: HttpServer;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -33,7 +32,7 @@ describe("AppController (e2e)", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpService;
+    server = app.getHttpServer() as HttpServer;
   });
 
   afterAll(async () => {
