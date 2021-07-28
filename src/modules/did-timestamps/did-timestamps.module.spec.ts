@@ -1,13 +1,17 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import {
+  INestApplication,
+  ValidationPipe,
+  Logger,
+  HttpServer,
+} from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
-import { HttpService } from "@nestjs/axios";
 import { DidTimestampsModule } from "./did-timestamps.module";
 import {
   DidTimestampResponseObject,
@@ -31,7 +35,7 @@ describe("DidTimestamps Module", () => {
     "(with %s DIDs)",
     (lettercase: string) => {
       let app: INestApplication;
-      let server: HttpService;
+      let server: HttpServer;
       let testEnv: AsyncReturnType<typeof setupTestEnv>;
       let ledgerService: LedgerService;
 
@@ -63,7 +67,7 @@ describe("DidTimestamps Module", () => {
         app.useGlobalPipes(new ValidationPipe({ transform: true }));
         await app.init();
         await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-        server = app.getHttpServer() as HttpService;
+        server = app.getHttpServer() as HttpServer;
 
         // Mock Contract service
         ledgerService = moduleFixture.get<LedgerService>(LedgerService);

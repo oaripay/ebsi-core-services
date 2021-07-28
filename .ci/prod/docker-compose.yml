@@ -3,4 +3,4 @@ version: "3.7"
 services:
   did-registry-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api:prod_ebsiint-3183-nestv8_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api:prod_ebsiint-3202-test-http-server_v2.0.0
