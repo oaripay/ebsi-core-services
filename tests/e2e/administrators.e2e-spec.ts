@@ -2,14 +2,18 @@ import crypto from "crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import {
+  INestApplication,
+  ValidationPipe,
+  Logger,
+  HttpServer,
+} from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
-import { HttpService } from "@nestjs/axios";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import {
@@ -57,7 +61,7 @@ interface SupertestAttributeResponse {
 
 describe("Administrators (e2e)", () => {
   let app: INestApplication;
-  let server: HttpService;
+  let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
   let contractService: ContractService;
@@ -97,7 +101,7 @@ describe("Administrators (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpService;
+    server = app.getHttpServer() as HttpServer;
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);

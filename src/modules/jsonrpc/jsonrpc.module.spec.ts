@@ -3,7 +3,12 @@ import request from "supertest";
 import crypto from "crypto";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import {
+  INestApplication,
+  ValidationPipe,
+  Logger,
+  HttpServer,
+} from "@nestjs/common";
 import { ethers } from "ethers";
 import { FastifyInstance } from "fastify";
 import {
@@ -12,7 +17,6 @@ import {
 } from "@nestjs/platform-fastify";
 import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
-import { HttpService } from "@nestjs/axios";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -55,7 +59,7 @@ jest.setTimeout(180000);
 
 describe("JsonRpc Module", () => {
   let app: INestApplication;
-  let server: HttpService;
+  let server: HttpServer;
   let schemasRegistryContract: SchemaSCRegistry;
   let jsonRpcService: JsonRpcService;
   let configService: ConfigService<ApiConfig>;
@@ -165,10 +169,10 @@ describe("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpService;
+    server = app.getHttpServer() as HttpServer;
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
-    configService = moduleFixture.get<ConfigService>(ConfigService);
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     contractService = moduleFixture.get<ContractService>(ContractService);
 
     // Generate JWTs
