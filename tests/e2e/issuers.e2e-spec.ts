@@ -3,8 +3,12 @@ import crypto from "crypto";
 import { ethers } from "ethers";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
-import { HttpService } from "@nestjs/axios";
+import {
+  INestApplication,
+  ValidationPipe,
+  Logger,
+  HttpServer,
+} from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -60,7 +64,7 @@ interface AttributeObjectWithData extends AttributeObject {
 
 describe("Issuers (e2e)", () => {
   let app: INestApplication;
-  let server: HttpService;
+  let server: HttpServer;
   let configService: ConfigService<ApiConfig>;
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
@@ -107,7 +111,7 @@ describe("Issuers (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpService;
+    server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);

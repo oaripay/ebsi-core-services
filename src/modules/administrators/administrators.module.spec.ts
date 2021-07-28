@@ -2,7 +2,12 @@ import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import {
+  INestApplication,
+  ValidationPipe,
+  Logger,
+  HttpServer,
+} from "@nestjs/common";
 import { ethers } from "ethers";
 import {
   FastifyAdapter,
@@ -11,7 +16,6 @@ import {
 import { FastifyInstance } from "fastify";
 import { Session } from "@cef-ebsi/siop-auth";
 import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
-import { HttpService } from "@nestjs/axios";
 import { AdministratorsModule } from "./administrators.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { AttributeObject } from "./administrators.interface";
@@ -27,7 +31,7 @@ const ADMINISTRATORS_TOTAL = 3;
 
 describe("Administrators Module", () => {
   let app: INestApplication;
-  let server: HttpService;
+  let server: HttpServer;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let configService: ConfigService<ApiConfig>;
   let admin0AccessToken: string;
@@ -60,7 +64,7 @@ describe("Administrators Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpService;
+    server = app.getHttpServer() as HttpServer;
 
     // Generate JWTs
     admin0AccessTokenPayload = { sub: testEnv.administrators[0].did };
