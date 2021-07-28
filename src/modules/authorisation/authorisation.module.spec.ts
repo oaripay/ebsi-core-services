@@ -12,8 +12,12 @@ import {
 import SignJWT from "jose/jwt/sign";
 import { Test, TestingModule } from "@nestjs/testing";
 import axios, { AxiosResponse } from "axios";
-import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
-import { HttpService } from "@nestjs/axios";
+import {
+  INestApplication,
+  ValidationPipe,
+  Logger,
+  HttpServer,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
@@ -93,7 +97,7 @@ async function createClient(alg: string) {
 
 describe("Authorisation Module", () => {
   let app: INestApplication;
-  let server: HttpService;
+  let server: HttpServer;
   let configService: ConfigService<ApiConfig>;
   let apiPrivateKey: string;
   let apiDid: string;
@@ -122,7 +126,7 @@ describe("Authorisation Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpService;
+    server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     apiPrivateKey = configService.get("apiPrivateKey");
