@@ -1,14 +1,13 @@
 import request from "supertest";
 import crypto from "crypto";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { HttpService } from "@nestjs/axios";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { AppModule } from "../../src/app.module";
 import { fastifyAdapterConfig } from "../../src/config/server.config";
@@ -17,7 +16,7 @@ import { requestOAuth2Jwt } from "../utils";
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpService;
+  let server: HttpServer;
   let configService: ConfigService<ApiConfig>;
 
   let accessToken: string;
@@ -38,7 +37,7 @@ describe("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpService;
+    server = app.getHttpServer() as HttpServer;
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     // Generate a valid JWT for the tests

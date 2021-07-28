@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
 import { FastifyInstance } from "fastify";
@@ -12,7 +12,6 @@ import {
 import fastifyMultipart from "fastify-multipart";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { mapping, Client } from "cassandra-driver";
-import { HttpService } from "@nestjs/axios";
 import { FilesModule } from "./files.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { AppUsageModel, FileModel } from "../cassandra/models";
@@ -28,7 +27,7 @@ jest.mock("cassandra-driver");
 
 describe("Files Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpService;
+  let server: HttpServer;
   let filesRepository: FilesRepository;
   let cassandraService: CassandraService;
   let configService: ConfigService<ApiConfig>;
@@ -102,11 +101,11 @@ describe("Files Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpService;
+    server = app.getHttpServer() as HttpServer;
 
     filesRepository = moduleFixture.get<FilesRepository>(FilesRepository);
     cassandraService = moduleFixture.get<CassandraService>(CassandraService);
-    configService = moduleFixture.get<ConfigService>(ConfigService);
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
   });
 
   afterEach(() => {

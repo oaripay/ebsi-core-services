@@ -2,13 +2,12 @@ import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import { ValidationPipe, Logger } from "@nestjs/common";
+import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
-import { HttpService } from "@nestjs/axios";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { fastifyAdapterConfig } from "../../src/config/server.config";
@@ -21,7 +20,7 @@ const BASE_URL = "/stores/distributed/key-values";
 
 describe("Key-Values (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpService;
+  let server: HttpServer;
   let configService: ConfigService<ApiConfig>;
   let testUserAccessToken: string;
 
@@ -50,7 +49,7 @@ describe("Key-Values (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpService;
+    server = app.getHttpServer() as HttpServer;
 
     // Generate a valid Client JWT (SIOP) for the tests
     const didRegistry = `${configService.get<string>(
