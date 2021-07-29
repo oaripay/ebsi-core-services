@@ -167,15 +167,20 @@ export default class SessionsService {
       const response = await axios.get<CaptchaAuthenticationValidatedInfo>(
         `${this.recaptchaService}/siteverify?${parameters}`
       );
+
       // score ranges from 0 to 1 where 0 is a bot an 1 is a human
       // see https://developers.google.com/recaptcha/docs/v3 for more details
       if (
         response.data.success &&
         response.data.hostname.includes(this.recaptchaRegisteredHostname) &&
         response.data.score > 0.5
-      )
+      ) {
         return response.data;
+      }
+
+      this.logger.error(response.data);
     } catch (error) {
+      this.logger.error(error);
       throw new InvalidUserAuthentication(
         OnboardingErrors.ERROR_RECAPTCHA_VALIDATION
       );

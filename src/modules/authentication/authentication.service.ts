@@ -10,7 +10,6 @@ import {
   RequiredProof,
   SignatureValue,
 } from "@cef-ebsi/verifiable-credential";
-
 import { JWTDecoded } from "did-jwt/lib/JWT";
 import {
   AuhtenticationResponseRequest,

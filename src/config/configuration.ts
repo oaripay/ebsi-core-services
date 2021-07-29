@@ -9,12 +9,9 @@ export interface ApiConfig {
   apiName: string;
   apiPrivateKey: string;
   apiUrlPrefix: string;
-  contractAddr: string;
   domain: string;
   localOrigin: string;
   logLevel: string;
-  ledger: string;
-  adminTestPrivateKey: string;
   externalEbsiApiHealthCheck: string;
   trustedAppsRegistry: string;
   didResolver: string;
@@ -28,18 +25,15 @@ export interface ApiConfig {
   recaptchaApiKey: string;
   testUserDid: string;
   testUserPrivateKey: string;
-  testApp: {
-    id: string;
-    name: string;
-    privateKey: string;
-  };
+  testEuLoginUsername: string;
+  testEuLoginPassword: string;
+  testRecaptchaToken: string;
 }
 
 // Example of default values to be used, depending on the environment
 const defaultConfig = {
   local: {
     DOMAIN: "https://api.test.intebsi.xyz",
-    LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     AUTHORISATION: "https://api.test.intebsi.xyz/authorisation/v1",
     TRUSTED_APPS_REGISTRY:
@@ -54,7 +48,6 @@ const defaultConfig = {
   },
   test: {
     DOMAIN: "https://api.test.intebsi.xyz",
-    LEDGER: "https://api.test.intebsi.xyz/ledger/v2",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     AUTHORISATION: "https://api.test.intebsi.xyz/authorisation/v1",
     TRUSTED_APPS_REGISTRY:
@@ -69,7 +62,6 @@ const defaultConfig = {
   },
   pilot: {
     DOMAIN: "https://api.preprod.ebsi.eu",
-    LEDGER: "https://api.preprod.ebsi.eu/ledger/v2",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
     AUTHORISATION: "https://api.preprod.ebsi.eu/authorisation/v1",
     TRUSTED_APPS_REGISTRY:
@@ -84,7 +76,6 @@ const defaultConfig = {
   },
   prod: {
     DOMAIN: "https://api.ebsi.eu",
-    LEDGER: "https://api.ebsi.eu/ledger/v2",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
     AUTHORISATION: "https://api.ebsi.eu/authorisation/v1",
     TRUSTED_APPS_REGISTRY: "https://api.ebsi.eu/trusted-apps-registry/v2/apps",
@@ -105,7 +96,6 @@ export const loadConfig = (): ApiConfig => {
   const { EBSI_ENV } = process.env;
 
   return {
-    adminTestPrivateKey: process.env.ADMIN_TEST_PRIVATE_KEY || "",
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiName: "users-onboarding-api",
     authApiName: "authorisation-api",
@@ -113,11 +103,9 @@ export const loadConfig = (): ApiConfig => {
       process.env.AUTHORISATION || defaultConfig[EBSI_ENV].AUTHORISATION,
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/users-onboarding/v1",
-    contractAddr: process.env.CONTRACT_ADDR,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
-    ledger: process.env.LEDGER || defaultConfig[EBSI_ENV].LEDGER,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
     didResolver:
@@ -139,13 +127,11 @@ export const loadConfig = (): ApiConfig => {
       process.env.RECAPTCHA_REGISTERED_HOSTNAME ||
       defaultConfig[EBSI_ENV].RECAPTCHA_REGISTERED_HOSTNAME,
     recaptchaApiKey: process.env.RECAPTCHA_API_KEY,
-    testUserDid: process.env.USER_DID || "",
-    testUserPrivateKey: process.env.USER_PRIVATE_KEY || "",
-    testApp: {
-      id: process.env.TEST_APP_ID,
-      name: process.env.TEST_APP_NAME,
-      privateKey: process.env.TEST_APP_PRIVATE_KEY,
-    },
+    testUserDid: process.env.TEST_USER_DID || "",
+    testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY || "",
+    testEuLoginUsername: process.env.TEST_EU_LOGIN_USERNAME,
+    testEuLoginPassword: process.env.TEST_EU_LOGIN_PASSWORD,
+    testRecaptchaToken: process.env.TEST_RECAPTCHA_TOKEN,
   };
 };
 
@@ -184,7 +170,10 @@ export const ApiConfigModule = ConfigModule.forRoot({
     APPLICATION_ID: Joi.string().required(),
     APPLICATION_DID: Joi.string().required(),
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string().required(),
-    USER_DID: Joi.string(),
-    USER_PRIVATE_KEY: Joi.string(),
+    TEST_USER_DID: Joi.string(),
+    TEST_USER_PRIVATE_KEY: Joi.string(),
+    TEST_EU_LOGIN_USERNAME: Joi.string(),
+    TEST_EU_LOGIN_PASSWORD: Joi.string(),
+    TEST_RECAPTCHA_TOKEN: Joi.string(),
   }),
 });

@@ -36,8 +36,8 @@ For more information see:
 
 You can choose to run the project locally with your own Node.js environment, or you can use Docker Compose to run it.
 First, create an `.env.local` file locally. You can duplicate the content of `.env` or only set the variables that you want to change.
-Please note that you need to fill the API_PRIVATE_KEY and ADMIN_TEST_PRIVATE_KEY environment variable with secp256k1 elliptic curve private keys in hexadecimal.
-You must at least set `API_PRIVATE_KEY`, `APPLICATION_ID`, `APPLICATION_DID` and `EBSI_ENV` to run the API. For e2e testing, you must also set `USER_PRIVATE_KEY` and `USER_DID`.
+Please note that you need to fill the API_PRIVATE_KEY environment variable with secp256k1 elliptic curve private keys in hexadecimal.
+You must at least set `API_PRIVATE_KEY`, `APPLICATION_ID`, `APPLICATION_DID` and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_USER_PRIVATE_KEY`, `TEST_USER_DID`, `TEST_EU_LOGIN_USERNAME`, `TEST_EU_LOGIN_PASSWORD`, and `TEST_RECAPTCHA_TOKEN`.
 
 ### Run the project locally
 

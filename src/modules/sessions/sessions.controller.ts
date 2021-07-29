@@ -12,8 +12,11 @@ export class SessionsController {
   @Post("/sessions")
   async check(@Body() body: UserAuthentication): Promise<SessionToken> {
     const validatedInfo = await this.sessionsService.validateOnboarding(body);
-    if (!validatedInfo)
+
+    if (!validatedInfo) {
       throw new InvalidUserAuthentication(OnboardingErrors.VALIDATION_FAILED);
+    }
+
     return this.sessionsService.provideSessionToken(body, validatedInfo);
   }
 }

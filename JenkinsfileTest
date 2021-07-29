@@ -7,11 +7,6 @@ pipeline {
         API_PRIVATE_KEY=credentials('API_PRIVATE_KEY_USERS_ON')
         APPLICATION_ID='0x19d004e7f6ecf264523e136924cb68796ca9dbfa25bca053b2f6af0fc6fdd88c'
         APPLICATION_DID='did:ebsi:6QYJc3tLRhey88WPKC2kv588v1uZ1oid3yfc5Lp5AbYD'
-        USER_PRIVATE_KEY=credentials('USER_PRIVATE_KEY')
-        USER_DID='did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e'
-        TEST_APP_ID='0x893637a56318eeb621b50c9669d2533e9ac2579f699b3da194c41663010023ca'
-        TEST_APP_NAME='storage-api'
-        TEST_APP_PRIVATE_KEY=credentials('API_PRIVATE_KEY_STORAGE')
         AUTHORISATION_CREDENTIAL_SCHEMA='https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313338312e332e31322e332e322e332e3738'
         RECAPTCHA_API_KEY='test'
     }

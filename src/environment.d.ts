@@ -14,6 +14,18 @@ declare global {
       RECAPTCHA_SERVICE_URL?: string;
       RECAPTCHA_REGISTERED_HOSTNAME?: string;
       RECAPTCHA_API_KEY: string;
+      AUTHORISATION?: string;
+      API_PRIVATE_KEY: string;
+      HEALTH_CHECK?: string;
+      DID_RESOLVER?: string;
+      TRUSTED_APPS_REGISTRY?: string;
+      APPLICATION_ID?: string;
+      APPLICATION_DID?: string;
+      TEST_USER_DID?: string;
+      TEST_USER_PRIVATE_KEY?: string;
+      TEST_EU_LOGIN_USERNAME?: string;
+      TEST_EU_LOGIN_PASSWORD?: string;
+      TEST_RECAPTCHA_TOKEN?: string;
     }
   }
 }
