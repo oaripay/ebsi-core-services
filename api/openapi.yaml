@@ -220,7 +220,7 @@ paths:
         - Hyperledger Fabric
       summary: Get a list of all the available channels
       description: Returns a list of all the available EBSI Fabric channels.
-      operationId: get-ledger-v2-blockchains-besu-channels
+      operationId: get-ledger-v2-blockchains-fabric-channels
       parameters:
         - in: query
           name: page[after]
@@ -282,6 +282,56 @@ paths:
                     type: number
                   detail:
                     type: string
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}:
+    get:
+      tags:
+        - Hyperledger Fabric
+      description: Check if channel exists
+      summary: Check if channel exists
+      operationId: get-ledger-v2-blockchains-fabric-channel
+      parameters:
+        - schema:
+            type: string
+          name: channel
+          in: path
+          required: true
+          description: Fabric channel name.
+      responses:
+        204:
+          description: Success. Channel exists.
+        400:
+          description: Bad request. The format of the {channel} parameter is not valid.
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]'
+        404:
+          description: Channel {channel} not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Channel Not Found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: Channel {channel} not found
+        500:
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"

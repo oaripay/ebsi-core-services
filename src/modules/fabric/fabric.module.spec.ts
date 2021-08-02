@@ -43,7 +43,6 @@ describe("Fabric Module", () => {
     await app.close();
   });
 
-  // Generic tests
   describe("GET /channels", () => {
     it("should return a list of channels", async () => {
       expect.assertions(2);
@@ -83,6 +82,58 @@ describe("Fabric Module", () => {
         },
       });
       expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /channels/{channel}", () => {
+    it("should return 204 if the channel exists", async () => {
+      expect.assertions(2);
+
+      const channelsNames = Object.keys(channels);
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsNames[0]}`
+      );
+
+      expect(response.text).toStrictEqual("");
+      expect(response.status).toBe(204);
+    });
+
+    it("should return 400 if the channel parameter is not formatted correctly", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown_ch@nnel";
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return 404 if the channel doesn't exist", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown-channel";
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `Channel ${channelsName} not found`,
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
     });
   });
 });
