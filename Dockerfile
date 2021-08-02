@@ -1,9 +1,10 @@
-FROM node:14.17.2-alpine3.13@sha256:8e5fc139d0bf73cee9b07949c5fe83ac7495a4eedf24b8d205db65e747f301ef as base
+FROM node:14.17.4-alpine3.133@sha256:827464075192dd324a0460429c48baa6d9b4589db7d3bb3bd57921471e8b3a62 as base
 WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
 
 FROM base as builder
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 RUN yarn install --frozen-lockfile --silent && yarn cache clean
 COPY nest-cli.json tsconfig*.json ./
 COPY src src
