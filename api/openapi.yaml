@@ -34,13 +34,6 @@ info:
     name: EBSI Support – Service Desk
     url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
   termsOfService: /docs/terms
-servers:
-  - url: "http://localhost"
-    description: Local Computer Environment
-  - url: "https://api.preprod.ebsi.eu"
-    description: EBSI Pre-production Environment
-  - url: "https://api.ebsi.eu"
-    description: EBSI Production Environment
 tags:
   - name: Hyperledger Besu Ethereum Enterprise Client
     description: Interact with the Ethereum Enterprise Client RPC APIs
@@ -257,31 +250,36 @@ paths:
                     type: integer
                     description: Number of items to be return per page.
               examples:
-                Get Available Channels:
+                "[test] Get Available Channels":
                   value:
-                    self: /ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
                     items:
                       - ebsi-channel
                     total: 1
                     pageSize: 10
                     links:
-                      first: /ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
-                      prev: /ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
-                      next: /ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
-                      last: /ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                "[pilot] Get Available Channels":
+                  value:
+                    self: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                    items:
+                      - ebsi-channel
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
         500:
           description: Internal Server Error
           content:
             "application/problem+json":
               schema:
-                type: object
-                properties:
-                  title:
-                    type: string
-                  status:
-                    type: number
-                  detail:
-                    type: string
+                $ref: "#/components/schemas/Problem"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
@@ -336,11 +334,6 @@ paths:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
 components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
   schemas:
     BesuResponse:
       title: Hyperledger Besu Response
@@ -362,18 +355,6 @@ components:
     Problem:
       description: A Problem Details object (RFC 7807)
       type: object
-      x-examples:
-        Not Enough Credit:
-          type: https://example.com/probs/out-of-credit
-          title: You do not have enough credit.
-          detail: Your current balance is 30, but that costs 50.
-          instance: /account/12345/msgs/abc
-    Channel:
-      title: Hyperledger Fabric Channel
-      type: string
-      description: Hyperledger Fabric channel data model
-      x-examples:
-        Channel: ebsichannel
       properties:
         type:
           type: string
@@ -406,8 +387,13 @@ components:
           description: |
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
+    Channel:
+      title: Hyperledger Fabric Channel
+      description: Hyperledger Fabric channel data model
+      type: string
     Links:
       title: Links
+      description: Links model used for pagination
       type: object
       properties:
         last:
@@ -422,51 +408,64 @@ components:
         first:
           type: string
           description: URI of the first page
-      description: links model used for pagination
-      x-examples:
-        Links:
-          first: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=0&page[size]=2
-          prev: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=2&page[size]=2
-          next: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=4&page[size]=2
-          last: /ledger/v2/blockchains/fabric/channels/ebsichannel/transactions?page[after]=13&page[size]=2
   examples:
     BesuPermissions:
       value:
         title: Forbidden
         status: 403
         detail: The method 'eth_sendRawTransaction' needs besu permissions
+        type: about:blank
     NoDeploySC:
       value:
         title: Forbidden
         status: 403
         detail: Deployment of new smart contracts is not allowed
+        type: about:blank
     NoAnonymous:
       value:
         title: Unauthorized
         status: 401
         detail: The method 'eth_sendRawTransaction' is not available for anonymous access
+        type: about:blank
     MethodDisabled:
       value:
         title: Bad Request
         status: 400
         detail: The method 'eth_compileSolidity' is currently disabled
+        type: about:blank
     MethodNoExists:
       value:
         title: Bad Request
         status: 400
         detail: The method {method} does not exist
+        type: about:blank
     BadRequest:
       value:
         title: Bad Request
         status: 400
         detail: Bad request.
+        type: about:blank
     InvalidToken:
       value:
         title: Invalid Token
         status: 400
         detail: Token has expired. Max age of a token is 15 min.
+        type: about:blank
     InternalError:
       value:
         title: Internal Server Error
         status: 500
         detail: The server encountered an internal error and was unable to complete your request.
+        type: about:blank
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+servers:
+  - url: "http://localhost"
+    description: Local Computer Environment
+  - url: "https://api.preprod.ebsi.eu"
+    description: EBSI Pre-production Environment
+  - url: "https://api.ebsi.eu"
+    description: EBSI Production Environment
