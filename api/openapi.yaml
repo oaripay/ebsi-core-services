@@ -30,11 +30,6 @@ paths:
       description: Returns a list of hash algorithms
       parameters:
         - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
           name: page[after]
           schema:
             type: string
@@ -76,21 +71,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.test.ebsi.xyz/timestamp/v2/hash-algorithms?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/timestamp/v2/hash-algorithms?page[after]=3&page[size]=2
                     items:
                       - hashAlgorithmId: 0
-                        href: https://api.test.ebsi.xyz/timestamp/v2/hash-algorithms/0
+                        href: https://api.test.intebsi.xyz/timestamp/v2/hash-algorithms/0
                       - hashAlgorithmId: 1
-                        href: https://api.test.ebsi.xyz/timestamp/v2/hash-algorithms/1
+                        href: https://api.test.intebsi.xyz/timestamp/v2/hash-algorithms/1
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.ebsi.xyz/timestamp/v2/hash-algorithms?page[after]=1&page[size]=2
-                      prev: https://api.test.ebsi.xyz/timestamp/v2/hash-algorithms?page[after]=2&page[size]=2
-                      next: https://api.test.ebsi.xyz/timestamp/v2/hash-algorithms?page[after]=4&page[size]=2
-                      last: https://api.test.ebsi.xyz/timestamp/v2/hash-algorithms?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/timestamp/v2/hash-algorithms?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/timestamp/v2/hash-algorithms?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/timestamp/v2/hash-algorithms?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/timestamp/v2/hash-algorithms?page[after]=62&page[size]=2
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/timestamp/v2/hash-algorithms?page[after]=3&page[size]=2
+                    items:
+                      - hashAlgorithmId: 0
+                        href: https://api.preprod.ebsi.eu/timestamp/v2/hash-algorithms/0
+                      - hashAlgorithmId: 1
+                        href: https://api.preprod.ebsi.eu/timestamp/v2/hash-algorithms/1
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.preprod.ebsi.eu/timestamp/v2/hash-algorithms?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/timestamp/v2/hash-algorithms?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/timestamp/v2/hash-algorithms?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/timestamp/v2/hash-algorithms?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -180,11 +190,6 @@ paths:
       description: Returns a list of timestamps
       parameters:
         - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
           name: page[after]
           schema:
             type: string
@@ -226,21 +231,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.test.ebsi.xyz/timestamp/v2/timestamps?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/timestamp/v2/timestamps?page[after]=3&page[size]=2
                     items:
                       - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
-                        href: https://api.test.ebsi.xyz/timestamp/v2/timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                        href: https://api.test.intebsi.xyz/timestamp/v2/timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
                       - timestampId: uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
-                        href: https://api.test.ebsi.xyz/timestamp/v2/timestamps/uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
+                        href: https://api.test.intebsi.xyz/timestamp/v2/timestamps/uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.ebsi.xyz/timestamp/v2/timestamps?page[after]=1&page[size]=2
-                      prev: https://api.test.ebsi.xyz/timestamp/v2/timestamps?page[after]=2&page[size]=2
-                      next: https://api.test.ebsi.xyz/timestamp/v2/timestamps?page[after]=4&page[size]=2
-                      last: https://api.test.ebsi.xyz/timestamp/v2/timestamps?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/timestamp/v2/timestamps?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/timestamp/v2/timestamps?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/timestamp/v2/timestamps?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/timestamp/v2/timestamps?page[after]=62&page[size]=2
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/timestamp/v2/timestamps?page[after]=3&page[size]=2
+                    items:
+                      - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                        href: https://api.preprod.ebsi.eu/timestamp/v2/timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                      - timestampId: uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
+                        href: https://api.preprod.ebsi.eu/timestamp/v2/timestamps/uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.preprod.ebsi.eu/timestamp/v2/timestamps?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/timestamp/v2/timestamps?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/timestamp/v2/timestamps?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/timestamp/v2/timestamps?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -271,11 +291,17 @@ paths:
       description: Returns a timestamp by its ID
       parameters:
         - name: timestampId
+          description: Multi-base64url encoded timestamp ID
           in: path
           schema:
             type: string
-          example: uMHhlODRhMzdhMmFiNGZkZGExYTFkMzE4MzAwODY5OWNhNzAyOWE0ZWNmNTAzMWY3Mzg3OGI3OGIyNWM2OGU4M2Jl
-          description: Multi-base64url encoded timestamp ID
+          examples:
+            "[test] timestampId":
+              description: valid test multi-base64url encoded timestampId
+              value: uMHgxZTRmNWE4NDE3YmNjNmVmZTY2MzE2ODFmMTVhYmQ3N2MyYTRjYWM4Y2MyYjVlZTRhYzdlN2ZiN2ZmMWU5MjE1
+            "[pilot] timestampId":
+              description: valid preprod multi-base64url encoded timestampId
+              value: uMHgwZTE2OTE1Y2U0NDhiOTIyN2I5Y2QzZDg4ODdiMzgyMWVkMDZhMDhmZmE2NTJlNTMzNWRkYjk3ZWY5ZmQzZDVi
           required: true
       responses:
         "200":
@@ -331,11 +357,6 @@ paths:
       description: Returns a list of records
       parameters:
         - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
           name: page[after]
           schema:
             type: string
@@ -377,21 +398,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.test.ebsi.xyz/timestamp/v2/records?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/timestamp/v2/records?page[after]=3&page[size]=2
                     items:
                       - recordId: uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2
-                        href: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2
+                        href: https://api.test.intebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2
                       - recordId: "uMHg3NWExNmFkYmIxZGRiNTVmZWE3NWU0NWY4MjRkYWRjNjAzMjNmMTZkODVmNWRiMjhmZjBjOTg0MTM4MmU0YmEw"
-                        href: https://api.test.ebsi.xyz/timestamp/v2/records/uMHg3NWExNmFkYmIxZGRiNTVmZWE3NWU0NWY4MjRkYWRjNjAzMjNmMTZkODVmNWRiMjhmZjBjOTg0MTM4MmU0YmEw
+                        href: https://api.test.intebsi.xyz/timestamp/v2/records/uMHg3NWExNmFkYmIxZGRiNTVmZWE3NWU0NWY4MjRkYWRjNjAzMjNmMTZkODVmNWRiMjhmZjBjOTg0MTM4MmU0YmEw
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.ebsi.xyz/timestamp/v2/records?page[after]=1&page[size]=2
-                      prev: https://api.test.ebsi.xyz/timestamp/v2/records?page[after]=2&page[size]=2
-                      next: https://api.test.ebsi.xyz/timestamp/v2/records?page[after]=4&page[size]=2
-                      last: https://api.test.ebsi.xyz/timestamp/v2/records?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/timestamp/v2/records?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/timestamp/v2/records?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/timestamp/v2/records?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/timestamp/v2/records?page[after]=62&page[size]=2
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/timestamp/v2/records?page[after]=3&page[size]=2
+                    items:
+                      - recordId: uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2
+                        href: https://api.preprod.ebsi.eu/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2
+                      - recordId: "uMHg3NWExNmFkYmIxZGRiNTVmZWE3NWU0NWY4MjRkYWRjNjAzMjNmMTZkODVmNWRiMjhmZjBjOTg0MTM4MmU0YmEw"
+                        href: https://api.preprod.ebsi.eu/timestamp/v2/records/uMHg3NWExNmFkYmIxZGRiNTVmZWE3NWU0NWY4MjRkYWRjNjAzMjNmMTZkODVmNWRiMjhmZjBjOTg0MTM4MmU0YmEw
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.preprod.ebsi.eu/timestamp/v2/records?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/timestamp/v2/records?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/timestamp/v2/records?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/timestamp/v2/records?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -426,6 +462,13 @@ paths:
           schema:
             type: string
           description: Record ID (multibase base64url encoded)
+          examples:
+            "[test] recordId":
+              description: valid test multi-base64url encoded recordId
+              value: uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz
+            "[pilot] recordId":
+              description: valid preprod multi-base64url encoded recordId
+              value: uMHhmZWRhNTliNTc3MzdiODk3ZGIzYjhiYjljYTdlYmRhY2RlYmJmMjRiMTVlZTMxYmJmOGExYjk0ODAyMjIyNDg0
           required: true
       responses:
         "200":
@@ -490,13 +533,15 @@ paths:
           name: recordId
           schema:
             type: string
+          examples:
+            "[test] recordId":
+              description: valid test multi-base64url encoded recordId
+              value: uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz
+            "[pilot] recordId":
+              description: valid preprod multi-base64url encoded recordId
+              value: uMHhmZWRhNTliNTc3MzdiODk3ZGIzYjhiYjljYTdlYmRhY2RlYmJmMjRiMTVlZTMxYmJmOGExYjk0ODAyMjIyNDg0
           description: Record ID (multibase base64url encoded)
           required: true
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: page[after]
           schema:
@@ -539,21 +584,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions?page[after]=3&page[size]=2
                     items:
                       - versionId: 0
-                        href: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions/0
+                        href: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions/0
                       - versionId: 1
-                        href: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions/1
+                        href: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions/1
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=1&page[size]=2
-                      prev: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=2&page[size]=2
-                      next: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=4&page[size]=2
-                      last: https://api.test.ebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions?page[after]=62&page[size]=2
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=3&page[size]=2
+                    items:
+                      - versionId: 0
+                        href: https://api.preprod.ebsi.eu/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions/0
+                      - versionId: 1
+                        href: https://api.preprod.ebsi.eu/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions/1
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.preprod.ebsi.eu/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -587,6 +647,13 @@ paths:
           name: recordId
           schema:
             type: string
+          examples:
+            "[test] recordId":
+              description: valid test multi-base64url encoded recordId
+              value: uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz
+            "[pilot] recordId":
+              description: valid preprod multi-base64url encoded recordId
+              value: uMHhmZWRhNTliNTc3MzdiODk3ZGIzYjhiYjljYTdlYmRhY2RlYmJmMjRiMTVlZTMxYmJmOGExYjk0ODAyMjIyNDg0
           description: Record ID (multibase base64url encoded)
           required: true
         - in: path
@@ -663,6 +730,8 @@ paths:
       description: |
         Helper APIs that assist the construction of blockchain transactions for Timestamp
         operations, and interaction with the ledger (Write operation on ledger)
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         description: |
@@ -706,6 +775,16 @@ paths:
                   example: 1
             examples:
               Build tx to insertHashAlgorithm:
+                description: |
+                  Call to build an unsigned transaction to insert a new hash algorithm. This method requires admin rights in the Trusted Apps Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **outputLength**: hash output length (in bits)
+                  - **ianaName**: IANA name of the hash algorithm
+                  - **oid**: object identifier (OID)
+                  - **status**: status of the algorithm (1 = active, 2 = revoked)
+                  - **multihash**: multihash name
                 value:
                   jsonrpc: "2.0"
                   method: insertHashAlgorithm
@@ -718,6 +797,16 @@ paths:
                       multihash: sha2-256
                   id: 1
               Build tx to updateHashAlgorithm:
+                description: |
+                  Call to build an unsigned transaction to update a hash algorithm. This method requires admin rights in the DID Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **outputLength**: hash output length (in bits)
+                  - **ianaName**: IANA name of the hash algorithm
+                  - **oid**: object identifier (OID)
+                  - **status**: status of the algorithm (1 = active, 2 = revoked)
+                  - **multihash**: multihash name
                 value:
                   jsonrpc: "2.0"
                   method: updateHashAlgorithm
@@ -731,6 +820,14 @@ paths:
                       multihash: sha2-256
                   id: 1
               Build tx to timestampHashes:
+                description: |
+                  Call to build an unsigned transaction to timestamp hashes. It's possible to insert up to 3 hashes in a single transaction.
+
+                  Parameters:
+                  - **from**: Ethereum address of user
+                  - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
+                  - **hashValues**: Array of hashes (up to 3)
+                  - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: timestampHashes
@@ -744,6 +841,14 @@ paths:
                         - "0x7b2274657374223a3834327d"
                   id: 1
               Build tx to timestampRecordHashes:
+                description: |
+                  Call to build an unsigned transaction to timestamp data and create a record of it with some info. It's possible to insert up to 3 hashes in a single transaction.
+
+                  Parameters:
+                  - **from**: Ethereum address of user
+                  - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
+                  - **hashValues**: Array of hashes (up to 3)
+                  - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: timestampRecordHashes
@@ -758,6 +863,16 @@ paths:
                       versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to timestampVersionHashes:
+                description: |
+                  Call to build an unsigned transaction to timestamp hashes and store them under the given record. It's possible to insert up to 3 hashes in a single transaction. This method can be called only by record owners.
+
+                  Parameters:
+                  - **from**: Ethereum address of user
+                  - **versionHash**: Version hash to update
+                  - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
+                  - **hashValues**: Array of hashes (up to 3)
+                  - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
+                  - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: timestampVersionHashes
@@ -773,6 +888,15 @@ paths:
                       versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to insertRecordOwner:
+                description: |
+                  Call to build an unsigned transaction to insert a record owner. This method can be called only by record owners.
+
+                  Parameters:
+                  - **from**: Ethereum address of user
+                  - **recordId**: Record ID to update
+                  - **ownerId**: Ethereum address of new owner
+                  - **notBefore**: Point in time when the owner becomes valid. It should be defined in epoch time.
+                  - **notAfter**: Point in time when the owner becomes invalid. It should be defined in epoch time. For indefinite time set 0.
                 value:
                   jsonrpc: "2.0"
                   method: insertRecordOwner
@@ -784,6 +908,13 @@ paths:
                       notAfter: 0
                   id: 1
               Build tx to revokeRecordOwner:
+                description: |
+                  Call to build an unsigned transaction to revoke a record owner. This method can be called only by record owners.
+
+                  Parameters:
+                  - **from**: Ethereum address of user
+                  - **recordId**: Record ID to update
+                  - **ownerId**: Ethereum address of the owner to revoke
                 value:
                   jsonrpc: "2.0"
                   method: revokeRecordOwner
@@ -793,6 +924,16 @@ paths:
                       ownerId: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                   id: 1
               Build tx to timestampRecordVersionHashes:
+                description: |
+                  Call to build an unsigned transaction to timestamp data and link it to a new version of an existing record. It's possible to insert up to 3 hashes in a single transaction. This method can be called only by record owners.
+
+                  Parameters:
+                  - **from**: Ethereum address of user
+                  - **recordId**: Record ID to update
+                  - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
+                  - **hashValues**: Array of hashes (up to 3)
+                  - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
+                  - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: timestampRecordVersionHashes
@@ -808,6 +949,17 @@ paths:
                       versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to appendRecordVersionHashes:
+                description: |
+                  Call to build an unsigned transaction to timestamp data and link it to an existing version of a record. It's possible to insert up to 3 hashes in a single transaction. This method can be called only by record owners.
+
+                  Parameters:
+                  - **from**: Ethereum address of user
+                  - **recordId**: Record ID to update
+                  - **versionId**: Version ID to update
+                  - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
+                  - **hashValues**: Array of hashes (up to 3)
+                  - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
+                  - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: appendRecordVersionHashes
@@ -824,6 +976,15 @@ paths:
                       versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to detachRecordVersionHash:
+                description: |
+                  Call to build an unsigned transaction to detach a hash from the timestamps ids of a version of an existing record. This method can be called only by record owners.
+
+                  Parameters:
+                  - **from**: Ethereum address of user
+                  - **recordId**: Record ID to update
+                  - **versionId**: Version ID to update
+                  - **versionHash**: Version hash to update
+                  - **hashValue**: Hash value to detach
                 value:
                   jsonrpc: "2.0"
                   method: detachRecordVersionHash
@@ -834,6 +995,14 @@ paths:
                       hashValue: "0x1234567890123456789012345678901234567890123456789012345678901234"
                   id: 1
               Build tx to insertRecordVersionInfo:
+                description: |
+                  Call to build an unsigned transaction to to insert new info to a version of an existing record. This method can be called only by record owners.
+
+                  Parameters:
+                  - **from**: Ethereum address of user
+                  - **recordId**: Record ID to update
+                  - **versionId**: Version ID to update
+                  - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: insertRecordVersionInfo
@@ -844,6 +1013,7 @@ paths:
                       versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Send Transaction:
+                description: Call to send a signed transaction to the blockchain.
                 value:
                   jsonrpc: "2.0"
                   method: signedTransaction
@@ -1052,12 +1222,6 @@ components:
           type: string
           description: URI of the first page
       description: links model used for pagination
-      x-examples:
-        Links:
-          first: https://api.test.ebsi.xyz/timestamp/v2/hash-algorithms?page[after]=1&page[size]=2
-          prev: https://api.test.ebsi.xyz/timestamp/v2/hash-algorithms?page[after]=2&page[size]=2
-          next: https://api.test.ebsi.xyz/timestamp/v2/hash-algorithms?page[after]=4&page[size]=2
-          last: https://api.test.ebsi.xyz/timestamp/v2/hash-algorithms?page[after]=13&page[size]=2
   examples:
     BadRequest:
       value:
@@ -1074,6 +1238,11 @@ components:
         title: Internal error
         status: 500
         detail: Internal error
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 tags:
   - name: Timestamp API
     description: Timestamp and validate timestamp records
