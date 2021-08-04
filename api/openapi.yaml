@@ -35,6 +35,19 @@ paths:
       summary: List of trusted administrators
       description: Returns a list of trusted administrators
       operationId: get-did-registry-v2-administrators
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
       responses:
         200:
           description: Success
@@ -67,21 +80,32 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v2/administrators?page[after]=1&page[size]=10
                     items:
                       - did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                        href: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                      - did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
-                        href: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148
-                    total: 124
+                        href: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                    total: 1
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v2/administrators?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/administrators?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/administrators?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/administrators?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/administrators?page[after]=1&page[size]=10
+                    items:
+                      - did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/administrators?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/administrators?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/administrators?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/administrators?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -103,17 +127,6 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      parameters:
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
   /did-registry/v2/administrators/{did}:
     get:
       tags:
@@ -121,9 +134,11 @@ paths:
       summary: Get administrator by its Decentralized Identifier
       description: Returns a trusted administrator by its decentralized identifier
       operationId: get-trusted-administrator
+      security:
+        - bearerAuth: []
       parameters:
-        - name: did
-          in: path
+        - in: path
+          name: did
           schema:
             type: string
           example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
@@ -138,10 +153,10 @@ paths:
               examples:
                 Success:
                   value:
-                    did: did:ebsi:0x464190367BE948210608a46847bed183607f685A
+                    did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
                     attributes:
-                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                      - hash: f0daff0a5ec7633b15093de3a9b4e77246b1231124c7ae2841637ccc9988e848
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI1ZDY3NWJhZTBlZDc5ZDE2ZGVkYjdmN2FiNTUxYmZkOCJ9
         400:
           description: Bad Request
           content:
@@ -177,25 +192,27 @@ paths:
       summary: List the attributes of an administrator
       description: Returns a list of attributes for a given administrator
       operationId: get-did-registry-v2-administrators-did-attributes
+      security:
+        - bearerAuth: []
       tags:
         - DID Registry
       parameters:
-        - name: did
-          in: path
+        - in: path
+          name: did
           schema:
             type: string
           example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
           required: true
         - in: query
           name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
           schema:
             type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
+        - in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
       responses:
         200:
           description: Success
@@ -228,21 +245,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
                     items:
                       - id: 792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
-                        href: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                        href: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
                       - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                        href: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                    total: 124
+                        href: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+                    total: 2
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                    items:
+                      - id: 792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                      - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+                    total: 2
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -278,17 +310,19 @@ paths:
       summary: Get a specific attribute
       description: Returns the corresponding attribute of a given administrator
       operationId: get-did-registry-v2-administrators-did-attributes-attributeid
+      security:
+        - bearerAuth: []
       tags:
         - DID Registry
       parameters:
-        - name: did
-          in: path
+        - in: path
+          name: did
           schema:
             type: string
           example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
           required: true
-        - name: attributeId
-          in: path
+        - in: path
+          name: attributeId
           schema:
             type: string
           example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
@@ -305,7 +339,7 @@ paths:
                   value:
                     did: did:ebsi:0x464190367BE948210608a46847bed183607f685A
                     attribute:
-                      hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      hash: 523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6
                       body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
         400:
           description: Bad Request
@@ -343,31 +377,33 @@ paths:
       description: |
         Returns a list of revisions for a given attribute attached to a given administrator.
       operationId: get-did-registry-v2-administrators-did-attributes-attributeid-revisions
+      security:
+        - bearerAuth: []
       tags:
         - DID Registry
       parameters:
-        - name: did
-          in: path
+        - in: path
+          name: did
           schema:
             type: string
           example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
           required: true
-        - name: attributeId
-          in: path
+        - in: path
+          name: attributeId
           schema:
             type: string
-          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+          example: 523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6
           required: true
         - in: query
           name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
           schema:
             type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
+        - in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
       responses:
         200:
           description: Success
@@ -393,21 +429,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
                     items:
-                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                      - hash: "0x56ef14c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da632125a"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8
+                      - hash: e08c1715ee864d2dadcea4a21a4a3b9590944f567d2241713388e6a0d925547a
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIzOGFhOTI2YTE2NThkYjc2NDEzNmU4MGQxZTgxNjJiNCJ9
+                      - hash: 523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiJjMWQxZDk0MDA5NTgwNGRlM2E1ZDkxZTUwMDNiYTRlYiJ9
                     total: 2
-                    pageSize: 123
+                    pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                    items:
+                      - hash: e08c1715ee864d2dadcea4a21a4a3b9590944f567d2241713388e6a0d925547a
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIzOGFhOTI2YTE2NThkYjc2NDEzNmU4MGQxZTgxNjJiNCJ9
+                      - hash: 523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiJjMWQxZDk0MDA5NTgwNGRlM2E1ZDkxZTUwMDNiYTRlYiJ9
+                    total: 2
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -448,14 +499,14 @@ paths:
       parameters:
         - in: query
           name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
           schema:
             type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
+        - in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
       responses:
         200:
           description: Success
@@ -488,21 +539,68 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/did-methods?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v2/did-methods?page[after]=3&page[size]=10
                     items:
                       - name: did:ebsi
-                        href: https://api.ebsi.xyz/did-registry/v2/did-methods/did:ebsi
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi
                       - name: did:ebsi-test
-                        href: https://api.ebsi.xyz/did-registry/v2/did-methods/did:ebsi-test
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-test
+                      - name: did:ebsi-effcfaf56ab23298
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-effcfaf56ab23298
+                      - name: did:ebsi-34b4051863371e10
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-34b4051863371e10
+                      - name: did:ebsi-4392f352e015af86
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-4392f352e015af86
+                      - name: did:ebsi-9000f11e6a81c952
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-9000f11e6a81c952
+                      - name: did:ebsi-73158904a7bbf8ce
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-73158904a7bbf8ce
+                      - name: did:ebsi-b4a3ce2c7ec8f597
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-b4a3ce2c7ec8f597
+                      - name: did:ebsi-99d7d5d8309b968e
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-99d7d5d8309b968e
+                      - name: did:ebsi-bc94b4834d703edb
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-bc94b4834d703edb
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/did-registry/v2/did-methods?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/did-registry/v2/did-methods?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/did-registry/v2/did-methods?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/did-registry/v2/did-methods?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v2/did-methods?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/did-methods?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/did-methods?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/did-methods?page[after]=13&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/did-methods?page[after]=3&page[size]=10
+                    items:
+                      - name: did:ebsi
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi
+                      - name: did:ebsi-test
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-test
+                      - name: did:ebsi-effcfaf56ab23298
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-effcfaf56ab23298
+                      - name: did:ebsi-34b4051863371e10
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-34b4051863371e10
+                      - name: did:ebsi-4392f352e015af86
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-4392f352e015af86
+                      - name: did:ebsi-9000f11e6a81c952
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-9000f11e6a81c952
+                      - name: did:ebsi-73158904a7bbf8ce
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-73158904a7bbf8ce
+                      - name: did:ebsi-b4a3ce2c7ec8f597
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-b4a3ce2c7ec8f597
+                      - name: did:ebsi-99d7d5d8309b968e
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-99d7d5d8309b968e
+                      - name: did:ebsi-bc94b4834d703edb
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-bc94b4834d703edb
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/did-methods?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/did-methods?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/did-methods?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/did-methods?page[after]=13&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -546,16 +644,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/DIDMethod"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    methodName: did:ebsi-26adc612f9e37b6e
-                    ledgerName: ebsi-besu
+                    methodName: did:ebsi
+                    ledgerName: EBSI-ethereum
                     methodSpec:
-                      - "0x7b226d6574686f644e616d65223a2235366433366639643337656561366232616137356531353935616363663030343166326332633861343366333838626561623633396332636137613264326664222c226d6574686f645370656369666963496447656e65726174696f6e223a223239623863303765323865363137306564343462613962653063323261376333613663666532616661326165383737343732336333393939323935323638643531326338633135343934353333333032386131363861373131326237343538353664333261643138343937346664353263343538333833393437323339303037222c226d6574686f6453706563696669634964456e636f64696e67223a2234386234323365313238346564333338616236346463326164306164336530653132316137323631623738373836363261633336636536656561306264626535222c2276657273696f6e223a317d"
+                      - "0x7b226d6574686f644e616d65223a226469643a65627369222c226d6574686f645370656369666963496447656e65726174696f6e223a7b7d2c226d6574686f6453706563696669634964456e636f64696e67223a7b7d2c2276657273696f6e223a317d"
                     methodSpecHash:
-                      - "0x6151618168247ea23c4b4c23faff71270960549c4b319dfd338fcae34729086d"
-                    notBefore: 1616408985883
-                    notAfter: 3232818053700
+                      - "0x12da9e4eb1a8245bbc0796df4daf8236effa3c4d3f815dbef449ba8d945fe719"
+                    notBefore: 1622619797
+                    notAfter: 1622619797
+                    status: 1
+                "[pilot] Success":
+                  value:
+                    methodName: did:ebsi
+                    ledgerName: EBSI-ethereum
+                    methodSpec:
+                      - "0x7b226d6574686f644e616d65223a226469643a65627369222c226d6574686f645370656369666963496447656e65726174696f6e223a7b7d2c226d6574686f6453706563696669634964456e636f64696e67223a7b7d2c2276657273696f6e223a317d"
+                    methodSpecHash:
+                      - "0x12da9e4eb1a8245bbc0796df4daf8236effa3c4d3f815dbef449ba8d945fe719"
+                    notBefore: 1622619853
+                    notAfter: 1622619853
                     status: 1
         400:
           description: Bad Request
@@ -597,24 +706,24 @@ paths:
       parameters:
         - in: query
           name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
           schema:
             type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
+        - in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
         - in: query
           name: identifier
+          description: DID, e.g. "did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew"
           schema:
             type: string
-          description: DID, e.g. "did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew"
         - in: query
           name: version-id
+          description: Version ID (number)
           schema:
             type: string
-          description: Version ID (number)
       responses:
         200:
           description: Success
@@ -647,34 +756,94 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=3&page[size]=10
                     items:
                       - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
-                        href: https://api.ebsi.xyz/did-registry/v2/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
                       - timestampId: uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
-                        href: https://api.ebsi.xyz/did-registry/v2/did-timestamps/uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
+                      - timestampId: uMHgxMTQzYzQyNTRkOWI1MzkyZDMxOTE4ZTNiOTliOTNiODhiNjIyNzYzYTdlYjcxNzEyNjZmNGZlYjE2MTllN2Y0
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHgxMTQzYzQyNTRkOWI1MzkyZDMxOTE4ZTNiOTliOTNiODhiNjIyNzYzYTdlYjcxNzEyNjZmNGZlYjE2MTllN2Y0
+                      - timestampId: uMHhjY2M0NTBkMTMyMzg1NzFhMzY4MDcyMmI3MTUyY2EyZDgzYTcwNTBlMmRkNTk5MTk2MzI0ZjY0MTVjOGQ4MGFh
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHhjY2M0NTBkMTMyMzg1NzFhMzY4MDcyMmI3MTUyY2EyZDgzYTcwNTBlMmRkNTk5MTk2MzI0ZjY0MTVjOGQ4MGFh
+                      - timestampId: uMHgyZjJkYzc5YTc3MjYwMjhhY2I0ZmU4OWFjYjZjYmY5OWJjZDgyYzc2YmVjMzBlNzcxY2NlOTU0OTA5NTg2ODcx
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHgyZjJkYzc5YTc3MjYwMjhhY2I0ZmU4OWFjYjZjYmY5OWJjZDgyYzc2YmVjMzBlNzcxY2NlOTU0OTA5NTg2ODcx
+                      - timestampId: uMHhhZWE0MGRiMjk4MzQwNmE0N2M1YzJhYTY1ZWRkYWM0NTk5ZWZiYTFjOWU2OGQzM2EzYmU5NDBlY2VjZTc0NGRm
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHhhZWE0MGRiMjk4MzQwNmE0N2M1YzJhYTY1ZWRkYWM0NTk5ZWZiYTFjOWU2OGQzM2EzYmU5NDBlY2VjZTc0NGRm
+                      - timestampId: uMHg4MWMzODc0ZjliNGM5YjRlMGEwNTE3OWY1ZjE3YjA3OWIxNzM2NDk3MmU3YWJkYTRmMWY2OTk4NWQzOTRjYTY3
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHg4MWMzODc0ZjliNGM5YjRlMGEwNTE3OWY1ZjE3YjA3OWIxNzM2NDk3MmU3YWJkYTRmMWY2OTk4NWQzOTRjYTY3
+                      - timestampId: uMHhlNDE2YzJjYzEyYTcxNGVmODU4ZjM5ODVjMWI1MTQ4NWQ5MmQ0ZDgzOGNhOGI5NTFlZTY1NzkwYjY2M2QxMzFh
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHhlNDE2YzJjYzEyYTcxNGVmODU4ZjM5ODVjMWI1MTQ4NWQ5MmQ0ZDgzOGNhOGI5NTFlZTY1NzkwYjY2M2QxMzFh
+                      - timestampId: uMHg5YTg2OWY1Zjc4YjI5ZTQxNWYyZjUzZjI4MzE2YzQwZTdjN2EyMGUxOTVjMzI2Yjk3ZTU2N2YxMTViMzkwMmI5
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHg5YTg2OWY1Zjc4YjI5ZTQxNWYyZjUzZjI4MzE2YzQwZTdjN2EyMGUxOTVjMzI2Yjk3ZTU2N2YxMTViMzkwMmI5
+                      - timestampId: uMHhkZWFjNWNkNzM5MmQ0MTBlYjI0NmRjZjc0OWVkNzZlY2U0NGI4YWYyOTg4ZTU4MDNjMzZkY2YwODMzNTU1MjQy
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHhkZWFjNWNkNzM5MmQ0MTBlYjI0NmRjZjc0OWVkNzZlY2U0NGI4YWYyOTg4ZTU4MDNjMzZkY2YwODMzNTU1MjQy
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=13&page[size]=10
-                Filter by identifier and version ID:
+                      first: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=13&page[size]=10
+                "[test] Filter by identifier and version ID":
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/did-timestamps?identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                    self: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
                     items:
                       - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
-                        href: https://api.ebsi.xyz/did-registry/v2/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
-                      prev: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
-                      next: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
-                      last: https://api.ebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                      first: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                      next: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                      last: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=3&page[size]=10
+                    items:
+                      - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                      - timestampId: uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
+                      - timestampId: uMHgxMTQzYzQyNTRkOWI1MzkyZDMxOTE4ZTNiOTliOTNiODhiNjIyNzYzYTdlYjcxNzEyNjZmNGZlYjE2MTllN2Y0
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHgxMTQzYzQyNTRkOWI1MzkyZDMxOTE4ZTNiOTliOTNiODhiNjIyNzYzYTdlYjcxNzEyNjZmNGZlYjE2MTllN2Y0
+                      - timestampId: uMHhjY2M0NTBkMTMyMzg1NzFhMzY4MDcyMmI3MTUyY2EyZDgzYTcwNTBlMmRkNTk5MTk2MzI0ZjY0MTVjOGQ4MGFh
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHhjY2M0NTBkMTMyMzg1NzFhMzY4MDcyMmI3MTUyY2EyZDgzYTcwNTBlMmRkNTk5MTk2MzI0ZjY0MTVjOGQ4MGFh
+                      - timestampId: uMHgyZjJkYzc5YTc3MjYwMjhhY2I0ZmU4OWFjYjZjYmY5OWJjZDgyYzc2YmVjMzBlNzcxY2NlOTU0OTA5NTg2ODcx
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHgyZjJkYzc5YTc3MjYwMjhhY2I0ZmU4OWFjYjZjYmY5OWJjZDgyYzc2YmVjMzBlNzcxY2NlOTU0OTA5NTg2ODcx
+                      - timestampId: uMHhhZWE0MGRiMjk4MzQwNmE0N2M1YzJhYTY1ZWRkYWM0NTk5ZWZiYTFjOWU2OGQzM2EzYmU5NDBlY2VjZTc0NGRm
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHhhZWE0MGRiMjk4MzQwNmE0N2M1YzJhYTY1ZWRkYWM0NTk5ZWZiYTFjOWU2OGQzM2EzYmU5NDBlY2VjZTc0NGRm
+                      - timestampId: uMHg4MWMzODc0ZjliNGM5YjRlMGEwNTE3OWY1ZjE3YjA3OWIxNzM2NDk3MmU3YWJkYTRmMWY2OTk4NWQzOTRjYTY3
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHg4MWMzODc0ZjliNGM5YjRlMGEwNTE3OWY1ZjE3YjA3OWIxNzM2NDk3MmU3YWJkYTRmMWY2OTk4NWQzOTRjYTY3
+                      - timestampId: uMHhlNDE2YzJjYzEyYTcxNGVmODU4ZjM5ODVjMWI1MTQ4NWQ5MmQ0ZDgzOGNhOGI5NTFlZTY1NzkwYjY2M2QxMzFh
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHhlNDE2YzJjYzEyYTcxNGVmODU4ZjM5ODVjMWI1MTQ4NWQ5MmQ0ZDgzOGNhOGI5NTFlZTY1NzkwYjY2M2QxMzFh
+                      - timestampId: uMHg5YTg2OWY1Zjc4YjI5ZTQxNWYyZjUzZjI4MzE2YzQwZTdjN2EyMGUxOTVjMzI2Yjk3ZTU2N2YxMTViMzkwMmI5
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHg5YTg2OWY1Zjc4YjI5ZTQxNWYyZjUzZjI4MzE2YzQwZTdjN2EyMGUxOTVjMzI2Yjk3ZTU2N2YxMTViMzkwMmI5
+                      - timestampId: uMHhkZWFjNWNkNzM5MmQ0MTBlYjI0NmRjZjc0OWVkNzZlY2U0NGI4YWYyOTg4ZTU4MDNjMzZkY2YwODMzNTU1MjQy
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHhkZWFjNWNkNzM5MmQ0MTBlYjI0NmRjZjc0OWVkNzZlY2U0NGI4YWYyOTg4ZTU4MDNjMzZkY2YwODMzNTU1MjQy
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=13&page[size]=10
+                "[pilot] Filter by identifier and version ID":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                    items:
+                      - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
         400:
           description: Bad Request Error
           content:
@@ -704,11 +873,16 @@ paths:
       description: Returns a DID Timestamp by its ID
       operationId: get-did-registry-v2-did-timestamp
       parameters:
-        - name: timestampId
-          in: path
+        - in: path
+          name: timestampId
           schema:
             type: string
-          example: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+          examples:
+            "[test] Timestamp ID":
+              value: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+            # TODO: Once the API is updated in preprod, update this example
+            "[pilot] Timestamp ID":
+              value: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
           required: true
       responses:
         200:
@@ -722,7 +896,7 @@ paths:
                   value:
                     hash: "1220139f28116c365611a7852e3aef6800de196c23c1d1787c2f476c1816479e6952"
                     timestampedBy: "0x9139869907de5bA6Cd38AB08e84c72188bce25c0"
-                    blockNumber: 12
+                    blockNumber: 1577582
                     data: "0x7b2264617461223a2274657374227d"
         400:
           description: Bad Request
@@ -767,16 +941,16 @@ paths:
           schema:
             type: string
           description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
+        - in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
-        - schema:
+          schema:
             type: integer
-          in: query
+        - in: query
           name: controller
           description: Filter by controller ID (Ethereum address).
+          schema:
+            type: string
       responses:
         200:
           description: Success
@@ -811,34 +985,94 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=3&page[size]=10
                     items:
                       - did: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
-                        href: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
                       - did: did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew
-                        href: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew
+                      - did: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+                      - did: did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
+                      - did: did:ebsi:hnzq2WpE8duMAnob4L2g8yVYT5eeDWNTLYnDq41BTed
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:hnzq2WpE8duMAnob4L2g8yVYT5eeDWNTLYnDq41BTed
+                      - did: did:ebsi:7pywr3gk6HDoMGmVGwnrg7mJFtZBoUPFKageSZmV2Diy
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:7pywr3gk6HDoMGmVGwnrg7mJFtZBoUPFKageSZmV2Diy
+                      - did: did:ebsi:fgG1xGPUTkbSZs9mtCqMxCwfgvBm6f6yLT9HXEsNHZY
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:fgG1xGPUTkbSZs9mtCqMxCwfgvBm6f6yLT9HXEsNHZY
+                      - did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
+                      - did: did:ebsi:7q9T542hvHEcw4CskHH7DxZWy9wZAwDuRfnbnKh5gsBN
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:7q9T542hvHEcw4CskHH7DxZWy9wZAwDuRfnbnKh5gsBN
+                      - did: did:ebsi:DAwccD6G9bkADwxoLscksdZTKKBFkVFVubgo7Lh2LrHi
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:DAwccD6G9bkADwxoLscksdZTKKBFkVFVubgo7Lh2LrHi
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=13&page[size]=10
-                Filter by controller:
+                      first: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=13&page[size]=10
+                "[test] Filter by controller":
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=3&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                    self: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
                     items:
                       - did: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
-                        href: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      next: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      last: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=3&page[size]=10
+                    items:
+                      - did: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                      - did: did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew
+                      - did: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+                      - did: did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
+                      - did: did:ebsi:hnzq2WpE8duMAnob4L2g8yVYT5eeDWNTLYnDq41BTed
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:hnzq2WpE8duMAnob4L2g8yVYT5eeDWNTLYnDq41BTed
+                      - did: did:ebsi:7pywr3gk6HDoMGmVGwnrg7mJFtZBoUPFKageSZmV2Diy
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7pywr3gk6HDoMGmVGwnrg7mJFtZBoUPFKageSZmV2Diy
+                      - did: did:ebsi:fgG1xGPUTkbSZs9mtCqMxCwfgvBm6f6yLT9HXEsNHZY
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:fgG1xGPUTkbSZs9mtCqMxCwfgvBm6f6yLT9HXEsNHZY
+                      - did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
+                      - did: did:ebsi:7q9T542hvHEcw4CskHH7DxZWy9wZAwDuRfnbnKh5gsBN
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7q9T542hvHEcw4CskHH7DxZWy9wZAwDuRfnbnKh5gsBN
+                      - did: did:ebsi:DAwccD6G9bkADwxoLscksdZTKKBFkVFVubgo7Lh2LrHi
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:DAwccD6G9bkADwxoLscksdZTKKBFkVFVubgo7Lh2LrHi
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      prev: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=2&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      next: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=4&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      last: https://api.ebsi.xyz/did-registry/v2/identifiers?page[after]=13&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=13&page[size]=10
+                "[pilot] Filter by controller":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                    items:
+                      - did: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
         400:
           description: Bad Request Error
           content:
@@ -870,11 +1104,15 @@ paths:
       parameters:
         - in: path
           name: did
-          required: true
           description: A DID to be resolved.
+          required: true
           schema:
             type: string
-          example: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+          examples:
+            "[test] DID":
+              value: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+            "[pilot] DID":
+              value: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
       responses:
         200:
           description: Success
@@ -883,16 +1121,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/DIDDocument"
               examples:
-                Success:
+                "[test] Success":
                   value:
                     "@context":
                       - https://www.w3.org/ns/did/v1
-                    id: did:ebsi:6rqAv6Jy4H13GntqJck1mj7d31mk8DoDV4afsP6huh8U
+                    id: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
                     verificationMethod:
-                      - controller: did:ebsi:6rqAv6Jy4H13GntqJck1mj7d31mk8DoDV4afsP6huh8U
-                        id: did:ebsi:6rqAv6Jy4H13GntqJck1mj7d31mk8DoDV4afsP6huh8U#vm-3
+                      - controller: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                        id: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3#vm-3
                         type: EcdsaSecp256k1RecoveryMethod2020
                         publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
+                "[pilot] Success":
+                  value:
+                    "@context": https://w3id.org/did/v1
+                    id: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+                    verificationMethod:
+                      - id: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG#keys-1
+                        type: Secp256k1VerificationKey2018
+                        controller: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+                        publicKeyHex: 04f9139fbd3b9780863b17e8390934a1017fc8d0f18b84f02acb04f24c9cae261e45745c6507881509b9e6d837329153ea75fafb2c1a5d504702d04f1e22a80ecc
+                    authentication:
+                      - did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+                    assertionMethod:
+                      - did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG#keys-1
         400:
           description: Bad Request
           content:
@@ -933,21 +1184,25 @@ paths:
       parameters:
         - in: query
           name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
           schema:
             type: string
-          description: Cursor that points to the end of the page of data that has been returned.
         - in: query
-          schema:
-            type: integer
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
         - in: path
           name: did
-          required: true
           description: A DID to be resolved.
+          required: true
           schema:
             type: string
-          example: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+          examples:
+            "[test] DID":
+              value: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+            "[pilot] DID":
+              value: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
       responses:
         200:
           description: Success
@@ -982,19 +1237,32 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
                     items:
                       - versionId: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
-                        href: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
-                      next: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
-                      last: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions?page[after]=1&page[size]=10
+                    items:
+                      - versionId: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -1040,18 +1308,26 @@ paths:
       parameters:
         - in: path
           name: did
-          required: true
           description: A DID to be resolved.
+          required: true
           schema:
             type: string
-          example: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+          examples:
+            "[test] DID":
+              value: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+            "[pilot] DID":
+              value: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
         - in: path
           name: versionId
+          description: A unique version ID.
           required: true
-          description: A unique version id.
           schema:
             type: string
-          example: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
+          examples:
+            "[test] Version ID":
+              value: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
+            "[pilot] Version ID":
+              value: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
       responses:
         200:
           description: Success
@@ -1060,16 +1336,29 @@ paths:
               schema:
                 $ref: "#/components/schemas/DIDDocument"
               examples:
-                Success:
+                "[test] Success":
                   value:
                     "@context":
                       - https://www.w3.org/ns/did/v1
-                    id: did:ebsi:6rqAv6Jy4H13GntqJck1mj7d31mk8DoDV4afsP6huh8U
+                    id: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
                     verificationMethod:
-                      - controller: did:ebsi:6rqAv6Jy4H13GntqJck1mj7d31mk8DoDV4afsP6huh8U
-                        id: did:ebsi:6rqAv6Jy4H13GntqJck1mj7d31mk8DoDV4afsP6huh8U#vm-3
+                      - controller: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                        id: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3#vm-3
                         type: EcdsaSecp256k1RecoveryMethod2020
                         publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
+                "[pilot] Success":
+                  value:
+                    "@context": https://w3id.org/did/v1
+                    id: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+                    verificationMethod:
+                      - id: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG#keys-1
+                        type: Secp256k1VerificationKey2018
+                        controller: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+                        publicKeyHex: 04f9139fbd3b9780863b17e8390934a1017fc8d0f18b84f02acb04f24c9cae261e45745c6507881509b9e6d837329153ea75fafb2c1a5d504702d04f1e22a80ecc
+                    authentication:
+                      - did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+                    assertionMethod:
+                      - did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG#keys-1
         400:
           description: Bad Request
           content:
@@ -1117,28 +1406,36 @@ paths:
       parameters:
         - in: query
           name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
           schema:
             type: string
-          description: Cursor that points to the end of the page of data that has been returned.
         - in: query
-          schema:
-            type: integer
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
         - in: path
           name: did
-          required: true
           description: A DID to be resolved.
+          required: true
           schema:
             type: string
-          example: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+          examples:
+            "[test] DID":
+              value: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+            "[pilot] DID":
+              value: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
         - in: path
           name: versionId
+          description: A unique version ID.
           required: true
-          description: A unique version id.
           schema:
             type: string
-          example: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
+          examples:
+            "[test] Version ID":
+              value: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
+            "[pilot] Version ID":
+              value: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
       responses:
         200:
           description: Success
@@ -1173,19 +1470,32 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
                     items:
                       - metadataId: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
-                        href: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata/0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata/0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      next: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      last: https://api.ebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                    items:
+                      - metadataId: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -1238,25 +1548,37 @@ paths:
       parameters:
         - in: path
           name: did
-          required: true
           description: A DID to be resolved.
+          required: true
           schema:
             type: string
-          example: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+          examples:
+            "[test] DID":
+              value: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+            "[pilot] DID":
+              value: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
         - in: path
           name: versionId
+          description: A unique version ID.
           required: true
-          description: A unique version id.
           schema:
             type: string
-          example: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
+          examples:
+            "[test] Version ID":
+              value: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
+            "[pilot] Version ID":
+              value: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
         - in: path
           name: metadataId
+          description: A unique metadata ID.
           required: true
-          description: A unique metadata id.
           schema:
             type: string
-          example: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
+          examples:
+            "[test] Metadata ID":
+              value: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
+            "[pilot] Metadata ID":
+              value: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
       responses:
         200:
           description: Success
@@ -1322,14 +1644,14 @@ paths:
       parameters:
         - in: query
           name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
           schema:
             type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
+        - in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
       responses:
         200:
           description: Success
@@ -1362,21 +1684,68 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.test.ebsi.xyz/did-registry/v2/hash-algorithms?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms?page[after]=1&page[size]=10
                     items:
                       - hashAlgorithmId: 0
-                        href: https://api.test.ebsi.xyz/did-registry/v2/hash-algorithms/0
+                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/0
                       - hashAlgorithmId: 1
-                        href: https://api.test.ebsi.xyz/did-registry/v2/hash-algorithms/1
+                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/1
+                      - hashAlgorithmId: 2
+                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/2
+                      - hashAlgorithmId: 3
+                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/3
+                      - hashAlgorithmId: 4
+                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/4
+                      - hashAlgorithmId: 5
+                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/5
+                      - hashAlgorithmId: 6
+                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/6
+                      - hashAlgorithmId: 7
+                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/7
+                      - hashAlgorithmId: 8
+                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/8
+                      - hashAlgorithmId: 9
+                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/9
                     total: 124
-                    pageSize: 2
+                    pageSize: 10
                     links:
-                      first: https://api.test.ebsi.xyz/did-registry/v2/hash-algorithms?page[after]=1&page[size]=2
-                      prev: https://api.test.ebsi.xyz/did-registry/v2/hash-algorithms?page[after]=2&page[size]=2
-                      next: https://api.test.ebsi.xyz/did-registry/v2/hash-algorithms?page[after]=4&page[size]=2
-                      last: https://api.test.ebsi.xyz/did-registry/v2/hash-algorithms?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms?page[after]=2&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms?page[after]=13&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms?page[after]=1&page[size]=10
+                    items:
+                      - hashAlgorithmId: 0
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/0
+                      - hashAlgorithmId: 1
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/1
+                      - hashAlgorithmId: 2
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/2
+                      - hashAlgorithmId: 3
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/3
+                      - hashAlgorithmId: 4
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/4
+                      - hashAlgorithmId: 5
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/5
+                      - hashAlgorithmId: 6
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/6
+                      - hashAlgorithmId: 7
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/7
+                      - hashAlgorithmId: 8
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/8
+                      - hashAlgorithmId: 9
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/9
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms?page[after]=2&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms?page[after]=13&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -1406,11 +1775,11 @@ paths:
       summary: Get hash algorithm by its ID
       description: Returns a hash algorithm by its ID
       parameters:
-        - name: hashAlgorithmId
-          in: path
+        - in: path
+          name: hashAlgorithmId
           schema:
             type: string
-          example: "0"
+          example: "1"
           required: true
       responses:
         200:
@@ -1467,14 +1836,14 @@ paths:
       parameters:
         - in: query
           name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
           schema:
             type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
+        - in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
       responses:
         200:
           description: Success
@@ -1507,21 +1876,68 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/policies?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/did-registry/v2/policies?page[after]=3&page[size]=10
                     items:
-                      - policyId: test-policy-1
-                        href: https://api.ebsi.xyz/did-registry/v2/policies/test-policy-1
-                      - policyId: test-policy-2
-                        href: https://api.ebsi.xyz/did-registry/v2/policies/test-policy-2
+                      - policyId: policy-test-2021-03-30T14:10:56.932Z
+                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z
+                      - policyId: policy-test-2021-03-30T14:20:38.342Z
+                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:20:38.342Z
+                      - policyId: policy-test-2021-03-31T09:02:21.597Z
+                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-31T09:02:21.597Z
+                      - policyId: policy-test-2021-03-31T09:06:53.267Z
+                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-31T09:06:53.267Z
+                      - policyId: policy-test-2021-03-31T14:03:47.592Z
+                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-31T14:03:47.592Z
+                      - policyId: policy-test-2021-03-31T14:20:04.214Z
+                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-31T14:20:04.214Z
+                      - policyId: policy-test-2021-04-01T09:29:47.881Z
+                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-04-01T09:29:47.881Z
+                      - policyId: policy-test-2021-04-01T10:15:04.663Z
+                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-04-01T10:15:04.663Z
+                      - policyId: policy-test-2021-04-01T10:38:18.641Z
+                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-04-01T10:38:18.641Z
+                      - policyId: policy-test-2021-04-06T07:06:47.387Z
+                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-04-06T07:06:47.387Z
                     total: 124
-                    pageSize: 2
+                    pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/did-registry/v2/policies?page[after]=1&page[size]=2
-                      prev: https://api.ebsi.xyz/did-registry/v2/policies?page[after]=2&page[size]=2
-                      next: https://api.ebsi.xyz/did-registry/v2/policies?page[after]=4&page[size]=2
-                      last: https://api.ebsi.xyz/did-registry/v2/policies?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/did-registry/v2/policies?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/policies?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/policies?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/policies?page[after]=13&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/policies?page[after]=3&page[size]=10
+                    items:
+                      - policyId: policy-test-2021-03-30T14:10:56.932Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z
+                      - policyId: policy-test-2021-03-30T14:20:38.342Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:20:38.342Z
+                      - policyId: policy-test-2021-03-31T09:02:21.597Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-31T09:02:21.597Z
+                      - policyId: policy-test-2021-03-31T09:06:53.267Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-31T09:06:53.267Z
+                      - policyId: policy-test-2021-03-31T14:03:47.592Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-31T14:03:47.592Z
+                      - policyId: policy-test-2021-03-31T14:20:04.214Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-31T14:20:04.214Z
+                      - policyId: policy-test-2021-04-01T09:29:47.881Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-04-01T09:29:47.881Z
+                      - policyId: policy-test-2021-04-01T10:15:04.663Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-04-01T10:15:04.663Z
+                      - policyId: policy-test-2021-04-01T10:38:18.641Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-04-01T10:38:18.641Z
+                      - policyId: policy-test-2021-04-06T07:06:47.387Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-04-06T07:06:47.387Z
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/policies?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/policies?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/policies?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/policies?page[after]=13&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -1551,11 +1967,11 @@ paths:
       tags:
         - DID Registry
       parameters:
-        - name: policyId
-          in: path
+        - in: path
+          name: policyId
           schema:
             type: string
-          example: test-policy-1
+          example: policy-test-2021-03-30T14:10:56.932Z
           required: true
       responses:
         200:
@@ -1567,9 +1983,9 @@ paths:
               examples:
                 Success:
                   value:
-                    policyId: test-policy-1
-                    policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
-                    hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
+                    policyId: policy-test-2021-03-30T14:10:56.932Z
+                    policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI4OTM5MzlhNDFjNTk4ZDY0MGFhZTg2ZWM2ZDcyYjdlYyJ9
+                    hash: 1220964f27ad52f670ad05100697287424749e9ceba571811585e318f4c54944543e
         400:
           description: Bad Request
           content:
@@ -1608,22 +2024,22 @@ paths:
       tags:
         - DID Registry
       parameters:
-        - name: policyId
-          in: path
+        - in: path
+          name: policyId
           schema:
             type: string
-          example: test-policy-1
+          example: policy-test-2021-03-30T14:10:56.932Z
           required: true
         - in: query
           name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
           schema:
             type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
+        - in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
       responses:
         200:
           description: Success
@@ -1649,23 +2065,40 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/did-registry/v2/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
                     items:
-                      - policyId: test-policy-1
-                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
-                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
-                      - policyId: test-policy-1
-                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ8
-                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562b
-                    total: 61
-                    pageSize: 2
+                      - policyId: policy-test-2021-03-30T14:10:56.932Z
+                        policy: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a226636303863643063616562643032353365336130623866383336643033386435227d"
+                        hash: "0x61ab0dc3883b253cb675fe9b8a4715378d86745edd2ff29c72af1359d6dc6661"
+                      - policyId: policy-test-2021-03-30T14:10:56.932Z
+                        policy: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223839333933396134316335393864363430616165383665633664373262376563227d"
+                        hash: "0x964f27ad52f670ad05100697287424749e9ceba571811585e318f4c54944543e"
+                    total: 2
+                    pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/did-registry/v2/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api.ebsi.xyz/did-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api.ebsi.xyz/did-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api.ebsi.xyz/did-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                      first: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                    items:
+                      - policyId: policy-test-2021-03-30T14:10:56.932Z
+                        policy: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a226636303863643063616562643032353365336130623866383336643033386435227d"
+                        hash: "0x61ab0dc3883b253cb675fe9b8a4715378d86745edd2ff29c72af1359d6dc6661"
+                      - policyId: policy-test-2021-03-30T14:10:56.932Z
+                        policy: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223839333933396134316335393864363430616165383665633664373262376563227d"
+                        hash: "0x964f27ad52f670ad05100697287424749e9ceba571811585e318f4c54944543e"
+                    total: 2
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -1705,6 +2138,8 @@ paths:
       description: |
         Helper APIs that assist the construction of blockchain transactions and interaction with
         the ledger (Write operation on ledger).
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         description: |
@@ -1748,6 +2183,13 @@ paths:
                   example: 1
             examples:
               Build tx to insertAdministrator:
+                description: |
+                  Call to build an unsigned transaction to insert a new administrator in the registry. This method requires admin rights in the DID Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **did**: DID of new administrator
+                  - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: insertAdministrator
@@ -1757,46 +2199,86 @@ paths:
                       did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
                       attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a226439333866396337356465643839623835613231363566343539333964356235227d"
               Build tx to updateAdministrator (new attribute):
+                description: |
+                  Call to build an unsigned transaction to insert new attribute data to an administrator in the registry. This method requires admin rights in the DID Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **did**: DID of the administrator to update
+                  - **attributeData**: Attribute data to add. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: updateAdministrator
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a226234646562303165383334303335643863313731326530663633326536633164227d"
-                  id: 1
               Build tx to updateAdministrator (update attribute):
+                description: |
+                  Call to build an unsigned transaction to update an attribute of an administrator in the registry. This method requires admin rights in the DID Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **did**: DID of the administrator to update
+                  - **prevAttributeHash**: Attribute ID to update
+                  - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: updateAdministrator
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
-                      attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223962346233643265613331636561366336346535653763393462363462383932227d"
                       prevAttributeHash: "0xade61e5d36c9cb925a59c00c4c0e16c25a6dce1ec8475432f75c953ff2cd551d"
-                  id: 1
+                      attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223962346233643265613331636561366336346535653763393462363462383932227d"
               Build tx to insertPolicy:
+                description: |
+                  Call to build an unsigned transaction to insert a policy in the registry. This method requires admin rights in the DID Registry.
+
+                   Parameters:
+                   - **from**: Ethereum address of the administrator
+                   - **policyId**: Policy Id
+                   - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: insertPolicy
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyId: test-policy-1
+                      policyId: policy-test-2021-03-30T14:10:56.932Z
                       policyData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223832663965313262313636363665313134303661383738643364653266333465227d"
-                  id: 1
               Build tx to updatePolicy:
+                description: |
+                  Call to build an unsigned transaction to update a policy. This method requires admin rights in the DID Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **policyId**: Policy Id
+                  - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: updatePolicy
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyId: test-policy-1
+                      policyId: policy-test-2021-03-30T14:10:56.932Z
                       policyData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223832663965313262313636363665313134303661383738643364653266333465227d"
-                  id: 1
               Build tx to insertHashAlgorithm:
+                description: |
+                  Call to build an unsigned transaction to insert a new hash algorithm. This method requires admin rights in the DID Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **outputLength**: hash output length (in bits)
+                  - **ianaName**: IANA name of the hash algorithm
+                  - **oid**: object identifier (OID)
+                  - **status**: status of the algorithm (1 = active, 2 = revoked)
+                  - **multihash**: multihash name
                 value:
                   jsonrpc: "2.0"
                   method: insertHashAlgorithm
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       outputLength: 256
@@ -1804,11 +2286,22 @@ paths:
                       oid: "2.16.840.1.101.3.4.2.1"
                       status: 1
                       multihash: sha2-256
-                  id: 1
               Build tx to updateHashAlgorithm:
+                description: |
+                  Call to build an unsigned transaction to update an existing hash algorithm. This method requires admin rights in the DID Registry.
+
+                   Parameters:
+                   - **from**: Ethereum address of the administrator
+                   - **hashAlgorithmId**: ID of the hash algorithm to update
+                   - **outputLength**: hash output length (in bits)
+                   - **ianaName**: IANA name of the hash algorithm
+                   - **oid**: object identifier (ODI)
+                   - **status**: status of the algorithm (1 = active, 2 = revoked)
+                   - **multihash**: multihash name
                 value:
                   jsonrpc: "2.0"
                   method: updateHashAlgorithm
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       hashAlgorithmId: 3
@@ -1817,11 +2310,22 @@ paths:
                       oid: "2.16.840.1.101.3.4.2.1"
                       status: 2
                       multihash: sha2-256
-                  id: 1
               Build tx to insertDidDocument:
+                description: |
+                  Call to build an unsigned transaction to insert a new DID Document.
+
+                  Parameters:
+                  - **from**: Ethereum address of the signer
+                  - **identifier**: DID identifier (hexadecimal)
+                  - **hashAlgorithmId**: ID of the hash algorithm used to hash the DID Document
+                  - **hashValue**: hash of the canonicalized DID Document
+                  - **didVersionInfo**: stringified JSON DID Document (hex-encoded)
+                  - **timestampData**: data to be added to the timestamp (stringified JSON encoded in hexadecimal)
+                  - **didVersionMetadata**: DID Document metadata (stringified JSON encoded in hexadecimal)
                 value:
                   jsonrpc: "2.0"
                   method: insertDidDocument
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
@@ -1830,11 +2334,22 @@ paths:
                       didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
                       timestampData: "0x7b2264617461223a2274657374222c2272223a2239333133313465363232633231613635227d"
                       didVersionMetadata: "0x7b226d657461223a2238313239336463633863623537623930663835383662396237343139333530653636316166623530663563633461656666376632643532373863623530353562227d"
-                  id: 1
               Build tx to updateDidDocument:
+                description: |
+                  Call to build an unsigned transaction to update an existing DID Document.
+
+                  Parameters:
+                  - **from**: Ethereum address of the signer
+                  - **identifier**: DID identifier (hexadecimal)
+                  - **hashAlgorithmId**: ID of the hash algorithm used to hash the DID Document
+                  - **hashValue**: hash of the canonicalized DID Document
+                  - **didVersionInfo**: stringified JSON DID Document (hex-encoded)
+                  - **timestampData**: data to be added to the timestamp (stringified JSON encoded in hexadecimal)
+                  - **didVersionMetadata**: DID Document metadata (stringified JSON encoded in hexadecimal)
                 value:
                   jsonrpc: "2.0"
                   method: updateDidDocument
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
@@ -1843,46 +2358,83 @@ paths:
                       didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
                       timestampData: "0x7b2264617461223a2274657374222c2272223a2261333961386663303334373663336133227d"
                       didVersionMetadata: "0x7b226d657461223a2266363432653135343161363435656534363530613338323537363165646566393465333037316265316237633735396336383833346663336637323363613838227d"
-                  id: 1
               Build tx to insertDidController:
+                description: |
+                  Call to build an unsigned transaction to insert a new DID Controller to an existing DID Document.
+
+                  Parameters:
+                  - **from**: Ethereum address of the signer
+                  - **identifier**: DID identifier (hexadecimal)
+                  - **newControllerId**: Ethereum address of the new controller (hex-encoded)
+                  - **notBefore**: timestamp before which the controller is not valid
+                  - **notAfter**: timetstamp after which the controller is not valid anymore
                 value:
                   jsonrpc: "2.0"
                   method: insertDidController
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       newControllerId: "0x40596101548f3D74714E6Eb66c4774c83F57Dd1d"
                       notBefore: 1616408985883
                       notAfter: 3232818053700
-                  id: 1
               Build tx to updateDidController:
+                description: |
+                  Call to build an unsigned transaction to update an existing DID Controller.
+
+                  Parameters:
+                  - **from**: Ethereum address of the signer
+                  - **identifier**: DID identifier (hexadecimal)
+                  - **newControllerId**: Ethereum address of the controller to be updated (hex-encoded)
+                  - **notBefore**: timestamp before which the controller is not valid
+                  - **notAfter**: timetstamp after which the controller is not valid anymore
                 value:
                   jsonrpc: "2.0"
                   method: updateDidController
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       newControllerId: "0x40596101548f3D74714E6Eb66c4774c83F57Dd1d"
                       notBefore: 1616408985883
                       notAfter: 3232818053700
-                  id: 1
               Build tx to revokeDidController:
+                description: |
+                  Call to build an unsigned transaction to revoke an existing DID Controller.
+
+                  Parameters:
+                  - **from**: Ethereum address of the signer
+                  - **identifier**: DID (hexadecimal)
+                  - **oldControllerId**: Ethereum address of the controller to be revoked (hex-encoded)
                 value:
                   jsonrpc: "2.0"
                   method: revokeDidController
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       oldControllerId: "0x40596101548f3D74714E6Eb66c4774c83F57Dd1d"
-                  id: 1
               Build tx to insertDidMethod:
+                description: |
+                  Call to build an unsigned transaction to insert a new DID Method. This method requires admin rights in the DID Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the signer
+                  - **methodName**: name of the DID method. It MUST start with "did:".
+                  - **ledgerName**: ledger to be used (only "EBSI-ethereum")
+                  - **methodSpec**: array of method specifications (JSON encoded in hexadecimal)
+                  - **methodSpecHash**: array of method specifications hashes
+                  - **notBefore**: timestamp before which the DID Method is not valid
+                  - **notAfter**: timetstamp after which the DID Method is not valid anymore
+                  - **status**: status of the DID Method (1 = active, 2 = revoked, 3 = suspended)
                 value:
                   jsonrpc: "2.0"
                   method: insertDidMethod
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      methodName: "did:ebsi"
-                      ledgerName: "ebsi-besu"
+                      methodName: did:ebsi
+                      ledgerName: EBSI-ethereum
                       methodSpec:
                         - "0x7b226d6574686f644e616d65223a2235366433366639643337656561366232616137356531353935616363663030343166326332633861343366333838626561623633396332636137613264326664222c226d6574686f645370656369666963496447656e65726174696f6e223a223239623863303765323865363137306564343462613962653063323261376333613663666532616661326165383737343732336333393939323935323638643531326338633135343934353333333032386131363861373131326237343538353664333261643138343937346664353263343538333833393437323339303037222c226d6574686f6453706563696669634964456e636f64696e67223a2234386234323365313238346564333338616236346463326164306164336530653132316137323631623738373836363261633336636536656561306264626535222c2276657273696f6e223a317d"
                       methodSpecHash:
@@ -1890,15 +2442,27 @@ paths:
                       notBefore: 1616408985883
                       notAfter: 3232818053700
                       status: 1
-                  id: 1
               Build tx to updateDidMethod:
+                description: |
+                  Call to build an unsigned transaction to update an existing DID Method. This method requires admin rights in the DID Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the signer
+                  - **methodName**: name of the DID method. It MUST start with "did:".
+                  - **ledgerName**: ledger to be used (only "EBSI-ethereum")
+                  - **methodSpec**: array of method specifications (JSON encoded in hexadecimal)
+                  - **methodSpecHash**: array of method specifications hashes
+                  - **notBefore**: timestamp before which the DID Method is not valid
+                  - **notAfter**: timetstamp after which the DID Method is not valid anymore
+                  - **status**: status of the DID Method (1 = active, 2 = revoked, 3 = suspended)
                 value:
                   jsonrpc: "2.0"
                   method: updateDidMethod
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      methodName: "did:ebsi"
-                      ledgerName: "ebsi-besu-2"
+                      methodName: did:ebsi-2
+                      ledgerName: EBSI-ethereum-2
                       methodSpec:
                         - "0x7b226d6574686f644e616d65223a2235366433366639643337656561366232616137356531353935616363663030343166326332633861343366333838626561623633396332636137613264326664222c226d6574686f645370656369666963496447656e65726174696f6e223a223239623863303765323865363137306564343462613962653063323261376333613663666532616661326165383737343732336333393939323935323638643531326338633135343934353333333032386131363861373131326237343538353664333261643138343937346664353263343538333833393437323339303037222c226d6574686f6453706563696669634964456e636f64696e67223a2234386234323365313238346564333338616236346463326164306164336530653132316137323631623738373836363261633336636536656561306264626535222c2276657273696f6e223a317d"
                       methodSpecHash:
@@ -1906,11 +2470,21 @@ paths:
                       notBefore: 1616408985883
                       notAfter: 3232818053700
                       status: 1
-                  id: 1
               Build tx to appendDidDocumentVersionHash:
+                description: |
+                  Call to build an unsigned transaction to append a new type of hash for given DID Doc version.
+
+                  Parameters:
+                  - **from**: Ethereum address of the signer
+                  - **identifier**: DID identifier (hexadecimal)
+                  - **hashAlgorithmId**: The new hash algorithm id used to compute the new hashValue of an existing DID Doc version
+                  - **hashValue**: new hash value of an existing DID Doc version
+                  - **didVersionInfo**: DID Document content (stringified JSON encoded in hexadecimal)
+                  - **timestampData** (optional): additional timestamping data. If set, it should be serialized JSON-LD file. The data can be added only at the timestamp.
                 value:
                   jsonrpc: "2.0"
                   method: appendDidDocumentVersionHash
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
@@ -1918,39 +2492,64 @@ paths:
                       hashValue: "0xf0fcfaf89af366f278900538f074eba8469408b1c54451e4ff4660a379e7e8f5"
                       didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
                       timestampData: "0x7b2264617461223a2274657374222c2272223a2261333961386663303334373663336133227d"
-                  id: 1
               Build tx to detachDidDocumentVersionHash:
+                description: |
+                  Call to build an unsigned transaction to detach an existing hash for a given DID Doc version.
+
+                  Parameters:
+                  - **from**: Ethereum address of the signer
+                  - **identifier**: DID identifier (hexadecimal)
+                  - **hashAlgorithmId**: The new hash algorithm id used to compute the new hashValue of an existing DID Doc version
+                  - **hashValue**: new hash value of an existing DID Doc version
+                  - **didVersionInfo**: DID Document content (stringified JSON encoded in hexadecimal)
                 value:
                   jsonrpc: "2.0"
                   method: detachDidDocumentVersionHash
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       hashAlgorithmId: 0
                       hashValue: "0xf0fcfaf89af366f278900538f074eba8469408b1c54451e4ff4660a379e7e8f5"
                       didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
-                  id: 1
               Build tx to appendDidDocumentVersionMetadata:
+                description: |
+                  Call to build an unsigned transaction to append a new metadata for given DID Doc version.
+
+                  Parameters:
+                  - **from**: Ethereum address of the signer
+                  - **identifier**: DID identifier (hexadecimal)
+                  - **didVersionInfo**: DID Document content (stringified JSON encoded in hexadecimal)
+                  - **didVersionMetadata**: DID Document Version Metadata content (stringified JSON encoded in hexadecimal)
                 value:
                   jsonrpc: "2.0"
                   method: appendDidDocumentVersionMetadata
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
                       didVersionMetadata: "0x7b226d657461223a2266363432653135343161363435656534363530613338323537363165646566393465333037316265316237633735396336383833346663336637323363613838227d"
-                  id: 1
               Build tx to detachDidDocumentVersionMetadata:
+                description: |
+                  Call to build an unsigned transaction to detaches an existing metadata for given DID Doc version.
+
+                  Parameters:
+                  - **from**: Ethereum address of the signer
+                  - **identifier**: DID identifier (hexadecimal)
+                  - **didVersionInfo**: DID Document content (stringified JSON encoded in hexadecimal)
+                  - **didVersionMetadata**: DID Document Version Metadata content (stringified JSON encoded in hexadecimal)
                 value:
                   jsonrpc: "2.0"
                   method: detachDidDocumentVersionMetadata
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
                       didVersionMetadata: "0x7b226d657461223a2266363432653135343161363435656534363530613338323537363165646566393465333037316265316237633735396336383833346663336637323363613838227d"
-                  id: 1
               Send Transaction:
+                description: Call to send a signed transaction to the blockchain.
                 value:
                   jsonrpc: "2.0"
                   method: signedTransaction
@@ -2044,6 +2643,7 @@ components:
             It may or may not yield further information if dereferenced.
     Links:
       title: Links
+      description: links model used for pagination
       type: object
       properties:
         last:
@@ -2058,17 +2658,10 @@ components:
         first:
           type: string
           description: URI of the first page
-      description: links model used for pagination
-      x-examples:
-        Links:
-          first: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=1&page[size]=2
-          prev: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=2&page[size]=2
-          next: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=4&page[size]=2
-          last: https://api.ebsi.xyz/did-registry/v2/administrators?page[after]=13&page[size]=2
     Attribute:
       title: Attribute
-      type: object
       description: Attribute
+      type: object
       properties:
         hash:
           type: string
@@ -2077,8 +2670,8 @@ components:
           description: Base64 encoded content
     AttributeDetails:
       title: attributeDetails
-      type: object
       description: Attribute Details
+      type: object
       properties:
         did:
           type: string
@@ -2087,8 +2680,8 @@ components:
           $ref: "#/components/schemas/Attribute"
     Administrator:
       title: Administrator
-      type: object
       description: Name of the administrator
+      type: object
       properties:
         did:
           type: string
@@ -2100,15 +2693,15 @@ components:
             $ref: "#/components/schemas/Attribute"
     DIDMethod:
       title: DID Method
-      type: object
       description: DID Method info
+      type: object
       properties:
         methodName:
           type: string
           description: DID Method name, e.g. "did:ebsi"
         ledgerName:
           type: string
-          description: Name of ledger where DID Method is implemented, e.g. "ebsi-besu".
+          description: Name of ledger where DID Method is implemented, e.g. "EBSI-ethereum".
         methodSpec:
           type: array
           description: Array of bytes encoded serialized JSON method spec
@@ -2194,8 +2787,8 @@ components:
           description: Multihash name
     Policy:
       title: Policy
-      type: object
       description: Policy data model
+      type: object
       properties:
         policyId:
           type: string
@@ -2237,9 +2830,16 @@ components:
         title: Internal error
         status: 500
         detail: Internal error
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
+  - url: "https://api.test.intebsi.xyz"
+    description: EBSI Test Environment
   - url: "https://api.preprod.ebsi.eu"
     description: EBSI Pre-production Environment
   - url: "https://api.ebsi.eu"
