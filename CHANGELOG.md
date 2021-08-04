@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.7](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.7&targetRepoId=359) (2021-08-04)
+
+### 🚀 Features
+
+- support new algorithms ([#40](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/40/overview)) - EBSIINT-3195 ([623356f](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/623356f4c2d4363b5f649ef75a73376fd09e61c9))
+
+### 🐛 Bug Fixes
+
+- jose in package.json ([#41](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/41/overview)) - EBSIINT-3195 ([20812a6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/20812a6df142d5b3a3974e8b115022a4628ded0d))
+- unit tests ([#42](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/42/overview)) - EBSIINT-3195 ([129c3e6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/129c3e67537ec316be6b1111474cf2d62e2c575b))
+- update openapi complete examples ([#45](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/45/overview)) - EBSIINT-3207 ([ea825db](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/ea825dbc7f3b5336225be55d7c3cb2ba34a87106))
+- upgrade Node.js to v14.17.4 ([#44](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/44/overview)) - EBSIINT-3206 ([ac8b6bd](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/ac8b6bd3e72f35ef7ad490f5d9d170d2e9129c5c))
+
 ## [1.0.0-rc.6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv1.0.0&targetRepoId=359) (2021-07-14)
 
 ## [1.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv1.0.0&targetRepoId=359) (2021-07-14)
