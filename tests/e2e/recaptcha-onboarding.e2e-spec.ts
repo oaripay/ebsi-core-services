@@ -17,6 +17,7 @@ import {
   Options,
   validateVerifiableCredential,
 } from "@cef-ebsi/verifiable-credential";
+import isCI from "is-ci";
 import { UserAuthentication } from "../../src/shared/dto";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -38,6 +39,8 @@ interface SupertestAuthenticationResponse {
   body: VerifiableAuthorization;
 }
 
+const describeSkipCI = isCI ? describe.skip : describe;
+
 /**
  * In order to enable and run the test below successfully, you need to set a valid recaptcha token
  * 1 - Locally run users-onboarding-web-client
@@ -45,7 +48,7 @@ interface SupertestAuthenticationResponse {
  * 3 - Copy the token sent as { info: { token: "03A..." } } to /users-onboarding/v1/sessions
  * 4 - Define TEST_RECAPTCHA_TOKEN with the copied token (in .env.test.local)
  */
-describe("reCAPTCHA onboarding", () => {
+describeSkipCI("reCAPTCHA onboarding", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
   let configService: ConfigService<ApiConfig>;

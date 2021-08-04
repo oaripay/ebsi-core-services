@@ -94,15 +94,15 @@ describe("EU Login onboarding", () => {
 
     await expect(page).toClick("button", { text: "Onboard with EU Login" });
 
-    await page.waitForNavigation();
+    await page.waitForNavigation({ waitUntil: "networkidle0" });
 
     await expect(page).toMatch("EBSI requires you to authenticate");
 
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(3000);
     await expect(page).toFillForm('form[id="whoamiForm"]', {
       username: euLoginUsername,
     });
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(300);
     await expect(page).toClick("button", { text: "Next" });
 
     await page.waitForNavigation();
