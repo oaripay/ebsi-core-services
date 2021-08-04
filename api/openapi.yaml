@@ -74,21 +74,44 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
                     items:
-                      - schemaId: schema-abc
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc
-                      - schemaId: schema-xyz
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-xyz
-                    total: 124
-                    pageSize: 2
+                      - schemaId: "0x312e332e362e312e342e312e313636342e31302e3138372e312e322e322e3333"
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313636342e31302e3138372e312e322e322e3333
+                      - schemaId: "0x312e332e362e312e342e312e313532372e382e3132352e322e312e322e3639"
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313532372e382e3132352e322e312e322e3639
+                      - schemaId: "0x312e332e362e312e342e312e313730312e372e3130372e322e322e332e3235"
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313730312e372e3130372e322e322e332e3235
+                      - schemaId: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530
+                    total: 4
+                    pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=2
-                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=2&page[size]=2
-                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=4&page[size]=2
-                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=62&page[size]=2
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
+                    items:
+                      - schemaId: "0x312e332e362e312e342e312e313636342e31302e3138372e312e322e322e3333"
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313636342e31302e3138372e312e322e322e3333
+                      - schemaId: "0x312e332e362e312e342e312e313532372e382e3132352e322e312e322e3639"
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313532372e382e3132352e322e312e322e3639
+                      - schemaId: "0x312e332e362e312e342e312e313730312e372e3130372e322e322e332e3235"
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313730312e372e3130372e322e322e332e3235
+                      - schemaId: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530
+                    total: 4
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -122,7 +145,13 @@ paths:
           in: path
           schema:
             type: string
-          example: "0x312e332e362e312e342e312e313137332e312e3136322e312e322e332e3236"
+          examples:
+            "[test] schemaId":
+              description: valid test schemaId
+              value: "0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735"
+            "[pilot] schemaId":
+              description: valid preprod schemaId
+              value: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
           required: true
       responses:
         200:
@@ -134,9 +163,10 @@ paths:
               examples:
                 Success:
                   value:
-                    "@context": https://ebsi.com
-                    type: CustomSchema
-                    name: My custom schema
+                    "@context": https://ebsi.eu
+                    type: Schema
+                    name: example
+                    data: 53a8da4c21d411b462bcfd9498cdc842
         400:
           description: Bad Request
           content:
@@ -181,7 +211,13 @@ paths:
           name: schemaId
           schema:
             type: string
-          example: "{DOI or IOD}"
+          examples:
+            "[test] schemaId":
+              description: valid test schemaId
+              value: "0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735"
+            "[pilot] schemaId":
+              description: valid preprod schemaId
+              value: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
           required: true
         - in: query
           name: page[after]
@@ -223,21 +259,32 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions?page[after]=3&page[size]=2&valid-at=2021-03-15T11:21:32.549Z
+                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions?page[after]=1&page[size]=10
                     items:
-                      - schemaRevisionId: "0x1234"
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x1234
-                      - schemaRevisionId: "0x5678"
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x5678
-                    total: 124
-                    pageSize: 2
+                      - schemaRevisionId: "0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066"
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066
+                    total: 1
+                    pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions?page[after]=1&page[size]=2&valid-at=2021-03-15T11:21:32.549Z
-                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions?page[after]=2&page[size]=2&valid-at=2021-03-15T11:21:32.549Z
-                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions?page[after]=4&page[size]=2&valid-at=2021-03-15T11:21:32.549Z
-                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions?page[after]=62&page[size]=2&valid-at=2021-03-15T11:21:32.549Z
+                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions?page[after]=1&page[size]=10
+                    items:
+                      - schemaRevisionId: "0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd"
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -271,13 +318,25 @@ paths:
           in: path
           schema:
             type: string
-          example: "0x312e332e362e312e342e312e313137332e312e3136322e312e322e332e3236"
+          examples:
+            "[test] schemaId":
+              description: valid test schemaId
+              value: "0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735"
+            "[pilot] schemaId":
+              description: valid preprod schemaId
+              value: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
           required: true
         - name: schemaRevisionId
           in: path
           schema:
             type: string
-          example: "0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd"
+          examples:
+            "[test] schemaRevisionId":
+              description: valid test schemaRevisionId
+              value: "0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066"
+            "[pilot] schemaRevisionId":
+              description: valid preprod schemaRevisionId
+              value: "0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd"
           required: true
       responses:
         200:
@@ -289,9 +348,10 @@ paths:
               examples:
                 Success:
                   value:
-                    "@context": https://ebsi.com
-                    type: CustomSchema
-                    name: My custom schema
+                    "@context": https://ebsi.eu
+                    type: Schema
+                    name: example
+                    data: 53a8da4c21d411b462bcfd9498cdc842
         400:
           description: Bad Request
           content:
@@ -336,13 +396,25 @@ paths:
           name: schemaId
           schema:
             type: string
-          example: "0x312e332e362e312e342e312e313137332e312e3136322e312e322e332e3236"
+          examples:
+            "[test] schemaId":
+              description: valid test schemaId
+              value: "0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735"
+            "[pilot] schemaId":
+              description: valid preprod schemaId
+              value: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
           required: true
         - name: schemaRevisionId
           in: path
           schema:
             type: string
-          example: "0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd"
+          examples:
+            "[test] schemaRevisionId":
+              description: valid test schemaRevisionId
+              value: "0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066"
+            "[pilot] schemaRevisionId":
+              description: valid preprod schemaRevisionId
+              value: "0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd"
           required: true
         - in: query
           name: page[after]
@@ -379,21 +451,32 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
                     items:
-                      - metadataId: "0x85ac0ec7c0cf6ff9771d86b3807cb3aa440d98d1c93ee4778fd9d6a2f09ea966"
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata/0x85ac0ec7c0cf6ff9771d86b3807cb3aa440d98d1c93ee4778fd9d6a2f09ea966
-                      - metadataId: "0x227b226d657461223a2276616c7565227d22"
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata/0x227b226d657461223a2276616c7565227d22
-                    total: 124
-                    pageSize: 2
+                      - metadataId: "0x007e4954f43d3cc40b3a0a5ab81a8e6098fda8c54e0d66bb5d196cb27b55c3be"
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata/0x007e4954f43d3cc40b3a0a5ab81a8e6098fda8c54e0d66bb5d196cb27b55c3be
+                    total: 1
+                    pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata?page[after]=1&page[size]=2
-                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata?page[after]=2&page[size]=2
-                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata?page[after]=4&page[size]=2
-                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas/schema-abc/revisions/0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd/metadata?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                    items:
+                      - metadataId: "0xb9085bf38ccf24a264f73f6ba42204fda51185d89afc8104ab9155c4b002e1eb"
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata/0xb9085bf38ccf24a264f73f6ba42204fda51185d89afc8104ab9155c4b002e1eb
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -438,19 +521,37 @@ paths:
           in: path
           schema:
             type: string
-          example: "0x312e332e362e312e342e312e313137332e312e3136322e312e322e332e3236"
+          examples:
+            "[test] schemaId":
+              description: valid test schemaId
+              value: "0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735"
+            "[pilot] schemaId":
+              description: valid preprod schemaId
+              value: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
           required: true
         - name: schemaRevisionId
           in: path
           schema:
             type: string
-          example: "0x98ec12e6f5de035e96c0defe84f31f928ca535c9795f40ebe4387b236b6a61dd"
+          examples:
+            "[test] schemaRevisionId":
+              description: valid test schemaRevisionId
+              value: "0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066"
+            "[pilot] schemaRevisionId":
+              description: valid preprod schemaRevisionId
+              value: "0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd"
           required: true
         - name: metadataId
           in: path
           schema:
             type: string
-          example: "0x8d4c31db6c03b3a71dfc25448cdceec4f7c4b27e8bc30f8da2dcf08325074c94"
+          examples:
+            "[test] metadataId":
+              description: valid test metadataId
+              value: "0x007e4954f43d3cc40b3a0a5ab81a8e6098fda8c54e0d66bb5d196cb27b55c3be"
+            "[pilot] metadataId":
+              description: valid preprod metadataId
+              value: "0xb9085bf38ccf24a264f73f6ba42204fda51185d89afc8104ab9155c4b002e1eb"
           required: true
       responses:
         200:
@@ -460,11 +561,18 @@ paths:
               schema:
                 type: object
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    "@context": https://ebsi.com
-                    type: Metadata
-                    name: My custom metadata
+                    meta: value
+                    data: 2d0859c9d9c2cc06987333c9fe238abe
+                    validFrom: "2021-06-10T07:51:36.334Z"
+                    validTo: "2021-06-10T07:57:36.334Z"
+                "[pilot] Success":
+                  value:
+                    meta: value
+                    data: 2d0859c9d9c2cc06987333c9fe238abe
+                    validFrom: "2021-06-10T07:51:36.334Z"
+                    validTo: "2021-06-10T07:57:36.334Z"
         400:
           description: Bad Request
           content:
@@ -503,7 +611,20 @@ paths:
         - Trusted Schemas Registry
       summary: List of trusted administrators
       description: Returns a list of trusted administrators
+      security:
+        - bearerAuth: []
       operationId: get-trusted-schemas-registry-v1-administrators
+      parameters:
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
       responses:
         200:
           description: Success
@@ -536,21 +657,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
                     items:
-                      - did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                      - did: did:ebsi:0x454253492d52554c45532d4d414c494e41524148
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148
-                    total: 124
+                      - did: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+                      - did: did:ebsi:5yr7tfecbh4tevrsf91hqgdzvrd1oeo6rajyizx8eaa1
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:5yr7tfecbh4tevrsf91hqgdzvrd1oeo6rajyizx8eaa1
+                    total: 2
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators?page[after]=13&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
+                    items:
+                      - did: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+                      - did: did:ebsi:5yr7tfecbh4tevrsf91hqgdzvrd1oeo6rajyizx8eaa1
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:5yr7tfecbh4tevrsf91hqgdzvrd1oeo6rajyizx8eaa1
+                    total: 2
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -572,17 +708,6 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      parameters:
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
   /trusted-schemas-registry/v2/administrators/{did}:
     get:
       tags:
@@ -590,12 +715,14 @@ paths:
       operationId: get-trusted-schemas-registry-v2-administrators-did
       summary: Get administrator by its Decentralized Identifier
       description: Returns a trusted administrator by its decentralized identifier
+      security:
+        - bearerAuth: []
       parameters:
         - name: did
           in: path
           schema:
             type: string
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          example: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
           required: true
       responses:
         200:
@@ -604,13 +731,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Administrator"
-              examples:
-                Success:
-                  value:
-                    did: did:ebsi:0x464190367BE948210608a46847bed183607f685A
-                    attributes:
-                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+              example:
+                did: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+                attributes:
+                  - hash: 6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
+                    body: eyJhZG1pbiI6ImRjY2Y3YzkxMzFmMWZlYmI4OWE5MTYyYSJ9
         400:
           description: Bad Request
           content:
@@ -647,6 +772,26 @@ paths:
         - Trusted Schemas Registry
       summary: List the attributes of an administrator
       description: Returns a list of attributes for a given administrator
+      security:
+        - bearerAuth: []
+      operationId: get-trusted-schemas-registry-v1-administrators-did-attributes
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+          required: true
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
       responses:
         200:
           description: Success
@@ -679,21 +824,32 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
                     items:
-                      - id: 792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
-                      - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                    total: 124
+                      - id: 0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
+                    total: 1
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
+                    items:
+                      - id: 6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -724,24 +880,6 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-schemas-registry-v1-administrators-did-attributes
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-          required: true
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
   /trusted-issuers-registry/v2/administrators/{did}/attributes/{attributeId}:
     get:
       tags:
@@ -749,18 +887,20 @@ paths:
       operationId: get-trusted-issuers-registry-v2-administrators-did-attributes-attributeid
       summary: Get a specific attribute
       description: Returns the corresponding attribute of a given administrator
+      security:
+        - bearerAuth: []
       parameters:
         - name: did
           in: path
           schema:
             type: string
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          example: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
           required: true
         - name: attributeId
           in: path
           schema:
             type: string
-          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+          example: 0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
           required: true
       responses:
         200:
@@ -769,13 +909,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AttributeDetails"
-              examples:
-                Success:
-                  value:
-                    did: did:ebsi:0x464190367BE948210608a46847bed183607f685A
-                    attribute:
-                      hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+              example:
+                did: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+                attribute:
+                  hash: 6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
+                  body: eyJhZG1pbiI6ImRjY2Y3YzkxMzFmMWZlYmI4OWE5MTYyYSJ9
         400:
           description: Bad Request
           content:
@@ -813,6 +951,32 @@ paths:
       summary: List the revisions of an attribute
       description: |
         Returns a list of revisions for a given attribute attached to a given administrator.
+      security:
+        - bearerAuth: []
+      operationId: get-trusted-schemas-registry-v1-administrators-did-attributes-attributeid-revisions
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          example: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+          required: true
+        - name: attributeId
+          in: path
+          schema:
+            type: string
+          example: 0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
+          required: true
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
       responses:
         200:
           description: Success
@@ -838,21 +1002,32 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
                     items:
-                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                      - hash: "0x56ef14c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da632125a"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8
-                    total: 2
-                    pageSize: 123
+                      - hash: 0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
+                        body: eyJhZG1pbiI6ImRjY2Y3YzkxMzFmMWZlYmI4OWE5MTYyYSJ9
+                    total: 1
+                    pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                    items:
+                      - hash: 6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
+                        body: eyJhZG1pbiI6ImRjY2Y3YzkxMzFmMWZlYmI4OWE5MTYyYSJ9
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -884,35 +1059,6 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-schemas-registry-v1-administrators-did-attributes-attributeid-revisions
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-          required: true
-        - name: attributeId
-          in: path
-          schema:
-            type: string
-          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-          required: true
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
   /trusted-schemas-registry/v1/policies:
     get:
       tags:
@@ -963,21 +1109,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1
                       - policyId: test-policy-2
-                        href: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-2
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=1&page[size]=2
-                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=2&page[size]=2
-                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=4&page[size]=2
-                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/policies?page[after]=62&page[size]=2
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies?page[after]=3&page[size]=2
+                    items:
+                      - policyId: test-policy-1
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies/test-policy-1
+                      - policyId: test-policy-2
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies/test-policy-2
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies?page[after]=62&page[size]=2
         400:
           description: Bad Request Error
           content:
@@ -1071,11 +1232,6 @@ paths:
           example: test-policy-1
           required: true
         - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
           name: page[after]
           schema:
             type: string
@@ -1110,9 +1266,9 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
                         policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
@@ -1123,10 +1279,27 @@ paths:
                     total: 61
                     pageSize: 2
                     links:
-                      first: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api.ebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    items:
+                      - policyId: test-policy-1
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
+                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
+                      - policyId: test-policy-1
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ8
+                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562b
+                    total: 61
+                    pageSize: 2
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=31&page[size]=2
         400:
           description: Bad Request Error
           content:
@@ -1166,6 +1339,8 @@ paths:
       description: |
         Helper APIs that assist the construction of blockchain transactions and interaction with
         the ledger (Write operation on ledger).
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         description: |
@@ -1206,34 +1381,63 @@ paths:
                   example: 1
             examples:
               Build tx to insertAdministrator:
+                description: |
+                  Call to build an unsigned transaction to insert a new administrator in the registry. This method requires admin rights in the Trusted Schemas Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **did**: DID of new administrator
+                  - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: insertAdministrator
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
-                      attributeData: "0x68946e6565d6516..."
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      did: did:ebsi:erragib3dmyhcgh6txdshfbq6xpfg5j3w88gfjjzhqa3
+                      attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
               Build tx to insertPolicy:
+                description: |
+                  Call to build an unsigned transaction to insert a policy in the registry. This method requires admin rights in the Trusted Schemas Registry.
+
+                   Parameters:
+                   - **from**: Ethereum address of the administrator
+                   - **policyId**: Policy Id
+                   - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: insertPolicy
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyId: test-policy-1
-                      policyData: "0x1234567890..."
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      policyId: my-policy
+                      policyData: "0x7b22706f6c696379223a22396361663735323733373936353135656465613631323165227d"
               Build tx to insertSchema:
+                description: |
+                  Call to build an unsigned transaction to insert a new schema. This method requires admin rights in the Trusted Schemas Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **schemaId**: DOI/OID converted into hex string
+                  - **schema**: Content. This field must be a JSON stringified and converted into hex string
+                  - **metadata**: Metadata of the first version. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: insertSchema
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      schemaId: "{ hex-encoded oid or doi }"
-                      schema: "0x227b2240636f6e74657874223a2268747470733a2f2f656273692e6575222c2274797065223a22536368656d61222c226e616d65223a226578616d706c65227d22"
-                      metadata: "0x227b226d657461223a2276616c7565227d22"
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      schemaId: "0x312e332e362e312e342e312e3339312e31302e3132302e322e332e312e3734"
+                      schema: "0x7b2240636f6e74657874223a2268747470733a2f2f656273692e6575222c2274797065223a22536368656d61222c226e616d65223a226578616d706c65222c2264617461223a223065346637383664343036613330643339343438633563613232343562316130227d"
+                      metadata: "0x7b226d657461223a2276616c7565222c2264617461223a223536323930303863363738383536346164653165353266383635623864366535222c2276616c696446726f6d223a22323032312d30382d30325430393a31323a30342e3230365a222c2276616c6964546f223a22323032312d30382d30325430393a31383a30342e3230365a227d"
               Build tx to updatePolicy:
+                description: |
+                  Call to build an unsigned transaction to update a policy. This method requires admin rights in the Trusted Schemas Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                   - **policyId**: Policy Id
+                   - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: updatePolicy
@@ -1243,6 +1447,14 @@ paths:
                       policyId: test-policy-1
                       policyData: "0x1234567890..."
               Build tx to updateSchema:
+                description: |
+                  Call to build an unsigned transaction to update an schema. This method requires admin rights in the Trusted Schemas Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **schemaId**: Schema ID
+                  - **schema**: Content. This field must be a JSON stringified and converted into hex string
+                  - **metadata**: Metadata. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: updateSchema
@@ -1253,25 +1465,47 @@ paths:
                       schema: "0x227b2240636f6e74657874223a2268747470733a2f2f656273692e6575222c2274797065223a22536368656d61222c226e616d65223a226578616d706c65227d22"
                       metadata: "0x227b226d657461223a2276616c7565227d22"
               Build tx to updateAdministrator (new attribute):
+                description: |
+                  Call to build an unsigned transaction to insert new attribute data to an administrator in the registry. This method requires admin rights in the Trusted Schemas Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **did**: DID of the administrator to update
+                  - **attributeData**: Attribute data to add. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: updateAdministrator
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
-                      attributeData: "0x68946e6565d6516..."
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      did: did:ebsi:erragib3dmyhcgh6txdshfbq6xpfg5j3w88gfjjzhqa3
+                      attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
                   id: 1
               Build tx to updateAdministrator (update attribute):
+                description: |
+                  Call to build an unsigned transaction to update an attribute of an administrator in the registry. This method requires admin rights in the Trusted Schemas Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **did**: DID of the administrator to update
+                  - **prevAttributeHash**: Attribute ID to update
+                  - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: updateAdministrator
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
-                      attributeData: "0x68946e6565d6516..."
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      did: did:ebsi:erragib3dmyhcgh6txdshfbq6xpfg5j3w88gfjjzhqa3
+                      attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
                   id: 1
               Build tx to updateMetadata:
+                description: |
+                  Call to build an unsigned transaction to update the metadata of a schema revision. This method requires admin rights in the Trusted Schemas Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **schemaRevisionId**: Schema revision ID
+                  - **metadata**: Metadata. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: updateMetadata
@@ -1281,6 +1515,7 @@ paths:
                       schemaRevisionId: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
                       metadata: "0x227b226d657461223a2276616c7565227d22"
               Send Transaction:
+                description: Call to send a signed transaction to the blockchain.
                 value:
                   jsonrpc: "2.0"
                   method: signedTransaction
@@ -1404,12 +1639,6 @@ components:
         last:
           type: string
           description: Hyperlink to the last page.
-      x-examples:
-        Links:
-          first: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=2
-          prev: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=2&page[size]=2
-          next: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=4&page[size]=2
-          last: https://api.ebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=13&page[size]=2
     SchemaLinks:
       title: Schema links
       description: Links to schemas as returned by the REST APIs.
@@ -1506,6 +1735,11 @@ components:
         title: Internal error
         status: 500
         detail: Internal error
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
