@@ -35,12 +35,9 @@ paths:
       operationId: get-trusted-issuers-registry-v2-administrators
       summary: List of trusted administrators
       description: Returns a list of trusted administrators
+      security:
+        - bearerAuth: []
       parameters:
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: page[after]
           schema:
@@ -83,21 +80,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=3&page[size]=10
                     items:
-                      - did: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
-                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+                      - did: did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
                       - did: did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
-                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators?page[after]=13&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators?page[after]=3&page[size]=10
+                    items:
+                      - did: did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
+                      - did: did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -126,12 +138,20 @@ paths:
       operationId: get-trusted-issuers-registry-v2-administrators-did
       summary: Get administrator by its Decentralized Identifier
       description: Returns a trusted administrator by its decentralized identifier
+      security:
+        - bearerAuth: []
       parameters:
         - name: did
           in: path
           schema:
             type: string
-          example: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+          examples:
+            "[test] did":
+              description: valid test did
+              value: did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq
+            "[pilot] did":
+              description: valid preprod did
+              value: did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
           required: true
       responses:
         "200":
@@ -141,11 +161,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/administrator"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    did: did:ebsi:7pywr3gk6HDoMGmVGwnrg7mJFtZBoUPFKageSZmV2Diy
+                    did: did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq
                     attributes:
-                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      - hash: "31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                "[pilot] Success":
+                  value:
+                    did: did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
+                    attributes:
+                      - hash: "31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
         "400":
           description: Bad Request
@@ -184,18 +210,21 @@ paths:
       operationId: get-trusted-issuers-registry-v2-administrators-did-attributes
       summary: List the attributes of an administrator
       description: Returns a list of attributes for a given administrator
+      security:
+        - bearerAuth: []
       parameters:
         - name: did
           in: path
           schema:
             type: string
-          example: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+          examples:
+            "[test] did":
+              description: valid test did
+              value: did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq
+            "[pilot] did":
+              description: valid preprod did
+              value: did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
           required: true
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: page[after]
           schema:
@@ -238,21 +267,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq/attributes?page[after]=3&page[size]=10
                     items:
-                      - id: 792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
-                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
-                      - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+                      - id: 0f4a9af35618b974997ea53c4ad29860e90dcfeb6387285d79faa89eead653ee
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq/attributes/0f4a9af35618b974997ea53c4ad29860e90dcfeb6387285d79faa89eead653ee
+                      - id: 0949843b0050ae35f546a333b7962f28c66b36ef881d294857a1286ca31eddf6
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq/attributes/0949843b0050ae35f546a333b7962f28c66b36ef881d294857a1286ca31eddf6
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq/attributes?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq/attributes?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq/attributes?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq/attributes?page[after]=13&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a/attributes?page[after]=3&page[size]=10
+                    items:
+                      - id: 792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                      - id: 0949843b0050ae35f546a333b7962f28c66b36ef881d294857a1286ca31eddf6
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a/attributes/0949843b0050ae35f546a333b7962f28c66b36ef881d294857a1286ca31eddf6
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a/attributes?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a/attributes?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a/attributes?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a/attributes?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -290,18 +334,32 @@ paths:
       operationId: get-trusted-issuers-registry-v2-administrators-did-attributes-attributeid
       summary: Get a specific attribute
       description: Returns the corresponding attribute of a given administrator
+      security:
+        - bearerAuth: []
       parameters:
         - name: did
           in: path
           schema:
             type: string
-          example: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+          examples:
+            "[test] did":
+              description: valid test did
+              value: did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq
+            "[pilot] did":
+              description: valid preprod did
+              value: did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
           required: true
         - name: attributeId
           in: path
           schema:
             type: string
-          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+          examples:
+            "[test] attributeId":
+              description: valid test attributeId
+              value: 0f4a9af35618b974997ea53c4ad29860e90dcfeb6387285d79faa89eead653ee
+            "[pilot] attributeId":
+              description: valid preprod attributeId
+              value: 0949843b0050ae35f546a333b7962f28c66b36ef881d294857a1286ca31eddf6
           required: true
       responses:
         "200":
@@ -311,11 +369,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/attributeDetails"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    did: did:ebsi:7pywr3gk6HDoMGmVGwnrg7mJFtZBoUPFKageSZmV2Diy
+                    did: did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq
                     attribute:
-                      hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      hash: 0949843b0050ae35f546a333b7962f28c66b36ef881d294857a1286ca31eddf6
+                      body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                "[pilot] Success":
+                  value:
+                    did: did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
+                    attribute:
+                      hash: 0949843b0050ae35f546a333b7962f28c66b36ef881d294857a1286ca31eddf6
                       body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
         "400":
           description: Bad Request
@@ -355,24 +419,33 @@ paths:
       summary: List the revisions of an attribute
       description: |
         Returns a list of revisions for a given attribute attached to a given administrator.
+      security:
+        - bearerAuth: []
       parameters:
         - name: did
           in: path
           schema:
             type: string
-          example: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+          examples:
+            "[test] did":
+              description: valid test did
+              value: did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq
+            "[pilot] did":
+              description: valid preprod did
+              value: did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
           required: true
         - name: attributeId
           in: path
           schema:
             type: string
-          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+          examples:
+            "[test] attributeId":
+              description: valid test attributeId
+              value: 0f4a9af35618b974997ea53c4ad29860e90dcfeb6387285d79faa89eead653ee
+            "[pilot] attributeId":
+              description: valid preprod attributeId
+              value: 0949843b0050ae35f546a333b7962f28c66b36ef881d294857a1286ca31eddf6
           required: true
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: page[after]
           schema:
@@ -408,21 +481,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq/attributes/0f4a9af35618b974997ea53c4ad29860e90dcfeb6387285d79faa89eead653ee/revisions?page[after]=3&page[size]=10
                     items:
-                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      - hash: 31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                      - hash: "0x56ef14c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da632125a"
+                      - hash: 56ef14c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da632125a
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8
                     total: 2
                     pageSize: 123
                     links:
-                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=1&page[size]=10
-                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq/attributes/0f4a9af35618b974997ea53c4ad29860e90dcfeb6387285d79faa89eead653ee/revisions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq/attributes/0f4a9af35618b974997ea53c4ad29860e90dcfeb6387285d79faa89eead653ee/revisions?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq/attributes/0f4a9af35618b974997ea53c4ad29860e90dcfeb6387285d79faa89eead653ee/revisions?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/administrators/did:ebsi:9qsqytdvhjepf1g4yyvgb3cmj5oemjxrnki6depuqzfq/attributes/0f4a9af35618b974997ea53c4ad29860e90dcfeb6387285d79faa89eead653ee/revisions?page[after]=13&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a/attributes/0949843b0050ae35f546a333b7962f28c66b36ef881d294857a1286ca31eddf6/revisions?page[after]=3&page[size]=10
+                    items:
+                      - hash: 31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                      - hash: 56ef14c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da632125a
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8
+                    total: 2
+                    pageSize: 123
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a/attributes/0949843b0050ae35f546a333b7962f28c66b36ef881d294857a1286ca31eddf6/revisions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a/attributes/0949843b0050ae35f546a333b7962f28c66b36ef881d294857a1286ca31eddf6/revisions?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a/attributes/0949843b0050ae35f546a333b7962f28c66b36ef881d294857a1286ca31eddf6/revisions?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/administrators/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a/attributes/0949843b0050ae35f546a333b7962f28c66b36ef881d294857a1286ca31eddf6/revisions?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -462,11 +550,6 @@ paths:
       summary: List of trusted issuers
       description: Returns a list of trusted issuers
       parameters:
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: page[after]
           schema:
@@ -509,21 +592,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers
+                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers
                     items:
-                      - did: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
-                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+                      - did: did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
                       - did: did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
-                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=10
-                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers
+                    items:
+                      - did: did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:2yNix7sQpg6Gt8qPdgUWicQBcajwafWrqWnmytCDEJ8a
+                      - did: did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
+                    total: 2
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -557,7 +655,13 @@ paths:
           in: path
           schema:
             type: string
-          example: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+          examples:
+            "[test] did":
+              description: valid test did
+              value: did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf
+            "[pilot] did":
+              description: valid preprod did
+              value: did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd
           required: true
       responses:
         "200":
@@ -567,11 +671,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/issuer"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    did: did:ebsi:7pywr3gk6HDoMGmVGwnrg7mJFtZBoUPFKageSZmV2Diy
+                    did: did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf
                     attributes:
-                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      - hash: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                "[pilot] Success":
+                  value:
+                    did: did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd
+                    attributes:
+                      - hash: 31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
         "400":
           description: Bad Request
@@ -615,13 +725,14 @@ paths:
           in: path
           schema:
             type: string
-          example: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+          examples:
+            "[test] did":
+              description: valid test did
+              value: did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf
+            "[pilot] did":
+              description: valid preprod did
+              value: did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd
           required: true
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: page[after]
           schema:
@@ -664,21 +775,32 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes
+                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf/attributes
                     items:
-                      - id: 792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
-                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
-                      - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                    total: 2
+                      - id: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
+                    total: 1
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes?page[after]=0&page[size]=10
-                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf/attributes?page[after]=0&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf/attributes?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf/attributes?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf/attributes?page[after]=13&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd/attributes
+                    items:
+                      - id: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd/attributes?page[after]=0&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd/attributes?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd/attributes?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd/attributes?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -721,13 +843,25 @@ paths:
           in: path
           schema:
             type: string
-          example: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+          examples:
+            "[test] did":
+              description: valid test did
+              value: did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf
+            "[pilot] did":
+              description: valid preprod did
+              value: did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd
           required: true
         - name: attributeId
           in: path
           schema:
             type: string
-          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+          examples:
+            "[test] attributeId":
+              description: valid test attributeId
+              value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
+            "[pilot] attributeId":
+              description: valid preprod attributeId
+              value: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
           required: true
       responses:
         "200":
@@ -737,11 +871,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/attributeDetails"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    did: did:ebsi:7pywr3gk6HDoMGmVGwnrg7mJFtZBoUPFKageSZmV2Diy
+                    did: did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf
                     attribute:
-                      hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                      hash: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
+                      body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                "[pilot] Success":
+                  value:
+                    did: did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd
+                    attribute:
+                      hash: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
                       body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
         "400":
           description: Bad Request
@@ -785,19 +925,26 @@ paths:
           in: path
           schema:
             type: string
-          example: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
+          examples:
+            "[test] did":
+              description: valid test did
+              value: did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf
+            "[pilot] did":
+              description: valid preprod did
+              value: did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd
           required: true
         - name: attributeId
           in: path
           schema:
             type: string
-          example: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+          examples:
+            "[test] attributeId":
+              description: valid test attributeId
+              value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
+            "[pilot] attributeId":
+              description: valid preprod attributeId
+              value: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
           required: true
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: page[after]
           schema:
@@ -833,9 +980,9 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions
+                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions
                     items:
                       - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
@@ -844,10 +991,25 @@ paths:
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=0&page[size]=10
-                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=2&page[size]=10
-                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=4&page[size]=10
-                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2/revisions?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=0&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:9requ8uhdjkomkaqmnors9nu7bkavwihwgb4dad8pwpf/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=13&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions
+                    items:
+                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
+                      - hash: "0x56ef14c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da632125a"
+                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8
+                    total: 2
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions?page[after]=0&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:44Babsc4vEn2UZYeZGUy7LwofE4pqDQ1YcTmqekR6nhd/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -887,11 +1049,6 @@ paths:
       summary: Get all policies
       description: Get all policies. Endpoint returns a paginated list of items.
       parameters:
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
         - in: query
           name: page[after]
           schema:
@@ -934,21 +1091,36 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
-                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1
                       - policyId: test-policy-2
-                        href: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-2
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=2
-                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=2&page[size]=2
-                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=4&page[size]=2
-                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=62&page[size]=2
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies?page[after]=3&page[size]=2
+                    items:
+                      - policyId: test-policy-1
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-1
+                      - policyId: test-policy-2
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-2
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -1042,11 +1214,6 @@ paths:
           example: test-policy-1
           required: true
         - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: Cursor that points to the start of the page of data that has been returned.
-        - in: query
           name: page[after]
           schema:
             type: string
@@ -1081,9 +1248,9 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                Success:
+                "[test] Success":
                   value:
-                    self: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
                         policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
@@ -1094,10 +1261,27 @@ paths:
                     total: 61
                     pageSize: 2
                     links:
-                      first: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api.ebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    items:
+                      - policyId: test-policy-1
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
+                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
+                      - policyId: test-policy-1
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ8
+                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562b
+                    total: 61
+                    pageSize: 2
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -1137,6 +1321,8 @@ paths:
       description: |
         Helper APIs that assist the construction of blockchain transactions for TIR SC operations,
         and interaction with the ledger (Write operation on ledger)
+      security:
+        - bearerAuth: []
       requestBody:
         description: |
           The body follows the
@@ -1176,34 +1362,63 @@ paths:
                   example: 1
             examples:
               Build tx to insert administrator:
+                description: |
+                  Call to build an unsigned transaction to insert a new administrator in the registry. This method requires admin rights in the Trusted Issuers Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **did**: DID of new administrator
+                  - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
-                  id: 1
                   method: insertAdministrator
+                  id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
-                      attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223730373634663965353838646438306465343133363261373339646362303133227d"
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      did: did:ebsi:erragib3dmyhcgh6txdshfbq6xpfg5j3w88gfjjzhqa3
+                      attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
               Build tx to add a new attribute to an administrator:
+                description: |
+                  Call to build an unsigned transaction to insert new attribute data to an administrator in the registry. This method requires admin rights in the Trusted Issuers Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **did**: DID of the administrator to update
+                  - **attributeData**: Attribute data to add. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
-                  id: 1
-                  method: updatetAdministrator
+                  method: updateAdministrator
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
-                      attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223730373634663965353838646438306465343133363261373339646362303133227d"
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      did: did:ebsi:erragib3dmyhcgh6txdshfbq6xpfg5j3w88gfjjzhqa3
+                      attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
+                  id: 1
               Build tx to update an attribute of an administrator:
+                description: |
+                  Call to build an unsigned transaction to update an attribute of an administrator in the registry. This method requires admin rights in the Trusted Issuers Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **did**: DID of the administrator to update
+                  - **prevAttributeHash**: Attribute ID to update
+                  - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
-                  id: 1
-                  method: updatetAdministrator
+                  method: updateAdministrator
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
-                      attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223730373634663965353838646438306465343133363261373339646362303133227d"
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      did: did:ebsi:erragib3dmyhcgh6txdshfbq6xpfg5j3w88gfjjzhqa3
+                      attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
+                  id: 1
               Build tx to insert issuer:
+                description: |
+                  Call to build an unsigned transaction to insert a new issuer. This method requires admin rights in the Trusted Issuers Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **did**: DID of the issuer to insert
+                  - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   id: 1
@@ -1213,6 +1428,13 @@ paths:
                       did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
                       attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223730373634663965353838646438306465343133363261373339646362303133227d"
               Build tx to add a new attribute to an issuer:
+                description: |
+                  Call to build an unsigned transaction to add a new attribute to an issuer. The issuer can be updated by the own issuer or an admin regitered Trusted Issuers Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **did**: DID of the issuer
+                  - **attributeData**: Attribute data to insert. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   id: 1
@@ -1222,6 +1444,14 @@ paths:
                       did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
                       attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223730373634663965353838646438306465343133363261373339646362303133227d"
               Build tx to update an attribute of an issuer:
+                description: |
+                  Call to build an unsigned transaction to update an attribute of an issuer. The issuer can be updated by the own issuer or an admin regitered Trusted Issuers Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **did**: DID of the issuer
+                  - **prevAttributeHash**: Attribute ID to update
+                  - **attributeData**: Attribute data to insert. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   id: 1
@@ -1232,24 +1462,39 @@ paths:
                       attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223730373634663965353838646438306465343133363261373339646362303133227d"
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
               Build tx to insert a policy:
+                description: |
+                  Call to build an unsigned transaction to insert a policy in the registry. This method requires admin rights in the Trusted Issuers Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **policyId**: Policy Id
+                  - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: insertPolicy
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyId: policy1234
-                      policyData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a226538326561613539373665376562396632646432366631343363386161663931227d"
                   id: 1
+                  params:
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      policyId: my-policy
+                      policyData: "0x7b22706f6c696379223a22396361663735323733373936353135656465613631323165227d"
               Build tx to update a policy:
+                description: |
+                  Call to build an unsigned transaction to update a policy. This method requires admin rights in the Trusted Issuers Registry.
+
+                  Parameters:
+                  - **from**: Ethereum address of the administrator
+                  - **policyId**: Policy Id
+                  - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: updatePolicy
+                  id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyId: policy1234
-                      policyData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a226538326561613539373665376562396632646432366631343363386161663931227d"
-                  id: 1
+                      policyId: test-policy-1
+                      policyData: "0x1234567890..."
               Send Transaction:
+                description: Call to send a signed transaction to the blockchain.
                 value:
                   jsonrpc: "2.0"
                   method: signedTransaction
@@ -1369,10 +1614,10 @@ components:
       description: links model used for pagination
       x-examples:
         Links:
-          first: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=1&page[size]=2
-          prev: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=2
-          next: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=2
-          last: https://api.ebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=2
+          first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=1&page[size]=2
+          prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=2
+          next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=2
+          last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=2
     JsonRpcResponse:
       title: JSON-RPC Response
       type: object
@@ -1469,6 +1714,11 @@ components:
         title: Internal error
         status: 500
         detail: Internal error
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
