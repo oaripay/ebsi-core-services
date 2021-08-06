@@ -1476,8 +1476,7 @@ describe("JsonRpc Module", () => {
               did: adminV1.did,
               from: signer.address,
             } as InsertAdministratorParam,
-            expectedErrorMessage:
-              "property params[0].attributeData has failed the following constraints: isHexadecimal",
+            expectedErrorMessage: "attributeData must be a hexadecimal number",
           });
 
           testSetup.push({
@@ -1485,8 +1484,7 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               attributeData: adminV1.attributeData,
             } as InsertAdministratorParam,
-            expectedErrorMessage:
-              "property params[0].did has failed the following constraints: isDid",
+            expectedErrorMessage: "did must contain a valid DID method",
           });
 
           testSetup.push({
@@ -1495,8 +1493,7 @@ describe("JsonRpc Module", () => {
               attributeData: adminV1.attributeData,
               from: "bad address",
             } as InsertAdministratorParam,
-            expectedErrorMessage:
-              "property params[0].from has failed the following constraints: isEthereumAddress",
+            expectedErrorMessage: "from must be an Ethereum address",
           });
 
           break;
@@ -1507,8 +1504,7 @@ describe("JsonRpc Module", () => {
               did: adminV1.did,
               from: signer.address,
             } as UpdateAdministratorParam,
-            expectedErrorMessage:
-              "property params[0].attributeData has failed the following constraints: isHexadecimal",
+            expectedErrorMessage: "attributeData must be a hexadecimal number",
           });
 
           testSetup.push({
@@ -1516,8 +1512,7 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               attributeData: adminV1.attributeData,
             } as UpdateAdministratorParam,
-            expectedErrorMessage:
-              "property params[0].did has failed the following constraints: isDid",
+            expectedErrorMessage: "did must contain a valid DID method",
           });
 
           testSetup.push({
@@ -1526,8 +1521,7 @@ describe("JsonRpc Module", () => {
               attributeData: adminV1.attributeData,
               from: "bad address",
             } as UpdateAdministratorParam,
-            expectedErrorMessage:
-              "property params[0].from has failed the following constraints: isEthereumAddress",
+            expectedErrorMessage: "from must be an Ethereum address",
           });
 
           break;
@@ -1542,8 +1536,7 @@ describe("JsonRpc Module", () => {
               status: 1,
               multihash: "sha2-256",
             } as InsertHashAlgorithmParam,
-            expectedErrorMessage:
-              "property params[0].outputLength has failed the following constraints: min",
+            expectedErrorMessage: "outputLength must not be less than 0",
           });
 
           testSetup.push({
@@ -1555,8 +1548,7 @@ describe("JsonRpc Module", () => {
               status: 3,
               multihash: "sha2-256",
             } as InsertHashAlgorithmParam,
-            expectedErrorMessage:
-              "property params[0].status has failed the following constraints: max",
+            expectedErrorMessage: "status must not be greater than 2",
           });
 
           testSetup.push({
@@ -1568,8 +1560,7 @@ describe("JsonRpc Module", () => {
               status: 1,
               multihash: "sha-sha-sha-256",
             } as InsertHashAlgorithmParam,
-            expectedErrorMessage:
-              "property params[0].multihash has failed the following constraints: isMultihash",
+            expectedErrorMessage: "multihash must be a valid multihash",
           });
 
           break;
@@ -1585,8 +1576,7 @@ describe("JsonRpc Module", () => {
               status: 1,
               multihash: "sha2-256",
             } as UpdateHashAlgorithmParam,
-            expectedErrorMessage:
-              "property params[0].hashAlgorithmId has failed the following constraints: min",
+            expectedErrorMessage: "hashAlgorithmId must not be less than 0",
           });
 
           testSetup.push({
@@ -1599,8 +1589,7 @@ describe("JsonRpc Module", () => {
               status: 1,
               multihash: "sha2-256",
             } as UpdateHashAlgorithmParam,
-            expectedErrorMessage:
-              "property params[0].outputLength has failed the following constraints: min",
+            expectedErrorMessage: "outputLength must not be less than 0",
           });
 
           testSetup.push({
@@ -1613,8 +1602,7 @@ describe("JsonRpc Module", () => {
               status: 1,
               multihash: "sha-sha-sha-256",
             } as UpdateHashAlgorithmParam,
-            expectedErrorMessage:
-              "property params[0].multihash has failed the following constraints: isMultihash",
+            expectedErrorMessage: "multihash must be a valid multihash",
           });
 
           break;
@@ -1627,8 +1615,7 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               policyId: undefined,
             } as InsertPolicyParam,
-            expectedErrorMessage:
-              "property params[0].policyId has failed the following constraints: isString",
+            expectedErrorMessage: "policyId must be a string",
           });
 
           testSetup.push({
@@ -1637,8 +1624,7 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               policyData: undefined,
             } as InsertPolicyParam,
-            expectedErrorMessage:
-              "property params[0].policyData has failed the following constraints: isHexadecimal",
+            expectedErrorMessage: "policyData must be a hexadecimal number",
           });
 
           testSetup.push({
@@ -1646,8 +1632,7 @@ describe("JsonRpc Module", () => {
               ...policy3,
               from: "bad address",
             } as InsertPolicyParam,
-            expectedErrorMessage:
-              "property params[0].from has failed the following constraints: isEthereumAddress",
+            expectedErrorMessage: "from must be an Ethereum address",
           });
 
           break;
@@ -1693,8 +1678,7 @@ describe("JsonRpc Module", () => {
               timestampData,
               didVersionMetadata,
             } as InsertDidDocumentParam,
-            expectedErrorMessage:
-              "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson",
+            expectedErrorMessage: "didVersionInfo must be a hexadecimal JSON",
             accessToken: userAccessToken,
           });
 
@@ -1784,7 +1768,7 @@ describe("JsonRpc Module", () => {
               notAfter: 3232818053700,
             } as InsertDidControllerParam,
             expectedErrorMessage:
-              "property params[0].identifier has failed the following constraints: isHexadecimalDid",
+              "identifier must be a valid DID encoded in hexadecimal",
           });
 
           testSetup.push({
@@ -1795,8 +1779,7 @@ describe("JsonRpc Module", () => {
               notBefore: 1616408985883,
               notAfter: 3232818053700,
             } as InsertDidControllerParam,
-            expectedErrorMessage:
-              "property params[0].newControllerId has failed the following constraints: isEthereumAddress",
+            expectedErrorMessage: "newControllerId must be an Ethereum address",
           });
 
           testSetup.push({
@@ -1807,8 +1790,7 @@ describe("JsonRpc Module", () => {
               notBefore: -123,
               notAfter: 3232818053700,
             } as InsertDidControllerParam,
-            expectedErrorMessage:
-              "property params[0].notBefore has failed the following constraints: min",
+            expectedErrorMessage: "notBefore must not be less than 0",
           });
 
           break;
@@ -1821,7 +1803,7 @@ describe("JsonRpc Module", () => {
               oldControllerId: ethers.Wallet.createRandom().address,
             } as RevokeDidControllerParam,
             expectedErrorMessage:
-              "property params[0].identifier has failed the following constraints: isHexadecimalDid",
+              "identifier must be a valid DID encoded in hexadecimal",
           });
 
           testSetup.push({
@@ -1830,8 +1812,7 @@ describe("JsonRpc Module", () => {
               identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
               oldControllerId: "0x1234",
             } as RevokeDidControllerParam,
-            expectedErrorMessage:
-              "property params[0].oldControllerId has failed the following constraints: isEthereumAddress",
+            expectedErrorMessage: "oldControllerId must be an Ethereum address",
           });
 
           testSetup.push({
@@ -1839,13 +1820,28 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
             } as RevokeDidControllerParam,
-            expectedErrorMessage:
-              "property params[0].oldControllerId has failed the following constraints: isEthereumAddress",
+            expectedErrorMessage: "oldControllerId must be an Ethereum address",
           });
 
           break;
         }
         case "insertDidMethod": {
+          // methodSpec doesn't start with "0x"
+          testSetup.push({
+            params: {
+              from: signer.address,
+              methodName: "did:ebsi",
+              ledgerName: "ebsi-besu",
+              methodSpec: ["abc"],
+              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
+              notBefore: 1616408985883,
+              notAfter: 3232818053700,
+              status: 1,
+            } as InsertDidMethodParam,
+            expectedErrorMessage: "each methodSpec must start with 0x",
+          });
+
+          // methodSpec isn't a valid JSON document encoded in hexadecimal
           testSetup.push({
             params: {
               from: signer.address,
@@ -1858,9 +1854,45 @@ describe("JsonRpc Module", () => {
               status: 1,
             } as InsertDidMethodParam,
             expectedErrorMessage:
-              "property params[0].methodSpec has failed the following constraints: isHexadecimalJson",
+              "each methodSpec must be a valid JSON document encoded in hexadecimal",
           });
 
+          // methodSpecHash doesn't start with 0x
+          testSetup.push({
+            params: {
+              from: signer.address,
+              methodName: "did:ebsi",
+              ledgerName: "ebsi-besu",
+              methodSpec: didMethod.didMethodsBuffer.map(
+                (b) => `0x${b.toString("hex")}`
+              ),
+              methodSpecHash: ["abcd"],
+              notBefore: 1616408985883,
+              notAfter: 3232818053700,
+              status: 1,
+            } as InsertDidMethodParam,
+            expectedErrorMessage: "each methodSpecHash must start with 0x",
+          });
+
+          // methodSpecHash is not a valid hexadecimal number
+          testSetup.push({
+            params: {
+              from: signer.address,
+              methodName: "did:ebsi",
+              ledgerName: "ebsi-besu",
+              methodSpec: didMethod.didMethodsBuffer.map(
+                (b) => `0x${b.toString("hex")}`
+              ),
+              methodSpecHash: ["0xzz"],
+              notBefore: 1616408985883,
+              notAfter: 3232818053700,
+              status: 1,
+            } as InsertDidMethodParam,
+            expectedErrorMessage:
+              "each value in methodSpecHash must be a hexadecimal number",
+          });
+
+          // status must be comprised between 1 and 3
           testSetup.push({
             params: {
               from: signer.address,
@@ -1874,10 +1906,10 @@ describe("JsonRpc Module", () => {
               notAfter: 3232818053700,
               status: 4,
             } as InsertDidMethodParam,
-            expectedErrorMessage:
-              "property params[0].status has failed the following constraints: max",
+            expectedErrorMessage: "status must not be greater than 3",
           });
 
+          // notBefore/notAfter must be greater than 0
           testSetup.push({
             params: {
               from: signer.address,
@@ -1891,8 +1923,24 @@ describe("JsonRpc Module", () => {
               notAfter: -1,
               status: 2,
             } as InsertDidMethodParam,
-            expectedErrorMessage:
-              "property params[0].notAfter has failed the following constraints: min",
+            expectedErrorMessage: "notAfter must not be less than 0",
+          });
+
+          // methodName not starting with "did:"
+          testSetup.push({
+            params: {
+              from: signer.address,
+              methodName: "method",
+              ledgerName: "ebsi-besu",
+              methodSpec: didMethod.didMethodsBuffer.map(
+                (b) => `0x${b.toString("hex")}`
+              ),
+              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
+              notBefore: 1616408985883,
+              notAfter: -3232818053700,
+              status: 21,
+            } as InsertDidMethodParam,
+            expectedErrorMessage: "methodName must start with 'did:'",
           });
 
           break;
@@ -1910,7 +1958,7 @@ describe("JsonRpc Module", () => {
               status: 1,
             } as UpdateDidMethodParam,
             expectedErrorMessage:
-              "property params[0].methodSpec has failed the following constraints: isHexadecimalJson",
+              "each methodSpec must be a valid JSON document encoded in hexadecimal",
           });
 
           testSetup.push({
@@ -1926,8 +1974,7 @@ describe("JsonRpc Module", () => {
               notAfter: 3232818053700,
               status: 4,
             } as UpdateDidMethodParam,
-            expectedErrorMessage:
-              "property params[0].status has failed the following constraints: max",
+            expectedErrorMessage: "status must not be greater than 3",
           });
 
           testSetup.push({
@@ -1943,8 +1990,24 @@ describe("JsonRpc Module", () => {
               notAfter: -1,
               status: 1,
             } as UpdateDidMethodParam,
-            expectedErrorMessage:
-              "property params[0].notAfter has failed the following constraints: min",
+            expectedErrorMessage: "notAfter must not be less than 0",
+          });
+
+          // Test with an invalid method name (not starting with "did:")
+          testSetup.push({
+            params: {
+              from: signer.address,
+              methodName: "method",
+              ledgerName: "ebsi-besu2",
+              methodSpec: didMethod.didMethodsBuffer.map(
+                (b) => `0x${b.toString("hex")}`
+              ),
+              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
+              notBefore: 1616408985883,
+              notAfter: 3232818053700,
+              status: 1,
+            } as InsertDidMethodParam,
+            expectedErrorMessage: "methodName must start with 'did:'",
           });
 
           break;
@@ -1969,8 +2032,7 @@ describe("JsonRpc Module", () => {
               didVersionInfo,
               timestampData,
             } as AppendDidDocumentVersionHashParam,
-            expectedErrorMessage:
-              "property params[0].hashValue has failed the following constraints: isHexadecimal",
+            expectedErrorMessage: "hashValue must be a hexadecimal number",
             accessToken: userAccessToken,
           });
 
@@ -1984,8 +2046,7 @@ describe("JsonRpc Module", () => {
 
               timestampData,
             } as AppendDidDocumentVersionHashParam,
-            expectedErrorMessage:
-              "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson",
+            expectedErrorMessage: "didVersionInfo must be a hexadecimal JSON",
             accessToken: userAccessToken,
           });
 
@@ -1998,8 +2059,7 @@ describe("JsonRpc Module", () => {
               didVersionInfo,
               timestampData: "0x1234ab",
             } as AppendDidDocumentVersionHashParam,
-            expectedErrorMessage:
-              "property params[0].timestampData has failed the following constraints: isHexadecimalJson",
+            expectedErrorMessage: "timestampData must be a hexadecimal JSON",
             accessToken: userAccessToken,
           });
 
@@ -2020,8 +2080,7 @@ describe("JsonRpc Module", () => {
               hashValue: "0xnot-a-hash",
               didVersionInfo,
             } as DetachDidDocumentVersionParam,
-            expectedErrorMessage:
-              "property params[0].hashValue has failed the following constraints: isHexadecimal",
+            expectedErrorMessage: "hashValue must be a hexadecimal number",
             accessToken: userAccessToken,
           });
 
@@ -2033,8 +2092,7 @@ describe("JsonRpc Module", () => {
               hashValue: canonicalizedDidDocumentHash,
               didVersionInfo: "0x1234ab",
             } as DetachDidDocumentVersionParam,
-            expectedErrorMessage:
-              "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson",
+            expectedErrorMessage: "didVersionInfo must be a hexadecimal JSON",
             accessToken: userAccessToken,
           });
 
@@ -2046,8 +2104,7 @@ describe("JsonRpc Module", () => {
               hashValue: canonicalizedDidDocumentHash,
               didVersionInfo,
             } as DetachDidDocumentVersionParam,
-            expectedErrorMessage:
-              "property params[0].hashAlgorithmId has failed the following constraints: min",
+            expectedErrorMessage: "hashAlgorithmId must not be less than 0",
             accessToken: userAccessToken,
           });
 
@@ -2072,7 +2129,7 @@ describe("JsonRpc Module", () => {
               didVersionMetadata,
             } as AppendDidDocumentVersionMetadataParam,
             expectedErrorMessage:
-              "property params[0].identifier has failed the following constraints: isHexadecimalDid",
+              "identifier must be a valid DID encoded in hexadecimal",
             accessToken: userAccessToken,
           });
 
@@ -2083,8 +2140,7 @@ describe("JsonRpc Module", () => {
               didVersionInfo: "0x1234ab",
               didVersionMetadata,
             } as AppendDidDocumentVersionMetadataParam,
-            expectedErrorMessage:
-              "property params[0].didVersionInfo has failed the following constraints: isHexadecimalJson",
+            expectedErrorMessage: "didVersionInfo must be a hexadecimal JSON",
             accessToken: userAccessToken,
           });
 
@@ -2096,7 +2152,7 @@ describe("JsonRpc Module", () => {
               didVersionMetadata: "0x",
             } as AppendDidDocumentVersionMetadataParam,
             expectedErrorMessage:
-              "property params[0].didVersionMetadata has failed the following constraints: isHexadecimalJson",
+              "didVersionMetadata must be a hexadecimal JSON",
             accessToken: userAccessToken,
           });
 
@@ -2621,7 +2677,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          "property params[0].identifier has failed the following constraints: isHexadecimalDid"
+          "identifier must be a valid DID encoded in hexadecimal"
         ) as string,
       },
       id: 231,

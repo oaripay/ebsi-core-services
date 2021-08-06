@@ -46,11 +46,7 @@ describe("multihashEncode", () => {
         "41dd7b6443542e75701aa98a0c235951a28a0d851b11XXX64d20022ab11d2589a8",
         "sha2-256"
       )
-    ).toThrow(
-      new Error(
-        "invalid character 'X' in '41dd7b6443542e75701aa98a0c235951a28a0d851b11XXX64d20022ab11d2589a8'"
-      )
-    );
+    ).toThrow(new Error("Non-base16 character"));
 
     expect(() =>
       multihashEncode(

@@ -3,4 +3,4 @@ version: "3.7"
 services:
   did-registry-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api:pilot_ebsiint-3206-nodejs-upgrade_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api:pilot_ebsiint-3210-did-method-validation_v2.0.0
