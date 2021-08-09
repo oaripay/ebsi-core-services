@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.8](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.8&targetRepoId=359) (2021-08-09)
+
+### 🐛 Bug Fixes
+
+- update wallet lib and other dependencies ([#48](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/48/overview)) - EBSIINT-3215 ([f537559](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/f5375599d478ef4ea3e66e1f8da9034151948ad4))
+
 ## [1.0.0-rc.7](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.7&targetRepoId=359) (2021-08-04)
 
 ### 🚀 Features
