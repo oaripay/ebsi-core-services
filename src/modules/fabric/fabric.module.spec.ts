@@ -21,7 +21,7 @@ import { BlockDecoder } from "fabric-common";
 import { FabricModule } from "./fabric.module";
 import { FabricService } from "./fabric.service";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { Block } from "./interfaces";
+import { Block, FabricBlock } from "./interfaces";
 import { ApiConfig } from "../../config/configuration";
 
 describe("Fabric Module", () => {
@@ -80,7 +80,7 @@ describe("Fabric Module", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
   });
 
   afterAll(async () => {
@@ -269,7 +269,7 @@ describe("Fabric Module", () => {
                 payload: {
                   header: {
                     channel_header: {
-                      timesamp: "2021-04-19T15:30:20.605Z",
+                      timestamp: "2021-04-19T15:30:20.605Z",
                       tx_id: crypto.randomBytes(32).toString("hex"),
                     },
                   },
@@ -313,6 +313,213 @@ describe("Fabric Module", () => {
       });
       expect(response.status).toBe(200);
       expect((response.body as { items: string }).items).toHaveLength(10);
+    });
+  });
+
+  describe("GET /channels/{channel}/blocks/{blockNumber}", () => {
+    it("should return 400 if the channel parameter is not formatted correctly", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown_ch@nnel";
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/blocks/0`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return 404 if the channel doesn't exist", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown-channel";
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/blocks/0`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `Channel ${channelsName} not found`,
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return 400 if the blockNumber parameter is not formatted correctly", async () => {
+      expect.assertions(2);
+
+      const channelsNames = Object.keys(channels);
+      const channelsName = channelsNames[0];
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/blocks/abcd`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["blockNumber must be a number string"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return 404 if the block doesn't exist", async () => {
+      expect.assertions(2);
+
+      // Mock Wallets
+      jest
+        .spyOn(Wallets, "newFileSystemWallet")
+        .mockImplementation(() => Wallets.newInMemoryWallet());
+
+      // Mock Gateway
+      const evaluateTransaction = jest
+        .fn()
+        .mockImplementation((query: string) => {
+          if (query === "GetBlockByNumber") {
+            throw new Error("Entry not found in index");
+          }
+
+          return {};
+        });
+      jest
+        .spyOn(Gateway.prototype, "connect")
+        .mockImplementation(() => Promise.resolve());
+      jest.spyOn(Gateway.prototype, "getNetwork").mockImplementation(() =>
+        Promise.resolve({
+          getGateway: jest.fn(),
+          getContract: jest.fn().mockImplementation(() => ({
+            evaluateTransaction,
+          })),
+          getChannel: jest.fn(),
+          addCommitListener: jest.fn(),
+          removeCommitListener: jest.fn(),
+          addBlockListener: jest.fn(),
+          removeBlockListener: jest.fn(),
+        })
+      );
+
+      const channelsNames = Object.keys(channels);
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsNames[0]}/blocks/0`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `Block 0 not found`,
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return a dummy block", async () => {
+      expect.assertions(3);
+      const channelsNames = Object.keys(channels);
+
+      // Fake blocks returned by Fabric
+      const numberOfBlocks = 15;
+      const blocks: { [x: string]: FabricBlock } = {};
+      for (let i = numberOfBlocks - 1; i >= 0; i -= 1) {
+        const block: FabricBlock = {
+          header: {
+            number: i,
+            data_hash: crypto.randomBytes(32),
+            previous_hash: crypto.randomBytes(32),
+          },
+          data: {
+            data: [
+              {
+                payload: {
+                  header: {
+                    channel_header: {
+                      timestamp: "2021-04-19T15:30:20.605Z",
+                      tx_id: crypto.randomBytes(32).toString("hex"),
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        };
+        blocks[`${i}`] = block;
+      }
+
+      // Mock Wallets
+      jest
+        .spyOn(Wallets, "newFileSystemWallet")
+        .mockImplementation(() => Wallets.newInMemoryWallet());
+
+      // Mock Gateway
+      const evaluateTransaction = jest
+        .fn()
+        .mockImplementation(
+          (query: string, channelName: string, ...args: unknown[]) => {
+            if (query === "GetBlockByNumber") {
+              return blocks[args[0] as string] as unknown;
+            }
+
+            return {};
+          }
+        );
+      jest
+        .spyOn(Gateway.prototype, "connect")
+        .mockImplementation(() => Promise.resolve());
+      jest.spyOn(Gateway.prototype, "getNetwork").mockImplementation(() =>
+        Promise.resolve({
+          getGateway: jest.fn(),
+          getContract: jest.fn().mockImplementation(() => ({
+            evaluateTransaction,
+          })),
+          getChannel: jest.fn(),
+          addCommitListener: jest.fn(),
+          removeCommitListener: jest.fn(),
+          addBlockListener: jest.fn(),
+          removeBlockListener: jest.fn(),
+        })
+      );
+      jest.spyOn(fabprotos.common.BlockchainInfo, "decode").mockReturnValue({
+        height: numberOfBlocks,
+      } as fabprotos.common.BlockchainInfo);
+      jest
+        .spyOn(BlockDecoder, "decode")
+        .mockImplementation((blockQueryResult: unknown) => blockQueryResult);
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsNames[0]}/blocks/0`
+      );
+
+      expect(evaluateTransaction).toHaveBeenCalledWith(
+        "GetBlockByNumber",
+        channelsNames[0],
+        "0"
+      );
+
+      const expectedTxIds = blocks["0"].data.data.map(
+        (tx) => tx.payload.header.channel_header.tx_id
+      );
+
+      expect(response.body).toStrictEqual({
+        blockNum: blocks["0"].header.number,
+        channelName: channelsNames[0],
+        dataHash: blocks["0"].header.data_hash.toString("hex"),
+        prevHash: blocks["0"].header.previous_hash.toString("hex"),
+        timestamp:
+          blocks["0"].data.data[0].payload.header.channel_header.timestamp,
+        txCount: expectedTxIds.length,
+        txIds: expectedTxIds,
+      });
+      expect(response.status).toBe(200);
     });
   });
 

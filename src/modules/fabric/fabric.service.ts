@@ -3,12 +3,21 @@ import path from "path";
 import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Gateway, GatewayOptions, Wallets, X509Identity } from "fabric-network";
-import { InternalServerError } from "@cef-ebsi/problem-details-errors";
+import {
+  InternalServerError,
+  NotFoundError,
+  ProblemDetailsError,
+} from "@cef-ebsi/problem-details-errors";
 import * as fabprotos from "fabric-protos";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore fabric-common doesn't expose the TS definition correctly - https://github.com/hyperledger/fabric-sdk-node/pull/477
 import { BlockData, BlockDecoder } from "fabric-common";
-import { Block, FabricChannelHeader, ConnectionProfile } from "./interfaces";
+import {
+  Block,
+  FabricChannelHeader,
+  ConnectionProfile,
+  FabricBlock,
+} from "./interfaces";
 import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
@@ -135,27 +144,39 @@ export class FabricService implements OnModuleDestroy {
     channelName: string,
     blockIndex: string
   ): Promise<Block> {
-    const blockQueryResult = await this.executeQuery(
-      channelName,
-      "qscc", // Query System Chaincode
-      "GetBlockByNumber",
-      [channelName, blockIndex]
-    );
+    let blockQueryResult: Buffer;
+
+    try {
+      blockQueryResult = await this.executeQuery(
+        channelName,
+        "qscc", // Query System Chaincode
+        "GetBlockByNumber",
+        [channelName, blockIndex]
+      );
+    } catch (e) {
+      // Unknown error
+      if (!(e instanceof ProblemDetailsError)) {
+        this.logger.error(e);
+        throw new InternalServerError();
+      }
+
+      if (e.detail.includes("Entry not found in index")) {
+        throw new NotFoundError(NotFoundError.defaultTitle, {
+          detail: `Block ${blockIndex} not found`,
+        });
+      }
+
+      throw e;
+    }
 
     // Hopefully fabric-common will provide the correct defintions 🤞
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
-    const decodedBlock = BlockDecoder.decode(
-      blockQueryResult
-    ) as fabprotos.common.Block; // warning: not exact
+    const decodedBlock = BlockDecoder.decode(blockQueryResult) as FabricBlock; // warning: not exact
 
     const timestamp =
-      (
-        (decodedBlock.data.data[0] as unknown as BlockData).payload.header as {
-          channel_header?: FabricChannelHeader;
-        }
-      )?.channel_header?.timestamp ?? "";
+      decodedBlock.data.data[0].payload.header?.channel_header?.timestamp ?? "";
 
-    const txIds = (decodedBlock.data?.data as unknown as BlockData[])
+    const txIds = decodedBlock.data?.data
       ?.map((tx: BlockData): string => {
         return (
           tx.payload.header as {
@@ -172,10 +193,8 @@ export class FabricService implements OnModuleDestroy {
           : decodedBlock.header.number.toNumber(),
       channelName,
       timestamp,
-      dataHash:
-        (decodedBlock.header.data_hash as Buffer)?.toString("hex") ?? "",
-      prevHash:
-        (decodedBlock.header.previous_hash as Buffer)?.toString("hex") ?? "",
+      dataHash: decodedBlock.header?.data_hash?.toString("hex") ?? "",
+      prevHash: decodedBlock.header?.previous_hash?.toString("hex") ?? "",
       txCount: txIds.length,
       txIds,
     };

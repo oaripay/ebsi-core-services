@@ -232,4 +232,110 @@ describe("Fabric e2e tests", () => {
       });
     });
   });
+
+  describe("GET /ledger/v2/blockchains/fabric/channels/{channel}/blocks/{blockNum}", () => {
+    it("should return 400 if the channel parameter is not formatted correctly", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown_ch@nnel";
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/blocks/0`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return 404 if the channel doesn't exist", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown-channel";
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/blocks/0`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `Channel ${channelsName} not found`,
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return 400 if the blockNumber parameter is not formatted correctly", async () => {
+      expect.assertions(2);
+
+      const channelsNames = Object.keys(
+        fabricService.getConnectionProfile().channels
+      );
+      const channelsName = channelsNames[0];
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/blocks/abcd`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["blockNumber must be a number string"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return 404 if the block doesn't exist", async () => {
+      expect.assertions(2);
+
+      const channelsNames = Object.keys(
+        fabricService.getConnectionProfile().channels
+      );
+      const channelsName = channelsNames[0];
+
+      const blockNumber = "12121211212454365464";
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/blocks/${blockNumber}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `Block ${blockNumber} not found`,
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return a list of dummy block for a dummy channel", async () => {
+      expect.assertions(2);
+
+      const channelsNames = Object.keys(
+        fabricService.getConnectionProfile().channels
+      );
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsNames[0]}/blocks/0`
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toStrictEqual({
+        blockNum: 0,
+        channelName: channelsNames[0],
+        dataHash: expect.any(String) as string,
+        prevHash: expect.any(String) as string,
+        timestamp: expect.any(String) as string,
+        txCount: expect.any(Number) as string,
+        txIds: expect.any(Array) as string[],
+      });
+    });
+  });
 });

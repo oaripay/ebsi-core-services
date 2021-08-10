@@ -12,6 +12,7 @@ import { FabricService } from "./fabric.service";
 import { PaginatedList, Block } from "./interfaces";
 import { ApiConfig } from "../../config/configuration";
 import { PaginationQueryDto } from "./dto/pagination-query.dto";
+import { GetChannelBlockParams } from "./dto/get-channel-block.params";
 import { formatBlocks, formatChannels } from "./fabric.formatter";
 import { GetChannelParams } from "./dto/get-channel.params";
 import { FabricEnabledGuard } from "./fabric.guard";
@@ -82,6 +83,23 @@ export class FabricController {
       query["page[size]"],
       baseUrl
     );
+  }
+
+  @Get("/channels/:channelName/blocks/:blockNumber")
+  @HttpCode(200)
+  async getChannelBlock(
+    @Param() params: GetChannelBlockParams
+  ): Promise<Block> {
+    // Make sure the channel exists
+    this.getChannel(params);
+
+    // Get block
+    const block = await this.fabricService.getChannelBlock(
+      params.channelName,
+      params.blockNumber
+    );
+
+    return block;
   }
 }
 

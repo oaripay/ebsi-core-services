@@ -297,6 +297,7 @@ paths:
           required: true
           schema:
             type: string
+          example: iossdrpocchannel
       responses:
         204:
           description: Success. Channel exists.
@@ -321,9 +322,10 @@ paths:
               examples:
                 Channel Not Found:
                   value:
-                    title: Not Found
-                    status: 404
                     detail: Channel {channel} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
         500:
           description: Internal Server Error
           content:
@@ -349,6 +351,7 @@ paths:
           description: Fabric channel name.
           schema:
             type: string
+          example: iossdrpocchannel
         - in: query
           name: page[after]
           description: Cursor that points to the end of the page of data that has been returned.
@@ -473,9 +476,94 @@ paths:
               examples:
                 Channel Not Found:
                   value:
-                    title: Not Found
-                    status: 404
                     detail: Channel {channel} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
+        500:
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}/blocks/{blockNumber}:
+    get:
+      tags:
+        - Hyperledger Fabric
+      description: Returns block for the specified channel and block number
+      summary: Get block by number
+      operationId: get-ledger-v2-blockchains-fabric-channel-block
+      parameters:
+        - in: path
+          name: channel
+          required: true
+          description: Fabric channel name.
+          schema:
+            type: string
+          example: iossdrpocchannel
+        - in: path
+          name: blockNumber
+          required: true
+          description: Block number.
+          schema:
+            type: string
+          example: "0"
+      responses:
+        200:
+          description: Success. Channel exists.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Block"
+              examples:
+                Success:
+                  value:
+                    blockNum: 0
+                    channelName: iossdrpocchannel
+                    timestamp: "2021-04-19T15:20:43.000Z"
+                    dataHash: 60f69a558e31a4b3b57aeec1d3d371158f6d5f6fb0e35bd08b73a4763f06ba0b
+                    prevHash: ""
+                    txCount: 0
+                    txIds: []
+        400:
+          description: Bad request. The format of the {channel} or {blockNumber} parameter is not valid.
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]'
+                Invalid {blockNumber} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["blockNumber must be a number string"]'
+        404:
+          description: Channel or block not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Channel Not Found:
+                  value:
+                    detail: Channel {channel} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
+                Block Not Found:
+                  value:
+                    detail: Block {blockNumber} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
         500:
           description: Internal Server Error
           content:
