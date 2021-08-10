@@ -1,5 +1,6 @@
 import { PaginatedList } from "./interfaces";
 import { paginate } from "./fabric.utils";
+import { Block } from "./interfaces/blocks.interface";
 
 export function formatChannels(
   channels: string[],
@@ -15,4 +16,12 @@ export function formatChannels(
   return paginate<string>(items, baseUrl, total, page, pageSize);
 }
 
-export default formatChannels;
+export function formatBlocks(
+  items: Block[],
+  total: number,
+  page: number,
+  pageSize: number,
+  baseUrl: string
+): PaginatedList<Block> {
+  return paginate<Block>(items, baseUrl, total, page, pageSize);
+}

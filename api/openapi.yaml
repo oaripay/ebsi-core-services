@@ -217,14 +217,14 @@ paths:
       parameters:
         - in: query
           name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
           schema:
             type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
+        - in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
       responses:
         200:
           description: Success
@@ -254,7 +254,7 @@ paths:
                   value:
                     self: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
                     items:
-                      - ebsi-channel
+                      - iossdrpocchannel
                     total: 1
                     pageSize: 10
                     links:
@@ -266,7 +266,7 @@ paths:
                   value:
                     self: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
                     items:
-                      - ebsi-channel
+                      - iossdrpocchannel
                     total: 1
                     pageSize: 10
                     links:
@@ -291,15 +291,167 @@ paths:
       summary: Check if channel exists
       operationId: get-ledger-v2-blockchains-fabric-channel
       parameters:
-        - schema:
-            type: string
+        - in: path
           name: channel
-          in: path
-          required: true
           description: Fabric channel name.
+          required: true
+          schema:
+            type: string
       responses:
         204:
           description: Success. Channel exists.
+        400:
+          description: Bad request. The format of the {channel} parameter is not valid.
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]'
+        404:
+          description: Channel {channel} not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Channel Not Found:
+                  value:
+                    title: Not Found
+                    status: 404
+                    detail: Channel {channel} not found
+        500:
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}/blocks:
+    get:
+      tags:
+        - Hyperledger Fabric
+      description:
+        Returns a list of blocks of the channel {channel}. By default API
+        returns the last 10 (or less) blocks.
+      summary: Get blocks
+      operationId: get-ledger-v2-blockchains-fabric-channel-blocks
+      parameters:
+        - in: path
+          name: channel
+          required: true
+          description: Fabric channel name.
+          schema:
+            type: string
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Success. Channel exists.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI of the current page
+                  items:
+                    type: array
+                    description: List of blocks.
+                    items:
+                      $ref: "#/components/schemas/Block"
+                  links:
+                    $ref: "#/components/schemas/Links"
+                  total:
+                    type: integer
+                    description: " Total number of pages in a collection."
+                  pageSize:
+                    type: integer
+                    description: Number of items to be return per page.
+              examples:
+                "[test] Get blocks in certain channel":
+                  value:
+                    items:
+                      - blockNum: 2
+                        channelName: iossdrpocchannel
+                        timestamp: "2021-04-19T15:31:24.171Z"
+                        dataHash: eccdf57584afd82a56a554696b09785064f58ab5563b36eaf3d44484f93c5178
+                        prevHash: 9c4eb98d49c139bed15a549fab4d510479cb38a50f6c0592e3d93e5b2779c832
+                        txCount: 1
+                        txIds:
+                          - 66a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1
+                      - blockNum: 1
+                        channelName: iossdrpocchannel
+                        timestamp: "2021-04-19T15:30:20.605Z"
+                        dataHash: 7355648679d911792d8f9258143ac554f72ae5c65fba8b3112c52c8512f9e0aa
+                        prevHash: bb7b6df2c9318380987e519207c6c951f1641bf773b69f516cb3d20e353d0f86
+                        txCount: 1
+                        txIds:
+                          - d8528c14575ac3d9170df9b9a5e0dc3b2a7b420e23702a345183024fe320dfd8
+                      - blockNum: 0
+                        channelName: iossdrpocchannel
+                        timestamp: "2021-04-19T15:20:43.000Z"
+                        dataHash: 60f69a558e31a4b3b57aeec1d3d371158f6d5f6fb0e35bd08b73a4763f06ba0b
+                        prevHash: ""
+                        txCount: 0
+                        txIds: []
+                    total: 3
+                    pageSize: 10
+                    self: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                    links:
+                      first: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channel/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                "[pilot] Get blocks in certain channel":
+                  value:
+                    items:
+                      - blockNum: 2
+                        channelName: iossdrpocchannel
+                        timestamp: "2021-04-19T15:31:24.171Z"
+                        dataHash: eccdf57584afd82a56a554696b09785064f58ab5563b36eaf3d44484f93c5178
+                        prevHash: 9c4eb98d49c139bed15a549fab4d510479cb38a50f6c0592e3d93e5b2779c832
+                        txCount: 1
+                        txIds:
+                          - 66a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1
+                      - blockNum: 1
+                        channelName: iossdrpocchannel
+                        timestamp: "2021-04-19T15:30:20.605Z"
+                        dataHash: 7355648679d911792d8f9258143ac554f72ae5c65fba8b3112c52c8512f9e0aa
+                        prevHash: bb7b6df2c9318380987e519207c6c951f1641bf773b69f516cb3d20e353d0f86
+                        txCount: 1
+                        txIds:
+                          - d8528c14575ac3d9170df9b9a5e0dc3b2a7b420e23702a345183024fe320dfd8
+                      - blockNum: 0
+                        channelName: iossdrpocchannel
+                        timestamp: "2021-04-19T15:20:43.000Z"
+                        dataHash: 60f69a558e31a4b3b57aeec1d3d371158f6d5f6fb0e35bd08b73a4763f06ba0b
+                        prevHash: ""
+                        txCount: 0
+                        txIds: []
+                    total: 3
+                    pageSize: 10
+                    self: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                    links:
+                      first: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channel/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
         400:
           description: Bad request. The format of the {channel} parameter is not valid.
           content:
@@ -387,6 +539,34 @@ components:
           description: |
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
+    Block:
+      title: Hyperledger Fabric Block
+      type: object
+      properties:
+        blockNum:
+          type: integer
+          description: Block number
+        txCount:
+          type: integer
+          description: Transactions count
+        txIds:
+          type: array
+          description: Array of transactions IDs
+          items:
+            type: string
+        dataHash:
+          type: string
+          description: Data hash
+        prevHash:
+          type: string
+          description: Previous hash
+        channelName:
+          type: string
+          description: Channel name
+        timestamp:
+          type: string
+          description: Block creation time
+      description: Hyperledger Fabric block data model
     Channel:
       title: Hyperledger Fabric Channel
       description: Hyperledger Fabric channel data model

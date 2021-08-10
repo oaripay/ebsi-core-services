@@ -10,6 +10,14 @@ export interface ApiConfig {
   logLevel: string;
   externalEbsiApiHealthCheck: string;
   besuRpcNode: string;
+  fabric: {
+    enabled: boolean;
+    username: string;
+    password: string;
+    pem: string;
+    xpath: string;
+    chaincodeId: string;
+  };
   domain: string;
   localOrigin: string;
   trustedAppsRegistry: string;
@@ -69,6 +77,14 @@ export const loadConfig = (): ApiConfig => {
     authApiName: process.env.AUTHORISATION_API_NAME || "authorisation-api",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     besuRpcNode: process.env.BESU_RPC_NODE,
+    fabric: {
+      enabled: process.env.FABRIC_ENABLED === "true",
+      username: process.env.FABRIC_USERNAME,
+      password: process.env.FABRIC_PASSWORD,
+      pem: process.env.FABRIC_ADMIN_PEM_PRIVATE_KEY,
+      xpath: process.env.FABRIC_ADMIN_XPATH_PRIVATE_KEY,
+      chaincodeId: "iossdrpociossvatid",
+    },
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     trustedAppsRegistry:
@@ -113,6 +129,27 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "debug"
     ),
     BESU_RPC_NODE: Joi.string().uri().required(),
+    FABRIC_ENABLED: Joi.string(),
+    FABRIC_USERNAME: Joi.when("FABRIC_ENABLED", {
+      is: "true",
+      then: Joi.string().required(),
+      otherwise: Joi.string(),
+    }),
+    FABRIC_PASSWORD: Joi.when("FABRIC_ENABLED", {
+      is: "true",
+      then: Joi.string().required(),
+      otherwise: Joi.string(),
+    }),
+    FABRIC_ADMIN_PEM_PRIVATE_KEY: Joi.when("FABRIC_ENABLED", {
+      is: "true",
+      then: Joi.string().required(),
+      otherwise: Joi.string(),
+    }),
+    FABRIC_ADMIN_XPATH_PRIVATE_KEY: Joi.when("FABRIC_ENABLED", {
+      is: "true",
+      then: Joi.string().required(),
+      otherwise: Joi.string(),
+    }),
     DOMAIN: Joi.string().uri(),
     LOCAL_ORIGIN: Joi.string().uri(),
     TRUSTED_APPS_REGISTRY: Joi.string().uri(),

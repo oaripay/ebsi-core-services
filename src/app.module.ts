@@ -1,15 +1,19 @@
 import { Module } from "@nestjs/common";
 import { TerminusModule } from "@nestjs/terminus";
-import { ConfigService } from "@nestjs/config";
 import { ApiConfigModule } from "./config/configuration";
+import { HealthModule } from "./modules/health/health.module";
 import { BesuModule } from "./modules/besu/besu.module";
 import { FabricModule } from "./modules/fabric/fabric.module";
-import { HealthController } from "./health.controller";
 
 @Module({
-  imports: [ApiConfigModule, TerminusModule, BesuModule, FabricModule],
-  controllers: [HealthController],
-  providers: [ConfigService],
+  imports: [
+    ApiConfigModule,
+    TerminusModule,
+    HealthModule,
+    BesuModule,
+    FabricModule,
+  ],
+  providers: [],
 })
 export class AppModule {}
 
