@@ -1,4 +1,4 @@
-import multibase from "multibase";
+import * as b64 from "multiformats/bases/base64";
 import { PaginatedList } from "./interfaces";
 
 type PaginationLinks = {
@@ -66,6 +66,5 @@ export function paginateString<T>(
   };
 }
 
-export function encodeMultibase64url(buffer: Buffer): string {
-  return new TextDecoder().decode(multibase.encode("base64url", buffer));
-}
+export const encodeMultibase64url = (buffer: Buffer): string =>
+  b64.base64url.encode(buffer).toString();
