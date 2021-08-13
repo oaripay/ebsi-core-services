@@ -22,7 +22,11 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { multihashEncode, prefixWith0x } from "../../src/shared/utils";
+import {
+  multihashEncode,
+  prefixWith0x,
+  multibase64Encode,
+} from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import {
   InsertDidControllerParam,
@@ -50,7 +54,6 @@ import {
 } from "../utils/data";
 import { requestNewUserSiopJwt, requestSiopJwt } from "../utils/siopJwt";
 import { LedgerService } from "../../src/modules/ledger/ledger.service";
-import { multibase64Encode } from "../../src/shared/utils/multibase64.utils";
 
 type JsonRpcParams =
   | InsertDidDocumentParam

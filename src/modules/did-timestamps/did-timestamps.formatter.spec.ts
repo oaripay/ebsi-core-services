@@ -1,4 +1,4 @@
-import { multibase64Encode } from "../../shared/utils/multibase64.utils";
+import { multibase64Encode } from "../../shared/utils";
 import { formatDidTimestamps } from "./did-timestamps.formatter";
 
 describe("formatDidTimestamps", () => {

@@ -21,9 +21,8 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { DidRegistry__factory } from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { multihashEncode } from "../../shared/utils";
+import { multihashEncode, multibase64Encode } from "../../shared/utils";
 import { LedgerService } from "../ledger/ledger.service";
-import { multibase64Encode } from "../../shared/utils/multibase64.utils";
 
 jest.setTimeout(120000);
 

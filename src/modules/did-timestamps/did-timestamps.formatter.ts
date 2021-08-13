@@ -1,7 +1,6 @@
-import { multibase64Encode } from "../../shared/utils/multibase64.utils";
+import { multibase64Encode, paginate } from "../../shared/utils";
 import { TimestampLink } from "./did-timestamps.interface";
 import { PaginatedList } from "../../shared/interfaces";
-import { paginate } from "../../shared/utils";
 
 export function formatDidTimestamps(
   didTimestamps: {
