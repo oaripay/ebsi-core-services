@@ -1,5 +1,5 @@
 export interface FabricChannelHeader {
-  type?: string;
+  type?: number;
   version?: number;
   timestamp?: string;
   channel_id?: string;

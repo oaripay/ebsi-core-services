@@ -13,6 +13,7 @@ FROM base
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /app/dist dist
+RUN mkdir -p /app/wallet
 RUN chown node:node /app
 USER node
 CMD [ "node", "dist/main" ]

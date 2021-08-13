@@ -1,3 +1,4 @@
+import multibase from "multibase";
 import { PaginatedList } from "./interfaces";
 
 type PaginationLinks = {
@@ -43,4 +44,28 @@ export function paginate<T>(
       last: `${baseUrl}?page[after]=${lastPage}&page[size]=${pageSize}${extraQuery}`,
     },
   };
+}
+
+export function paginateString<T>(
+  items: T[],
+  baseUrl: string,
+  firstPage: string,
+  nextPage: string,
+  page: string,
+  pageSize: number,
+  extraQuery = ""
+): PaginatedList<T> {
+  return {
+    self: `${baseUrl}?page[after]=${page}&page[size]=${pageSize}${extraQuery}`,
+    items,
+    pageSize,
+    links: {
+      first: `${baseUrl}?page[after]=${firstPage}&page[size]=${pageSize}${extraQuery}`,
+      next: `${baseUrl}?page[after]=${nextPage}&page[size]=${pageSize}${extraQuery}`,
+    },
+  };
+}
+
+export function encodeMultibase64url(buffer: Buffer): string {
+  return new TextDecoder().decode(multibase.encode("base64url", buffer));
 }

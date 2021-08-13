@@ -9,13 +9,18 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { FabricService } from "./fabric.service";
-import { PaginatedList, Block } from "./interfaces";
+import { PaginatedList, Block, Transaction } from "./interfaces";
 import { ApiConfig } from "../../config/configuration";
 import { PaginationQueryDto } from "./dto/pagination-query.dto";
 import { GetChannelBlockParams } from "./dto/get-channel-block.params";
-import { formatBlocks, formatChannels } from "./fabric.formatter";
+import {
+  formatBlocks,
+  formatChannels,
+  formatTransactions,
+} from "./fabric.formatter";
 import { GetChannelParams } from "./dto/get-channel.params";
 import { FabricEnabledGuard } from "./fabric.guard";
+import { PaginationQueryTransactionsDto } from "./dto/pagination-query-transactions.dto";
 
 @Controller("/blockchains/fabric")
 @UseGuards(FabricEnabledGuard)
@@ -100,6 +105,35 @@ export class FabricController {
     );
 
     return block;
+  }
+
+  @Get("/channels/:channelName/transactions")
+  @HttpCode(200)
+  async getChannelTransactions(
+    @Param() params: GetChannelParams,
+    @Query() query: PaginationQueryTransactionsDto
+  ): Promise<PaginatedList<Transaction>> {
+    // Make sure the channel exists
+    this.getChannel(params);
+
+    // Get transactions
+    const { transactions, firstPage, nextPage } =
+      await this.fabricService.getChannelTransactions(
+        params.channelName,
+        query["page[after]"],
+        query["page[size]"]
+      );
+
+    const baseUrl = `${this.domain}${this.apiUrlPrefix}/blockchains/fabric/channels/${params.channelName}/transactions`;
+
+    return formatTransactions(
+      transactions,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+      firstPage,
+      nextPage
+    );
   }
 }
 

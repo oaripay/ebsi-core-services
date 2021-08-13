@@ -364,7 +364,7 @@ paths:
             type: integer
       responses:
         200:
-          description: Success. Channel exists.
+          description: Success
           content:
             application/json:
               schema:
@@ -393,24 +393,24 @@ paths:
                       - blockNum: 2
                         channelName: iossdrpocchannel
                         timestamp: "2021-04-19T15:31:24.171Z"
-                        dataHash: eccdf57584afd82a56a554696b09785064f58ab5563b36eaf3d44484f93c5178
-                        prevHash: 9c4eb98d49c139bed15a549fab4d510479cb38a50f6c0592e3d93e5b2779c832
+                        dataHash: u7M31dYSv2CpWpVRpawl4UGT1irVWOzbq89REhPk8UXg
+                        prevHash: unE65jUnBOb7RWlSfq01RBHnLOKUPbAWS49k-Wyd5yDI
                         txCount: 1
                         txIds:
                           - 66a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1
                       - blockNum: 1
                         channelName: iossdrpocchannel
                         timestamp: "2021-04-19T15:30:20.605Z"
-                        dataHash: 7355648679d911792d8f9258143ac554f72ae5c65fba8b3112c52c8512f9e0aa
-                        prevHash: bb7b6df2c9318380987e519207c6c951f1641bf773b69f516cb3d20e353d0f86
+                        dataHash: uc1VkhnnZEXktj5JYFDrFVPcq5cZfuosxEsUshRL54Ko
+                        prevHash: uu3tt8skxg4CYflGSB8bJUfFkG_dztp9RbLPSDjU9D4Y
                         txCount: 1
                         txIds:
                           - d8528c14575ac3d9170df9b9a5e0dc3b2a7b420e23702a345183024fe320dfd8
                       - blockNum: 0
                         channelName: iossdrpocchannel
                         timestamp: "2021-04-19T15:20:43.000Z"
-                        dataHash: 60f69a558e31a4b3b57aeec1d3d371158f6d5f6fb0e35bd08b73a4763f06ba0b
-                        prevHash: ""
+                        dataHash: uYPaaVY4xpLO1eu7B09NxFY9tX2-w41vQi3Okdj8Gugs
+                        prevHash: u
                         txCount: 0
                         txIds: []
                     total: 3
@@ -427,24 +427,24 @@ paths:
                       - blockNum: 2
                         channelName: iossdrpocchannel
                         timestamp: "2021-04-19T15:31:24.171Z"
-                        dataHash: eccdf57584afd82a56a554696b09785064f58ab5563b36eaf3d44484f93c5178
-                        prevHash: 9c4eb98d49c139bed15a549fab4d510479cb38a50f6c0592e3d93e5b2779c832
+                        dataHash: u7M31dYSv2CpWpVRpawl4UGT1irVWOzbq89REhPk8UXg
+                        prevHash: unE65jUnBOb7RWlSfq01RBHnLOKUPbAWS49k-Wyd5yDI
                         txCount: 1
                         txIds:
                           - 66a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1
                       - blockNum: 1
                         channelName: iossdrpocchannel
                         timestamp: "2021-04-19T15:30:20.605Z"
-                        dataHash: 7355648679d911792d8f9258143ac554f72ae5c65fba8b3112c52c8512f9e0aa
-                        prevHash: bb7b6df2c9318380987e519207c6c951f1641bf773b69f516cb3d20e353d0f86
+                        dataHash: uc1VkhnnZEXktj5JYFDrFVPcq5cZfuosxEsUshRL54Ko
+                        prevHash: uu3tt8skxg4CYflGSB8bJUfFkG_dztp9RbLPSDjU9D4Y
                         txCount: 1
                         txIds:
                           - d8528c14575ac3d9170df9b9a5e0dc3b2a7b420e23702a345183024fe320dfd8
                       - blockNum: 0
                         channelName: iossdrpocchannel
                         timestamp: "2021-04-19T15:20:43.000Z"
-                        dataHash: 60f69a558e31a4b3b57aeec1d3d371158f6d5f6fb0e35bd08b73a4763f06ba0b
-                        prevHash: ""
+                        dataHash: uYPaaVY4xpLO1eu7B09NxFY9tX2-w41vQi3Okdj8Gugs
+                        prevHash: u
                         txCount: 0
                         txIds: []
                     total: 3
@@ -513,7 +513,7 @@ paths:
           example: "0"
       responses:
         200:
-          description: Success. Channel exists.
+          description: Success
           content:
             application/json:
               schema:
@@ -524,8 +524,8 @@ paths:
                     blockNum: 0
                     channelName: iossdrpocchannel
                     timestamp: "2021-04-19T15:20:43.000Z"
-                    dataHash: 60f69a558e31a4b3b57aeec1d3d371158f6d5f6fb0e35bd08b73a4763f06ba0b
-                    prevHash: ""
+                    dataHash: uYPaaVY4xpLO1eu7B09NxFY9tX2-w41vQi3Okdj8Gugs
+                    prevHash: u
                     txCount: 0
                     txIds: []
         400:
@@ -561,6 +561,168 @@ paths:
                 Block Not Found:
                   value:
                     detail: Block {blockNumber} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
+        500:
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}/transactions:
+    get:
+      tags:
+        - Hyperledger Fabric
+      description:
+        Returns a list of transactions of the channel {channel}. By default API
+        returns the last 10 (or less) transactions.
+      summary: Get transactions
+      operationId: get-ledger-v2-blockchains-fabric-channel-transactions
+      parameters:
+        - in: path
+          name: channel
+          required: true
+          description: Fabric channel name.
+          schema:
+            type: string
+          example: iossdrpocchannel
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI of the current page
+                  items:
+                    type: array
+                    description: List of transactions.
+                    items:
+                      $ref: "#/components/schemas/Transaction"
+                  links:
+                    $ref: "#/components/schemas/Links"
+                  total:
+                    type: integer
+                    description: " Total number of pages in a collection."
+                  pageSize:
+                    type: integer
+                    description: Number of items to be return per page.
+              examples:
+                "[test] Get transactions in certain channel":
+                  value:
+                    items:
+                      - txId: 2778b2cdeae04ceda9544ad02407f9086910643238738eef04e9c1dd22d00809
+                        type: 3
+                        timestamp: "2021-04-19T15:31:58.872Z"
+                        channelId: iossdrpocchannel
+                        blockNum: 6
+                        actions:
+                          - chaincodeId: "_lifecycle"
+                            proposalHash: uBQzye8ESWKwg3RQu6oWYCEWAo5mRqirxyAs8bracLX8
+                            response:
+                              status: 200,
+                              message: ""
+                              payload:
+                                type: "Buffer"
+                                data: []
+                            endorsersMspId: [null]
+                      - txId: 66a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1
+                        type: 3
+                        timestamp: "2021-04-19T15:31:24.171Z"
+                        channelId: iossdrpocchannel
+                        blockNum: 5
+                        actions:
+                          - chaincodeId: "_lifecycle"
+                            proposalHash: uOfs4RhtSideuAbcPzbOB_hb53YXqKqd7W3K6oROQmWQ
+                            response:
+                              status: 200
+                              message: ""
+                              payload:
+                                type: "Buffer"
+                                data: []
+                            endorsersMspId: [null]
+                    pageSize: 2
+                    self: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=10
+                    links:
+                      first: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=2
+                      next: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=566a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1&page[size]=2
+                "[pilot] Get transactions in certain channel":
+                  value:
+                    items:
+                      - txId: 2778b2cdeae04ceda9544ad02407f9086910643238738eef04e9c1dd22d00809
+                        type: 3
+                        timestamp: "2021-04-19T15:31:58.872Z"
+                        channelId: iossdrpocchannel
+                        blockNum: 6
+                        actions:
+                          - chaincodeId: "_lifecycle"
+                            proposalHash: uBQzye8ESWKwg3RQu6oWYCEWAo5mRqirxyAs8bracLX8
+                            response:
+                              status: 200,
+                              message: ""
+                              payload:
+                                type: "Buffer"
+                                data: []
+                            endorsersMspId: [null]
+                      - txId: 66a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1
+                        type: 3
+                        timestamp: "2021-04-19T15:31:24.171Z"
+                        channelId: iossdrpocchannel
+                        blockNum: 5
+                        actions:
+                          - chaincodeId: "_lifecycle"
+                            proposalHash: uOfs4RhtSideuAbcPzbOB_hb53YXqKqd7W3K6oROQmWQ
+                            response:
+                              status: 200
+                              message: ""
+                              payload:
+                                type: "Buffer"
+                                data: []
+                            endorsersMspId: [null]
+                    pageSize: 2
+                    self: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=10
+                    links:
+                      first: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=2
+                      next: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=566a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1&page[size]=2
+        400:
+          description: Bad request. The format of the {channel} parameter is not valid.
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]'
+        404:
+          description: Channel {channel} not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Channel Not Found:
+                  value:
+                    detail: Channel {channel} not found
                     status: 404
                     title: Not Found
                     type: about:blank
@@ -655,6 +817,47 @@ components:
           type: string
           description: Block creation time
       description: Hyperledger Fabric block data model
+    Transaction:
+      title: Hyperledger Fabric Transaction
+      type: object
+      properties:
+        txId:
+          type: string
+          description: Transaction ID
+        type:
+          type: integer
+          description: Type
+        timestamp:
+          type: string
+          description: Timestamp
+        channelId:
+          type: string
+          description: Channel ID
+        creatorMspId:
+          type: string
+          description: Creator MSP ID
+        blockNum:
+          type: integer
+          description: Block number
+        actions:
+          type: array
+          description: Actions
+          items:
+            type: object
+            properties:
+              chaincodeId:
+                type: string
+              proposalHash:
+                type: string
+              response:
+                type: object
+              endorsersMspId:
+                type: array
+                items:
+                  type: string
+                  nullable: true
+              creatorMspId:
+                type: string
     Channel:
       title: Hyperledger Fabric Channel
       description: Hyperledger Fabric channel data model

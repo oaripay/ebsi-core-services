@@ -17,8 +17,11 @@ import {
   FabricChannelHeader,
   ConnectionProfile,
   FabricBlock,
+  Transaction,
 } from "./interfaces";
 import { ApiConfig } from "../../config/configuration";
+import { decodePageAfter, encodePageAfter } from "./fabric.formatter";
+import { encodeMultibase64url } from "./fabric.utils";
 
 @Injectable()
 export class FabricService implements OnModuleDestroy {
@@ -193,8 +196,8 @@ export class FabricService implements OnModuleDestroy {
           : decodedBlock.header.number.toNumber(),
       channelName,
       timestamp,
-      dataHash: decodedBlock.header?.data_hash?.toString("hex") ?? "",
-      prevHash: decodedBlock.header?.previous_hash?.toString("hex") ?? "",
+      dataHash: encodeMultibase64url(decodedBlock.header.data_hash),
+      prevHash: encodeMultibase64url(decodedBlock.header.previous_hash),
       txCount: txIds.length,
       txIds,
     };
@@ -202,11 +205,7 @@ export class FabricService implements OnModuleDestroy {
     return block;
   }
 
-  async getChannelBlocks(
-    channelName: string,
-    pageAfter: number,
-    pageSize: number
-  ): Promise<{ blocks: Block[]; total: number }> {
+  async getBlockHeight(channelName: string): Promise<number> {
     const blockChannelResult = await this.executeQuery(
       channelName,
       "qscc", // Query System Chaincode
@@ -217,11 +216,19 @@ export class FabricService implements OnModuleDestroy {
     const channelResultJson =
       fabprotos.common.BlockchainInfo.decode(blockChannelResult);
 
-    const numberOfBlocks =
+    const height =
       typeof channelResultJson.height === "number"
         ? channelResultJson.height
         : channelResultJson.height.toInt();
+    return height;
+  }
 
+  async getChannelBlocks(
+    channelName: string,
+    pageAfter: number,
+    pageSize: number
+  ): Promise<{ blocks: Block[]; total: number }> {
+    const numberOfBlocks = await this.getBlockHeight(channelName);
     if (numberOfBlocks < 0) {
       this.logger.error(`Invalid number of blocks: ${numberOfBlocks}`);
       throw new InternalServerError(InternalServerError.defaultTitle, {
@@ -260,6 +267,123 @@ export class FabricService implements OnModuleDestroy {
     }
 
     return { blocks, total: numberOfBlocks };
+  }
+
+  async getChannelTransactions(
+    channelName: string,
+    pageAfter: string,
+    pageSize: number
+  ): Promise<{
+    transactions: Transaction[];
+    firstPage: string;
+    nextPage: string;
+  }> {
+    const blockHeight = await this.getBlockHeight(channelName);
+    let iniTx = null;
+    let iniBlock = blockHeight - 1;
+    if (pageAfter) {
+      const { blockNumber, txId } = decodePageAfter(pageAfter);
+      iniBlock = blockNumber;
+      iniTx = txId;
+    }
+    let blockIndex: number;
+    const transactions: Transaction[] = [];
+    /* eslint-disable no-await-in-loop */
+    for (
+      blockIndex = blockHeight - 1;
+      transactions.length < pageSize + 1 && blockIndex >= 0;
+      blockIndex -= 1
+    ) {
+      let blockQueryResult: Buffer;
+
+      try {
+        blockQueryResult = await this.executeQuery(
+          channelName,
+          "qscc", // Query System Chaincode
+          "GetBlockByNumber",
+          [channelName, blockIndex.toString()]
+        );
+      } catch (e) {
+        // Unknown error
+        if (!(e instanceof ProblemDetailsError)) {
+          this.logger.error(e);
+          throw new InternalServerError();
+        }
+
+        if (e.detail.includes("Entry not found in index")) {
+          throw new NotFoundError(NotFoundError.defaultTitle, {
+            detail: `Block ${blockIndex} not found`,
+          });
+        }
+
+        throw e;
+      }
+
+      // Hopefully fabric-common will provide the correct defintions 🤞
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+      const block = BlockDecoder.decode(blockQueryResult) as FabricBlock; // warning: not exact
+      const txs = block.data.data
+        .map(
+          (tx) =>
+            ({
+              txId: tx.payload.header.channel_header.tx_id,
+              type: tx.payload.header.channel_header.type,
+              timestamp: tx.payload.header.channel_header.timestamp,
+              channelId: tx.payload.header.channel_header.channel_id,
+              creatorMspId: tx.payload.header.signature_header.creator.Mspid,
+              blockNum: Number(block.header.number),
+              ...(tx.payload.data.actions && {
+                actions: tx.payload.data.actions.map((action) => ({
+                  creatorMspId: action.header.creator.Mspid,
+                  chaincodeId:
+                    action.payload.chaincode_proposal_payload.input
+                      .chaincode_spec.chaincode_id.name,
+                  proposalHash: encodeMultibase64url(
+                    action.payload.action.proposal_response_payload
+                      .proposal_hash
+                  ),
+                  response:
+                    action.payload.action.proposal_response_payload.extension
+                      .response,
+                  endorsersMspId: action.payload.action.endorsements.map(
+                    (endorsement) => endorsement.endorser.Mspid
+                  ),
+                })),
+              }),
+            } as Transaction)
+        )
+        .filter((tx) => tx.txId);
+
+      if (iniTx && blockIndex === iniBlock) {
+        // delete transactions before iniTx
+        const index = txs.findIndex((t) => t.txId === iniTx);
+        const deleteCount = index;
+        txs.splice(0, deleteCount);
+      }
+
+      if (transactions.length + txs.length > pageSize + 1) {
+        // remove extra transactions
+        const deleteCount = transactions.length + txs.length - pageSize - 1;
+        txs.splice(txs.length - deleteCount, deleteCount);
+      }
+
+      transactions.splice(transactions.length, 0, ...txs);
+    }
+    /* eslint-enable no-await-in-loop */
+    blockIndex += 1;
+
+    const firstPage = encodePageAfter(blockHeight - 1, "");
+    let nextPage: string;
+    if (transactions.length === pageSize + 1) {
+      // remove the last tx and define it as the next one
+      const [nextTx] = transactions.splice(transactions.length - 1, 1);
+      nextPage = encodePageAfter(nextTx.blockNum, nextTx.txId);
+    } else {
+      // this is the last page
+      nextPage = pageAfter ?? firstPage;
+    }
+
+    return { transactions, firstPage, nextPage };
   }
 }
 

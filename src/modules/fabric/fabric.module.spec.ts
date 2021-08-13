@@ -21,8 +21,76 @@ import { BlockDecoder } from "fabric-common";
 import { FabricModule } from "./fabric.module";
 import { FabricService } from "./fabric.service";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { Block, FabricBlock } from "./interfaces";
+import {
+  Block,
+  FabricAction,
+  FabricBlock,
+  FabricTransaction,
+  PaginatedList,
+} from "./interfaces";
 import { ApiConfig } from "../../config/configuration";
+import { encodeMultibase64url } from "./fabric.utils";
+
+function createFabricAction(): FabricAction {
+  const action: FabricAction = {
+    header: {
+      creator: {
+        Mspid: "mspid",
+      },
+    },
+    payload: {
+      chaincode_proposal_payload: {
+        input: {
+          chaincode_spec: {
+            chaincode_id: {
+              name: "chaincode-name",
+            },
+          },
+        },
+      },
+      action: {
+        proposal_response_payload: {
+          proposal_hash: crypto.randomBytes(32),
+          extension: {
+            response: {},
+          },
+        },
+        endorsements: [
+          {
+            endorser: {
+              Mspid: "mspid",
+            },
+          },
+        ],
+      },
+    },
+  };
+  return action;
+}
+
+function createFabricTransaction(channelName: string): FabricTransaction {
+  const tx: FabricTransaction = {
+    payload: {
+      header: {
+        channel_header: {
+          tx_id: crypto.randomBytes(32).toString("hex"),
+          type: 3,
+          timestamp: new Date().toISOString(),
+          channel_id: channelName,
+        },
+        signature_header: {
+          creator: {
+            Mspid: "mspid",
+          },
+        },
+      },
+      data: {
+        actions: [createFabricAction(), createFabricAction()],
+      },
+    },
+  };
+  return tx;
+}
 
 describe("Fabric Module", () => {
   let app: INestApplication;
@@ -512,14 +580,225 @@ describe("Fabric Module", () => {
       expect(response.body).toStrictEqual({
         blockNum: blocks["0"].header.number,
         channelName: channelsNames[0],
-        dataHash: blocks["0"].header.data_hash.toString("hex"),
-        prevHash: blocks["0"].header.previous_hash.toString("hex"),
+        dataHash: encodeMultibase64url(blocks["0"].header.data_hash),
+        prevHash: encodeMultibase64url(blocks["0"].header.previous_hash),
         timestamp:
           blocks["0"].data.data[0].payload.header.channel_header.timestamp,
         txCount: expectedTxIds.length,
         txIds: expectedTxIds,
       });
       expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /channels/{channel}/transactions", () => {
+    it("should return 400 if the channel parameter is not formatted correctly", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown_ch@nnel";
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/transactions`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return 404 if the channel doesn't exist", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown-channel";
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/transactions`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `Channel ${channelsName} not found`,
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return a list of transactions for a given channel", async () => {
+      expect.assertions(2);
+      const channelsNames = Object.keys(channels);
+
+      // Mock Wallets
+      jest
+        .spyOn(Wallets, "newFileSystemWallet")
+        .mockImplementation(() => Wallets.newInMemoryWallet());
+
+      // Mock Gateway
+      const evaluateTransaction = jest.fn().mockResolvedValue({});
+      jest
+        .spyOn(Gateway.prototype, "connect")
+        .mockImplementation(() => Promise.resolve());
+      jest.spyOn(Gateway.prototype, "getNetwork").mockImplementation(() =>
+        Promise.resolve({
+          getGateway: jest.fn(),
+          getContract: jest.fn().mockImplementation(() => ({
+            evaluateTransaction,
+          })),
+          getChannel: jest.fn(),
+          addCommitListener: jest.fn(),
+          removeCommitListener: jest.fn(),
+          addBlockListener: jest.fn(),
+          removeBlockListener: jest.fn(),
+        })
+      );
+
+      const numberOfBlocks = 15;
+
+      // Let's say the blockchain height is 15
+      jest.spyOn(fabprotos.common.BlockchainInfo, "decode").mockReturnValue({
+        height: numberOfBlocks,
+      } as fabprotos.common.BlockchainInfo);
+
+      // And Fabric returns these blocks
+      for (let i = numberOfBlocks; i > 0; i -= 1) {
+        jest.spyOn(BlockDecoder, "decode").mockReturnValueOnce({
+          header: {
+            number: i,
+            data_hash: Buffer.from("abcd", "hex"),
+            previous_hash: Buffer.from("1234", "hex"),
+          },
+          data: {
+            data: [
+              createFabricTransaction("my-channel"),
+              createFabricTransaction("my-channel"),
+            ],
+          },
+        } as FabricBlock);
+      }
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsNames[0]}/transactions`
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<Block>,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+          ) as string,
+          next: expect.stringContaining(
+            `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+          ) as string,
+        },
+      });
+    });
+
+    it("should return a list of transactions and the correct link to the next page", async () => {
+      expect.assertions(5);
+
+      const channelsNames = Object.keys(channels);
+
+      // Mock Wallets
+      jest
+        .spyOn(Wallets, "newFileSystemWallet")
+        .mockImplementation(() => Wallets.newInMemoryWallet());
+
+      // Mock Gateway
+      const evaluateTransaction = jest.fn().mockResolvedValue({});
+      jest
+        .spyOn(Gateway.prototype, "connect")
+        .mockImplementation(() => Promise.resolve());
+      jest.spyOn(Gateway.prototype, "getNetwork").mockImplementation(() =>
+        Promise.resolve({
+          getGateway: jest.fn(),
+          getContract: jest.fn().mockImplementation(() => ({
+            evaluateTransaction,
+          })),
+          getChannel: jest.fn(),
+          addCommitListener: jest.fn(),
+          removeCommitListener: jest.fn(),
+          addBlockListener: jest.fn(),
+          removeBlockListener: jest.fn(),
+        })
+      );
+
+      const numberOfBlocks = 15;
+
+      // Let's say the blockchain height is 15
+      jest.spyOn(fabprotos.common.BlockchainInfo, "decode").mockReturnValue({
+        height: numberOfBlocks,
+      } as fabprotos.common.BlockchainInfo);
+
+      // And Fabric returns these blocks
+      for (let i = numberOfBlocks; i > 0; i -= 1) {
+        jest.spyOn(BlockDecoder, "decode").mockReturnValueOnce({
+          header: {
+            number: i,
+            data_hash: Buffer.from("abcd", "hex"),
+            previous_hash: Buffer.from("1234", "hex"),
+          },
+          data: {
+            data: [
+              createFabricTransaction("my-channel"),
+              createFabricTransaction("my-channel"),
+            ],
+          },
+        } as FabricBlock);
+      }
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[size]=2`
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<Block>,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+          ) as string,
+          next: expect.stringContaining(
+            `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+          ) as string,
+        },
+      });
+      expect((response.body as PaginatedList).items).toHaveLength(2);
+
+      const nextPage = (response.body as PaginatedList).links.next;
+      const subUrl = "/blockchains/fabric/channels";
+      const urlNext = `${subUrl}${nextPage.split(subUrl)[1]}`;
+      const responseNext = await request(server).get(urlNext);
+
+      expect(responseNext.status).toBe(200);
+      expect(responseNext.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<Block>,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+          ) as string,
+          next: expect.stringContaining(
+            `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+          ) as string,
+        },
+      });
     });
   });
 

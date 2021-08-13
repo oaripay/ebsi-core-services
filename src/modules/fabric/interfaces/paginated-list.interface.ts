@@ -1,12 +1,12 @@
-export interface PaginatedList<T> {
+export interface PaginatedList<T = unknown> {
   self: string;
   items: T[];
-  total: number;
+  total?: number;
   pageSize: number;
   links: {
     first: string;
-    prev: string;
+    prev?: string;
     next: string;
-    last: string;
+    last?: string;
   };
 }

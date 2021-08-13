@@ -1,4 +1,4 @@
-import { FabricChannelHeader } from "./channels.interface";
+import { FabricTransaction } from "./transactions.interface";
 
 export interface Block {
   blockNum: number;
@@ -17,12 +17,6 @@ export interface FabricBlock {
     previous_hash?: Buffer;
   };
   data?: {
-    data?: {
-      payload?: {
-        header?: {
-          channel_header?: FabricChannelHeader;
-        };
-      };
-    }[];
+    data?: FabricTransaction[];
   };
 }

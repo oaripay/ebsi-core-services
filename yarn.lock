@@ -1316,6 +1316,11 @@
     "@types/yargs" "^16.0.0"
     chalk "^4.0.0"
 
+"@multiformats/base-x@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@multiformats/base-x/-/base-x-4.0.1.tgz#95ff0fa58711789d53aefb2590a8b7a4e715d121"
+  integrity sha512-eMk0b9ReBbV23xXU693TAIrLyeO5iTgBZGSJfpqriG8UkYvr/hC9u9pyMlAakDNHWmbhMZCDs6KQO0jzKD8OTw==
+
 "@nestjs/axios@^0.0.1":
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/@nestjs/axios/-/axios-0.0.1.tgz#c32a1c11e25765a69f3f9012ea5b8f49915db7cb"
@@ -1992,6 +1997,13 @@
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.2.tgz#ee771e2ba4b3dc5b372935d549fd9617bf345b8c"
   integrity sha512-jhuKLIRrhvCPLqwPcx6INqmKeiA5EWrsCOPhrlFSrbrmU4ZMPjj5Ul/oLCMDO98XRUIwVm78xICz4EPCektzeQ==
+
+"@types/multibase@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@types/multibase/-/multibase-3.1.0.tgz#0b934a0cae1ebadc670a21cfafdefc20db6faa38"
+  integrity sha512-KBg5wVezdyQ4xSQAAsRzH2eRGvrjG16XA5NvY1XRbvGR6ZFfeyEabXqF/G7JnyAdxQWu9oSzc0DSCUIQeJhiVQ==
+  dependencies:
+    multibase "*"
 
 "@types/node@*", "@types/node@>=12.12.47", "@types/node@>=13.7.0", "@types/node@^14.11.8", "@types/node@^14.14.41":
   version "14.17.9"
@@ -7093,6 +7105,20 @@ ms@^2.1.1:
   version "2.1.3"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
+
+multibase@*:
+  version "4.0.5"
+  resolved "https://registry.yarnpkg.com/multibase/-/multibase-4.0.5.tgz#620293b524e01f504b750cef585c2bdc6ee1c64c"
+  integrity sha512-oqFkOYXdUkakxT8MqGyn5sE1KYeVt1zataOTvg688skQp6TVBv9XnouCcVO86XKFzh/UTiCGmEImTx6ZnPZ0qQ==
+  dependencies:
+    "@multiformats/base-x" "^4.0.1"
+
+multibase@4.0.4:
+  version "4.0.4"
+  resolved "https://registry.yarnpkg.com/multibase/-/multibase-4.0.4.tgz#55ef53e6acce223c5a09341a8a3a3d973871a577"
+  integrity sha512-8/JmrdSGzlw6KTgAJCOqUBSGd1V6186i/X8dDCGy/lbCKrQ+1QB6f3HE+wPr7Tpdj4U3gutaj9jG2rNX6UpiJg==
+  dependencies:
+    "@multiformats/base-x" "^4.0.1"
 
 multiformats@^9.4.2:
   version "9.4.5"

@@ -12,7 +12,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { FabricService } from "../../src/modules/fabric/fabric.service";
-import { Block } from "../../src/modules/fabric/interfaces";
+import { Block, PaginatedList } from "../../src/modules/fabric/interfaces";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 
@@ -185,7 +185,7 @@ describe("Fabric e2e tests", () => {
       expect(response.status).toBe(404);
     });
 
-    it("should return a list of dummy block for a dummy channel", async () => {
+    it("should return a list of blocks for a given channel", async () => {
       expect.assertions(2);
 
       const channelsNames = Object.keys(
@@ -315,7 +315,7 @@ describe("Fabric e2e tests", () => {
       expect(response.status).toBe(404);
     });
 
-    it("should return a list of dummy block for a dummy channel", async () => {
+    it("should return a block for a given channel", async () => {
       expect.assertions(2);
 
       const channelsNames = Object.keys(
@@ -335,6 +335,126 @@ describe("Fabric e2e tests", () => {
         timestamp: expect.any(String) as string,
         txCount: expect.any(Number) as string,
         txIds: expect.any(Array) as string[],
+      });
+    });
+  });
+
+  describe("GET /ledger/v2/blockchains/fabric/channels/{channel}/transactions", () => {
+    it("should return 400 if the channel parameter is not formatted correctly", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown_ch@nnel";
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/transactions`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return 404 if the channel doesn't exist", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown-channel";
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/transactions`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `Channel ${channelsName} not found`,
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return a list of transactions for a given channel", async () => {
+      expect.assertions(2);
+
+      const channelsNames = Object.keys(
+        fabricService.getConnectionProfile().channels
+      );
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsNames[0]}/transactions`
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<Block>,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+          ) as string,
+          next: expect.stringContaining(
+            `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+          ) as string,
+        },
+      });
+    });
+
+    it("should return a list of transactions and the correct link to the next page", async () => {
+      expect.assertions(5);
+
+      const channelsNames = Object.keys(
+        fabricService.getConnectionProfile().channels
+      );
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[size]=2`
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<Block>,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+          ) as string,
+          next: expect.stringContaining(
+            `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+          ) as string,
+        },
+      });
+      expect((response.body as PaginatedList).items).toHaveLength(2);
+
+      const nextPage = (response.body as PaginatedList).links.next;
+      const subUrl = "/blockchains/fabric/channels";
+      const urlNext = `${subUrl}${nextPage.split(subUrl)[1]}`;
+      const responseNext = await request(server).get(urlNext);
+
+      expect(responseNext.status).toBe(200);
+      expect(responseNext.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+        ) as string,
+        items: expect.arrayContaining([]) as Array<Block>,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+          ) as string,
+          next: expect.stringContaining(
+            `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
+          ) as string,
+        },
       });
     });
   });
