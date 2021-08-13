@@ -6,7 +6,9 @@ import { HardhatUserConfig } from "hardhat/config";
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
-    hardhat: {},
+    hardhat: {
+      hardfork: "berlin",
+    },
   },
   typechain: {
     outDir: "src/contracts/timestamp",

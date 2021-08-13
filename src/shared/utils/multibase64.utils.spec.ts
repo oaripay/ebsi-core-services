@@ -31,14 +31,16 @@ describe("multibase64Decode", () => {
     expect.assertions(1);
 
     expect(() => multibase64Decode("test")).toThrow(
-      new Error("Unexpected end of data")
+      new Error(
+        'Unable to decode multibase string "test", base64url decoder only supports inputs prefixed with u'
+      )
     );
   });
 });
 
 describe("multihashEncode", () => {
   it("should produce the expected result", () => {
-    expect.assertions(3);
+    expect.assertions(4);
 
     expect(
       multihashEncode(
@@ -47,6 +49,15 @@ describe("multihashEncode", () => {
       )
     ).toStrictEqual(
       "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
+    );
+
+    expect(
+      multihashEncode(
+        "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
+        "sha3-256"
+      )
+    ).toStrictEqual(
+      "162041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
     );
 
     // Same result whether the input string is prefixed with 0x or not
