@@ -9,7 +9,7 @@ export interface ApiConfig {
   apiUrlPrefix: string;
   apiDid: string;
   apiTarId: string;
-  onboardingApiDid: string;
+  onboardingAllowlist: string[];
   onboardingApiPrivateKey: string; // for tests
   trustedAppsRegistry: string;
   trustedIssuersRegistry: string;
@@ -83,7 +83,7 @@ export const loadConfig = (): ApiConfig => {
     apiUrlPrefix: process.env.API_URL_PREFIX || "/authorisation/v1",
     apiDid: process.env.API_DID,
     apiTarId: process.env.API_TAR_ID,
-    onboardingApiDid: process.env.ONBOARDING_API_DID,
+    onboardingAllowlist: process.env.ONBOARDING_ALLOWLIST.split(","),
     onboardingApiPrivateKey: process.env.ONBOARDING_API_PRIVATE_KEY || "",
     trustedAppsRegistry:
       process.env.TRUSTED_APPS_REGISTRY ||
@@ -140,7 +140,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Authorisation specific variables
     DOMAIN: Joi.string().uri(),
     LOCAL_ORIGIN: Joi.string().uri(),
-    ONBOARDING_API_DID: Joi.string().required(),
+    ONBOARDING_ALLOWLIST: Joi.string().required(),
     ONBOARDING_API_PRIVATE_KEY: Joi.string(),
     TRUSTED_APPS_REGISTRY: Joi.string().uri(),
     TRUSTED_ISSUERS_REGISTRY: Joi.string().uri(),

@@ -61,7 +61,7 @@ describe("Authorisation (e2e)", () => {
   let trustedIssuersRegistry: string;
   let authorisationCredentialSchema: string;
   let onboardingApiPrivateKey: string;
-  let onboardingApiDid: string;
+  let onboardingAllowlist: string[];
   let apiKid: string;
   let apiDid: string;
   let trustedApp: {
@@ -114,7 +114,7 @@ describe("Authorisation (e2e)", () => {
     onboardingApiPrivateKey = prefix0x(
       configService.get<string>("onboardingApiPrivateKey")
     );
-    onboardingApiDid = configService.get<string>("onboardingApiDid");
+    onboardingAllowlist = configService.get<string[]>("onboardingAllowlist");
 
     let listAppsByName: {
       data: { items: { id: string }[] };
@@ -361,9 +361,9 @@ describe("Authorisation (e2e)", () => {
         const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
 
         const clientPrivateKey = await parseJwk(
-          alg === "EdDSA"
-            ? (keyObject.privateKeyJwk as JWK[]).find((k) => k.use === "sig")
-            : (keyObject.privateKeyJwk as JWK),
+          Array.isArray(keyObject.privateKeyJwk)
+            ? keyObject.privateKeyJwk.find((k) => k.use === "sig") // EdDSA
+            : keyObject.privateKeyJwk,
           alg
         );
         const domain = configService.get<string>("domain");
@@ -718,7 +718,7 @@ describe("Authorisation (e2e)", () => {
         did,
         authorisationCredentialSchema,
         onboardingApiPrivateKey,
-        onboardingApiDid,
+        onboardingAllowlist[0], // must be did of onboarding api
         didRegistry
       );
 
@@ -825,7 +825,9 @@ describe("Authorisation (e2e)", () => {
         .send({ id_token: idToken });
 
       expect(siopSessionsResponse.body).toStrictEqual({
-        detail: `All verifiable credentials must be signed by onboarding api (${onboardingApiDid})`,
+        detail: `All verifiable credentials must be signed by issuers in the allowlist: ${onboardingAllowlist.join(
+          ", "
+        )}`,
         status: 400,
         title: "Invalid Verifiable Presentation",
         type: "about:blank",

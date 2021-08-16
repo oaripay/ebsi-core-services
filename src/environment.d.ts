@@ -11,7 +11,7 @@ declare global {
       API_PORT?: string;
       API_URL_PREFIX?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-      ONBOARDING_API_DID: string;
+      ONBOARDING_ALLOWLIST: string;
       ONBOARDING_API_PRIVATE_KEY?: string;
       TRUSTED_APPS_REGISTRY?: string;
       TRUSTED_ISSUERS_REGISTRY?: string;

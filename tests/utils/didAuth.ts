@@ -27,13 +27,13 @@ export async function getKeyByAlg(
     EdDSA: "Ed25519VerificationKey2018",
   };
   const keyObject = keys.find((p) => p.type === types[alg]);
-  const privateKeyJwkEncryption =
-    alg === "EdDSA"
-      ? await parseJwk(
-          (keyObject.privateKeyJwk as JWK[]).find((k) => k.use === "enc"),
-          alg
-        )
-      : await parseJwk(keyObject.privateKeyJwk as JWK, alg);
+  const privateKeyJwkEncryption = await parseJwk(
+    Array.isArray(keyObject.privateKeyJwk)
+      ? keyObject.privateKeyJwk.find((k) => k.use === "enc") // EdDSA
+      : keyObject.privateKeyJwk,
+    alg
+  );
+
   let publicKeyJwkEncryption: KeyLike;
   try {
     publicKeyJwkEncryption =

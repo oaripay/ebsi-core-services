@@ -606,7 +606,9 @@ describe("Authorisation Module", () => {
           verifiableCredential: [
             {
               id: "vc:ebsi:authentication#b744b528-af68-43b0-b269-ec291f421aa8",
-              issuer: configService.get<string>("onboardingApiDid"),
+              issuer: configService.get<ApiConfig["onboardingAllowlist"]>(
+                "onboardingAllowlist"
+              )[0],
               validFrom: "2021-05-18T15:00:42Z",
               credentialSubject: {
                 id: "did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e",
@@ -830,7 +832,9 @@ describe("Authorisation Module", () => {
               verifiableCredential: [
                 {
                   id: "vc:ebsi:authentication#b744b528-af68-43b0-b269-ec291f421aa8",
-                  issuer: configService.get<string>("onboardingApiDid"),
+                  issuer: configService.get<ApiConfig["onboardingAllowlist"]>(
+                    "onboardingAllowlist"
+                  )[0],
                   validFrom: "2021-05-18T15:00:42Z",
                   credentialSubject: {
                     id: "did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e",

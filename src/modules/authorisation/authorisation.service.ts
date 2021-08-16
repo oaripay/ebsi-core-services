@@ -70,14 +70,16 @@ export class AuthorisationService {
 
   private trustedIssuersRegistry: string;
 
-  private onboardingApiDid: string;
+  private onboardingAllowlist: string[];
 
   constructor(private configService: ConfigService<ApiConfig>) {
     const domain = this.configService.get<string>("domain");
     const urlPrefix = this.configService.get<string>("apiUrlPrefix");
     this.siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
     this.privateKey = prefix0x(this.configService.get<string>("apiPrivateKey"));
-    this.onboardingApiDid = this.configService.get<string>("onboardingApiDid");
+    this.onboardingAllowlist = this.configService.get<string[]>(
+      "onboardingAllowlist"
+    );
     const trustedAppRegistry = this.configService.get<string>(
       "trustedAppsRegistry"
     );
@@ -227,15 +229,18 @@ export class AuthorisationService {
       }
 
       // verify there is at least one credential and verify that all
-      // of them are signed by onboarding api
+      // of them are signed by onboarding allowlist
       if (
         vp.verifiableCredential.length === 0 ||
-        vp.verifiableCredential
-          .map((vc) => vc.issuer)
-          .filter((issuer) => issuer !== this.onboardingApiDid).length > 0
+        vp.verifiableCredential.filter((vc) => {
+          const id = typeof vc.issuer === "string" ? vc.issuer : vc.issuer.id;
+          return !this.onboardingAllowlist.includes(id);
+        }).length > 0
       ) {
         throw new BadRequestError("Invalid Verifiable Presentation", {
-          detail: `All verifiable credentials must be signed by onboarding api (${this.onboardingApiDid})`,
+          detail: `All verifiable credentials must be signed by issuers in the allowlist: ${this.onboardingAllowlist.join(
+            ", "
+          )}`,
         });
       }
 
