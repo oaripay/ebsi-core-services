@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.9](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.9&targetRepoId=359) (2021-08-16)
+
+### 🐛 Bug Fixes
+
+- update Node.js to v14.17.5 ([#51](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/51/overview)) - EBSIINT-3220 ([c1b5f91](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/c1b5f91c0ee9f1167de60b5e824e8f93365c2a97))
+
+### 🚀 Features
+
+- allow VAs from different trusted entities ([#53](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/53/overview)) - EBSIINT-3222 ([c37464c](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/c37464c8914f2a64d0bbfab13f66dfb4f877e6c9))
+
 ## [1.0.0-rc.8](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.8&targetRepoId=359) (2021-08-09)
 
 ### 🐛 Bug Fixes
