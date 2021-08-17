@@ -8,8 +8,10 @@ export async function createTestClient(): Promise<{
   keys: {
     type: string;
     id: string;
-    privateKeyJwk: JWK | JWK[];
-    publicKeyJwk: JWK | JWK[];
+    privateKeyJwk: JWK;
+    publicKeyJwk: JWK;
+    privateKeyEncryptionJwk: JWK;
+    publicKeyEncryptionJwk: JWK;
   }[];
   keysBase64: string;
   did: string;
@@ -54,23 +56,16 @@ export async function createTestClient(): Promise<{
         id,
         type,
         controller: did,
-        publicKeyJwk: [
-          { ...jwk, use: "sig" },
-          { ...enc.jwk, use: "enc" },
-        ],
+        publicKeyJwk: { ...jwk, use: "sig" },
       });
 
       keys.push({
         type,
         id,
-        publicKeyJwk: [
-          { ...jwkPriv, use: "sig" },
-          { ...enc.jwkPriv, use: "enc" },
-        ],
-        privateKeyJwk: [
-          { ...jwkPriv, use: "sig" },
-          { ...enc.jwkPriv, use: "enc" },
-        ],
+        publicKeyJwk: { ...jwk, use: "sig" },
+        privateKeyJwk: { ...jwkPriv, use: "sig" },
+        publicKeyEncryptionJwk: { ...enc.jwk, use: "enc" },
+        privateKeyEncryptionJwk: { ...enc.jwkPriv, use: "enc" },
       });
     } else {
       didDocument.verificationMethod.push({
@@ -82,8 +77,10 @@ export async function createTestClient(): Promise<{
       keys.push({
         type,
         id,
-        privateKeyJwk: jwkPriv,
         publicKeyJwk: jwk,
+        privateKeyJwk: jwkPriv,
+        publicKeyEncryptionJwk: jwk,
+        privateKeyEncryptionJwk: jwkPriv,
       });
     }
     didDocument.assertionMethod.push(id);

@@ -355,17 +355,14 @@ describe("Authorisation (e2e)", () => {
         ) as {
           type: string;
           id: string;
-          privateKeyJwk: JWK | JWK[];
-          publicKeyJwk: JWK | JWK[];
+          privateKeyJwk: JWK;
+          publicKeyJwk?: JWK;
+          privateKeyEncryptionJwk?: JWK;
+          publicKeyEncryptionJwk?: JWK;
         }[];
         const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
 
-        const clientPrivateKey = await parseJwk(
-          Array.isArray(keyObject.privateKeyJwk)
-            ? keyObject.privateKeyJwk.find((k) => k.use === "sig") // EdDSA
-            : keyObject.privateKeyJwk,
-          alg
-        );
+        const clientPrivateKey = await parseJwk(keyObject.privateKeyJwk, alg);
         const domain = configService.get<string>("domain");
         const urlPrefix = configService.get<string>("apiUrlPrefix");
         const siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
@@ -495,8 +492,7 @@ describe("Authorisation (e2e)", () => {
           keyId: keyObject.id,
           nonce,
           redirectUri: "redirect_uri",
-          privateKeyJwk:
-            alg === "EdDSA" ? [{ use: "sig", ...wrongJwk }] : wrongJwk,
+          privateKeyJwk: wrongJwk,
         });
 
         response = await request(server)
@@ -543,9 +539,12 @@ describe("Authorisation (e2e)", () => {
         ) as {
           type: string;
           id: string;
-          privateKeyJwk: JWK | JWK[];
-          publicKeyJwk: JWK | JWK[];
+          privateKeyJwk: JWK;
+          publicKeyJwk: JWK;
+          privateKeyEncryptionJwk?: JWK;
+          publicKeyEncryptionJwk?: JWK;
         }[];
+
         const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
 
         let idToken: string;
@@ -571,6 +570,7 @@ describe("Authorisation (e2e)", () => {
             nonce,
             redirectUri: uriDecoded.client_id as string,
             privateKeyJwk: keyObject.privateKeyJwk,
+            publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk,
           });
         }
 
@@ -620,7 +620,7 @@ describe("Authorisation (e2e)", () => {
             .ake1_enc_payload;
           const { payload } = await jwtDecrypt(
             ake1EndPayload,
-            keyObject.privateKeyJwkEncryption as crypto.KeyObject
+            keyObject.privateKeyEncryption as crypto.KeyObject
           );
           accessToken = (payload as { access_token: string }).access_token;
         }
@@ -659,8 +659,10 @@ describe("Authorisation (e2e)", () => {
       ) as {
         type: string;
         id: string;
-        privateKeyJwk: JWK | JWK[];
-        publicKeyJwk: JWK | JWK[];
+        privateKeyJwk: JWK;
+        publicKeyJwk?: JWK;
+        privateKeyEncryptionJwk?: JWK;
+        publicKeyEncryptionJwk?: JWK;
       }[];
       const keyObject = await getKeyByAlg(clientPrivateKeys, "ES256K");
 

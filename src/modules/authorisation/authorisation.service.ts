@@ -9,7 +9,7 @@ import {
   InvalidTokenError,
 } from "@cef-ebsi/oauth2-auth";
 import axios, { AxiosError } from "axios";
-import parseJwk, { JWK } from "jose/jwk/parse";
+import parseJwk from "jose/jwk/parse";
 import EncryptJWT from "jose/jwt/encrypt";
 import {
   DidAuthValidationResponse,
@@ -19,6 +19,10 @@ import {
   ResponseClaims,
   Session as SiopSession,
 } from "@cef-ebsi/siop-auth";
+import {
+  AkeResponse as SiopAkeResponse,
+  Ake1SigPayload,
+} from "@cef-ebsi/siop-auth/dist/Ake";
 import {
   createJWT,
   decodeJWT,
@@ -33,7 +37,6 @@ import base64url from "base64url";
 import Joi from "joi";
 import { DIDDocument } from "did-resolver";
 import jwtVerify from "jose/jwt/verify";
-import { Ake1SigPayload } from "@cef-ebsi/siop-auth/dist/Ake";
 import { ApiConfig } from "../../config/configuration";
 import { AuthenticationRequestResponse } from "./authorisation.interface";
 import {
@@ -169,15 +172,95 @@ export class AuthorisationService {
     return this.oauth2Session.createAccessToken(body, publicKey);
   }
 
-  async createSiopSession(body: SiopSessionDto): Promise<{
-    ake1_enc_payload: string;
-    ake1_sig_payload: Ake1SigPayload;
-    ake1_jws_detached: string;
-    did?: string;
-  }> {
-    const { header, payload } = decodeJWT(body.id_token);
+  async createAccessToken(
+    header: JWTHeader,
+    validation: DidAuthValidationResponse
+  ): Promise<SiopAkeResponse> {
+    try {
+      if (header.alg === "ES256K") {
+        // Using @cef-ebsi/siop-auth library (ES256K), and setting payload.did to validation.payload.sub
+        return await this.siopSession.createAccessToken(validation);
+      }
 
-    if (payload.claims && Object.keys(payload.claims).length !== 0) {
+      // support to other algorithms
+      const headerOpts = {
+        typ: "JWT",
+        alg: "ES256K",
+        kid: this.kid,
+      } as JWTHeader;
+
+      const jwtOpts = {
+        issuer: this.did,
+        signer: ES256KSigner(this.privateKey),
+        expiresIn: 900,
+      } as JWTOptions;
+
+      const accessToken = await createJWT(
+        {
+          sub: validation.payload.sub,
+          aud: "ebsi-core-services",
+          nonce: randomUUID(),
+          login_hint: "did_siop",
+        },
+        jwtOpts,
+        headerOpts
+      );
+
+      const encryptionKey = (await parseJwk(
+        validation.signer.publicKeyJwk,
+        header.alg
+      )) as crypto.KeyObject;
+
+      const encryptedAccessToken = await new EncryptJWT({
+        access_token: accessToken,
+        did: this.did,
+        nonce: validation.payload.nonce,
+      })
+        .setProtectedHeader({
+          alg: header.alg === "RS256" ? "RSA1_5" : "ECDH-ES",
+          enc: "A128GCM",
+        })
+        .encrypt(encryptionKey);
+
+      const ake1Sig = await createJWT(
+        {
+          ake1_nonce: validation.payload.nonce as string,
+          ake1_enc_payload: encryptedAccessToken,
+          did: validation.payload.sub,
+        },
+        jwtOpts,
+        headerOpts
+      );
+      const ake1SigPayloadBase64url = ake1Sig.split(".")[1];
+      const ake1SigPayload = JSON.parse(
+        base64url.decode(ake1SigPayloadBase64url)
+      ) as Ake1SigPayload;
+      const ake1JwsDetached = ake1Sig.replace(ake1SigPayloadBase64url, "");
+
+      return {
+        ake1_enc_payload: encryptedAccessToken,
+        ake1_sig_payload: ake1SigPayload,
+        ake1_jws_detached: ake1JwsDetached,
+        did: this.did,
+      };
+    } catch (error) {
+      this.logger.error(error, (error as Error).stack);
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: (error as Error).message,
+      });
+    }
+  }
+
+  async createSiopSession(body: SiopSessionDto): Promise<SiopAkeResponse> {
+    const { header, payload } = decodeJWT(body.id_token);
+    const { claims } = payload as { claims: ResponseClaims };
+
+    let encryptionKey: JsonWebKey;
+    if (claims?.encryption_key) {
+      encryptionKey = claims.encryption_key as unknown as JsonWebKey;
+    }
+
+    if (claims?.verified_claims) {
       /**
        * Using a Verifiable Presentation to request a token
        * It is assumed that the user doesn't have a DID registered
@@ -185,15 +268,11 @@ export class AuthorisationService {
        */
 
       // Verifiable Authorisation Verifiable Presentation -- JCS canonicalize + base64url encode
-      const { claims } = payload;
-      if (!(claims as ResponseClaims).verified_claims)
-        throw new BadRequestError("Invalid id_token payload", {
-          detail: `verified_claims not found in id_token claims`,
-        });
-
-      const encodedVP = (claims as ResponseClaims).verified_claims;
       try {
-        Joi.assert(encodedVP, Joi.string().base64({ paddingRequired: false }));
+        Joi.assert(
+          claims.verified_claims,
+          Joi.string().base64({ paddingRequired: false })
+        );
       } catch (error) {
         throw new BadRequestError("Uncoded Verifiable Presentation", {
           detail: (error as Error).message,
@@ -203,7 +282,7 @@ export class AuthorisationService {
       let decodedParsedVP: VerifiablePresentation;
       try {
         decodedParsedVP = JSON.parse(
-          base64url.decode(encodedVP)
+          base64url.decode(claims.verified_claims)
         ) as VerifiablePresentation;
       } catch (error) {
         throw new BadRequestError(
@@ -244,26 +323,22 @@ export class AuthorisationService {
         });
       }
 
-      try {
-        return await this.siopSession.createAccessToken({
-          signatureValidation: true,
-          signer: {
-            publicKeyJwk: (claims as ResponseClaims)
-              .encryption_key as unknown as JsonWebKey,
-            type: "",
-            id: "",
-            controller: "",
-          },
-          payload: {
-            did: vp.holder,
-            nonce: (payload as { nonce: string }).nonce,
-          },
-        });
-      } catch (error) {
-        throw new BadRequestError(BadRequestError.defaultTitle, {
-          detail: (error as Error).message,
-        });
-      }
+      const { nonce } = payload as { nonce: string };
+
+      return this.createAccessToken(header, {
+        signatureValidation: true,
+        signer: {
+          publicKeyJwk: encryptionKey,
+          type: "",
+          id: "",
+          controller: "",
+        },
+        payload: {
+          did: vp.holder, // Useful for ES256K, otherwise this.siopSession.createAccessToken doesn't add `ake1_sig_payload.did`
+          sub: vp.holder,
+          nonce,
+        },
+      });
     }
 
     /**
@@ -275,12 +350,13 @@ export class AuthorisationService {
 
     const allowedAlgs = ["RS256", "ES256", "ES256K", "EdDSA"];
 
-    if (!allowedAlgs.includes(header.alg))
+    if (!allowedAlgs.includes(header.alg)) {
       throw new BadRequestError("Invalid ID Token", {
         detail: `Algorithm ${
           header.alg
         } not supported. Supported algorithms: ${JSON.stringify(allowedAlgs)}`,
       });
+    }
 
     if (header.alg === "ES256K") {
       // Using @cef-ebsi/siop-auth library (ES256K)
@@ -299,7 +375,22 @@ export class AuthorisationService {
 
         throw error;
       }
-      return this.siopSession.createAccessToken(validation);
+
+      if (encryptionKey) {
+        if (encryptionKey.crv !== "secp256k1") {
+          throw new BadRequestError("Invalid Encryption Key", {
+            detail:
+              "As the ID Token uses alg ES256K, the encryption key should be empty or use crv:secp256k1",
+          });
+        }
+
+        // Set new encryption key defined in the ID Token
+        validation.signer.publicKeyJwk = encryptionKey;
+        validation.signer.publicKeyBase58 = "";
+        validation.signer.publicKeyHex = "";
+      }
+
+      return this.createAccessToken(header, validation);
     }
 
     // Additional support to other algorithms
@@ -333,6 +424,7 @@ export class AuthorisationService {
           typeof axiosError.response.data === "string"
             ? axiosError.response.data
             : JSON.stringify(axiosError.response.data);
+
         throw new BadRequestError("Invalid ID Token", {
           detail: message,
         });
@@ -340,61 +432,40 @@ export class AuthorisationService {
       throw error;
     }
 
-    if (!didDocument || !didDocument.verificationMethod)
+    if (!didDocument || !didDocument.verificationMethod) {
       throw new BadRequestError("Invalid ID Token", {
         detail: "DID Document must have verificationMethod",
       });
+    }
 
     const verificationMethod = didDocument.verificationMethod.find(
       (v) => v.id === payloadResponse.sub_did_verification_method_uri
     );
-    if (!verificationMethod)
+
+    if (!verificationMethod) {
       throw new BadRequestError("Invalid DID Document", {
         detail: `ID ${payloadResponse.sub_did_verification_method_uri} not found in the list of verification methods`,
       });
+    }
 
     const { publicKeyJwk } = verificationMethod;
 
-    if (!publicKeyJwk)
+    if (!publicKeyJwk) {
       throw new BadRequestError("Invalid DID Document", {
         detail: `publicKeyJwk not found in the verification method id ${payloadResponse.sub_did_verification_method_uri}`,
       });
+    }
 
     let publicKey: crypto.KeyObject;
     try {
-      const subJwk = Array.isArray(publicKeyJwk)
-        ? (publicKeyJwk.find(
-            (jwk: JWK) => !jwk.use || jwk.use === "sig"
-          ) as JWK)
-        : (publicKeyJwk as JWK);
-      publicKey = (await parseJwk(subJwk, header.alg)) as crypto.KeyObject;
+      publicKey = (await parseJwk(
+        publicKeyJwk,
+        header.alg
+      )) as crypto.KeyObject;
     } catch (error) {
       throw new BadRequestError("Invalid JWK", {
-        detail: `Invalid sub_jwk: ${(error as Error).message}`,
+        detail: `Invalid jwk from DID document: ${(error as Error).message}`,
       });
-    }
-
-    let publicKeyEncryption: crypto.KeyObject;
-    if (header.alg === "EdDSA") {
-      try {
-        const subJwk = Array.isArray(publicKeyJwk)
-          ? (publicKeyJwk.find(
-              (jwk: JWK) => !jwk.use || jwk.use === "enc"
-            ) as JWK)
-          : (publicKeyJwk as JWK);
-        if (subJwk.crv.toUpperCase() !== "X25519")
-          throw new Error(
-            `Expected jwk with crv:X25519. Received crv:${subJwk.crv}`
-          );
-        publicKeyEncryption = (await parseJwk(
-          subJwk,
-          header.alg
-        )) as crypto.KeyObject;
-      } catch (error) {
-        throw new BadRequestError("Invalid JWK", {
-          detail: `Invalid jwk for encryption: ${(error as Error).message}`,
-        });
-      }
     }
 
     try {
@@ -405,63 +476,21 @@ export class AuthorisationService {
       });
     }
 
+    if (!encryptionKey) {
+      encryptionKey = publicKeyJwk;
+    }
+
     // create session
-
-    const headerOpts = {
-      typ: "JWT",
-      alg: "ES256K",
-      kid: this.kid,
-    } as JWTHeader;
-
-    const jwtOpts = {
-      issuer: this.did,
-      signer: ES256KSigner(this.privateKey),
-      expiresIn: 900,
-    } as JWTOptions;
-
-    const accessToken = await createJWT(
-      {
-        sub: payload.did as string,
-        aud: "ebsi-core-services",
-        nonce: randomUUID(),
-        login_hint: "did_siop",
+    return this.createAccessToken(header, {
+      signatureValidation: true,
+      signer: {
+        publicKeyJwk: encryptionKey,
+        type: "",
+        id: "",
+        controller: "",
       },
-      jwtOpts,
-      headerOpts
-    );
-
-    const pubKey = header.alg === "EdDSA" ? publicKeyEncryption : publicKey;
-    const encryptedAccessToken = await new EncryptJWT({
-      access_token: accessToken,
-      did: this.did,
-      nonce: payloadResponse.nonce,
-    })
-      .setProtectedHeader({
-        alg: header.alg === "RS256" ? "RSA1_5" : "ECDH-ES",
-        enc: "A128GCM",
-      })
-      .encrypt(pubKey);
-
-    const ake1Sig = await createJWT(
-      {
-        ake1_nonce: payloadResponse.nonce,
-        ake1_enc_payload: encryptedAccessToken,
-        did,
-      },
-      jwtOpts,
-      headerOpts
-    );
-    const ake1SigPayloadBase64url = ake1Sig.split(".")[1];
-    const ake1SigPayload = JSON.parse(
-      base64url.decode(ake1SigPayloadBase64url)
-    ) as Ake1SigPayload;
-    const ake1JwsDetached = ake1Sig.replace(ake1SigPayloadBase64url, "");
-    return {
-      ake1_enc_payload: encryptedAccessToken,
-      ake1_sig_payload: ake1SigPayload,
-      ake1_jws_detached: ake1JwsDetached,
-      did: this.did,
-    };
+      payload: payloadResponse,
+    });
   }
 }
 

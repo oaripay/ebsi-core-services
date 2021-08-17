@@ -8,16 +8,21 @@ export async function getKeyByAlg(
   keys: {
     type: string;
     id: string;
-    privateKeyJwk: JWK | JWK[];
-    publicKeyJwk?: JWK | JWK[];
+    privateKeyJwk: JWK;
+    publicKeyJwk?: JWK;
+    privateKeyEncryptionJwk?: JWK;
+    publicKeyEncryptionJwk?: JWK;
   }[],
   alg: string
 ): Promise<{
+  type: string;
   id: string;
-  publicKeyJwk?: JWK | JWK[];
-  publicKeyJwkEncryption?: unknown;
-  privateKeyJwk: JWK | JWK[];
-  privateKeyJwkEncryption: unknown;
+  privateKeyJwk: JWK;
+  publicKeyJwk?: JWK;
+  privateKeyEncryptionJwk?: JWK;
+  publicKeyEncryptionJwk?: JWK;
+  privateKeyEncryption: KeyLike;
+  publicKeyEncryption?: KeyLike;
   privateKeyHexES256K: string;
 }> {
   const types = {
@@ -27,33 +32,25 @@ export async function getKeyByAlg(
     EdDSA: "Ed25519VerificationKey2018",
   };
   const keyObject = keys.find((p) => p.type === types[alg]);
-  const privateKeyJwkEncryption = await parseJwk(
-    Array.isArray(keyObject.privateKeyJwk)
-      ? keyObject.privateKeyJwk.find((k) => k.use === "enc") // EdDSA
-      : keyObject.privateKeyJwk,
+  const privateKeyEncryption = await parseJwk(
+    keyObject.privateKeyEncryptionJwk ?? keyObject.privateKeyJwk,
     alg
   );
-
-  let publicKeyJwkEncryption: KeyLike;
-  try {
-    publicKeyJwkEncryption =
-      alg === "EdDSA"
-        ? await parseJwk(
-            (keyObject.publicKeyJwk as JWK[]).find((k) => k.use === "enc"),
-            alg
-          )
-        : await parseJwk(keyObject.publicKeyJwk as JWK, alg);
-  } catch (error) {
-    /* empty */
-  }
+  const publicKeyEncryption =
+    keyObject.publicKeyEncryptionJwk || keyObject.publicKeyJwk
+      ? await parseJwk(
+          keyObject.publicKeyEncryptionJwk ?? keyObject.publicKeyJwk,
+          alg
+        )
+      : null;
   const privateKeyHexES256K =
     alg === "ES256K"
-      ? await getPrivateKeyHex(privateKeyJwkEncryption as KeyObject)
+      ? await getPrivateKeyHex(privateKeyEncryption as KeyObject)
       : null;
   return {
     ...keyObject,
-    privateKeyJwkEncryption,
-    publicKeyJwkEncryption,
+    privateKeyEncryption,
+    publicKeyEncryption,
     privateKeyHexES256K,
   };
 }
@@ -63,24 +60,25 @@ export async function createAuthenticationResponseJose(input: {
   keyId: string;
   nonce: string;
   redirectUri: string;
-  privateKeyJwk: JWK | JWK[];
-  publicKeyJwk?: JWK | JWK[];
+  privateKeyJwk: JWK;
+  publicKeyJwk?: JWK;
+  publicKeyEncryptionJwk?: JWK;
+  payload?: { [x: string]: unknown };
 }): Promise<string> {
   const { alg, keyId, nonce, redirectUri, privateKeyJwk, publicKeyJwk } = input;
   const [did] = keyId.split("#");
 
-  const privateKey = await parseJwk(
-    alg === "EdDSA"
-      ? (privateKeyJwk as JWK[]).find((k) => k.use === "sig")
-      : (privateKeyJwk as JWK),
-    alg
-  );
-  const payload = {
+  const privateKey = await parseJwk(privateKeyJwk, alg);
+  const payload = input?.payload ?? {
     sub: did,
     sub_jwk: publicKeyJwk || {},
     sub_did_verification_method_uri: keyId,
     nonce,
-    claims: {},
+    claims: {
+      ...(input.publicKeyEncryptionJwk && {
+        encryption_key: input.publicKeyEncryptionJwk,
+      }),
+    },
   };
 
   const idToken = await new SignJWT(payload)
@@ -94,5 +92,6 @@ export async function createAuthenticationResponseJose(input: {
     .setAudience(redirectUri)
     .setExpirationTime("15s")
     .sign(privateKey);
+
   return idToken;
 }

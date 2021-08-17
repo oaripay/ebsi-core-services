@@ -1,6 +1,6 @@
 import request from "supertest";
 import crypto, { randomUUID } from "crypto";
-import fromKeyLike, { JWK } from "jose/jwk/from_key_like";
+import fromKeyLike from "jose/jwk/from_key_like";
 import {
   Session,
   Agent,
@@ -42,7 +42,10 @@ import {
   randomPrivateKeySecp256k1,
 } from "../../../tests/utils/keys";
 import { createTestClient } from "../../../tests/utils/createTestClient";
-import { getKeyByAlg } from "../../../tests/utils/didAuth";
+import {
+  createAuthenticationResponseJose,
+  getKeyByAlg,
+} from "../../../tests/utils/didAuth";
 
 import { ApiConfig } from "../../config/configuration";
 import { ClaimRequest } from "./dto";
@@ -376,12 +379,7 @@ describe("Authorisation Module", () => {
         const clientDid = client.did;
         const clientPrivateKeys = client.keys;
         const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
-        const clientPrivateKey = await parseJwk(
-          alg === "EdDSA"
-            ? (keyObject.privateKeyJwk as JWK[]).find((k) => k.use === "sig")
-            : (keyObject.privateKeyJwk as JWK),
-          alg
-        );
+        const clientPrivateKey = await parseJwk(keyObject.privateKeyJwk, alg);
 
         let response = await request(server)
           .post("/siop-sessions")
@@ -508,31 +506,26 @@ describe("Authorisation Module", () => {
         const clientDid = client.did;
         const clientPrivateKeys = client.keys;
         const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
-        const clientPrivateKey = await parseJwk(
-          alg === "EdDSA"
-            ? (keyObject.privateKeyJwk as JWK[]).find((k) => k.use === "sig")
-            : (keyObject.privateKeyJwk as JWK),
-          alg
-        );
 
         const payload = {
-          sub_did_verification_method_uri: keyObject.id,
           sub: clientDid,
           sub_jwk: {},
+          sub_did_verification_method_uri: keyObject.id,
           nonce,
+          claims: {
+            encryption_key: keyObject.publicKeyEncryptionJwk,
+          },
         };
 
-        const idToken = await new SignJWT(payload)
-          .setProtectedHeader({
-            alg,
-            typ: "JWT",
-            kid: client.did,
-          })
-          .setIssuedAt()
-          .setIssuer("https://self-issued.me")
-          .setAudience("storage-api")
-          .setExpirationTime("15s")
-          .sign(clientPrivateKey);
+        const idToken = await createAuthenticationResponseJose({
+          alg,
+          keyId: keyObject.id,
+          nonce,
+          redirectUri: "redirect_uri",
+          privateKeyJwk: keyObject.privateKeyJwk,
+          publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk,
+          payload,
+        });
 
         // Fake verifyEbsiJWT result
         jest.spyOn(EbsiDidJwt, "verifyEbsiJWT").mockImplementation(async () =>
@@ -592,12 +585,6 @@ describe("Authorisation Module", () => {
         const client = await createTestClient();
         const clientPrivateKeys = client.keys;
         const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
-        const clientPrivateKey = await parseJwk(
-          alg === "EdDSA"
-            ? (keyObject.privateKeyJwk as JWK[]).find((k) => k.use === "sig")
-            : (keyObject.privateKeyJwk as JWK),
-          alg
-        );
 
         const mockedVerifiablePresentation = {
           "@context": ["https://www.w3.org/2018/credentials/v1"],
@@ -645,32 +632,28 @@ describe("Authorisation Module", () => {
           },
         };
 
-        const privateKeyHexEncryption = randomPrivateKeySecp256k1();
-        const publicKeyEncryption = (
-          await getPublicKey(privateKeyHexEncryption)
-        ).jwk;
-
         const payload = {
+          sub: client.did,
+          sub_jwk: {},
+          sub_did_verification_method_uri: keyObject.id,
           nonce,
           claims: {
             verified_claims: base64url.encode(
               JSON.stringify(mockedVerifiablePresentation)
             ),
-            encryption_key: publicKeyEncryption,
+            encryption_key: keyObject.publicKeyEncryptionJwk,
           },
         };
 
-        const idToken = await new SignJWT(payload)
-          .setProtectedHeader({
-            alg,
-            typ: "JWT",
-            kid: client.did,
-          })
-          .setIssuedAt()
-          .setIssuer("https://self-issued.me")
-          .setAudience("storage-api")
-          .setExpirationTime("15s")
-          .sign(clientPrivateKey);
+        const idToken = await createAuthenticationResponseJose({
+          alg,
+          keyId: keyObject.id,
+          nonce,
+          redirectUri: "redirect_uri",
+          privateKeyJwk: keyObject.privateKeyJwk,
+          publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk,
+          payload,
+        });
 
         // Fake verifyEbsiJWT result
         jest.spyOn(EbsiDidJwt, "verifyEbsiJWT").mockImplementation(async () =>
@@ -725,49 +708,6 @@ describe("Authorisation Module", () => {
         expect(response.status).toBe(200);
       });
 
-      it(`should throw bad request error when creating a siop session for a user that uses alg ${alg} and provides an invalid id_token: claims without verified_claims`, async () => {
-        expect.assertions(2);
-        const nonce = randomUUID();
-
-        const client = await createClient(alg);
-
-        const privateKeyHexEncryption = randomPrivateKeySecp256k1();
-        const publicKeyEncryption = (
-          await getPublicKey(privateKeyHexEncryption)
-        ).jwk;
-
-        const payload = {
-          nonce,
-          claims: {
-            encryption_key: publicKeyEncryption,
-          },
-        };
-
-        const idToken = await new SignJWT(payload)
-          .setProtectedHeader({
-            alg,
-            typ: "JWT",
-            kid: client.did,
-          })
-          .setIssuedAt()
-          .setIssuer("https://self-issued.me")
-          .setAudience("storage-api")
-          .setExpirationTime("15s")
-          .sign(client.privateKey);
-
-        const response = await request(server)
-          .post("/siop-sessions")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send({ id_token: idToken });
-        expect(response.body).toStrictEqual({
-          title: "Invalid id_token payload",
-          status: 400,
-          detail: `verified_claims not found in id_token claims`,
-          type: "about:blank",
-        });
-        expect(response.status).toBe(400);
-      });
-
       it(`should throw bad request error when creating a siop session for a user that uses alg ${alg} and provides an invalid id_token: uncoded verified_claims string`, async () => {
         expect.assertions(2);
         const nonce = randomUUID();
@@ -786,6 +726,7 @@ describe("Authorisation Module", () => {
             encryption_key: publicKeyEncryption,
           },
         };
+
         const idToken = await new SignJWT(payload)
           .setProtectedHeader({
             alg,
@@ -873,6 +814,7 @@ describe("Authorisation Module", () => {
             encryption_key: publicKeyEncryption,
           },
         };
+
         const idToken = await new SignJWT(payload)
           .setProtectedHeader({
             alg,
