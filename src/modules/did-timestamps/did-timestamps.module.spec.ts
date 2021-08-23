@@ -21,7 +21,7 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { DidRegistry__factory } from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { multihashEncode, multibase64Encode } from "../../shared/utils";
+import { multihashEncode, multibase } from "../../shared/utils";
 import { LedgerService } from "../ledger/ledger.service";
 
 jest.setTimeout(120000);
@@ -99,9 +99,13 @@ describe("DidTimestamps Module", () => {
                   method.canonicalizedDidDocumentHash
                 );
                 return {
-                  timestampId: multibase64Encode(hash),
+                  timestampId: multibase.base64url.encode(
+                    Buffer.from(hash.replace(/^0x/, ""), "hex")
+                  ),
                   href: expect.stringContaining(
-                    `/did-timestamps/${multibase64Encode(hash)}`
+                    `/did-timestamps/${multibase.base64url.encode(
+                      Buffer.from(hash.replace(/^0x/, ""), "hex")
+                    )}`
                   ) as string,
                 } as TimestampLink;
               })
@@ -406,9 +410,13 @@ describe("DidTimestamps Module", () => {
                   method.canonicalizedDidDocumentHash
                 );
                 return {
-                  timestampId: multibase64Encode(hash),
+                  timestampId: multibase.base64url.encode(
+                    Buffer.from(hash.replace(/^0x/, ""), "hex")
+                  ),
                   href: expect.stringContaining(
-                    `/did-timestamps/${multibase64Encode(hash)}`
+                    `/did-timestamps/${multibase.base64url.encode(
+                      Buffer.from(hash.replace(/^0x/, ""), "hex")
+                    )}`
                   ) as string,
                 } as TimestampLink;
               })
@@ -443,8 +451,13 @@ describe("DidTimestamps Module", () => {
           const { canonicalizedDidDocumentHash, timestampDataBuffer } =
             didDocuments[0];
 
-          const timestampId = multibase64Encode(
-            ethers.utils.sha256(canonicalizedDidDocumentHash)
+          const timestampId = multibase.base64url.encode(
+            Buffer.from(
+              ethers.utils
+                .sha256(canonicalizedDidDocumentHash)
+                .replace(/^0x/, ""),
+              "hex"
+            )
           );
 
           const response = await request(server).get(
@@ -456,10 +469,12 @@ describe("DidTimestamps Module", () => {
           expect(response.body).toStrictEqual({
             blockNumber: expect.any(Number) as number,
             data: `0x${timestampDataBuffer.toString("hex")}`,
-            hash: multihashEncode(
-              canonicalizedDidDocumentHash,
-              testEnv.hashAlgorithms[0].multihash,
-              testEnv.hashAlgorithms[0].outputLength / 8
+            hash: multibase.base16.encode(
+              multihashEncode(
+                canonicalizedDidDocumentHash,
+                testEnv.hashAlgorithms[0].multihash,
+                testEnv.hashAlgorithms[0].outputLength / 8
+              )
             ),
             timestampedBy: signer,
           } as DidTimestampResponseObject);

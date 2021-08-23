@@ -5,45 +5,53 @@ describe("multihashEncode", () => {
     expect.assertions(4);
 
     expect(
-      multihashEncode(
-        "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
-        "sha2-256"
-      )
+      Buffer.from(
+        multihashEncode(
+          "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
+          "sha2-256"
+        )
+      ).toString("hex")
     ).toStrictEqual(
       "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
     );
 
     expect(
-      multihashEncode(
-        "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
-        "sha3-256"
-      )
+      Buffer.from(
+        multihashEncode(
+          "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
+          "sha3-256"
+        )
+      ).toString("hex")
     ).toStrictEqual(
       "162041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
     );
 
     // Same result whether the input string is prefixed with 0x or not
     expect(
-      multihashEncode(
-        "0x41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
-        "sha2-256"
-      )
+      Buffer.from(
+        multihashEncode(
+          "0x41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
+          "sha2-256"
+        )
+      ).toString("hex")
     ).toStrictEqual(
       "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
     );
 
     // Should support truncated hashes (here, 8 bytes)
     expect(
-      multihashEncode(
-        Buffer.from(
-          "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
-          "hex"
+      Buffer.from(
+        multihashEncode(
+          Buffer.from(
+            "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
+            "hex"
+          )
+            .slice(0, 8)
+            .toString("hex"),
+          "sha2-256",
+          8
         )
-          .slice(0, 8)
-          .toString("hex"),
-        "sha2-256",
-        8
-      )
+      ).toString("hex")
     ).toStrictEqual("120841dd7b6443542e75");
   });
 

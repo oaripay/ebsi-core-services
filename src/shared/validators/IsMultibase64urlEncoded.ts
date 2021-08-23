@@ -1,5 +1,5 @@
 import { ValidateBy, ValidationOptions, buildMessage } from "class-validator";
-import { multibase64Decode } from "../utils/multibase64.utils";
+import { multibase } from "../utils/multibase.utils";
 
 export const IS_MULTIBASE64URL_ENCODED = "isMultibase64urlEncoded";
 
@@ -7,8 +7,7 @@ export function isMultibase64urlEncoded(value: unknown): boolean {
   if (typeof value !== "string") return false;
 
   try {
-    multibase64Decode(value);
-    // TODO: check if the value is a valid multihash??
+    multibase.base64url.decode(value);
     return true;
   } catch (e) {
     return false;

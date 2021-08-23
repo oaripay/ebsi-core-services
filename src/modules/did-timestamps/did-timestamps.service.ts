@@ -4,12 +4,11 @@ import {
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
 import { HashName } from "multihashes";
-import { multibase64Decode } from "../../shared/utils/multibase64.utils";
+import { multibase, multihashEncode } from "../../shared/utils";
 import { DidTimestampResponseObject } from "./did-timestamps.interface";
 import { LedgerService } from "../ledger/ledger.service";
 import { DidRegistry } from "../../contracts/did-registry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { multihashEncode } from "../../shared/utils";
 
 @Injectable()
 export class DidTimestampsService {
@@ -86,7 +85,10 @@ export class DidTimestampsService {
     timestampId: string
   ): Promise<DidTimestampResponseObject> {
     let timestamp: AsyncReturnType<DidRegistry["getDidTimestampById"]>;
-    const timestampIdDecoded = multibase64Decode(timestampId);
+    const timestampIdDecoded = `0x${Buffer.from(
+      multibase.base64url.decode(timestampId)
+    ).toString("hex")}`;
+
     try {
       timestamp = await (
         await this.ledgerService.getContract()
@@ -101,7 +103,7 @@ export class DidTimestampsService {
       await this.ledgerService.getContract()
     ).getHashAlgorithmById(timestamp.hash.algorithm);
 
-    // Multi-hash (base64 multi-encoded)
+    // Multihash
     const { multihash, outputLength } = hashAlg;
     const multihashEncodedHash = multihashEncode(
       timestamp.hash.value,
@@ -110,7 +112,7 @@ export class DidTimestampsService {
     );
 
     return {
-      hash: multihashEncodedHash,
+      hash: multibase.base16.encode(multihashEncodedHash),
       timestampedBy: timestamp.timestampedBy,
       blockNumber: timestamp.blockNumber.toNumber(),
       data: timestamp.data,

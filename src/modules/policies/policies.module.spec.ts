@@ -13,7 +13,7 @@ import {
 import { FastifyInstance } from "fastify";
 import { PoliciesModule } from "./policies.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { multihashEncode } from "../../shared/utils";
+import { multihashEncode, multibase } from "../../shared/utils";
 import { DidRegistry__factory } from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
@@ -275,7 +275,9 @@ describe("Policies Module", () => {
         policyRevisions[policyId][policyRevisions[policyId].length - 1];
 
       const expectedPolicy = policyData;
-      const expectedHash = multihashEncode(policyHash, "sha2-256", 32);
+      const expectedHash = multibase.base16.encode(
+        multihashEncode(policyHash, "sha2-256", 32)
+      );
 
       const response = await request(server).get(
         `/policies/${encodeURIComponent(policyId)}`
@@ -309,8 +311,17 @@ describe("Policies Module", () => {
       expect.assertions(3);
 
       // Get first policy
-      const { policies } = testEnv;
+      const { policies, policyRevisions } = testEnv;
       const { policyId } = policies[0];
+
+      // Get last revision of this policy
+      const { policyData, policyHash } =
+        policyRevisions[policyId][policyRevisions[policyId].length - 1];
+
+      const expectedPolicy = policyData;
+      const expectedHash = multibase.base16.encode(
+        multihashEncode(policyHash, "sha2-256", 32)
+      );
 
       const url = `/policies/${encodeURIComponent(policyId)}/revisions`;
       const response = await request(server).get(url);
@@ -319,7 +330,13 @@ describe("Policies Module", () => {
         self: expect.stringContaining(
           `${url}?page[after]=1&page[size]=10`
         ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        items: expect.arrayContaining([
+          {
+            policyId,
+            policy: expectedPolicy,
+            hash: expectedHash,
+          },
+        ]) as Array<unknown>,
         total: POLICIES_REVISIONS_TOTAL,
         pageSize: 10,
         links: {

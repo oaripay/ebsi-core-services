@@ -760,26 +760,26 @@ paths:
                   value:
                     self: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=3&page[size]=10
                     items:
-                      - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
-                      - timestampId: uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
-                      - timestampId: uMHgxMTQzYzQyNTRkOWI1MzkyZDMxOTE4ZTNiOTliOTNiODhiNjIyNzYzYTdlYjcxNzEyNjZmNGZlYjE2MTllN2Y0
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHgxMTQzYzQyNTRkOWI1MzkyZDMxOTE4ZTNiOTliOTNiODhiNjIyNzYzYTdlYjcxNzEyNjZmNGZlYjE2MTllN2Y0
-                      - timestampId: uMHhjY2M0NTBkMTMyMzg1NzFhMzY4MDcyMmI3MTUyY2EyZDgzYTcwNTBlMmRkNTk5MTk2MzI0ZjY0MTVjOGQ4MGFh
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHhjY2M0NTBkMTMyMzg1NzFhMzY4MDcyMmI3MTUyY2EyZDgzYTcwNTBlMmRkNTk5MTk2MzI0ZjY0MTVjOGQ4MGFh
-                      - timestampId: uMHgyZjJkYzc5YTc3MjYwMjhhY2I0ZmU4OWFjYjZjYmY5OWJjZDgyYzc2YmVjMzBlNzcxY2NlOTU0OTA5NTg2ODcx
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHgyZjJkYzc5YTc3MjYwMjhhY2I0ZmU4OWFjYjZjYmY5OWJjZDgyYzc2YmVjMzBlNzcxY2NlOTU0OTA5NTg2ODcx
-                      - timestampId: uMHhhZWE0MGRiMjk4MzQwNmE0N2M1YzJhYTY1ZWRkYWM0NTk5ZWZiYTFjOWU2OGQzM2EzYmU5NDBlY2VjZTc0NGRm
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHhhZWE0MGRiMjk4MzQwNmE0N2M1YzJhYTY1ZWRkYWM0NTk5ZWZiYTFjOWU2OGQzM2EzYmU5NDBlY2VjZTc0NGRm
-                      - timestampId: uMHg4MWMzODc0ZjliNGM5YjRlMGEwNTE3OWY1ZjE3YjA3OWIxNzM2NDk3MmU3YWJkYTRmMWY2OTk4NWQzOTRjYTY3
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHg4MWMzODc0ZjliNGM5YjRlMGEwNTE3OWY1ZjE3YjA3OWIxNzM2NDk3MmU3YWJkYTRmMWY2OTk4NWQzOTRjYTY3
-                      - timestampId: uMHhlNDE2YzJjYzEyYTcxNGVmODU4ZjM5ODVjMWI1MTQ4NWQ5MmQ0ZDgzOGNhOGI5NTFlZTY1NzkwYjY2M2QxMzFh
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHhlNDE2YzJjYzEyYTcxNGVmODU4ZjM5ODVjMWI1MTQ4NWQ5MmQ0ZDgzOGNhOGI5NTFlZTY1NzkwYjY2M2QxMzFh
-                      - timestampId: uMHg5YTg2OWY1Zjc4YjI5ZTQxNWYyZjUzZjI4MzE2YzQwZTdjN2EyMGUxOTVjMzI2Yjk3ZTU2N2YxMTViMzkwMmI5
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHg5YTg2OWY1Zjc4YjI5ZTQxNWYyZjUzZjI4MzE2YzQwZTdjN2EyMGUxOTVjMzI2Yjk3ZTU2N2YxMTViMzkwMmI5
-                      - timestampId: uMHhkZWFjNWNkNzM5MmQ0MTBlYjI0NmRjZjc0OWVkNzZlY2U0NGI4YWYyOTg4ZTU4MDNjMzZkY2YwODMzNTU1MjQy
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHhkZWFjNWNkNzM5MmQ0MTBlYjI0NmRjZjc0OWVkNzZlY2U0NGI4YWYyOTg4ZTU4MDNjMzZkY2YwODMzNTU1MjQy
+                      - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                      - timestampId: uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
+                      - timestampId: uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
+                      - timestampId: urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
+                      - timestampId: ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
+                      - timestampId: u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
+                      - timestampId: umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
+                      - timestampId: u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
+                      - timestampId: urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
+                      - timestampId: udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
                     total: 124
                     pageSize: 10
                     links:
@@ -791,8 +791,8 @@ paths:
                   value:
                     self: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
                     items:
-                      - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                      - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
                     total: 1
                     pageSize: 10
                     links:
@@ -804,26 +804,26 @@ paths:
                   value:
                     self: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=3&page[size]=10
                     items:
-                      - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
-                      - timestampId: uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
-                      - timestampId: uMHgxMTQzYzQyNTRkOWI1MzkyZDMxOTE4ZTNiOTliOTNiODhiNjIyNzYzYTdlYjcxNzEyNjZmNGZlYjE2MTllN2Y0
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHgxMTQzYzQyNTRkOWI1MzkyZDMxOTE4ZTNiOTliOTNiODhiNjIyNzYzYTdlYjcxNzEyNjZmNGZlYjE2MTllN2Y0
-                      - timestampId: uMHhjY2M0NTBkMTMyMzg1NzFhMzY4MDcyMmI3MTUyY2EyZDgzYTcwNTBlMmRkNTk5MTk2MzI0ZjY0MTVjOGQ4MGFh
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHhjY2M0NTBkMTMyMzg1NzFhMzY4MDcyMmI3MTUyY2EyZDgzYTcwNTBlMmRkNTk5MTk2MzI0ZjY0MTVjOGQ4MGFh
-                      - timestampId: uMHgyZjJkYzc5YTc3MjYwMjhhY2I0ZmU4OWFjYjZjYmY5OWJjZDgyYzc2YmVjMzBlNzcxY2NlOTU0OTA5NTg2ODcx
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHgyZjJkYzc5YTc3MjYwMjhhY2I0ZmU4OWFjYjZjYmY5OWJjZDgyYzc2YmVjMzBlNzcxY2NlOTU0OTA5NTg2ODcx
-                      - timestampId: uMHhhZWE0MGRiMjk4MzQwNmE0N2M1YzJhYTY1ZWRkYWM0NTk5ZWZiYTFjOWU2OGQzM2EzYmU5NDBlY2VjZTc0NGRm
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHhhZWE0MGRiMjk4MzQwNmE0N2M1YzJhYTY1ZWRkYWM0NTk5ZWZiYTFjOWU2OGQzM2EzYmU5NDBlY2VjZTc0NGRm
-                      - timestampId: uMHg4MWMzODc0ZjliNGM5YjRlMGEwNTE3OWY1ZjE3YjA3OWIxNzM2NDk3MmU3YWJkYTRmMWY2OTk4NWQzOTRjYTY3
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHg4MWMzODc0ZjliNGM5YjRlMGEwNTE3OWY1ZjE3YjA3OWIxNzM2NDk3MmU3YWJkYTRmMWY2OTk4NWQzOTRjYTY3
-                      - timestampId: uMHhlNDE2YzJjYzEyYTcxNGVmODU4ZjM5ODVjMWI1MTQ4NWQ5MmQ0ZDgzOGNhOGI5NTFlZTY1NzkwYjY2M2QxMzFh
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHhlNDE2YzJjYzEyYTcxNGVmODU4ZjM5ODVjMWI1MTQ4NWQ5MmQ0ZDgzOGNhOGI5NTFlZTY1NzkwYjY2M2QxMzFh
-                      - timestampId: uMHg5YTg2OWY1Zjc4YjI5ZTQxNWYyZjUzZjI4MzE2YzQwZTdjN2EyMGUxOTVjMzI2Yjk3ZTU2N2YxMTViMzkwMmI5
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHg5YTg2OWY1Zjc4YjI5ZTQxNWYyZjUzZjI4MzE2YzQwZTdjN2EyMGUxOTVjMzI2Yjk3ZTU2N2YxMTViMzkwMmI5
-                      - timestampId: uMHhkZWFjNWNkNzM5MmQ0MTBlYjI0NmRjZjc0OWVkNzZlY2U0NGI4YWYyOTg4ZTU4MDNjMzZkY2YwODMzNTU1MjQy
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHhkZWFjNWNkNzM5MmQ0MTBlYjI0NmRjZjc0OWVkNzZlY2U0NGI4YWYyOTg4ZTU4MDNjMzZkY2YwODMzNTU1MjQy
+                      - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                      - timestampId: uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
+                      - timestampId: uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
+                      - timestampId: urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
+                      - timestampId: ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
+                      - timestampId: u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
+                      - timestampId: umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
+                      - timestampId: u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
+                      - timestampId: urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
+                      - timestampId: udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
                     total: 124
                     pageSize: 10
                     links:
@@ -835,8 +835,8 @@ paths:
                   value:
                     self: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
                     items:
-                      - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+                      - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
                     total: 1
                     pageSize: 10
                     links:
@@ -879,10 +879,10 @@ paths:
             type: string
           examples:
             "[test] Timestamp ID":
-              value: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+              value: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
             # TODO: Once the API is updated in preprod, update this example
             "[pilot] Timestamp ID":
-              value: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
+              value: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
           required: true
       responses:
         200:
@@ -894,7 +894,7 @@ paths:
               examples:
                 Success:
                   value:
-                    hash: "1220139f28116c365611a7852e3aef6800de196c23c1d1787c2f476c1816479e6952"
+                    hash: f122005efa22c605d4294d0a404e9e5d4e5ddece58e2a98bc422e3a208de8f0cc1873
                     timestampedBy: "0x9139869907de5bA6Cd38AB08e84c72188bce25c0"
                     blockNumber: 1577582
                     data: "0x7b2264617461223a2274657374227d"
@@ -1985,7 +1985,7 @@ paths:
                   value:
                     policyId: policy-test-2021-03-30T14:10:56.932Z
                     policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI4OTM5MzlhNDFjNTk4ZDY0MGFhZTg2ZWM2ZDcyYjdlYyJ9
-                    hash: 1220964f27ad52f670ad05100697287424749e9ceba571811585e318f4c54944543e
+                    hash: f1220964f27ad52f670ad05100697287424749e9ceba571811585e318f4c54944543e
         400:
           description: Bad Request
           content:
@@ -2070,11 +2070,11 @@ paths:
                     self: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
                     items:
                       - policyId: policy-test-2021-03-30T14:10:56.932Z
-                        policy: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a226636303863643063616562643032353365336130623866383336643033386435227d"
-                        hash: "0x61ab0dc3883b253cb675fe9b8a4715378d86745edd2ff29c72af1359d6dc6661"
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiJmNjA4Y2QwY2FlYmQwMjUzZTNhMGI4ZjgzNmQwMzhkNSJ9
+                        hash: f122061ab0dc3883b253cb675fe9b8a4715378d86745edd2ff29c72af1359d6dc6661
                       - policyId: policy-test-2021-03-30T14:10:56.932Z
-                        policy: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223839333933396134316335393864363430616165383665633664373262376563227d"
-                        hash: "0x964f27ad52f670ad05100697287424749e9ceba571811585e318f4c54944543e"
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI4OTM5MzlhNDFjNTk4ZDY0MGFhZTg2ZWM2ZDcyYjdlYyJ9
+                        hash: f1220964f27ad52f670ad05100697287424749e9ceba571811585e318f4c54944543e
                     total: 2
                     pageSize: 10
                     links:
@@ -2087,11 +2087,11 @@ paths:
                     self: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
                     items:
                       - policyId: policy-test-2021-03-30T14:10:56.932Z
-                        policy: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a226636303863643063616562643032353365336130623866383336643033386435227d"
-                        hash: "0x61ab0dc3883b253cb675fe9b8a4715378d86745edd2ff29c72af1359d6dc6661"
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiJmNjA4Y2QwY2FlYmQwMjUzZTNhMGI4ZjgzNmQwMzhkNSJ9
+                        hash: f122061ab0dc3883b253cb675fe9b8a4715378d86745edd2ff29c72af1359d6dc6661
                       - policyId: policy-test-2021-03-30T14:10:56.932Z
-                        policy: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223839333933396134316335393864363430616165383665633664373262376563227d"
-                        hash: "0x964f27ad52f670ad05100697287424749e9ceba571811585e318f4c54944543e"
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI4OTM5MzlhNDFjNTk4ZDY0MGFhZTg2ZWM2ZDcyYjdlYyJ9
+                        hash: f1220964f27ad52f670ad05100697287424749e9ceba571811585e318f4c54944543e
                     total: 2
                     pageSize: 10
                     links:
@@ -2756,7 +2756,7 @@ components:
       properties:
         hash:
           type: string
-          description: Multi-hash encoded hash
+          description: Multihash encoded in multibase base16
         timestampedBy:
           type: string
           description: Address of the transaction signer that timestamped the information.
@@ -2798,7 +2798,7 @@ components:
           description: Base64 encoded policy
         hash:
           type: string
-          description: Hash (multihash) of the policy
+          description: Multihash of the policy, encoded in multibase base16
     JsonRpcResponse:
       title: Json Rpc Response
       type: object

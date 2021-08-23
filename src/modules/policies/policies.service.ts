@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { LedgerService } from "../ledger/ledger.service";
 import { DidRegistry } from "../../contracts/did-registry";
-import { multihashEncode } from "../../shared/utils";
+import { multihashEncode, multibase } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { PolicyRevisions } from "./policies.interface";
 
@@ -39,8 +39,10 @@ export class PoliciesService {
       "base64"
     );
 
-    //  sha2-256 multihash from hash
-    const multihash = multihashEncode(rawPolicyHash, "sha2-256", 32);
+    //  sha2-256 multihash from hash, encoded in mutlibase base16
+    const multihash = multibase.base16.encode(
+      multihashEncode(rawPolicyHash, "sha2-256", 32)
+    );
     return [base64Policy, multihash];
   }
 
@@ -74,11 +76,21 @@ export class PoliciesService {
     }
 
     return {
-      items: revisions.items.map((hash, index) => ({
-        policyId,
-        policy: policies[index],
-        hash,
-      })),
+      items: revisions.items.map((hash, index) => {
+        const base64Policy = Buffer.from(
+          policies[index].slice(2),
+          "hex"
+        ).toString("base64");
+        const multihash = multibase.base16.encode(
+          multihashEncode(hash, "sha2-256", 32)
+        );
+
+        return {
+          policyId,
+          policy: base64Policy,
+          hash: multihash,
+        };
+      }),
       total: revisions.total.toNumber(),
     };
   }

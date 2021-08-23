@@ -25,7 +25,7 @@ import { ApiConfig } from "../../src/config/configuration";
 import {
   multihashEncode,
   prefixWith0x,
-  multibase64Encode,
+  multibase,
 } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import {
@@ -1867,8 +1867,11 @@ describe("DID Registry (e2e)", () => {
       const { canonicalizedDidDocumentHash, timestampDataBuffer } =
         updatedDidDocument;
 
-      const timestampId = multibase64Encode(
-        ethers.utils.sha256(canonicalizedDidDocumentHash)
+      const timestampId = multibase.base64url.encode(
+        Buffer.from(
+          ethers.utils.sha256(canonicalizedDidDocumentHash).replace(/^0x/, ""),
+          "hex"
+        )
       );
 
       const response = await request(server).get(
@@ -1878,10 +1881,12 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         blockNumber: expect.any(Number) as number,
         data: `0x${timestampDataBuffer.toString("hex")}`,
-        hash: multihashEncode(
-          canonicalizedDidDocumentHash,
-          hashAlgorithMultihash,
-          hashAlgorithOutputLength
+        hash: multibase.base16.encode(
+          multihashEncode(
+            canonicalizedDidDocumentHash,
+            hashAlgorithMultihash,
+            hashAlgorithOutputLength
+          )
         ),
         timestampedBy: newUserWallet.address,
       } as DidTimestampResponseObject);

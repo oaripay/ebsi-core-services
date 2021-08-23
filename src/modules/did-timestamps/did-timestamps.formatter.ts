@@ -1,4 +1,4 @@
-import { multibase64Encode, paginate } from "../../shared/utils";
+import { multibase, paginate } from "../../shared/utils";
 import { TimestampLink } from "./did-timestamps.interface";
 import { PaginatedList } from "../../shared/interfaces";
 
@@ -31,10 +31,16 @@ export function formatDidTimestamps(
   }
 
   // Reshape items
-  const items = paginatedItems.map((hash) => ({
-    timestampId: multibase64Encode(hash),
-    href: `${baseUrl}/${multibase64Encode(hash)}`,
-  }));
+  const items = paginatedItems.map((hash) => {
+    const multibaseBase64urlHash = multibase.base64url.encode(
+      Buffer.from(hash.replace(/^0x/, ""), "hex")
+    );
+
+    return {
+      timestampId: multibaseBase64urlHash,
+      href: `${baseUrl}/${multibaseBase64urlHash}`,
+    };
+  });
 
   return paginate<TimestampLink>(
     items,

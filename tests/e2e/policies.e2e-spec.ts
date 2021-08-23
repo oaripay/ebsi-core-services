@@ -24,9 +24,12 @@ import {
   PolicyLink,
 } from "../../src/modules/policies/policies.interface";
 import { PaginatedList } from "../../src/shared/interfaces";
-import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
-import { multihashEncode } from "../../src/shared/utils/multihash.utils";
+import {
+  prefixWith0x,
+  multihashEncode,
+  multibase,
+} from "../../src/shared/utils";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { LedgerService } from "../../src/modules/ledger/ledger.service";
 
@@ -239,10 +242,8 @@ describe("Policies (e2e)", () => {
         );
 
         const bufferPolicyData = Buffer.from(policyData.slice(2), "hex");
-        const expectedHash = multihashEncode(
-          ethers.utils.sha256(bufferPolicyData),
-          "sha2-256",
-          32
+        const expectedHash = multibase.base16.encode(
+          multihashEncode(ethers.utils.sha256(bufferPolicyData), "sha2-256", 32)
         );
 
         expect(policyResponse.body).toStrictEqual({
