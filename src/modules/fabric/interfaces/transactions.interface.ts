@@ -1,12 +1,14 @@
+import * as fabprotos from "fabric-protos";
 import { FabricChannelHeader } from "./channels.interface";
 
 export interface Transaction {
   txId: string;
-  type: number;
+  type: string;
   timestamp: string;
   channelId: string;
   creatorMspId: string;
-  blockNum: number;
+  blockNum?: number;
+  validationCode: fabprotos.protos.TxValidationCode;
   actions: {
     chaincodeId: string;
     proposalHash?: string;
@@ -18,8 +20,8 @@ export interface Transaction {
 
 export interface FabricAction {
   header?: {
-    creator: {
-      Mspid?: string;
+    creator?: {
+      mspid?: string;
       id_bytes?: Buffer;
     };
     nonce?: Buffer;
@@ -28,9 +30,17 @@ export interface FabricAction {
     chaincode_proposal_payload?: {
       input?: {
         chaincode_spec?: {
+          type?: number;
+          typeString?: string;
+          input?: {
+            args?: Buffer[];
+            decorations?: unknown;
+            is_init?: boolean;
+          };
           chaincode_id?: {
             name?: string;
           };
+          timeout?: number;
         };
       };
     };
@@ -62,21 +72,26 @@ export interface FabricAction {
       };
       endorsements?: {
         endorser?: {
-          Mspid?: string;
+          mspid?: string;
+          id_bytes?: Buffer;
         };
+        signature?: Buffer;
       }[];
     };
   };
 }
 
 export interface FabricTransaction {
+  signature?: Buffer;
   payload?: {
     header?: {
       channel_header?: FabricChannelHeader;
       signature_header?: {
         creator?: {
-          Mspid?: string;
+          mspid?: string;
+          id_bytes?: Buffer;
         };
+        nonce?: Buffer;
       };
     };
     data?: {

@@ -4,5 +4,7 @@ export interface FabricChannelHeader {
   timestamp?: string;
   channel_id?: string;
   tx_id?: string;
-  epoch?: number;
+  epoch?: Long;
+  extension?: Buffer;
+  typeString?: string;
 }

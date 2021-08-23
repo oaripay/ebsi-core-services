@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -12,7 +13,11 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { FabricService } from "../../src/modules/fabric/fabric.service";
-import { Block, PaginatedList } from "../../src/modules/fabric/interfaces";
+import {
+  Block,
+  Transaction,
+  PaginatedList,
+} from "../../src/modules/fabric/interfaces";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 
@@ -407,7 +412,7 @@ describe("Fabric e2e tests", () => {
     });
 
     it("should return a list of transactions and the correct link to the next page", async () => {
-      expect.assertions(5);
+      expect.assertions(6);
 
       const channelsNames = Object.keys(
         fabricService.getConnectionProfile().channels
@@ -422,7 +427,7 @@ describe("Fabric e2e tests", () => {
         self: expect.stringContaining(
           `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
         ) as string,
-        items: expect.arrayContaining([]) as Array<Block>,
+        items: expect.arrayContaining([]) as Array<Transaction>,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
@@ -435,6 +440,30 @@ describe("Fabric e2e tests", () => {
       });
       expect((response.body as PaginatedList).items).toHaveLength(2);
 
+      // Check first item
+      expect(
+        (response.body as { items: Transaction[] }).items[0]
+      ).toStrictEqual({
+        txId: expect.any(String) as string,
+        type: expect.any(String) as string,
+        timestamp: expect.any(String) as string,
+        channelId: channelsNames[0],
+        creatorMspId: expect.any(String) as string,
+        blockNum: expect.any(Number) as number,
+        validationCode: expect.any(Number) as number,
+        actions: expect.arrayContaining([
+          {
+            chaincodeId: expect.any(String) as string,
+            proposalHash: expect.any(String) as string,
+            response: expect.anything() as unknown,
+            endorsersMspId: expect.arrayContaining([
+              expect.any(String) as string,
+            ]) as unknown,
+            creatorMspId: expect.any(String) as string,
+          },
+        ]) as unknown,
+      });
+
       const nextPage = (response.body as PaginatedList).links.next;
       const subUrl = "/blockchains/fabric/channels";
       const urlNext = `${subUrl}${nextPage.split(subUrl)[1]}`;
@@ -445,7 +474,7 @@ describe("Fabric e2e tests", () => {
         self: expect.stringContaining(
           `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
         ) as string,
-        items: expect.arrayContaining([]) as Array<Block>,
+        items: expect.arrayContaining([]) as Array<Transaction>,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
@@ -455,6 +484,138 @@ describe("Fabric e2e tests", () => {
             `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[after]=`
           ) as string,
         },
+      });
+    });
+  });
+
+  describe("GET /ledger/v2/blockchains/fabric/channels/{channel}/transactions/{transactionId}", () => {
+    let validTransactionId: string;
+
+    beforeAll(async () => {
+      const channelsNames = Object.keys(
+        fabricService.getConnectionProfile().channels
+      );
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsNames[0]}/transactions?page[size]=1`
+      );
+
+      validTransactionId = (response.body as { items: Transaction[] }).items[0]
+        .txId;
+    });
+
+    it("should return 400 if the channel parameter is not formatted correctly", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown_ch@nnel";
+      const txId = validTransactionId;
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/transactions/${txId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return 404 if the channel doesn't exist", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown-channel";
+      const txId = validTransactionId;
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/transactions/${txId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `Channel ${channelsName} not found`,
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return 400 if the transactionId parameter is not formatted correctly", async () => {
+      expect.assertions(2);
+
+      const channelsNames = Object.keys(
+        fabricService.getConnectionProfile().channels
+      );
+      const txId = "not an hex string";
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsNames[0]}/transactions/${txId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["transactionId must be a hexadecimal number"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return 404 if the transaction doesn't exist", async () => {
+      expect.assertions(2);
+
+      const channelsNames = Object.keys(
+        fabricService.getConnectionProfile().channels
+      );
+      const txId = crypto.randomBytes(32).toString("hex");
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsNames[0]}/transactions/${txId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `Transaction ${txId} not found`,
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return the specified transaction", async () => {
+      expect.assertions(2);
+
+      const channelsNames = Object.keys(
+        fabricService.getConnectionProfile().channels
+      );
+      const txId = validTransactionId;
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsNames[0]}/transactions/${txId}`
+      );
+
+      expect(response.status).toBe(200);
+      expect(response.body).toStrictEqual({
+        txId,
+        type: expect.any(String) as string,
+        validationCode: expect.any(Number) as number,
+        timestamp: expect.any(String) as string,
+        channelId: channelsNames[0],
+        creatorMspId: expect.any(String) as string,
+        actions: expect.arrayContaining([
+          {
+            chaincodeId: expect.any(String) as string,
+            proposalHash: expect.any(String) as string,
+            response: expect.anything() as unknown,
+            endorsersMspId: expect.arrayContaining([
+              expect.any(String) as string,
+            ]) as unknown,
+            creatorMspId: expect.any(String) as string,
+          },
+        ]) as unknown,
       });
     });
   });

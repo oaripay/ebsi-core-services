@@ -387,7 +387,7 @@ paths:
                     type: integer
                     description: Number of items to be return per page.
               examples:
-                "[test] Get blocks in certain channel":
+                "[test] Get blocks of the specified channel":
                   value:
                     items:
                       - blockNum: 2
@@ -421,7 +421,7 @@ paths:
                       prev: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channel/iossdrpocchannel/blocks?page[after]=1&page[size]=10
                       next: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
                       last: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
-                "[pilot] Get blocks in certain channel":
+                "[pilot] Get blocks of the specified channel":
                   value:
                     items:
                       - blockNum: 2
@@ -625,14 +625,16 @@ paths:
                     type: integer
                     description: Number of items to be return per page.
               examples:
-                "[test] Get transactions in certain channel":
+                "[test] Get transactions of the specified channel":
                   value:
                     items:
                       - txId: 2778b2cdeae04ceda9544ad02407f9086910643238738eef04e9c1dd22d00809
-                        type: 3
+                        type: ENDORSER_TRANSACTION
                         timestamp: "2021-04-19T15:31:58.872Z"
                         channelId: iossdrpocchannel
+                        creatorMspId: FRCSTIOSSDRPOCMSP
                         blockNum: 6
+                        validationCode: 0
                         actions:
                           - chaincodeId: "_lifecycle"
                             proposalHash: uBQzye8ESWKwg3RQu6oWYCEWAo5mRqirxyAs8bracLX8
@@ -644,10 +646,12 @@ paths:
                                 data: []
                             endorsersMspId: [null]
                       - txId: 66a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1
-                        type: 3
+                        type: ENDORSER_TRANSACTION
                         timestamp: "2021-04-19T15:31:24.171Z"
                         channelId: iossdrpocchannel
+                        creatorMspId: FRCSTIOSSDRPOCMSP
                         blockNum: 5
+                        validationCode: 0
                         actions:
                           - chaincodeId: "_lifecycle"
                             proposalHash: uOfs4RhtSideuAbcPzbOB_hb53YXqKqd7W3K6oROQmWQ
@@ -663,14 +667,16 @@ paths:
                     links:
                       first: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=2
                       next: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=566a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1&page[size]=2
-                "[pilot] Get transactions in certain channel":
+                "[pilot] Get transactions of the specified channel":
                   value:
                     items:
                       - txId: 2778b2cdeae04ceda9544ad02407f9086910643238738eef04e9c1dd22d00809
-                        type: 3
+                        type: ENDORSER_TRANSACTION
                         timestamp: "2021-04-19T15:31:58.872Z"
                         channelId: iossdrpocchannel
+                        creatorMspId: FRCSTIOSSDRPOCMSP
                         blockNum: 6
+                        validationCode: 0
                         actions:
                           - chaincodeId: "_lifecycle"
                             proposalHash: uBQzye8ESWKwg3RQu6oWYCEWAo5mRqirxyAs8bracLX8
@@ -682,10 +688,12 @@ paths:
                                 data: []
                             endorsersMspId: [null]
                       - txId: 66a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1
-                        type: 3
+                        type: ENDORSER_TRANSACTION
                         timestamp: "2021-04-19T15:31:24.171Z"
                         channelId: iossdrpocchannel
+                        creatorMspId: FRCSTIOSSDRPOCMSP
                         blockNum: 5
+                        validationCode: 0
                         actions:
                           - chaincodeId: "_lifecycle"
                             proposalHash: uOfs4RhtSideuAbcPzbOB_hb53YXqKqd7W3K6oROQmWQ
@@ -723,6 +731,109 @@ paths:
                 Channel Not Found:
                   value:
                     detail: Channel {channel} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
+        500:
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}/transactions/{transactionId}:
+    get:
+      tags:
+        - Hyperledger Fabric
+      description: Returns the transaction of the channel {channel} specified by its transaction ID.
+      summary: Get transactions
+      operationId: get-ledger-v2-blockchains-fabric-channel-transaction
+      parameters:
+        - in: path
+          name: channel
+          required: true
+          description: Fabric channel name.
+          schema:
+            type: string
+          example: iossdrpocchannel
+        - in: path
+          name: transactionId
+          required: true
+          description: Transaction ID.
+          schema:
+            type: string
+          example: 2778b2cdeae04ceda9544ad02407f9086910643238738eef04e9c1dd22d00809
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+              examples:
+                Transaction found:
+                  value:
+                    txId: 2778b2cdeae04ceda9544ad02407f9086910643238738eef04e9c1dd22d00809
+                    type: ENDORSER_TRANSACTION
+                    timestamp: "2021-04-19T15:31:58.872Z"
+                    channelId: iossdrpocchannel
+                    creatorMspId: FRCSTIOSSDRPOCMSP
+                    validationCode: 0
+                    actions:
+                      - chaincodeId: "_lifecycle"
+                        proposalHash: uBQzye8ESWKwg3RQu6oWYCEWAo5mRqirxyAs8bracLX8
+                        response:
+                          status: 200,
+                          message: ""
+                          payload:
+                            type: "Buffer"
+                            data: []
+                        endorsersMspId: [null]
+        400:
+          description: Bad request. The format of the {channel} parameter is not valid.
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]'
+                Invalid {transactionId} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["transactionId must be a hexadecimal number"]'
+        404:
+          description: Channel {channel} or transaction {transactionId} not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Channel Not Found:
+                  value:
+                    detail: Channel {channel} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
+                Transaction Not Found:
+                  value:
+                    detail: Transaction ${transactionId} not found
                     status: 404
                     title: Not Found
                     type: about:blank
@@ -825,7 +936,7 @@ components:
           type: string
           description: Transaction ID
         type:
-          type: integer
+          type: string
           description: Type
         timestamp:
           type: string
@@ -839,6 +950,9 @@ components:
         blockNum:
           type: integer
           description: Block number
+        validationCode:
+          type: number
+          description: Transaction validation code
         actions:
           type: array
           description: Actions

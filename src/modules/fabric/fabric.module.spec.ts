@@ -35,7 +35,7 @@ function createFabricAction(): FabricAction {
   const action: FabricAction = {
     header: {
       creator: {
-        Mspid: "mspid",
+        mspid: "mspid",
       },
     },
     payload: {
@@ -58,7 +58,7 @@ function createFabricAction(): FabricAction {
         endorsements: [
           {
             endorser: {
-              Mspid: "mspid",
+              mspid: "mspid",
             },
           },
         ],
@@ -80,7 +80,7 @@ function createFabricTransaction(channelName: string): FabricTransaction {
         },
         signature_header: {
           creator: {
-            Mspid: "mspid",
+            mspid: "mspid",
           },
         },
       },
@@ -491,7 +491,7 @@ describe("Fabric Module", () => {
       expect(response.status).toBe(404);
     });
 
-    it("should return a dummy block", async () => {
+    it("should return the specified block", async () => {
       expect.assertions(3);
       const channelsNames = Object.keys(channels);
 
@@ -518,6 +518,9 @@ describe("Fabric Module", () => {
                 },
               },
             ],
+          },
+          metadata: {
+            metadata: [{}, {}, [0]],
           },
         };
         blocks[`${i}`] = block;
@@ -678,6 +681,9 @@ describe("Fabric Module", () => {
               createFabricTransaction("my-channel"),
             ],
           },
+          metadata: {
+            metadata: [{}, {}, [0]],
+          },
         } as FabricBlock);
       }
 
@@ -753,6 +759,9 @@ describe("Fabric Module", () => {
               createFabricTransaction("my-channel"),
             ],
           },
+          metadata: {
+            metadata: [{}, {}, [0]],
+          },
         } as FabricBlock);
       }
 
@@ -799,6 +808,207 @@ describe("Fabric Module", () => {
           ) as string,
         },
       });
+    });
+  });
+
+  describe("GET /channels/{channel}/transactions/{transactionId}", () => {
+    it("should return 400 if the channel parameter is not formatted correctly", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown_ch@nnel";
+      const transactionId = crypto.randomBytes(32).toString("hex");
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/transactions/${transactionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return 404 if the channel doesn't exist", async () => {
+      expect.assertions(2);
+
+      const channelsName = "unknown-channel";
+      const transactionId = crypto.randomBytes(32).toString("hex");
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/transactions/${transactionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: `Channel ${channelsName} not found`,
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return 400 if the transactionId parameter is not formatted correctly", async () => {
+      expect.assertions(2);
+
+      const channelsNames = Object.keys(channels);
+      const channelsName = channelsNames[0];
+      const transactionId = "not an hex string";
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/transactions/${transactionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["transactionId must be a hexadecimal number"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return 404 if the transaction doesn't exist", async () => {
+      expect.assertions(3);
+
+      const channelsNames = Object.keys(channels);
+      const channelsName = channelsNames[0];
+      const transactionId = crypto.randomBytes(32).toString("hex");
+
+      // Mock Wallets
+      jest
+        .spyOn(Wallets, "newFileSystemWallet")
+        .mockImplementation(() => Wallets.newInMemoryWallet());
+
+      // Mock GetTransactionByID not found
+      const evaluateTransaction = jest
+        .fn()
+        .mockImplementation((query: string) => {
+          if (query === "GetTransactionByID") {
+            throw new Error("Entry not found in index");
+          }
+
+          return {};
+        });
+      jest
+        .spyOn(Gateway.prototype, "connect")
+        .mockImplementation(() => Promise.resolve());
+      jest.spyOn(Gateway.prototype, "getNetwork").mockImplementation(() =>
+        Promise.resolve({
+          getGateway: jest.fn(),
+          getContract: jest.fn().mockImplementation(() => ({
+            evaluateTransaction,
+          })),
+          getChannel: jest.fn(),
+          addCommitListener: jest.fn(),
+          removeCommitListener: jest.fn(),
+          addBlockListener: jest.fn(),
+          removeBlockListener: jest.fn(),
+        })
+      );
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/transactions/${transactionId}`
+      );
+
+      expect(evaluateTransaction).toHaveBeenCalledWith(
+        "GetTransactionByID",
+        channelsName,
+        transactionId
+      );
+      expect(response.body).toStrictEqual({
+        detail: `Transaction ${transactionId} not found`,
+        status: 404,
+        title: "Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return the specified transaction", async () => {
+      expect.assertions(3);
+
+      const channelsNames = Object.keys(channels);
+      const channelsName = channelsNames[0];
+
+      // Fake transaction returned by Fabric
+      const tx = createFabricTransaction("my-channel");
+      const transactionId = tx.payload.header.channel_header.tx_id;
+
+      // Mock Wallets
+      jest
+        .spyOn(Wallets, "newFileSystemWallet")
+        .mockImplementation(() => Wallets.newInMemoryWallet());
+      // Mock Gateway
+      const evaluateTransaction = jest
+        .fn()
+        .mockImplementation((query: string) => {
+          if (query === "GetTransactionByID") {
+            return {
+              transactionEnvelope: tx,
+              validationCode: 0,
+            };
+          }
+
+          return {};
+        });
+      jest
+        .spyOn(Gateway.prototype, "connect")
+        .mockImplementation(() => Promise.resolve());
+      jest.spyOn(Gateway.prototype, "getNetwork").mockImplementation(() =>
+        Promise.resolve({
+          getGateway: jest.fn(),
+          getContract: jest.fn().mockImplementation(() => ({
+            evaluateTransaction,
+          })),
+          getChannel: jest.fn(),
+          addCommitListener: jest.fn(),
+          removeCommitListener: jest.fn(),
+          addBlockListener: jest.fn(),
+          removeBlockListener: jest.fn(),
+        })
+      );
+      const numberOfBlocks = 15;
+      jest.spyOn(fabprotos.common.BlockchainInfo, "decode").mockReturnValue({
+        height: numberOfBlocks,
+      } as fabprotos.common.BlockchainInfo);
+      jest
+        .spyOn(BlockDecoder, "decodeTransaction")
+        .mockImplementation((txQueryResult: unknown) => txQueryResult);
+
+      const response = await request(server).get(
+        `/blockchains/fabric/channels/${channelsName}/transactions/${transactionId}`
+      );
+
+      expect(evaluateTransaction).toHaveBeenCalledWith(
+        "GetTransactionByID",
+        channelsName,
+        transactionId
+      );
+
+      expect(response.body).toStrictEqual({
+        actions: tx.payload.data.actions.map((action) => ({
+          creatorMspId: action.header.creator.mspid,
+          chaincodeId:
+            action.payload.chaincode_proposal_payload.input.chaincode_spec
+              .chaincode_id.name,
+          proposalHash: expect.any(String) as string,
+          response:
+            action.payload.action.proposal_response_payload.extension.response,
+          endorsersMspId: action.payload.action.endorsements.map(
+            (endorsement) => endorsement.endorser.mspid
+          ),
+        })),
+        channelId: tx.payload.header.channel_header.channel_id,
+        creatorMspId: tx.payload.header.signature_header.creator.mspid,
+        timestamp: tx.payload.header.channel_header.timestamp,
+        txId: tx.payload.header.channel_header.tx_id,
+        validationCode: 0,
+      });
+      expect(response.status).toBe(200);
     });
   });
 

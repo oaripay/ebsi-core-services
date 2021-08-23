@@ -18,6 +18,7 @@ import {
   ConnectionProfile,
   FabricBlock,
   Transaction,
+  FabricTransaction,
 } from "./interfaces";
 import { ApiConfig } from "../../config/configuration";
 import { decodePageAfter, encodePageAfter } from "./fabric.formatter";
@@ -322,19 +323,23 @@ export class FabricService implements OnModuleDestroy {
       // Hopefully fabric-common will provide the correct defintions 🤞
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
       const block = BlockDecoder.decode(blockQueryResult) as FabricBlock; // warning: not exact
+
+      const validationCode = block.metadata.metadata[2][0];
+
       const txs = block.data.data
         .map(
           (tx) =>
             ({
               txId: tx.payload.header.channel_header.tx_id,
-              type: tx.payload.header.channel_header.type,
+              type: tx.payload.header.channel_header.typeString,
               timestamp: tx.payload.header.channel_header.timestamp,
               channelId: tx.payload.header.channel_header.channel_id,
-              creatorMspId: tx.payload.header.signature_header.creator.Mspid,
+              creatorMspId: tx.payload.header.signature_header.creator.mspid,
               blockNum: Number(block.header.number),
+              validationCode,
               ...(tx.payload.data.actions && {
                 actions: tx.payload.data.actions.map((action) => ({
-                  creatorMspId: action.header.creator.Mspid,
+                  creatorMspId: action.header.creator.mspid,
                   chaincodeId:
                     action.payload.chaincode_proposal_payload.input
                       .chaincode_spec.chaincode_id.name,
@@ -346,7 +351,7 @@ export class FabricService implements OnModuleDestroy {
                     action.payload.action.proposal_response_payload.extension
                       .response,
                   endorsersMspId: action.payload.action.endorsements.map(
-                    (endorsement) => endorsement.endorser.Mspid
+                    (endorsement) => endorsement.endorser.mspid
                   ),
                 })),
               }),
@@ -384,6 +389,72 @@ export class FabricService implements OnModuleDestroy {
     }
 
     return { transactions, firstPage, nextPage };
+  }
+
+  async getChannelTransaction(
+    channelName: string,
+    transactionId: string
+  ): Promise<Transaction> {
+    let transactionQueryResult: Buffer;
+
+    try {
+      transactionQueryResult = await this.executeQuery(
+        channelName,
+        "qscc", // Query System Chaincode
+        "GetTransactionByID",
+        [channelName, transactionId]
+      );
+    } catch (e) {
+      // Unknown error
+      if (!(e instanceof ProblemDetailsError)) {
+        this.logger.error(e);
+        throw new InternalServerError();
+      }
+
+      if (e.detail.includes("Entry not found in index")) {
+        throw new NotFoundError(NotFoundError.defaultTitle, {
+          detail: `Transaction ${transactionId} not found`,
+        });
+      }
+
+      throw e;
+    }
+
+    // Hopefully fabric-common will provide the correct defintions 🤞
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    const transaction = BlockDecoder.decodeTransaction(
+      transactionQueryResult
+    ) as {
+      validationCode: fabprotos.protos.TxValidationCode;
+      transactionEnvelope: FabricTransaction;
+    };
+
+    const tx = transaction.transactionEnvelope;
+
+    return {
+      txId: tx.payload.header.channel_header.tx_id,
+      type: tx.payload.header.channel_header.typeString,
+      timestamp: tx.payload.header.channel_header.timestamp,
+      validationCode: transaction.validationCode,
+      channelId: tx.payload.header.channel_header.channel_id,
+      creatorMspId: tx.payload.header.signature_header.creator.mspid,
+      ...(tx.payload.data.actions && {
+        actions: tx.payload.data.actions.map((action) => ({
+          creatorMspId: action.header.creator.mspid,
+          chaincodeId:
+            action.payload.chaincode_proposal_payload.input.chaincode_spec
+              .chaincode_id.name,
+          proposalHash: encodeMultibase64url(
+            action.payload.action.proposal_response_payload.proposal_hash
+          ),
+          response:
+            action.payload.action.proposal_response_payload.extension.response,
+          endorsersMspId: action.payload.action.endorsements.map(
+            (endorsement) => endorsement.endorser.mspid
+          ),
+        })),
+      }),
+    };
   }
 }
 

@@ -21,6 +21,7 @@ import {
 import { GetChannelParams } from "./dto/get-channel.params";
 import { FabricEnabledGuard } from "./fabric.guard";
 import { PaginationQueryTransactionsDto } from "./dto/pagination-query-transactions.dto";
+import { GetChannelTransactionParams } from "./dto/get-channel-transaction.params";
 
 @Controller("/blockchains/fabric")
 @UseGuards(FabricEnabledGuard)
@@ -134,6 +135,23 @@ export class FabricController {
       firstPage,
       nextPage
     );
+  }
+
+  @Get("/channels/:channelName/transactions/:transactionId")
+  @HttpCode(200)
+  async getChannelTransaction(
+    @Param() params: GetChannelTransactionParams
+  ): Promise<Transaction> {
+    // Make sure the channel exists
+    this.getChannel(params);
+
+    // Get transaction
+    const transaction = await this.fabricService.getChannelTransaction(
+      params.channelName,
+      params.transactionId
+    );
+
+    return transaction;
   }
 }
 
