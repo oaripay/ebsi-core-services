@@ -8,7 +8,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import axios, { AxiosError } from "axios";
 import { randomUUID } from "crypto";
-import jsonpatch from "jsonpatch";
+import jsonpatch, { Operation } from "fast-json-patch";
 import { decodeJWT } from "@cef-ebsi/did-jwt";
 import { Agent } from "@cef-ebsi/oauth2-auth";
 import { ApiConfig } from "../../config/configuration";
@@ -283,7 +283,22 @@ export class AttributesService {
       });
     }
 
-    const attribute = jsonpatch.apply_patch(oldAttribute, patch);
+    const patchErrors = jsonpatch.validate(patch as Operation[], oldAttribute);
+
+    if (patchErrors) {
+      this.logger.error(patchErrors, patchErrors.stack);
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: "patch operation is not valid",
+      });
+    }
+
+    const attribute = jsonpatch.applyPatch(
+      oldAttribute,
+      patch as Operation[],
+      false,
+      false
+    ).newDocument;
+
     await this.storageJsonrpc([
       "update attribute_storage set visibility = ?, shared_with = ?, content_type = ?, data_label = ? where hash = ?",
       attribute.visibility ?? "private",

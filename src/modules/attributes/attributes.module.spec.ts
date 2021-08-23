@@ -40,7 +40,6 @@ describe("Attributes Module", () => {
   let server: HttpServer;
   let configService: ConfigService<ApiConfig>;
   const mockAxios = jest.spyOn(axios, "post");
-  let numberCall = 0;
 
   const accessTokenApi = jsonwebtoken.sign({}, "secret", {
     audience: "proxy-data-hub-api",
@@ -90,14 +89,6 @@ describe("Attributes Module", () => {
   });
 
   beforeAll(async () => {
-    // Mock Storage
-    jest.spyOn(axios, "get").mockImplementation(() => {
-      throw new Error("Please implement the mock for GET");
-    });
-    mockAxios.mockImplementation(() => {
-      throw new Error("Please implement the mock for POST");
-    });
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AttributesModule],
     }).compile();
@@ -121,6 +112,16 @@ describe("Attributes Module", () => {
     storageApiUrl = configService.get("storageApiUrl");
     encryptionSecret = configService.get("encryptionSecret");
     apiUrl = `${domain}${apiUrlPrefix}`;
+  });
+
+  beforeEach(() => {
+    // Mock Storage
+    jest.spyOn(axios, "get").mockImplementation(() => {
+      throw new Error("Please implement the mock for GET");
+    });
+    mockAxios.mockImplementation(() => {
+      throw new Error("Please implement the mock for POST");
+    });
 
     jest
       .spyOn(SiopSession.prototype, "verifyAccessToken")
@@ -135,6 +136,10 @@ describe("Attributes Module", () => {
       .mockImplementation(async () => Promise.resolve(accessTokenApi));
   });
 
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   afterAll(async () => {
     await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
     await app.close();
@@ -143,6 +148,7 @@ describe("Attributes Module", () => {
   describe("GET /attributes", () => {
     it("should get attributes associated to the did", async () => {
       expect.assertions(5);
+      let numberCall = 0;
 
       mockAxios.mockImplementation(async (url) => {
         if (url.includes("/oauth2-sessions"))
@@ -209,6 +215,7 @@ describe("Attributes Module", () => {
 
     it("should get attributes associated to the did using page[after]", async () => {
       expect.assertions(8);
+      let numberCall = 0;
 
       mockAxios.mockImplementation(async () =>
         Promise.resolve({
@@ -319,6 +326,7 @@ describe("Attributes Module", () => {
   describe("GET /attribute/{hash}", () => {
     it("should return attribute not found", async () => {
       expect.assertions(3);
+      let numberCall = 0;
 
       mockAxios.mockImplementation(async () =>
         Promise.resolve({
@@ -362,6 +370,7 @@ describe("Attributes Module", () => {
 
     it("should return forbidden", async () => {
       expect.assertions(6);
+      let numberCall = 0;
 
       const attributeCassandra = createAttributeCassandra();
       attributeCassandra.did = "did:ebsi:different_owner";
@@ -442,6 +451,7 @@ describe("Attributes Module", () => {
 
     it("should get a specific attribute associated to the did", async () => {
       expect.assertions(3);
+      let numberCall = 0;
 
       const attributeCassandra = createAttributeCassandra();
       mockAxios.mockImplementation(async () =>
@@ -492,6 +502,7 @@ describe("Attributes Module", () => {
 
     it("should get a shared attribute", async () => {
       expect.assertions(6);
+      let numberCall = 0;
 
       // shared with everyone and no token authentication
       const attributeCassandra = createAttributeCassandra();
@@ -610,6 +621,7 @@ describe("Attributes Module", () => {
 
     it("should reject bad requests", async () => {
       expect.assertions(11);
+      let numberCall = 0;
 
       let response = await request(server)
         .post("/attributes")
@@ -745,6 +757,7 @@ describe("Attributes Module", () => {
 
     it("should create an attribute", async () => {
       expect.assertions(4);
+      let numberCall = 0;
 
       mockAxios.mockImplementation(async () => {
         return Promise.resolve({
@@ -820,6 +833,8 @@ describe("Attributes Module", () => {
   describe("DELETE /attributes", () => {
     it("should throw not found for delete attribute", async () => {
       expect.assertions(3);
+      let numberCall = 0;
+
       const hash = `0x${crypto.randomBytes(32).toString("hex")}`;
 
       mockAxios.mockImplementation(async () => {
@@ -859,6 +874,8 @@ describe("Attributes Module", () => {
 
     it("should throw forbidden", async () => {
       expect.assertions(3);
+      let numberCall = 0;
+
       const hash = `0x${crypto.randomBytes(32).toString("hex")}`;
 
       mockAxios.mockImplementation(async () => {
@@ -898,6 +915,8 @@ describe("Attributes Module", () => {
 
     it("should delete an attribute", async () => {
       expect.assertions(4);
+      let numberCall = 0;
+
       const hash = `0x${crypto.randomBytes(32).toString("hex")}`;
 
       mockAxios.mockImplementation(async (url: string, data: JsonrpcCall) => {
@@ -1023,6 +1042,8 @@ describe("Attributes Module", () => {
 
     it("should reject not found", async () => {
       expect.assertions(3);
+      let numberCall = 0;
+
       mockAxios.mockImplementation(async () => {
         return Promise.resolve({
           data: { result: { rows: [] } },
@@ -1063,6 +1084,7 @@ describe("Attributes Module", () => {
 
     it("should reject forbidden", async () => {
       expect.assertions(3);
+      let numberCall = 0;
 
       const attributeCassandra = createAttributeCassandra();
       attributeCassandra.did = "did:ebsi:different_owner";
@@ -1111,8 +1133,43 @@ describe("Attributes Module", () => {
       expect(response.status).toBe(403);
     });
 
+    it("should return 400 when the patch path is not is not valid", async () => {
+      const attributeCassandra = createAttributeCassandra();
+      mockAxios.mockImplementation(async (url: string, data: JsonrpcCall) => {
+        if (data.params[0].startsWith("select")) {
+          return Promise.resolve({
+            data: { result: { rows: [attributeCassandra] } },
+          });
+        }
+
+        return Promise.resolve({
+          data: { result: { rows: [] } },
+        });
+      });
+
+      const response = await request(server)
+        .patch(`/attributes/${attributeCassandra.hash}`)
+        .auth(testUser.token, { type: "bearer" })
+        .send([
+          {
+            op: "add",
+            path: "/visibility/-///t+T*$",
+            value: 42,
+          },
+        ]);
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        type: "about:blank",
+        detail: "patch operation is not valid",
+      });
+      expect(response.status).toBe(400);
+    });
+
     it("should patch an attribute", async () => {
       expect.assertions(4);
+      let numberCall = 0;
 
       const attributeCassandra = createAttributeCassandra();
       mockAxios.mockImplementation(async (url: string, data: JsonrpcCall) => {

@@ -73,12 +73,16 @@ describe("Attributes", () => {
       .auth(token, { type: "bearer" })
       .send();
 
-  const deleteAllAttributes = async (token: string) => {
+  const deleteAllAttributes = async (token: string): Promise<unknown> => {
     const response = (await getAllAttributes(token)) as {
       body: {
         items: { hash: string }[];
       };
     };
+
+    if (!response.body?.items) {
+      return Promise.resolve();
+    }
 
     return Promise.all(
       response.body.items.map(async (item) => {
@@ -559,6 +563,31 @@ describe("Attributes", () => {
         detail: `${testUser2.did.toLowerCase()} is not the owner of attribute ${hash}`,
       });
       expect(response.status).toBe(403);
+    });
+
+    it("should return 400 when the patch path is not is not valid", async () => {
+      expect.assertions(2);
+
+      const { hash } = (
+        (await insertAttribute()) as {
+          body: AttributeResponseObject;
+        }
+      ).body;
+
+      const response = await request(server)
+        .patch(`/attributes/${hash}`)
+        .auth(testUser1.token, { type: "bearer" })
+        .send([
+          { op: "replace", path: "/visibility/-///t+T*$", value: "shared" },
+        ]);
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        type: "about:blank",
+        detail: "patch operation is not valid",
+      });
+      expect(response.status).toBe(400);
     });
 
     it("should patch an attribute", async () => {
