@@ -34,3 +34,7 @@
 	path = contracts/did-registry-ethereum-sc
 	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/did-registry-ethereum-sc
   branch = develop
+[submodule "schemas/json-schemas"]
+	path = schemas/json-schemas
+	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/json-schema
+  branch = Main

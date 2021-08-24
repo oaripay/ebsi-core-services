@@ -12,3 +12,4 @@ import "./initializeProxy";
 import "./insertAdministrator";
 import "./addHashAlgo";
 import "./fixTarStatus";
+import "./insertTSRSchema";

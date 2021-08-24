@@ -1,71 +1,89 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
-import {DidRegistry, Tar, Tir} from "../src/types";
-import {ethers} from "hardhat";
-
+import { ethers } from "hardhat";
+import { DidRegistry, Tar, Tir } from "../src/types";
 
 // follows ETH/BTC's BIP 39 protocol
 // https://iancoleman.io/bip39/
 // and matches the one hardhat uses when using { accounts: { mnemonic }}
-task("fixTarStatus", "Update tar statuses for apps ", async (taskArgs: {proxy: string, app: string, auth: string}, {ethers}) => {
+task(
+  "fixTarStatus",
+  "Update tar statuses for apps ",
+  async (
+    taskArgs: { proxy: string; app: string; auth: string },
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    { ethers }
+  ) => {
+    const [deployer, admin] = await ethers.getSigners();
+    const ts: Tar = (await ethers.getContractAt(
+      "Tar",
+      taskArgs.proxy,
+      admin
+    )) as Tar;
 
-  const [deployer, admin] = await ethers.getSigners();
-  const ts: Tar = (await ethers.getContractAt("Tar", taskArgs.proxy, admin)) as Tar;
-
-  console.log(
-    `deployer:${deployer.address}
+    console.log(
+      `deployer:${deployer.address}
      admin:${admin.address}`
-  );
-  const initialVersion = await ts.version();
-  console.log(initialVersion);
-  console.log("initialVersion:", initialVersion.toString());
+    );
+    const initialVersion = await ts.version();
+    console.log(initialVersion);
+    console.log("initialVersion:", initialVersion.toString());
 
-  // get app Id
+    // get app Id
 
-  let appId = await ts.getAppByName(taskArgs.app);
-  console.log('app id ', appId);
-  let authAppIds = [];
+    const appId = await ts.getAppByName(taskArgs.app);
+    console.log("app id ", appId);
+    let authAppIds = [];
 
-  if (taskArgs.auth || taskArgs.auth !== "all" ) {
-    let auth = taskArgs.auth.split(",");
-    for (let appName of auth) {
-      authAppIds.push((await ts.getAppByName(appName)).applicationId);
-    }
-  } else {
-    authAppIds = (await ts.getAuthorizedAppsIds(appId.applicationId, 1, 50)).items;
-  }
-
-  console.log('authorizations ', authAppIds);
-
-  for (let authAppId of authAppIds) {
-    console.log("processing auth :", authAppId);
-    // get auth
-    try {
-      let authorizations = await ts.getAuthorizations(appId.applicationId, authAppId, 1, 50);
-      console.log("Authorizations: ", authorizations);
-      for (let auth of authorizations.items) {
-        let contractAuth = await ts.getAuthorizationById(auth);
-        // console.log("contract auth :", contractAuth);
-        if (contractAuth.status == 0) {
-          // status needs to be moved to 1
-          await (await ts.updateAuthorization(auth, 1, contractAuth.permissions, contractAuth.notAfter)).wait(1);
-          console.log("auth updated: ", auth);
-        }
-
+    if (taskArgs.auth || taskArgs.auth !== "all") {
+      const auth = taskArgs.auth.split(",");
+      for (const appName of auth) {
+        authAppIds.push((await ts.getAppByName(appName)).applicationId);
       }
-
-    } catch (e) {
-      console.log('error on getting auth');
+    } else {
+      authAppIds = (await ts.getAuthorizedAppsIds(appId.applicationId, 1, 50))
+        .items;
     }
 
+    console.log("authorizations ", authAppIds);
+
+    for (const authAppId of authAppIds) {
+      console.log("processing auth :", authAppId);
+      // get auth
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        const authorizations = await ts.getAuthorizations(
+          appId.applicationId,
+          authAppId,
+          1,
+          50
+        );
+        console.log("Authorizations: ", authorizations);
+        for (const auth of authorizations.items) {
+          const contractAuth = await ts.getAuthorizationById(auth);
+          // console.log("contract auth :", contractAuth);
+          if (contractAuth.status == 0) {
+            // status needs to be moved to 1
+            await (
+              await ts.updateAuthorization(
+                auth,
+                1,
+                contractAuth.permissions,
+                contractAuth.notAfter
+              )
+            ).wait(1);
+            console.log("auth updated: ", auth);
+          }
+        }
+      } catch (e) {
+        console.log("error on getting auth");
+      }
+    }
   }
-
-
-
-
-
-
-})
+)
   .addParam("proxy", "Proxy Address")
   .addParam("app", "The application which status needs to be updated")
-  .addOptionalParam("auth", "List of authorizations comma delimited, default all apps from the current one");
+  .addOptionalParam(
+    "auth",
+    "List of authorizations comma delimited, default all apps from the current one"
+  );

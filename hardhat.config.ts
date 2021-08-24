@@ -15,7 +15,7 @@ import * as fs from "fs";
 // when running yarn test
 
 const mnemonicPath = `${__dirname}/.secret.mnemonic`;
-const privKeyPath = `${__dirname}/.secret.privatekey`
+const privKeyPath = `${__dirname}/.secret.privatekey`;
 let mnemonic = "test test test test test test test test test test test junk";
 let privKey = "";
 try {
