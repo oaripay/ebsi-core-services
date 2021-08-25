@@ -1,27 +1,44 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { decodeJWT } from "@cef-ebsi/did-jwt";
-import { JWTPayload, Session } from "@cef-ebsi/oauth2-auth";
+import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import { Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { ApiConfig } from "../../config/configuration";
 import { JwtCacheService } from "./jwt-cache.service";
+import { Payload } from "./auth.interface";
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  private authApiName: string;
+  private authorisationApiDid: string;
 
-  private session: Session;
+  private authorisationApiName: string;
+
+  private siopSession: SiopSession;
+
+  private oauth2Session: OAuth2Session;
 
   constructor(
     private cache: JwtCacheService,
     configService: ConfigService<ApiConfig>
   ) {
-    this.authApiName = configService.get<string>("authApiName");
-    this.session = new Session("undefined", {
+    this.authorisationApiDid = configService.get<string>("authorisationApiDid");
+    this.authorisationApiName = configService.get<string>(
+      "authorisationApiName"
+    );
+
+    this.siopSession = new SiopSession({
+      didRegistry: `${configService.get<string>(
+        "didRegistryApiUrl"
+      )}/identifiers`,
+    });
+    this.oauth2Session = new OAuth2Session("undefined", {
       appName: configService.get<string>("apiName"),
-      tarProvider: configService.get<string>("trustedAppsRegistry"),
+      tarProvider: `${configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      )}/apps`,
     });
   }
 
@@ -49,10 +66,7 @@ export class AuthService {
     }
   }
 
-  async validateToken(
-    token: string,
-    requestHost?: string
-  ): Promise<JWTPayload> {
+  async validateToken(token: string, requestHost?: string): Promise<Payload> {
     const now = Math.floor(Date.now() / 1000);
 
     // Regularly run maintenance operations (like clearing the cache)
@@ -60,15 +74,26 @@ export class AuthService {
 
     if (this.cache.isValid(token, now)) {
       this.logger.debug(`Reusing cached token: ${token}`);
-      return decodeJWT(token).payload as JWTPayload;
+      return decodeJWT(token).payload as Payload;
     }
 
     try {
       this.logger.debug(`Verifying token: ${token}`);
-      const payload = await this.session.verifyAccessToken(
-        token,
-        this.authApiName
-      );
+
+      const { payload } = decodeJWT(token) as unknown as {
+        payload: Payload;
+      };
+      if (payload.login_hint === "did_siop") {
+        await this.siopSession.verifyAccessToken(
+          token,
+          this.authorisationApiDid
+        );
+      } else {
+        await this.oauth2Session.verifyAccessToken(
+          token,
+          this.authorisationApiName
+        );
+      }
 
       // Try to store valid JWT in cache
       this.storeJwt(token, now, payload.exp, requestHost);

@@ -1,6 +1,5 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import crypto from "crypto";
 import {
   INestApplication,
   ValidationPipe,
@@ -13,19 +12,23 @@ import {
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
 import { ConfigService } from "@nestjs/config";
-import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { createFakeToken } from "../utils/authorisation";
+import {
+  createFakeToken,
+  oauth2Authentication,
+  siopAuthentication,
+} from "../utils/authorisation";
 
 jest.setTimeout(60000);
 
 describe("POST /ledger/v2/blockchains/besu", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let token: string;
-  let fakeToken: string;
+  let tokenOAuth2: string;
+  let tokenSiop: string;
+  let fakeTokenOAuth2: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -52,24 +55,14 @@ describe("POST /ledger/v2/blockchains/besu", () => {
       privateKey: string;
     }>("testApp");
 
-    const agent = new Agent(testApp.privateKey, {
-      issuer: testApp.name,
-      kid: `${configService.get<string>("trustedAppsRegistry")}/${testApp.id}`,
-    });
-    const nonce = crypto.randomBytes(12).toString("base64");
-    const requestOauth2 = await agent.createRequestPayload(
-      configService.get<string>("apiName"),
-      { nonce }
-    );
-    const authApi = configService.get<string>("authorisation");
-    const response = await request(authApi)
-      .post("/oauth2-sessions")
-      .send(requestOauth2);
-    token = await agent.verifyAuthenticationResponse(
-      response.body as AkeResponse,
-      nonce
-    );
-    fakeToken = await createFakeToken(true);
+    const testUser = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser");
+
+    tokenOAuth2 = await oauth2Authentication(testApp);
+    tokenSiop = await siopAuthentication(testUser);
+    fakeTokenOAuth2 = await createFakeToken("oauth2", true);
   });
 
   afterAll(async () => {
@@ -91,7 +84,7 @@ describe("POST /ledger/v2/blockchains/besu", () => {
 
     response = await request(server)
       .post("/blockchains/besu")
-      .auth(fakeToken, { type: "bearer" })
+      .auth(fakeTokenOAuth2, { type: "bearer" })
       .send();
 
     expect(response.body).toStrictEqual({
@@ -108,7 +101,7 @@ describe("POST /ledger/v2/blockchains/besu", () => {
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send();
 
     expect(response.body).toStrictEqual({
@@ -126,7 +119,7 @@ describe("POST /ledger/v2/blockchains/besu", () => {
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "test",
@@ -147,7 +140,29 @@ describe("POST /ledger/v2/blockchains/besu", () => {
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "eth_chainId",
+        params: [],
+        id: "42",
+      });
+
+    expect(response.body).toStrictEqual({
+      jsonrpc: "2.0",
+      // https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Ethereum+Genesis+File+for+the+new+Main-NET+and+Pilot-Net
+      result: "0x181f", // 6175
+      id: "42",
+    });
+    expect(response.status).toBe(200);
+  });
+
+  it("should return the chain ID using SIOP token", async () => {
+    expect.assertions(2);
+
+    const response = await request(server)
+      .post("/blockchains/besu")
+      .auth(tokenSiop, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_chainId",
@@ -169,7 +184,7 @@ describe("POST /ledger/v2/blockchains/besu", () => {
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_sendRawTransaction",

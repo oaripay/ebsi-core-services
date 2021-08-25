@@ -48,8 +48,8 @@ paths:
       summary: Hyperledger Besu RPC API
       description: |
         Hyperledger Besu Ethereum Enterprise Client JSON-RPC APIs.
-        Read methods are public, write methods require authorisation and authentication
-        via the Authorisation API. Only authorised Trusted Applications can access the write methods.
+        This endpoint requires authentication via the Authorisation API. It accepts OAuth2 tokens
+        (for Trusted Apps) or SIOP tokens (for DIDs).
       security:
         - bearerAuth: []
       requestBody:

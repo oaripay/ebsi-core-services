@@ -17,9 +17,12 @@ declare global {
       FABRIC_ADMIN_XPATH_PRIVATE_KEY?: string;
       DOMAIN?: string;
       LOCAL_ORIGIN?: string;
-      TRUSTED_APPS_REGISTRY?: string;
-      AUTHORISATION?: string;
+      TRUSTED_APPS_REGISTRY_API_URL?: string;
+      DID_REGISTRY_API_URL?: string;
+      AUTHORISATION_API_URL?: string;
       HEALTH_CHECK?: string;
+      TEST_USER_DID?: string;
+      TEST_USER_PRIVATE_KEY?: string;
       TEST_APP_ID?: string;
       TEST_APP_NAME?: string;
       TEST_APP_PRIVATE_KEY?: string;

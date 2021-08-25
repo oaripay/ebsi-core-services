@@ -52,7 +52,7 @@ describe("Auth Module", () => {
 
   describe("Auth Service", () => {
     it("should not need validate a JWT that has already been validated", async () => {
-      expect.assertions(28);
+      expect.assertions(24);
 
       const now = Math.floor(Date.now() / 1000);
 
@@ -89,7 +89,6 @@ describe("Auth Module", () => {
 
       expect(returnedPayload).toStrictEqual(jwtPayload);
       expect(mockVerifyAccessToken).toHaveBeenCalledTimes(1);
-      expect(mockDecodeJwt).toHaveBeenCalledTimes(0);
       // The token doesn't exist yet in cache
       expect(jwtCacheIsValidSpy).toHaveLastReturnedWith(false);
       // The JWT is added to the cache
@@ -103,7 +102,6 @@ describe("Auth Module", () => {
       expect(returnedPayload).toStrictEqual(jwtPayload);
       // Check that mockVerifyAccessToken has not been called a second time, and mockDecodeJwt has been called
       expect(mockVerifyAccessToken).toHaveBeenCalledTimes(1);
-      expect(mockDecodeJwt).toHaveBeenCalledTimes(1);
       // The token exists yet in cache
       expect(jwtCacheIsValidSpy).toHaveLastReturnedWith(true);
       // The JWT is not added to the cache (same number of calls to "add" as before)
@@ -140,7 +138,6 @@ describe("Auth Module", () => {
       expect(returnedPayload).toStrictEqual(jwtPayload);
       expect(dateSpy).toHaveBeenCalledTimes(1);
       expect(mockVerifyAccessToken).toHaveBeenCalledTimes(2);
-      expect(mockDecodeJwt).toHaveBeenCalledTimes(1);
       // The token in the cache is not valid anymore
       expect(jwtCacheIsValidSpy).toHaveLastReturnedWith(false);
       // The token is removed from the cache
@@ -179,7 +176,6 @@ describe("Auth Module", () => {
       returnedPayload = await authService.validateToken("token", "api.local");
 
       expect(mockVerifyAccessToken).toHaveBeenCalledTimes(3);
-      expect(mockDecodeJwt).toHaveBeenCalledTimes(1);
       // The cache has been cleared
       expect(jwtCacheClearSpy).toHaveBeenCalledWith(futureNow);
       expect(jwtCacheClearSpy).toHaveBeenCalledTimes(1);

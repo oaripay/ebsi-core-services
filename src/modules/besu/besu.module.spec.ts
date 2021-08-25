@@ -15,8 +15,11 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { Session, JWTPayload } from "@cef-ebsi/oauth2-auth";
+import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import { JWTPayload, Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
 import { ethers } from "ethers";
+import { ConfigService } from "@nestjs/config";
+import { ApiConfig } from "../../config/configuration";
 import { BesuModule } from "./besu.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { BesuService } from "./besu.service";
@@ -27,10 +30,19 @@ describe("Besu Module", () => {
   let server: HttpServer;
   let hardhatServer: JsonRpcServer;
   let besuService: BesuService;
-  let token: string;
+  let testUser: {
+    did: string;
+    privateKey: string;
+  };
+  let tokenOAuth2: string;
+  let tokenSiop: string;
   const ganachePort = 8547; // 8546 might already be used for ssh port forwarding
   const ganacheUrl = `http://127.0.0.1:${ganachePort}`;
-  const mockAuth = jest.spyOn(Session.prototype, "verifyAccessToken");
+  const mockAuthOAuth2 = jest.spyOn(
+    OAuth2Session.prototype,
+    "verifyAccessToken"
+  );
+  const mockAuthSiop = jest.spyOn(SiopSession.prototype, "verifyAccessToken");
 
   beforeAll(async () => {
     hardhatServer = (await hre.run(taskNames.TASK_NODE_CREATE_SERVER, {
@@ -50,6 +62,13 @@ describe("Besu Module", () => {
       new FastifyAdapter()
     );
 
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    testUser = configService.get<{
+      did: string;
+      privateKey: string;
+    }>("testUser");
+
     // Turn off logger
     Logger.overrideLogger(false);
 
@@ -61,7 +80,8 @@ describe("Besu Module", () => {
 
     besuService = moduleFixture.get<BesuService>(BesuService);
 
-    token = await createFakeToken();
+    tokenOAuth2 = await createFakeToken("oauth2");
+    tokenSiop = await createFakeToken("did_siop");
   });
 
   beforeEach(() => {
@@ -69,11 +89,20 @@ describe("Besu Module", () => {
       .spyOn(besuService, "getBesuRpcNode")
       .mockImplementation(() => ganacheUrl);
 
-    // mock library
-    mockAuth.mockImplementation(
+    // mock libraries
+    mockAuthOAuth2.mockImplementation(
       async (): Promise<JWTPayload> =>
         Promise.reject(
-          new Error("Forgot to implement the mock for verifyAccessToken?")
+          new Error(
+            "Forgot to implement the mock for OAuth2 verifyAccessToken?"
+          )
+        )
+    );
+
+    mockAuthSiop.mockImplementation(
+      async (): Promise<JWTPayload> =>
+        Promise.reject(
+          new Error("Forgot to implement the mock for Siop verifyAccessToken?")
         )
     );
   });
@@ -101,13 +130,13 @@ describe("Besu Module", () => {
     });
     expect(response.status).toBe(403);
 
-    mockAuth.mockImplementation(
+    mockAuthOAuth2.mockImplementation(
       async (): Promise<JWTPayload> => Promise.reject(new Error("Mocked error"))
     );
 
     response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send();
 
     expect(response.body).toStrictEqual({
@@ -122,13 +151,13 @@ describe("Besu Module", () => {
   it("should throw Bad Request for a bad JSON-RPC call", async () => {
     expect.assertions(2);
 
-    mockAuth.mockImplementation(
+    mockAuthOAuth2.mockImplementation(
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send();
 
     expect(response.body).toStrictEqual({
@@ -144,13 +173,13 @@ describe("Besu Module", () => {
   it("should throw Bad Request for an invalid method", async () => {
     expect.assertions(2);
 
-    mockAuth.mockImplementation(
+    mockAuthOAuth2.mockImplementation(
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "test",
@@ -169,13 +198,44 @@ describe("Besu Module", () => {
   it("should return the chain ID", async () => {
     expect.assertions(4);
 
-    mockAuth.mockImplementation(
+    mockAuthOAuth2.mockImplementation(
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "eth_chainId",
+        params: [],
+        id: "42",
+      });
+
+    expect(response.body).toStrictEqual({
+      jsonrpc: "2.0",
+      result: "0x539",
+      id: "42",
+    });
+    expect(response.status).toBe(200);
+    expect(response.header).toHaveProperty("content-type");
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    expect(response.headers["content-type"]).toStrictEqual(
+      expect.stringContaining("application/json") as string
+    );
+  });
+
+  it("should return the chain ID using SIOP token", async () => {
+    expect.assertions(4);
+
+    mockAuthSiop.mockImplementation(
+      async (): Promise<JWTPayload> =>
+        Promise.resolve({ sub: testUser.did, login_hint: "did_siop" })
+    );
+
+    const response = await request(server)
+      .post("/blockchains/besu")
+      .auth(tokenSiop, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_chainId",
@@ -199,13 +259,13 @@ describe("Besu Module", () => {
   it("should return an error when eth_sendRawTransaction is called without params", async () => {
     expect.assertions(2);
 
-    mockAuth.mockImplementation(
+    mockAuthOAuth2.mockImplementation(
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_sendRawTransaction",
@@ -227,7 +287,7 @@ describe("Besu Module", () => {
   it("should prevent deploying new smart contracts", async () => {
     expect.assertions(2);
 
-    mockAuth.mockImplementation(
+    mockAuthOAuth2.mockImplementation(
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
@@ -247,7 +307,7 @@ describe("Besu Module", () => {
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_sendRawTransaction",
@@ -267,13 +327,13 @@ describe("Besu Module", () => {
   it("should return an error if it fails decoding the transaction params (eth_sendRawTransaction)", async () => {
     expect.assertions(2);
 
-    mockAuth.mockImplementation(
+    mockAuthOAuth2.mockImplementation(
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_sendRawTransaction",
@@ -294,7 +354,7 @@ describe("Besu Module", () => {
   it("should return an error if the transaction params doesn't use the correct chainId (eth_sendRawTransaction)", async () => {
     expect.assertions(2);
 
-    mockAuth.mockImplementation(
+    mockAuthOAuth2.mockImplementation(
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
@@ -316,7 +376,7 @@ describe("Besu Module", () => {
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_sendRawTransaction",
@@ -337,7 +397,7 @@ describe("Besu Module", () => {
   it("should handle internal errorr (fails to retrieve chainId)", async () => {
     expect.assertions(3);
 
-    mockAuth.mockImplementation(
+    mockAuthOAuth2.mockImplementation(
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
@@ -350,7 +410,7 @@ describe("Besu Module", () => {
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_sendRawTransaction",
@@ -371,7 +431,7 @@ describe("Besu Module", () => {
   it("should return an error when Besu returns an error", async () => {
     expect.assertions(2);
 
-    mockAuth.mockImplementation(
+    mockAuthOAuth2.mockImplementation(
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
@@ -382,7 +442,7 @@ describe("Besu Module", () => {
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_chainId",
@@ -402,7 +462,7 @@ describe("Besu Module", () => {
   it("should return an error when Besu returns an error that is not parseable", async () => {
     expect.assertions(2);
 
-    mockAuth.mockImplementation(
+    mockAuthOAuth2.mockImplementation(
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
@@ -418,7 +478,7 @@ describe("Besu Module", () => {
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_chainId",
@@ -438,7 +498,7 @@ describe("Besu Module", () => {
   it("should forward a valid (200) Besu error to the client", async () => {
     expect.assertions(2);
 
-    mockAuth.mockImplementation(
+    mockAuthOAuth2.mockImplementation(
       async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
     );
 
@@ -461,7 +521,7 @@ describe("Besu Module", () => {
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(token, { type: "bearer" })
+      .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_getTransactionCount",
