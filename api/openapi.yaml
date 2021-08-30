@@ -366,6 +366,18 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+        - in: query
+          name: first-version
+          schema:
+            type: string
+          description: Filter records by first version hash
+          example: "0xd301a3ed77f70f18511ce5e4cf1895b1a38622c8d177b6b06a66c593a836a000"
+        - in: query
+          name: owner
+          schema:
+            type: string
+          description: Filter records by owner address
+          example: "0x94e88a60f272309fdedef19498d8e05b3f632f9f"
       responses:
         "200":
           description: Success
