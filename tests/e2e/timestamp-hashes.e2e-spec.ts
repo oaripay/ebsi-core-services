@@ -25,7 +25,11 @@ import {
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { prefixWith0x, multibase64Encode } from "../../src/shared/utils";
+import {
+  prefixWith0x,
+  multibase,
+  multihashEncode,
+} from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { oauth2Authentication, siopAuthentication } from "../utils/auth";
 import { LedgerService } from "../../src/shared/services/ledger.service";
@@ -550,7 +554,9 @@ describe("Timestamp (e2e)", () => {
       expect.assertions(2);
 
       const timestampId = ethers.utils.sha256(hashValue1);
-      const encodedHash = multibase64Encode(timestampId);
+      const encodedHash = multibase.base64url.encode(
+        multihashEncode(timestampId.replace(/^0x/, ""), "sha2-256", 32)
+      );
 
       const response = await request(server).get(`/timestamps/${encodedHash}`);
 
@@ -567,8 +573,8 @@ describe("Timestamp (e2e)", () => {
     it("should throw an error if the record is not found", async () => {
       expect.assertions(2);
 
-      const timestampId = multibase64Encode(
-        `0x${crypto.randomBytes(32).toString("hex")}`
+      const timestampId = multibase.base64url.encode(
+        multihashEncode(crypto.randomBytes(32).toString("hex"), "sha2-256", 32)
       );
 
       const response = await request(server).get(`/timestamps/${timestampId}`);

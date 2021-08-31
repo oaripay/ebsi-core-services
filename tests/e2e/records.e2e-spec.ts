@@ -34,11 +34,7 @@ import {
   RecordLink,
 } from "../../src/modules/records/records.interface";
 import { ApiConfig } from "../../src/config/configuration";
-import {
-  prefixWith0x,
-  multibase64Encode,
-  multibase64Decode,
-} from "../../src/shared/utils";
+import { prefixWith0x, multibase } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { siopAuthentication } from "../utils/auth";
 import { LedgerService } from "../../src/shared/services/ledger.service";
@@ -221,9 +217,7 @@ describe("Records (e2e)", () => {
     it("should throw an error if the record is not found", async () => {
       expect.assertions(2);
 
-      const recordId = multibase64Encode(
-        `0x${crypto.randomBytes(32).toString("hex")}`
-      );
+      const recordId = multibase.base64url.encode(crypto.randomBytes(32));
 
       const response = await request(server).get(`/records/${recordId}`);
 
@@ -819,7 +813,11 @@ describe("Records (e2e)", () => {
       expect(response.status).toBe(200);
       const { recordId } = (response.body as { items: string })
         .items[0] as unknown as RecordLink;
-      const decodedRecordId = multibase64Decode(recordId);
+
+      const decodedRecordId = `0x${Buffer.from(
+        multibase.base64url.decode(recordId)
+      ).toString("hex")}`;
+
       switch (method) {
         case "timestampRecordVersionHashes": {
           param = {

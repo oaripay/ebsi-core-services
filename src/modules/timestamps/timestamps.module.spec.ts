@@ -19,7 +19,7 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
 import { setupTestEnv, insertHash } from "../../../tests/utils/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { multibase64Encode, multihashEncode } from "../../shared/utils";
+import { multibase, multihashEncode } from "../../shared/utils";
 import { LedgerService } from "../../shared/services/ledger.service";
 
 const HASHES_TOTAL = 3;
@@ -272,15 +272,19 @@ describe("Timestamps Module", () => {
       const hash = hashes[0];
       const hashValue = hash.hashValues[0];
       const timestampId = ethers.utils.sha256(hash.hashValues[0]);
-      const encodedHash = multibase64Encode(timestampId);
+      const encodedHash = multibase.base64url.encode(
+        multihashEncode(timestampId.replace(/^0x/, ""), "sha2-256", 32)
+      );
 
       const response = await request(server).get(`/timestamps/${encodedHash}`);
 
       // multi-hash (base64 multi-encoded)
-      const multihashEncodedHash = multihashEncode(
-        hashValue,
-        hashAlgorithms[0].multihash,
-        hashAlgorithms[0].outputLength / 8
+      const multihashEncodedHash = multibase.base64url.encode(
+        multihashEncode(
+          hashValue,
+          hashAlgorithms[0].multihash,
+          hashAlgorithms[0].outputLength / 8
+        )
       );
 
       expect(response.body).toStrictEqual({
@@ -355,8 +359,12 @@ describe("Timestamps Module", () => {
       expect(blockNumberTx2).toStrictEqual(blockNumberTx3);
 
       // Get second hash data
-      const timestampId = multibase64Encode(
-        ethers.utils.sha256(hash2.hashValues[0])
+      const timestampId = multibase.base64url.encode(
+        multihashEncode(
+          ethers.utils.sha256(hash2.hashValues[0]).replace(/^0x/, ""),
+          "sha2-256",
+          32
+        )
       );
 
       const response = await request(server).get(`/timestamps/${timestampId}`);
@@ -365,9 +373,11 @@ describe("Timestamps Module", () => {
       expect(response.body).toStrictEqual({
         blockNumber: blockNumberTx1,
         data: hash2.timestampData[0],
-        hash: multihashEncode(
-          hash2.hashValues[0],
-          testEnv.hashAlgorithms[0].multihash
+        hash: multibase.base64url.encode(
+          multihashEncode(
+            hash2.hashValues[0],
+            testEnv.hashAlgorithms[0].multihash
+          )
         ),
         timestampedBy: await testEnv.timestampContract.signer.getAddress(),
         transactionHash: hash2.tx.hash,
@@ -394,8 +404,9 @@ describe("Timestamps Module", () => {
     it("should throw an error if the timestamp is not found", async () => {
       expect.assertions(2);
 
-      const timestampId = `0x${crypto.randomBytes(32).toString("hex")}`;
-      const encodedHash = multibase64Encode(timestampId);
+      const encodedHash = multibase.base64url.encode(
+        multihashEncode(crypto.randomBytes(32).toString("hex"), "sha2-256", 32)
+      );
 
       const response = await request(server).get(`/timestamps/${encodedHash}`);
 

@@ -40,7 +40,7 @@ paths:
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -101,7 +101,7 @@ paths:
                       prev: https://api.preprod.ebsi.eu/timestamp/v2/hash-algorithms?page[after]=2&page[size]=2
                       next: https://api.preprod.ebsi.eu/timestamp/v2/hash-algorithms?page[after]=4&page[size]=2
                       last: https://api.preprod.ebsi.eu/timestamp/v2/hash-algorithms?page[after]=62&page[size]=2
-        "400":
+        400:
           description: Bad Request Error
           content:
             "application/problem+json":
@@ -113,7 +113,7 @@ paths:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        "500":
+        500:
           description: Internal Server Error
           content:
             "application/problem+json":
@@ -122,7 +122,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/timestamp/v2/hash-algorithms/{hashAlgorithmId}":
+  /timestamp/v2/hash-algorithms/{hashAlgorithmId}:
     get:
       tags:
         - Timestamp API
@@ -137,7 +137,7 @@ paths:
           example: "0"
           required: true
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -151,7 +151,7 @@ paths:
                     oid: "2.16.840.1.101.3.4.2.1"
                     status: active
                     multihash: sha2-256
-        "400":
+        400:
           description: Bad Request
           content:
             "application/problem+json":
@@ -163,7 +163,7 @@ paths:
                     title: Bad Request
                     status: 400
                     detail: The format of {hashAlgorithmId} parameter is not valid
-        "404":
+        404:
           description: Not found
           content:
             "application/problem+json":
@@ -172,7 +172,7 @@ paths:
               examples:
                 Hash algortihm Not Found:
                   $ref: "#/components/examples/NotFound"
-        "500":
+        500:
           description: Internal Server Error
           content:
             application/json:
@@ -200,7 +200,7 @@ paths:
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -218,7 +218,7 @@ paths:
                       properties:
                         timestampId:
                           type: string
-                          description: Multi-base64url encoded sha256(hash)
+                          description: multibase base64url encoded sha256(hash)
                         href:
                           type: string
                           description: Link to the resource
@@ -235,10 +235,10 @@ paths:
                   value:
                     self: https://api.test.intebsi.xyz/timestamp/v2/timestamps?page[after]=3&page[size]=2
                     items:
-                      - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
-                        href: https://api.test.intebsi.xyz/timestamp/v2/timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
-                      - timestampId: uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
-                        href: https://api.test.intebsi.xyz/timestamp/v2/timestamps/uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
+                      - timestampId: uEiDaDm-0aKaRSKshDsrRu5I00gMhSoEOfbKAz4CAXYxtjQ
+                        href: https://api.test.intebsi.xyz/timestamp/v2/timestamps/uEiDaDm-0aKaRSKshDsrRu5I00gMhSoEOfbKAz4CAXYxtjQ
+                      - timestampId: uEiCw27hwe5frnhyPo_NDlptLth1oWZ_UdpcuVHYiA2vavg
+                        href: https://api.test.intebsi.xyz/timestamp/v2/timestamps/uEiCw27hwe5frnhyPo_NDlptLth1oWZ_UdpcuVHYiA2vavg
                     total: 124
                     pageSize: 2
                     links:
@@ -246,14 +246,15 @@ paths:
                       prev: https://api.test.intebsi.xyz/timestamp/v2/timestamps?page[after]=2&page[size]=2
                       next: https://api.test.intebsi.xyz/timestamp/v2/timestamps?page[after]=4&page[size]=2
                       last: https://api.test.intebsi.xyz/timestamp/v2/timestamps?page[after]=62&page[size]=2
+                # TODO: update examples once changes are deployed on pilot
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/timestamp/v2/timestamps?page[after]=3&page[size]=2
                     items:
-                      - timestampId: uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
-                        href: https://api.preprod.ebsi.eu/timestamp/v2/timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4
-                      - timestampId: uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
-                        href: https://api.preprod.ebsi.eu/timestamp/v2/timestamps/uMHhhYTJmOWRkNzM0MjFiNTM1ZGQ2MzA1NTdkYzc4MTI4MWMwZjQwNzQyYmFlOTAwYzRkOWVhMzMwYTM0NGExZTE4
+                      - timestampId: uEiDaDm-0aKaRSKshDsrRu5I00gMhSoEOfbKAz4CAXYxtjQ
+                        href: https://api.preprod.ebsi.eu/timestamp/v2/timestamps/uEiDaDm-0aKaRSKshDsrRu5I00gMhSoEOfbKAz4CAXYxtjQ
+                      - timestampId: uEiCw27hwe5frnhyPo_NDlptLth1oWZ_UdpcuVHYiA2vavg
+                        href: https://api.preprod.ebsi.eu/timestamp/v2/timestamps/uEiCw27hwe5frnhyPo_NDlptLth1oWZ_UdpcuVHYiA2vavg
                     total: 124
                     pageSize: 2
                     links:
@@ -261,7 +262,7 @@ paths:
                       prev: https://api.preprod.ebsi.eu/timestamp/v2/timestamps?page[after]=2&page[size]=2
                       next: https://api.preprod.ebsi.eu/timestamp/v2/timestamps?page[after]=4&page[size]=2
                       last: https://api.preprod.ebsi.eu/timestamp/v2/timestamps?page[after]=62&page[size]=2
-        "400":
+        400:
           description: Bad Request Error
           content:
             "application/problem+json":
@@ -273,7 +274,7 @@ paths:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        "500":
+        500:
           description: Internal Server Error
           content:
             "application/problem+json":
@@ -282,7 +283,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/timestamp/v2/timestamps/{timestampId}":
+  /timestamp/v2/timestamps/{timestampId}:
     get:
       tags:
         - Timestamp API
@@ -291,20 +292,20 @@ paths:
       description: Returns a timestamp by its ID
       parameters:
         - name: timestampId
-          description: Multi-base64url encoded timestamp ID
+          description: multibase base64url encoded multihash timestamp ID
           in: path
           schema:
             type: string
           examples:
             "[test] timestampId":
-              description: valid test multi-base64url encoded timestampId
-              value: uMHgxZTRmNWE4NDE3YmNjNmVmZTY2MzE2ODFmMTVhYmQ3N2MyYTRjYWM4Y2MyYjVlZTRhYzdlN2ZiN2ZmMWU5MjE1
+              description: valid test multibase base64url encoded timestampId
+              value: uEiAbFEn1TXr__LSFdj16CqLZR48_R9TQfd088lEXspM-5A
             "[pilot] timestampId":
-              description: valid preprod multi-base64url encoded timestampId
-              value: uMHgwZTE2OTE1Y2U0NDhiOTIyN2I5Y2QzZDg4ODdiMzgyMWVkMDZhMDhmZmE2NTJlNTMzNWRkYjk3ZWY5ZmQzZDVi
+              description: valid preprod multibase base64url encoded timestampId
+              value: uEiAbFEn1TXr__LSFdj16CqLZR48_R9TQfd088lEXspM-5A
           required: true
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -313,12 +314,12 @@ paths:
               examples:
                 Success:
                   value:
-                    hash: "0x123"
+                    hash: uE0BoK9lFXyC8pGx0XW6O_VuO8WBLMlS7KLx2bah55YH_VhaorawVrWFr_hMnbgBpR3vNSx8tA0A6MxtNmqNwjHaR
                     timestampedBy: "0x456"
-                    blockNumber: 12
-                    transactionHash: "0x789"
-                    data: "0xabc"
-        "400":
+                    blockNumber: 1880267
+                    data: "0x7b2274657374223a3734327d"
+                    transactionHash: "0x125988a9a6a9a02da35981dee230e1900088ef7fc5064c1f1d2225ef2d2c53e6"
+        400:
           description: Bad Request
           content:
             "application/problem+json":
@@ -330,7 +331,7 @@ paths:
                     title: Bad Request
                     status: 400
                     detail: The format of {timestampId} parameter is not valid
-        "404":
+        404:
           description: Not found
           content:
             "application/problem+json":
@@ -339,7 +340,7 @@ paths:
               examples:
                 Hash algortihm Not Found:
                   $ref: "#/components/examples/NotFound"
-        "500":
+        500:
           description: Internal Server Error
           content:
             application/json:
@@ -348,7 +349,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/timestamp/v2/records":
+  /timestamp/v2/records:
     get:
       tags:
         - Timestamp API
@@ -379,7 +380,7 @@ paths:
           description: Filter records by owner address
           example: "0x94e88a60f272309fdedef19498d8e05b3f632f9f"
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -414,10 +415,10 @@ paths:
                   value:
                     self: https://api.test.intebsi.xyz/timestamp/v2/records?page[after]=3&page[size]=2
                     items:
-                      - recordId: uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2
-                        href: https://api.test.intebsi.xyz/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2
-                      - recordId: "uMHg3NWExNmFkYmIxZGRiNTVmZWE3NWU0NWY4MjRkYWRjNjAzMjNmMTZkODVmNWRiMjhmZjBjOTg0MTM4MmU0YmEw"
-                        href: https://api.test.intebsi.xyz/timestamp/v2/records/uMHg3NWExNmFkYmIxZGRiNTVmZWE3NWU0NWY4MjRkYWRjNjAzMjNmMTZkODVmNWRiMjhmZjBjOTg0MTM4MmU0YmEw
+                      - recordId: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
+                        href: https://api.test.intebsi.xyz/timestamp/v2/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
+                      - recordId: uqMu5Nv0MmLKftBQVVzmEfOdyZbtbKIya85-1vr2hyN0
+                        href: https://api.test.intebsi.xyz/timestamp/v2/records/uqMu5Nv0MmLKftBQVVzmEfOdyZbtbKIya85-1vr2hyN0
                     total: 124
                     pageSize: 2
                     links:
@@ -425,6 +426,7 @@ paths:
                       prev: https://api.test.intebsi.xyz/timestamp/v2/records?page[after]=2&page[size]=2
                       next: https://api.test.intebsi.xyz/timestamp/v2/records?page[after]=4&page[size]=2
                       last: https://api.test.intebsi.xyz/timestamp/v2/records?page[after]=62&page[size]=2
+                # TODO: Update examples once deployed on pilot
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/timestamp/v2/records?page[after]=3&page[size]=2
@@ -440,7 +442,7 @@ paths:
                       prev: https://api.preprod.ebsi.eu/timestamp/v2/records?page[after]=2&page[size]=2
                       next: https://api.preprod.ebsi.eu/timestamp/v2/records?page[after]=4&page[size]=2
                       last: https://api.preprod.ebsi.eu/timestamp/v2/records?page[after]=62&page[size]=2
-        "400":
+        400:
           description: Bad Request Error
           content:
             "application/problem+json":
@@ -452,7 +454,7 @@ paths:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        "500":
+        500:
           description: Internal Server Error
           content:
             "application/problem+json":
@@ -461,7 +463,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/timestamp/v2/records/{recordId}":
+  /timestamp/v2/records/{recordId}:
     get:
       tags:
         - Timestamp API
@@ -476,14 +478,14 @@ paths:
           description: Record ID (multibase base64url encoded)
           examples:
             "[test] recordId":
-              description: valid test multi-base64url encoded recordId
-              value: uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz
+              description: valid test multibase base64url encoded recordId
+              value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
             "[pilot] recordId":
-              description: valid preprod multi-base64url encoded recordId
+              description: valid preprod multibase base64url encoded recordId
               value: uMHhmZWRhNTliNTc3MzdiODk3ZGIzYjhiYjljYTdlYmRhY2RlYmJmMjRiMTVlZTMxYmJmOGExYjk0ODAyMjIyNDg0
           required: true
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -503,7 +505,7 @@ paths:
                     lastVersionTimestamps:
                       - "0x984651fa..."
                     totalVersions: 4
-        "400":
+        400:
           description: Bad Request
           content:
             "application/problem+json":
@@ -515,7 +517,7 @@ paths:
                     title: Bad Request
                     status: 400
                     detail: The format of {versionId} parameter is not valid
-        "404":
+        404:
           description: Not found
           content:
             "application/problem+json":
@@ -524,7 +526,7 @@ paths:
               examples:
                 Hash algortihm Not Found:
                   $ref: "#/components/examples/NotFound"
-        "500":
+        500:
           description: Internal Server Error
           content:
             application/json:
@@ -533,7 +535,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/timestamp/v2/records/{recordId}/versions":
+  /timestamp/v2/records/{recordId}/versions:
     get:
       tags:
         - Timestamp API
@@ -547,10 +549,10 @@ paths:
             type: string
           examples:
             "[test] recordId":
-              description: valid test multi-base64url encoded recordId
-              value: uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz
+              description: valid test multibase base64url encoded recordId
+              value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
             "[pilot] recordId":
-              description: valid preprod multi-base64url encoded recordId
+              description: valid preprod multibase base64url encoded recordId
               value: uMHhmZWRhNTliNTc3MzdiODk3ZGIzYjhiYjljYTdlYmRhY2RlYmJmMjRiMTVlZTMxYmJmOGExYjk0ODAyMjIyNDg0
           description: Record ID (multibase base64url encoded)
           required: true
@@ -565,7 +567,7 @@ paths:
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -598,19 +600,19 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/timestamp/v2/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=3&page[size]=2
                     items:
                       - versionId: 0
-                        href: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions/0
+                        href: https://api.test.intebsi.xyz/timestamp/v2/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions/0
                       - versionId: 1
-                        href: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions/1
+                        href: https://api.test.intebsi.xyz/timestamp/v2/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions/1
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/timestamp/v2/records/uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz/versions?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/timestamp/v2/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/timestamp/v2/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/timestamp/v2/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/timestamp/v2/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=3&page[size]=2
@@ -626,7 +628,7 @@ paths:
                       prev: https://api.preprod.ebsi.eu/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=2&page[size]=2
                       next: https://api.preprod.ebsi.eu/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=4&page[size]=2
                       last: https://api.preprod.ebsi.eu/timestamp/v2/records/uMHgyODk3NmEwMmJkMmU2NGE0MzU4MzFjZTBjZDM2NDBiYjM2NmY5NGM1MzNlNzU2ZGZjZDk0ZmY1Yjc5YmNjN2M2/versions?page[after]=62&page[size]=2
-        "400":
+        400:
           description: Bad Request Error
           content:
             "application/problem+json":
@@ -638,7 +640,7 @@ paths:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        "500":
+        500:
           description: Internal Server Error
           content:
             "application/problem+json":
@@ -647,7 +649,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  "/timestamp/v2/records/{recordId}/versions/{versionId}":
+  /timestamp/v2/records/{recordId}/versions/{versionId}:
     get:
       tags:
         - Timestamp API
@@ -661,10 +663,10 @@ paths:
             type: string
           examples:
             "[test] recordId":
-              description: valid test multi-base64url encoded recordId
-              value: uMHhjNTFmODFhMDc0ZGU4OTNlMGUwYTM5ZjBjNTlhNDdiZjk2OTc5YTM4ZjMzNWU2NTUxZWE0MzVkYjc5YTE2M2Mz
+              description: valid test multibase base64url encoded recordId
+              value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
             "[pilot] recordId":
-              description: valid preprod multi-base64url encoded recordId
+              description: valid preprod multibase base64url encoded recordId
               value: uMHhmZWRhNTliNTc3MzdiODk3ZGIzYjhiYjljYTdlYmRhY2RlYmJmMjRiMTVlZTMxYmJmOGExYjk0ODAyMjIyNDg0
           description: Record ID (multibase base64url encoded)
           required: true
@@ -675,7 +677,7 @@ paths:
           example: "0"
           required: true
       responses:
-        "200":
+        200:
           description: Success
           content:
             application/json:
@@ -703,7 +705,7 @@ paths:
                           "born": "1940-10-09",
                           "spouse": "http://dbpedia.org/resource/Cynthia_Lennon",
                         }
-        "400":
+        400:
           description: Bad Request
           content:
             "application/problem+json":
@@ -715,7 +717,7 @@ paths:
                     title: Bad Request
                     status: 400
                     detail: The format of {versionId} parameter is not valid
-        "404":
+        404:
           description: Not found
           content:
             "application/problem+json":
@@ -724,7 +726,7 @@ paths:
               examples:
                 Hash algortihm Not Found:
                   $ref: "#/components/examples/NotFound"
-        "500":
+        500:
           description: Internal Server Error
           content:
             application/json:
@@ -1046,7 +1048,7 @@ paths:
                       signedRawTransaction: "--- signed raw transaction ---"
                   id: 1
       responses:
-        "200":
+        200:
           description: Response
           content:
             application/json:
@@ -1071,7 +1073,7 @@ paths:
                     jsonrpc: "2.0"
                     id: 1
                     result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
-        "400":
+        400:
           description: Bad request
           content:
             "application/problem+json":

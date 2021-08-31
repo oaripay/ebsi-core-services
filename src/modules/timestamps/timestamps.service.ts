@@ -1,5 +1,4 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import {
   InternalServerError,
   NotFoundError,
@@ -9,16 +8,17 @@ import { LedgerService } from "../../shared/services/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { Timestamp } from "../../contracts/timestamp";
 import { TimestampResponseObject } from "./timestamps.interface";
-import { multibase64Decode, multihashEncode } from "../../shared/utils";
+import {
+  multibase,
+  multihashEncode,
+  multihashDecode,
+} from "../../shared/utils";
 
 @Injectable()
 export default class TimestampsService {
   private readonly logger = new Logger(TimestampsService.name);
 
-  constructor(
-    private ledgerService: LedgerService,
-    private configService: ConfigService
-  ) {}
+  constructor(private ledgerService: LedgerService) {}
 
   async getTimestamps(
     page: number,
@@ -33,7 +33,10 @@ export default class TimestampsService {
   async getTimestamp(timestampId: string): Promise<TimestampResponseObject> {
     let timestamp: AsyncReturnType<Timestamp["getTimestamp"]>;
     try {
-      const timestampIdDecoded = multibase64Decode(timestampId);
+      const timestampIdDecoded = `0x${Buffer.from(
+        multihashDecode(multibase.base64url.decode(timestampId))
+      ).toString("hex")}`;
+
       timestamp = await (
         await this.ledgerService.getContract()
       ).getTimestampById(timestampIdDecoded);
@@ -56,12 +59,14 @@ export default class TimestampsService {
       ).provider.getBlockWithTransactions(blockNumber.toNumber()),
     ]);
 
-    // Multi-hash (base64 multi-encoded)
+    // Multi-hash (multibase base64url)
     const { multiHash, outputLength } = hashAlgorithm;
-    const multihashEncodedHash = multihashEncode(
-      timestamp.hash.value,
-      multiHash as HashName,
-      outputLength.toNumber() / 8
+    const multihashEncodedHash = multibase.base64url.encode(
+      multihashEncode(
+        timestamp.hash.value,
+        multiHash as HashName,
+        outputLength.toNumber() / 8
+      )
     );
 
     // Find correct tx hash

@@ -1,12 +1,16 @@
+import crypto from "crypto";
 import { ethers } from "ethers";
 import { formatRecords, formatRecordVersions } from "./records.formatter";
-import { multibase64Encode } from "../../shared/utils";
+import { multibase } from "../../shared/utils";
 import { Timestamp } from "../../contracts/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatRecords", () => {
   const records = {
-    items: ["0x123", "0x345"],
+    items: [
+      `0x${crypto.randomBytes(32).toString("hex")}`,
+      `0x${crypto.randomBytes(32).toString("hex")}`,
+    ],
     total: ethers.BigNumber.from("42"),
     howMany: ethers.BigNumber.from("2"),
     prev: ethers.BigNumber.from("0"),
@@ -19,17 +23,26 @@ describe("formatRecords", () => {
     const page = 3;
     const pageSize = 2;
 
+    const recordIds = [
+      multibase.base64url.encode(
+        Buffer.from(records.items[0].replace(/^0x/, ""), "hex")
+      ),
+      multibase.base64url.encode(
+        Buffer.from(records.items[1].replace(/^0x/, ""), "hex")
+      ),
+    ];
+
     expect(
       formatRecords(records, page, pageSize, "", "?test=true")
     ).toStrictEqual({
       items: [
         {
-          recordId: multibase64Encode("0x123"),
-          href: `/${multibase64Encode("0x123")}`,
+          recordId: recordIds[0],
+          href: `/${recordIds[0]}`,
         },
         {
-          recordId: multibase64Encode("0x345"),
-          href: `/${multibase64Encode("0x345")}`,
+          recordId: recordIds[1],
+          href: `/${recordIds[1]}`,
         },
       ],
       links: {

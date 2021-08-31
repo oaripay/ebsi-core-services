@@ -1,6 +1,6 @@
 import { RecordLink, VersionLink } from "./records.interface";
 import { PaginatedList } from "../../shared/interfaces";
-import { paginate, multibase64Encode } from "../../shared/utils";
+import { paginate, multibase } from "../../shared/utils";
 import { Timestamp } from "../../contracts/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
@@ -14,10 +14,13 @@ export function formatRecords(
   // Reshape items
   const total = records.total.toNumber();
   const items = records.items.map((recordId) => {
-    const multibase64urlEncodedRecordId = multibase64Encode(recordId);
+    const multibaseBase64urlRecordId = multibase.base64url.encode(
+      Buffer.from(recordId.replace(/^0x/, ""), "hex")
+    );
+
     return {
-      recordId: multibase64urlEncodedRecordId,
-      href: `${baseUrl}/${multibase64urlEncodedRecordId}`,
+      recordId: multibaseBase64urlRecordId,
+      href: `${baseUrl}/${multibaseBase64urlRecordId}`,
     };
   });
 

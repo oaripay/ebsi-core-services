@@ -1,5 +1,4 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import {
   BadRequestError,
@@ -13,16 +12,13 @@ import {
   RecordResponseObject,
   RecordVersionResponseObject,
 } from "./records.interface";
-import { multibase64Decode } from "../../shared/utils";
+import { multibase } from "../../shared/utils";
 
 @Injectable()
 export default class RecordsService {
   private readonly logger = new Logger(RecordsService.name);
 
-  constructor(
-    private ledgerService: LedgerService,
-    private configService: ConfigService
-  ) {}
+  constructor(private ledgerService: LedgerService) {}
 
   async getPage(
     fnName: string,
@@ -131,7 +127,10 @@ export default class RecordsService {
 
   async getRecord(recordIdEncoded: string): Promise<RecordResponseObject> {
     let record: AsyncReturnType<Timestamp["getRecord"]>;
-    const recordId = multibase64Decode(recordIdEncoded);
+    const recordId = `0x${Buffer.from(
+      multibase.base64url.decode(recordIdEncoded)
+    ).toString("hex")}`;
+
     try {
       record = await (
         await this.ledgerService.getContract()
@@ -165,7 +164,10 @@ export default class RecordsService {
 
   async getRecordVersions(recordIdEncoded: string): Promise<number> {
     let record: AsyncReturnType<Timestamp["getRecord"]>;
-    const recordId = multibase64Decode(recordIdEncoded);
+    const recordId = `0x${Buffer.from(
+      multibase.base64url.decode(recordIdEncoded)
+    ).toString("hex")}`;
+
     try {
       record = await (
         await this.ledgerService.getContract()
@@ -183,7 +185,10 @@ export default class RecordsService {
     recordIdEncoded: string,
     versionId: string
   ): Promise<RecordVersionResponseObject> {
-    const recordId = multibase64Decode(recordIdEncoded);
+    const recordId = `0x${Buffer.from(
+      multibase.base64url.decode(recordIdEncoded)
+    ).toString("hex")}`;
+
     const { hashValues, infoIds, totalVersions } = await this.getAllPages(
       "getRecordVersion",
       [recordId, Number(versionId)]

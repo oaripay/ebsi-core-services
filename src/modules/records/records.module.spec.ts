@@ -18,7 +18,7 @@ import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { InfoObject, RecordLink } from "./records.interface";
-import { multibase64Encode } from "../../shared/utils";
+import { multibase } from "../../shared/utils";
 import { LedgerService } from "../../shared/services/ledger.service";
 
 const RECORDS_TOTAL = 3;
@@ -286,8 +286,7 @@ describe("Records Module", () => {
     it("should throw an error if the record is not found", async () => {
       expect.assertions(2);
 
-      const recordIdDecoded = `0x${crypto.randomBytes(32).toString("hex")}`;
-      const recordId = multibase64Encode(recordIdDecoded);
+      const recordId = multibase.base64url.encode(crypto.randomBytes(32));
 
       const response = await request(server).get(`/records/${recordId}`);
 
@@ -529,9 +528,7 @@ describe("Records Module", () => {
       });
       expect(response.status).toBe(404);
 
-      const randomRecordId = multibase64Encode(
-        `0x${crypto.randomBytes(32).toString("hex")}`
-      );
+      const randomRecordId = multibase.base64url.encode(crypto.randomBytes(32));
 
       response = await request(server).get(
         `/records/${randomRecordId}/versions/${versionId}`

@@ -1,6 +1,6 @@
 import { TimestampLink } from "./timestamps.interface";
 import { PaginatedList } from "../../shared/interfaces";
-import { paginate, multibase64Encode } from "../../shared/utils";
+import { paginate, multibase, multihashEncode } from "../../shared/utils";
 import { Timestamp } from "../../contracts/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
@@ -14,10 +14,13 @@ export function formatTimestamps(
   // Reshape items
   const total = timestamps.total.toNumber();
   const items = timestamps.items.map((timestampId) => {
-    const multibase64urlEncodedTimestampId = multibase64Encode(timestampId);
+    const multibaseBase64urlTimestampId = multibase.base64url.encode(
+      multihashEncode(timestampId.replace(/^0x/, ""), "sha2-256", 32)
+    );
+
     return {
-      timestampId: multibase64urlEncodedTimestampId,
-      href: `${baseUrl}/${multibase64urlEncodedTimestampId}`,
+      timestampId: multibaseBase64urlTimestampId,
+      href: `${baseUrl}/${multibaseBase64urlTimestampId}`,
     };
   });
 
