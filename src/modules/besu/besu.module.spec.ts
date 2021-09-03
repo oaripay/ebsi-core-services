@@ -195,16 +195,16 @@ describe("Besu Module", () => {
     expect(response.status).toBe(400);
   });
 
-  it("should return the chain ID", async () => {
+  it("should return the chain ID (without a JWT)", async () => {
     expect.assertions(4);
 
-    mockAuthOAuth2.mockImplementation(
-      async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
-    );
+    // mockAuthOAuth2.mockImplementation(
+    //   async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
+    // );
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(tokenOAuth2, { type: "bearer" })
+      // .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_chainId",
@@ -225,38 +225,26 @@ describe("Besu Module", () => {
     );
   });
 
-  it("should return the chain ID using SIOP token", async () => {
-    expect.assertions(4);
+  it("should return an error when eth_sendRawTransaction is called without a JWT", async () => {
+    expect.assertions(2);
 
-    mockAuthSiop.mockImplementation(
-      async (): Promise<JWTPayload> =>
-        Promise.resolve({ sub: testUser.did, login_hint: "did_siop" })
-    );
-
-    const response = await request(server)
-      .post("/blockchains/besu")
-      .auth(tokenSiop, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "eth_chainId",
-        params: [],
-        id: "42",
-      });
-
-    expect(response.body).toStrictEqual({
+    const response = await request(server).post("/blockchains/besu").send({
       jsonrpc: "2.0",
-      result: "0x539",
+      method: "eth_sendRawTransaction",
+      params: [],
       id: "42",
     });
-    expect(response.status).toBe(200);
-    expect(response.header).toHaveProperty("content-type");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    expect(response.headers["content-type"]).toStrictEqual(
-      expect.stringContaining("application/json") as string
-    );
+
+    expect(response.body).toStrictEqual({
+      detail: "Forbidden resource",
+      status: 403,
+      title: "Forbidden",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(403);
   });
 
-  it("should return an error when eth_sendRawTransaction is called without params", async () => {
+  it("should return an error when eth_sendRawTransaction is called without params (OAuth2 JWT)", async () => {
     expect.assertions(2);
 
     mockAuthOAuth2.mockImplementation(
@@ -266,6 +254,35 @@ describe("Besu Module", () => {
     const response = await request(server)
       .post("/blockchains/besu")
       .auth(tokenOAuth2, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "eth_sendRawTransaction",
+        params: [],
+        id: "42",
+      });
+
+    expect(response.body).toStrictEqual({
+      jsonrpc: "2.0",
+      id: "42",
+      error: {
+        code: -32602,
+        message: "Expected exactly 1 arguments and got 0",
+      },
+    });
+    expect(response.status).toBe(400);
+  });
+
+  it("should return an error when eth_sendRawTransaction is called without params (SIOP JWT)", async () => {
+    expect.assertions(2);
+
+    mockAuthSiop.mockImplementation(
+      async (): Promise<JWTPayload> =>
+        Promise.resolve({ sub: testUser.did, login_hint: "did_siop" })
+    );
+
+    const response = await request(server)
+      .post("/blockchains/besu")
+      .auth(tokenSiop, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_sendRawTransaction",

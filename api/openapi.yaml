@@ -48,8 +48,11 @@ paths:
       summary: Hyperledger Besu RPC API
       description: |
         Hyperledger Besu Ethereum Enterprise Client JSON-RPC APIs.
-        This endpoint requires authentication via the Authorisation API. It accepts OAuth2 tokens
-        (for Trusted Apps) or SIOP tokens (for DIDs).
+        For some protected methods, the endpoint requires authentication via the Authorisation API.
+        It accepts OAuth2 tokens (for Trusted Apps) or SIOP tokens (for DIDs).
+        The protected methods are:
+          - eth_sendRawTransaction
+          - eth_call
       security:
         - bearerAuth: []
       requestBody:

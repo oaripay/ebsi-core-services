@@ -1,12 +1,6 @@
 import { LoggerService } from "@nestjs/common";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-
-function hasOwnProperty<X extends unknown, Y extends PropertyKey>(
-  obj: X,
-  prop: Y
-): obj is X & Record<Y, unknown> {
-  return Object.prototype.hasOwnProperty.call(obj, prop) as boolean;
-}
+import { hasOwnProperty } from "./shared/utils";
 
 const isNotFoundError = (data?: unknown): boolean => {
   if (!data || typeof data !== "object" || data === null) return false;

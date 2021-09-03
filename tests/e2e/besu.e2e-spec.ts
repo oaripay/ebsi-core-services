@@ -135,12 +135,12 @@ describe("POST /ledger/v2/blockchains/besu", () => {
     expect(response.status).toBe(400);
   });
 
-  it("should return the chain ID", async () => {
+  it("should return the chain ID (without a JWT)", async () => {
     expect.assertions(2);
 
     const response = await request(server)
       .post("/blockchains/besu")
-      .auth(tokenOAuth2, { type: "bearer" })
+      // .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_chainId",
@@ -157,34 +157,56 @@ describe("POST /ledger/v2/blockchains/besu", () => {
     expect(response.status).toBe(200);
   });
 
-  it("should return the chain ID using SIOP token", async () => {
+  it("should return an error when eth_sendRawTransaction is called without a JWT", async () => {
+    expect.assertions(2);
+
+    const response = await request(server).post("/blockchains/besu").send({
+      jsonrpc: "2.0",
+      method: "eth_sendRawTransaction",
+      params: [],
+      id: "42",
+    });
+
+    expect(response.body).toStrictEqual({
+      title: "Forbidden",
+      status: 403,
+      detail: "Forbidden resource",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(403);
+  });
+
+  it("should return an error when eth_sendRawTransaction is called without params (OAuth2 JWT)", async () => {
+    expect.assertions(2);
+
+    const response = await request(server)
+      .post("/blockchains/besu")
+      .auth(tokenOAuth2, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "eth_sendRawTransaction",
+        params: [],
+        id: "42",
+      });
+
+    expect(response.body).toStrictEqual({
+      jsonrpc: "2.0",
+      id: "42",
+      error: {
+        code: -32602,
+        message: "Invalid params",
+      },
+    });
+
+    expect(response.status).toBe(400);
+  });
+
+  it("should return an error when eth_sendRawTransaction is called without params (SIOP JWT)", async () => {
     expect.assertions(2);
 
     const response = await request(server)
       .post("/blockchains/besu")
       .auth(tokenSiop, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "eth_chainId",
-        params: [],
-        id: "42",
-      });
-
-    expect(response.body).toStrictEqual({
-      jsonrpc: "2.0",
-      // https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Ethereum+Genesis+File+for+the+new+Main-NET+and+Pilot-Net
-      result: "0x181f", // 6175
-      id: "42",
-    });
-    expect(response.status).toBe(200);
-  });
-
-  it("should return an error when eth_sendRawTransaction is called without params", async () => {
-    expect.assertions(2);
-
-    const response = await request(server)
-      .post("/blockchains/besu")
-      .auth(tokenOAuth2, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "eth_sendRawTransaction",
