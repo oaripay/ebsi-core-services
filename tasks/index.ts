@@ -13,3 +13,4 @@ import "./insertAdministrator";
 import "./addHashAlgo";
 import "./fixTarStatus";
 import "./insertTSRSchema";
+import "./updateTSRSchema";
