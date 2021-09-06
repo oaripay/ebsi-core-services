@@ -45,9 +45,9 @@ export class JwtAuthGuard implements CanActivate {
     }>();
     const { headers, url, body } = request;
 
-    // TODO: check request content: if "method" is one of the public methods, allow access
     if (
-      url === "/blockchains/besu" &&
+      typeof url === "string" &&
+      url.includes("/blockchains/besu") &&
       body &&
       typeof body === "object" &&
       hasOwnProperty(body, "method") &&
