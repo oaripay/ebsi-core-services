@@ -1438,7 +1438,7 @@ paths:
                 value:
                   jsonrpc: "2.0"
                   id: 1
-                  method: updatetIssuer
+                  method: updateIssuer
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
@@ -1455,7 +1455,7 @@ paths:
                 value:
                   jsonrpc: "2.0"
                   id: 1
-                  method: updatetIssuer
+                  method: updateIssuer
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
