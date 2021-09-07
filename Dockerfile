@@ -1,17 +1,16 @@
 # Stage 0: prepare node alpine image
-FROM node:12-alpine AS base
+FROM node:16-alpine AS base
 RUN apk add --update --no-cache \
-  python \
   make \
   g++
 
 ## Stage 1: build the admin
 FROM base AS builder-admin
 WORKDIR /usr/src/app
-COPY ./package*.json /usr/src/app/
-COPY ./yarn.lock /usr/src/app/
+COPY ./package*.json .
+COPY ./yarn.lock .
 RUN yarn
-COPY ./ /usr/src/app/
+COPY ./ .
 ARG REACT_APP_PROVIDER
 ARG REACT_APP_REGISTRY_ADDRESS
 ARG REACT_APP_TAW_TX_URI
@@ -22,6 +21,8 @@ ARG REACT_APP_EBSI_CHAIN_ID
 ARG REACT_APP_DID_REGISTRY_ADDRESS
 
 RUN yarn build
+
+
 
 # Stage 2: run nginx
 FROM nginx
