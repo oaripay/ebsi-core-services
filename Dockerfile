@@ -16,6 +16,6 @@ COPY --from=builder /app/dist dist
 RUN mkdir -p /app/wallet
 # Uncomment the following line to run Ledger API locally
 # COPY wallet wallet
-RUN chown node:node /app
+RUN chown -R node:node /app
 USER node
 CMD [ "node", "dist/main" ]
