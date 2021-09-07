@@ -12,4 +12,4 @@ services:
         REACT_APP_WALLET_WEB_CLIENT_URL: ${REACT_APP_WALLET_WEB_CLIENT_URL}
         REACT_APP_WALLET_API: ${REACT_APP_WALLET_API}
         REACT_APP_EBSI_CHAIN_ID: ${REACT_APP_EBSI_CHAIN_ID}
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry-web-client:prod-v0.0.23
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry-web-client:prod-v0.0.23a
