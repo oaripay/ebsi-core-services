@@ -1,0 +1,141 @@
+import React from "react";
+import JSONPretty from "react-json-pretty";
+
+import {
+  Alert,
+  Button,
+  Col,
+  Row,
+  Space,
+  Spin,
+  Statistic,
+  Typography,
+} from "antd";
+import Paragraph from "antd/es/typography/Paragraph";
+import { config } from "../../config";
+import useDidRegister from "./use-did-register";
+
+export default function RegisterDid() {
+  const {
+    registerDid,
+    insertDidAs,
+    loading,
+    networkId,
+    publicKey,
+    walletAddress,
+    didDefined,
+    didToBeSent,
+    didAsAdministrator,
+  } = useDidRegister();
+
+  const { Title } = Typography;
+
+  const DidAsAdministratorMessage = () =>
+    didAsAdministrator ? (
+      <Alert
+        message="DID Administrator already defined"
+        type="info"
+        showIcon
+        className="m-l-4"
+      />
+    ) : (
+      <></>
+    );
+
+  return (
+    <Space direction="vertical" className="content-container" size="middle">
+      <Spin spinning={loading}>
+        <Row justify="space-between">
+          <Col>
+            <Statistic
+              title="Network id"
+              value={networkId}
+              decimalSeparator=""
+              groupSeparator=""
+            />
+          </Col>
+        </Row>
+        <Row className="m-t-10">
+          <Col>
+            <Statistic
+              title="Public key"
+              value={publicKey}
+              decimalSeparator=""
+              groupSeparator=""
+            />
+          </Col>
+        </Row>
+        <Row className="m-t-10">
+          <Col>
+            <Statistic
+              title="Wallet address"
+              value={walletAddress}
+              decimalSeparator=""
+              groupSeparator=""
+            />
+          </Col>
+        </Row>
+        <Row className="m-t-10">
+          <Col>
+            <Statistic
+              title="DID"
+              value={`did:ebsi:${walletAddress}`}
+              decimalSeparator=""
+              groupSeparator=""
+            />
+          </Col>
+        </Row>
+        <Row className="m-t-10">
+          <Col>
+            <Statistic
+              title="DID Registry contract"
+              value={config.DID_REGISTRY_ADDRESS}
+              decimalSeparator=""
+              groupSeparator=""
+            />
+          </Col>
+        </Row>
+        <Row className="m-t-10">
+          <Button
+            type="primary"
+            disabled={didDefined || !publicKey}
+            onClick={() => registerDid(`did:ebsi:${walletAddress}`)}
+          >
+            Register DID
+          </Button>
+          <Button
+            type="primary"
+            className="m-l-4"
+            disabled={!didDefined || !publicKey || didAsAdministrator}
+            onClick={() => insertDidAs(`did:ebsi:${walletAddress}`)}
+          >
+            Insert DID as Administrator
+          </Button>
+        </Row>
+        <Row className="m-t-10">
+          <Col>
+            {didDefined ? (
+              <Alert message="DID already defined" type="info" showIcon />
+            ) : (
+              <></>
+            )}
+          </Col>
+          <Col>
+            <DidAsAdministratorMessage />
+          </Col>
+        </Row>
+        <Row className="m-t-10">
+          <Col span={4}>
+            <Title level={4}>DID document:</Title>
+            <Row>
+              <Col span={16}>
+                <Paragraph copyable={{ text: didToBeSent }} />
+                <JSONPretty id="json-pretty" data={didToBeSent} />
+              </Col>
+            </Row>
+          </Col>
+        </Row>
+      </Spin>
+    </Space>
+  );
+}

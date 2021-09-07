@@ -1,33 +1,49 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
-import "./App.css";
-import { Col, Layout, Row, Typography } from "antd";
+import "./App.less";
+import { Layout } from "antd";
+import { BrowserRouter as Router } from "react-router-dom";
 
-import { AppProvider } from "./AppContext";
+import detectEthereumProvider from "@metamask/detect-provider";
 import BodyComponents from "./BodyComponents";
-
-const { Header, Footer } = Layout;
-const { Title } = Typography;
+import Header from "./components/Header/Header";
+import Menu from "./components/Menu/Menu";
+import { MenuProvider } from "./components/Menu/Menu.context";
+import { AppProvider } from "./AppContext";
 
 function App() {
+  const [hasProvider, setHasProvider] = useState(false);
+  const Window: any = window;
+  useEffect(() => {
+    detectEthereumProvider().then((provider: any) => {
+      /* eslint no-underscore-dangle: 0 */
+      provider._metamask.isUnlocked().then((r: any) => setHasProvider(r));
+    });
+  }, [Window]);
+  if (!hasProvider) {
+    return (
+      <MenuProvider>
+        <Layout style={{ minHeight: "100vh" }}>
+          <span>
+            Provider not detected or metamask is unlocked. Please unlock
+            metamask and then refresh the page.
+          </span>
+        </Layout>
+      </MenuProvider>
+    );
+  }
   return (
-    <AppProvider>
-      <Layout>
-        <Header>
-          <Row align="middle">
-            <Col>
-              <Title className="header-text" level={2}>
-                EBSI App Manager
-              </Title>
-            </Col>
-          </Row>
-        </Header>
-        <>
-          <BodyComponents />
-        </>
-        <Footer style={{ textAlign: "center" }}>EBSI</Footer>
-      </Layout>
-    </AppProvider>
+    <MenuProvider>
+      <AppProvider>
+        <Header />
+        <Router>
+          <Layout style={{ minHeight: "100vh" }}>
+            <Menu />
+            <BodyComponents />
+          </Layout>
+        </Router>
+      </AppProvider>
+    </MenuProvider>
   );
 }
 

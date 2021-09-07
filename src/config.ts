@@ -18,4 +18,8 @@ export const config = {
     "https://app.intebsi.xyz/wallet/notifications",
   EBSI_API:
     process.env.REACT_APP_WALLET_API || "https://api.intebsi.xyz/wallet/v1",
+  routes: {
+    trustedAppsRegistry: "/trusted-apps-registry",
+    registerDid: "/register-did",
+  },
 };

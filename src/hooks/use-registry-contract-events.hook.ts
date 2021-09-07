@@ -11,6 +11,9 @@ export function useRegistryContractEventsHook() {
   const { provider } = useEthersHook();
 
   useEffect(() => {
+    if (!provider) {
+      return;
+    }
     if (appCtx.metamask) {
       provider
         .getNetwork()

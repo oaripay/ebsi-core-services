@@ -26,7 +26,7 @@ export function ModalUpdateApp() {
     if (appCtx.editModal.show) {
       form.resetFields();
     }
-  }, [appCtx.editModal.show]);
+  }, [appCtx.editModal.show, form]);
 
   return (
     <Modal

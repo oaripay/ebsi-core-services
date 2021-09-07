@@ -18,10 +18,8 @@ import { useTableHook } from "../hooks/use-table-hook";
 export function ModalUpdateAuthorization() {
   const [form] = Form.useForm();
 
-  const {
-    updateAuthorization,
-    getAuthorizationsIds,
-  } = useRegistryContractHook();
+  const { updateAuthorization, getAuthorizationsIds } =
+    useRegistryContractHook();
   const appCtx = useContext(AppContext);
 
   const { loadTableData } = useTableHook();
@@ -30,7 +28,7 @@ export function ModalUpdateAuthorization() {
     if (appCtx.updateAuthorization.show) {
       form.resetFields();
     }
-  }, [appCtx.updateAuthorization.show]);
+  }, [appCtx.updateAuthorization.show, form]);
 
   return (
     <Modal

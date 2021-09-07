@@ -1,7 +1,7 @@
 import { Col, Input, Row } from "antd";
 import React, { useContext, useEffect, useState } from "react";
 
-import { AppContext } from "./AppContext";
+import { AppContext } from "../../AppContext";
 
 export function Search() {
   const appCtx = useContext(AppContext);
@@ -13,7 +13,7 @@ export function Search() {
       setValue("");
       appCtx.setClearInput(false);
     }
-  }, [appCtx.clearInput]);
+  }, [appCtx, appCtx.clearInput]);
 
   return (
     <Row>

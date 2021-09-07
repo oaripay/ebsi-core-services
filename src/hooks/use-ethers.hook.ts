@@ -10,16 +10,17 @@ import { AppContext } from "../AppContext";
 export function useEthersHook() {
   const appCtx = useContext(AppContext);
 
-  const provider:
-    | ethers.providers.Web3Provider
-    | ethers.providers.JsonRpcProvider = useMemo(() => {
+  const provider: ethers.providers.Web3Provider | undefined = useMemo(() => {
     if (appCtx.metamask) {
       return new ethers.providers.Web3Provider(appCtx.metamask);
     }
-    return new ethers.providers.JsonRpcProvider();
+    return undefined;
   }, [appCtx.metamask]);
 
   const registryContract = useMemo(() => {
+    if (!provider) {
+      return undefined;
+    }
     const contract = new ethers.Contract(
       config.REGISTRY_ADDRESS,
       TarRegistry,
@@ -29,6 +30,9 @@ export function useEthersHook() {
   }, [provider]);
 
   const didRegistryContract = useMemo(() => {
+    if (!provider) {
+      return undefined;
+    }
     const contract = new ethers.Contract(
       config.DID_REGISTRY_ADDRESS,
       DidRegistry,

@@ -24,16 +24,10 @@ export default function ModalInsertPublicKey(): ReactElement {
   const appCtx = useContext(AppContext);
 
   useEffect(() => {
-    form.setFieldsValue({
-      appId: appCtx.insertPublicKeyModal.appId,
-    });
-  }, [appCtx.insertPublicKeyModal.appId]);
-
-  useEffect(() => {
     if (appCtx.insertPublicKeyModal.show) {
       form.resetFields();
     }
-  }, [appCtx.insertPublicKeyModal.show]);
+  }, [appCtx.insertPublicKeyModal.show, form]);
 
   return (
     <Modal

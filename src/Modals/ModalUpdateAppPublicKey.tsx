@@ -27,7 +27,7 @@ export function ModalUpdateAppPublicKey() {
     if (appCtx.updateAppPublicKey.show) {
       form.resetFields();
     }
-  }, [appCtx.updateAppPublicKey.show]);
+  }, [appCtx.updateAppPublicKey.show, form]);
 
   return (
     <Modal
@@ -101,6 +101,7 @@ export function ModalUpdateAppPublicKey() {
             status: appCtx.updateAppPublicKey.data?.status,
             applicationId: appCtx.updateAppPublicKey.data?.id,
             notAfter: appCtx.updateAppPublicKey?.data?.notAfter,
+            publicKey: appCtx.updateAppPublicKey?.data?.publicKey,
           }}
         >
           <Row>
@@ -113,15 +114,7 @@ export function ModalUpdateAppPublicKey() {
           <Row>
             <Col lg={24}>
               <Form.Item label="Select Public key to update" name="publicKey">
-                <Select style={{ width: "100%" }}>
-                  {appCtx.updateAppPublicKey.data?.publicKeys.map(
-                    (key: string) => (
-                      <Select.Option key={key} value={key}>
-                        {key}
-                      </Select.Option>
-                    )
-                  )}
-                </Select>
+                <Input disabled />
               </Form.Item>
             </Col>
           </Row>

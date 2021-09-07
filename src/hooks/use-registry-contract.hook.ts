@@ -10,13 +10,24 @@ const { PAGE_SIZE } = config;
 
 export function useRegistryContractHook() {
   const { registryContract } = useEthersHook();
-  const appCtx = useContext(AppContext);
+  const { page } = useContext(AppContext);
 
   const [totalItems, setTotalItems] = useState(0);
 
   const getApplicationIds = useCallback(() => {
-    return registryContract.getApps(appCtx.page, PAGE_SIZE);
-  }, [registryContract, appCtx.page]);
+    if (!registryContract) {
+      return {
+        total: BigNumber.from(0),
+        items: [],
+      };
+    }
+    return registryContract.getApps(page, PAGE_SIZE).catch(() => {
+      return {
+        total: BigNumber.from(0),
+        items: [],
+      };
+    });
+  }, [registryContract, page]);
 
   const insertAppPublicKey = useCallback(
     (
@@ -26,6 +37,9 @@ export function useRegistryContractHook() {
       notBefore: number,
       notAfter: number
     ) => {
+      if (!registryContract) {
+        return undefined;
+      }
       return registryContract.insertAppPublicKey(
         appId,
         publicKey,
@@ -34,7 +48,7 @@ export function useRegistryContractHook() {
         notAfter
       );
     },
-    []
+    [registryContract]
   );
 
   const insertAuthorization = useCallback(
@@ -47,6 +61,9 @@ export function useRegistryContractHook() {
       notBefore: number,
       notAfter: number
     ) => {
+      if (!registryContract) {
+        return undefined;
+      }
       return registryContract.insertAuthorization(
         name,
         authorizedAppName,
@@ -57,7 +74,7 @@ export function useRegistryContractHook() {
         notAfter
       );
     },
-    []
+    [registryContract]
   );
 
   const initTotalItems = useCallback(() => {
@@ -66,10 +83,13 @@ export function useRegistryContractHook() {
         setTotalItems(applications.total.toNumber());
       }
     );
-  }, []);
+  }, [getApplicationIds]);
 
   const getAppByName = useCallback(
     (appName: string) => {
+      if (!registryContract) {
+        return undefined;
+      }
       return registryContract.getAppByName(appName);
     },
     [registryContract]
@@ -77,13 +97,16 @@ export function useRegistryContractHook() {
 
   const getAuthorizationsIds = useCallback(
     (applicationId: string, authorizedAppId: string) => {
+      if (!registryContract) {
+        return undefined;
+      }
       return registryContract
         .getAuthorizations(applicationId, authorizedAppId, 1, PAGE_SIZE)
         .then((authIdsResponse: { items: number[]; total: BigNumber }) => {
           return authIdsResponse.items;
         });
     },
-    []
+    [registryContract]
   );
 
   const getAllMissingAppsByAuthorizationIds = (
@@ -108,6 +131,9 @@ export function useRegistryContractHook() {
 
   const getApplications = useCallback(
     (appIds = null) => {
+      if (!registryContract) {
+        return [];
+      }
       let promise = getApplicationIds();
       if (appIds) {
         promise = Promise.resolve({
@@ -165,7 +191,7 @@ export function useRegistryContractHook() {
         }
       );
     },
-    [getApplicationIds, appCtx.page]
+    [getApplicationIds, registryContract]
   );
 
   const isOperator = useCallback((): Promise<boolean> => {
@@ -176,7 +202,7 @@ export function useRegistryContractHook() {
       return registryContract?.isOperator(addr[2]);
     }
     return new Promise((resolve) => resolve(false));
-  }, []);
+  }, [registryContract]);
 
   const registerApp = useCallback(
     (
@@ -188,6 +214,9 @@ export function useRegistryContractHook() {
       notBefore: number,
       notAfter: number
     ) => {
+      if (!registryContract) {
+        return undefined;
+      }
       return registryContract.insertApp(
         name,
         domain,
@@ -198,19 +227,34 @@ export function useRegistryContractHook() {
         notAfter
       );
     },
-    []
+    [registryContract]
   );
 
-  const updateApp = useCallback((applicationId, name, domain) => {
-    return registryContract.updateApp(applicationId, name, domain);
-  }, []);
+  const updateApp = useCallback(
+    (applicationId, name, domain) => {
+      if (!registryContract) {
+        return undefined;
+      }
+      return registryContract.updateApp(applicationId, name, domain);
+    },
+    [registryContract]
+  );
 
-  const updateAppPublicKey = useCallback((publicKeyId, status, notAfter) => {
-    return registryContract.updateAppPublicKey(publicKeyId, status, notAfter);
-  }, []);
+  const updateAppPublicKey = useCallback(
+    (publicKeyId, status, notAfter) => {
+      if (!registryContract) {
+        return undefined;
+      }
+      return registryContract.updateAppPublicKey(publicKeyId, status, notAfter);
+    },
+    [registryContract]
+  );
 
   const updateAuthorization = useCallback(
     (authorizationId, status, permissions, notAfter) => {
+      if (!registryContract) {
+        return undefined;
+      }
       return registryContract.updateAuthorization(
         authorizationId,
         status,
@@ -218,7 +262,7 @@ export function useRegistryContractHook() {
         notAfter
       );
     },
-    []
+    [registryContract]
   );
 
   return {

@@ -21,7 +21,7 @@ export default function ModalInsertAuth(): ReactElement {
   const [form] = Form.useForm();
 
   const { insertAuthorization } = useRegistryContractHook();
-  const { didRegistryContract } = useEthersHook();
+  const { didRegistryContract, registryContract } = useEthersHook();
   const { loadTableData } = useTableHook();
   const appCtx = useContext(AppContext);
 
@@ -29,7 +29,7 @@ export default function ModalInsertAuth(): ReactElement {
     if (appCtx.authorizedAppsModal.show) {
       form.resetFields();
     }
-  }, [appCtx.authorizedAppsModal.show]);
+  }, [appCtx.authorizedAppsModal.show, form]);
 
   return (
     <Modal
@@ -63,47 +63,64 @@ export default function ModalInsertAuth(): ReactElement {
               notAfter: fields.notAfter.unix(),
             };
 
+            if (!didRegistryContract || !registryContract) {
+              return;
+            }
+
             didRegistryContract
               .getDidRecord(
                 `0x${Buffer.from(insertAuthFields.iss).toString("hex")}`
               )
               .then(() => {
-                appCtx.setAuthorizedAppsModal({
-                  show: false,
-                });
-                insertAuthorization(
-                  insertAuthFields.name,
-                  insertAuthFields.authorizedAppName,
-                  insertAuthFields.iss,
-                  insertAuthFields.status,
-                  insertAuthFields.permissions,
-                  insertAuthFields.notBefore,
-                  insertAuthFields.notAfter
-                )
-                  .then((tx: any) => {
-                    tx.wait(1).then(() => {
-                      loadTableData();
-                      notification.success({
-                        message: "Transaction mined",
-                        description: `A new authorization was added to app ${insertAuthFields.name}!`,
+                registryContract
+                  .getAdministrator(insertAuthFields.iss)
+                  .then(() => {
+                    appCtx.setAuthorizedAppsModal({
+                      show: false,
+                    });
+                    insertAuthorization(
+                      insertAuthFields.name,
+                      insertAuthFields.authorizedAppName,
+                      insertAuthFields.iss,
+                      insertAuthFields.status,
+                      insertAuthFields.permissions,
+                      insertAuthFields.notBefore,
+                      insertAuthFields.notAfter
+                    )
+                      .then((tx: any) => {
+                        tx.wait(1).then(() => {
+                          loadTableData();
+                          notification.success({
+                            message: "Transaction mined",
+                            description: `A new authorization was added to app ${insertAuthFields.name}!`,
+                          });
+                        });
+                        form.resetFields();
+                        notification.info({
+                          message: "Transaction",
+                          description: (
+                            <>
+                              <p>A transaction has been broadcasted.</p>
+                            </>
+                          ),
+                        });
+                      })
+                      .catch(() => {
+                        notification.error({
+                          message: "Error",
+                          description:
+                            "A problem appeared on trying to add public key to app. Please make sure you're logged in wallet client. If that didn't fix please contact an admin for further instructions!",
+                        });
                       });
-                    });
-                    form.resetFields();
-                    notification.info({
-                      message: "Transaction",
-                      description: (
-                        <>
-                          <p>A transaction has been broadcasted.</p>
-                        </>
-                      ),
-                    });
                   })
-                  .catch(() => {
-                    notification.error({
-                      message: "Error",
-                      description:
-                        "A problem appeared on trying to add public key to app. Please make sure you're logged in wallet client. If that didn't fix please contact an admin for further instructions!",
-                    });
+                  .catch((e: any) => {
+                    console.log(e);
+                    form.setFields([
+                      {
+                        name: "iss",
+                        errors: ["DID not defined as admin in the Registry"],
+                      },
+                    ]);
                   });
               })
               .catch(() => {

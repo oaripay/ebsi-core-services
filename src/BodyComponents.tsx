@@ -1,32 +1,23 @@
-import React, { ReactElement, useContext } from "react";
+import React, { ReactElement } from "react";
 
-import { NewApp } from "./NewApp";
-import { AppContext } from "./AppContext";
-import ModalInsertPublicKey from "./Modals/ModalInsertPublicKey";
-import ModalInsertAuth from "./Modals/ModalInsertAuth";
-import { useRegistryContractEventsHook } from "./hooks/use-registry-contract-events.hook";
-import { ModalUpdateApp } from "./Modals/ModalUpdateApp";
-import { ModalUpdateAppPublicKey } from "./Modals/ModalUpdateAppPublicKey";
-import { ModalUpdateAuthorization } from "./Modals/ModalUpdateAuthorization";
-import { useSearchEventsHook } from "./hooks/use-search-events.hook";
+import { Route, Switch } from "react-router-dom";
+import { config } from "./config";
+import RegisterDid from "./pages/RegisterDid/RegisterDid";
+import TrustedAppRegistry from "./pages/TrustedAppRegistry/TrustedAppRegistry";
+import NotFound from "./pages/NotFound/NotFound";
 
 export default function BodyComponents(): ReactElement {
-  const appCtx = useContext(AppContext);
-  useRegistryContractEventsHook();
-  useSearchEventsHook();
-
-  if (!appCtx.metamask) {
-    return <></>;
-  }
-
   return (
-    <>
-      <NewApp />
-      <ModalUpdateAuthorization />
-      <ModalUpdateAppPublicKey />
-      <ModalUpdateApp />
-      <ModalInsertPublicKey />
-      <ModalInsertAuth />
-    </>
+    <Switch>
+      <Route exact path={config.routes.trustedAppsRegistry}>
+        <TrustedAppRegistry />
+      </Route>
+      <Route exact path={config.routes.registerDid}>
+        <RegisterDid />
+      </Route>
+      <Route path="*">
+        <NotFound />
+      </Route>
+    </Switch>
   );
 }

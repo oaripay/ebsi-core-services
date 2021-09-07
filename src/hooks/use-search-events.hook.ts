@@ -7,6 +7,8 @@ export function useSearchEventsHook() {
   const { search } = useSearch();
 
   useEffect(() => {
-    search(appCtx.searchedTerm.trim());
-  }, [appCtx.searchedTerm]);
+    if (appCtx.searchedTerm) {
+      search(appCtx.searchedTerm.trim());
+    }
+  }, [appCtx.searchedTerm, search]);
 }
