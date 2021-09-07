@@ -289,6 +289,7 @@ describe("Timestamps Module", () => {
 
       expect(response.body).toStrictEqual({
         blockNumber: expect.any(Number) as number,
+        timestamp: expect.any(String) as string,
         data: hash.timestampData[0],
         hash: multihashEncodedHash,
         timestampedBy: expect.stringContaining("0x") as string,
@@ -313,6 +314,7 @@ describe("Timestamps Module", () => {
 
       expect(response.body).toStrictEqual({
         blockNumber: expect.any(Number) as number,
+        timestamp: expect.any(String) as string,
         data: expect.stringContaining("0x") as string,
         hash: expect.any(String) as string,
         timestampedBy: expect.stringContaining("0x") as string,
@@ -372,6 +374,7 @@ describe("Timestamps Module", () => {
       // Verify response (especially "transactionHash")
       expect(response.body).toStrictEqual({
         blockNumber: blockNumberTx1,
+        timestamp: expect.any(String) as string,
         data: hash2.timestampData[0],
         hash: multibase.base64url.encode(
           multihashEncode(

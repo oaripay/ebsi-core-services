@@ -7,6 +7,7 @@ export interface TimestampResponseObject {
   hash: string; // multi-hash (base64 multi-encoded)
   timestampedBy: string;
   blockNumber: number;
+  timestamp: string;
   data: string;
   transactionHash: string;
 }

@@ -124,6 +124,7 @@ export default class TimestampsService {
       hash: multihashEncodedHash,
       timestampedBy,
       blockNumber: blockNumber.toNumber(),
+      timestamp: new Date(block.timestamp * 1000).toISOString(),
       data,
       transactionHash,
     };

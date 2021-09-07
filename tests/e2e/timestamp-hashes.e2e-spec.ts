@@ -562,6 +562,7 @@ describe("Timestamp (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         blockNumber: expect.any(Number) as number,
+        timestamp: expect.any(String) as string,
         data: expect.stringContaining("0x") as string,
         hash: expect.any(String) as string,
         timestampedBy: expect.stringContaining("0x") as string,

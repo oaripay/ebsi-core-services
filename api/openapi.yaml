@@ -317,6 +317,7 @@ paths:
                     hash: uE0BoK9lFXyC8pGx0XW6O_VuO8WBLMlS7KLx2bah55YH_VhaorawVrWFr_hMnbgBpR3vNSx8tA0A6MxtNmqNwjHaR
                     timestampedBy: "0x456"
                     blockNumber: 1880267
+                    timestamp: "2021-09-07T07:48:10.754Z"
                     data: "0x7b2274657374223a3734327d"
                     transactionHash: "0x125988a9a6a9a02da35981dee230e1900088ef7fc5064c1f1d2225ef2d2c53e6"
         400:
@@ -1213,6 +1214,9 @@ components:
         blockNumber:
           description: Number of the block in which the hash has been timestamped.
           type: integer
+        timestamp:
+          description: Timestamp in ISO 8601 format
+          type: string
         transactionHash:
           description: Hash of the transaction/transaction id.
           type: string
