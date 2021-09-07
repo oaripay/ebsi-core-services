@@ -4,7 +4,7 @@ import { Route, Switch } from "react-router-dom";
 import { config } from "./config";
 import RegisterDid from "./pages/RegisterDid/RegisterDid";
 import TrustedAppRegistry from "./pages/TrustedAppRegistry/TrustedAppRegistry";
-import NotFound from "./pages/NotFound/NotFound";
+import Main from "./pages/Main/Main";
 
 export default function BodyComponents(): ReactElement {
   return (
@@ -16,7 +16,7 @@ export default function BodyComponents(): ReactElement {
         <RegisterDid />
       </Route>
       <Route path="*">
-        <NotFound />
+        <Main />
       </Route>
     </Switch>
   );

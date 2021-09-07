@@ -1,6 +1,10 @@
 import React from "react";
 import { Layout, Menu as MenuAntd } from "antd";
-import { AppstoreOutlined, UserAddOutlined } from "@ant-design/icons";
+import {
+  AppstoreOutlined,
+  HomeOutlined,
+  UserAddOutlined,
+} from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import { useMenuContext } from "./Menu.context";
 import s from "./style.module.css";
@@ -25,6 +29,9 @@ export default function Menu() {
         mode="inline"
         theme="dark"
       >
+        <MenuAntd.Item key={config.routes.default} icon={<HomeOutlined />}>
+          <Link to={config.routes.default}>Home</Link>
+        </MenuAntd.Item>
         <MenuAntd.Item
           key={config.routes.registerDid}
           icon={<UserAddOutlined />}

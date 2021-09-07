@@ -113,8 +113,7 @@ export default function ModalInsertAuth(): ReactElement {
                         });
                       });
                   })
-                  .catch((e: any) => {
-                    console.log(e);
+                  .catch(() => {
                     form.setFields([
                       {
                         name: "iss",
