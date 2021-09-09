@@ -6,9 +6,9 @@ import { AppsModule } from "./modules/apps/apps.module";
 import { AdministratorsModule } from "./modules/administrators/administrators.module";
 import { PoliciesModule } from "./modules/policies/policies.module";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
-import { HealthController } from "./health.controller";
 import { AuthModule } from "./modules/auth/auth.module";
 import { LedgerModule } from "./modules/ledger/ledger.module";
+import { HealthModule } from "./modules/health/health.module";
 
 @Module({
   imports: [
@@ -20,8 +20,9 @@ import { LedgerModule } from "./modules/ledger/ledger.module";
     PoliciesModule,
     JsonRpcModule,
     LedgerModule,
+    HealthModule,
   ],
-  controllers: [AppController, HealthController],
+  controllers: [AppController],
   providers: [],
 })
 export class AppModule {}

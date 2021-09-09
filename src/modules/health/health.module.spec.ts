@@ -1,37 +1,29 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
-import { HealthIndicatorResult, HttpHealthIndicator } from "@nestjs/terminus";
+import { HealthIndicatorResult } from "@nestjs/terminus";
+import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
+import type { AxiosResponse } from "axios";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { FastifyInstance } from "fastify";
-import { ethers } from "ethers";
-import { AppModule } from "./app.module";
-import { AllExceptionsFilter } from "./filters/http-exception.filter";
-import { ApiConfig } from "./config/configuration";
+import { of } from "rxjs";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter";
+import { ApiConfig } from "../../config/configuration";
+import { HealthModule } from "./health.module";
 
-describe("HealthController", () => {
+describe("Health Module", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
-  let httpHealthIndicator: HttpHealthIndicator;
+  let httpService: HttpService;
   let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
-    // Mock WebSocketProvider
-    jest
-      .spyOn(ethers.providers, "WebSocketProvider")
-      .mockImplementation(
-        () =>
-          new ethers.providers.BaseProvider(
-            "any"
-          ) as ethers.providers.WebSocketProvider
-      );
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [HealthModule],
     }).compile();
     Logger.overrideLogger(false);
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
@@ -43,15 +35,9 @@ describe("HealthController", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    httpHealthIndicator =
-      moduleFixture.get<HttpHealthIndicator>(HttpHealthIndicator);
-
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-  });
 
-  afterAll(async () => {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
-    await app.close();
+    httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });
 
   describe("check", () => {
@@ -61,17 +47,14 @@ describe("HealthController", () => {
       const status = { "ebsi-apis": { status: "up" } } as HealthIndicatorResult;
 
       const spy = jest
-        .spyOn(httpHealthIndicator, "pingCheck")
-        .mockImplementation(() => {
-          return Promise.resolve(status);
-        });
+        .spyOn(httpService, "request")
+        .mockImplementation(() => of({} as AxiosResponse<unknown>));
 
       const response = await request(server).get("/health").send();
 
-      expect(spy).toHaveBeenCalledWith(
-        "ebsi-apis",
-        configService.get("externalEbsiApiHealthCheck")
-      );
+      expect(spy).toHaveBeenCalledWith({
+        url: configService.get<string>("externalEbsiApiHealthCheck"),
+      });
       expect(response.body).toStrictEqual({
         details: status,
         error: {},

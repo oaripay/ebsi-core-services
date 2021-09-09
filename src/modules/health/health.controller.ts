@@ -7,9 +7,9 @@ import {
   HttpHealthIndicator,
   HealthCheckResult,
 } from "@nestjs/terminus";
-import { ApiConfig } from "./config/configuration";
+import { ApiConfig } from "../../config/configuration";
 
-@Controller("health")
+@Controller("/health")
 export class HealthController {
   constructor(
     private health: HealthCheckService,
@@ -23,7 +23,7 @@ export class HealthController {
     return this.health.check([
       // Let's say we need to communicate with other APIs
       // Make sure the DNS are correctly configured
-      () =>
+      async () =>
         this.http.pingCheck(
           "ebsi-apis",
           this.configService.get("externalEbsiApiHealthCheck")
