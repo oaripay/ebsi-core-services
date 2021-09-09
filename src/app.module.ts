@@ -5,7 +5,7 @@ import { AdministratorsModule } from "./modules/administrators/administrators.mo
 import { IssuersModule } from "./modules/issuers/issuers.module";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { PoliciesModule } from "./modules/policies/policies.module";
-import { HealthController } from "./health.controller";
+import { HealthModule } from "./modules/health/health.module";
 
 @Module({
   imports: [
@@ -15,8 +15,9 @@ import { HealthController } from "./health.controller";
     IssuersModule,
     JsonRpcModule,
     PoliciesModule,
+    HealthModule,
   ],
-  controllers: [HealthController],
+  controllers: [],
   providers: [Logger],
 })
 export class AppModule {}
