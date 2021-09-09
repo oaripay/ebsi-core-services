@@ -1,71 +1,60 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
-import { HealthIndicatorResult, HttpHealthIndicator } from "@nestjs/terminus";
+import { HealthIndicatorResult } from "@nestjs/terminus";
+import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
-import { FastifyInstance } from "fastify";
+import type { AxiosResponse } from "axios";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { HealthModule } from "./health.module";
+import { FastifyInstance } from "fastify";
+import { of } from "rxjs";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { ApiConfig } from "../../config/configuration";
+import { HealthModule } from "./health.module";
 
 describe("Health Module", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
-  let httpHealthIndicator: HttpHealthIndicator;
+  let httpService: HttpService;
   let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
-    // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [HealthModule],
     }).compile();
-
+    Logger.overrideLogger(false);
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
     app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
+    app.useGlobalPipes(new ValidationPipe());
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    httpHealthIndicator =
-      moduleFixture.get<HttpHealthIndicator>(HttpHealthIndicator);
-
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });
 
-  afterAll(async () => {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
-    await app.close();
-  });
-
-  describe("GET /health", () => {
-    it("should return status ok", async () => {
+  describe("check", () => {
+    it("should return 'ok'", async () => {
       expect.assertions(3);
 
       const status = { "ebsi-apis": { status: "up" } } as HealthIndicatorResult;
 
       const spy = jest
-        .spyOn(httpHealthIndicator, "pingCheck")
-        .mockImplementation(() => {
-          return Promise.resolve(status);
-        });
+        .spyOn(httpService, "request")
+        .mockImplementation(() => of({} as AxiosResponse<unknown>));
 
       const response = await request(server).get("/health").send();
 
-      expect(spy).toHaveBeenCalledWith(
-        "ebsi-apis",
-        configService.get("externalEbsiApiHealthCheck")
-      );
+      expect(spy).toHaveBeenCalledWith({
+        url: configService.get<string>("externalEbsiApiHealthCheck"),
+      });
       expect(response.body).toStrictEqual({
         details: status,
         error: {},
