@@ -29,6 +29,7 @@ describe("Records Module", () => {
   let timestampContract: Timestamp;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let ledgerService: LedgerService;
+  let sender: string;
 
   beforeAll(async () => {
     // Spin up test blockchain (hardhat)
@@ -36,6 +37,7 @@ describe("Records Module", () => {
       recordsTotal: RECORDS_TOTAL,
     });
     timestampContract = testEnv.timestampContract;
+    sender = testEnv.sender;
 
     // Mock Timestamp contract
     jest
@@ -72,34 +74,42 @@ describe("Records Module", () => {
   });
 
   describe("GET /records", () => {
-    it("should return a paginated collection of records", async () => {
-      expect.assertions(3);
+    describe.each([
+      () => "/records",
+      () => `/records?owner=${sender}`,
+      () => `/records?owner=${sender.toUpperCase()}`,
+    ])("GET %s", (url: () => string) => {
+      it("should return a paginated collection of records", async () => {
+        expect.assertions(3);
 
-      const response = await request(server).get("/records");
-      expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/records?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: RECORDS_TOTAL,
-        pageSize: 10,
-        links: {
-          first: expect.stringContaining(
+        const response = await request(server).get(url());
+        expect(response.body).toStrictEqual({
+          self: expect.stringContaining(
             "/records?page[after]=1&page[size]=10"
           ) as string,
-          prev: expect.stringContaining(
-            "/records?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining(
-            "/records?page[after]=1&page[size]=10"
-          ) as string,
-          last: expect.stringContaining(
-            "/records?page[after]=1&page[size]=10"
-          ) as string,
-        },
+          items: expect.arrayContaining([]) as Array<string>,
+          total: RECORDS_TOTAL,
+          pageSize: 10,
+          links: {
+            first: expect.stringContaining(
+              "/records?page[after]=1&page[size]=10"
+            ) as string,
+            prev: expect.stringContaining(
+              "/records?page[after]=1&page[size]=10"
+            ) as string,
+            next: expect.stringContaining(
+              "/records?page[after]=1&page[size]=10"
+            ) as string,
+            last: expect.stringContaining(
+              "/records?page[after]=1&page[size]=10"
+            ) as string,
+          },
+        });
+        expect((response.body as { items: string }).items).toHaveLength(
+          RECORDS_TOTAL
+        );
+        expect(response.status).toBe(200);
       });
-      expect((response.body as { items: string }).items).toHaveLength(3);
-      expect(response.status).toBe(200);
     });
 
     it("should handle the pagination properly", async () => {

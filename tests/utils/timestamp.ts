@@ -217,6 +217,7 @@ export async function setupTestEnv(
   hashAlgorithms: HashAlgorithmObject[];
   records: RecordObject[];
   hashes: HashObect[];
+  sender: string;
 }> {
   const ethersProvider = hre.ethers.provider;
   const sender = await ethersProvider.getSigner().getAddress();
@@ -251,5 +252,6 @@ export async function setupTestEnv(
     hashAlgorithms,
     records,
     hashes,
+    sender,
   };
 }

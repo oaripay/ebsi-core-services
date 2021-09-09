@@ -95,7 +95,7 @@ export default class RecordsService {
     pageSize: number
   ): ReturnType<Timestamp["getRecordIdsByOwnerId"]> {
     return (await this.ledgerService.getContract()).getRecordIdsByOwnerId(
-      owner,
+      owner.toLowerCase(),
       page,
       pageSize
     );

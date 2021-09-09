@@ -635,7 +635,7 @@ export class JsonRpcService {
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("insertRecordOwner", [
         recordId,
-        ownerId,
+        ownerId.toLowerCase(),
         notBefore,
         notAfter,
       ]);
@@ -658,7 +658,10 @@ export class JsonRpcService {
 
       const data = (
         await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("revokeRecordOwner", [recordId, ownerId]);
+      ).interface.encodeFunctionData("revokeRecordOwner", [
+        recordId,
+        ownerId.toLowerCase(),
+      ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
