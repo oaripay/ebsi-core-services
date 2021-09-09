@@ -3,4 +3,4 @@ version: "3.7"
 services:
   notifications-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/notifications-api:prod_ebsiint-3220-update-nodejs_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/notifications-api:prod_ebsiint-3284-nodejs-update_v2.0.0
