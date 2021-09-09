@@ -2,7 +2,6 @@ import crypto from "crypto";
 import request from "supertest";
 import axios from "axios";
 import { base58btc } from "multiformats/bases/base58";
-import { v4 as uuidv4 } from "uuid";
 import { Agent as OAuth2Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import {
   EbsiDidAuth,
@@ -102,7 +101,7 @@ export async function oauth2Authentication(trustedApp: {
     .id;
   const kid = `${trustedAppsRegistryApiUrl}/apps/${appId}`;
 
-  const nonce = uuidv4();
+  const nonce = crypto.randomUUID();
   const agent = new OAuth2Agent(trustedApp.privateKey, {
     issuer: trustedApp.name,
     kid,
