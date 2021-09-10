@@ -271,15 +271,18 @@ describe("Timestamps Module", () => {
       const { hashes, hashAlgorithms } = testEnv;
       const hash = hashes[0];
       const hashValue = hash.hashValues[0];
-      const timestampId = ethers.utils.sha256(hash.hashValues[0]);
-      const encodedHash = multibase.base64url.encode(
-        multihashEncode(timestampId.replace(/^0x/, ""), "sha2-256", 32)
+      const timestampId = multibase.base64url.encode(
+        multihashEncode(
+          ethers.utils.sha256(hash.hashValues[0]).replace(/^0x/, ""),
+          "sha2-256",
+          32
+        )
       );
 
-      const response = await request(server).get(`/timestamps/${encodedHash}`);
+      const response = await request(server).get(`/timestamps/${timestampId}`);
 
       // multi-hash (base64 multi-encoded)
-      const multihashEncodedHash = multibase.base64url.encode(
+      const multihashEncodedHash = multibase.base64.encode(
         multihashEncode(
           hashValue,
           hashAlgorithms[0].multihash,
@@ -376,7 +379,7 @@ describe("Timestamps Module", () => {
         blockNumber: blockNumberTx1,
         timestamp: expect.any(String) as string,
         data: hash2.timestampData[0],
-        hash: multibase.base64url.encode(
+        hash: multibase.base64.encode(
           multihashEncode(
             hash2.hashValues[0],
             testEnv.hashAlgorithms[0].multihash
@@ -407,16 +410,16 @@ describe("Timestamps Module", () => {
     it("should throw an error if the timestamp is not found", async () => {
       expect.assertions(2);
 
-      const encodedHash = multibase.base64url.encode(
+      const timestampId = multibase.base64url.encode(
         multihashEncode(crypto.randomBytes(32).toString("hex"), "sha2-256", 32)
       );
 
-      const response = await request(server).get(`/timestamps/${encodedHash}`);
+      const response = await request(server).get(`/timestamps/${timestampId}`);
 
       expect(response.body).toStrictEqual({
         title: "Timestamp Not Found",
         status: 404,
-        detail: `Timestamp ${encodedHash} not found`,
+        detail: `Timestamp ${timestampId} not found`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);

@@ -61,7 +61,7 @@ export default class TimestampsService {
 
     // Multi-hash (multibase base64url)
     const { multiHash, outputLength } = hashAlgorithm;
-    const multihashEncodedHash = multibase.base64url.encode(
+    const multihashEncodedHash = multibase.base64.encode(
       multihashEncode(
         timestamp.hash.value,
         multiHash as HashName,

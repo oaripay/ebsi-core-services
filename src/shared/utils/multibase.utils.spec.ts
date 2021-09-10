@@ -8,6 +8,18 @@ const bases: Record<
     multibaseString: string;
   }[]
 > = {
+  base64: [
+    {
+      inputString: "÷ïÿ",
+      encoding: "utf8",
+      multibaseString: "mw7fDr8O/",
+    },
+    {
+      inputString: "÷ïÿ🥰÷ïÿ😎🥶🤯",
+      encoding: "utf8",
+      multibaseString: "mw7fDr8O/8J+lsMO3w6/Dv/CfmI7wn6W28J+krw",
+    },
+  ],
   base64url: [
     {
       inputString: "÷ïÿ",

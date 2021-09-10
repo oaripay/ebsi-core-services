@@ -550,15 +550,18 @@ describe("Timestamp (e2e)", () => {
   });
 
   describe("GET /timestamps/{timestampId}", () => {
-    it("should return a specific record", async () => {
+    it("should return a specific timestamp", async () => {
       expect.assertions(2);
 
-      const timestampId = ethers.utils.sha256(hashValue1);
-      const encodedHash = multibase.base64url.encode(
-        multihashEncode(timestampId.replace(/^0x/, ""), "sha2-256", 32)
+      const timestampId = multibase.base64url.encode(
+        multihashEncode(
+          ethers.utils.sha256(hashValue1).replace(/^0x/, ""),
+          "sha2-256",
+          32
+        )
       );
 
-      const response = await request(server).get(`/timestamps/${encodedHash}`);
+      const response = await request(server).get(`/timestamps/${timestampId}`);
 
       expect(response.body).toStrictEqual({
         blockNumber: expect.any(Number) as number,
