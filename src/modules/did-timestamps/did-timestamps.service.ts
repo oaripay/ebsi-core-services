@@ -112,7 +112,7 @@ export class DidTimestampsService {
     );
 
     return {
-      hash: multibase.base16.encode(multihashEncodedHash),
+      hash: multibase.base64.encode(multihashEncodedHash),
       timestampedBy: timestamp.timestampedBy,
       blockNumber: timestamp.blockNumber.toNumber(),
       data: timestamp.data,

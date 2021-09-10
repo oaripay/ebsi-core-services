@@ -1881,7 +1881,7 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         blockNumber: expect.any(Number) as number,
         data: `0x${timestampDataBuffer.toString("hex")}`,
-        hash: multibase.base16.encode(
+        hash: multibase.base64.encode(
           multihashEncode(
             canonicalizedDidDocumentHash,
             hashAlgorithMultihash,

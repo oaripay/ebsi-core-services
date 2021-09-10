@@ -31,6 +31,18 @@ const bases: Record<
         "fc3b7c3afc3bff09fa5b0c3b7c3afc3bff09f988ef09fa5b6f09fa4af",
     },
   ],
+  base64: [
+    {
+      inputString: "÷ïÿ",
+      encoding: "utf8",
+      multibaseString: "mw7fDr8O/",
+    },
+    {
+      inputString: "÷ïÿ🥰÷ïÿ😎🥶🤯",
+      encoding: "utf8",
+      multibaseString: "mw7fDr8O/8J+lsMO3w6/Dv/CfmI7wn6W28J+krw",
+    },
+  ],
   base64url: [
     {
       inputString: "÷ïÿ",

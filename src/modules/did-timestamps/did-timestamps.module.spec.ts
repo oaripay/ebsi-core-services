@@ -469,7 +469,7 @@ describe("DidTimestamps Module", () => {
           expect(response.body).toStrictEqual({
             blockNumber: expect.any(Number) as number,
             data: `0x${timestampDataBuffer.toString("hex")}`,
-            hash: multibase.base16.encode(
+            hash: multibase.base64.encode(
               multihashEncode(
                 canonicalizedDidDocumentHash,
                 testEnv.hashAlgorithms[0].multihash,

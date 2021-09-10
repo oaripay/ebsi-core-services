@@ -894,7 +894,7 @@ paths:
               examples:
                 Success:
                   value:
-                    hash: f122005efa22c605d4294d0a404e9e5d4e5ddece58e2a98bc422e3a208de8f0cc1873
+                    hash: mEiD/Gq2wzGn9aN0XOJT2SHJ7ZjrLMgcwEEm7dhns8Yd2Lg
                     timestampedBy: "0x9139869907de5bA6Cd38AB08e84c72188bce25c0"
                     blockNumber: 1577582
                     data: "0x7b2264617461223a2274657374227d"
@@ -2756,7 +2756,7 @@ components:
       properties:
         hash:
           type: string
-          description: Multihash encoded in multibase base16
+          description: Multihash encoded in multibase base64
         timestampedBy:
           type: string
           description: Address of the transaction signer that timestamped the information.
