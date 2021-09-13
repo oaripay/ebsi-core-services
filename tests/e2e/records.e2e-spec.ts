@@ -32,6 +32,7 @@ import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonr
 import {
   InfoObject,
   RecordLink,
+  VersionLink,
 } from "../../src/modules/records/records.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x, multibase } from "../../src/shared/utils";
@@ -287,6 +288,17 @@ describe("Records (e2e)", () => {
       return recordId;
     };
 
+    const getRecordVersions = async (recordId: string) => {
+      const respRecords = await request(server).get(
+        `/records/${recordId}/versions`
+      );
+      const { items, total } = respRecords.body as {
+        items: VersionLink[];
+        total: number;
+      };
+      return { items, total };
+    };
+
     it("should return a specific version", async () => {
       expect.assertions(2);
 
@@ -301,6 +313,44 @@ describe("Records (e2e)", () => {
         info: expect.arrayContaining([]) as InfoObject[],
       });
       expect(response.status).toBe(200);
+    });
+
+    it("should return an error when the record doesn't exist", async () => {
+      expect.assertions(2);
+
+      const randomRecordId = multibase.base64url.encode(crypto.randomBytes(32));
+
+      const response = await request(server).get(
+        `/records/${randomRecordId}/versions/0`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Record Not Found",
+        status: 404,
+        detail: `Record ${randomRecordId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should return an error when the version doesn't exist", async () => {
+      expect.assertions(2);
+
+      const recordId = await getFirstRecordId();
+      const versions = await getRecordVersions(recordId);
+      const versionId = versions.total;
+
+      const response = await request(server).get(
+        `/records/${recordId}/versions/${versionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Version Not Found",
+        status: 404,
+        detail: `Version ${versionId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
     });
   });
 

@@ -520,28 +520,33 @@ describe("Records Module", () => {
       expect(response.status).toBe(200);
     });
 
+    it("should throw an error if the record is not found", async () => {
+      expect.assertions(2);
+
+      const randomRecordId = multibase.base64url.encode(crypto.randomBytes(32));
+      const versionId = 800;
+
+      const response = await request(server).get(
+        `/records/${randomRecordId}/versions/${versionId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Record Not Found",
+        status: 404,
+        detail: `Record ${randomRecordId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
     it("should throw an error if the version is not found", async () => {
-      expect.assertions(4);
+      expect.assertions(2);
 
       const recordId = await getFirstRecordId();
       const versionId = 800;
 
-      let response = await request(server).get(
+      const response = await request(server).get(
         `/records/${recordId}/versions/${versionId}`
-      );
-
-      expect(response.body).toStrictEqual({
-        title: "Version Not Found",
-        status: 404,
-        detail: `Version ${versionId} not found`,
-        type: "about:blank",
-      });
-      expect(response.status).toBe(404);
-
-      const randomRecordId = multibase.base64url.encode(crypto.randomBytes(32));
-
-      response = await request(server).get(
-        `/records/${randomRecordId}/versions/${versionId}`
       );
 
       expect(response.body).toStrictEqual({

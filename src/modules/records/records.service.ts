@@ -47,7 +47,7 @@ export default class RecordsService {
   ): Promise<{
     hashValues: string[];
     infoIds: string[];
-    totalVersions: number;
+    totalHashes: number;
   }> {
     const { hashValues, infoIds, total } = await this.getPage(
       fnName,
@@ -66,7 +66,7 @@ export default class RecordsService {
     hashValuesNextPages.forEach((pagItems) => {
       hashValues.splice(hashValues.length, 0, ...pagItems);
     });
-    return { hashValues, infoIds, totalVersions: total.toNumber() };
+    return { hashValues, infoIds, totalHashes: total.toNumber() };
   }
 
   async getRecordIds(
@@ -99,30 +99,6 @@ export default class RecordsService {
       page,
       pageSize
     );
-  }
-
-  async getAllRecordVersionTimestamps(
-    recordId: string,
-    versionId: number
-  ): Promise<string[]> {
-    const { hashValues: allHashValues, total } = await (
-      await this.ledgerService.getContract()
-    ).getRecordVersion(recordId, versionId, 1, 50);
-    const lastPage = Math.ceil(total.toNumber() / 50);
-    const promisesNextPages = Array.from(
-      { length: lastPage - 1 },
-      (x, i) => i + 2
-    ).map(async (i) => {
-      const { hashValues } = await (
-        await this.ledgerService.getContract()
-      ).getRecordVersion(recordId, versionId, i, 50);
-      return hashValues;
-    });
-    const otherHashValues = await Promise.all(promisesNextPages);
-    otherHashValues.forEach((hashValues) => {
-      allHashValues.splice(allHashValues.length, 0, ...hashValues);
-    });
-    return allHashValues;
   }
 
   async getRecord(recordIdEncoded: string): Promise<RecordResponseObject> {
@@ -189,15 +165,18 @@ export default class RecordsService {
       multibase.base64url.decode(recordIdEncoded)
     ).toString("hex")}`;
 
-    const { hashValues, infoIds, totalVersions } = await this.getAllPages(
-      "getRecordVersion",
-      [recordId, Number(versionId)]
-    );
+    const totalVersions = await this.getRecordVersions(recordIdEncoded);
 
-    if (Number(versionId) >= totalVersions)
+    if (Number(versionId) >= totalVersions) {
       throw new NotFoundError("Version Not Found", {
         detail: `Version ${versionId} not found`,
       });
+    }
+
+    const { hashValues, infoIds } = await this.getAllPages("getRecordVersion", [
+      recordId,
+      Number(versionId),
+    ]);
 
     const contract = await this.ledgerService.getContract();
     const infosBytes = await Promise.all(
