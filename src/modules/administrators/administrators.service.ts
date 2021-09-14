@@ -2,7 +2,9 @@ import { Injectable, Logger } from "@nestjs/common";
 import {
   NotFoundError,
   ForbiddenError,
+  BadRequestError,
 } from "@cef-ebsi/problem-details-errors";
+import { isISO8601 } from "class-validator";
 import {
   AdministratorResponseObject,
   AttributeObject,
@@ -13,7 +15,7 @@ import { prefixWith0x } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 @Injectable()
-export default class AdministratorsService {
+export class AdministratorsService {
   private readonly logger = new Logger(AdministratorsService.name);
 
   constructor(private ledgerService: LedgerService) {}
@@ -137,12 +139,46 @@ export default class AdministratorsService {
   }
 
   async allowAdministratorsOnly(did: string): Promise<void> {
+    let admin: AdministratorResponseObject;
     try {
-      await this.getAdministrator(did);
+      admin = await this.getAdministrator(did);
     } catch (e) {
       throw new ForbiddenError(ForbiddenError.defaultTitle, {
-        detail: "JWT subject is not an administrator.",
+        detail: `${did} is not an administrator`,
       });
     }
+
+    const firstAttributeString = Buffer.from(
+      admin.attributes[0].body,
+      "base64"
+    ).toString();
+    let attribute: {
+      validFrom: string;
+      validTo: string;
+    };
+
+    try {
+      attribute = JSON.parse(firstAttributeString) as {
+        validFrom: string;
+        validTo: string;
+      };
+    } catch (error) {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: `Administrator ${did} does not contain a valid JSON in the first attribute`,
+      });
+    }
+
+    const { validFrom, validTo } = attribute;
+    const now = new Date();
+    if (
+      !isISO8601(validFrom) ||
+      new Date(validFrom) > now ||
+      (validTo && (!isISO8601(validTo) || new Date(validTo) < now))
+    )
+      throw new ForbiddenError(ForbiddenError.defaultTitle, {
+        detail: `Administrator ${did} is disabled`,
+      });
   }
 }
+
+export default AdministratorsService;

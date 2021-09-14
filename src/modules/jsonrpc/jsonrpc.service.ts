@@ -1,5 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
+import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
 import {
   RequestSignedTransactionDto,
   SignedTransactionParam,
@@ -47,10 +48,18 @@ import {
   lowerCaseHexEncodedIdentifier,
 } from "./jsonrpc.utils";
 import { LedgerService } from "../ledger/ledger.service";
+import { AdministratorsService } from "../administrators/administrators.service";
 import { prefixWith0x, remove0xPrefix } from "../../shared/utils";
 
 // Cache algorightms' output lengths for 30 minutes
 const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof ProblemDetailsError && error.detail) {
+    return error.detail;
+  }
+  return (error as Error).message;
+}
 
 @Injectable()
 export class JsonRpcService {
@@ -63,7 +72,10 @@ export class JsonRpcService {
     { outputLength: number; exp: number }
   > = {};
 
-  constructor(private ledgerService: LedgerService) {}
+  constructor(
+    private ledgerService: LedgerService,
+    private administratorService: AdministratorsService
+  ) {}
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
@@ -145,15 +157,7 @@ export class JsonRpcService {
       return;
     }
 
-    try {
-      await (
-        await this.ledgerService.getContract()
-      ).getAdministrator(clientId.toLowerCase());
-    } catch (e) {
-      throw new Error(
-        `Administrator ${clientId} was not found in the DID Registry`
-      );
-    }
+    await this.administratorService.allowAdministratorsOnly(clientId);
 
     // Check DID Registry
     if (!(await this.verifyDidRegistry(controllerAddress, clientId))) {
@@ -473,7 +477,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -515,7 +519,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, encodedData);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -534,7 +538,7 @@ export class JsonRpcService {
       ).interface.encodeFunctionData("insertPolicy", [policyId, policyData]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -553,7 +557,7 @@ export class JsonRpcService {
       ).interface.encodeFunctionData("updatePolicy", [policyId, policyData]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -580,7 +584,7 @@ export class JsonRpcService {
       ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -616,7 +620,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -656,7 +660,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -696,7 +700,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -722,7 +726,7 @@ export class JsonRpcService {
       ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -748,7 +752,7 @@ export class JsonRpcService {
       ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -771,7 +775,7 @@ export class JsonRpcService {
       ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -808,7 +812,7 @@ export class JsonRpcService {
       ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -845,7 +849,7 @@ export class JsonRpcService {
       ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -882,7 +886,7 @@ export class JsonRpcService {
       ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -912,7 +916,7 @@ export class JsonRpcService {
       ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -940,7 +944,7 @@ export class JsonRpcService {
       ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -968,7 +972,7 @@ export class JsonRpcService {
       ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -992,7 +996,7 @@ export class JsonRpcService {
       ).provider.sendTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }

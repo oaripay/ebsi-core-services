@@ -124,6 +124,8 @@ describe("JsonRpc Module", () => {
       any: "Any attribute here",
       type: "credential",
       data: crypto.randomBytes(16).toString("hex"),
+      validFrom: new Date().toISOString(),
+      validTo: new Date(Date.now() + 4e8).toISOString(),
     };
     const attributeData = `0x${Buffer.from(JSON.stringify(json)).toString(
       "hex"
@@ -614,7 +616,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.body).toStrictEqual({
       error: {
         code: -32600,
-        message: "Administrator random-app was not found in the DID Registry",
+        message: `random-app is not an administrator`,
       },
       id: "45",
       jsonrpc: "2.0",
@@ -696,7 +698,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.body).toStrictEqual({
       error: {
         code: -32600,
-        message: `Administrator ${adminDid} was not found in the DID Registry`,
+        message: `${adminDid} is not an administrator`,
       },
       id: "45",
       jsonrpc: "2.0",
@@ -1476,7 +1478,8 @@ describe("JsonRpc Module", () => {
               did: adminV1.did,
               from: signer.address,
             } as InsertAdministratorParam,
-            expectedErrorMessage: "attributeData must be a hexadecimal number",
+            expectedErrorMessage:
+              "Validation error: attributeData must be a hexadecimal JSON with a correct admin attribute format",
           });
 
           testSetup.push({
@@ -1504,7 +1507,8 @@ describe("JsonRpc Module", () => {
               did: adminV1.did,
               from: signer.address,
             } as UpdateAdministratorParam,
-            expectedErrorMessage: "attributeData must be a hexadecimal number",
+            expectedErrorMessage:
+              "Validation error: attributeData must be a hexadecimal JSON with a correct admin attribute format",
           });
 
           testSetup.push({

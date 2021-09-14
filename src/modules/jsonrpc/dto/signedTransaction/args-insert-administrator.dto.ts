@@ -1,11 +1,11 @@
-import { IsHexadecimal, Validate } from "class-validator";
-import { IsDidRule } from "../../validators";
+import { Validate } from "class-validator";
+import { IsDidRule, IsHexadecimalAdminAttribute } from "../../validators";
 
 export class ArgsInsertAdministrator {
   @Validate(IsDidRule)
   did: string;
 
-  @IsHexadecimal()
+  @IsHexadecimalAdminAttribute()
   attributeData: string;
 }
 

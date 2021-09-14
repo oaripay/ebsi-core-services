@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Param, UseGuards } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import AdministratorsService from "./administrators.service";
+import { AdministratorsService } from "./administrators.service";
 import {
   formatAdministrators,
   formatAttributes,
