@@ -194,7 +194,21 @@ describe("JsonRpc Module", () => {
         if (!url.includes(testAdmin.did)) {
           throw axiosError(404, "Not found");
         }
-        return Promise.resolve(true);
+        return Promise.resolve({
+          data: {
+            did: testAdmin.did,
+            attributes: [
+              {
+                hash: "",
+                body: Buffer.from(
+                  JSON.stringify({
+                    validFrom: new Date().toISOString(),
+                  })
+                ).toString("base64"),
+              },
+            ],
+          },
+        });
       }
 
       // accessing apps in TAR by name

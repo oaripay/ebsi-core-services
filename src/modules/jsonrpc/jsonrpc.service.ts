@@ -3,6 +3,7 @@ import axios, { AxiosError } from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
 import KeyEncoder from "key-encoder";
+import { isISO8601 } from "class-validator";
 import {
   ArgsInsertHashAlgorithm,
   ArgsUpdateHashAlgorithm,
@@ -40,6 +41,7 @@ import { LedgerService } from "../../shared/services/ledger.service";
 import RecordsService from "../records/records.service";
 import { ApiConfig } from "../../config/configuration";
 import { UserInfo } from "../auth/auth.interface";
+import { AdministratorResponseObject } from "./jsonrpc.interface";
 
 const keyEncoder = new KeyEncoder("secp256k1");
 // Cache algorightms' output lengths for 30 minutes
@@ -94,16 +96,49 @@ export class JsonRpcService {
     });
   }
 
-  async verifyTrustedAppsRegistryAdministrator(user: UserInfo): Promise<void> {
+  async allowAdministratorsOnly(did: string): Promise<void> {
+    let admin: AdministratorResponseObject;
     try {
-      await axios.get(`${this.trustedAppsRegistry}/administrators/${user.sub}`);
+      const response = await axios.get<AdministratorResponseObject>(
+        `${this.trustedAppsRegistry}/administrators/${did}`
+      );
+      admin = response.data;
     } catch (error) {
       if ((error as AxiosError).response?.status === 404)
         throw new Error(
-          `${user.sub} not found as administrator in the Trusted Apps Registry`
+          `${did} not found as administrator in the Trusted Apps Registry`
         );
       throw error;
     }
+
+    const firstAttributeString = Buffer.from(
+      admin.attributes[0].body,
+      "base64"
+    ).toString();
+    let attribute: {
+      validFrom: string;
+      validTo: string;
+    };
+
+    try {
+      attribute = JSON.parse(firstAttributeString) as {
+        validFrom: string;
+        validTo: string;
+      };
+    } catch (error) {
+      throw new Error(
+        `Administrator ${did} does not contain a valid JSON in the first attribute`
+      );
+    }
+
+    const { validFrom, validTo } = attribute;
+    const now = new Date();
+    if (
+      !isISO8601(validFrom) ||
+      new Date(validFrom) > now ||
+      (validTo && (!isISO8601(validTo) || new Date(validTo) < now))
+    )
+      throw new Error(`Administrator ${did} is disabled`);
   }
 
   async isDidControlledByAddress(
@@ -214,16 +249,10 @@ export class JsonRpcService {
     args: ethers.utils.Result
   ): Promise<void> {
     switch (functionName) {
-      /* For the following functions only EBSI Admins
-       * can register new algorithms
-       *
-       * - Check admins on Trusted Apps Registry
-       * TODO: check admins in the Trusted Identity and Access Management
-       */
       case "insertHashAlgorithm":
       case "updateHashAlgorithm": {
         await this.verifyEthereumAddress(address, user);
-        await this.verifyTrustedAppsRegistryAdministrator(user);
+        await this.allowAdministratorsOnly(user.sub);
         break;
       }
       /* For the following functions only subjects with access to
