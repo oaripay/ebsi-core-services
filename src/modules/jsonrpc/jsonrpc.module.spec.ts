@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
@@ -57,18 +57,38 @@ type JsonRpcParams =
 
 jest.setTimeout(120000);
 
+const axiosError = (status: number, message: string): AxiosError =>
+  ({
+    response: {
+      status,
+      data: message,
+      statusText: message,
+      headers: {},
+      config: {},
+    },
+    isAxiosError: true,
+    name: "error",
+    message,
+    config: {},
+    toJSON: null,
+  } as AxiosError);
+
 describe("JsonRpc Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let ledgerScRegistryContract: LedgerSCRegistry;
-  let jsonRpcService: JsonRpcService;
   let configService: ConfigService<ApiConfig>;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let userAccessToken: string;
   let userAccessTokenPayload: { [x: string]: unknown };
+  let adminAccessToken: string;
+  let adminAccessTokenPayload: { [x: string]: unknown };
   let contractService: ContractService;
 
-  const adminDid = createDid().toLowerCase();
+  const adminDid = "did:ebsi:admin";
+  const adminWallet = ethers.Wallet.createRandom();
+  const userDid = "did:ebsi:user";
+  const userWallet = ethers.Wallet.createRandom();
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -93,15 +113,19 @@ describe("JsonRpc Module", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     contractService = moduleFixture.get<ContractService>(ContractService);
 
     // Generate JWTs
-    userAccessTokenPayload = { sub: adminDid };
+    adminAccessTokenPayload = { sub: adminDid };
+    adminAccessToken = await createJWT(adminAccessTokenPayload, {
+      issuer: "any",
+      signer: ES256KSigner(adminWallet.privateKey.replace("0x", "")),
+    });
+    userAccessTokenPayload = { sub: userDid };
     userAccessToken = await createJWT(userAccessTokenPayload, {
       issuer: "any",
-      signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+      signer: ES256KSigner(userWallet.privateKey.replace("0x", "")),
     });
   });
 
@@ -118,24 +142,54 @@ describe("JsonRpc Module", () => {
       throw new Error("Forgot to mock an axios call?");
     });
 
-    jest.spyOn(axios, "get").mockImplementation(() => {
+    jest.spyOn(axios, "get").mockImplementation((url): Promise<unknown> => {
+      // accessing administrators in TAR
+      if (url.includes("/administrators")) {
+        if (!url.includes(adminDid)) {
+          throw axiosError(404, "Not found");
+        }
+        return Promise.resolve({
+          data: {
+            did: adminDid,
+            attributes: [
+              {
+                hash: "",
+                body: Buffer.from(
+                  JSON.stringify({
+                    validFrom: new Date().toISOString(),
+                  })
+                ).toString("base64"),
+              },
+            ],
+          },
+        });
+      }
+
+      // accessing did registry
+      if (url.includes("/identifiers?controller")) {
+        if (url.includes(adminWallet.address.toLowerCase()))
+          return Promise.resolve({
+            data: { items: [{ did: adminDid }] },
+          });
+        if (url.includes(userWallet.address.toLowerCase()))
+          return Promise.resolve({
+            data: { items: [{ did: userDid }] },
+          });
+        return Promise.resolve({ data: { items: [] } });
+      }
       throw new Error("Forgot to mock an axios call?");
     });
-
-    // For the tests, we assume that the DID is controlled by the signer
-    jest
-      .spyOn(jsonRpcService, "isDidControlledByAddress")
-      .mockImplementation(async () => Promise.resolve(true));
-
-    // We also assume that the DID is an administrator in the TAR
-    jest
-      .spyOn(jsonRpcService, "verifyTrustedAppsRegistryAdministrator")
-      .mockImplementation(async () => Promise.resolve());
 
     // And that the JWT is valid (default scenario)
     jest
       .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve(userAccessTokenPayload));
+      .mockImplementation(async (token) => {
+        if (token === userAccessToken)
+          return Promise.resolve(userAccessTokenPayload);
+        if (token === adminAccessToken)
+          return Promise.resolve(adminAccessTokenPayload);
+        return Promise.reject(new Error("error message"));
+      });
   });
 
   afterEach(() => {
@@ -317,16 +371,11 @@ describe("JsonRpc Module", () => {
     // Mock access token verification
     jest
       .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve(userAccessTokenPayload));
-
-    // The DID is not controlled by the signer
-    jest
-      .spyOn(jsonRpcService, "isDidControlledByAddress")
-      .mockImplementation(async () => Promise.resolve(false));
+      .mockImplementation(async () => Promise.resolve(adminAccessTokenPayload));
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
+      .auth(adminAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "insertLedgerInfo",
@@ -360,7 +409,7 @@ describe("JsonRpc Module", () => {
 
     const responseSend = await request(server)
       .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
+      .auth(adminAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: "signedTransaction",
@@ -391,8 +440,6 @@ describe("JsonRpc Module", () => {
   it("should throw an error if the DID is not a TAR admin", async () => {
     expect.assertions(4);
 
-    const signer = ethers.Wallet.createRandom();
-
     const param: JsonRpcParams = {
       name: "ledger-name",
       info: `0x${Buffer.from(
@@ -402,24 +449,13 @@ describe("JsonRpc Module", () => {
           name: "ledger-name",
         })
       ).toString("hex")}`,
-      from: signer.address,
+      from: userWallet.address,
     } as InsertLedgerInfoParam;
 
     // Mock access token verification
     jest
       .spyOn(SiopSession.prototype, "verifyAccessToken")
       .mockImplementation(async () => Promise.resolve(userAccessTokenPayload));
-
-    // The DID is not controlled by the signer
-    jest
-      .spyOn(jsonRpcService, "verifyTrustedAppsRegistryAdministrator")
-      .mockImplementation(async () =>
-        Promise.reject(
-          new Error(
-            `${adminDid} not found as administrator in the Trusted Apps Registry`
-          )
-        )
-      );
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
@@ -452,7 +488,7 @@ describe("JsonRpc Module", () => {
       JSON.parse(JSON.stringify(unsignedTransaction))
     );
     uTx.chainId = Number(uTx.chainId);
-    const sgnTx = await signer.signTransaction(uTx);
+    const sgnTx = await userWallet.signTransaction(uTx);
     const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
     const responseSend = await request(server)
@@ -477,7 +513,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.body).toStrictEqual({
       error: {
         code: -32600,
-        message: `${adminDid} not found as administrator in the Trusted Apps Registry`,
+        message: `${userDid} not found as administrator in the Trusted Apps Registry`,
       },
       id: "45",
       jsonrpc: "2.0",
@@ -501,12 +537,10 @@ describe("JsonRpc Module", () => {
 
       let param: JsonRpcParams = null;
 
-      const signer = ethers.Wallet.createRandom();
-
       switch (method) {
         case "insertLedgerInfo": {
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "ledger-name",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -530,7 +564,7 @@ describe("JsonRpc Module", () => {
           );
 
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             ledgerInfoId: id,
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -545,7 +579,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateLedgerInfoByName": {
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "ledger-name",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -560,7 +594,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateLedgerName": {
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             oldName: "ledger-name",
             newName: "ledger-name-new",
           } as UpdateLedgerNameParam;
@@ -568,7 +602,7 @@ describe("JsonRpc Module", () => {
         }
         case "insertSmartContractInfo": {
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "smart-contract-name",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -592,7 +626,7 @@ describe("JsonRpc Module", () => {
           );
 
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             smartContractInfoId: id,
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -606,7 +640,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateSmartContractInfoByName": {
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "smart-contract-name",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -620,7 +654,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateSmartContractName": {
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             oldName: "smart-contract-name",
             newName: "smart-contract-name-new",
           } as UpdateSmartContractNameParam;
@@ -632,7 +666,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(userAccessToken, { type: "bearer" })
+        .auth(adminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -661,12 +695,12 @@ describe("JsonRpc Module", () => {
         JSON.parse(JSON.stringify(unsignedTransaction))
       );
       uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await signer.signTransaction(uTx);
+      const sgnTx = await adminWallet.signTransaction(uTx);
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
       const responseSend = await request(server)
         .post("/jsonrpc")
-        .auth(userAccessToken, { type: "bearer" })
+        .auth(adminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",
@@ -694,14 +728,12 @@ describe("JsonRpc Module", () => {
     it("should accept a request without id", async () => {
       expect.assertions(2);
 
-      const signer = ethers.Wallet.createRandom();
-
       let param: JsonRpcParams = null;
 
       switch (method) {
         case "insertLedgerInfo": {
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "ledger-name",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -725,7 +757,7 @@ describe("JsonRpc Module", () => {
           );
 
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             ledgerInfoId: id,
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -740,7 +772,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateLedgerInfoByName": {
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "ledger-name",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -755,7 +787,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateLedgerName": {
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             oldName: "ledger-name",
             newName: "ledger-name-new",
           } as UpdateLedgerNameParam;
@@ -763,7 +795,7 @@ describe("JsonRpc Module", () => {
         }
         case "insertSmartContractInfo": {
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "smart-contract-name",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -787,7 +819,7 @@ describe("JsonRpc Module", () => {
           );
 
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             smartContractInfoId: id,
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -801,7 +833,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateSmartContractInfoByName": {
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "smart-contract-name",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -815,7 +847,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateSmartContractName": {
           param = {
-            from: signer.address,
+            from: adminWallet.address,
             oldName: "smart-contract-name",
             newName: "smart-contract-name-new",
           } as UpdateSmartContractNameParam;
@@ -827,7 +859,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild = await request(server)
         .post("/jsonrpc")
-        .auth(userAccessToken, { type: "bearer" })
+        .auth(adminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -846,8 +878,6 @@ describe("JsonRpc Module", () => {
     it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
       expect.assertions(6);
 
-      const signer = ethers.Wallet.createRandom();
-
       let param1: JsonRpcParams = null;
       let param2: JsonRpcParams = null;
       let param3: JsonRpcParams = null;
@@ -859,7 +889,7 @@ describe("JsonRpc Module", () => {
       switch (method) {
         case "insertLedgerInfo": {
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: 123,
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -874,7 +904,7 @@ describe("JsonRpc Module", () => {
             "property params[0].name has failed the following constraints: isString";
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "ledger-name",
             info: "some random string",
           } as InsertLedgerInfoParam;
@@ -883,7 +913,7 @@ describe("JsonRpc Module", () => {
             "property params[0].info has failed the following constraints: isHexadecimalJSON";
 
           param3 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "ledger-name",
             info: "0x1234",
           } as InsertLedgerInfoParam;
@@ -904,7 +934,7 @@ describe("JsonRpc Module", () => {
           );
 
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             ledgerInfoId: "some random string",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -920,7 +950,7 @@ describe("JsonRpc Module", () => {
             "property params[0].ledgerInfoId has failed the following constraints: isHexadecimal";
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             ledgerInfoId: id,
             info: "some random string",
           } as UpdateLedgerInfoByIdParam;
@@ -929,7 +959,7 @@ describe("JsonRpc Module", () => {
             "property params[0].info has failed the following constraints: isHexadecimalJSON";
 
           param3 = {
-            from: signer.address,
+            from: adminWallet.address,
             ledgerInfoId: id,
             info: "0x1234",
           } as UpdateLedgerInfoByIdParam;
@@ -940,7 +970,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateLedgerInfoByName": {
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: 123,
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -956,7 +986,7 @@ describe("JsonRpc Module", () => {
             "property params[0].name has failed the following constraints: isString";
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "ledger-name",
             info: "some random string",
           } as UpdateLedgerInfoByNameParam;
@@ -965,7 +995,7 @@ describe("JsonRpc Module", () => {
             "property params[0].info has failed the following constraints: isHexadecimalJSON";
 
           param3 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "ledger-name",
             info: "0x1234",
           } as UpdateLedgerInfoByNameParam;
@@ -977,7 +1007,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateLedgerName": {
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             oldName: 123,
             newName: "ledger-name-new",
           } as unknown as UpdateLedgerNameParam;
@@ -986,7 +1016,7 @@ describe("JsonRpc Module", () => {
             "property params[0].oldName has failed the following constraints: isString";
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             oldName: "ledger-name",
             newName: 123,
           } as unknown as UpdateLedgerNameParam;
@@ -995,7 +1025,7 @@ describe("JsonRpc Module", () => {
             "property params[0].newName has failed the following constraints: isString";
 
           param3 = {
-            from: signer.address,
+            from: adminWallet.address,
             newName: "ledger-name-new",
           } as UpdateLedgerNameParam;
 
@@ -1006,7 +1036,7 @@ describe("JsonRpc Module", () => {
         }
         case "insertSmartContractInfo": {
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: 123,
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1021,7 +1051,7 @@ describe("JsonRpc Module", () => {
             "property params[0].name has failed the following constraints: isString";
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "smart-contract-name",
             info: "some random string",
           } as InsertSmartContractInfoParam;
@@ -1030,7 +1060,7 @@ describe("JsonRpc Module", () => {
             "property params[0].info has failed the following constraints: isHexadecimalJSON";
 
           param3 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "smart-contract-name",
             info: "0x1234",
           } as InsertSmartContractInfoParam;
@@ -1051,7 +1081,7 @@ describe("JsonRpc Module", () => {
           );
 
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             smartContractInfoId: "random string",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1066,7 +1096,7 @@ describe("JsonRpc Module", () => {
             "property params[0].smartContractInfoId has failed the following constraints: isHexadecimal";
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             smartContractInfoId: id,
             info: "some random string",
           } as UpdateSmartContractInfoByIdParam;
@@ -1075,7 +1105,7 @@ describe("JsonRpc Module", () => {
             "property params[0].info has failed the following constraints: isHexadecimalJSON";
 
           param3 = {
-            from: signer.address,
+            from: adminWallet.address,
             smartContractInfoId: id,
             info: "0x1234",
           } as UpdateSmartContractInfoByIdParam;
@@ -1087,7 +1117,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateSmartContractInfoByName": {
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: 123,
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1102,7 +1132,7 @@ describe("JsonRpc Module", () => {
             "property params[0].name has failed the following constraints: isString";
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "smart-contract-name",
             info: "some random string",
           } as UpdateSmartContractInfoByNameParam;
@@ -1111,7 +1141,7 @@ describe("JsonRpc Module", () => {
             "property params[0].info has failed the following constraints: isHexadecimalJSON";
 
           param3 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "smart-contract-name",
             info: "0x1234",
           } as UpdateSmartContractInfoByNameParam;
@@ -1123,7 +1153,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateSmartContractName": {
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             oldName: 123,
             newName: "smart-contract-name-new",
           } as unknown as UpdateSmartContractNameParam;
@@ -1132,7 +1162,7 @@ describe("JsonRpc Module", () => {
             "property params[0].oldName has failed the following constraints: isString";
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             oldName: "smart-contract-name",
             newName: 123,
           } as unknown as UpdateSmartContractNameParam;
@@ -1141,7 +1171,7 @@ describe("JsonRpc Module", () => {
             "property params[0].newName has failed the following constraints: isString";
 
           param3 = {
-            from: signer.address,
+            from: adminWallet.address,
             newName: "smart-contract-name-new",
           } as UpdateSmartContractNameParam;
 
@@ -1156,7 +1186,7 @@ describe("JsonRpc Module", () => {
 
       const response1 = await request(server)
         .post("/jsonrpc")
-        .auth(userAccessToken, { type: "bearer" })
+        .auth(adminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1176,7 +1206,7 @@ describe("JsonRpc Module", () => {
 
       const response2 = await request(server)
         .post("/jsonrpc")
-        .auth(userAccessToken, { type: "bearer" })
+        .auth(adminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1196,7 +1226,7 @@ describe("JsonRpc Module", () => {
 
       const response3 = await request(server)
         .post("/jsonrpc")
-        .auth(userAccessToken, { type: "bearer" })
+        .auth(adminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1218,15 +1248,13 @@ describe("JsonRpc Module", () => {
     it("should throw an error when the unsignedTransaction has been tampered", async () => {
       expect.assertions(6);
 
-      const signer = ethers.Wallet.createRandom();
-
       let param1: JsonRpcParams;
       let param2: JsonRpcParams;
 
       switch (method) {
         case "insertLedgerInfo": {
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "ledger-name",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1238,7 +1266,7 @@ describe("JsonRpc Module", () => {
           } as InsertLedgerInfoParam;
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "ledger-name-2",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1263,7 +1291,7 @@ describe("JsonRpc Module", () => {
           );
 
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             ledgerInfoId: id,
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1276,7 +1304,7 @@ describe("JsonRpc Module", () => {
           } as UpdateLedgerInfoByIdParam;
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             ledgerInfoId: id,
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1292,7 +1320,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateLedgerInfoByName": {
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "ledger-name",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1305,7 +1333,7 @@ describe("JsonRpc Module", () => {
           } as UpdateLedgerInfoByNameParam;
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "ledger-name-2",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1321,13 +1349,13 @@ describe("JsonRpc Module", () => {
         }
         case "updateLedgerName": {
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             oldName: "ledger-name",
             newName: "ledger-name-new",
           } as UpdateLedgerNameParam;
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             oldName: "ledger-name",
             newName: "ledger-name-new-2",
           } as UpdateLedgerNameParam;
@@ -1335,7 +1363,7 @@ describe("JsonRpc Module", () => {
         }
         case "insertSmartContractInfo": {
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "smart-contract-name",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1347,7 +1375,7 @@ describe("JsonRpc Module", () => {
           } as InsertSmartContractInfoParam;
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "smart-contract-name-2",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1372,7 +1400,7 @@ describe("JsonRpc Module", () => {
           );
 
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             smartContractInfoId: id,
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1384,7 +1412,7 @@ describe("JsonRpc Module", () => {
           } as UpdateSmartContractInfoByIdParam;
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             smartContractInfoId: id,
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1398,7 +1426,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateSmartContractInfoByName": {
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "smart-contract-name",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1410,7 +1438,7 @@ describe("JsonRpc Module", () => {
           } as UpdateSmartContractInfoByNameParam;
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             name: "smart-contract-name-2",
             info: `0x${Buffer.from(
               JSON.stringify({
@@ -1425,13 +1453,13 @@ describe("JsonRpc Module", () => {
         }
         case "updateSmartContractName": {
           param1 = {
-            from: signer.address,
+            from: adminWallet.address,
             oldName: "smart-contract-name",
             newName: "smart-contract-name-new",
           } as UpdateSmartContractNameParam;
 
           param2 = {
-            from: signer.address,
+            from: adminWallet.address,
             oldName: "smart-contract-name",
             newName: "smart-contract-name-new-2",
           } as UpdateSmartContractNameParam;
@@ -1443,7 +1471,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild1: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(userAccessToken, { type: "bearer" })
+        .auth(adminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1456,7 +1484,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild2: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(userAccessToken, { type: "bearer" })
+        .auth(adminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1478,7 +1506,7 @@ describe("JsonRpc Module", () => {
       // Tampering signatures
       const responseSend1 = await request(server)
         .post("/jsonrpc")
-        .auth(userAccessToken, { type: "bearer" })
+        .auth(adminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",
@@ -1510,7 +1538,7 @@ describe("JsonRpc Module", () => {
       transaction1.from = transaction2.from;
       const responseSend2 = await request(server)
         .post("/jsonrpc")
-        .auth(userAccessToken, { type: "bearer" })
+        .auth(adminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",
