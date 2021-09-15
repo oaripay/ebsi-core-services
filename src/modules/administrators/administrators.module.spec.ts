@@ -357,15 +357,7 @@ describe("Administrators Module", () => {
         .get(`/administrators/${adminDid}`)
         .auth(admin0AccessToken, { type: "bearer" });
 
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
-            description: "http://tir-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(administrators[0].attribute));
       const dataBase64 = data.toString("base64");
       const dataHash = ethers.utils.sha256(data);
 
@@ -409,15 +401,7 @@ describe("Administrators Module", () => {
         .get(url)
         .auth(admin0AccessToken, { type: "bearer" });
 
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
-            description: "http://tir-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(administrators[0].attribute));
       const dataHash = ethers.utils.sha256(data).slice(2);
 
       expect(response.body).toStrictEqual({
@@ -455,15 +439,7 @@ describe("Administrators Module", () => {
 
       const { administrators } = testEnv;
       const adminDid = administrators[0].did;
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
-            description: "http://tir-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(administrators[0].attribute));
       const dataBase64 = data.toString("base64");
       const dataHash = ethers.utils.sha256(data).slice(2);
 
@@ -523,15 +499,7 @@ describe("Administrators Module", () => {
 
       // Consult an attribute from a different did
       const admin2Did = administrators[1].did;
-      const data2 = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
-            description: "http://tir-api-test.org/description",
-          },
-          name: `test-${admin2Did}`,
-        })
-      );
+      const data2 = Buffer.from(JSON.stringify(administrators[1].attribute));
       const attributeId4 = ethers.utils.sha256(data2);
       const response3 = await request(server)
         .get(`${url}/${attributeId4}`)
@@ -556,15 +524,7 @@ describe("Administrators Module", () => {
 
       const { administrators } = testEnv;
       const adminDid = administrators[0].did;
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
-            description: "http://tir-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(administrators[0].attribute));
       const dataHash = ethers.utils.sha256(data).slice(2);
 
       const url = `/administrators/${adminDid}/attributes/${dataHash}/revisions`;
@@ -604,15 +564,7 @@ describe("Administrators Module", () => {
 
       const { administrators } = testEnv;
       const adminDid = administrators[0].did;
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
-            description: "http://tir-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(administrators[0].attribute));
       const dataHash = ethers.utils.sha256(data).slice(2);
 
       const url = `/administrators/${adminDid}/attributes/${dataHash}/revisions`;
@@ -678,15 +630,7 @@ describe("Administrators Module", () => {
 
       const { administrators } = testEnv;
       const adminDid = administrators[0].did;
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
-            description: "http://tir-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(administrators[0].attribute));
       const dataHash = ethers.utils.sha256(data).slice(2);
 
       const response = await request(server)
@@ -726,15 +670,7 @@ describe("Administrators Module", () => {
 
       const { administrators } = testEnv;
       const adminDid = administrators[0].did;
-      const data = Buffer.from(
-        JSON.stringify({
-          "@context": {
-            name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
-            description: "http://tir-api-test.org/description",
-          },
-          name: `test-${adminDid}`,
-        })
-      );
+      const data = Buffer.from(JSON.stringify(administrators[0].attribute));
       const dataHash = ethers.utils.sha256(data).slice(2);
 
       const url = `/administrators/${adminDid}/attributes/${dataHash}/revisions`;

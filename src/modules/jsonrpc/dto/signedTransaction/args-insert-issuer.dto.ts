@@ -1,5 +1,5 @@
 import { IsHexadecimal } from "class-validator";
-import IsDid from "../../validators/IsDid";
+import { IsDid } from "../../validators";
 
 export class ArgsInsertIssuer {
   @IsDid()

@@ -71,10 +71,11 @@ describe("JsonRpc Module", () => {
 
   const createAdministrator = (did: string) => {
     const json = {
-      // any object here
       any: "Any attribute here",
       type: "credential",
       data: crypto.randomBytes(16).toString("hex"),
+      validFrom: new Date().toISOString(),
+      validTo: new Date(Date.now() + 4e8).toISOString(),
     };
     const data = Buffer.from(JSON.stringify(json));
     const dataBase64 = data.toString("base64");
@@ -448,6 +449,7 @@ describe("JsonRpc Module", () => {
           description: "http://tir-api-test.org/description",
         },
         name: "alice",
+        validFrom: new Date().toISOString(),
       })
     );
 
@@ -505,7 +507,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          `Administrator ${adminDid} was not found in the Trusted Issuers Registry`
+          `${adminDid.toLowerCase()} is not an administrator`
         ) as string,
       },
     });

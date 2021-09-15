@@ -1,6 +1,6 @@
 import { registerDecorator } from "class-validator";
 
-export default function IsDid() {
+export function IsDid() {
   return (object: unknown, propertyName: string): void => {
     registerDecorator({
       name: "isDid",
@@ -18,3 +18,5 @@ export default function IsDid() {
     });
   };
 }
+
+export default IsDid;

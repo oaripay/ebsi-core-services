@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
+import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
 import { LedgerService } from "../../shared/services/ledger.service";
 import {
   RequestInsertAdministratorDto,
@@ -28,6 +29,14 @@ import {
 } from "./jsonrpc.utils";
 import { prefixWith0x } from "../../shared/utils";
 import { ApiConfig } from "../../config/configuration";
+import { AdministratorsService } from "../administrators/administrators.service";
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof ProblemDetailsError && error.detail) {
+    return error.detail;
+  }
+  return (error as Error).message;
+}
 
 @Injectable()
 export class JsonRpcService {
@@ -39,7 +48,8 @@ export class JsonRpcService {
 
   constructor(
     configService: ConfigService<ApiConfig>,
-    private ledgerService: LedgerService
+    private ledgerService: LedgerService,
+    private administratorService: AdministratorsService
   ) {
     this.didRegistry = configService.get<string>("didRegistryApiUrl");
   }
@@ -126,13 +136,7 @@ export class JsonRpcService {
     }
 
     // Verify if the DID is an admin in the TIR Registry
-    try {
-      await (await this.ledgerService.getContract()).getAdministrator(did);
-    } catch (e) {
-      throw new Error(
-        `Administrator ${clientId} was not found in the Trusted Issuers Registry`
-      );
-    }
+    await this.administratorService.allowAdministratorsOnly(did);
   }
 
   async verifyTransaction(
@@ -300,7 +304,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -338,7 +342,7 @@ export class JsonRpcService {
       );
       return await this.buildTransaction(from, encodedData);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -362,7 +366,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -401,7 +405,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, encodedData);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -422,7 +426,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -443,7 +447,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -469,7 +473,7 @@ export class JsonRpcService {
       ).provider.sendTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
