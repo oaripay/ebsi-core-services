@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
+import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
 import {
   RequestDeleteAppAdministratorDto,
   RequestInsertAppDto,
@@ -45,6 +46,14 @@ import LedgerService from "../ledger/ledger.service";
 import { Tar } from "../../contracts/Tar";
 import { ApiConfig } from "../../config/configuration";
 import { prefixWith0x } from "../../shared/utils";
+import AdministratorsService from "../administrators/administrators.service";
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof ProblemDetailsError && error.detail) {
+    return error.detail;
+  }
+  return (error as Error).message;
+}
 
 @Injectable()
 export class JsonRpcService {
@@ -58,7 +67,8 @@ export class JsonRpcService {
 
   constructor(
     configService: ConfigService<ApiConfig>,
-    private ledgerService: LedgerService
+    private ledgerService: LedgerService,
+    private administratorService: AdministratorsService
   ) {
     this.tarContract = this.ledgerService.getContract();
     this.didRegistry = configService.get<string>("didRegistryApiUrl");
@@ -121,27 +131,12 @@ export class JsonRpcService {
   }
 
   async checkWritePermission(address: string, clientId: string): Promise<void> {
-    /* TODO: check -->
-      - Actor DID must be registered in the DID Registry
-      - The actor must be authorized for the write operation in the TAR SC
-    */
+    await this.administratorService.allowAdministratorsOnly(clientId);
 
     // Check DID Registry
-
     if (!(await this.isDidControlledByAddress(clientId, address))) {
       throw new Error(
         `The DID ${clientId} is not controlled by the address ${address}`
-      );
-    }
-
-    const did = clientId.toLowerCase();
-
-    // Verify the DID is in the TAR Registry
-    try {
-      await this.tarContract.getAdministrator(did);
-    } catch (e) {
-      throw new Error(
-        `Administrator ${did} was not found in the Trusted Apps Registry`
       );
     }
   }
@@ -346,7 +341,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -382,7 +377,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -404,7 +399,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -426,7 +421,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -448,7 +443,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -489,7 +484,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, encodedData);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -511,7 +506,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -534,7 +529,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -556,7 +551,7 @@ export class JsonRpcService {
       );
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -577,7 +572,7 @@ export class JsonRpcService {
       );
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -597,7 +592,7 @@ export class JsonRpcService {
       );
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -617,7 +612,7 @@ export class JsonRpcService {
       );
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -648,7 +643,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -671,7 +666,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -696,7 +691,7 @@ export class JsonRpcService {
 
       return tx.hash;
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }

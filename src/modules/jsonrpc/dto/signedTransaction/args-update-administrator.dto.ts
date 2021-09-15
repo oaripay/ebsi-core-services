@@ -1,12 +1,12 @@
 import { IsLowercase, IsHexadecimal, IsOptional } from "class-validator";
-import { IsDid } from "../../validators";
+import { IsDid, IsHexadecimalAdminAttribute } from "../../validators";
 
 export class ArgsUpdateAdministrator {
   @IsDid()
   @IsLowercase()
   did: string;
 
-  @IsHexadecimal()
+  @IsHexadecimalAdminAttribute()
   attributeData: string;
 
   @IsOptional()

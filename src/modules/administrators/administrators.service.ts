@@ -1,5 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from "@cef-ebsi/problem-details-errors";
+import { isISO8601 } from "class-validator";
 import {
   AdministratorResponseObject,
   AttributeObject,
@@ -131,5 +136,47 @@ export default class AdministratorsService {
     );
 
     return { revisions, total: revisionHashes.total.toNumber() };
+  }
+
+  async allowAdministratorsOnly(did: string): Promise<void> {
+    let admin: AdministratorResponseObject;
+    try {
+      admin = await this.getAdministrator(did);
+    } catch (e) {
+      throw new ForbiddenError(ForbiddenError.defaultTitle, {
+        detail: `${did} is not an administrator`,
+      });
+    }
+
+    const firstAttributeString = Buffer.from(
+      admin.attributes[0].body,
+      "base64"
+    ).toString();
+    let attribute: {
+      validFrom: string;
+      validTo: string;
+    };
+
+    try {
+      attribute = JSON.parse(firstAttributeString) as {
+        validFrom: string;
+        validTo: string;
+      };
+    } catch (error) {
+      throw new BadRequestError(BadRequestError.defaultTitle, {
+        detail: `Administrator ${did} does not contain a valid JSON in the first attribute`,
+      });
+    }
+
+    const { validFrom, validTo } = attribute;
+    const now = new Date();
+    if (
+      !isISO8601(validFrom) ||
+      new Date(validFrom) > now ||
+      (validTo && (!isISO8601(validTo) || new Date(validTo) < now))
+    )
+      throw new ForbiddenError(ForbiddenError.defaultTitle, {
+        detail: `Administrator ${did} is disabled`,
+      });
   }
 }

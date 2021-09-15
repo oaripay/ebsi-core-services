@@ -69,10 +69,11 @@ describe("Administrators (e2e)", () => {
   const createAdministrator = () => {
     const did = createDid().toLowerCase();
     const json = {
-      // any object here
       any: "Any attribute here",
       type: "credential",
       data: crypto.randomBytes(16).toString("hex"),
+      validFrom: new Date().toISOString(),
+      validTo: new Date(Date.now() + 4e8).toISOString(),
     };
     const buffer = Buffer.from(JSON.stringify(json));
     const attribute = {
