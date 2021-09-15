@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
+import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
 import {
   RequestSignedTransactionDto,
   SignedTransactionParam,
@@ -30,6 +31,14 @@ import {
 import { ContractService } from "../../shared/services/contract.service";
 import { ApiConfig } from "../../config/configuration";
 import { prefixWith0x } from "../../shared/utils";
+import AdministratorsService from "../administrators/administrators.service";
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof ProblemDetailsError && error.detail) {
+    return error.detail;
+  }
+  return (error as Error).message;
+}
 
 @Injectable()
 export class JsonRpcService {
@@ -41,7 +50,8 @@ export class JsonRpcService {
 
   constructor(
     private configService: ConfigService<ApiConfig>,
-    private contractService: ContractService
+    private contractService: ContractService,
+    private administratorService: AdministratorsService
   ) {
     this.didRegistry = configService.get<string>("didRegistryApiUrl");
   }
@@ -121,16 +131,7 @@ export class JsonRpcService {
       );
     }
 
-    const did = clientId.toLowerCase();
-
-    // Verify the DID is an admin
-    try {
-      await (await this.contractService.getContract()).getAdministrator(did);
-    } catch (e) {
-      throw new Error(
-        `Administrator ${clientId} was not found in the Trusted Schemas Registry`
-      );
-    }
+    await this.administratorService.allowAdministratorsOnly(clientId);
   }
 
   async verifyTransaction(
@@ -305,7 +306,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -324,7 +325,7 @@ export class JsonRpcService {
       ).interface.encodeFunctionData("insertPolicy", [policyId, policyData]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -349,7 +350,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -368,7 +369,7 @@ export class JsonRpcService {
       ).interface.encodeFunctionData("updatePolicy", [policyId, policyData]);
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -393,7 +394,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -417,7 +418,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, data);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -459,7 +460,7 @@ export class JsonRpcService {
 
       return await this.buildTransaction(from, encodedData);
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }
@@ -483,7 +484,7 @@ export class JsonRpcService {
       ).provider.sendTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;
       throw error;
     }

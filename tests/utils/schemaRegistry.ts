@@ -197,6 +197,8 @@ export async function insertAdmin(
       description: "http://tsr-api-test.org/description",
     },
     name: `test-${adminDid}`,
+    validFrom: new Date().toISOString(),
+    validTo: new Date(Date.now() + 4e8).toISOString(),
   };
 
   const bufferAttribute = Buffer.from(JSON.stringify(attribute));

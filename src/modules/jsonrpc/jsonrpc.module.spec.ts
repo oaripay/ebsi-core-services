@@ -77,6 +77,8 @@ describe("JsonRpc Module", () => {
       any: "Any attribute here",
       type: "credential",
       data: crypto.randomBytes(16).toString("hex"),
+      validFrom: new Date().toISOString(),
+      validTo: new Date(Date.now() + 4e8).toISOString(),
     };
     const attributeData = `0x${Buffer.from(JSON.stringify(json)).toString(
       "hex"
@@ -408,6 +410,7 @@ describe("JsonRpc Module", () => {
           description: "http://tsr-api-test.org/description",
         },
         name: "alice",
+        validFrom: new Date().toISOString(),
       })
     ).toString("hex")}`;
 
@@ -465,7 +468,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          `Administrator ${adminDid} was not found in the Trusted Schemas Registry`
+          `${adminDid} is not an administrator`
         ) as string,
       },
     });
