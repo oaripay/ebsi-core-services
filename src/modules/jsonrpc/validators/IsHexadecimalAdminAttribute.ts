@@ -32,11 +32,13 @@ export function isHexadecimalAdminAttribute(value: unknown): boolean {
     validTo: string;
   };
 
-  return (
-    isISO8601(attribute.validFrom) &&
-    attribute.validTo !== undefined &&
-    isISO8601(attribute.validTo)
-  );
+  // validFrom should be defined
+  if (!isISO8601(attribute.validFrom)) return false;
+
+  // validTo is optional
+  if (attribute.validTo === undefined) return true;
+
+  return isISO8601(attribute.validTo);
 }
 
 /**

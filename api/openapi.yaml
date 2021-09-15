@@ -2189,7 +2189,10 @@ paths:
                   Parameters:
                   - **from**: Ethereum address of the administrator
                   - **did**: DID of new administrator
-                  - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
+                  - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string.
+                    The dates defining the validity of the administrator are defined in the fields "validFrom" and "validTo"
+                    (optional) inside the JSON. Both values must use ISO8601 format.
+                    For indefinite time do not set "validTo".
                 value:
                   jsonrpc: "2.0"
                   method: insertAdministrator
@@ -2197,7 +2200,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
-                      attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a226439333866396337356465643839623835613231363566343539333964356235227d"
+                      attributeData: "0x7b2276616c696446726f6d223a22323032312d30392d31355431333a30393a34302e3533385a222c2276616c6964546f223a22323032312d30392d32305430343a31363a32302e3533385a227d"
               Build tx to updateAdministrator (new attribute):
                 description: |
                   Call to build an unsigned transaction to insert new attribute data to an administrator in the registry. This method requires admin rights in the DID Registry.
@@ -2222,7 +2225,10 @@ paths:
                   - **from**: Ethereum address of the administrator
                   - **did**: DID of the administrator to update
                   - **prevAttributeHash**: Attribute ID to update
-                  - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
+                  - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string.
+                    If the attribute to update corresponds with the first attribute, then dates defining the validity of the
+                    administrator are defined in the fields "validFrom" and "validTo" (optional) inside the JSON.
+                    Both values must use ISO8601 format. For indefinite time do not set "validTo".
                 value:
                   jsonrpc: "2.0"
                   method: updateAdministrator
@@ -2231,7 +2237,7 @@ paths:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
                       prevAttributeHash: "0xade61e5d36c9cb925a59c00c4c0e16c25a6dce1ec8475432f75c953ff2cd551d"
-                      attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223962346233643265613331636561366336346535653763393462363462383932227d"
+                      attributeData: "0x7b2276616c696446726f6d223a22323032312d30392d31355431333a30393a34302e3533385a222c2276616c6964546f223a22323032312d30392d32305430343a31363a32302e3533385a227d"
               Build tx to insertPolicy:
                 description: |
                   Call to build an unsigned transaction to insert a policy in the registry. This method requires admin rights in the DID Registry.

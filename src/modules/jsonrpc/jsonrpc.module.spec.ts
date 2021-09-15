@@ -118,14 +118,16 @@ describe("JsonRpc Module", () => {
   let userAccessToken: string;
   let defaultSignerSiopAccessToken: string;
 
-  const createAdministrator = (did: string) => {
+  const createAdministrator = (did: string, usingValidTo = true) => {
     const json = {
       // any object here
       any: "Any attribute here",
       type: "credential",
       data: crypto.randomBytes(16).toString("hex"),
       validFrom: new Date().toISOString(),
-      validTo: new Date(Date.now() + 4e8).toISOString(),
+      ...(usingValidTo && {
+        validTo: new Date(Date.now() + 4e8).toISOString(),
+      }),
     };
     const attributeData = `0x${Buffer.from(JSON.stringify(json)).toString(
       "hex"
@@ -797,6 +799,7 @@ describe("JsonRpc Module", () => {
     "insertAdministrator",
     "updateAdministrator",
     "updateAdministrator(test update attribute)",
+    "updateAdministrator(without validTo)",
     "insertHashAlgorithm",
     "updateHashAlgorithm",
     "insertPolicy",
@@ -815,9 +818,11 @@ describe("JsonRpc Module", () => {
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const withOptionalParams = testMethod.includes("(with optional params)");
+    const usingValidTo = !testMethod.includes("(without validTo)");
     const method = testMethod
       .replace("(test update attribute)", "")
-      .replace("(with optional params)", "");
+      .replace("(with optional params)", "")
+      .replace("(without validTo)", "");
 
     it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
       expect.assertions(4);
@@ -857,7 +862,8 @@ describe("JsonRpc Module", () => {
           } else {
             // updateIssuer: add attribute2
             param = {
-              attributeData: adminV2.attributeData,
+              attributeData: createAdministrator(did, usingValidTo)
+                .attributeData,
               did: did.toLowerCase(),
               from: signer.address,
             } as UpdateAdministratorParam;
