@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   Col,
   DatePicker,
@@ -13,7 +13,7 @@ import {
 import { ethers } from "ethers";
 
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import { AppContext } from "../AppContext";
+import { useAppContext } from "../AppContext";
 import { notAfterDate, notBeforeDate } from "../date-validator";
 import { useTableHook } from "../hooks/use-table-hook";
 import { useEthersHook } from "../hooks/use-ethers.hook";
@@ -23,7 +23,7 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
 
   const { registerApp } = useRegistryContractHook();
   const { didRegistryContract, registryContract } = useEthersHook();
-  const appCtx = useContext(AppContext);
+  const appCtx = useAppContext();
   const { loadTableData } = useTableHook();
 
   useEffect(() => {

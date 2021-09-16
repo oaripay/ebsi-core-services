@@ -1,4 +1,4 @@
-import React, { ReactElement, useContext, useEffect } from "react";
+import React, { ReactElement, useEffect } from "react";
 import {
   Col,
   DatePicker,
@@ -12,7 +12,7 @@ import {
 } from "antd";
 
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import { AppContext } from "../AppContext";
+import { useAppContext } from "../AppContext";
 import { notAfterDate, notBeforeDate } from "../date-validator";
 import { useTableHook } from "../hooks/use-table-hook";
 import { useEthersHook } from "../hooks/use-ethers.hook";
@@ -23,7 +23,7 @@ export default function ModalInsertAuth(): ReactElement {
   const { insertAuthorization } = useRegistryContractHook();
   const { didRegistryContract, registryContract } = useEthersHook();
   const { loadTableData } = useTableHook();
-  const appCtx = useContext(AppContext);
+  const appCtx = useAppContext();
 
   useEffect(() => {
     if (appCtx.authorizedAppsModal.show) {

@@ -7,6 +7,9 @@ import { ethers } from "ethers";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { notification } from "antd";
 import { useEthersHook } from "../../hooks/use-ethers.hook";
+import { useWalletContext } from "../../components/Wallet/WalletContext";
+
+type DidRecordDataType = {};
 
 export function createMetadata() {
   return {
@@ -77,32 +80,24 @@ export function buildDidParams(document: any) {
 
 export default function useDidRegister() {
   const { didRegistryContract, registryContract } = useEthersHook();
+  const { walletAddress } = useWalletContext();
   const { provider } = useEthersHook();
   const [loading, setLoading] = useState(true);
   const [networkId, setNetworkId] = useState(0);
-  const [walletAddress, setWalletAddress] = useState("");
   const [publicKey, setPublicKey] = useState("");
   const [didDefined, setDidDefined] = useState(false);
+  const [didRecord, setDidRecord] = useState<DidRecordDataType>({});
   const [didAsAdministrator, setDidAsAdministrator] = useState(false);
 
   useEffect(() => {
     if (!provider) {
       return;
     }
-    Promise.all([
-      provider.getNetwork().then((network) => {
+    provider
+      .getNetwork()
+      .then((network) => {
         setNetworkId(network.chainId);
-      }),
-      provider
-        .getSigner()
-        .getAddress()
-        .then((addr: string) => {
-          setWalletAddress(addr);
-        })
-        .catch(() => {
-          setLoading(false);
-        }),
-    ])
+      })
       .then(() => {
         setLoading(false);
       })
@@ -181,7 +176,8 @@ export default function useDidRegister() {
 
     didRegistryContract
       .getDidRecord(`0x${Buffer.from(didEbsi).toString("hex")}`)
-      .then(() => {
+      .then((didRecordData: DidRecordDataType) => {
+        setDidRecord(didRecordData);
         setDidDefined(true);
       })
       .catch(() => {
@@ -277,5 +273,6 @@ export default function useDidRegister() {
     didToBeSent,
     insertDidAs,
     didAsAdministrator,
+    didRecord,
   };
 }

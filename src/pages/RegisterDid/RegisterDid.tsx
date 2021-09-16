@@ -14,6 +14,7 @@ import {
 import Paragraph from "antd/es/typography/Paragraph";
 import { config } from "../../config";
 import useDidRegister from "./use-did-register";
+import RegisterDidTable from "./RegisterDidTable";
 
 export default function RegisterDid() {
   const {
@@ -26,6 +27,7 @@ export default function RegisterDid() {
     didDefined,
     didToBeSent,
     didAsAdministrator,
+    didRecord,
   } = useDidRegister();
 
   const { Title } = Typography;
@@ -134,6 +136,9 @@ export default function RegisterDid() {
               </Col>
             </Row>
           </Col>
+        </Row>
+        <Row>
+          <RegisterDidTable didRecord={didRecord} />
         </Row>
       </Spin>
     </Space>

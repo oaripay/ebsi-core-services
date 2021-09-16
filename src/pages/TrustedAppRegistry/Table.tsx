@@ -1,14 +1,14 @@
-import React, { useContext, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Table as TableAntd } from "antd";
 
 import { TablePaginationConfig } from "antd/es/table";
 import { useTableHook } from "../../hooks/use-table-hook";
-import { AppContext } from "../../AppContext";
+import { useAppContext } from "../../AppContext";
 import { useRegistryContractHook } from "../../hooks/use-registry-contract.hook";
 
 export function Table() {
   const { columns, loadTableData } = useTableHook();
-  const { filteredDataSource, tableLoading, setPage } = useContext(AppContext);
+  const { filteredDataSource, tableLoading, setPage } = useAppContext();
   const { totalItems, initTotalItems } = useRegistryContractHook();
 
   useEffect(() => {

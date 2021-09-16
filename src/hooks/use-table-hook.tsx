@@ -1,12 +1,12 @@
 import { Button, Row, Space, Tag, Tooltip, Typography } from "antd";
-import React, { useCallback, useContext } from "react";
+import React, { useCallback } from "react";
 import {
   EditOutlined,
   PlusOutlined,
   PropertySafetyOutlined,
 } from "@ant-design/icons/lib";
 
-import { AppContext } from "../AppContext";
+import { useAppContext } from "../AppContext";
 import { useRegistryContractHook } from "./use-registry-contract.hook";
 import Ellipsis from "../components/Ellipsis/Ellipsis";
 
@@ -26,7 +26,7 @@ export function useTableHook() {
     setAuthorizedAppsModal,
     setUpdateAuthorization,
     setEditModal,
-  } = useContext(AppContext);
+  } = useAppContext();
   const { getApplications } = useRegistryContractHook();
 
   const loadTableData = useCallback(() => {

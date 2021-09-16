@@ -1,6 +1,7 @@
 import React, {
   ReactElement,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useState,
@@ -261,4 +262,8 @@ export function AppProvider({
   ]);
 
   return <AppContext.Provider value={values}>{children}</AppContext.Provider>;
+}
+
+export function useAppContext() {
+  return useContext(AppContext);
 }

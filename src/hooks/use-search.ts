@@ -1,6 +1,6 @@
-import { useCallback, useContext, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import Fuse from "fuse.js";
-import { AppContext } from "../AppContext";
+import { useAppContext } from "../AppContext";
 import { useRegistryContractHook } from "./use-registry-contract.hook";
 
 export function useSearch() {
@@ -9,7 +9,7 @@ export function useSearch() {
     setTableFilteredDataSource,
     setTableLoading,
     setMissingApps,
-  } = useContext(AppContext);
+  } = useAppContext();
   const { getAppByName, getApplications } = useRegistryContractHook();
 
   const options = useMemo(
