@@ -4,6 +4,7 @@ import {
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
 import { HashName } from "multihashes";
+import type { TransactionDescription } from "@ethersproject/abi";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { Timestamp } from "../../contracts/timestamp";
@@ -91,7 +92,12 @@ export default class TimestampsService {
     //   ...
     // }
     const transaction = block.transactions.find((tx) => {
-      const parsedTx = contractInterface.parseTransaction(tx);
+      let parsedTx: TransactionDescription;
+      try {
+        parsedTx = contractInterface.parseTransaction(tx);
+      } catch (e) {
+        return false;
+      }
 
       if (
         !Array.isArray(parsedTx.args.hashAlgorithmIds) ||
