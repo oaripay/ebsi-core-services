@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import axios, { AxiosError } from "axios";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -18,7 +17,6 @@ import {
 import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { JsonRpcModule } from "./jsonrpc.module";
-import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   UnsignedTransaction,
@@ -36,7 +34,6 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { LedgerSCRegistry } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/ledgerScRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { createDid } from "../../../tests/utils/data";
 import { ApiConfig } from "../../config/configuration";
 import { ContractService } from "../../shared/services/contract.service";
 
