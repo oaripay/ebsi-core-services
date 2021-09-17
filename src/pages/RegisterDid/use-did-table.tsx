@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { BigNumber, ethers } from "ethers";
 import JSONPretty from "react-json-pretty";
 
+import Paragraph from "antd/es/typography/Paragraph";
+import { Tooltip } from "antd";
 import { useEthersHook } from "../../hooks/use-ethers.hook";
 import { useWalletContext } from "../../components/Wallet/WalletContext";
 
@@ -37,15 +39,21 @@ export default function useDidTable({ didRecord }: PropType) {
   const [timestampsIds, setTimestampsIds] = useState<string[]>([]);
   const [administrators, setAdministrators] = useState<string[]>([]);
 
+  const identifier = useMemo(() => {
+    if (!walletAddress) {
+      return "";
+    }
+    return `did:ebsi:${walletAddress}`;
+  }, [walletAddress]);
+
   useEffect(() => {
     if (!didRegistryContract || !versionHashes.length) {
       return;
     }
-    const didEbsi = `did:ebsi:${walletAddress}`;
     const promises = versionHashes.map(() => {
       return didRegistryContract
         .getDidDocumentVersionDidTimestampIds(
-          `0x${Buffer.from(didEbsi).toString("hex")}`,
+          `0x${Buffer.from(identifier).toString("hex")}`,
           didRecord.totalDidVersions.toNumber()
         )
         .catch(() => {});
@@ -56,6 +64,7 @@ export default function useDidTable({ didRecord }: PropType) {
   }, [
     didRecord.totalDidVersions,
     didRegistryContract,
+    identifier,
     versionHashes,
     versionHashes.length,
     walletAddress,
@@ -71,10 +80,9 @@ export default function useDidTable({ didRecord }: PropType) {
     if (!didRegistryContract || !versionHashes.length) {
       return;
     }
-    const didEbsi = `did:ebsi:${walletAddress}`;
     didRegistryContract
       .getDidDocumentVersionMetadataIds(
-        `0x${Buffer.from(didEbsi).toString("hex")}`,
+        `0x${Buffer.from(identifier).toString("hex")}`,
         versionHashes[0],
         1,
         50
@@ -83,14 +91,22 @@ export default function useDidTable({ didRecord }: PropType) {
         setMetadataVersionIds(data.items);
       })
       .catch(() => {});
-  }, [didRecord, didRegistryContract, versionHashes, walletAddress]);
+  }, [
+    didRecord,
+    didRegistryContract,
+    identifier,
+    versionHashes,
+    walletAddress,
+  ]);
 
   useEffect(() => {
     if (!didRegistryContract || !metadataVersionIds.length) {
       return;
     }
     const promises = metadataVersionIds.map((versionIdData: string) => {
-      return didRegistryContract.getDidDocumentVersionMetadata(versionIdData);
+      return didRegistryContract
+        .getDidDocumentVersionMetadata(versionIdData)
+        .catch(() => {});
     });
     Promise.all(promises).then((data) => {
       setMetadata(data);
@@ -101,18 +117,18 @@ export default function useDidTable({ didRecord }: PropType) {
     if (!didRegistryContract || !didRecord || !didRecord[0]) {
       return;
     }
-    const didEbsi = `did:ebsi:${walletAddress}`;
     didRegistryContract
       .getDidDocumentVersionIds(
-        `0x${Buffer.from(didEbsi).toString("hex")}`,
+        `0x${Buffer.from(identifier).toString("hex")}`,
         1,
         50
       )
       .then((didVersionIds: PaginatedResponse) => {
         setVersionHashes(didVersionIds.items);
-      });
+      })
+      .catch(() => {});
     setVersionHashes([]);
-  }, [didRecord, didRegistryContract, walletAddress]);
+  }, [didRecord, didRegistryContract, identifier, walletAddress]);
 
   useEffect(() => {
     if (!didRegistryContract || !didRecord || !didRecord[0]) {
@@ -121,7 +137,7 @@ export default function useDidTable({ didRecord }: PropType) {
     let promises = [];
     if (versionHashes.length) {
       promises = versionHashes.map((hash: string) =>
-        didRegistryContract.getDidDocumentVersionInfo(hash)
+        didRegistryContract.getDidDocumentVersionInfo(hash).catch(() => {})
       );
       Promise.all(promises).then((versionInfosTemp: string[]) => {
         setVersionInfos(versionInfosTemp);
@@ -134,12 +150,12 @@ export default function useDidTable({ didRecord }: PropType) {
       return;
     }
     registryContract
-      .getAdministrator(`did:ebsi:${walletAddress}`)
+      .getAdministrator(identifier)
       .then((administratorsData: string[]) => {
         setAdministrators(administratorsData);
       })
       .catch(() => {});
-  }, [registryContract, walletAddress]);
+  }, [identifier, registryContract, walletAddress]);
 
   const dataSource: DataType = useMemo(() => {
     return [
@@ -173,7 +189,18 @@ export default function useDidTable({ didRecord }: PropType) {
           return (
             <>
               {values.map((value) => (
-                <p key={value}>{value}</p>
+                <Tooltip title={value}>
+                  <Paragraph
+                    className="d-flex"
+                    key={value}
+                    copyable={{
+                      text: value,
+                    }}
+                  >
+                    {value.slice(0, 4)}...
+                    {value.slice(-4)}
+                  </Paragraph>
+                </Tooltip>
               ))}
             </>
           );
@@ -184,17 +211,28 @@ export default function useDidTable({ didRecord }: PropType) {
     {
       title: "Version hashes",
       key: "versionHashes",
+      width: 400,
       render: ({
         versionHashes: versionHashesData,
         versionInfos: versionInfosData,
       }: any) => {
         return (
-          <>
+          <div>
             {versionHashesData ? (
               <>
                 <h3>Version Hash</h3>
-                {versionHashesData.map((versionHash: any) => (
-                  <p key={versionHash}>{versionHash}</p>
+                {versionHashesData.map((versionHash: string) => (
+                  <Tooltip title={versionHash}>
+                    <Paragraph
+                      key={versionHash}
+                      copyable={{
+                        text: versionHash,
+                      }}
+                    >
+                      {versionHash.slice(0, 4)}...
+                      {versionHash.slice(-4)}
+                    </Paragraph>
+                  </Tooltip>
                 ))}
               </>
             ) : (
@@ -204,30 +242,36 @@ export default function useDidTable({ didRecord }: PropType) {
               <>
                 <h3>Version Info data</h3>
                 {versionInfosData.map((versionInfoData: any) => (
-                  <p key={versionInfoData}>
+                  <div key={versionInfoData}>
+                    <Paragraph
+                      copyable={{
+                        text: ethers.utils.toUtf8String(versionInfoData),
+                      }}
+                    />
                     <JSONPretty
                       id="json-pretty"
                       data={ethers.utils.toUtf8String(versionInfoData)}
                     />
-                  </p>
+                  </div>
                 ))}
               </>
             ) : (
               ""
             )}
-          </>
+          </div>
         );
       },
     },
     {
       title: "Metadata",
       key: "metadata",
+      width: 400,
       render: ({
         metadataVersionIds: metadataVersionIdsData,
         metadata: metadataRow,
       }: any) => {
         return (
-          <>
+          <div>
             {metadataVersionIdsData ? (
               <>
                 <h3>Metadata Version Ids</h3>
@@ -242,18 +286,18 @@ export default function useDidTable({ didRecord }: PropType) {
               <>
                 <h3>Metadata</h3>
                 {metadataRow.map((metadataItem: string) => (
-                  <p key={metadataItem}>
+                  <div key={metadataItem}>
                     <JSONPretty
                       id="json-pretty"
                       data={ethers.utils.toUtf8String(metadataItem)}
                     />
-                  </p>
+                  </div>
                 ))}
               </>
             ) : (
               ""
             )}
-          </>
+          </div>
         );
       },
     },
@@ -263,11 +307,24 @@ export default function useDidTable({ didRecord }: PropType) {
       render: ({ timestampsIds: timestampsIdsData }: any) => {
         return (
           <>
-            {timestampsIdsData ? (
+            {timestampsIdsData.length ? (
               <>
-                {timestampsIdsData.map((timestampId: string) => (
-                  <p key={timestampId}>{timestampId}</p>
-                ))}
+                {timestampsIdsData.map((timestampId: string) => {
+                  return (
+                    <Tooltip title={timestampId}>
+                      <Paragraph
+                        className="d-flex"
+                        key={timestampId}
+                        copyable={{
+                          text: timestampId,
+                        }}
+                      >
+                        {timestampId[0].slice(0, 4)}...
+                        {timestampId[0].slice(-4)}
+                      </Paragraph>
+                    </Tooltip>
+                  );
+                })}
               </>
             ) : (
               ""
@@ -285,7 +342,18 @@ export default function useDidTable({ didRecord }: PropType) {
             {administratorsData.length ? (
               <>
                 {administratorsData.map((administrator: string) => (
-                  <p key={administrator}>{administrator}</p>
+                  <Tooltip title={administrator}>
+                    <Paragraph
+                      className="d-flex"
+                      key={administrator}
+                      copyable={{
+                        text: administrator,
+                      }}
+                    >
+                      {administrator.slice(0, 4)}...
+                      {administrator.slice(-4)}
+                    </Paragraph>
+                  </Tooltip>
                 ))}
               </>
             ) : (

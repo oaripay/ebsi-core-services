@@ -10,8 +10,14 @@ export default function RegisterDidTable({ didRecord }: PropType) {
   const { columns, dataSource } = useDidTable({ didRecord });
   return (
     <Row>
-      <Col span={12}>
-        <Table columns={columns} dataSource={dataSource} />
+      <Col span={20}>
+        <Table
+          columns={columns}
+          dataSource={dataSource}
+          scroll={{
+            x: 1600,
+          }}
+        />
       </Col>
     </Row>
   );
