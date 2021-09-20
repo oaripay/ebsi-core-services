@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.4&targetRepoId=251) (2021-09-15)
+
+### 🚀 Features
+
+- control access with admin attributes ([#65](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/65/overview)) - EBSIINT-3297 ([25e0083](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/25e0083ce2224036f9792f254e36f4111566ffae))
+
+### 🐛 Bug Fixes
+
+- align /jsonrpc methods with other APIs ([#55](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/55/overview)) - EBSIINT-3166 ([469e73e](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/469e73eb328be73132a2548c0d97bd58706fb9cd))
+- update dependencies and upgrade Node.js to 14.17.2 ([#56](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/56/overview)) - EBSIINT-3174 ([786b484](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/786b48405e2206a6de72191daac24a50df705fc9))
+- update Node.js to v14.17.5 ([#61](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/61/overview)) - EBSIINT-3220 ([9a90078](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/9a90078d4a8c1adbc11ec3bf44c2a99d3e935e32))
+- upgrade Node.js to v14.17.4 ([#59](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/59/overview)) - EBSIINT-3206 ([eb040e6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/eb040e639e74103f1935c14efc15417198b0e06b))
+
 ## [2.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.3&targetRepoId=251) (2021-06-17)
 
 ### 🐛 Bug Fixes
