@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.3&targetRepoId=244) (2021-09-09)
+
+### 🚀 Features
+
+- add GET /blockchains/fabric/channels/{channel}/blocks ([#59](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/59/overview)) - EBSIINT-2632 ([4d08e9a](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/4d08e9a0a323f52076ec697711bdffcf0aed4bb9))
+- allow public Besu methods to be accessed without a JWT ([#67](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/67/overview)) - EBSIINT-3265 ([e972fef](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/e972feffc2f813b850aee0f196d28d12f0efb331))
+- allow siop tokens ([#66](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/66/overview)) - EBSIINT-3253 ([1de5901](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/1de5901ed625bbd36d155b14cc2fd89f6a54d663))
+- connect to Besu using WebSocket instead of HTTPS ([#52](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/52/overview)) - EBSIINT-3134 ([f76b7ff](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/f76b7ffe3b747c3b2e15b8f2f6dbb7f0a4f69ced))
+- get fabric transactions ([#62](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/62/overview)) - EBSIINT-2634 ([85f8178](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/85f8178154cb43d432d1c95f3b2bd816c65443a5))
+- implement /blockchains/fabric/channels endpoint ([#56](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/56/overview)) - EBSIINT-2630 ([88193dc](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/88193dc8a8e3c399510d54e9afeaca4ed8d670ec))
+- implement /blockchains/fabric/channels/{channel} endpoint ([#58](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/58/overview)) - EBSIINT-2631 ([c10de2d](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/c10de2d64ac9be93de163df042684ed107635276))
+- implement /blockchains/fabric/channels/{channel}/blocks/{blockNumber} ([#61](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/61/overview)) - EBSIINT-2633 ([3eba656](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/3eba65673ec3460907daf1c4070e30b03b6da018))
+- implement GET /blockchains/fabric/channels/{channel}/transactions/{transactionId} ([#65](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/65/overview)) - EBSIINT-2635 ([9fb2f8b](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/9fb2f8bf6e482e9f55060731e390adffcf481a97))
+
+### 🐛 Bug Fixes
+
+- access wallet folder for fabric ([#69](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/69/overview)) - EBSIINT-3255 ([b725b28](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/b725b28138c391a229c1fed69cd7562502be275d))
+- check if url includes /blockchains/besu ([#68](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/68/overview)) - EBSIINT-3265 ([45ab46a](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/45ab46a1aa4724b65452226224000eb05883be9e))
+- update dependencies and upgrade Node.js to 14.17.2 - EBSIINT-3174 ([05f2282](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/05f2282ed5e64b65fa236681e4f2924af5a3bf16))
+- update Node.js to v14.17.5 ([#63](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/63/overview)) - EBSIINT-3220 ([58954c9](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/58954c9bd4f49f42e9f7e67f091f467565aabb44))
+- upgrade Node.js to v14.17.4 ([#57](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/57/overview)) - EBSIINT-3206 ([b453813](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/b45381367eb4a033cc33027c6d29767f5a0ff96f))
+
 ## [2.0.0-rc.2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=244) (2021-06-17)
 
 ### 🚀 Features
