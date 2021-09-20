@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { BigNumber, ethers } from "ethers";
 import JSONPretty from "react-json-pretty";
 
 import Paragraph from "antd/es/typography/Paragraph";
-import { Tooltip } from "antd";
+import { Button, Tooltip } from "antd";
 import { useEthersHook } from "../../hooks/use-ethers.hook";
 import { useWalletContext } from "../../components/Wallet/WalletContext";
 
@@ -31,6 +31,11 @@ export default function useDidTable({ didRecord }: PropType) {
   const { didRegistryContract } = useEthersHook();
   const { registryContract } = useEthersHook();
   const { walletAddress } = useWalletContext();
+  const [modal, setModal] = useState({
+    visible: false,
+    content: <></>,
+    title: "",
+  });
   const [didControllers, setDidControllers] = useState<string[]>([]);
   const [versionHashes, setVersionHashes] = useState<string[]>([]);
   const [versionInfos, setVersionInfos] = useState<string[]>([]);
@@ -45,6 +50,14 @@ export default function useDidTable({ didRecord }: PropType) {
     }
     return `did:ebsi:${walletAddress}`;
   }, [walletAddress]);
+
+  const resetModal = useCallback(() => {
+    setModal({
+      content: <></>,
+      title: "",
+      visible: false,
+    });
+  }, []);
 
   useEffect(() => {
     if (!didRegistryContract || !versionHashes.length) {
@@ -211,7 +224,6 @@ export default function useDidTable({ didRecord }: PropType) {
     {
       title: "Version hashes",
       key: "versionHashes",
-      width: 400,
       render: ({
         versionHashes: versionHashesData,
         versionInfos: versionInfosData,
@@ -241,19 +253,31 @@ export default function useDidTable({ didRecord }: PropType) {
             {versionInfosData ? (
               <>
                 <h3>Version Info data</h3>
-                {versionInfosData.map((versionInfoData: any) => (
-                  <div key={versionInfoData}>
-                    <Paragraph
-                      copyable={{
-                        text: ethers.utils.toUtf8String(versionInfoData),
-                      }}
-                    />
-                    <JSONPretty
-                      id="json-pretty"
-                      data={ethers.utils.toUtf8String(versionInfoData)}
-                    />
-                  </div>
-                ))}
+                <Button
+                  onClick={() => {
+                    setModal({
+                      visible: true,
+                      title: "Version info data",
+                      content: versionInfosData.map((versionInfoData: any) => (
+                        <div key={versionInfoData}>
+                          <Paragraph
+                            copyable={{
+                              text: ethers.utils.toUtf8String(versionInfoData),
+                            }}
+                          >
+                            Copy JSON
+                          </Paragraph>
+                          <JSONPretty
+                            id="json-pretty"
+                            data={ethers.utils.toUtf8String(versionInfoData)}
+                          />
+                        </div>
+                      )),
+                    });
+                  }}
+                >
+                  Show metadata
+                </Button>
               </>
             ) : (
               ""
@@ -265,7 +289,6 @@ export default function useDidTable({ didRecord }: PropType) {
     {
       title: "Metadata",
       key: "metadata",
-      width: 400,
       render: ({
         metadataVersionIds: metadataVersionIdsData,
         metadata: metadataRow,
@@ -276,7 +299,17 @@ export default function useDidTable({ didRecord }: PropType) {
               <>
                 <h3>Metadata Version Ids</h3>
                 {metadataVersionIdsData.map((versionHash: string) => (
-                  <p key={versionHash}>{versionHash}</p>
+                  <Tooltip title={versionHash}>
+                    <Paragraph
+                      key={versionHash}
+                      copyable={{
+                        text: versionHash,
+                      }}
+                    >
+                      {versionHash.slice(0, 4)}...
+                      {versionHash.slice(-4)}
+                    </Paragraph>
+                  </Tooltip>
                 ))}
               </>
             ) : (
@@ -285,14 +318,24 @@ export default function useDidTable({ didRecord }: PropType) {
             {metadataVersionIdsData ? (
               <>
                 <h3>Metadata</h3>
-                {metadataRow.map((metadataItem: string) => (
-                  <div key={metadataItem}>
-                    <JSONPretty
-                      id="json-pretty"
-                      data={ethers.utils.toUtf8String(metadataItem)}
-                    />
-                  </div>
-                ))}
+                <Button
+                  onClick={() => {
+                    setModal({
+                      visible: true,
+                      title: "Version info data",
+                      content: metadataRow.map((metadataItem: string) => (
+                        <div key={metadataItem}>
+                          <JSONPretty
+                            id="json-pretty"
+                            data={ethers.utils.toUtf8String(metadataItem)}
+                          />
+                        </div>
+                      )),
+                    });
+                  }}
+                >
+                  Show metadata
+                </Button>
               </>
             ) : (
               ""
@@ -368,5 +411,8 @@ export default function useDidTable({ didRecord }: PropType) {
   return {
     columns,
     dataSource,
+    modal,
+    setModal,
+    resetModal,
   };
 }
