@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.3&targetRepoId=318) (2021-09-09)
+
+### 🐛 Bug Fixes
+
+- update dependencies and upgrade Node.js to 14.17.2 ([#25](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/pull-requests/25/overview)) - EBSIINT-3174 ([2db2021](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/commits/2db2021ac034c9842100f027ca2e3194c5dbb363))
+- update Node.js to v14.17.5 ([#29](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/pull-requests/29/overview)) - EBSIINT-3220 ([8261e62](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/commits/8261e628d2a4e1166b16f0700e9c52dc5dd452da))
+- upgrade Node.js to v14.17.4 ([#28](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/pull-requests/28/overview)) - EBSIINT-3206 ([12b83d1](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/commits/12b83d18a2a4b0550f3d799d0af4d0e572749455))
+
 ## [1.0.0-rc.2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.2&targetRepoId=318) (2021-06-17)
 
 ### 🚀 Features
