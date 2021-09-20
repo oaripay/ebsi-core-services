@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.10](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.9&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.10&targetRepoId=359) (2021-09-09)
+
+### 🚀 Features
+
+- support different encryption keys ([#52](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/52/overview)) - EBSIINT-3221 ([4280a49](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/4280a49716cb2278b3a11502fae36e45b1c38fb2))
+
 ## [1.0.0-rc.9](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.9&targetRepoId=359) (2021-08-16)
 
 ### 🐛 Bug Fixes
