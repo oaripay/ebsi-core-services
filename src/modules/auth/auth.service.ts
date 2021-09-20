@@ -1,7 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
-import { decodeJWT, JWTVerified, verifyEbsiJWT } from "@cef-ebsi/did-jwt";
+import {
+  decodeJWT,
+  JWTPayload,
+  JWTVerified,
+  verifyEbsiJWT,
+} from "@cef-ebsi/did-jwt";
 import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
@@ -16,7 +21,14 @@ export default class AuthService {
   }
 
   async validateToken(token: string): Promise<JWTVerified> {
-    const { payload } = decodeJWT(token);
+    let payload: JWTPayload;
+    try {
+      payload = decodeJWT(token).payload;
+    } catch (error) {
+      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
+        detail: `Invalid Authorisation Token: ${(error as Error).message}`,
+      });
+    }
     if (!payload.iss || payload.iss !== this.applicationDid)
       throw new UnauthorizedError(`unexpected issuer found in session token`);
     try {

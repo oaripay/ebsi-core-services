@@ -113,12 +113,12 @@ describe("Authentication Module", () => {
     });
 
     it("should reject request with wrong token", async () => {
-      expect.assertions(2);
+      expect.assertions(4);
 
       const idToken =
         "id_token=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj";
       const fakeToken = await createFakeToken();
-      const response = await request(server)
+      let response = await request(server)
         .post("/authentication-responses")
         .auth(fakeToken, { type: "bearer" })
         .send({ id_token: idToken });
@@ -127,6 +127,20 @@ describe("Authentication Module", () => {
       expect(responseBody.title).toStrictEqual(
         "unexpected issuer found in session token"
       );
+      expect(response.status).toBe(401);
+
+      const wrongToken = "very.bad.token.123.abc";
+      response = await request(server)
+        .post("/authentication-responses")
+        .auth(wrongToken, { type: "bearer" })
+        .send({ id_token: idToken });
+      expect(response.body).toStrictEqual({
+        title: "Unauthorized",
+        detail:
+          "Invalid Authorisation Token: invalid_argument: Incorrect format JWT",
+        status: 401,
+        type: "about:blank",
+      });
       expect(response.status).toBe(401);
     });
 
