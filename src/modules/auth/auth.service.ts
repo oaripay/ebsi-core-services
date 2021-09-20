@@ -9,40 +9,43 @@ import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
 export class AuthService {
-  private trustedAppsRegistryApiUrl: string;
-
   private authorisationApiDid: string;
 
   private authorisationApiName: string;
 
-  private apiName: string;
+  private siopSession: SiopSession;
 
-  private apiPrivateKey: string;
-
-  private tarProvider: string;
-
-  private didRegistry: string;
+  private oauth2Session: OAuth2Session;
 
   constructor(configService: ConfigService<ApiConfig>) {
-    this.apiPrivateKey = configService.get<string>("apiPrivateKey");
-    this.apiName = configService.get<string>("apiName");
-    this.trustedAppsRegistryApiUrl = configService.get<string>(
-      "trustedAppsRegistryApiUrl"
-    );
     this.authorisationApiDid = configService.get<string>("authorisationApiDid");
     this.authorisationApiName = configService.get<string>(
       "authorisationApiName"
     );
 
-    this.tarProvider = `${this.trustedAppsRegistryApiUrl}/apps`;
-
     const domain = configService.get<string>("domain");
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
-    this.didRegistry = `${domain}${apiUrlPrefix}/identifiers`;
+
+    this.siopSession = new SiopSession({
+      didRegistry: `${domain}${apiUrlPrefix}/identifiers`,
+    });
+    this.oauth2Session = new OAuth2Session("undefined", {
+      appName: configService.get<string>("apiName"),
+      tarProvider: `${configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      )}/apps`,
+    });
   }
 
   async validateToken(bearerToken: string): Promise<SubjectInfo> {
-    const { payload } = decodeJWT(bearerToken);
+    let payload: JWTPayload;
+    try {
+      payload = decodeJWT(bearerToken).payload;
+    } catch (error) {
+      throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
+        detail: `Invalid Authorisation Token: ${(error as Error).message}`,
+      });
+    }
 
     const { sub } = payload;
 
@@ -63,15 +66,10 @@ export class AuthService {
 
   async validateOAuth2Token(bearerToken: string): Promise<AppInfo> {
     // Verify access token with @cef-ebsi/oauth2-auth
-    const session = new OAuth2Session(this.apiPrivateKey, {
-      appName: this.apiName,
-      tarProvider: this.tarProvider,
-    });
-
     let payload: JWTPayload;
 
     try {
-      payload = await session.verifyAccessToken(
+      payload = await this.oauth2Session.verifyAccessToken(
         bearerToken,
         this.authorisationApiName
       );
@@ -93,15 +91,10 @@ export class AuthService {
 
   async validateSiopToken(bearerToken: string): Promise<ClientInfo> {
     // Verify access token with @cef-ebsi/siop-auth
-    const session = new SiopSession({
-      privateKey: this.apiPrivateKey,
-      didRegistry: this.didRegistry,
-    });
-
     let payload: JWTPayload;
 
     try {
-      payload = await session.verifyAccessToken(
+      payload = await this.siopSession.verifyAccessToken(
         bearerToken,
         this.authorisationApiDid
       );

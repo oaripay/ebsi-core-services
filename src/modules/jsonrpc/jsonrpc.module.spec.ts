@@ -350,6 +350,27 @@ describe("JsonRpc Module", () => {
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
+  it("should reject a POST with an invalid token", async () => {
+    expect.assertions(3);
+
+    const response = await request(server)
+      .post("/jsonrpc")
+      .auth("very.bad.token.123.abc", { type: "bearer" })
+      .send();
+
+    expect(response.body).toStrictEqual({
+      detail:
+        "Invalid Authorisation Token: invalid_argument: Incorrect format JWT",
+      status: 401,
+      title: "Unauthorized",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(401);
+    expect(
+      (response.headers as { "content-type": string })["content-type"]
+    ).toStrictEqual(expect.stringContaining("application/problem+json"));
+  });
+
   it("should reject a POST with an invalid app token", async () => {
     expect.assertions(4);
 
