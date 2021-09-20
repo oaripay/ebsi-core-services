@@ -1,11 +1,29 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  ReactElement,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { BigNumber, ethers } from "ethers";
 import JSONPretty from "react-json-pretty";
 
 import Paragraph from "antd/es/typography/Paragraph";
-import { Button, Tooltip } from "antd";
+import { Button, Form, Tooltip } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+
 import { useEthersHook } from "../../hooks/use-ethers.hook";
 import { useWalletContext } from "../../components/Wallet/WalletContext";
+import InsertDidControllerModalContent from "./InsertDidControllerModalContent";
+import useDidControllerModal from "./use-did-controller-modal";
+
+type ModalPropsType = {
+  visible: boolean;
+  content: ReactElement;
+  title: string;
+  width: number;
+  onOk?: (param?: any) => void;
+};
 
 type DataType = {
   didControllers?: string[];
@@ -31,10 +49,11 @@ export default function useDidTable({ didRecord }: PropType) {
   const { didRegistryContract } = useEthersHook();
   const { registryContract } = useEthersHook();
   const { walletAddress } = useWalletContext();
-  const [modal, setModal] = useState({
+  const [modal, setModal] = useState<ModalPropsType>({
     visible: false,
     content: <></>,
     title: "",
+    width: 700,
   });
   const [didControllers, setDidControllers] = useState<string[]>([]);
   const [versionHashes, setVersionHashes] = useState<string[]>([]);
@@ -43,6 +62,12 @@ export default function useDidTable({ didRecord }: PropType) {
   const [metadata, setMetadata] = useState<string[]>([]);
   const [timestampsIds, setTimestampsIds] = useState<string[]>([]);
   const [administrators, setAdministrators] = useState<string[]>([]);
+  const [insertDidControllerForm] = Form.useForm();
+  const [tableLoading] = useState(false);
+
+  const { insertDidController } = useDidControllerModal({
+    insertDidControllerForm,
+  });
 
   const identifier = useMemo(() => {
     if (!walletAddress) {
@@ -56,6 +81,8 @@ export default function useDidTable({ didRecord }: PropType) {
       content: <></>,
       title: "",
       visible: false,
+      width: 700,
+      onOk: undefined,
     });
   }, []);
 
@@ -202,7 +229,7 @@ export default function useDidTable({ didRecord }: PropType) {
           return (
             <>
               {values.map((value) => (
-                <Tooltip title={value}>
+                <Tooltip title={value} key={value}>
                   <Paragraph
                     className="d-flex"
                     key={value}
@@ -215,6 +242,28 @@ export default function useDidTable({ didRecord }: PropType) {
                   </Paragraph>
                 </Tooltip>
               ))}
+              <Button
+                onClick={() => {
+                  setModal({
+                    visible: true,
+                    title: "Insert DID Controller",
+                    onOk: () => {
+                      insertDidController(identifier)?.then(() => {
+                        resetModal();
+                      });
+                    },
+                    content: (
+                      <InsertDidControllerModalContent
+                        form={insertDidControllerForm}
+                      />
+                    ),
+                    width: 500,
+                  });
+                }}
+              >
+                <PlusOutlined />
+                Insert DID Controller
+              </Button>
             </>
           );
         }
@@ -234,7 +283,7 @@ export default function useDidTable({ didRecord }: PropType) {
               <>
                 <h3>Version Hash</h3>
                 {versionHashesData.map((versionHash: string) => (
-                  <Tooltip title={versionHash}>
+                  <Tooltip title={versionHash} key={versionHash}>
                     <Paragraph
                       key={versionHash}
                       copyable={{
@@ -257,6 +306,7 @@ export default function useDidTable({ didRecord }: PropType) {
                   onClick={() => {
                     setModal({
                       visible: true,
+                      width: 850,
                       title: "Version info data",
                       content: versionInfosData.map((versionInfoData: any) => (
                         <div key={versionInfoData}>
@@ -299,7 +349,7 @@ export default function useDidTable({ didRecord }: PropType) {
               <>
                 <h3>Metadata Version Ids</h3>
                 {metadataVersionIdsData.map((versionHash: string) => (
-                  <Tooltip title={versionHash}>
+                  <Tooltip title={versionHash} key={versionHash}>
                     <Paragraph
                       key={versionHash}
                       copyable={{
@@ -322,7 +372,8 @@ export default function useDidTable({ didRecord }: PropType) {
                   onClick={() => {
                     setModal({
                       visible: true,
-                      title: "Version info data",
+                      width: 700,
+                      title: "Metadata",
                       content: metadataRow.map((metadataItem: string) => (
                         <div key={metadataItem}>
                           <JSONPretty
@@ -354,7 +405,7 @@ export default function useDidTable({ didRecord }: PropType) {
               <>
                 {timestampsIdsData.map((timestampId: string) => {
                   return (
-                    <Tooltip title={timestampId}>
+                    <Tooltip title={timestampId} key={timestampId}>
                       <Paragraph
                         className="d-flex"
                         key={timestampId}
@@ -385,7 +436,7 @@ export default function useDidTable({ didRecord }: PropType) {
             {administratorsData.length ? (
               <>
                 {administratorsData.map((administrator: string) => (
-                  <Tooltip title={administrator}>
+                  <Tooltip title={administrator} key={administrator}>
                     <Paragraph
                       className="d-flex"
                       key={administrator}
@@ -414,5 +465,6 @@ export default function useDidTable({ didRecord }: PropType) {
     modal,
     setModal,
     resetModal,
+    tableLoading,
   };
 }

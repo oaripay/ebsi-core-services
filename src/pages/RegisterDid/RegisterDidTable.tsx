@@ -7,22 +7,26 @@ type PropType = {
 };
 
 export default function RegisterDidTable({ didRecord }: PropType) {
-  const { columns, dataSource, modal, resetModal } = useDidTable({ didRecord });
+  const { columns, dataSource, modal, resetModal, tableLoading } = useDidTable({
+    didRecord,
+  });
   return (
     <Row>
-      <Col span={20}>
+      <Col span={24}>
         <Modal
           title={modal.title}
           visible={modal.visible}
-          width={1000}
+          width={modal.width}
           onCancel={resetModal}
-          onOk={resetModal}
+          onOk={modal.onOk || resetModal}
         >
-          <p>{modal.content}</p>
+          <>{modal.content}</>
         </Modal>
         <Table
+          rowKey="didControllers"
           columns={columns}
           dataSource={dataSource}
+          loading={tableLoading}
           scroll={{
             x: 1600,
           }}
