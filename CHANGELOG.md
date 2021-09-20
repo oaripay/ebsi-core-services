@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.3&targetRepoId=245) (2021-09-09)
+
+### 🐛 Bug Fixes
+
+- update dependencies and upgrade Node.js to 14.17.2 ([#51](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/pull-requests/51/overview)) - EBSIINT-3174 ([9564a30](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/commits/9564a309ccd7002ab87861e091b0b7655534e72c))
+- update Node.js to v14.17.5 ([#56](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/pull-requests/56/overview)) - EBSIINT-3220 ([6b10bd6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/commits/6b10bd645cc783f0a5f52803af251d1a8c05d253))
+- upgrade Node.js to v14.17.4 ([#55](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/pull-requests/55/overview)) - EBSIINT-3206 ([a012249](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/commits/a012249ae5102c57ce5198d26e2eada64a35959e))
+
 ## [2.0.0-rc.2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=245) (2021-06-17)
 
 ### 🚀 Features
