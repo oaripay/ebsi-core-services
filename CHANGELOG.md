@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.6&targetRepoId=234) (2021-09-20)
+
+### 🐛 Bug Fixes
+
+- fix 500 error - EBSIINT-3312 ([77172b9](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/commits/77172b90eda48e7738143f0ce02c84ea37615be9))
+- fix 500 error invalid bearer token ([#41](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/pull-requests/41/overview)) - EBSIINT-3314 ([ef1922f](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/commits/ef1922f91e63951c9f9337a19aef6c343c056e3e))
+- update Node.js to v14.17.5 ([#37](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/pull-requests/37/overview)) - EBSIINT-3220 ([b06973e](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/commits/b06973e9eb7e5482c96442eb16f396f3e9597f63))
+
 ## [1.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.5&targetRepoId=234) (2021-08-04)
 
 ### 🐛 Bug Fixes
