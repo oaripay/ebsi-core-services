@@ -9,12 +9,12 @@ import { BigNumber, ethers } from "ethers";
 import JSONPretty from "react-json-pretty";
 
 import Paragraph from "antd/es/typography/Paragraph";
-import { Button, Form, Tooltip } from "antd";
+import { Button, Form, Tooltip, Row, Space } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 
 import { useEthersHook } from "../../hooks/use-ethers.hook";
 import { useWalletContext } from "../../components/Wallet/WalletContext";
-import InsertDidControllerModalContent from "./InsertDidControllerModalContent";
+import DidControllerModalContent from "./DidControllerModalContent";
 import useDidControllerModal from "./use-did-controller-modal";
 
 type ModalPropsType = {
@@ -63,10 +63,12 @@ export default function useDidTable({ didRecord }: PropType) {
   const [timestampsIds, setTimestampsIds] = useState<string[]>([]);
   const [administrators, setAdministrators] = useState<string[]>([]);
   const [insertDidControllerForm] = Form.useForm();
+  const [updateDidControllerForm] = Form.useForm();
   const [tableLoading] = useState(false);
 
-  const { insertDidController } = useDidControllerModal({
+  const { insertDidController, updateDidController } = useDidControllerModal({
     insertDidControllerForm,
+    updateDidControllerForm,
   });
 
   const identifier = useMemo(() => {
@@ -242,28 +244,56 @@ export default function useDidTable({ didRecord }: PropType) {
                   </Paragraph>
                 </Tooltip>
               ))}
-              <Button
-                onClick={() => {
-                  setModal({
-                    visible: true,
-                    title: "Insert DID Controller",
-                    onOk: () => {
-                      insertDidController(identifier)?.then(() => {
-                        resetModal();
+              <Space direction="vertical">
+                <Row>
+                  <Button
+                    onClick={() => {
+                      setModal({
+                        visible: true,
+                        title: "Insert DID Controller",
+                        onOk: () => {
+                          insertDidController(identifier)?.then(() => {
+                            resetModal();
+                          });
+                        },
+                        content: (
+                          <DidControllerModalContent
+                            form={insertDidControllerForm}
+                          />
+                        ),
+                        width: 500,
                       });
-                    },
-                    content: (
-                      <InsertDidControllerModalContent
-                        form={insertDidControllerForm}
-                      />
-                    ),
-                    width: 500,
-                  });
-                }}
-              >
-                <PlusOutlined />
-                Insert DID Controller
-              </Button>
+                    }}
+                  >
+                    <PlusOutlined />
+                    Insert DID Controller
+                  </Button>
+                </Row>
+                <Row>
+                  <Button
+                    onClick={() => {
+                      setModal({
+                        visible: true,
+                        title: "Update DID Controller",
+                        onOk: () => {
+                          updateDidController(identifier)?.then(() => {
+                            resetModal();
+                          });
+                        },
+                        content: (
+                          <DidControllerModalContent
+                            form={updateDidControllerForm}
+                          />
+                        ),
+                        width: 500,
+                      });
+                    }}
+                  >
+                    <PlusOutlined />
+                    Update DID Controller
+                  </Button>
+                </Row>
+              </Space>
             </>
           );
         }

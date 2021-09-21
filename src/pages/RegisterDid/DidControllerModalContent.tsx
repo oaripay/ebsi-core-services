@@ -7,7 +7,7 @@ type PropType = {
   form: FormInstance;
 };
 
-export default function InsertDidControllerModalContent({ form }: PropType) {
+export default function DidControllerModalContent({ form }: PropType) {
   return (
     <Form
       layout="vertical"
