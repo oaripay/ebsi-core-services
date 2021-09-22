@@ -41,10 +41,7 @@ import {
   AppendDidDocumentVersionMetadataParam,
   DetachDidDocumentVersionMetadataParam,
 } from "./dto";
-import {
-  formatEthersUnsignedTransaction,
-  lowerCaseHexEncodedIdentifier,
-} from "./jsonrpc.utils";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import {
   DidRegistry,
@@ -466,7 +463,7 @@ describe("JsonRpc Module", () => {
       to: didRegistryContract.address,
       data: didRegistryContract.interface.encodeFunctionData(
         "insertAdministrator",
-        [did.toLowerCase(), adminV1.attributeData]
+        [did, adminV1.attributeData]
       ),
       value: "0x00",
       nonce: "0x00",
@@ -551,19 +548,6 @@ describe("JsonRpc Module", () => {
     expect(response.status).toBe(400);
   });
 
-  it("should lower case hex-encoded did", () => {
-    expect.assertions(1);
-    const originalDid = "did:ebsi:AbCd01234";
-    const hexEncodedDid = Buffer.from(originalDid, "utf-8").toString("hex");
-    const hexEncodedLowercaseDid = Buffer.from(
-      originalDid.toLowerCase(),
-      "utf-8"
-    ).toString("hex");
-    expect(lowerCaseHexEncodedIdentifier(hexEncodedDid)).toStrictEqual(
-      `0x${hexEncodedLowercaseDid}`
-    );
-  });
-
   // Only SIOP JWT are allowed to call insertAdministrator
   it("should throw an error if an app tries to call insertAdministrator", async () => {
     expect.assertions(4);
@@ -574,7 +558,7 @@ describe("JsonRpc Module", () => {
 
     const param: JsonRpcParams = {
       attributeData: adminV1.attributeData,
-      did: did.toLowerCase(),
+      did,
       from: signer.address,
     } as InsertAdministratorParam;
 
@@ -656,7 +640,7 @@ describe("JsonRpc Module", () => {
 
     const param: JsonRpcParams = {
       attributeData: adminV1.attributeData,
-      did: did.toLowerCase(),
+      did,
       from: signer.address,
     } as InsertAdministratorParam;
 
@@ -738,7 +722,7 @@ describe("JsonRpc Module", () => {
 
     const param: JsonRpcParams = {
       attributeData: adminV1.attributeData,
-      did: did.toLowerCase(),
+      did,
       from: signer.address,
     } as InsertAdministratorParam;
 
@@ -864,7 +848,7 @@ describe("JsonRpc Module", () => {
           // create a new administrator and add attribute1
           param = {
             attributeData: adminV1.attributeData,
-            did: did.toLowerCase(),
+            did,
             from: signer.address,
           } as InsertAdministratorParam;
           break;
@@ -874,7 +858,7 @@ describe("JsonRpc Module", () => {
             // update attribute1: change it to attribute3
             param = {
               attributeData: adminV3.attributeData,
-              did: did.toLowerCase(),
+              did,
               from: signer.address,
               prevAttributeHash: ethers.utils.sha256(
                 Buffer.from(adminV1.attributeData.slice(2), "hex")
@@ -885,7 +869,7 @@ describe("JsonRpc Module", () => {
             param = {
               attributeData: createAdministrator(did, usingValidTo)
                 .attributeData,
-              did: did.toLowerCase(),
+              did,
               from: signer.address,
             } as UpdateAdministratorParam;
           }
@@ -1233,7 +1217,7 @@ describe("JsonRpc Module", () => {
         case "insertAdministrator": {
           param = {
             attributeData: adminV1.attributeData,
-            did: adminV1.did.toLowerCase(),
+            did: adminV1.did,
             from: signer.address,
           } as InsertAdministratorParam;
           break;
@@ -1241,7 +1225,7 @@ describe("JsonRpc Module", () => {
         case "updateAdministrator": {
           param = {
             attributeData: adminV1.attributeData,
-            did: adminV1.did.toLowerCase(),
+            did: adminV1.did,
             from: signer.address,
           } as UpdateAdministratorParam;
           break;
@@ -1727,17 +1711,18 @@ describe("JsonRpc Module", () => {
             accessToken: userAccessToken,
           });
 
+          const randomDid = createDid();
           testSetup.push({
             params: {
               from: signer.address,
-              identifier: `0x${Buffer.from("did:ebsi:TeSt").toString("hex")}`,
+              identifier: `0x${Buffer.from(randomDid).toString("hex")}`,
               hashAlgorithmId: 0,
               hashValue: canonicalizedDidDocumentHash,
               didVersionInfo,
               timestampData,
               didVersionMetadata,
             } as InsertDidDocumentParam,
-            expectedErrorMessage: `Identifier did:ebsi:TeSt doesn't match JWT's DID ${controllerDid}`,
+            expectedErrorMessage: `Identifier ${randomDid} doesn't match JWT's DID ${controllerDid}`,
             accessToken: userAccessToken,
           });
 

@@ -378,7 +378,7 @@ describe("Administrators Module", () => {
         );
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
       const adminAttribute = administrators[0].attribute;
 
       const response = await request(server)
@@ -437,7 +437,7 @@ describe("Administrators Module", () => {
         );
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
       const adminAttribute = administrators[0].attribute;
 
       const response = await request(server)
@@ -492,7 +492,7 @@ describe("Administrators Module", () => {
         );
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
       const adminAttribute = administrators[0].attribute;
 
       const data = Buffer.from(JSON.stringify(adminAttribute));
@@ -525,7 +525,7 @@ describe("Administrators Module", () => {
         );
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
       const adminAttribute = administrators[0].attribute;
       const admin2Attribute = administrators[1].attribute;
 
@@ -599,7 +599,7 @@ describe("Administrators Module", () => {
         );
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
       const adminAttribute = administrators[0].attribute;
 
       const data = Buffer.from(JSON.stringify(adminAttribute));
@@ -649,7 +649,7 @@ describe("Administrators Module", () => {
         );
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
       const adminAttribute = administrators[0].attribute;
 
       const data = Buffer.from(JSON.stringify(adminAttribute));
@@ -819,7 +819,7 @@ describe("Administrators Module", () => {
         );
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
 
       const response = await request(server)
         .get(`/administrators/${adminDid}/attributes/wrong-hash/revisions`)
@@ -845,7 +845,7 @@ describe("Administrators Module", () => {
         );
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
       const adminAttribute = administrators[0].attribute;
 
       const data = Buffer.from(JSON.stringify(adminAttribute));

@@ -18,7 +18,11 @@ export default class IdentifiersService {
     if (controllerId) {
       return (
         await this.ledgerService.getContract()
-      ).getDidRecordIdentifiersByControllerId(controllerId, page, pageSize);
+      ).getDidRecordIdentifiersByControllerId(
+        controllerId.toLowerCase(),
+        page,
+        pageSize
+      );
     }
 
     return (await this.ledgerService.getContract()).getDidRecordIdentifiers(
@@ -40,21 +44,9 @@ export default class IdentifiersService {
 
   async getIdentifier(did: string): Promise<{ [x: string]: unknown }> {
     try {
-      const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
+      const hexDid = `0x${Buffer.from(did).toString("hex")}`;
       return await this.retrieveIdentifier(hexDid);
     } catch (e) {
-      // Try to retrieve the original DID
-      if (did !== did.toLowerCase()) {
-        try {
-          const hexOriginalDid = `0x${Buffer.from(did).toString("hex")}`;
-          return await this.retrieveIdentifier(hexOriginalDid);
-        } catch (err) {
-          throw new NotFoundError("Identifier Not Found", {
-            detail: `Identifier ${did} not found`,
-          });
-        }
-      }
-
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${did} not found`,
       });
@@ -85,31 +77,9 @@ export default class IdentifiersService {
     }
 
     try {
-      const hexLowercaseDid = `0x${Buffer.from(did.toLowerCase()).toString(
-        "hex"
-      )}`;
-      return await this.retrieveIdentifiersVersions(
-        hexLowercaseDid,
-        page,
-        pageSize
-      );
+      const hexDid = `0x${Buffer.from(did).toString("hex")}`;
+      return await this.retrieveIdentifiersVersions(hexDid, page, pageSize);
     } catch (e) {
-      // Try to retrieve the requested DID's versions
-      if (did !== did.toLowerCase()) {
-        try {
-          const hexOriginalDid = `0x${Buffer.from(did).toString("hex")}`;
-          return this.retrieveIdentifiersVersions(
-            hexOriginalDid,
-            page,
-            pageSize
-          );
-        } catch (err) {
-          throw new NotFoundError("Identifier Not Found", {
-            detail: `Identifier ${did} not found`,
-          });
-        }
-      }
-
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${did} not found`,
       });
@@ -147,30 +117,11 @@ export default class IdentifiersService {
     await this.getIdentifierVersion(did, versionId);
 
     try {
-      const hexDid = `0x${Buffer.from(did.toLowerCase()).toString("hex")}`;
+      const hexDid = `0x${Buffer.from(did).toString("hex")}`;
       return await (
         await this.ledgerService.getContract()
       ).getDidDocumentVersionMetadataIds(hexDid, versionId, page, pageSize);
     } catch (e) {
-      // Try to retrieve the original DID
-      if (did !== did.toLowerCase()) {
-        try {
-          const hexOriginalDid = `0x${Buffer.from(did).toString("hex")}`;
-          return await (
-            await this.ledgerService.getContract()
-          ).getDidDocumentVersionMetadataIds(
-            hexOriginalDid,
-            versionId,
-            page,
-            pageSize
-          );
-        } catch (err) {
-          throw new NotFoundError("Identifier Not Found", {
-            detail: `Identifier ${did} not found`,
-          });
-        }
-      }
-
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${did} not found`,
       });

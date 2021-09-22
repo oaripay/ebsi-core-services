@@ -2,22 +2,15 @@
  * Collection of functions for generating fake data to be used in the tests.
  */
 import crypto from "crypto";
-import * as bs58 from "bs58";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 
 /**
  * Creates a random EBSI DID.
  *
  * @returns A random EBSI DID
  */
-export const createDid = (method?: string, lowercaseDid = false): string => {
-  const buf = crypto.randomBytes(32);
-  const did = `${method || "did:ebsi"}:${bs58.encode(buf)}`;
-
-  if (lowercaseDid) {
-    return did.toLowerCase();
-  }
-
-  return did;
+export const createDid = (): string => {
+  return EbsiWallet.createDid();
 };
 
 /**

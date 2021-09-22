@@ -4,6 +4,7 @@ import { bases } from "multiformats/basics";
 export const multibase = {
   base16: bases.base16,
   base64: bases.base64,
+  base58btc: bases.base58btc,
   base64url: bases.base64url,
 };
 

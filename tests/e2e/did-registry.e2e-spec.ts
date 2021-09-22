@@ -245,7 +245,7 @@ describe("DID Registry (e2e)", () => {
 
     // Generate test data
     didMethod = prepareDidMethod();
-    newUserDid = createDid(didMethod.methodName);
+    newUserDid = createDid().replace("did:ebsi", didMethod.methodName);
 
     newDidDocument = prepareDidDocument(
       newUserDid,
@@ -485,7 +485,6 @@ describe("DID Registry (e2e)", () => {
         case "detachDidDocumentVersionMetadata": {
           const { didDocumentBuffer, didVersionMetadataBuffer } =
             updatedDidDocument;
-
           const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
@@ -845,14 +844,13 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the identifier is not found", async () => {
       expect.assertions(2);
 
-      const response = await request(server).get(
-        "/identifiers/did:unknown:unknown"
-      );
+      const randomDid = createDid();
+      const response = await request(server).get(`/identifiers/${randomDid}`);
 
       expect(response.body).toStrictEqual({
         title: "Identifier Not Found",
         status: 404,
-        detail: "Identifier did:unknown:unknown not found",
+        detail: `Identifier ${randomDid} not found`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -1129,15 +1127,16 @@ describe("DID Registry (e2e)", () => {
 
       const { didDocumentBuffer } = updatedDidDocument;
       const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const randomDid = createDid();
 
       const response = await request(server).get(
-        `/identifiers/did:unknown:unknown/versions/${versionId}`
+        `/identifiers/${randomDid}/versions/${versionId}`
       );
 
       expect(response.body).toStrictEqual({
         title: "Identifier Not Found",
         status: 404,
-        detail: "Identifier did:unknown:unknown not found",
+        detail: `Identifier ${randomDid} not found`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -1378,14 +1377,16 @@ describe("DID Registry (e2e)", () => {
       const { didDocumentBuffer } = updatedDidDocument;
       const versionId = ethers.utils.sha256(didDocumentBuffer);
 
+      const randomDid = createDid();
+
       const response = await request(server).get(
-        `/identifiers/did:unknown:unknown/versions/${versionId}/metadata`
+        `/identifiers/${randomDid}/versions/${versionId}/metadata`
       );
 
       expect(response.body).toStrictEqual({
         title: "Identifier Not Found",
         status: 404,
-        detail: "Identifier did:unknown:unknown not found",
+        detail: `Identifier ${randomDid} not found`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -1483,15 +1484,16 @@ describe("DID Registry (e2e)", () => {
         updatedDidDocument;
       const versionId = ethers.utils.sha256(didDocumentBuffer);
       const metadataId = ethers.utils.sha256(didVersionMetadataBuffer);
+      const randomDid = createDid();
 
       const response = await request(server).get(
-        `/identifiers/did:unknown:unknown/versions/${versionId}/metadata/${metadataId}`
+        `/identifiers/${randomDid}/versions/${versionId}/metadata/${metadataId}`
       );
 
       expect(response.body).toStrictEqual({
         title: "Identifier Not Found",
         status: 404,
-        detail: "Identifier did:unknown:unknown not found",
+        detail: `Identifier ${randomDid} not found`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -1787,7 +1789,7 @@ describe("DID Registry (e2e)", () => {
     it("should return an empty collection if the identifier and version ID don't match any record", async () => {
       expect.assertions(2);
 
-      const did = "did:unknown:1234";
+      const did = createDid();
       const versionId = 1;
 
       const response = await request(server).get(

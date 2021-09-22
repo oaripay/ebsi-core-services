@@ -55,6 +55,18 @@ const bases: Record<
       multibaseString: "uw7fDr8O_8J-lsMO3w6_Dv_CfmI7wn6W28J-krw",
     },
   ],
+  base58btc: [
+    {
+      inputString: "÷ïÿ",
+      encoding: "utf8",
+      multibaseString: "z2gTnNVSBg",
+    },
+    {
+      inputString: "÷ïÿ🥰÷ïÿ😎🥶🤯",
+      encoding: "utf8",
+      multibaseString: "z31kmCPVCi3zGReVrkbcUbPSXtMTxWfNUkQFLgSJ",
+    },
+  ],
 };
 
 describe("multibase", () => {

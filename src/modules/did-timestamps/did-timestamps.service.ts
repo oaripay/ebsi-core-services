@@ -36,28 +36,11 @@ export class DidTimestampsService {
     if (identifier && versionId) {
       try {
         let items: string[] = [];
-        try {
-          const hexLowercaseDid = `0x${Buffer.from(
-            identifier.toLowerCase(),
-            "utf-8"
-          ).toString("hex")}`;
+        const hexDid = `0x${Buffer.from(identifier, "utf-8").toString("hex")}`;
 
-          items = await (
-            await this.ledgerService.getContract()
-          ).getDidDocumentVersionDidTimestampIds(hexLowercaseDid, versionId);
-        } catch (e) {
-          if (identifier !== identifier.toLowerCase()) {
-            // Try with the original DID (as requested)
-            const hexOriginalDid = `0x${Buffer.from(
-              identifier,
-              "utf-8"
-            ).toString("hex")}`;
-
-            items = await (
-              await this.ledgerService.getContract()
-            ).getDidDocumentVersionDidTimestampIds(hexOriginalDid, versionId);
-          }
-        }
+        items = await (
+          await this.ledgerService.getContract()
+        ).getDidDocumentVersionDidTimestampIds(hexDid, versionId);
 
         return {
           items,

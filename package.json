@@ -61,7 +61,7 @@
   "devDependencies": {
     "@cef-ebsi/verifiable-credential": "^1.0.0-rc.4",
     "@cef-ebsi/verifiable-presentation": "^1.0.0-rc.4",
-    "@cef-ebsi/wallet-lib": "^1.0.0-rc.1",
+    "@cef-ebsi/wallet-lib": "^1.0.0-rc.2",
     "@commitlint/cli": "^13.1.0",
     "@commitlint/config-conventional": "^13.1.0",
     "@ethersproject/abstract-provider": "^5.4.1",

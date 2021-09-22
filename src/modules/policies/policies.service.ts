@@ -23,7 +23,6 @@ export class PoliciesService {
     let policy: AsyncReturnType<DidRegistry["getPolicy"]>;
 
     try {
-      // Preserve case! Don't lowercase the policyId
       policy = await (
         await this.ledgerService.getContract()
       ).getPolicy(policyId);

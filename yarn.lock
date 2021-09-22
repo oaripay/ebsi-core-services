@@ -433,19 +433,18 @@
     joi "^17.4.0"
     js-base64 "^3.6.1"
 
-"@cef-ebsi/wallet-lib@^1.0.0-rc.1":
-  version "1.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-1.0.0-rc.1.tgz#ef133048323b6ab26c1f67ea8d6fe2bf61fee102"
-  integrity sha512-wbEPcBsv9hQfDPF4Evrs9bDwnPvdVc2CDo+xEgZsmX/pa3Rpk6UiT8VJM0LCcBXMpoGa6Kigu2pbNdkqr+ckgg==
+"@cef-ebsi/wallet-lib@^1.0.0-rc.2":
+  version "1.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-1.0.0-rc.2.tgz#a0394d62726ff8fdc8989f066776cc7c2b9037e7"
+  integrity sha512-ICIyAozg7RL1/73kSGaCJDwi79rTc9uGJqh/y+PIaKcE9ygpf6SsZe3xg6MmlbATKvxedQIYjlnuolrl0AV2YQ==
   dependencies:
     "@cef-ebsi/did-jwt" "^1.0.0-alpha.8"
-    "@ethersproject/providers" "^5.4.3"
-    "@ethersproject/random" "^5.4.0"
     bn.js "^5.2.0"
-    bs58 "^4.0.1"
     elliptic "^6.5.4"
+    jose "^3.17.0"
     js-sha3 "^0.8.0"
     key-encoder "^2.0.3"
+    multiformats "^9.4.7"
 
 "@commitlint/cli@^13.1.0":
   version "13.1.0"
@@ -997,7 +996,7 @@
     bech32 "1.1.4"
     ws "7.4.6"
 
-"@ethersproject/providers@5.4.5", "@ethersproject/providers@^5.4.3":
+"@ethersproject/providers@5.4.5":
   version "5.4.5"
   resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.4.5.tgz#eb2ea2a743a8115f79604a8157233a3a2c832928"
   integrity sha512-1GkrvkiAw3Fj28cwi1Sqm8ED1RtERtpdXmRfwIBGmqBSN5MoeRUHuwHPppMtbPayPgpFcvD7/Gdc9doO5fGYgw==
@@ -6392,6 +6391,11 @@ jose@^3.14.0, jose@^3.16.1:
   version "3.16.1"
   resolved "https://registry.yarnpkg.com/jose/-/jose-3.16.1.tgz#13808b18aad618099d6d56c9c7486ec0d00e1a6b"
   integrity sha512-Dn/iku+Np0ggqWHmWQ127t6Uf7LFCLhCINN28lni1wX0NHDtSE3980baHz2tK1qn1ZFUL8t2m2yEScYyf3rgOw==
+
+jose@^3.17.0:
+  version "3.17.0"
+  resolved "https://registry.yarnpkg.com/jose/-/jose-3.17.0.tgz#19a561edec33d0f663fff201c3cce4bba7b28d93"
+  integrity sha512-rLpCb/TOsk4/yjjIALNecWbBivA17a5nQk/d2BJAiBbjP0db57rgrh3W3s6BzGcc9jxOo6txFBWGbDHwYAFgdQ==
 
 js-base64@^3.6.1:
   version "3.6.2"

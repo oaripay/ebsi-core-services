@@ -440,7 +440,7 @@ describe("Administrators (e2e)", () => {
         .auth(testUserAccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual({
-        did: did.toLowerCase(),
+        did,
         attributes: expect.arrayContaining([]) as AttributeObject[],
       });
       expect(response.status).toBe(200);
@@ -578,14 +578,16 @@ describe("Administrators (e2e)", () => {
       });
       expect(response.status).toBe(404);
 
+      const randomDid = createDid();
+
       // consult an attribute from a random did
       const response2 = await request(server)
-        .get(`/administrators/did:ebsi:unknown/attributes/${attributeId}`)
+        .get(`/administrators/${randomDid}/attributes/${attributeId}`)
         .auth(testUserAccessToken, { type: "bearer" });
 
       expect(response2.body).toStrictEqual({
         detail: expect.stringContaining(
-          "Administrator did:ebsi:unknown not found"
+          `Administrator ${randomDid} not found`
         ) as string,
         status: 404,
         title: "Administrator Not Found",

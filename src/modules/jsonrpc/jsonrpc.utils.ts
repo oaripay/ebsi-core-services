@@ -147,11 +147,3 @@ export const validateClass = async (
     );
   }
 };
-
-export const lowerCaseHexEncodedIdentifier = (identifier: string): string => {
-  const originalId = Buffer.from(identifier.replace("0x", ""), "hex").toString(
-    "utf8"
-  );
-  const lowerCaseId = originalId.toLowerCase();
-  return `0x${Buffer.from(lowerCaseId, "utf8").toString("hex")}`;
-};

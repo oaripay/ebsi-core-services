@@ -45,7 +45,6 @@ import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
   validateClass,
-  lowerCaseHexEncodedIdentifier,
 } from "./jsonrpc.utils";
 import { LedgerService } from "../ledger/ledger.service";
 import { AdministratorsService } from "../administrators/administrators.service";
@@ -119,11 +118,9 @@ export class JsonRpcService {
     if (
       data.items
         .map((hexDid) =>
-          Buffer.from(remove0xPrefix(hexDid), "hex")
-            .toString("utf8")
-            .toLowerCase()
+          Buffer.from(remove0xPrefix(hexDid), "hex").toString("utf8")
         )
-        .includes(did.toLowerCase())
+        .includes(did)
     ) {
       return true;
     }
@@ -217,7 +214,7 @@ export class JsonRpcService {
     ).toString("utf-8");
 
     // Compare JWT's DID with "identifier" param
-    if (clientId.toLowerCase() !== identifierUtf8.toLowerCase()) {
+    if (clientId !== identifierUtf8) {
       throw new Error(
         `Identifier ${identifierUtf8} doesn't match JWT's DID ${clientId}`
       );
@@ -232,7 +229,7 @@ export class JsonRpcService {
       throw new Error("DID Document is missing an id");
     }
 
-    if (clientId.toLowerCase() !== parsedDidDocument.id.toLowerCase()) {
+    if (clientId !== parsedDidDocument.id) {
       throw new Error(
         `DID Document's "id" ${parsedDidDocument.id} doesn't match JWT's DID ${clientId}`
       );
@@ -471,7 +468,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("insertAdministrator", [
-        did.toLowerCase(),
+        did,
         attributeData,
       ]);
 
@@ -492,7 +489,7 @@ export class JsonRpcService {
 
       const { from, did, attributeData, prevAttributeHash } = body.params[0];
 
-      const data = [did.toLowerCase(), attributeData];
+      const data = [did, attributeData];
 
       if (prevAttributeHash) {
         data.push(prefixWith0x(prevAttributeHash));
@@ -650,7 +647,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("insertDidDocument", [
-        lowerCaseHexEncodedIdentifier(identifier),
+        identifier,
         hashAlgorithmId,
         hashValue,
         didVersionInfo,
@@ -690,7 +687,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("updateDidDocument", [
-        lowerCaseHexEncodedIdentifier(identifier),
+        identifier,
         hashAlgorithmId,
         hashValue,
         didVersionInfo,
@@ -719,7 +716,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("insertDidController", [
-        lowerCaseHexEncodedIdentifier(identifier),
+        identifier,
         newControllerId.toLowerCase(),
         notBefore,
         notAfter,
@@ -745,7 +742,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("updateDidController", [
-        lowerCaseHexEncodedIdentifier(identifier),
+        identifier,
         newControllerId.toLowerCase(),
         notBefore,
         notAfter,
@@ -770,7 +767,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("revokeDidController", [
-        lowerCaseHexEncodedIdentifier(identifier),
+        identifier,
         oldControllerId.toLowerCase(),
       ]);
       return await this.buildTransaction(from, data);
@@ -878,7 +875,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("appendDidDocumentVersionHash", [
-        lowerCaseHexEncodedIdentifier(identifier),
+        identifier,
         hashAlgorithmId,
         hashValue,
         timestampData ?? "0x",
@@ -909,7 +906,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("detachDidDocumentVersionHash", [
-        lowerCaseHexEncodedIdentifier(identifier),
+        identifier,
         hashAlgorithmId,
         hashValue,
         didVersionInfo,
@@ -938,7 +935,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("appendDidDocumentVersionMetadata", [
-        lowerCaseHexEncodedIdentifier(identifier),
+        identifier,
         didVersionInfo,
         didVersionMetadata,
       ]);
@@ -966,7 +963,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("detachDidDocumentVersionMetadata", [
-        lowerCaseHexEncodedIdentifier(identifier),
+        identifier,
         didVersionInfo,
         didVersionMetadata,
       ]);
