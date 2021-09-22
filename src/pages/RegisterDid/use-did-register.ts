@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { notification } from "antd";
 import { useEthersHook } from "../../hooks/use-ethers.hook";
 import { useWalletContext } from "../../components/Wallet/WalletContext";
+import { getIdentifierFromWalletAddr } from "./DidUtils";
 
 type DidRecordDataType = {};
 
@@ -159,7 +160,7 @@ export default function useDidRegister() {
       return;
     }
     registryContract
-      .getAdministrator(`did:ebsi:${walletAddress}`)
+      .getAdministrator(getIdentifierFromWalletAddr(walletAddress))
       .then(() => {
         setDidAsAdministrator(true);
       })
@@ -172,7 +173,7 @@ export default function useDidRegister() {
     if (!didRegistryContract || !walletAddress) {
       return;
     }
-    const didEbsi = `did:ebsi:${walletAddress}`;
+    const didEbsi = getIdentifierFromWalletAddr(walletAddress);
 
     didRegistryContract
       .getDidRecord(`0x${Buffer.from(didEbsi).toString("hex")}`)
@@ -188,7 +189,7 @@ export default function useDidRegister() {
   const didToBeSent = useMemo(() => {
     if (walletAddress && publicKey) {
       const document = createDidDocument(
-        `did:ebsi:${walletAddress}`,
+        getIdentifierFromWalletAddr(walletAddress),
         publicKey
       );
       return JSON.stringify(buildDidParams(document), null, 2);

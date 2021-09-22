@@ -15,6 +15,7 @@ import Paragraph from "antd/es/typography/Paragraph";
 import { config } from "../../config";
 import useDidRegister from "./use-did-register";
 import RegisterDidTable from "./RegisterDidTable";
+import { getIdentifierFromWalletAddr } from "./DidUtils";
 
 export default function RegisterDid() {
   const {
@@ -81,7 +82,7 @@ export default function RegisterDid() {
           <Col>
             <Statistic
               title="DID"
-              value={`did:ebsi:${walletAddress}`}
+              value={getIdentifierFromWalletAddr(walletAddress)}
               decimalSeparator=""
               groupSeparator=""
             />
@@ -101,7 +102,9 @@ export default function RegisterDid() {
           <Button
             type="primary"
             disabled={didDefined || !publicKey}
-            onClick={() => registerDid(`did:ebsi:${walletAddress}`)}
+            onClick={() =>
+              registerDid(getIdentifierFromWalletAddr(walletAddress))
+            }
           >
             Register DID
           </Button>
@@ -109,7 +112,9 @@ export default function RegisterDid() {
             type="primary"
             className="m-l-4"
             disabled={!didDefined || !publicKey || didAsAdministrator}
-            onClick={() => insertDidAs(`did:ebsi:${walletAddress}`)}
+            onClick={() =>
+              insertDidAs(getIdentifierFromWalletAddr(walletAddress))
+            }
           >
             Insert DID as Administrator
           </Button>

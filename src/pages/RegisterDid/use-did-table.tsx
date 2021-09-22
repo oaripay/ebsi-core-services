@@ -1,53 +1,21 @@
-import React, {
-  ReactElement,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import { BigNumber, ethers } from "ethers";
+import React, { useCallback, useMemo, useState } from "react";
+import { ethers } from "ethers";
 import JSONPretty from "react-json-pretty";
 
 import Paragraph from "antd/es/typography/Paragraph";
 import { Button, Form, Tooltip, Row, Space } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 
-import { useEthersHook } from "../../hooks/use-ethers.hook";
 import { useWalletContext } from "../../components/Wallet/WalletContext";
 import DidControllerModalContent from "./DidControllerModalContent";
 import useDidControllerModal from "./use-did-controller-modal";
-
-type ModalPropsType = {
-  visible: boolean;
-  content: ReactElement;
-  title: string;
-  width: number;
-  onOk?: (param?: any) => void;
-};
-
-type DataType = {
-  didControllers?: string[];
-  versionHashes?: string[];
-  metadata?: string[];
-  timestampIds?: string[];
-  administrators?: string[];
-  versionInfos?: string[];
-  metadataVersionIds?: string[];
-  timestampsIds?: string[];
-}[];
-
-type PropType = {
-  didRecord: any;
-};
-
-type PaginatedResponse = {
-  howMany: BigNumber;
-  items: string[];
-};
+import AdministratorControllerModalContent from "./AdministratorControllerModalContent";
+import { DataType, HashAlgo, ModalPropsType, PropType } from "./DidTableTypes";
+import { useDidTableEffects } from "./use-did-table-effects";
+import DidDocumentModalContent from "./DidDocumentModalContent";
+import { getIdentifierFromWalletAddr } from "./DidUtils";
 
 export default function useDidTable({ didRecord }: PropType) {
-  const { didRegistryContract } = useEthersHook();
-  const { registryContract } = useEthersHook();
   const { walletAddress } = useWalletContext();
   const [modal, setModal] = useState<ModalPropsType>({
     visible: false,
@@ -62,21 +30,48 @@ export default function useDidTable({ didRecord }: PropType) {
   const [metadata, setMetadata] = useState<string[]>([]);
   const [timestampsIds, setTimestampsIds] = useState<string[]>([]);
   const [administrators, setAdministrators] = useState<string[]>([]);
+  const [hashAlgorithms, setHashAlgorithms] = useState<HashAlgo[]>([]);
   const [insertDidControllerForm] = Form.useForm();
   const [updateDidControllerForm] = Form.useForm();
+  const [insertAdminForm] = Form.useForm();
+  const [updateAdminForm] = Form.useForm();
+  const [appendDidDocumentForm] = Form.useForm();
   const [tableLoading] = useState(false);
-
-  const { insertDidController, updateDidController } = useDidControllerModal({
-    insertDidControllerForm,
-    updateDidControllerForm,
-  });
 
   const identifier = useMemo(() => {
     if (!walletAddress) {
       return "";
     }
-    return `did:ebsi:${walletAddress}`;
+    return getIdentifierFromWalletAddr(walletAddress);
   }, [walletAddress]);
+
+  useDidTableEffects({
+    setDidControllers,
+    setVersionHashes,
+    setVersionInfos,
+    setMetadataVersionIds,
+    setMetadata,
+    setAdministrators,
+    setHashAlgorithms,
+    setTimestampsIds,
+    didRecord,
+    identifier,
+    versionHashes,
+    walletAddress,
+    metadataVersionIds,
+  });
+
+  const {
+    insertDidController,
+    updateDidController,
+    insertAdministrator,
+    updateAdministrator,
+  } = useDidControllerModal({
+    insertDidControllerForm,
+    updateDidControllerForm,
+    insertAdminForm,
+    updateAdminForm,
+  });
 
   const resetModal = useCallback(() => {
     setModal({
@@ -87,117 +82,6 @@ export default function useDidTable({ didRecord }: PropType) {
       onOk: undefined,
     });
   }, []);
-
-  useEffect(() => {
-    if (!didRegistryContract || !versionHashes.length) {
-      return;
-    }
-    const promises = versionHashes.map(() => {
-      return didRegistryContract
-        .getDidDocumentVersionDidTimestampIds(
-          `0x${Buffer.from(identifier).toString("hex")}`,
-          didRecord.totalDidVersions.toNumber()
-        )
-        .catch(() => {});
-    });
-    Promise.all(promises).then((data) => {
-      setTimestampsIds(data);
-    });
-  }, [
-    didRecord.totalDidVersions,
-    didRegistryContract,
-    identifier,
-    versionHashes,
-    versionHashes.length,
-    walletAddress,
-  ]);
-
-  useEffect(() => {
-    if (didRecord.controllerIds) {
-      setDidControllers(didRecord.controllerIds);
-    }
-  }, [didRecord.controllerIds]);
-
-  useEffect(() => {
-    if (!didRegistryContract || !versionHashes.length) {
-      return;
-    }
-    didRegistryContract
-      .getDidDocumentVersionMetadataIds(
-        `0x${Buffer.from(identifier).toString("hex")}`,
-        versionHashes[0],
-        1,
-        50
-      )
-      .then((data: any) => {
-        setMetadataVersionIds(data.items);
-      })
-      .catch(() => {});
-  }, [
-    didRecord,
-    didRegistryContract,
-    identifier,
-    versionHashes,
-    walletAddress,
-  ]);
-
-  useEffect(() => {
-    if (!didRegistryContract || !metadataVersionIds.length) {
-      return;
-    }
-    const promises = metadataVersionIds.map((versionIdData: string) => {
-      return didRegistryContract
-        .getDidDocumentVersionMetadata(versionIdData)
-        .catch(() => {});
-    });
-    Promise.all(promises).then((data) => {
-      setMetadata(data);
-    });
-  }, [didRegistryContract, metadataVersionIds]);
-
-  useEffect(() => {
-    if (!didRegistryContract || !didRecord || !didRecord[0]) {
-      return;
-    }
-    didRegistryContract
-      .getDidDocumentVersionIds(
-        `0x${Buffer.from(identifier).toString("hex")}`,
-        1,
-        50
-      )
-      .then((didVersionIds: PaginatedResponse) => {
-        setVersionHashes(didVersionIds.items);
-      })
-      .catch(() => {});
-    setVersionHashes([]);
-  }, [didRecord, didRegistryContract, identifier, walletAddress]);
-
-  useEffect(() => {
-    if (!didRegistryContract || !didRecord || !didRecord[0]) {
-      return;
-    }
-    let promises = [];
-    if (versionHashes.length) {
-      promises = versionHashes.map((hash: string) =>
-        didRegistryContract.getDidDocumentVersionInfo(hash).catch(() => {})
-      );
-      Promise.all(promises).then((versionInfosTemp: string[]) => {
-        setVersionInfos(versionInfosTemp);
-      });
-    }
-  }, [didRecord, didRegistryContract, versionHashes]);
-
-  useEffect(() => {
-    if (!registryContract || !walletAddress) {
-      return;
-    }
-    registryContract
-      .getAdministrator(identifier)
-      .then((administratorsData: string[]) => {
-        setAdministrators(administratorsData);
-      })
-      .catch(() => {});
-  }, [identifier, registryContract, walletAddress]);
 
   const dataSource: DataType = useMemo(() => {
     return [
@@ -231,7 +115,7 @@ export default function useDidTable({ didRecord }: PropType) {
           return (
             <>
               {values.map((value) => (
-                <Tooltip title={value} key={value}>
+                <Tooltip title={value} key={`${value}-${Math.random()}`}>
                   <Paragraph
                     className="d-flex"
                     key={value}
@@ -308,7 +192,7 @@ export default function useDidTable({ didRecord }: PropType) {
         versionInfos: versionInfosData,
       }: any) => {
         return (
-          <div>
+          <Space direction="vertical">
             {versionHashesData ? (
               <>
                 <h3>Version Hash</h3>
@@ -329,6 +213,35 @@ export default function useDidTable({ didRecord }: PropType) {
             ) : (
               ""
             )}
+            <Button
+              onClick={() => {
+                setModal({
+                  visible: true,
+                  width: 600,
+                  title: "Append DID document version hash",
+                  content: (
+                    <DidDocumentModalContent
+                      hashAlgos={hashAlgorithms}
+                      form={appendDidDocumentForm}
+                    />
+                  ),
+                });
+              }}
+            >
+              Append DID document version hash
+            </Button>
+            <Button
+              onClick={() => {
+                setModal({
+                  visible: true,
+                  width: 700,
+                  title: "Detach DID document version hash",
+                  content: <h1>vasile</h1>,
+                });
+              }}
+            >
+              Detach DID document version hash
+            </Button>
             {versionInfosData ? (
               <>
                 <h3>Version Info data</h3>
@@ -362,7 +275,7 @@ export default function useDidTable({ didRecord }: PropType) {
             ) : (
               ""
             )}
-          </div>
+          </Space>
         );
       },
     },
@@ -483,6 +396,56 @@ export default function useDidTable({ didRecord }: PropType) {
             ) : (
               ""
             )}
+            <Space>
+              <Row>
+                <Button
+                  onClick={() => {
+                    setModal({
+                      visible: true,
+                      title: "Insert Admin",
+                      onOk: () => {
+                        insertAdministrator()?.then(() => {
+                          resetModal();
+                        });
+                      },
+                      content: (
+                        <AdministratorControllerModalContent
+                          form={insertAdminForm}
+                        />
+                      ),
+                      width: 500,
+                    });
+                  }}
+                >
+                  <PlusOutlined />
+                  Insert Admin
+                </Button>
+              </Row>
+              <Row>
+                <Button
+                  onClick={() => {
+                    setModal({
+                      visible: true,
+                      title: "Update Admin",
+                      onOk: () => {
+                        updateAdministrator()?.then(() => {
+                          resetModal();
+                        });
+                      },
+                      content: (
+                        <AdministratorControllerModalContent
+                          form={updateAdminForm}
+                        />
+                      ),
+                      width: 500,
+                    });
+                  }}
+                >
+                  <PlusOutlined />
+                  Update Admin
+                </Button>
+              </Row>
+            </Space>
           </>
         );
       },
