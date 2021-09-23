@@ -4,6 +4,28 @@ import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import bs58 from "bs58";
 import crypto from "crypto";
 
+type DocumentType = {
+  "@context": string;
+  id: string;
+  verificationMethod: {
+    id: string;
+    type: string;
+    controller: string;
+    publicKeyHex: string;
+    publicKeyJwk: string;
+    publicKeyBase58: string;
+  }[];
+  authentication: string[];
+  assertionMethod: string[];
+};
+
+type DidParamsOptions = {
+  hashAlgorithmId?: number;
+  timestamp?: {
+    data: string;
+  };
+};
+
 export function fromHexString(hexString: string): Uint8Array {
   const match = hexString.match(/.{1,2}/g);
   if (!match) throw new Error("String could not be parsed");
@@ -30,8 +52,12 @@ export function createTimestamp() {
   };
 }
 
-export function buildDidParams(document: any) {
-  const bufferTimestamp = Buffer.from(JSON.stringify(createTimestamp()));
+export function buildDidParams(
+  document: DocumentType,
+  options?: DidParamsOptions
+) {
+  const timestamp = options?.timestamp || createTimestamp();
+  const bufferTimestamp = Buffer.from(JSON.stringify(timestamp));
   const bufferDocument = Buffer.from(JSON.stringify(document));
   const bufferMetadata = Buffer.from(JSON.stringify(createMetadata()));
   const documentHash = ethers.utils.sha256(bufferDocument);
@@ -42,7 +68,7 @@ export function buildDidParams(document: any) {
     },
     param: {
       identifier: computeIdentifier(document.id),
-      hashAlgorithmId: 1, // sha256
+      hashAlgorithmId: options?.hashAlgorithmId || 1,
       hashValue: documentHash,
       didVersionInfo: `0x${bufferDocument.toString("hex")}`,
       timestampData: `0x${bufferTimestamp.toString("hex")}`,

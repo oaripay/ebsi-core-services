@@ -17,40 +17,42 @@ export default function useDidControllerModal({
   insertAdminForm,
   updateAdminForm,
 }: PropType) {
-  const { didRegistryContract, registryContract } = useEthersHook();
+  const { didRegistryContract } = useEthersHook();
 
   const updateAdministrator = useCallback(() => {
-    if (!registryContract) {
+    if (!didRegistryContract) {
       return undefined;
     }
-    return updateAdminForm.validateFields(["walletAddress"]).then(() => {
-      const fields = updateAdminForm.getFieldsValue(["walletAddress"]);
-      const didAsBytes = ethers.utils.toUtf8Bytes(
-        getIdentifierFromWalletAddr(fields.walletAddress)
-      );
-      return registryContract
-        .updateAdministrator(
+    return updateAdminForm
+      .validateFields(["walletAddress", "attribute"])
+      .then(() => {
+        const fields = updateAdminForm.getFieldsValue([
+          "walletAddress",
+          "attribute",
+        ]);
+        const didAsBytes = ethers.utils.toUtf8Bytes(fields.attribute);
+        return didRegistryContract["updateAdministrator(string,bytes)"](
           getIdentifierFromWalletAddr(fields.walletAddress),
           didAsBytes
         )
-        .then(() => {
-          notification.success({
-            message: "Action successful",
-            description: "Administrator was updated successfully!",
+          .then(() => {
+            notification.success({
+              message: "Action successful",
+              description: "Administrator was updated successfully!",
+            });
+          })
+          .catch(() => {
+            notification.error({
+              message: "Error",
+              description:
+                "An error appeared while trying to update the DID. Please try again",
+            });
           });
-        })
-        .catch(() => {
-          notification.error({
-            message: "Error",
-            description:
-              "An error appeared while trying to update the DID. Please try again",
-          });
-        });
-    });
-  }, [registryContract, updateAdminForm]);
+      });
+  }, [didRegistryContract, updateAdminForm]);
 
   const insertAdministrator = useCallback(() => {
-    if (!registryContract) {
+    if (!didRegistryContract) {
       return undefined;
     }
     return insertAdminForm.validateFields(["walletAddress"]).then(() => {
@@ -58,7 +60,7 @@ export default function useDidControllerModal({
       const didAsBytes = ethers.utils.toUtf8Bytes(
         getIdentifierFromWalletAddr(fields.walletAddress)
       );
-      return registryContract
+      return didRegistryContract
         .insertAdministrator(
           getIdentifierFromWalletAddr(fields.walletAddress),
           didAsBytes
@@ -77,7 +79,7 @@ export default function useDidControllerModal({
           });
         });
     });
-  }, [insertAdminForm, registryContract]);
+  }, [insertAdminForm, didRegistryContract]);
 
   const updateDidController = useCallback(
     (identifier: string) => {
@@ -143,9 +145,13 @@ export default function useDidControllerModal({
                 message: "Action successful",
                 description: "DID Controller was inserted successfully!",
               });
+            })
+            .catch((ex: any) => {
+              console.log("Ex 2", ex);
             });
         })
-        .catch(() => {
+        .catch((ex) => {
+          console.log("Ex: ", ex);
           notification.error({
             message: "Error",
             description:

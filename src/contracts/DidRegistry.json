@@ -135,6 +135,12 @@
         "internalType": "enum HashAlgoStorage.Status",
         "name": "status",
         "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "multihash",
+        "type": "string"
       }
     ],
     "name": "AddNewHashAlgo",
@@ -630,6 +636,12 @@
         "internalType": "enum HashAlgoStorage.Status",
         "name": "status",
         "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "string",
+        "name": "multihash",
+        "type": "string"
       }
     ],
     "name": "UpdateHashAlgo",
@@ -1667,6 +1679,11 @@
         "internalType": "enum HashAlgoStorage.Status",
         "name": "status",
         "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "multihash",
+        "type": "string"
       }
     ],
     "stateMutability": "view",
@@ -2032,6 +2049,11 @@
         "internalType": "enum HashAlgoStorage.Status",
         "name": "status",
         "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "multihash",
+        "type": "string"
       }
     ],
     "name": "insertHashAlgorithm",
@@ -2264,6 +2286,11 @@
         "internalType": "enum HashAlgoStorage.Status",
         "name": "status",
         "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "multihash",
+        "type": "string"
       }
     ],
     "name": "updateHashAlgorithm",

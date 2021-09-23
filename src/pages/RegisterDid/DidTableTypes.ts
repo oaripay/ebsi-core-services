@@ -41,11 +41,12 @@ export type DidTableEffectsPropType = {
   setMetadataVersionIds: (metadataVersionIds: string[]) => void;
   setMetadata: (metadata: string[]) => void;
   setTimestampsIds: (timestampsIds: string[]) => void;
-  setAdministrators: (administrators: string[]) => void;
-  setHashAlgorithms: (hashAlgo: HashAlgo[]) => void;
+  setAdministratorLastHash: (administratorLashHash: string[]) => void;
   didRecord: any;
   identifier: string;
   versionHashes: string[];
   walletAddress: string;
   metadataVersionIds: string[];
+  setDidRecordsIds: (didRecordsIds: string[]) => void;
+  didControllers: string[];
 };

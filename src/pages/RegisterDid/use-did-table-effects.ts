@@ -1,9 +1,5 @@
 import { useEffect } from "react";
-import {
-  DidTableEffectsPropType,
-  HashAlgo,
-  PaginatedResponse,
-} from "./DidTableTypes";
+import { DidTableEffectsPropType, PaginatedResponse } from "./DidTableTypes";
 import { useEthersHook } from "../../hooks/use-ethers.hook";
 
 export const useDidTableEffects = ({
@@ -13,39 +9,26 @@ export const useDidTableEffects = ({
   setMetadataVersionIds,
   setMetadata,
   setTimestampsIds,
-  setAdministrators,
-  setHashAlgorithms,
+  setAdministratorLastHash,
   didRecord,
   identifier,
   versionHashes,
   walletAddress,
   metadataVersionIds,
+  setDidRecordsIds,
 }: DidTableEffectsPropType) => {
   const { didRegistryContract } = useEthersHook();
-  const { registryContract } = useEthersHook();
+
   useEffect(() => {
-    if (!didRegistryContract) {
+    if (!didRegistryContract || !walletAddress) {
       return;
     }
     didRegistryContract
-      .getHashAlgorithms(1, 50)
-      .then((hashAlgo: PaginatedResponse) => {
-        const algoIds = hashAlgo.items.map((item: any) => item.toNumber());
-        const algos: HashAlgo[] = [];
-        const promises = hashAlgo.items.map((item: any) =>
-          didRegistryContract.getHashAlgorithmById(item)
-        );
-        Promise.all(promises).then((data: { ianaName: string }[]) => {
-          for (let i = 0; i < data.length; i += 1) {
-            algos.push({
-              id: algoIds[i],
-              name: data[i].ianaName,
-            });
-          }
-          setHashAlgorithms(algos);
-        });
+      .getDidRecordIdentifiersByControllerId(walletAddress, 1, 50)
+      .then((data: PaginatedResponse) => {
+        setDidRecordsIds(data.items);
       });
-  }, [didRegistryContract, setHashAlgorithms]);
+  }, [didRegistryContract, walletAddress, setDidRecordsIds]);
 
   useEffect(() => {
     if (!didRegistryContract || !versionHashes.length) {
@@ -73,10 +56,11 @@ export const useDidTableEffects = ({
   ]);
 
   useEffect(() => {
+    console.log("Did record", didRecord);
     if (didRecord.controllerIds) {
       setDidControllers(didRecord.controllerIds);
     }
-  }, [didRecord.controllerIds, setDidControllers]);
+  }, [didRecord, setDidControllers]);
 
   useEffect(() => {
     if (!didRegistryContract || !versionHashes.length) {
@@ -155,14 +139,19 @@ export const useDidTableEffects = ({
   }, [didRecord, didRegistryContract, setVersionInfos, versionHashes]);
 
   useEffect(() => {
-    if (!registryContract || !walletAddress) {
+    if (!didRegistryContract || !identifier) {
       return;
     }
-    registryContract
+    didRegistryContract
       .getAdministrator(identifier)
-      .then((administratorsData: string[]) => {
-        setAdministrators(administratorsData);
+      .then((administratorLastHash: string[]) => {
+        setAdministratorLastHash(administratorLastHash);
       })
       .catch(() => {});
-  }, [identifier, registryContract, setAdministrators, walletAddress]);
+  }, [
+    didRegistryContract,
+    identifier,
+    setAdministratorLastHash,
+    walletAddress,
+  ]);
 };

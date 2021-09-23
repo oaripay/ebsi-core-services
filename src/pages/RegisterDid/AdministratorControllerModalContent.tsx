@@ -15,8 +15,6 @@ export default function AdministratorControllerModalContent({
       form={form}
       initialValues={{
         walletAddress: "",
-        notBefore: "",
-        notAfter: "",
       }}
     >
       <Row>

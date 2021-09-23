@@ -23,4 +23,34 @@ export const config = {
     registerDid: "/apps-admin/register-did",
     default: "/apps-admin",
   },
+  hashAlgos: [
+    {
+      id: 1,
+      name: "SHA-256",
+    },
+    {
+      id: 2,
+      name: "SHA-384",
+    },
+    {
+      id: 3,
+      name: "SHA-512",
+    },
+    {
+      id: 4,
+      name: "SHA3-224",
+    },
+    {
+      id: 5,
+      name: "SHA3-256",
+    },
+    {
+      id: 6,
+      name: "SHA3-384",
+    },
+    {
+      id: 7,
+      name: "SHA3-512",
+    },
+  ],
 };

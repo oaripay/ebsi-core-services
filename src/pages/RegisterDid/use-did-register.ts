@@ -12,7 +12,7 @@ import {
 type DidRecordDataType = {};
 
 export default function useDidRegister() {
-  const { didRegistryContract, registryContract } = useEthersHook();
+  const { didRegistryContract } = useEthersHook();
   const { walletAddress } = useWalletContext();
   const { provider } = useEthersHook();
   const [loading, setLoading] = useState(true);
@@ -88,10 +88,10 @@ export default function useDidRegister() {
   }, [walletAddress]);
 
   useEffect(() => {
-    if (!registryContract || !walletAddress) {
+    if (!didRegistryContract || !walletAddress) {
       return;
     }
-    registryContract
+    didRegistryContract
       .getAdministrator(getIdentifierFromWalletAddr(walletAddress))
       .then(() => {
         setDidAsAdministrator(true);
@@ -99,7 +99,7 @@ export default function useDidRegister() {
       .catch(() => {
         setDidAsAdministrator(false);
       });
-  }, [registryContract, walletAddress]);
+  }, [didRegistryContract, walletAddress]);
 
   useEffect(() => {
     if (!didRegistryContract || !walletAddress) {
@@ -130,32 +130,35 @@ export default function useDidRegister() {
   }, [walletAddress, publicKey]);
 
   const insertDidAs = useCallback(
-    (didUser: string) => {
-      if (!registryContract) {
+    async (didUser: string) => {
+      if (!didRegistryContract) {
         return;
       }
       const didAsBytes = ethers.utils.toUtf8Bytes(didUser);
-      registryContract
-        .insertAdministrator(didUser, didAsBytes)
-        .then(() => {
+      try {
+        const tx = await didRegistryContract.insertAdministrator(
+          didUser,
+          didAsBytes
+        );
+        tx.wait(1).then(() => {
           notification.success({
             message: "Action successful",
             description: "DID was inserted successfully!",
           });
-        })
-        .catch(() => {
-          notification.error({
-            message: "Error",
-            description:
-              "An error appeared while trying to insert the DID. Please try again",
-          });
         });
+      } catch (ex) {
+        notification.error({
+          message: "Error",
+          description:
+            "An error appeared while trying to insert the DID. Please try again",
+        });
+      }
     },
-    [registryContract]
+    [didRegistryContract]
   );
 
   const registerDid = useCallback(
-    (didUser: string) => {
+    async (didUser: string) => {
       const document = createDidDocument(didUser, publicKey);
       const { param } = buildDidParams(document);
       const {

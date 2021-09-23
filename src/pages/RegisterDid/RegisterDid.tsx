@@ -132,6 +132,9 @@ export default function RegisterDid() {
           </Col>
         </Row>
         <Row className="m-t-10">
+          <RegisterDidTable didRecord={didRecord} />
+        </Row>
+        <Row className="m-t-10">
           <Col span={4}>
             <Title level={4}>DID document:</Title>
             <Row>
@@ -141,9 +144,6 @@ export default function RegisterDid() {
               </Col>
             </Row>
           </Col>
-        </Row>
-        <Row>
-          <RegisterDidTable didRecord={didRecord} />
         </Row>
       </Spin>
     </Space>

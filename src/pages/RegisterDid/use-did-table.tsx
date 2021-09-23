@@ -4,16 +4,17 @@ import JSONPretty from "react-json-pretty";
 
 import Paragraph from "antd/es/typography/Paragraph";
 import { Button, Form, Tooltip, Row, Space } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 
 import { useWalletContext } from "../../components/Wallet/WalletContext";
 import DidControllerModalContent from "./DidControllerModalContent";
 import useDidControllerModal from "./use-did-controller-modal";
 import AdministratorControllerModalContent from "./AdministratorControllerModalContent";
-import { DataType, HashAlgo, ModalPropsType, PropType } from "./DidTableTypes";
+import { DataType, ModalPropsType, PropType } from "./DidTableTypes";
 import { useDidTableEffects } from "./use-did-table-effects";
 import DidDocumentModalContent from "./DidDocumentModalContent";
 import { getIdentifierFromWalletAddr } from "./DidUtils";
+import AdministratorUpdateControllerModalContent from "./AdministratorUpdateControllerModalContent";
 
 export default function useDidTable({ didRecord }: PropType) {
   const { walletAddress } = useWalletContext();
@@ -29,8 +30,10 @@ export default function useDidTable({ didRecord }: PropType) {
   const [metadataVersionIds, setMetadataVersionIds] = useState<string[]>([]);
   const [metadata, setMetadata] = useState<string[]>([]);
   const [timestampsIds, setTimestampsIds] = useState<string[]>([]);
-  const [administrators, setAdministrators] = useState<string[]>([]);
-  const [hashAlgorithms, setHashAlgorithms] = useState<HashAlgo[]>([]);
+  const [administratorLastHash, setAdministratorLastHash] = useState<string[]>(
+    []
+  );
+  const [didRecordsIdsByController, setDidRecordsIds] = useState<string[]>([]);
   const [insertDidControllerForm] = Form.useForm();
   const [updateDidControllerForm] = Form.useForm();
   const [insertAdminForm] = Form.useForm();
@@ -51,14 +54,15 @@ export default function useDidTable({ didRecord }: PropType) {
     setVersionInfos,
     setMetadataVersionIds,
     setMetadata,
-    setAdministrators,
-    setHashAlgorithms,
+    setAdministratorLastHash,
     setTimestampsIds,
     didRecord,
     identifier,
     versionHashes,
     walletAddress,
     metadataVersionIds,
+    setDidRecordsIds,
+    didControllers,
   });
 
   const {
@@ -93,7 +97,8 @@ export default function useDidTable({ didRecord }: PropType) {
         metadataVersionIds,
         metadata,
         timestampsIds,
-        administrators,
+        administratorLastHash,
+        didRecordsIdsByController,
       },
     ];
   }, [
@@ -104,7 +109,8 @@ export default function useDidTable({ didRecord }: PropType) {
     metadataVersionIds,
     metadata,
     timestampsIds,
-    administrators,
+    administratorLastHash,
+    didRecordsIdsByController,
   ]);
 
   const columns = [
@@ -132,80 +138,120 @@ export default function useDidTable({ didRecord }: PropType) {
     },
     {
       title: "Did controller(s)",
-      dataIndex: "didControllers",
       key: "didControllers",
-      render: (values: string[]) => {
-        if (values) {
-          return (
-            <>
-              {values.map((value) => (
-                <Tooltip title={value} key={`${value}-${Math.random()}`}>
-                  <Paragraph
-                    className="d-flex"
-                    key={value}
-                    copyable={{
-                      text: value,
-                    }}
-                  >
-                    {value.slice(0, 4)}...
-                    {value.slice(-4)}
-                  </Paragraph>
-                </Tooltip>
-              ))}
-              <Space direction="vertical">
-                <Row>
-                  <Button
-                    onClick={() => {
-                      setModal({
-                        visible: true,
-                        title: "Insert DID Controller",
-                        onOk: () => {
-                          insertDidController(identifier)?.then(() => {
-                            resetModal();
+      render: ({
+        didControllers: didControllersData,
+        didRecordsIdsByController: didRecordsControllersData,
+      }: {
+        didControllers: string[];
+        didRecordsIdsByController: string[];
+      }) => {
+        return (
+          <Space direction="vertical">
+            {didRecordsControllersData ? (
+              <>
+                <h3>My controller DIDs</h3>
+                {didRecordsControllersData.map((didRecordItem) => {
+                  return (
+                    <Tooltip
+                      title={didRecordItem}
+                      key={`${didRecordItem}-${Math.random()}`}
+                    >
+                      <Paragraph
+                        className="d-flex"
+                        key={didRecordItem}
+                        copyable={{
+                          text: didRecordItem,
+                        }}
+                      >
+                        {didRecordItem.slice(0, 4)}...
+                        {didRecordItem.slice(-4)}
+                      </Paragraph>
+                    </Tooltip>
+                  );
+                })}
+              </>
+            ) : (
+              <></>
+            )}
+            {didControllersData ? (
+              <>
+                <h3>My DID record</h3>
+                {didControllersData.map((value) => (
+                  <React.Fragment key={`${value}-${Math.random()}`}>
+                    <Row align="middle">
+                      <Tooltip title={value} key={`${value}-${Math.random()}`}>
+                        <Paragraph
+                          className="d-flex m-b-0"
+                          key={value}
+                          copyable={{
+                            text: value,
+                          }}
+                        >
+                          {value.slice(0, 4)}...
+                          {value.slice(-4)}
+                        </Paragraph>
+                      </Tooltip>
+                      <Button
+                        type="link"
+                        className="m-l-4 p-0"
+                        onClick={() => {
+                          setModal({
+                            visible: true,
+                            title: "Update DID Controller",
+                            onOk: () => {
+                              updateDidController(
+                                getIdentifierFromWalletAddr(value)
+                              )?.then(() => {
+                                resetModal();
+                              });
+                            },
+                            content: (
+                              <DidControllerModalContent
+                                form={updateDidControllerForm}
+                              />
+                            ),
+                            width: 500,
                           });
-                        },
-                        content: (
-                          <DidControllerModalContent
-                            form={insertDidControllerForm}
-                          />
-                        ),
-                        width: 500,
-                      });
-                    }}
-                  >
-                    <PlusOutlined />
-                    Insert DID Controller
-                  </Button>
-                </Row>
-                <Row>
-                  <Button
-                    onClick={() => {
-                      setModal({
-                        visible: true,
-                        title: "Update DID Controller",
-                        onOk: () => {
-                          updateDidController(identifier)?.then(() => {
-                            resetModal();
-                          });
-                        },
-                        content: (
-                          <DidControllerModalContent
-                            form={updateDidControllerForm}
-                          />
-                        ),
-                        width: 500,
-                      });
-                    }}
-                  >
-                    <PlusOutlined />
-                    Update DID Controller
-                  </Button>
-                </Row>
-              </Space>
-            </>
-          );
-        }
-        return <></>;
+                        }}
+                      >
+                        <EditOutlined />
+                      </Button>
+                    </Row>
+                  </React.Fragment>
+                ))}
+                <Space direction="vertical">
+                  <Row>
+                    <Button
+                      onClick={() => {
+                        setModal({
+                          visible: true,
+                          title: "Insert DID Controller",
+                          onOk: () => {
+                            insertDidController(identifier)?.then(() => {
+                              resetModal();
+                            });
+                          },
+                          content: (
+                            <DidControllerModalContent
+                              form={insertDidControllerForm}
+                            />
+                          ),
+                          width: 500,
+                        });
+                      }}
+                    >
+                      <PlusOutlined />
+                      Insert DID Controller
+                    </Button>
+                  </Row>
+                </Space>
+              </>
+            ) : (
+              <></>
+            )}
+          </Space>
+        );
       },
     },
     {
@@ -244,10 +290,7 @@ export default function useDidTable({ didRecord }: PropType) {
                   width: 600,
                   title: "Append DID document version hash",
                   content: (
-                    <DidDocumentModalContent
-                      hashAlgos={hashAlgorithms}
-                      form={appendDidDocumentForm}
-                    />
+                    <DidDocumentModalContent form={appendDidDocumentForm} />
                   ),
                 });
               }}
@@ -395,9 +438,9 @@ export default function useDidTable({ didRecord }: PropType) {
       },
     },
     {
-      title: "Administrators",
-      key: "administrators",
-      render: ({ administrators: administratorsData }: any) => {
+      title: "Administrator attributes last hash",
+      key: "administratorLastHash",
+      render: ({ administratorLastHash: administratorsData }: any) => {
         return (
           <>
             {administratorsData.length ? (
@@ -420,7 +463,7 @@ export default function useDidTable({ didRecord }: PropType) {
             ) : (
               ""
             )}
-            <Space>
+            <Space direction="vertical">
               <Row>
                 <Button
                   onClick={() => {
@@ -457,16 +500,17 @@ export default function useDidTable({ didRecord }: PropType) {
                         });
                       },
                       content: (
-                        <AdministratorControllerModalContent
+                        <AdministratorUpdateControllerModalContent
                           form={updateAdminForm}
+                          walletAddress={walletAddress}
                         />
                       ),
                       width: 500,
                     });
                   }}
                 >
-                  <PlusOutlined />
-                  Update Admin
+                  <EditOutlined />
+                  Update Admin attributes
                 </Button>
               </Row>
             </Space>
