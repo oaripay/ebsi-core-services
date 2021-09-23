@@ -86,6 +86,7 @@ export default function useDidTable({ didRecord }: PropType) {
   const dataSource: DataType = useMemo(() => {
     return [
       {
+        did: getIdentifierFromWalletAddr(walletAddress),
         didControllers,
         versionHashes,
         versionInfos,
@@ -96,16 +97,39 @@ export default function useDidTable({ didRecord }: PropType) {
       },
     ];
   }, [
+    walletAddress,
     didControllers,
-    metadata,
-    metadataVersionIds,
     versionHashes,
     versionInfos,
+    metadataVersionIds,
+    metadata,
     timestampsIds,
     administrators,
   ]);
 
   const columns = [
+    {
+      title: "DID",
+      key: "did",
+      render: ({ did }: { did: string }) => {
+        if (!did) {
+          return <></>;
+        }
+        return (
+          <Tooltip title={did}>
+            <Paragraph
+              className="d-flex"
+              copyable={{
+                text: did,
+              }}
+            >
+              {did.slice(0, 4)}...
+              {did.slice(-4)}
+            </Paragraph>
+          </Tooltip>
+        );
+      },
+    },
     {
       title: "Did controller(s)",
       dataIndex: "didControllers",
@@ -269,7 +293,7 @@ export default function useDidTable({ didRecord }: PropType) {
                     });
                   }}
                 >
-                  Show metadata
+                  Show version info metadata
                 </Button>
               </>
             ) : (
