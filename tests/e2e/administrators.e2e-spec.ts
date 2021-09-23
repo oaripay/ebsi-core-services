@@ -13,7 +13,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { useContainer } from "class-validator";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -69,6 +69,7 @@ describe("Administrators (e2e)", () => {
   let testAppAccessToken: string;
   let testUserAccessToken: string;
   let ledgerService: LedgerService;
+  const randomDid = createDid();
 
   const createAdministrator = () => {
     const did = createDid();
@@ -91,6 +92,9 @@ describe("Administrators (e2e)", () => {
   const { attributeData: attributeData1 } = createAdministrator();
   const { attributeData: attributeData2 } = createAdministrator();
   const { attributeData: attributeData3 } = createAdministrator();
+
+  let lastExistingAdminDid: string;
+  let beforeLastExistingAdminDid: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -139,6 +143,22 @@ describe("Administrators (e2e)", () => {
       clientPrivateKey: configService.get<string>("testClientPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
+
+    // Get last 2 admins DID
+    let administratorsResponse: SupertestAdministratorsResponse = await request(
+      server
+    )
+      .get("/administrators")
+      .auth(testUserAccessToken, { type: "bearer" });
+
+    // Go to last page (where there is at least 2 admins)
+    const { total } = administratorsResponse.body;
+    administratorsResponse = await request(server)
+      .get(`/administrators?page[after]=${Math.floor(total / 2)}&page[size]=2`)
+      .auth(testUserAccessToken, { type: "bearer" });
+
+    beforeLastExistingAdminDid = administratorsResponse.body.items[0].did;
+    lastExistingAdminDid = administratorsResponse.body.items[1].did;
   });
 
   // Generic /jsonrpc tests
@@ -200,7 +220,7 @@ describe("Administrators (e2e)", () => {
           code: -32600,
           message: `The DID ${configService.get<string>(
             "testClientDid"
-          )} is not controlled by the address ${signer.address.toLowerCase()}`,
+          )} is not controlled by the address ${signer.address}`,
         },
       });
       expect(responseSend.status).toBe(400);
@@ -423,39 +443,62 @@ describe("Administrators (e2e)", () => {
 
   describe("/administrators/{did}", () => {
     it("should return a specific administrator", async () => {
-      expect.assertions(3);
-      const administratorsResponse: SupertestAdministratorsResponse =
-        await request(server)
-          .get("/administrators")
-          .auth(testUserAccessToken, { type: "bearer" });
-
-      expect(administratorsResponse.status).toBe(200);
-      const { did }: DidLink =
-        administratorsResponse.body.items[
-          administratorsResponse.body.items.length - 1
-        ];
+      expect.assertions(2);
 
       const response: SupertestAdministratorResponse = await request(server)
-        .get(`/administrators/${did}`)
+        .get(`/administrators/${lastExistingAdminDid}`)
         .auth(testUserAccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual({
-        did,
+        did: lastExistingAdminDid,
         attributes: expect.arrayContaining([]) as AttributeObject[],
       });
       expect(response.status).toBe(200);
     });
 
+    it("should throw an error if the administrator DID is not correctly formatted", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .get("/administrators/not-a-did")
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the administrator DID is not a valid EBSI DID", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .get("/administrators/did:ebsi:z1234")
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
     it("should throw an error if the administrator is not found", async () => {
       expect.assertions(2);
+
       const response = await request(server)
-        .get("/administrators/unknown-administrator")
+        .get(`/administrators/${randomDid}`)
         .auth(testUserAccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual({
         title: "Administrator Not Found",
         status: 404,
-        detail: "Administrator unknown-administrator not found",
+        detail: `Administrator ${randomDid} not found`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -464,80 +507,119 @@ describe("Administrators (e2e)", () => {
 
   describe("/administrators/{did}/attributes", () => {
     it("should return the attributes from a specific administrator", async () => {
-      expect.assertions(3);
+      expect.assertions(2);
 
-      const administrators: SupertestAdministratorsResponse = await request(
-        server
-      )
-        .get("/administrators")
-        .auth(testUserAccessToken, { type: "bearer" });
-
-      expect(administrators.status).toBe(200);
-
-      const { did }: DidLink =
-        administrators.body.items[administrators.body.items.length - 1];
       const response: SupertestAdministratorsResponse = await request(server)
-        .get(`/administrators/${did}/attributes`)
+        .get(`/administrators/${lastExistingAdminDid}/attributes`)
         .auth(testUserAccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            `/did-registry/v2/administrators/${did}/attributes?page[after]=1&page[size]=10`
+            `/did-registry/v2/administrators/${lastExistingAdminDid}/attributes?page[after]=1&page[size]=10`
           ) as string,
           items: expect.arrayContaining([]) as string[],
           total: expect.any(Number) as number,
           pageSize: expect.any(Number) as number,
           links: expect.objectContaining({
             first: expect.stringContaining(
-              `/did-registry/v2/administrators/${did}/attributes?page[after]=1&page[size]=10`
+              `/did-registry/v2/administrators/${lastExistingAdminDid}/attributes?page[after]=1&page[size]=10`
             ) as string,
             prev: expect.stringContaining(
-              `/did-registry/v2/administrators/${did}/attributes?page[after]=1&page[size]=10`
+              `/did-registry/v2/administrators/${lastExistingAdminDid}/attributes?page[after]=1&page[size]=10`
             ) as string,
             next: expect.stringContaining(
-              `/did-registry/v2/administrators/${did}/attributes?page[after]=`
+              `/did-registry/v2/administrators/${lastExistingAdminDid}/attributes?page[after]=`
             ) as string,
             last: expect.stringContaining(
-              `/did-registry/v2/administrators/${did}/attributes?page[after]=`
+              `/did-registry/v2/administrators/${lastExistingAdminDid}/attributes?page[after]=`
             ) as string,
           }) as PaginatedList<IdLink>["links"],
         })
       );
       expect(response.status).toBe(200);
     });
-  });
 
-  describe("/administrators/{did}/attributes/{attributeId}", () => {
-    it("should return a specific attribute", async () => {
-      expect.assertions(4);
+    it("should throw an error if the administrator DID is not correctly formatted", async () => {
+      expect.assertions(2);
 
-      const administrators: SupertestAdministratorsResponse = await request(
-        server
-      )
-        .get(`/administrators`)
-        .auth(testUserAccessToken, { type: "bearer" });
-
-      expect(administrators.status).toBe(200);
-
-      const { did }: DidLink =
-        administrators.body.items[administrators.body.items.length - 1];
-      const responseAttributes: SupertestAttributesResponse = await request(
-        server
-      )
-        .get(`/administrators/${did}/attributes`)
-        .auth(testUserAccessToken, { type: "bearer" });
-
-      expect(responseAttributes.status).toBe(200);
-
-      const attributeId = responseAttributes.body.items[0].id;
-
-      const response: SupertestAttributeResponse = await request(server)
-        .get(`/administrators/${did}/attributes/${attributeId}`)
+      const response = await request(server)
+        .get("/administrators/not-a-did/attributes")
         .auth(testUserAccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual({
-        did,
+        detail: '["did must be a valid DID"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the administrator DID is not a valid EBSI DID", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .get("/administrators/did:ebsi:z1234/attributes")
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the administrator is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .get(`/administrators/${randomDid}/attributes`)
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      expect(response.body).toStrictEqual({
+        title: "Administrator Not Found",
+        status: 404,
+        detail: `Administrator ${randomDid} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+  });
+
+  describe("/administrators/{did}/attributes/{attributeId}", () => {
+    let attributeId: string;
+    let attributeId2: string;
+
+    beforeAll(async () => {
+      let responseAttributes: SupertestAttributesResponse = await request(
+        server
+      )
+        .get(`/administrators/${lastExistingAdminDid}/attributes`)
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      attributeId = responseAttributes.body.items[0].id;
+
+      responseAttributes = await request(server)
+        .get(`/administrators/${beforeLastExistingAdminDid}/attributes`)
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      attributeId2 = responseAttributes.body.items[0].id;
+    });
+
+    it("should return a specific attribute", async () => {
+      expect.assertions(2);
+
+      const response: SupertestAttributeResponse = await request(server)
+        .get(
+          `/administrators/${lastExistingAdminDid}/attributes/${attributeId}`
+        )
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      expect(response.body).toStrictEqual({
+        did: lastExistingAdminDid,
         attribute: {
           body: expect.any(String) as string,
           hash: attributeId,
@@ -546,31 +628,70 @@ describe("Administrators (e2e)", () => {
       expect(response.status).toBe(200);
     });
 
-    it("should throw an error when attribute is not found", async () => {
-      expect.assertions(8);
+    it("should throw an error if the administrator DID is not correctly formatted", async () => {
+      expect.assertions(2);
 
-      const administrators: SupertestAdministratorsResponse = await request(
-        server
-      )
-        .get("/administrators")
+      const response = await request(server)
+        .get(`/administrators/not-a-did/attributes/${attributeId}`)
         .auth(testUserAccessToken, { type: "bearer" });
 
-      expect(administrators.status).toBe(200);
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
 
-      const { did }: DidLink =
-        administrators.body.items[administrators.body.items.length - 1];
+    it("should throw an error if the administrator DID is not a valid EBSI DID", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .get(`/administrators/did:ebsi:z1234/attributes/${attributeId}`)
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the administrator is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .get(`/administrators/${randomDid}/attributes/${attributeId}`)
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      expect(response.body).toStrictEqual({
+        title: "Administrator Not Found",
+        status: 404,
+        detail: `Administrator ${randomDid} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw an error when attribute is not found", async () => {
+      expect.assertions(4);
 
       // consult a random attribute
-      const attributeId =
+      const wrongAattributeId =
         "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
 
       const response: SupertestAttributeResponse = await request(server)
-        .get(`/administrators/${did}/attributes/${attributeId}`)
+        .get(
+          `/administrators/${lastExistingAdminDid}/attributes/${wrongAattributeId}`
+        )
         .auth(testUserAccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual({
         detail: expect.stringContaining(
-          `Attribute ${attributeId} not found`
+          `Attribute ${wrongAattributeId} not found`
         ) as string,
         status: 404,
         title: "Attribute Not Found",
@@ -578,79 +699,54 @@ describe("Administrators (e2e)", () => {
       });
       expect(response.status).toBe(404);
 
-      const randomDid = createDid();
-
-      // consult an attribute from a random did
-      const response2 = await request(server)
-        .get(`/administrators/${randomDid}/attributes/${attributeId}`)
+      // consult an attribute from a different did
+      const response2: SupertestAttributeResponse = await request(server)
+        .get(
+          `/administrators/${lastExistingAdminDid}/attributes/${attributeId2}`
+        )
         .auth(testUserAccessToken, { type: "bearer" });
 
       expect(response2.body).toStrictEqual({
         detail: expect.stringContaining(
-          `Administrator ${randomDid} not found`
-        ) as string,
-        status: 404,
-        title: "Administrator Not Found",
-        type: "about:blank",
-      });
-      expect(response2.status).toBe(404);
-
-      // consult an attribute from a different did
-      const { did: did2 }: DidLink =
-        administrators.body.items[administrators.body.items.length - 2];
-      const responseAttributes: SupertestAttributesResponse = await request(
-        server
-      )
-        .get(`/administrators/${did2}/attributes`)
-        .auth(testUserAccessToken, { type: "bearer" });
-
-      expect(responseAttributes.status).toBe(200);
-
-      const attributeId2 = responseAttributes.body.items[0].id;
-
-      const response3: SupertestAttributeResponse = await request(server)
-        .get(`/administrators/${did}/attributes/${attributeId2}`)
-        .auth(testUserAccessToken, { type: "bearer" });
-
-      expect(response3.body).toStrictEqual({
-        detail: expect.stringContaining(
-          `Attribute 0x${attributeId2} not found`
+          `Attribute ${attributeId2} not found`
         ) as string,
         status: 404,
         title: "Attribute Not Found",
         type: "about:blank",
       });
-      expect(response3.status).toBe(404);
+      expect(response2.status).toBe(404);
     });
   });
 
   describe("/administrators/{did}/attributes/{attributeId}/revisions", () => {
-    it("should return revisions", async () => {
-      expect.assertions(4);
+    let attributeId: string;
+    let attributeId2: string;
 
-      const administrators: SupertestAdministratorsResponse = await request(
+    beforeAll(async () => {
+      let responseAttributes: SupertestAttributesResponse = await request(
         server
       )
-        .get("/administrators")
+        .get(`/administrators/${lastExistingAdminDid}/attributes`)
         .auth(testUserAccessToken, { type: "bearer" });
 
-      expect(administrators.status).toBe(200);
+      attributeId = responseAttributes.body.items[0].id;
 
-      const { did }: DidLink =
-        administrators.body.items[administrators.body.items.length - 1];
+      responseAttributes = await request(server)
+        .get(`/administrators/${beforeLastExistingAdminDid}/attributes`)
+        .auth(testUserAccessToken, { type: "bearer" });
 
-      const administratorResponse: SupertestAdministratorResponse =
-        await request(server)
-          .get(`/administrators/${did}`)
-          .auth(testUserAccessToken, { type: "bearer" });
+      attributeId2 = responseAttributes.body.items[0].id;
+    });
 
-      expect(administratorResponse.status).toBe(200);
+    it("should return revisions", async () => {
+      expect.assertions(2);
 
-      const attributeId = administratorResponse.body.attributes[0].hash;
-      const urlPath = `/administrators/${did}/attributes/${attributeId}/revisions`;
+      const urlPath = `/administrators/${lastExistingAdminDid}/attributes/${attributeId}/revisions`;
 
       const response = await request(server)
-        .get(`/administrators/${did}/attributes/${attributeId}/revisions`)
+        .get(
+          `/administrators/${lastExistingAdminDid}/attributes/${attributeId}/revisions`
+        )
         .auth(testUserAccessToken, { type: "bearer" });
 
       expect(response.body).toStrictEqual({
@@ -666,6 +762,97 @@ describe("Administrators (e2e)", () => {
         },
       });
       expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the administrator DID is not correctly formatted", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .get(`/administrators/not-a-did/attributes/${attributeId}/revisions`)
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the administrator DID is not a valid EBSI DID", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .get(
+          `/administrators/did:ebsi:z1234/attributes/${attributeId}/revisions`
+        )
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the administrator is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server)
+        .get(`/administrators/${randomDid}/attributes/${attributeId}/revisions`)
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      expect(response.body).toStrictEqual({
+        title: "Administrator Not Found",
+        status: 404,
+        detail: `Administrator ${randomDid} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw an error when attribute is not found", async () => {
+      expect.assertions(4);
+
+      // consult a random attribute
+      const wrongAattributeId =
+        "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
+
+      const response: SupertestAttributeResponse = await request(server)
+        .get(
+          `/administrators/${lastExistingAdminDid}/attributes/${wrongAattributeId}/revisions`
+        )
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      expect(response.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Attribute ${wrongAattributeId} not found`
+        ) as string,
+        status: 404,
+        title: "Attribute Not Found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+
+      // consult an attribute from a different did
+      const response2: SupertestAttributeResponse = await request(server)
+        .get(
+          `/administrators/${lastExistingAdminDid}/attributes/${attributeId2}/revisions`
+        )
+        .auth(testUserAccessToken, { type: "bearer" });
+
+      expect(response2.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Attribute ${attributeId2} not found`
+        ) as string,
+        status: 404,
+        title: "Attribute Not Found",
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(404);
     });
   });
 });

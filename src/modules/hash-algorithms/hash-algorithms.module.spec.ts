@@ -10,7 +10,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { HashAlgorithmsModule } from "./hash-algorithms.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import {

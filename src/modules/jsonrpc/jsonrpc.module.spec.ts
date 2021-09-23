@@ -9,7 +9,7 @@ import {
   HttpServer,
 } from "@nestjs/common";
 import { ethers } from "ethers";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -787,9 +787,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.body).toStrictEqual({
       error: {
         code: -32600,
-        message: `The DID ${
-          testEnv.administrators[0].did
-        } is not controlled by the address ${signer.address.toLowerCase()}`,
+        message: `The DID ${testEnv.administrators[0].did} is not controlled by the address ${signer.address}`,
       },
       id: "45",
       jsonrpc: "2.0",

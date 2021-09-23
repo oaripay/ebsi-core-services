@@ -5,7 +5,7 @@ import {
 import { VerifiableCredential } from "@cef-ebsi/verifiable-credential";
 import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import base64url from "base64url";
-import { JWTPayload } from "jose/webcrypto/types";
+import { JWTPayload } from "jose/types";
 
 const extractIatFromJwt = (jwt: string): number => {
   const token = jwt.split(".");

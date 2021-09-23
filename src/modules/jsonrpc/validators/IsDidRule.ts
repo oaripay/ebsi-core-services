@@ -20,17 +20,18 @@ export class IsDidRule implements ValidatorConstraintInterface {
   async validate(value: string): Promise<boolean> {
     // It must be a DID, i.e "did:xxx:xxx"
     if (!isDid(value)) return false;
+
     // Check in DID Registry if the method ("did:xxx") is registered
     try {
       const method = value.split(":");
       const didMethod = await this.didMethodsService.getDidMethod(
         `${method[0]}:${method[1]}`
       );
-      if (!didMethod.status || didMethod.status !== 1) return false;
+
+      return didMethod.status === 1;
     } catch (error) {
       return false;
     }
-    return true;
   }
 
   defaultMessage(args: ValidationArguments): string {

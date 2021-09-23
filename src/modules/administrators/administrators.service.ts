@@ -60,14 +60,14 @@ export class AdministratorsService {
       ).getAdministratorAttributeByHash(hash);
     } catch (e) {
       throw new NotFoundError("Attribute Not Found", {
-        detail: `Attribute ${hash} not found`,
+        detail: `Attribute ${attributeId} not found`,
       });
     }
 
     // If `adminDid` is passed, make sure the attribute belongs to the given administrator
     if (adminDid && attributeByHash.did !== adminDid) {
       throw new NotFoundError("Attribute Not Found", {
-        detail: `Attribute ${hash} not found`,
+        detail: `Attribute ${attributeId} not found`,
       });
     }
 

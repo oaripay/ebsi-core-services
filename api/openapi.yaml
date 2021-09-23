@@ -84,8 +84,8 @@ paths:
                   value:
                     self: https://api.test.intebsi.xyz/did-registry/v2/administrators?page[after]=1&page[size]=10
                     items:
-                      - did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                        href: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                      - did: did:ebsi:zfjT9mfwJMAWCMDoKkUxN22
+                        href: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22
                     total: 1
                     pageSize: 10
                     links:
@@ -97,8 +97,8 @@ paths:
                   value:
                     self: https://api.preprod.ebsi.eu/did-registry/v2/administrators?page[after]=1&page[size]=10
                     items:
-                      - did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                      - did: did:ebsi:zfjT9mfwJMAWCMDoKkUxN22
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22
                     total: 1
                     pageSize: 10
                     links:
@@ -141,7 +141,7 @@ paths:
           name: did
           schema:
             type: string
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          example: did:ebsi:zfjT9mfwJMAWCMDoKkUxN22
           required: true
       responses:
         200:
@@ -153,7 +153,7 @@ paths:
               examples:
                 Success:
                   value:
-                    did: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+                    did: did:ebsi:zfjT9mfwJMAWCMDoKkUxN22
                     attributes:
                       - hash: f0daff0a5ec7633b15093de3a9b4e77246b1231124c7ae2841637ccc9988e848
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI1ZDY3NWJhZTBlZDc5ZDE2ZGVkYjdmN2FiNTUxYmZkOCJ9
@@ -201,7 +201,7 @@ paths:
           name: did
           schema:
             type: string
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          example: did:ebsi:zfjT9mfwJMAWCMDoKkUxN22
           required: true
         - in: query
           name: page[after]
@@ -247,34 +247,34 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes?page[after]=1&page[size]=10
                     items:
                       - id: 792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
-                        href: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                        href: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
                       - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                        href: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+                        href: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes?page[after]=1&page[size]=10
                     items:
                       - id: 792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
                       - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -319,7 +319,7 @@ paths:
           name: did
           schema:
             type: string
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          example: did:ebsi:zfjT9mfwJMAWCMDoKkUxN22
           required: true
         - in: path
           name: attributeId
@@ -337,7 +337,7 @@ paths:
               examples:
                 Success:
                   value:
-                    did: did:ebsi:0x464190367BE948210608a46847bed183607f685A
+                    did: did:ebsi:zfjT9mfwJMAWCMDoKkUxN22
                     attribute:
                       hash: 523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6
                       body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
@@ -386,7 +386,7 @@ paths:
           name: did
           schema:
             type: string
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          example: did:ebsi:zfjT9mfwJMAWCMDoKkUxN22
           required: true
         - in: path
           name: attributeId
@@ -431,7 +431,7 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
                     items:
                       - hash: e08c1715ee864d2dadcea4a21a4a3b9590944f567d2241713388e6a0d925547a
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIzOGFhOTI2YTE2NThkYjc2NDEzNmU4MGQxZTgxNjJiNCJ9
@@ -440,13 +440,13 @@ paths:
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
                     items:
                       - hash: e08c1715ee864d2dadcea4a21a4a3b9590944f567d2241713388e6a0d925547a
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIzOGFhOTI2YTE2NThkYjc2NDEzNmU4MGQxZTgxNjJiNCJ9
@@ -455,10 +455,10 @@ paths:
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/administrators/did:ebsi:zfjT9mfwJMAWCMDoKkUxN22/attributes/523340122cf4a563000fa170fbbd9e58efd0f62097e04403cb254933546dc3e6/revisions?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -716,7 +716,7 @@ paths:
             type: integer
         - in: query
           name: identifier
-          description: DID, e.g. "did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew"
+          description: DID, e.g. "did:ebsi:zZssKY2QbbKEqVRgMP1iCLr"
           schema:
             type: string
         - in: query
@@ -789,17 +789,17 @@ paths:
                       last: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=13&page[size]=10
                 "[test] Filter by identifier and version ID":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                    self: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
                     items:
                       - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
                         href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
-                      next: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
-                      last: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                      first: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      next: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      last: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=3&page[size]=10
@@ -833,17 +833,17 @@ paths:
                       last: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=13&page[size]=10
                 "[pilot] Filter by identifier and version ID":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
                     items:
                       - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
                         href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew&version-id=1
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
         400:
           description: Bad Request Error
           content:
@@ -989,26 +989,26 @@ paths:
                   value:
                     self: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=3&page[size]=10
                     items:
-                      - did: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
-                      - did: did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew
-                      - did: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
-                      - did: did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
-                      - did: did:ebsi:hnzq2WpE8duMAnob4L2g8yVYT5eeDWNTLYnDq41BTed
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:hnzq2WpE8duMAnob4L2g8yVYT5eeDWNTLYnDq41BTed
-                      - did: did:ebsi:7pywr3gk6HDoMGmVGwnrg7mJFtZBoUPFKageSZmV2Diy
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:7pywr3gk6HDoMGmVGwnrg7mJFtZBoUPFKageSZmV2Diy
-                      - did: did:ebsi:fgG1xGPUTkbSZs9mtCqMxCwfgvBm6f6yLT9HXEsNHZY
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:fgG1xGPUTkbSZs9mtCqMxCwfgvBm6f6yLT9HXEsNHZY
-                      - did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
-                      - did: did:ebsi:7q9T542hvHEcw4CskHH7DxZWy9wZAwDuRfnbnKh5gsBN
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:7q9T542hvHEcw4CskHH7DxZWy9wZAwDuRfnbnKh5gsBN
-                      - did: did:ebsi:DAwccD6G9bkADwxoLscksdZTKKBFkVFVubgo7Lh2LrHi
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:DAwccD6G9bkADwxoLscksdZTKKBFkVFVubgo7Lh2LrHi
+                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                      - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                      - did: did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                      - did: did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                      - did: did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                      - did: did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                      - did: did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                      - did: did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                      - did: did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
                     total: 124
                     pageSize: 10
                     links:
@@ -1020,8 +1020,8 @@ paths:
                   value:
                     self: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
                     items:
-                      - did: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     total: 1
                     pageSize: 10
                     links:
@@ -1033,26 +1033,26 @@ paths:
                   value:
                     self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=3&page[size]=10
                     items:
-                      - did: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
-                      - did: did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:DK4UNNNqKJqSZpc1E8hmsvkQQJkUxk5UeyzRn6tWo9Ew
-                      - did: did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn
-                      - did: did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:2hVrUYqLbbxR5PovFfw9RSc7yScBFV4qj7DT39yJvBFj
-                      - did: did:ebsi:hnzq2WpE8duMAnob4L2g8yVYT5eeDWNTLYnDq41BTed
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:hnzq2WpE8duMAnob4L2g8yVYT5eeDWNTLYnDq41BTed
-                      - did: did:ebsi:7pywr3gk6HDoMGmVGwnrg7mJFtZBoUPFKageSZmV2Diy
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7pywr3gk6HDoMGmVGwnrg7mJFtZBoUPFKageSZmV2Diy
-                      - did: did:ebsi:fgG1xGPUTkbSZs9mtCqMxCwfgvBm6f6yLT9HXEsNHZY
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:fgG1xGPUTkbSZs9mtCqMxCwfgvBm6f6yLT9HXEsNHZY
-                      - did: did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:Gvbae1xorK3xfCD1s8khEfXzUt2wGsfL3ewdyvkzJBwK
-                      - did: did:ebsi:7q9T542hvHEcw4CskHH7DxZWy9wZAwDuRfnbnKh5gsBN
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7q9T542hvHEcw4CskHH7DxZWy9wZAwDuRfnbnKh5gsBN
-                      - did: did:ebsi:DAwccD6G9bkADwxoLscksdZTKKBFkVFVubgo7Lh2LrHi
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:DAwccD6G9bkADwxoLscksdZTKKBFkVFVubgo7Lh2LrHi
+                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                      - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                      - did: did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                      - did: did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                      - did: did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                      - did: did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                      - did: did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                      - did: did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                      - did: did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
                     total: 124
                     pageSize: 10
                     links:
@@ -1064,8 +1064,8 @@ paths:
                   value:
                     self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
                     items:
-                      - did: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     total: 1
                     pageSize: 10
                     links:
@@ -1110,9 +1110,9 @@ paths:
             type: string
           examples:
             "[test] DID":
-              value: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
             "[pilot] DID":
-              value: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
       responses:
         200:
           description: Success
@@ -1125,25 +1125,25 @@ paths:
                   value:
                     "@context":
                       - https://www.w3.org/ns/did/v1
-                    id: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     verificationMethod:
-                      - controller: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
-                        id: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3#vm-3
+                      - controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#vm-3
                         type: EcdsaSecp256k1RecoveryMethod2020
                         publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
                 "[pilot] Success":
                   value:
                     "@context": https://w3id.org/did/v1
-                    id: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     verificationMethod:
-                      - id: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG#keys-1
+                      - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
                         type: Secp256k1VerificationKey2018
-                        controller: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+                        controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                         publicKeyHex: 04f9139fbd3b9780863b17e8390934a1017fc8d0f18b84f02acb04f24c9cae261e45745c6507881509b9e6d837329153ea75fafb2c1a5d504702d04f1e22a80ecc
                     authentication:
-                      - did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     assertionMethod:
-                      - did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG#keys-1
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
         400:
           description: Bad Request
           content:
@@ -1200,9 +1200,9 @@ paths:
             type: string
           examples:
             "[test] DID":
-              value: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
             "[pilot] DID":
-              value: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
       responses:
         200:
           description: Success
@@ -1239,30 +1239,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
                     items:
                       - versionId: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
                     items:
                       - versionId: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -1314,9 +1314,9 @@ paths:
             type: string
           examples:
             "[test] DID":
-              value: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
             "[pilot] DID":
-              value: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
         - in: path
           name: versionId
           description: A unique version ID.
@@ -1340,25 +1340,25 @@ paths:
                   value:
                     "@context":
                       - https://www.w3.org/ns/did/v1
-                    id: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     verificationMethod:
-                      - controller: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
-                        id: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3#vm-3
+                      - controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#vm-3
                         type: EcdsaSecp256k1RecoveryMethod2020
                         publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
                 "[pilot] Success":
                   value:
                     "@context": https://w3id.org/did/v1
-                    id: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     verificationMethod:
-                      - id: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG#keys-1
+                      - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
                         type: Secp256k1VerificationKey2018
-                        controller: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+                        controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                         publicKeyHex: 04f9139fbd3b9780863b17e8390934a1017fc8d0f18b84f02acb04f24c9cae261e45745c6507881509b9e6d837329153ea75fafb2c1a5d504702d04f1e22a80ecc
                     authentication:
-                      - did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     assertionMethod:
-                      - did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG#keys-1
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
         400:
           description: Bad Request
           content:
@@ -1422,9 +1422,9 @@ paths:
             type: string
           examples:
             "[test] DID":
-              value: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
             "[pilot] DID":
-              value: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
         - in: path
           name: versionId
           description: A unique version ID.
@@ -1472,30 +1472,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
                     items:
                       - metadataId: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata/0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607
+                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata/0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
                     items:
                       - metadataId: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
+                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -1554,9 +1554,9 @@ paths:
             type: string
           examples:
             "[test] DID":
-              value: did:ebsi:CT3ZWkGyFyoqiMEQJ4Ntthw2UiN7CdqG5jWog3EskvG3
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
             "[pilot] DID":
-              value: did:ebsi:7tmtfaXVZyYSVHx948UkGsNHt3ijWuSaXtYU6syTZHJG
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
         - in: path
           name: versionId
           description: A unique version ID.
@@ -2198,8 +2198,8 @@ paths:
                   method: insertAdministrator
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
+                      did: "did:ebsi:zfjT9mfwJMAWCMDoKkUxN22"
                       attributeData: "0x7b2276616c696446726f6d223a22323032312d30392d31355431333a30393a34302e3533385a222c2276616c6964546f223a22323032312d30392d32305430343a31363a32302e3533385a227d"
               Build tx to updateAdministrator (new attribute):
                 description: |
@@ -2214,8 +2214,8 @@ paths:
                   method: updateAdministrator
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
+                      did: did:ebsi:zfjT9mfwJMAWCMDoKkUxN22
                       attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a226234646562303165383334303335643863313731326530663633326536633164227d"
               Build tx to updateAdministrator (update attribute):
                 description: |
@@ -2234,8 +2234,8 @@ paths:
                   method: updateAdministrator
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      did: did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
+                      did: did:ebsi:zfjT9mfwJMAWCMDoKkUxN22
                       prevAttributeHash: "0xade61e5d36c9cb925a59c00c4c0e16c25a6dce1ec8475432f75c953ff2cd551d"
                       attributeData: "0x7b2276616c696446726f6d223a22323032312d30392d31355431333a30393a34302e3533385a222c2276616c6964546f223a22323032312d30392d32305430343a31363a32302e3533385a227d"
               Build tx to insertPolicy:
@@ -2251,7 +2251,7 @@ paths:
                   method: insertPolicy
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       policyId: policy-test-2021-03-30T14:10:56.932Z
                       policyData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223832663965313262313636363665313134303661383738643364653266333465227d"
               Build tx to updatePolicy:
@@ -2267,7 +2267,7 @@ paths:
                   method: updatePolicy
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       policyId: policy-test-2021-03-30T14:10:56.932Z
                       policyData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223832663965313262313636363665313134303661383738643364653266333465227d"
               Build tx to insertHashAlgorithm:
@@ -2286,7 +2286,7 @@ paths:
                   method: insertHashAlgorithm
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       outputLength: 256
                       ianaName: sha-256
                       oid: "2.16.840.1.101.3.4.2.1"
@@ -2309,7 +2309,7 @@ paths:
                   method: updateHashAlgorithm
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       hashAlgorithmId: 3
                       outputLength: 256
                       ianaName: sha-256
@@ -2333,7 +2333,7 @@ paths:
                   method: insertDidDocument
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       hashAlgorithmId: 0
                       hashValue: "0xf0fcfaf89af366f278900538f074eba8469408b1c54451e4ff4660a379e7e8f5"
@@ -2357,7 +2357,7 @@ paths:
                   method: updateDidDocument
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       hashAlgorithmId: 0
                       hashValue: "0xf0fcfaf89af366f278900538f074eba8469408b1c54451e4ff4660a379e7e8f5"
@@ -2379,7 +2379,7 @@ paths:
                   method: insertDidController
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       newControllerId: "0x40596101548f3D74714E6Eb66c4774c83F57Dd1d"
                       notBefore: 1616408985883
@@ -2399,7 +2399,7 @@ paths:
                   method: updateDidController
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       newControllerId: "0x40596101548f3D74714E6Eb66c4774c83F57Dd1d"
                       notBefore: 1616408985883
@@ -2417,7 +2417,7 @@ paths:
                   method: revokeDidController
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       oldControllerId: "0x40596101548f3D74714E6Eb66c4774c83F57Dd1d"
               Build tx to insertDidMethod:
@@ -2438,7 +2438,7 @@ paths:
                   method: insertDidMethod
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       methodName: did:ebsi
                       ledgerName: EBSI-ethereum
                       methodSpec:
@@ -2466,7 +2466,7 @@ paths:
                   method: updateDidMethod
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       methodName: did:ebsi-2
                       ledgerName: EBSI-ethereum-2
                       methodSpec:
@@ -2492,7 +2492,7 @@ paths:
                   method: appendDidDocumentVersionHash
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       hashAlgorithmId: 0
                       hashValue: "0xf0fcfaf89af366f278900538f074eba8469408b1c54451e4ff4660a379e7e8f5"
@@ -2513,7 +2513,7 @@ paths:
                   method: detachDidDocumentVersionHash
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       hashAlgorithmId: 0
                       hashValue: "0xf0fcfaf89af366f278900538f074eba8469408b1c54451e4ff4660a379e7e8f5"
@@ -2532,7 +2532,7 @@ paths:
                   method: appendDidDocumentVersionMetadata
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
                       didVersionMetadata: "0x7b226d657461223a2266363432653135343161363435656534363530613338323537363165646566393465333037316265316237633735396336383833346663336637323363613838227d"
@@ -2550,7 +2550,7 @@ paths:
                   method: detachDidDocumentVersionMetadata
                   id: 1
                   params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                    - from: "zfjT9mfwJMAWCMDoKkUxN22"
                       identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
                       didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
                       didVersionMetadata: "0x7b226d657461223a2266363432653135343161363435656534363530613338323537363165646566393465333037316265316237633735396336383833346663336637323363613838227d"
@@ -2563,7 +2563,7 @@ paths:
                   params:
                     - protocol: eth
                       unsignedTransaction:
-                        from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                        from: "zfjT9mfwJMAWCMDoKkUxN22"
                         to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
                         data: "0x0000..."
                         nonce: "0x00"
@@ -2588,7 +2588,7 @@ paths:
                     jsonrpc: "2.0"
                     id: 1
                     result:
-                      from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      from: "zfjT9mfwJMAWCMDoKkUxN22"
                       to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
                       data: "0x0000..."
                       nonce: "0x00"

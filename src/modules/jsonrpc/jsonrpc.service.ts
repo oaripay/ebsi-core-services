@@ -258,9 +258,9 @@ export class JsonRpcService {
 
     // recover address used to sign
     const digest = ethers.utils.keccak256(serializedTransaction);
-    const signer = ethers.utils.recoverAddress(digest, signature).toLowerCase();
+    const signer = ethers.utils.recoverAddress(digest, signature);
 
-    if (signer !== unsignedTransaction.from.toLowerCase())
+    if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase())
       throw new Error(
         `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `
       );

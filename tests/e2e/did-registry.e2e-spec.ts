@@ -13,7 +13,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import canonicalize from "canonicalize";
 import { useContainer } from "class-validator";
 import { HashName } from "multihashes";

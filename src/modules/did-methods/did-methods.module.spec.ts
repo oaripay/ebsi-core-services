@@ -10,7 +10,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { DidMethodsModule } from "./did-methods.module";
 import { DidMethodResponseObject } from "./did-methods.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";

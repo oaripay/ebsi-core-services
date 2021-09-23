@@ -18,6 +18,10 @@ import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 import { SiopJwtAuthGuard } from "../auth/guards/siop-jwt-auth.guard";
 import { Client, ClientInfo } from "../auth/decorators";
+import {
+  GetAdministratorAttributeParamsDto,
+  GetAdministratorParamsDto,
+} from "./dto";
 
 @Controller("/administrators")
 export default class AdministratorsController {
@@ -54,7 +58,7 @@ export default class AdministratorsController {
   @Get("/:did")
   @UseGuards(SiopJwtAuthGuard)
   async getAdministrator(
-    @Param() params: { did?: string },
+    @Param() params: GetAdministratorParamsDto,
     @Client() client: ClientInfo
   ): Promise<AdministratorResponseObject> {
     const { did } = params;
@@ -69,7 +73,7 @@ export default class AdministratorsController {
   @Get("/:did/attributes")
   @UseGuards(SiopJwtAuthGuard)
   async getAdministratorAttributes(
-    @Param() params: { did: string },
+    @Param() params: GetAdministratorParamsDto,
     @Query() query: PaginationQuery,
     @Client() client: ClientInfo
   ): Promise<PaginatedList<IdLink>> {
@@ -96,7 +100,7 @@ export default class AdministratorsController {
   @Get("/:did/attributes/:attributeId")
   @UseGuards(SiopJwtAuthGuard)
   async getAdministratorAttribute(
-    @Param() params: { did: string; attributeId: string },
+    @Param() params: GetAdministratorAttributeParamsDto,
     @Client() client: ClientInfo
   ): Promise<AttributeDetailsObject> {
     const { did, attributeId } = params;
@@ -119,7 +123,7 @@ export default class AdministratorsController {
   @Get("/:did/attributes/:attributeId/revisions")
   @UseGuards(SiopJwtAuthGuard)
   async getAdministratorAttributeRevisions(
-    @Param() params: { did: string; attributeId: string },
+    @Param() params: GetAdministratorAttributeParamsDto,
     @Query() query: PaginationQuery,
     @Client() client: ClientInfo
   ): Promise<PaginatedList<AttributeObject>> {
