@@ -59,14 +59,12 @@ export class AdministratorsService {
   }
 
   async getAttributes(administratorDid: string): Promise<AttributeObject[]> {
-    const did = administratorDid.toLowerCase();
-
     let attributesLastHash: string[];
 
     try {
       attributesLastHash = await (
         await this.ledgerService.getContract()
-      ).getAdministrator(did);
+      ).getAdministrator(administratorDid);
 
       if (attributesLastHash.length === 0) {
         throw new Error();
@@ -99,7 +97,7 @@ export class AdministratorsService {
     try {
       attributesLastHash = await (
         await this.ledgerService.getContract()
-      ).getAdministrator(administratorDid.toLowerCase());
+      ).getAdministrator(administratorDid);
     } catch (e) {
       throw new NotFoundError("Administrator Not Found", {
         detail: `Administrator ${administratorDid} not found`,

@@ -10,13 +10,14 @@ import {
 } from "@nestjs/common";
 import { ethers } from "ethers";
 import crypto from "crypto";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import { JsonRpcService } from "./jsonrpc.service";
@@ -37,7 +38,6 @@ import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { Tir } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tir";
 import { ApiConfig } from "../../config/configuration";
-import { createDid } from "../../../tests/utils/data";
 import { LedgerService } from "../../shared/services/ledger.service";
 
 interface SupertestJsonRpcResponse {
@@ -90,7 +90,7 @@ describe("JsonRpc Module", () => {
   };
 
   const createIssuer = () => {
-    const issuerDid = createDid();
+    const issuerDid = EbsiWallet.createDid();
     return createAdministrator(issuerDid);
   };
 
@@ -110,7 +110,7 @@ describe("JsonRpc Module", () => {
     };
   }
 
-  const adminDid = createDid();
+  const adminDid = EbsiWallet.createDid();
   const adminV1 = createAdministrator(adminDid);
   const adminV2 = createAdministrator(adminDid);
   const adminV3 = createAdministrator(adminDid);
@@ -462,7 +462,7 @@ describe("JsonRpc Module", () => {
         params: [
           {
             from: wallet.address, // this address is not in the TIR
-            did: "did:ebsi:1",
+            did: EbsiWallet.createDid(),
             attributeData: `0x${data.toString("hex")}`,
           } as ArgsInsertAdministrator,
         ],
@@ -507,7 +507,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          `${adminDid.toLowerCase()} is not an administrator`
+          `${adminDid} is not an administrator`
         ) as string,
       },
     });
@@ -626,9 +626,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.body).toStrictEqual({
       error: {
         code: -32600,
-        message: `The DID ${
-          testEnv.administrators[0].did
-        } is not controlled by the address ${signer.address.toLowerCase()}`,
+        message: `The DID ${testEnv.administrators[0].did} is not controlled by the address ${signer.address}`,
       },
       id: "45",
       jsonrpc: "2.0",
@@ -959,7 +957,7 @@ describe("JsonRpc Module", () => {
       expect(responseSend1.status).toBe(400);
 
       // tampering "from"
-      transaction1.from = wallet2.address.toLowerCase();
+      transaction1.from = wallet2.address;
       const responseSend2 = await request(server)
         .post("/jsonrpc")
         .auth("jwt", { type: "bearer" })
@@ -983,7 +981,7 @@ describe("JsonRpc Module", () => {
         id: "46",
         error: {
           code: -32600,
-          message: `The signer of the transaction (${wallet1.address.toLowerCase()}) does not match with unsignedTransaction.from (${wallet2.address.toLowerCase()}) `,
+          message: `The signer of the transaction (${wallet1.address}) does not match with unsignedTransaction.from (${wallet2.address}) `,
         },
       });
       expect(responseSend1.status).toBe(400);

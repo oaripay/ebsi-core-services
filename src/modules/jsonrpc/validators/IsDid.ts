@@ -1,4 +1,5 @@
 import { registerDecorator } from "class-validator";
+import { isDid } from "../../../shared/utils/isDid";
 
 export function IsDid() {
   return (object: unknown, propertyName: string): void => {
@@ -8,11 +9,7 @@ export function IsDid() {
       propertyName,
       validator: {
         validate(value: string) {
-          return (
-            typeof value === "string" &&
-            value.split(":").length >= 3 &&
-            value.substring(0, 4) === "did:"
-          );
+          return isDid(value);
         },
       },
     });

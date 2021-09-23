@@ -92,11 +92,7 @@ export class JsonRpcService {
     );
 
     // Check if DID is in the list
-    if (
-      data.items
-        .map((item) => item.did.toLowerCase())
-        .includes(did.toLowerCase())
-    ) {
+    if (data.items.map((item) => item.did).includes(did)) {
       return true;
     }
 
@@ -114,29 +110,27 @@ export class JsonRpcService {
 
   async checkWritePermission(
     address: string,
-    clientId: string,
+    clientDid: string,
     func: string,
     args: unknown
   ): Promise<void> {
     // Check DID Registry
-    if (!(await this.isDidControlledByAddress(clientId, address))) {
+    if (!(await this.isDidControlledByAddress(clientDid, address))) {
       throw new Error(
-        `The DID ${clientId} is not controlled by the address ${address}`
+        `The DID ${clientDid} is not controlled by the address ${address}`
       );
     }
-
-    const did = clientId.toLowerCase();
 
     // An issuer can update his/her own attributes
     if (
       func === "updateIssuer" &&
-      (args as ArgsUpdateIssuer).did.toLowerCase() === did
+      (args as ArgsUpdateIssuer).did === clientDid
     ) {
       return;
     }
 
     // Verify if the DID is an admin in the TIR Registry
-    await this.administratorService.allowAdministratorsOnly(did);
+    await this.administratorService.allowAdministratorsOnly(clientDid);
   }
 
   async verifyTransaction(
@@ -161,9 +155,9 @@ export class JsonRpcService {
 
     // recover address used to sign
     const digest = ethers.utils.keccak256(serializedTransaction);
-    const signer = ethers.utils.recoverAddress(digest, signature).toLowerCase();
+    const signer = ethers.utils.recoverAddress(digest, signature);
 
-    if (signer !== unsignedTransaction.from.toLowerCase())
+    if (signer !== unsignedTransaction.from)
       throw new Error(
         `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `
       );
@@ -298,7 +292,7 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("insertAdministrator", [
-        did.toLowerCase(),
+        did,
         attributeData,
       ]);
 
@@ -318,7 +312,7 @@ export class JsonRpcService {
       await validateClass(RequestUpdateAdministratorDto, body);
 
       const { from, did, attributeData, prevAttributeHash } = body.params[0];
-      const data = [did.toLowerCase(), attributeData];
+      const data = [did, attributeData];
 
       if (prevAttributeHash) data.push(prefixWith0x(prevAttributeHash));
 
@@ -359,10 +353,7 @@ export class JsonRpcService {
 
       const data = (
         await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("insertIssuer", [
-        did.toLowerCase(),
-        attributeData,
-      ]);
+      ).interface.encodeFunctionData("insertIssuer", [did, attributeData]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -380,7 +371,7 @@ export class JsonRpcService {
       await validateClass(RequestUpdateIssuerDto, body);
 
       const { from, did, attributeData, prevAttributeHash } = body.params[0];
-      const data = [did.toLowerCase(), attributeData];
+      const data = [did, attributeData];
 
       if (prevAttributeHash) data.push(prefixWith0x(prevAttributeHash));
 

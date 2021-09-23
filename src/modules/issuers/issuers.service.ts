@@ -47,14 +47,12 @@ export class IssuersService {
   }
 
   async getAttributes(issuerDid: string): Promise<AttributeObject[]> {
-    const did = issuerDid.toLowerCase();
-
     let attributesLastHash: string[];
 
     try {
       attributesLastHash = await (
         await this.ledgerService.getContract()
-      ).getIssuer(did);
+      ).getIssuer(issuerDid);
 
       if (attributesLastHash.length === 0) {
         throw new Error();
@@ -87,7 +85,7 @@ export class IssuersService {
     try {
       attributesLastHash = await (
         await this.ledgerService.getContract()
-      ).getIssuer(did.toLowerCase());
+      ).getIssuer(did);
     } catch (e) {
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,

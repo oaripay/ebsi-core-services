@@ -4,8 +4,8 @@ import crypto from "crypto";
 import { ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { Tir } from "../../src/contracts";
-import { createDid } from "./data";
 
 interface Administrator {
   wallet: ethers.Wallet;
@@ -56,13 +56,13 @@ export async function insertAdmin(
 
   const bufferAttribute = Buffer.from(JSON.stringify(attribute));
 
-  await contract.insertAdministrator(adminDid.toLowerCase(), bufferAttribute);
+  await contract.insertAdministrator(adminDid, bufferAttribute);
 
   return attribute;
 }
 
 export async function insertIssuer(contract: Tir): Promise<IssuerObject> {
-  const issuerDid = createDid();
+  const issuerDid = EbsiWallet.createDid();
   const bufferAttribute = Buffer.from(
     JSON.stringify({
       "@context": {
@@ -73,7 +73,7 @@ export async function insertIssuer(contract: Tir): Promise<IssuerObject> {
     })
   );
 
-  await contract.insertIssuer(issuerDid.toLowerCase(), bufferAttribute);
+  await contract.insertIssuer(issuerDid, bufferAttribute);
 
   return {
     did: issuerDid,
@@ -151,7 +151,7 @@ export async function setupTestEnv(
   const createAdminWallet = async () => {
     // Create random wallet and connect it so we can use it later to send transactions
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
-    const did = createDid();
+    const did = EbsiWallet.createDid();
     const attribute = await insertAdmin(tirContract, did);
     return { wallet, attribute, did };
   };

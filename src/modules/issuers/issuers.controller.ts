@@ -17,6 +17,7 @@ import {
 import PaginationQuery from "../../shared/dto/pagination-query";
 import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
+import { GetIssuerAttributeParamsDto, GetIssuerParamsDto } from "./dto";
 
 @Controller("/issuers")
 export class IssuersController {
@@ -47,7 +48,7 @@ export class IssuersController {
 
   @Get("/:did")
   async getIssuer(
-    @Param() params: { did?: string }
+    @Param() params: GetIssuerParamsDto
   ): Promise<IssuerResponseObject> {
     const { did } = params;
     return this.issuersService.getIssuer(did);
@@ -55,7 +56,7 @@ export class IssuersController {
 
   @Get("/:did/attributes")
   async getIssuerAttributes(
-    @Param() params: { did: string },
+    @Param() params: GetIssuerParamsDto,
     @Query() query: PaginationQuery
   ): Promise<PaginatedList<IdLink>> {
     const { did } = params;
@@ -76,7 +77,7 @@ export class IssuersController {
 
   @Get("/:did/attributes/:attributeId")
   async issuerAttributeId(
-    @Param() params: { did: string; attributeId: string }
+    @Param() params: GetIssuerAttributeParamsDto
   ): Promise<AttributeDetailsObject> {
     const { did, attributeId } = params;
 
@@ -96,7 +97,7 @@ export class IssuersController {
 
   @Get("/:did/attributes/:attributeId/revisions")
   async issuerAttributeIdRevisions(
-    @Param() params: { did: string; attributeId: string },
+    @Param() params: GetIssuerAttributeParamsDto,
     @Query() query: PaginationQuery
   ): Promise<PaginatedList<AttributeObject>> {
     const { did, attributeId } = params;
