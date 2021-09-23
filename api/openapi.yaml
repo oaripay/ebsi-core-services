@@ -55,7 +55,7 @@ paths:
                     items:
                       - storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-                        did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+                        did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                         visibility: private
                         sharedWith: ""
                         contentType: application/ld+json
@@ -63,7 +63,7 @@ paths:
                         dataLabel: document
                       - storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-                        did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+                        did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                         visibility: private
                         sharedWith: ""
                         contentType: application/ld+json
@@ -148,7 +148,7 @@ paths:
                   storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                   visibility: private
                   sharedWith: ""
-                  did: did:ebsi:0x1234567890
+                  did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
                   contentType: application/ld+json
                   dataLabel: document
                   data: "<bytes for base64url>"
@@ -166,7 +166,7 @@ paths:
                   value:
                     storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-                    did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+                    did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                     visibility: private
                     sharedWith: ""
                     contentType: application/ld+json
@@ -240,7 +240,7 @@ paths:
                   value:
                     storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-                    did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+                    did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                     visibility: private
                     sharedWith: ""
                     contentType: application/ld+json
@@ -330,7 +330,7 @@ paths:
                   value:
                     storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-                    did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+                    did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                     visibility: private
                     sharedWith: ""
                     contentType: application/ld+json
@@ -461,7 +461,7 @@ components:
         Attribute example:
           storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
           hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
-          did: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+          did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
           visibility: private
           sharedWith: ""
           contentType: application/ld+json
@@ -476,7 +476,7 @@ components:
         did:
           type: string
           description: User Decentralized Identifier
-          example: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+          example: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
         hash:
           type: string
           description: Hash of the attribute.
@@ -503,7 +503,7 @@ components:
       example:
         Attribute request example:
           storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
-          did: did:ebsi:0x1234567890
+          did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
           visibility: private
           sharedWith: ""
           contentType: application/ld+json
@@ -519,7 +519,7 @@ components:
         did:
           type: string
           description: User Decentralized Identifier
-          example: "did:ebsi:CkBhiNwLMJ4Zqd5MkzRMUMRvv1D7nyUXkCmRTpLuScVM"
+          example: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
         visibility:
           type: string
           enum: [private, shared]

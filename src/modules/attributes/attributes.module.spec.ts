@@ -11,13 +11,14 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import EbsiWallet from "@cef-ebsi/wallet-lib";
 import crypto from "crypto";
 import base64url from "base64url";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { Agent } from "@cef-ebsi/oauth2-auth";
 import { JWTPayload } from "@cef-ebsi/did-jwt";
 import jsonwebtoken from "jsonwebtoken";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import axios from "axios";
 import { AttributesModule } from "./attributes.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -55,11 +56,11 @@ describe("Attributes Module", () => {
 
   const testUser = {
     token: "user",
-    did: "did:ebsi:user",
+    did: EbsiWallet.createDid(),
   };
   const testFakeUser = {
     token: "fake user",
-    did: "did:ebsi:fakeuser",
+    did: EbsiWallet.createDid(),
   };
 
   let domain: string;
@@ -371,11 +372,12 @@ describe("Attributes Module", () => {
     it("should return forbidden", async () => {
       expect.assertions(6);
       let numberCall = 0;
-
+      const differentOwner = EbsiWallet.createDid();
+      const shareWithOther = EbsiWallet.createDid();
       const attributeCassandra = createAttributeCassandra();
-      attributeCassandra.did = "did:ebsi:different_owner";
+      attributeCassandra.did = differentOwner;
       attributeCassandra.visibility = "shared";
-      attributeCassandra.shared_with = "did:ebsi:shared_with_other";
+      attributeCassandra.shared_with = shareWithOther;
       mockAxios.mockImplementation(async () =>
         Promise.resolve({
           data: {
@@ -417,7 +419,7 @@ describe("Attributes Module", () => {
       expect(response.status).toBe(403);
 
       attributeCassandra.visibility = "shared";
-      attributeCassandra.shared_with = "did:ebsi:shared_with_other";
+      attributeCassandra.shared_with = shareWithOther;
       response = await request(server)
         .get(`/attributes/${attributeCassandra.hash}`)
         .auth(testUser.token, { type: "bearer" })
@@ -506,7 +508,7 @@ describe("Attributes Module", () => {
 
       // shared with everyone and no token authentication
       const attributeCassandra = createAttributeCassandra();
-      attributeCassandra.did = "did:ebsi:different_owner";
+      attributeCassandra.did = "did:ebsi:zub5ZZUfHLLptCduwEy8xRj";
       attributeCassandra.visibility = "shared";
       mockAxios.mockImplementation(async () =>
         Promise.resolve({
@@ -554,7 +556,7 @@ describe("Attributes Module", () => {
       expect(response.status).toBe(200);
 
       // shared with the user
-      attributeCassandra.shared_with = testUser.did.toLowerCase();
+      attributeCassandra.shared_with = testUser.did;
       response = await request(server)
         .get(`/attributes/${attributeCassandra.hash}`)
         .auth(testUser.token, { type: "bearer" })
@@ -716,7 +718,7 @@ describe("Attributes Module", () => {
         storageUri: `${storageApiUrl}/stores/distributed`,
         did: testUser.did,
         visibility: "shared",
-        sharedWith: "did:ebsi:12245",
+        sharedWith: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj",
         contentType: "application/json+ld",
         data: base64url.encode("encrypted data"),
         dataLabel: "document",
@@ -767,7 +769,7 @@ describe("Attributes Module", () => {
 
       const attribute = {
         storageUri: `${storageApiUrl}/stores/distributed`,
-        did: testUser.did.toLowerCase(),
+        did: testUser.did,
         visibility: "private",
         contentType: "application/json+ld",
         data: base64url.encode("encrypted data"),
@@ -992,7 +994,13 @@ describe("Attributes Module", () => {
       response = await request(server)
         .patch("/attributes/123456789")
         .auth(testUser.token, { type: "bearer" })
-        .send([{ op: "replace", path: "/did", value: "did:ebsi:123" }]);
+        .send([
+          {
+            op: "replace",
+            path: "/did",
+            value: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj",
+          },
+        ]);
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
@@ -1087,7 +1095,7 @@ describe("Attributes Module", () => {
       let numberCall = 0;
 
       const attributeCassandra = createAttributeCassandra();
-      attributeCassandra.did = "did:ebsi:different_owner";
+      attributeCassandra.did = "did:ebsi:zub5ZZUfHLLptCduwEy8xRj";
 
       mockAxios.mockImplementation(async (url: string, data: JsonrpcCall) => {
         if (data.params[0].startsWith("select")) {
@@ -1190,7 +1198,11 @@ describe("Attributes Module", () => {
         .send([
           { op: "replace", path: "/visibility", value: "shared" },
           { op: "replace", path: "/contentType", value: "application/json" },
-          { op: "replace", path: "/sharedWith", value: "did:ebsi:1234" },
+          {
+            op: "replace",
+            path: "/sharedWith",
+            value: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj",
+          },
           { op: "replace", path: "/dataLabel", value: "document2" },
         ]);
 
@@ -1224,7 +1236,7 @@ describe("Attributes Module", () => {
             params: [
               "update attribute_storage set visibility = ?, shared_with = ?, content_type = ?, data_label = ? where hash = ?",
               "shared",
-              "did:ebsi:1234",
+              "did:ebsi:zub5ZZUfHLLptCduwEy8xRj",
               "application/json",
               "document2",
               attributeCassandra.hash,
@@ -1239,7 +1251,7 @@ describe("Attributes Module", () => {
         hash: attributeCassandra.hash,
         did: attributeCassandra.did,
         visibility: "shared",
-        sharedWith: "did:ebsi:1234",
+        sharedWith: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj",
         contentType: "application/json",
         data: attributeCassandra.data,
         dataLabel: "document2",

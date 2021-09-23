@@ -4,7 +4,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { ValidationPipe } from "@nestjs/common";
 import { fastifyHelmet } from "fastify-helmet";
 import { AppModule } from "./app.module";

@@ -7,7 +7,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import base64url from "base64url";
 import { Logger } from "@nestjs/common/services/logger.service";
 import { AppModule } from "../../src/app.module";
@@ -40,12 +40,12 @@ describe("Attributes", () => {
 
   const createAttribute = (visibility?: string, sharedWithMe?: boolean) => ({
     storageUri: `${storageApiUrl}/stores/distributed`,
-    did: testUser1.did.toLowerCase(),
+    did: testUser1.did,
     visibility,
     ...(sharedWithMe && {
       // The owner is a different did, but it is shared with the user
-      did: testUser2.did.toLowerCase(),
-      sharedWith: testUser1.did.toLowerCase(),
+      did: testUser2.did,
+      sharedWith: testUser1.did,
     }),
     contentType: "application/json+ld",
     data: base64url.encode(crypto.randomBytes(15).toString("hex")),
@@ -149,10 +149,8 @@ describe("Attributes", () => {
         self: `${apiUrl}${path}`,
         items: expect.arrayContaining([
           expect.objectContaining({
-            did: testUser1.did.toLowerCase(),
-            sharedWith: expect.not.stringContaining(
-              testUser1.did.toLowerCase()
-            ) as string,
+            did: testUser1.did,
+            sharedWith: expect.not.stringContaining(testUser1.did) as string,
           }),
         ]) as AttributeResponseObject[],
         links: {
@@ -182,10 +180,8 @@ describe("Attributes", () => {
         self: `${apiUrl}${path}`,
         items: expect.arrayContaining([
           expect.objectContaining({
-            did: testUser1.did.toLowerCase(),
-            sharedWith: expect.not.stringContaining(
-              testUser1.did.toLowerCase()
-            ) as string,
+            did: testUser1.did,
+            sharedWith: expect.not.stringContaining(testUser1.did) as string,
           }),
         ]) as AttributeResponseObject[],
         links: {
@@ -216,8 +212,8 @@ describe("Attributes", () => {
         items: expect.arrayContaining([
           expect.objectContaining({
             // Not the owner but it is shared
-            did: testUser2.did.toLowerCase(),
-            sharedWith: testUser1.did.toLowerCase(),
+            did: testUser2.did,
+            sharedWith: testUser1.did,
           }),
         ]) as AttributeResponseObject[],
         links: expect.objectContaining({}) as { next: string },
@@ -363,7 +359,7 @@ describe("Attributes", () => {
         .auth(testUser1.token, { type: "bearer" })
         .send({
           storageUri: `${storageApiUrl}/stores/distributed`,
-          did: testUser1.did.toLowerCase(),
+          did: testUser1.did,
           visibility: "private",
           contentType: "application/json+ld",
           dataLabel: "document",
@@ -560,7 +556,7 @@ describe("Attributes", () => {
         title: "Forbidden",
         status: 403,
         type: "about:blank",
-        detail: `${testUser2.did.toLowerCase()} is not the owner of attribute ${hash}`,
+        detail: `${testUser2.did} is not the owner of attribute ${hash}`,
       });
       expect(response.status).toBe(403);
     });
@@ -612,7 +608,7 @@ describe("Attributes", () => {
       const expectedAttribute = {
         storageUri: `${storageApiUrl}/stores/distributed`,
         hash,
-        did: testUser1.did.toLowerCase(),
+        did: testUser1.did,
         visibility: "shared",
         sharedWith: "did:ebsi:1234",
         contentType: "application/json",
