@@ -11,7 +11,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
 import { AllExceptionsFilter } from "./http-exception.filter";
 

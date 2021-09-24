@@ -5,7 +5,11 @@ import {
 } from "@nestjs/platform-fastify";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import { FastifyInstance } from "fastify";
+import { JWK } from "jose/types";
+import { createJWT, ES256KSigner } from "did-jwt";
+import EbsiWallet from "@cef-ebsi/wallet-lib";
+import type { FastifyInstance } from "fastify";
+import crypto from "crypto";
 import * as authenticationModule from "./authentication.module";
 import { ApiConfig } from "../../config/configuration";
 import AuthenticationService from "./authentication.service";
@@ -74,16 +78,27 @@ describe("authentication service tests", () => {
     expect.assertions(1);
     const authenticationService: AuthenticationService =
       new AuthenticationService(configService);
+    const kid = "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ#key-1";
+    const privateKey = crypto.randomBytes(32).toString("hex");
+    const jwk = new EbsiWallet(privateKey).getPublicKey({
+      format: "jwk",
+    }) as JWK;
     const mockedAuthRequest: AuhtenticationResponseRequest = {
-      id_token:
-        "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTpBYUVrbjczc2VjRk1VVFNnNHZUTGtoWDc5a0pFOG9hQUs3NDhUb1M4WXM5ZSNrZXktMSJ9.eyJpYXQiOjE2MTk1MTk4MzIsImV4cCI6MTYxOTUyMDEzMiwiaXNzIjoiaHR0cHM6Ly9zZWxmLWlzc3VlZC5tZSIsInN1YiI6IkFoQXBwbGx4UklSVGJQZFhJOUY4am9ka19vYWtQYnBfZVBlc094WjVTRFUiLCJhdWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3VzZXJzLW9uYm9hcmRpbmctYXBpL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsIm5vbmNlIjoiQmh5S2ZoNWJSQ1JsVjR4WDRxeG9zNm9MMzh5am5DZkxaZFVCRGFxbjRlayIsInN1Yl9qd2siOnsia2lkIjoiZGlkOmVic2k6QWFFa243M3NlY0ZNVVRTZzR2VExraFg3OWtKRThvYUFLNzQ4VG9TOFlzOWUja2V5LTEiLCJrdHkiOiJFQyIsImNydiI6InNlY3AyNTZrMSIsIngiOiJSSkFtTDBERTl1bmRGdlRUWmFSRElMU1BmRzlWN29lMG8waExJakhmT0I0IiwieSI6IjJONjVoWlZPTWpfUUlXWGx3cjR1RlpzcmxvMEZOQWJ1dWl6VTJzdjFURm8ifX0.B57fv76LGHvuRo62ArrJ1zQbTrHmVaqCa2aS86ER6FQc-HRCv6tlAdPstIFN2Gb_LjIOqy7YTz5qTCqs8fmYYQ",
+      id_token: await createJWT(
+        { sub_jwk: jwk },
+        {
+          issuer: "https://self-issued.me",
+          signer: ES256KSigner(privateKey),
+        },
+        {
+          kid,
+        }
+      ),
     };
-    const jwtKid =
-      "did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e#key-1";
 
     const mockedDidFromKid = jest.spyOn(utils, "getDidFromKid");
     await authenticationService.validateResponse(mockedAuthRequest);
-    expect(mockedDidFromKid).toHaveBeenCalledWith(jwtKid);
+    expect(mockedDidFromKid).toHaveBeenCalledWith(kid);
   });
 
   it("should throw an error if the id_token can not be decoded", async () => {
@@ -115,7 +130,7 @@ describe("authentication service tests", () => {
     expect.assertions(15);
     const authenticationService: AuthenticationService =
       new AuthenticationService(configService);
-    const did = "did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn";
+    const did = "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ";
     const response = await authenticationService.createVerifiableAuthorisation(
       did
     );
@@ -134,7 +149,7 @@ describe("authentication service tests", () => {
       "VerifiableAuthorisation",
     ]);
     expect(response.verifiableCredential.issuer).toStrictEqual(
-      "did:ebsi:6QYJc3tLRhey88WPKC2kv588v1uZ1oid3yfc5Lp5AbYD"
+      "did:ebsi:zwC56DZdiJh8kSxbgg4fMCu"
     );
     expect(response.verifiableCredential.issuanceDate).toBeDefined();
     expect(response.verifiableCredential.validFrom).toBeDefined();
@@ -147,7 +162,7 @@ describe("authentication service tests", () => {
         response.verifiableCredential.expirationDate
     ).toBeTruthy();
     expect(response.verifiableCredential.credentialSubject.id).toStrictEqual(
-      "did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn"
+      "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
     );
     expect(response.verifiableCredential.credentialSchema).toBeDefined();
     expect(response.verifiableCredential.credentialSchema).toHaveProperty("id");

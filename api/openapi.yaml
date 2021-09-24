@@ -200,9 +200,9 @@ paths:
                   value:
                     verifiableCredential:
                       credentialSubject:
-                        id: "did:ebsi:FKdEpX5Mkub8ZP2JkVJms4SH5g13n7599incwHQg2PYn"
+                        id: "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
                         issuer:
-                          id: "did:ebsi:6QYJc3tLRhey88WPKC2kv588v1uZ1oid3yfc5Lp5AbYD"
+                          id: "did:ebsi:zwC56DZdiJh8kSxbgg4fMCu"
                         issuanceDate: "2021-04-26T15:55:02Z"
                         "@context":
                           - "https://www.w3.org/2018/credentials/v1"
@@ -211,7 +211,7 @@ paths:
                           type: "EcdsaSecp256k1Signature2019"
                           created: "2021-04-26T15:55:02Z"
                           proofPurpose: "assertionMethod"
-                          verificationMethod: "did:ebsi:6QYJc3tLRhey88WPKC2kv588v1uZ1oid3yfc5Lp5AbYD#keys-1"
+                          verificationMethod: "did:ebsi:zwC56DZdiJh8kSxbgg4fMCu#keys-1"
                           jws: "351Oed421iLbLLJjINWF_EAXN6EaBk1AJUqbpHqpv7TZOA7PnCmgyurvPVvjjmw"
         400:
           description: Bad Request

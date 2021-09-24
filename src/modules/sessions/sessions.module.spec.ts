@@ -10,7 +10,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { ConfigService } from "@nestjs/config";
 import { decodeJWT } from "@cef-ebsi/did-jwt";
 import { ApiConfig } from "../../config/configuration";

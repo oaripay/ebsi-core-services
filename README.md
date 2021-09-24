@@ -161,7 +161,7 @@ yarn audit
 
 ## Testing
 
-Reminder: you need to set `APP_TEST_NAME` and `APP_TEST_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests!
+Reminder: you need to set `API_PRIVATE_KEY`, `TEST_USER_PRIVATE_KEY`, and `TEST_USER_DID` (preferably in `.env.test.local`) before running the e2e tests!
 Run all the tests:
 
 ```sh

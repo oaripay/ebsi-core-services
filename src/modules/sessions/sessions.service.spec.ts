@@ -6,7 +6,7 @@ import {
 import { Logger } from "@nestjs/common/services/logger.service";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { decodeJWT } from "@cef-ebsi/did-jwt";
 import * as fs from "fs";
 import axios from "axios";

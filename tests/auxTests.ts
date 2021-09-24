@@ -5,7 +5,7 @@ import EncryptJWT from "jose/jwt/encrypt";
 import jwtDecrypt from "jose/jwt/decrypt";
 import fromKeyLike from "jose/jwk/from_key_like";
 import generateKeyPair from "jose/util/generate_key_pair";
-import base64url from "base64url";
+import { base64url } from "multiformats/bases/base64";
 import axios from "axios";
 import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { loadConfig } from "../src/config/configuration";
@@ -54,7 +54,7 @@ export async function getPrivateKeyHex(
   privateKey: crypto.KeyObject
 ): Promise<string> {
   const privateJwk = await fromKeyLike(privateKey);
-  return base64url.decode(privateJwk.d, "hex");
+  return Buffer.from(base64url.baseDecode(privateJwk.d)).toString("hex");
 }
 
 export async function encrypt(

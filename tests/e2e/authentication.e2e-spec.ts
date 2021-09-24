@@ -6,7 +6,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { Logger } from "@nestjs/common/services/logger.service";
 import { EbsiDidAuth, DidAuthResponseCall } from "@cef-ebsi/siop-auth";
 import { createFakeToken } from "../auxTests";

@@ -9,7 +9,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { of } from "rxjs";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { ApiConfig } from "../../config/configuration";

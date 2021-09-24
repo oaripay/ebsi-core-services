@@ -11,7 +11,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { JWTVerified } from "@cef-ebsi/did-jwt";
 import { AuthenticationModule } from "./authentication.module";
 import {

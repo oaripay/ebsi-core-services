@@ -1,13 +1,13 @@
 import * as ebsiDidAuth from "@cef-ebsi/siop-auth";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { INestApplication } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { Test, TestingModule } from "@nestjs/testing";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { ConfigService } from "@nestjs/config";
-import { ethers } from "ethers";
 import * as authenticationModule from "./authentication.module";
 import { ApiConfig } from "../../config/configuration";
 import {
@@ -63,10 +63,9 @@ describe("prepareDidAuthRequest", () => {
     expect.assertions(1);
     const { privateKey } = await generateKeys("ES256K");
     const privateKeyHex = await getPrivateKeyHex(privateKey);
-    const wallet = new ethers.Wallet(`0x${privateKeyHex}`);
 
     const appId = configService.get<string>("applicationId");
-    const appDid = `did:ebsi:${wallet.address.toLowerCase()}`;
+    const appDid = EbsiWallet.createDid();
 
     const domain = `https://api.test.intebsi.xyz/users-onboarding/v1/authentication-responses`;
     const kid = `${"https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps"}/${appId}`;
@@ -81,7 +80,7 @@ describe("prepareDidAuthRequest", () => {
     const didAuthRequestCall = {
       redirectUri: domain,
       hexPrivateKey: `0x${privateKeyHex}`,
-      issuer: `did:ebsi:${wallet.address.toLowerCase()}`,
+      issuer: appDid,
       kid,
     };
     expect(ebsiMocked).toHaveBeenCalledWith(didAuthRequestCall);
@@ -89,8 +88,8 @@ describe("prepareDidAuthRequest", () => {
 
   it("should get did from kid", () => {
     expect.assertions(1);
-    const kid = "did:ebsi:6QYJc3tLRhey88WPKC2kv588v1uZ1oid3yfc5Lp5AbYD#keys-1";
+    const kid = "did:ebsi:zwC56DZdiJh8kSxbgg4fMCu#keys-1";
     const did = getDidFromKid(kid);
-    expect(did).toBe("did:ebsi:6QYJc3tLRhey88WPKC2kv588v1uZ1oid3yfc5Lp5AbYD");
+    expect(did).toBe("did:ebsi:zwC56DZdiJh8kSxbgg4fMCu");
   });
 });
