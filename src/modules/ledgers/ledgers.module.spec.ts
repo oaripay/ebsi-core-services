@@ -11,7 +11,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { LedgersModule } from "./ledgers.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { LedgerSCRegistry } from "../../contracts";

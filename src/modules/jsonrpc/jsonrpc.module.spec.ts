@@ -9,7 +9,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { ethers } from "ethers";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -164,11 +164,11 @@ describe("JsonRpc Module", () => {
 
       // accessing did registry
       if (url.includes("/identifiers?controller")) {
-        if (url.includes(adminWallet.address.toLowerCase()))
+        if (url.includes(adminWallet.address))
           return Promise.resolve({
             data: { items: [{ did: adminDid }] },
           });
-        if (url.includes(userWallet.address.toLowerCase()))
+        if (url.includes(userWallet.address))
           return Promise.resolve({
             data: { items: [{ did: userDid }] },
           });
@@ -426,7 +426,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.body).toStrictEqual({
       error: {
         code: -32600,
-        message: `The DID ${adminDid} is not controlled by the address ${signer.address.toLowerCase()}`,
+        message: `The DID ${adminDid} is not controlled by the address ${signer.address}`,
       },
       id: "45",
       jsonrpc: "2.0",
