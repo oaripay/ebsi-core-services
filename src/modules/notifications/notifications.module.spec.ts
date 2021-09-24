@@ -7,10 +7,11 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { Agent } from "@cef-ebsi/oauth2-auth";
 import { JWTPayload } from "@cef-ebsi/did-jwt";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import jsonwebtoken from "jsonwebtoken";
 import { NotificationsModule } from "./notifications.module";
 import { CassandraResponse, Notification } from "./notifications.interface";
@@ -41,14 +42,17 @@ describe("Notifications module", () => {
     return cassandraResponse([{ count: Number(count).toString() }]);
   }
 
+  const didSender = EbsiWallet.createDid();
+  const didReceiver = EbsiWallet.createDid();
+
   const sender = {
-    did: "did:ebsi:sender",
-    token: createToken("did:ebsi:sender"),
+    did: didSender,
+    token: createToken(didSender),
   };
 
   const receiver = {
-    did: "did:ebsi:receiver",
-    token: createToken("did:ebsi:receiver"),
+    did: didReceiver,
+    token: createToken(didReceiver),
   };
 
   const accessTokenApi = jsonwebtoken.sign(

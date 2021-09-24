@@ -1,6 +1,6 @@
 import request from "supertest";
 import crypto from "crypto";
-import * as bs58 from "bs58";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { EbsiDidAuth, DidAuthResponseMode, Agent } from "@cef-ebsi/siop-auth";
 import querystring from "querystring";
 import { loadConfig } from "../../src/config/configuration";
@@ -12,7 +12,7 @@ const { authorisationApiUrl, didRegistryApiUrl } = loadConfig();
 
 const createUser = () => ({
   privateKey: crypto.randomBytes(32).toString("hex"),
-  did: `did:ebsi:${bs58.encode(crypto.randomBytes(32))}`,
+  did: EbsiWallet.createDid(),
 });
 
 export async function siopAuthentication(

@@ -12,7 +12,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyReply } from "fastify";
+import type { FastifyReply } from "fastify";
 import {
   BadRequestError,
   ForbiddenError,
@@ -52,7 +52,7 @@ export class NotificationsController {
     @User() user: UserInfo,
     @Response() res: FastifyReply
   ): Promise<FastifyReply> {
-    if (user.did.toLowerCase() !== createNotificationDto.from?.toLowerCase())
+    if (user.did !== createNotificationDto.from)
       throw new BadRequestError("DID Mismatch", {
         detail: `DID Mismatch: The did of the Bearer token (${user.did}) must be equal to the did in the from field (${createNotificationDto.from})`,
       });
@@ -106,7 +106,7 @@ export class NotificationsController {
   ): Promise<Notification> {
     const { id } = params;
     const notification = await this.notificationsService.getNotification(id);
-    if (notification.to?.toLowerCase() !== user.did.toLowerCase())
+    if (notification.to !== user.did)
       throw new ForbiddenError(ForbiddenError.defaultTitle, {
         detail: `The notification was not sent to ${user.did}`,
       });
@@ -124,7 +124,7 @@ export class NotificationsController {
 
     const notification = await this.notificationsService.getNotification(id);
 
-    if (notification.to?.toLowerCase() !== user.did.toLowerCase())
+    if (notification.to !== user.did)
       throw new ForbiddenError(ForbiddenError.defaultTitle, {
         detail: `The notification was not sent to ${user.did}`,
       });

@@ -1,11 +1,6 @@
-import crypto from "crypto";
-import bs58 from "bs58";
 import jsonwebtoken from "jsonwebtoken";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { Notification } from "../../src/modules/notifications/notifications.interface";
-
-function randomDid(): string {
-  return `did:ebsi:${bs58.encode(crypto.randomBytes(32))}`;
-}
 
 function createToken(did: string): string {
   return jsonwebtoken.sign(
@@ -21,8 +16,8 @@ function createToken(did: string): string {
 }
 
 function createNotification(
-  from = randomDid(),
-  to = randomDid(),
+  from = EbsiWallet.createDid(),
+  to = EbsiWallet.createDid(),
   ttl = 3600
 ): Notification {
   const now = Date.now() + Math.trunc(Math.random() * 1000);
@@ -49,4 +44,4 @@ function createNotification(
   };
 }
 
-export { createToken, createNotification, randomDid };
+export { createToken, createNotification };

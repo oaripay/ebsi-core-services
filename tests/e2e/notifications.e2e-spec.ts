@@ -7,7 +7,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { EbsiValidationPipe } from "../../src/pipes/ebsi-validation.pipe";
@@ -52,19 +52,25 @@ describe("Notifications module (e2e)", () => {
     const tokens = [testUser1.token, testUser2.token];
     await Promise.all(
       tokens.map(async (token) => {
-        const response = (await getAllNotifications(token)) as {
-          body: {
-            items: {
-              _links: {
-                self: {
-                  href: string;
-                };
+        const response = await getAllNotifications(token);
+        if (response.status !== 200) {
+          throw new Error(
+            `Error when getting all notifications: ${JSON.stringify(
+              response.body
+            )}`
+          );
+        }
+        const body = response.body as {
+          items: {
+            _links: {
+              self: {
+                href: string;
               };
-            }[];
-          };
+            };
+          }[];
         };
         return Promise.all(
-          response.body.items.map(async (item) => {
+          body.items.map(async (item) => {
             // eslint-disable-next-line no-underscore-dangle
             const { href } = item._links.self;
             const id = href.substring(href.lastIndexOf("/") + 1);
@@ -301,7 +307,7 @@ describe("Notifications module (e2e)", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        detail: `The notification was not sent to ${testUser2.did.toLowerCase()}`,
+        detail: `The notification was not sent to ${testUser2.did}`,
         status: 403,
         title: "Forbidden",
         type: "about:blank",

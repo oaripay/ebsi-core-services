@@ -186,8 +186,8 @@ export class NotificationsService {
     await this.storageJsonrpc([
       "insert into notification_storage (id, sender, receiver, message) values (?, ?, ?, ?) using ttl ?",
       id,
-      from.toLowerCase(),
-      to.toLowerCase(),
+      from,
+      to,
       message,
       ttl,
     ]);
@@ -221,7 +221,7 @@ export class NotificationsService {
 
     const result = await this.storageJsonrpc([
       "select * from notification_storage where receiver = ? allow filtering",
-      did.toLowerCase(),
+      did,
       {
         ...(fetchSize && { fetchSize }),
         ...(pageState && pageState !== "null" && { pageState }),
@@ -230,7 +230,7 @@ export class NotificationsService {
 
     const resultCount = await this.storageJsonrpc([
       "select count(*) from notification_storage where receiver = ? allow filtering",
-      did.toLowerCase(),
+      did,
     ]);
 
     const { pageState: newPageState, rows: cassandraNotifications } = result;

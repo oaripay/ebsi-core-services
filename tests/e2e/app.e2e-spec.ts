@@ -5,7 +5,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { EbsiValidationPipe } from "../../src/pipes/ebsi-validation.pipe";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";

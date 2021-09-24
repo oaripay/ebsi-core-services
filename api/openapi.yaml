@@ -54,8 +54,8 @@ paths:
                     - https://www.w3.org/2018/credentials/v1
                     - https://essif.europa.eu/schemas/vc/2020/v1
                     - https://essif.europa.eu/schemas/notifications/2020/v1
-                  from: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657
-                  to: did:ebsi:0xC2322cfDde2ffB61De2692D6369C4AFDAc48fe93
+                  from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+                  to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
                   issuanceDate: "2019-06-22T14:11:44Z"
                   expirationDate: "2019-06-27T14:11:44Z"
                   payload: {}
@@ -63,7 +63,7 @@ paths:
                     type: EcdsaSecp256k1Signature2019
                     created: "2019-11-17T14:00:00Z"
                     proofPurpose: assertionMethod
-                    verificationMethod: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657#key-1
+                    verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
                     jws: eyJh..Iw
         required: true
       responses:
@@ -90,8 +90,8 @@ paths:
                       - https://www.w3.org/2018/credentials/v1
                       - https://essif.europa.eu/schemas/vc/2020/v1
                       - https://essif.europa.eu/schemas/notifications/2020/v1
-                    from: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657
-                    to: did:ebsi:0xC2322cfDde2ffB61De2692D6369C4AFDAc48fe93
+                    from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+                    to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
                     issuanceDate: "2019-06-22T14:11:44Z"
                     expirationDate: "2019-06-27T14:11:44Z"
                     payload: {}
@@ -99,7 +99,7 @@ paths:
                       type: EcdsaSecp256k1Signature2019
                       created: "2019-11-17T14:00:00Z"
                       proofPurpose: assertionMethod
-                      verificationMethod: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657#key-1
+                      verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
                       jws: eyJh..Iw
         400:
           description: Bad Request
@@ -177,8 +177,8 @@ paths:
                           - https://www.w3.org/2018/credentials/v1
                           - https://essif.europa.eu/schemas/vc/2020/v1
                           - https://essif.europa.eu/schemas/notifications/2020/v1
-                        from: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657
-                        to: did:ebsi:0xC2322cfDde2ffB61De2692D6369C4AFDAc48fe93
+                        from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+                        to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
                         issuanceDate: "2019-06-22T14:11:44Z"
                         expirationDate: "2019-06-27T14:11:44Z"
                         payload: {}
@@ -186,7 +186,7 @@ paths:
                           type: EcdsaSecp256k1Signature2019
                           created: "2019-11-17T14:00:00Z"
                           proofPurpose: assertionMethod
-                          verificationMethod: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657#key-1
+                          verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
                           jws: eyJh..Iw
                         _links:
                           self:
@@ -199,8 +199,8 @@ paths:
                           - https://www.w3.org/2018/credentials/v1
                           - https://essif.europa.eu/schemas/vc/2020/v1
                           - https://essif.europa.eu/schemas/notifications/2020/v1
-                        from: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657
-                        to: did:ebsi:0xC2322cfDde2ffB61De2692D6369C4AFDAc48fe93
+                        from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+                        to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
                         issuanceDate: "2019-06-22T14:11:44Z"
                         expirationDate: "2019-06-27T14:11:44Z"
                         payload: {}
@@ -208,7 +208,7 @@ paths:
                           type: EcdsaSecp256k1Signature2019
                           created: "2019-11-17T14:00:00Z"
                           proofPurpose: assertionMethod
-                          verificationMethod: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657#key-1
+                          verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
                           jws: eyJh..Iw
                         _links:
                           self:
@@ -316,8 +316,8 @@ paths:
                       - https://www.w3.org/2018/credentials/v1
                       - https://essif.europa.eu/schemas/vc/2020/v1
                       - https://essif.europa.eu/schemas/notifications/2020/v1
-                    from: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657
-                    to: did:ebsi:0xC2322cfDde2ffB61De2692D6369C4AFDAc48fe93
+                    from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+                    to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
                     issuanceDate: "2019-06-22T14:11:44Z"
                     expirationDate: "2019-06-27T14:11:44Z"
                     payload: {}
@@ -325,7 +325,7 @@ paths:
                       type: EcdsaSecp256k1Signature2019
                       created: "2019-11-17T14:00:00Z"
                       proofPurpose: assertionMethod
-                      verificationMethod: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657#key-1
+                      verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
                       jws: eyJh..Iw
         400:
           description: Bad Request
@@ -463,8 +463,8 @@ components:
           - https://www.w3.org/2018/credentials/v1
           - https://essif.europa.eu/schemas/vc/2020/v1
           - https://essif.europa.eu/schemas/notifications/2020/v1
-        from: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657
-        to: did:ebsi:0xC2322cfDde2ffB61De2692D6369C4AFDAc48fe93
+        from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+        to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
         issuanceDate: "2019-06-22T14:11:44Z"
         expirationDate: "2019-06-27T14:11:44Z"
         payload: {}
@@ -472,7 +472,7 @@ components:
           type: EcdsaSecp256k1Signature2019
           created: "2019-11-17T14:00:00Z"
           proofPurpose: assertionMethod
-          verificationMethod: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657#key-1
+          verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
           jws: eyJh..Iw
       title: Notification
       properties:
@@ -506,11 +506,11 @@ components:
         from:
           type: string
           description: Sender's Decentralized Identifier
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
         to:
           type: string
           description: Recipient's Decentralized Identifier
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          example: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
         issuanceDate:
           type: string
           description: |
@@ -566,7 +566,7 @@ components:
             Specifies the public key that can be used to verify the digital signature.
             Dereferencing a public key URL reveals information about the controller of the key,
             which can be checked against the issuer of the credential.
-          example: did:ebsi:0x454253492d52554c45532d4d414c494e41524148#key-1
+          example: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ#key-1
         jws:
           type: string
           description: JSON Web Signature
@@ -652,8 +652,8 @@ components:
           - https://www.w3.org/2018/credentials/v1
           - https://essif.europa.eu/schemas/vc/2020/v1
           - https://essif.europa.eu/schemas/notifications/2020/v1
-        from: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657
-        to: did:ebsi:0xC2322cfDde2ffB61De2692D6369C4AFDAc48fe93
+        from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+        to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
         issuanceDate: "2019-06-22T14:11:44Z"
         expirationDate: "2019-06-27T14:11:44Z"
         payload: {}
@@ -661,7 +661,7 @@ components:
           type: EcdsaSecp256k1Signature2019
           created: "2019-11-17T14:00:00Z"
           proofPurpose: assertionMethod
-          verificationMethod: did:ebsi:0x2F5Ea30a6dbf76FA3BF6fDb297A53684530Bb657#key-1
+          verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
           jws: eyJh..Iw
         _links:
           self:
@@ -698,11 +698,11 @@ components:
         from:
           type: string
           description: Sender's Decentralized Identifier
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
         to:
           type: string
           description: Recipient's Decentralized Identifier
-          example: did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
+          example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
         issuanceDate:
           type: string
           description: |
