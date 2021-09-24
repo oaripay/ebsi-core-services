@@ -1,5 +1,5 @@
 import { IsHexadecimal, IsInt, Min } from "class-validator";
-import { IsDid } from "../../validators";
+import { IsDid } from "../../../../shared/validators";
 
 export class ArgsInsertRevocation {
   @IsHexadecimal()

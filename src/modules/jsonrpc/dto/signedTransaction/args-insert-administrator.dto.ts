@@ -1,4 +1,5 @@
-import { IsDid, IsHexadecimalAdminAttribute } from "../../validators";
+import { IsHexadecimalAdminAttribute } from "../../validators";
+import { IsDid } from "../../../../shared/validators";
 
 export class ArgsInsertAdministrator {
   @IsDid()

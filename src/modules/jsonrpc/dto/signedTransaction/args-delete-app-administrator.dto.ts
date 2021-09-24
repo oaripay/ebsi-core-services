@@ -1,5 +1,5 @@
 import { IsHexadecimal } from "class-validator";
-import { IsDid } from "../../validators";
+import { IsDid } from "../../../../shared/validators";
 
 export class ArgsDeleteAppAdministrator {
   @IsHexadecimal()

@@ -1,5 +1,6 @@
 import { IsHexadecimal, IsOptional } from "class-validator";
-import { IsDid, IsHexadecimalAdminAttribute } from "../../validators";
+import { IsHexadecimalAdminAttribute } from "../../validators";
+import { IsDid } from "../../../../shared/validators";
 
 export class ArgsUpdateAdministrator {
   @IsDid()

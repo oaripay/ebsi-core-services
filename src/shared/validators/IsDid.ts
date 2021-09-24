@@ -42,7 +42,7 @@ export function IsDid(
     {
       name: IS_DID,
       validator: {
-        validate: (value) => isDid(value),
+        validate: isDid,
         defaultMessage: buildMessage(
           (eachPrefix) => `${eachPrefix}$property must be a valid DID`,
           validationOptions

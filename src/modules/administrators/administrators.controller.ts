@@ -16,6 +16,10 @@ import {
 import PaginationQuery from "../../shared/dto/pagination-query";
 import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
+import {
+  GetAdministratorAttributeParamsDto,
+  GetAdministratorParamsDto,
+} from "./dto";
 
 @Controller("/administrators")
 export default class AdministratorsController {
@@ -47,7 +51,7 @@ export default class AdministratorsController {
 
   @Get("/:did")
   async getAdministrator(
-    @Param() params: { did?: string }
+    @Param() params: GetAdministratorParamsDto
   ): Promise<AdministratorResponseObject> {
     const { did } = params;
 
@@ -56,7 +60,7 @@ export default class AdministratorsController {
 
   @Get("/:did/attributes")
   async getAdministratorAttributes(
-    @Param() params: { did: string },
+    @Param() params: GetAdministratorParamsDto,
     @Query() query: PaginationQuery
   ): Promise<PaginatedList<IdLink>> {
     const { did } = params;
@@ -77,7 +81,7 @@ export default class AdministratorsController {
 
   @Get("/:did/attributes/:attributeId")
   async getAdministratorAttribute(
-    @Param() params: { did: string; attributeId: string }
+    @Param() params: GetAdministratorAttributeParamsDto
   ): Promise<AttributeDetailsObject> {
     const { did, attributeId } = params;
 
@@ -94,7 +98,7 @@ export default class AdministratorsController {
 
   @Get("/:did/attributes/:attributeId/revisions")
   async getAdministratorAttributeRevisions(
-    @Param() params: { did: string; attributeId: string },
+    @Param() params: GetAdministratorAttributeParamsDto,
     @Query() query: PaginationQuery
   ): Promise<PaginatedList<AttributeObject>> {
     const { did, attributeId } = params;
