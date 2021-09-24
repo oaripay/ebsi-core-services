@@ -110,11 +110,7 @@ export class JsonRpcService {
     );
 
     // Check if DID is in the list
-    if (
-      data.items
-        .map((item) => item.did.toLowerCase())
-        .includes(did.toLowerCase())
-    ) {
+    if (data.items.some((item) => item.did === did)) {
       return true;
     }
 
@@ -161,9 +157,9 @@ export class JsonRpcService {
 
     // recover address used to sign
     const digest = ethers.utils.keccak256(serializedTransaction);
-    const signer = ethers.utils.recoverAddress(digest, signature).toLowerCase();
+    const signer = ethers.utils.recoverAddress(digest, signature);
 
-    if (signer !== unsignedTransaction.from.toLowerCase())
+    if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase())
       throw new Error(
         `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `
       );
@@ -438,7 +434,7 @@ export class JsonRpcService {
 
       const data = this.tarContract.interface.encodeFunctionData(
         "insertAdministrator",
-        [did.toLowerCase(), attributeData]
+        [did, attributeData]
       );
 
       return await this.buildTransaction(from, data);
@@ -458,7 +454,7 @@ export class JsonRpcService {
 
       const { from, did, attributeData, prevAttributeHash } = body.params[0];
 
-      const data = [did.toLowerCase(), attributeData];
+      const data = [did, attributeData];
 
       if (prevAttributeHash) {
         data.push(prefixWith0x(prevAttributeHash));

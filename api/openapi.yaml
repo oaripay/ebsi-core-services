@@ -178,8 +178,8 @@ paths:
                     name: ledger-api
                     domain: ebsi
                     administrators:
-                      - "did:ebsi:ejfch8tez5efqbur231z43fvwqd1vccb7qjsxtdqtbxc"
-                      - "did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv"
+                      - "did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6"
+                      - "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
                     publicKeys:
                       - LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0t...
                       - LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0t...
@@ -191,7 +191,7 @@ paths:
                         requesterApplicationId: "0xca451838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d1234"
                         resourceApplicationName: ledger-api
                         requesterApplicationName: timestamp-api
-                        iss: did:ebsi:0xeD82f3e166D72d47a687cD4b182710a21F431485
+                        iss: did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6
                         permissions:
                           create: "true"
                           read: "true"
@@ -206,8 +206,8 @@ paths:
                     name: ledger-api
                     domain: ebsi
                     administrators:
-                      - "did:ebsi:ejfch8tez5efqbur231z43fvwqd1vccb7qjsxtdqtbxc"
-                      - "did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv"
+                      - "did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6"
+                      - "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
                     publicKeys:
                       - LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0t...
                       - LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0t...
@@ -219,7 +219,7 @@ paths:
                         requesterApplicationId: "0xca451838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d1234"
                         resourceApplicationName: ledger-api
                         requesterApplicationName: timestamp-api
-                        iss: did:ebsi:0xeD82f3e166D72d47a687cD4b182710a21F431485
+                        iss: did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6
                         permissions:
                           create: "true"
                           read: "true"
@@ -633,7 +633,7 @@ paths:
                     requesterApplicationId: "0xfa52f2b09ff4365b14f2064cf72a28b46e0980029e4b16ccdac1dafe67a2c0f0"
                     resourceApplicationName: ledger-api
                     requesterApplicationName: timestamp-api
-                    iss: did:ebsi:aarckuo4rbwnhb6are2tqn2bhjjavawz7jvcnfejbzr9
+                    iss: did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6
                     permissions:
                       create: "true"
                       read: "true"
@@ -649,7 +649,7 @@ paths:
                     requesterApplicationId: "0xfa52f2b09ff4365b14f2064cf72a28b46e0980029e4b16ccdac1dafe67a2c0f0"
                     resourceApplicationName: ledger-api
                     requesterApplicationName: timestamp-api
-                    iss: did:ebsi:aarckuo4rbwnhb6are2tqn2bhjjavawz7jvcnfejbzr9
+                    iss: did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6
                     permissions:
                       create: "true"
                       read: "true"
@@ -731,10 +731,10 @@ paths:
                   value:
                     self: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=3&page[size]=10
                     items:
-                      - did: did:ebsi:aarckuo4rbwnhb6are2tqn2bhjjavawz7jvcnfejbzr9
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                      - did: did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                      - did: did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6
+                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6
+                      - did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
+                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
                     total: 2
                     pageSize: 10
                     links:
@@ -746,10 +746,10 @@ paths:
                   value:
                     self: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators?page[after]=3&page[size]=10
                     items:
-                      - did: did:ebsi:aarckuo4rbwnhb6are2tqn2bhjjavawz7jvcnfejbzr9
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:0x416e6e6162656c2e4c65652e452d412d506f652e
-                      - did: did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:0x454253492d52554c45532d4d414c494e41524148
+                      - did: did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6
+                      - did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
                     total: 2
                     pageSize: 10
                     links:
@@ -804,10 +804,10 @@ paths:
           examples:
             "[test] did":
               description: valid test did
-              value: did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv
+              value: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
             "[pilot] did":
               description: valid preprod did
-              value: did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a
+              value: did:ebsi:zygB8RTRTYBynqrWU83hijr
           required: true
       responses:
         200:
@@ -819,13 +819,13 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    did: did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv
+                    did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
                     attributes:
                       - hash: "b03dfb86a20a21934a7df79f66616415e3da23642b966eba39afefb89eac2c32"
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
                 "[pilot] Success":
                   value:
-                    did: did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a
+                    did: did:ebsi:zygB8RTRTYBynqrWU83hijr
                     attributes:
                       - hash: "31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
@@ -899,34 +899,34 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv/attributes?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes?page[after]=3&page[size]=10
                     items:
                       - id: b03dfb86a20a21934a7df79f66616415e3da23642b966eba39afefb89eac2c32
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv/attributes/b03dfb86a20a21934a7df79f66616415e3da23642b966eba39afefb89eac2c32
+                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/b03dfb86a20a21934a7df79f66616415e3da23642b966eba39afefb89eac2c32
                       - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv/attributes?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv/attributes?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv/attributes?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv/attributes?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes?page[after]=13&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a/attributes?page[after]=3&page[size]=10
+                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes?page[after]=3&page[size]=10
                     items:
                       - id: 792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
                       - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a/attributes?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a/attributes?page[after]=2&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a/attributes?page[after]=4&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a/attributes?page[after]=13&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes?page[after]=13&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -966,10 +966,10 @@ paths:
           examples:
             "[test] did":
               description: valid test did
-              value: did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv
+              value: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
             "[pilot] did":
               description: valid preprod did
-              value: did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a
+              value: did:ebsi:zygB8RTRTYBynqrWU83hijr
           required: true
         - in: query
           name: page[after]
@@ -995,10 +995,10 @@ paths:
           examples:
             "[test] did":
               description: valid test did
-              value: did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv
+              value: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
             "[pilot] did":
               description: valid preprod did
-              value: did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a
+              value: did:ebsi:zygB8RTRTYBynqrWU83hijr
           required: true
         - name: attributeId
           in: path
@@ -1022,13 +1022,13 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    did: did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv
+                    did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
                     attribute:
                       hash: b03dfb86a20a21934a7df79f66616415e3da23642b966eba39afefb89eac2c32
                       body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
                 "[pilot] Success":
                   value:
-                    did: did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a
+                    did: did:ebsi:zygB8RTRTYBynqrWU83hijr
                     attribute:
                       hash: 0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1
                       body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
@@ -1097,7 +1097,7 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=3&page[size]=10
                     items:
                       - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
@@ -1106,13 +1106,13 @@ paths:
                     total: 2
                     pageSize: 123
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=13&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=3&page[size]=10
+                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=3&page[size]=10
                     items:
                       - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
@@ -1121,10 +1121,10 @@ paths:
                     total: 2
                     pageSize: 123
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=2&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=4&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=13&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=13&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -1165,10 +1165,10 @@ paths:
           examples:
             "[test] did":
               description: valid test did
-              value: did:ebsi:7a6uccp8plbaxae2lhstsubyhd9r33tendphtfukkbhv
+              value: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
             "[pilot] did":
               description: valid preprod did
-              value: did:ebsi:2ynix7sqpg6gt8qpdguwicqbcajwafwrqwnmytcdej8a
+              value: did:ebsi:zygB8RTRTYBynqrWU83hijr
           required: true
         - name: attributeId
           in: path
@@ -1529,7 +1529,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      administratorId: "did:ebsi:0x5afee6162656c2e4c65652e452d412d506f652f"
+                      administratorId: "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
                   id: 1
               Build tx to insertAdministrator:
                 description: |
@@ -1545,7 +1545,7 @@ paths:
                   id: 1
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      did: did:ebsi:erragib3dmyhcgh6txdshfbq6xpfg5j3w88gfjjzhqa3
+                      did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
                       attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
               Build tx to insertApp:
                 description: |
@@ -1567,7 +1567,7 @@ paths:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       name: "my app"
                       domain: 1
-                      appAdministrator: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      appAdministrator: "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
                       publicKey: "0x219846541f63165e651651ca231..."
                       status: 1
                       notBefore: 1609926740
@@ -1587,7 +1587,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      administratorId: "did:ebsi:0x5afee6162656c2e4c65652e452d412d506f652f"
+                      administratorId: "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
                   id: 1
               Build tx to insertAppInfo:
                 description: |
@@ -1647,7 +1647,7 @@ paths:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       name: "app1"
                       authorizedAppName: "app2"
-                      iss: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      iss: "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
                       status: 1
                       permissions: 15
                       notBefore: 1609926740
@@ -1684,7 +1684,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      revokedBy: "did:ebsi:0xC3EF569B74B8DE63826aD256290E35BD35bD06c4"
+                      revokedBy: "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
                       notBefore: 1609926740
                   id: 1
               Build tx to add a new attribute to an administrator:
@@ -1700,7 +1700,7 @@ paths:
                   method: updateAdministrator
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      did: did:ebsi:erragib3dmyhcgh6txdshfbq6xpfg5j3w88gfjjzhqa3
+                      did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
                       attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
                   id: 1
               Build tx to update an attribute of an administrator:
@@ -1717,7 +1717,7 @@ paths:
                   method: updateAdministrator
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      did: did:ebsi:erragib3dmyhcgh6txdshfbq6xpfg5j3w88gfjjzhqa3
+                      did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
                       attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
                   id: 1

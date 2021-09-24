@@ -27,7 +27,6 @@ export default class PoliciesService {
     let policy: AsyncReturnType<Tar["getPolicy"]>;
 
     try {
-      // Preserve case! Don't lowercase the policyId
       policy = await this.tarContract.getPolicy(policyId);
     } catch (e) {
       throw new NotFoundError("Policy Not Found", {

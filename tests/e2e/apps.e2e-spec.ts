@@ -12,8 +12,9 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { ConfigService } from "@nestjs/config";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -106,12 +107,14 @@ describe("Apps (e2e)", () => {
   const newApp = {
     name: `test-app-${new Date().toISOString()}`,
     domain: 1,
-    appAdministrator: `did:ebsi:some-admin-${new Date().toISOString()}`,
+    appAdministrator: EbsiWallet.createDid(),
     publicKey: `0x${publicKeyBuffer.toString("hex")}`,
     status: 1,
     notBefore: Math.trunc(Date.now() / 1000),
     notAfter: Math.trunc(Date.now() / 1000) + 365 * 24 * 60 * 60,
   };
+
+  const didAppAdmin = EbsiWallet.createDid();
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -484,14 +487,14 @@ describe("Apps (e2e)", () => {
           param = {
             from: adminTestWallet.address,
             applicationId,
-            administratorId: "did:ebsi:0x00123",
+            administratorId: didAppAdmin,
           } as InsertAppAdministratorParam;
           break;
         case "deleteAppAdministrator":
           param = {
             from: adminTestWallet.address,
             applicationId,
-            administratorId: "did:ebsi:0x00123",
+            administratorId: didAppAdmin,
           } as DeleteAppAdministratorParam;
           break;
         case "insertAppInfo":
@@ -505,7 +508,7 @@ describe("Apps (e2e)", () => {
           param = {
             from: adminTestWallet.address,
             applicationId,
-            revokedBy: "did:ebsi:0x001F",
+            revokedBy: didAppAdmin,
             notBefore: Date.now() + 10000000,
           } as InsertRevocationParam;
           break;
@@ -515,7 +518,7 @@ describe("Apps (e2e)", () => {
             from: adminTestWallet.address,
             name: newApp.name,
             authorizedAppName: newApp.name,
-            iss: "did:ebsi:0x001F",
+            iss: didAppAdmin,
             permissions: 12,
             status: 1,
             notBefore: Date.now(),
@@ -601,14 +604,14 @@ describe("Apps (e2e)", () => {
           param = {
             from: adminTestWallet.address,
             applicationId,
-            administratorId: "did:ebsi:0x00123",
+            administratorId: didAppAdmin,
           } as InsertAppAdministratorParam;
           break;
         case "deleteAppAdministrator":
           param = {
             from: adminTestWallet.address,
             applicationId,
-            administratorId: "did:ebsi:0x00123",
+            administratorId: didAppAdmin,
           } as DeleteAppAdministratorParam;
           break;
         case "insertAppInfo":
@@ -622,7 +625,7 @@ describe("Apps (e2e)", () => {
           param = {
             from: adminTestWallet.address,
             applicationId,
-            revokedBy: "did:ebsi:0x001F",
+            revokedBy: didAppAdmin,
             notBefore: Date.now() + 10000000,
           } as InsertRevocationParam;
           break;
@@ -632,7 +635,7 @@ describe("Apps (e2e)", () => {
             from: adminTestWallet.address,
             name: newApp.name,
             authorizedAppName: newApp.name, // Fun fact: "authorizedAppName" can be the same as "name" cc @ben
-            iss: "did:ebsi:0x001F",
+            iss: didAppAdmin,
             permissions: 12,
             status: 1,
             notBefore: Date.now(),
@@ -776,7 +779,7 @@ describe("Apps (e2e)", () => {
             requesterApplicationId: expect.any(String) as string,
             resourceApplicationName: newApp.name,
             requesterApplicationName,
-            iss: "did:ebsi:0x001F",
+            iss: didAppAdmin,
             permissions: {
               create: "true",
               read: "true",

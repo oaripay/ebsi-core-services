@@ -2,7 +2,7 @@ import { InternalServerError } from "@cef-ebsi/problem-details-errors";
 import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
-import WebSocket from "ws";
+import type WebSocket from "ws";
 import { ApiConfig } from "../../config/configuration";
 import { Tar__factory } from "../../contracts/factories/Tar__factory";
 import { Tar } from "../../contracts/Tar";

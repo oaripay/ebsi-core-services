@@ -81,7 +81,7 @@ export default class AdministratorsService {
   }
 
   async getAttributes(administratorDid: string): Promise<AttributeObject[]> {
-    const did = administratorDid.toLowerCase();
+    const did = administratorDid;
 
     let attributesLastHash: string[];
 
@@ -107,7 +107,7 @@ export default class AdministratorsService {
   async getAdministrator(
     administratorDid: string
   ): Promise<AdministratorResponseObject> {
-    const did = administratorDid.toLowerCase();
+    const did = administratorDid;
     const attributes = await this.getAttributes(did);
     return { did, attributes };
   }

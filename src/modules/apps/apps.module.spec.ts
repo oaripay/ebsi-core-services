@@ -12,7 +12,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { AppsModule } from "./apps.module";
 import {
   AppLink,

@@ -4,8 +4,8 @@ import crypto from "crypto";
 import { ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { Tar } from "../../src/contracts";
-import { createDid } from "./data";
 
 interface Administrator {
   wallet: ethers.Wallet;
@@ -113,7 +113,7 @@ export async function insertAdmin(
 
   const bufferAttribute = Buffer.from(JSON.stringify(attribute));
 
-  await contract.insertAdministrator(adminDid.toLowerCase(), bufferAttribute);
+  await contract.insertAdministrator(adminDid, bufferAttribute);
 
   return attribute;
 }
@@ -158,7 +158,7 @@ export async function updatePolicy(
 export async function insertApp(contract: Tar): Promise<AppObject> {
   const name = `app-${crypto.randomBytes(8).toString("hex")}`;
   const domain = 0; // "ebsi"
-  const appAdministrator = "did:ebsi:0x001F";
+  const appAdministrator = EbsiWallet.createDid();
   const publicKey = `pubkey-${crypto.randomBytes(8).toString("hex")}`;
   const applicationId = ethers.utils.sha256(Buffer.from(publicKey, "utf8"));
   const status = 1; // "active"
@@ -206,7 +206,7 @@ export async function insertAuthorization(
   name: string,
   authorizedAppName: string
 ): Promise<AuthorizationObject> {
-  const iss = `did:ebsi:0x${crypto.randomBytes(10).toString("hex")}`;
+  const iss = EbsiWallet.createDid();
   const status = 1; // "active"
   const permissions = 4; // "0100" read only
   const notBefore = Date.now();
@@ -267,7 +267,7 @@ export async function setupTestEnv(
     // Create random wallet and connect it so we can use it later to send transactions
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
 
-    const did = createDid().toLowerCase();
+    const did = EbsiWallet.createDid();
     const attribute = await insertAdmin(tarContract, did);
     return { wallet, attribute, did };
   };

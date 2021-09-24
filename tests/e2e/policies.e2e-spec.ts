@@ -13,7 +13,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { ApiConfig } from "../../src/config/configuration";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";

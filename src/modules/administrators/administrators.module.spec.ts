@@ -11,7 +11,8 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import type { FastifyInstance } from "fastify";
 import { AdministratorsModule } from "./administrators.module";
 import { AttributeObject } from "./administrators.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -283,7 +284,7 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
       const adminAttribute = administrators[0].attribute;
 
       const response = await request(server).get(`/administrators/${adminDid}`);
@@ -326,7 +327,7 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
       const adminAttribute = administrators[0].attribute;
 
       const response = await request(server).get(
@@ -374,7 +375,7 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
       const adminAttribute = administrators[0].attribute;
 
       const data = Buffer.from(JSON.stringify(adminAttribute));
@@ -399,8 +400,8 @@ describe("Administrators Module", () => {
       expect.assertions(6);
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
-      const admin2Did = administrators[1].did.toLowerCase();
+      const adminDid = administrators[0].did;
+      const admin2Did = administrators[1].did;
 
       // Consult a random attribute
       const attributeId =
@@ -431,13 +432,15 @@ describe("Administrators Module", () => {
           })
         )
       );
+
+      const randomDid = EbsiWallet.createDid();
       const response2 = await request(server).get(
-        `/administrators/did:ebsi:unknown/attributes/${attributeId2}`
+        `/administrators/${randomDid}/attributes/${attributeId2}`
       );
 
       expect(response2.body).toStrictEqual({
         detail: expect.stringContaining(
-          "Administrator did:ebsi:unknown not found"
+          `Administrator ${randomDid} not found`
         ) as string,
         status: 404,
         title: "Administrator Not Found",
@@ -478,7 +481,7 @@ describe("Administrators Module", () => {
       expect.assertions(3);
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
       const adminAttribute = administrators[0].attribute;
 
       const data = Buffer.from(JSON.stringify(adminAttribute));
@@ -519,7 +522,7 @@ describe("Administrators Module", () => {
       expect.assertions(12);
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
       const adminAttribute = administrators[0].attribute;
 
       const data = Buffer.from(JSON.stringify(adminAttribute));
@@ -667,7 +670,7 @@ describe("Administrators Module", () => {
       expect.assertions(2);
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
 
       const response = await request(server).get(
         `/administrators/${adminDid}/attributes/wrong-hash/revisions`
@@ -686,7 +689,7 @@ describe("Administrators Module", () => {
       expect.assertions(4);
 
       const { administrators } = testEnv;
-      const adminDid = administrators[0].did.toLowerCase();
+      const adminDid = administrators[0].did;
       const adminAttribute = administrators[0].attribute;
 
       const data = Buffer.from(JSON.stringify(adminAttribute));

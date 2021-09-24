@@ -10,11 +10,12 @@ import {
 } from "@nestjs/common";
 import { ethers } from "ethers";
 import crypto from "crypto";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { JsonRpcModule } from "./jsonrpc.module";
@@ -44,7 +45,6 @@ import { Tar, Tar__factory } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tar";
 import LedgerService from "../ledger/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { createDid } from "../../../tests/utils/data";
 import { ApiConfig } from "../../config/configuration";
 
 interface SupertestJsonRpcResponse {
@@ -119,7 +119,7 @@ describe("JsonRpc Module", () => {
     };
   }
 
-  const adminDid = createDid().toLowerCase();
+  const adminDid = EbsiWallet.createDid();
   const adminV1 = createAdministrator(adminDid);
   const adminV2 = createAdministrator(adminDid);
   const adminV3 = createAdministrator(adminDid);
@@ -127,6 +127,9 @@ describe("JsonRpc Module", () => {
   const policy1 = createPolicy();
   const policy2 = createPolicy();
   const policy3 = createPolicy();
+
+  const appAdmin1 = EbsiWallet.createDid();
+  const appAdmin2 = EbsiWallet.createDid();
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -380,7 +383,7 @@ describe("JsonRpc Module", () => {
         params: [
           {
             from: wallet.address, // this address is not in the TAR
-            did: "did:ebsi:1",
+            did: EbsiWallet.createDid(),
             attributeData,
           },
         ],
@@ -425,7 +428,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          `${adminDid.toLowerCase()} is not an administrator`
+          `${adminDid} is not an administrator`
         ) as string,
       },
     });
@@ -472,7 +475,7 @@ describe("JsonRpc Module", () => {
 
     const param: JsonRpcParams = {
       attributeData: adminV1.attributeData,
-      did: did.toLowerCase(),
+      did,
       from: signer.address,
     } as InsertAdministratorParam;
 
@@ -544,9 +547,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.body).toStrictEqual({
       error: {
         code: -32600,
-        message: `The DID ${
-          testEnv.administrators[0].did
-        } is not controlled by the address ${signer.address.toLowerCase()}`,
+        message: `The DID ${testEnv.administrators[0].did} is not controlled by the address ${signer.address}`,
       },
       id: "45",
       jsonrpc: "2.0",
@@ -609,7 +610,7 @@ describe("JsonRpc Module", () => {
       const authorization = {
         name: apps[0].name,
         authorizedAppName: apps[1].name,
-        iss: "did:ebsi:0x001F",
+        iss: appAdmin1,
         permissions: 12,
         status: 1,
         notBefore: Date.now(),
@@ -623,7 +624,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             name: "App1",
             domain: 0,
-            appAdministrator: "did:ebsi:0x001F",
+            appAdministrator: appAdmin1,
             publicKey: publicKeyHex,
             status: 1,
             notBefore: Date.now(),
@@ -636,7 +637,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             applicationId: publicKeyId,
-            administratorId: "did:ebsi:0x0010",
+            administratorId: appAdmin2,
           } as InsertAppAdministratorParam;
           break;
         case "deleteAppAdministrator":
@@ -644,7 +645,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             applicationId: publicKeyId,
-            administratorId: "did:ebsi:0x0010",
+            administratorId: appAdmin2,
           } as DeleteAppAdministratorParam;
           break;
         case "insertAppInfo":
@@ -659,7 +660,7 @@ describe("JsonRpc Module", () => {
           // create a new administrator and add attribute1
           param = {
             attributeData: adminV1.attributeData,
-            did: did.toLowerCase(),
+            did,
             from: signer.address,
           } as InsertAdministratorParam;
           break;
@@ -669,7 +670,7 @@ describe("JsonRpc Module", () => {
             // update attribute1: change it to attribute3
             param = {
               attributeData: adminV3.attributeData,
-              did: did.toLowerCase(),
+              did,
               from: signer.address,
               prevAttributeHash: adminV1.attribute.hash,
             } as UpdateAdministratorParam;
@@ -677,7 +678,7 @@ describe("JsonRpc Module", () => {
             // updateIssuer: add attribute2
             param = {
               attributeData: adminV2.attributeData,
-              did: did.toLowerCase(),
+              did,
               from: signer.address,
             } as UpdateAdministratorParam;
           }
@@ -699,7 +700,7 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            revokedBy: "did:ebsi:0x001F",
+            revokedBy: appAdmin1,
             notBefore: Date.now() + 10000000,
           } as InsertRevocationParam;
           break;
@@ -870,7 +871,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             name: "App1",
             domain: 0,
-            appAdministrator: "did:ebsi:0x001F",
+            appAdministrator: appAdmin1,
             publicKey: publicKeyHex,
             status: 1,
             notBefore: Date.now(),
@@ -883,7 +884,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             applicationId: publicKeyId,
-            administratorId: "did:ebsi:0x0010",
+            administratorId: appAdmin2,
           } as InsertAppAdministratorParam;
           break;
         case "deleteAppAdministrator":
@@ -891,7 +892,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             applicationId: publicKeyId,
-            administratorId: "did:ebsi:0x0010",
+            administratorId: appAdmin2,
           } as DeleteAppAdministratorParam;
           break;
         case "insertAppInfo":
@@ -907,7 +908,7 @@ describe("JsonRpc Module", () => {
           // create a new administrator and add attribute1
           param = {
             attributeData: adminV1.attributeData,
-            did: adminV1.did.toLowerCase(),
+            did: adminV1.did,
             from: signer.address,
           } as InsertAdministratorParam;
           break;
@@ -935,7 +936,7 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            revokedBy: "did:ebsi:0x001F",
+            revokedBy: appAdmin1,
             notBefore: Date.now() + 10000000,
           } as InsertRevocationParam;
           break;
@@ -945,7 +946,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             name: apps[0].name,
             authorizedAppName: apps[1].name,
-            iss: "did:ebsi:0x001F",
+            iss: appAdmin1,
             permissions: 9,
             status: 1,
             notBefore: Date.now(),
@@ -1045,7 +1046,7 @@ describe("JsonRpc Module", () => {
           param1 = {
             from: signer.address,
             domain: 0,
-            appAdministrator: "did:ebsi:0x001F",
+            appAdministrator: appAdmin1,
             publicKey: publicKeyHex,
             status: 2,
             notBefore: Date.now(),
@@ -1059,7 +1060,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             name: "App1",
             domain: 45,
-            appAdministrator: "did:ebsi:0x001F",
+            appAdministrator: appAdmin1,
             publicKey: publicKeyHex,
             status: 2,
             notBefore: Date.now(),
@@ -1073,7 +1074,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             name: "App1",
             domain: 0,
-            appAdministrator: "did:ebsi:0x001F",
+            appAdministrator: appAdmin1,
             publicKey: appPublicKey,
             status: 1,
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
@@ -1088,7 +1089,7 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            administratorId: "did:ebsi:0x0010",
+            administratorId: appAdmin2,
           } as InsertAppAdministratorParam;
 
           expectedErrorMessage1 =
@@ -1096,7 +1097,7 @@ describe("JsonRpc Module", () => {
 
           param2 = {
             from: signer.address,
-            administratorId: "did:ebsi:0x0010",
+            administratorId: appAdmin2,
           } as InsertAppAdministratorParam;
 
           expectedErrorMessage2 =
@@ -1118,7 +1119,7 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            administratorId: "did:ebsi:0x0010",
+            administratorId: appAdmin2,
           } as DeleteAppAdministratorParam;
 
           expectedErrorMessage1 =
@@ -1126,7 +1127,7 @@ describe("JsonRpc Module", () => {
 
           param2 = {
             from: signer.address,
-            administratorId: "did:ebsi:0x0010",
+            administratorId: appAdmin2,
           } as DeleteAppAdministratorParam;
 
           expectedErrorMessage2 =
@@ -1190,7 +1191,7 @@ describe("JsonRpc Module", () => {
           } as InsertAdministratorParam;
 
           expectedErrorMessage2 =
-            "property params[0].did has failed the following constraints: isLowercase, isDid";
+            "property params[0].did has failed the following constraints: isDid";
 
           param3 = {
             did: adminV1.did,
@@ -1236,7 +1237,7 @@ describe("JsonRpc Module", () => {
           param1 = {
             from: signer.address,
             applicationId: appPublicKey,
-            revokedBy: "did:ebsi:0x001F",
+            revokedBy: appAdmin1,
             notBefore: Date.now() + 10000000,
           } as InsertRevocationParam;
 
@@ -1260,7 +1261,7 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            revokedBy: "did:ebsi:0x001F",
+            revokedBy: appAdmin1,
             notBefore: -10,
           } as InsertRevocationParam;
 
@@ -1273,7 +1274,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             name: apps[0].name,
             authorizedAppName: apps[1].name,
-            iss: "did:ebsi:0x001F",
+            iss: appAdmin1,
             permissions: 45,
             status: 0,
             notBefore: Date.now(),
@@ -1301,7 +1302,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             name: apps[0].name,
             authorizedAppName: apps[1].name,
-            iss: "did:ebsi:0x001F",
+            iss: appAdmin1,
             permissions: 10,
             status: 45,
             notBefore: Date.now(),
@@ -1550,7 +1551,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             name: "App1",
             domain: 0,
-            appAdministrator: "did:ebsi:0x001F",
+            appAdministrator: appAdmin1,
             publicKey: publicKeyHex,
             status: 1,
             notBefore: Date.now(),
@@ -1560,7 +1561,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             name: "App2",
             domain: 1,
-            appAdministrator: "did:ebsi:0x001A",
+            appAdministrator: EbsiWallet.createDid(),
             publicKey: publicKeyHex,
             status: 2,
             notBefore: Date.now(),
@@ -1574,14 +1575,14 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            administratorId: "did:ebsi:0x0010",
+            administratorId: appAdmin2,
           } as InsertAppAdministratorParam;
           param2 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            administratorId: "did:ebsi:0x0020",
+            administratorId: EbsiWallet.createDid(),
           } as InsertAppAdministratorParam;
           break;
         case "deleteAppAdministrator":
@@ -1590,14 +1591,14 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            administratorId: "did:ebsi:0x0010",
+            administratorId: appAdmin2,
           } as DeleteAppAdministratorParam;
           param2 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            administratorId: "did:ebsi:0x0020",
+            administratorId: EbsiWallet.createDid(),
           } as DeleteAppAdministratorParam;
           break;
         case "insertAppInfo":
@@ -1632,7 +1633,7 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            revokedBy: "did:ebsi:0x001F",
+            revokedBy: appAdmin1,
             notBefore: Date.now() + 10000000,
           } as InsertRevocationParam;
           param2 = {
@@ -1640,7 +1641,7 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            revokedBy: "did:ebsi:0x001A",
+            revokedBy: EbsiWallet.createDid(),
             notBefore: Date.now() + 10000000,
           } as InsertRevocationParam;
           break;
@@ -1668,7 +1669,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             name: apps[0].name,
             authorizedAppName: apps[1].name,
-            iss: "did:ebsi:0x001F",
+            iss: appAdmin1,
             permissions: 12,
             status: 0,
             notBefore: Date.now(),
@@ -1678,7 +1679,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             name: apps[0].name,
             authorizedAppName: apps[1].name,
-            iss: "did:ebsi:0x001F",
+            iss: appAdmin1,
             permissions: 12,
             status: 1,
             notBefore: Date.now(),

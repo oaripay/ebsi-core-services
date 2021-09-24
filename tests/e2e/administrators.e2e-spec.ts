@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
   INestApplication,
   ValidationPipe,
@@ -13,7 +14,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import {
@@ -29,7 +30,6 @@ import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
-import { createDid } from "../utils/data";
 import LedgerService from "../../src/modules/ledger/ledger.service";
 
 interface SupertestJsonRpcResponse {
@@ -67,7 +67,7 @@ describe("Administrators (e2e)", () => {
   let ledgerService: LedgerService;
 
   const createAdministrator = () => {
-    const did = createDid().toLowerCase();
+    const did = EbsiWallet.createDid();
     const json = {
       any: "Any attribute here",
       type: "credential",
@@ -184,7 +184,7 @@ describe("Administrators (e2e)", () => {
       ).get(`/administrators/${did}`);
 
       expect(response.body).toStrictEqual({
-        did: did.toLowerCase(),
+        did,
         attributes: expect.arrayContaining([]) as AttributeObject[],
       });
       expect(response.status).toBe(200);
@@ -313,14 +313,15 @@ describe("Administrators (e2e)", () => {
       });
       expect(response.status).toBe(404);
 
+      const randomDid = EbsiWallet.createDid();
       // consult an attribute from a random did
       const response2 = await request(server).get(
-        `/administrators/did:ebsi:unknown/attributes/${attributeId}`
+        `/administrators/${randomDid}/attributes/${attributeId}`
       );
 
       expect(response2.body).toStrictEqual({
         detail: expect.stringContaining(
-          "Administrator did:ebsi:unknown not found"
+          `Administrator ${randomDid} not found`
         ) as string,
         status: 404,
         title: "Administrator Not Found",
@@ -573,7 +574,7 @@ describe("Administrators (e2e)", () => {
       );
 
       expect(administratorResponse.body).toStrictEqual({
-        did: did.toLowerCase(),
+        did,
         attributes: expectedAttributes,
       });
       expect(administratorResponse.status).toBe(200);
