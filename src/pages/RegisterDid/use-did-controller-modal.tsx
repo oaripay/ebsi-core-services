@@ -2,13 +2,21 @@ import { useCallback } from "react";
 import { FormInstance, notification } from "antd";
 import { ethers } from "ethers";
 import { useEthersHook } from "../../hooks/use-ethers.hook";
-import { getIdentifierFromWalletAddr } from "./DidUtils";
+import {
+  buildDidParams,
+  createDidDocument,
+  getIdentifierFromWalletAddr,
+} from "./DidUtils";
+import useWalletHook from "../../hooks/use-wallet.hook";
+import { useRegisterDidContext } from "./RegisterDid.context";
+import { useNotificationContext } from "../../components/Notification/Notification.context";
 
 type PropType = {
   insertDidControllerForm: FormInstance;
   updateDidControllerForm: FormInstance;
   insertAdminForm: FormInstance;
   updateAdminForm: FormInstance;
+  appendDidDocumentVersionHashForm: FormInstance;
 };
 
 export default function useDidControllerModal({
@@ -16,38 +24,100 @@ export default function useDidControllerModal({
   updateDidControllerForm,
   insertAdminForm,
   updateAdminForm,
+  appendDidDocumentVersionHashForm,
 }: PropType) {
   const { didRegistryContract } = useEthersHook();
 
-  const updateAdministrator = useCallback(() => {
+  const { walletAddress } = useWalletHook();
+  const { publicKey } = useRegisterDidContext();
+  const { setShowPendingTxNotif } = useNotificationContext();
+
+  const appendDidDocumentVersionHash = useCallback(() => {
+    if (!didRegistryContract || !walletAddress || !publicKey) {
+      return undefined;
+    }
+    return appendDidDocumentVersionHashForm
+      .validateFields(["hashAlgorithmId", "timestamp"])
+      .then(async () => {
+        const fields = appendDidDocumentVersionHashForm.getFieldsValue([
+          "hashAlgorithmId",
+          "timestamp",
+        ]);
+        try {
+          const didDocument = createDidDocument(
+            getIdentifierFromWalletAddr(walletAddress),
+            publicKey
+          );
+          const { param } = buildDidParams(didDocument, {
+            hashAlgorithmId: fields.hashAlgorithmId,
+            timestamp: {
+              data: `0x${Buffer.from(`${fields.timestamp.unix()}`).toString(
+                "hex"
+              )}`,
+            },
+          });
+          setShowPendingTxNotif(true);
+
+          const tx = await didRegistryContract.appendDidDocumentVersionHash(
+            param.identifier,
+            param.hashAlgorithmId,
+            param.hashValue,
+            param.timestampData,
+            param.didVersionInfo
+          );
+          await tx.wait(1);
+          notification.success({
+            message: "Action successful",
+            description: "Append document version hash!",
+          });
+          setShowPendingTxNotif(false);
+          return true;
+        } catch (ex) {
+          setShowPendingTxNotif(false);
+          notification.error({
+            message: "Error",
+            description:
+              "An error appeared while trying to append hash. Please try again",
+          });
+          return false;
+        }
+      });
+  }, [
+    appendDidDocumentVersionHashForm,
+    didRegistryContract,
+    publicKey,
+    setShowPendingTxNotif,
+    walletAddress,
+  ]);
+
+  const updateAdministrator = useCallback(async () => {
     if (!didRegistryContract) {
       return undefined;
     }
     return updateAdminForm
       .validateFields(["walletAddress", "attribute"])
-      .then(() => {
+      .then(async () => {
         const fields = updateAdminForm.getFieldsValue([
           "walletAddress",
           "attribute",
         ]);
-        const didAsBytes = ethers.utils.toUtf8Bytes(fields.attribute);
-        return didRegistryContract["updateAdministrator(string,bytes)"](
-          getIdentifierFromWalletAddr(fields.walletAddress),
-          didAsBytes
-        )
-          .then(() => {
-            notification.success({
-              message: "Action successful",
-              description: "Administrator was updated successfully!",
-            });
-          })
-          .catch(() => {
-            notification.error({
-              message: "Error",
-              description:
-                "An error appeared while trying to update the DID. Please try again",
-            });
+        try {
+          const didAsBytes = ethers.utils.toUtf8Bytes(fields.attribute);
+          const tx = await didRegistryContract[
+            "updateAdministrator(string,bytes)"
+          ](getIdentifierFromWalletAddr(fields.walletAddress), didAsBytes);
+          await tx.wait(1);
+          notification.success({
+            message: "Action successful",
+            description: "Administrator was updated successfully!",
           });
+        } catch (ex) {
+          notification.error({
+            message: "Error",
+            description:
+              "An error appeared while trying to update the DID. Please try again",
+          });
+        }
       });
   }, [didRegistryContract, updateAdminForm]);
 
@@ -55,29 +125,28 @@ export default function useDidControllerModal({
     if (!didRegistryContract) {
       return undefined;
     }
-    return insertAdminForm.validateFields(["walletAddress"]).then(() => {
+    return insertAdminForm.validateFields(["walletAddress"]).then(async () => {
       const fields = insertAdminForm.getFieldsValue(["walletAddress"]);
       const didAsBytes = ethers.utils.toUtf8Bytes(
         getIdentifierFromWalletAddr(fields.walletAddress)
       );
-      return didRegistryContract
-        .insertAdministrator(
+      try {
+        const tx = await didRegistryContract.insertAdministrator(
           getIdentifierFromWalletAddr(fields.walletAddress),
           didAsBytes
-        )
-        .then(() => {
-          notification.success({
-            message: "Action successful",
-            description: "Administrator was inserted successfully!",
-          });
-        })
-        .catch(() => {
-          notification.error({
-            message: "Error",
-            description:
-              "An error appeared while trying to insert the DID. Please try again",
-          });
+        );
+        await tx.wait(1);
+        notification.success({
+          message: "Action successful",
+          description: "Administrator was inserted successfully!",
         });
+      } catch (ex) {
+        notification.error({
+          message: "Error",
+          description:
+            "An error appeared while trying to insert the DID. Please try again",
+        });
+      }
     });
   }, [insertAdminForm, didRegistryContract]);
 
@@ -89,32 +158,31 @@ export default function useDidControllerModal({
 
       return updateDidControllerForm
         .validateFields(["newControllerId", "notBefore", "notAfter"])
-        .then(() => {
+        .then(async () => {
           const fields = updateDidControllerForm.getFieldsValue([
             "newControllerId",
             "notBefore",
             "notAfter",
           ]);
-          return didRegistryContract
-            .updateDidController(
+          try {
+            const tx = await didRegistryContract.updateDidController(
               `0x${Buffer.from(identifier).toString("hex")}`,
               fields.newControllerId,
               fields.notBefore.unix(),
               fields.notAfter.unix()
-            )
-            .then(() => {
-              notification.success({
-                message: "Action successful",
-                description: "DID Controller was updated successfully!",
-              });
+            );
+            await tx.wait(1);
+            notification.success({
+              message: "Action successful",
+              description: "DID Controller was updated successfully!",
             });
-        })
-        .catch(() => {
-          notification.error({
-            message: "Error",
-            description:
-              "An error appeared while trying to update DID Controller. Please try again",
-          });
+          } catch (ex) {
+            notification.error({
+              message: "Error",
+              description:
+                "An error appeared while trying to update DID Controller. Please try again",
+            });
+          }
         });
     },
     [didRegistryContract, updateDidControllerForm]
@@ -127,36 +195,31 @@ export default function useDidControllerModal({
       }
       return insertDidControllerForm
         .validateFields(["newControllerId", "notBefore", "notAfter"])
-        .then(() => {
+        .then(async () => {
           const fields = insertDidControllerForm.getFieldsValue([
             "newControllerId",
             "notBefore",
             "notAfter",
           ]);
-          return didRegistryContract
-            .insertDidController(
+          try {
+            const tx = await didRegistryContract.insertDidController(
               `0x${Buffer.from(identifier).toString("hex")}`,
               fields.newControllerId,
               fields.notBefore.unix(),
               fields.notAfter.unix()
-            )
-            .then(() => {
-              notification.success({
-                message: "Action successful",
-                description: "DID Controller was inserted successfully!",
-              });
-            })
-            .catch((ex: any) => {
-              console.log("Ex 2", ex);
+            );
+            await tx.wait(1);
+            notification.success({
+              message: "Action successful",
+              description: "DID Controller was inserted successfully!",
             });
-        })
-        .catch((ex) => {
-          console.log("Ex: ", ex);
-          notification.error({
-            message: "Error",
-            description:
-              "An error appeared while trying to insert DID Controller. Please try again",
-          });
+          } catch (ex) {
+            notification.error({
+              message: "Error",
+              description:
+                "An error appeared while trying to insert DID Controller. Please try again",
+            });
+          }
         });
     },
     [didRegistryContract, insertDidControllerForm]
@@ -167,5 +230,6 @@ export default function useDidControllerModal({
     updateDidController,
     insertAdministrator,
     updateAdministrator,
+    appendDidDocumentVersionHash,
   };
 }

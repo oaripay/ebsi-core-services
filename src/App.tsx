@@ -11,6 +11,7 @@ import Menu from "./components/Menu/Menu";
 import { MenuProvider } from "./components/Menu/Menu.context";
 import { AppProvider } from "./AppContext";
 import { WalletProvider } from "./components/Wallet/WalletContext";
+import { NotificationProvider } from "./components/Notification/Notification.context";
 
 function App() {
   const [hasProvider, setHasProvider] = useState(false);
@@ -34,19 +35,21 @@ function App() {
     );
   }
   return (
-    <MenuProvider>
-      <AppProvider>
-        <WalletProvider>
-          <Header />
-          <Router>
-            <Layout style={{ minHeight: "100vh" }}>
-              <Menu />
-              <BodyComponents />
-            </Layout>
-          </Router>
-        </WalletProvider>
-      </AppProvider>
-    </MenuProvider>
+    <NotificationProvider>
+      <MenuProvider>
+        <AppProvider>
+          <WalletProvider>
+            <Header />
+            <Router>
+              <Layout style={{ minHeight: "100vh" }}>
+                <Menu />
+                <BodyComponents />
+              </Layout>
+            </Router>
+          </WalletProvider>
+        </AppProvider>
+      </MenuProvider>
+    </NotificationProvider>
   );
 }
 

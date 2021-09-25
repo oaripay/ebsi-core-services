@@ -38,7 +38,7 @@ export default function useDidTable({ didRecord }: PropType) {
   const [updateDidControllerForm] = Form.useForm();
   const [insertAdminForm] = Form.useForm();
   const [updateAdminForm] = Form.useForm();
-  const [appendDidDocumentForm] = Form.useForm();
+  const [appendDidDocumentVersionHashForm] = Form.useForm();
   const [tableLoading] = useState(false);
 
   const identifier = useMemo(() => {
@@ -70,11 +70,13 @@ export default function useDidTable({ didRecord }: PropType) {
     updateDidController,
     insertAdministrator,
     updateAdministrator,
+    appendDidDocumentVersionHash,
   } = useDidControllerModal({
     insertDidControllerForm,
     updateDidControllerForm,
     insertAdminForm,
     updateAdminForm,
+    appendDidDocumentVersionHashForm,
   });
 
   const resetModal = useCallback(() => {
@@ -266,8 +268,8 @@ export default function useDidTable({ didRecord }: PropType) {
             {versionHashesData ? (
               <>
                 <h3>Version Hash</h3>
-                {versionHashesData.map((versionHash: string) => (
-                  <Tooltip title={versionHash} key={versionHash}>
+                {versionHashesData.map((versionHash: string, index: number) => (
+                  <Tooltip title={versionHash} key={`${versionHash + index}`}>
                     <Paragraph
                       key={versionHash}
                       copyable={{
@@ -289,8 +291,15 @@ export default function useDidTable({ didRecord }: PropType) {
                   visible: true,
                   width: 600,
                   title: "Append DID document version hash",
+                  onOk: () => {
+                    appendDidDocumentVersionHash()?.then(() => {
+                      resetModal();
+                    });
+                  },
                   content: (
-                    <DidDocumentModalContent form={appendDidDocumentForm} />
+                    <DidDocumentModalContent
+                      form={appendDidDocumentVersionHashForm}
+                    />
                   ),
                 });
               }}
@@ -318,21 +327,25 @@ export default function useDidTable({ didRecord }: PropType) {
                       visible: true,
                       width: 850,
                       title: "Version info data",
-                      content: versionInfosData.map((versionInfoData: any) => (
-                        <div key={versionInfoData}>
-                          <Paragraph
-                            copyable={{
-                              text: ethers.utils.toUtf8String(versionInfoData),
-                            }}
-                          >
-                            Copy JSON
-                          </Paragraph>
-                          <JSONPretty
-                            id="json-pretty"
-                            data={ethers.utils.toUtf8String(versionInfoData)}
-                          />
-                        </div>
-                      )),
+                      content: versionInfosData.map(
+                        (versionInfoData: string, index: number) => (
+                          <div key={`${versionInfoData + index}`}>
+                            <Paragraph
+                              copyable={{
+                                text: ethers.utils.toUtf8String(
+                                  versionInfoData
+                                ),
+                              }}
+                            >
+                              Copy JSON
+                            </Paragraph>
+                            <JSONPretty
+                              id="json-pretty"
+                              data={ethers.utils.toUtf8String(versionInfoData)}
+                            />
+                          </div>
+                        )
+                      ),
                     });
                   }}
                 >
@@ -358,19 +371,21 @@ export default function useDidTable({ didRecord }: PropType) {
             {metadataVersionIdsData ? (
               <>
                 <h3>Metadata Version Ids</h3>
-                {metadataVersionIdsData.map((versionHash: string) => (
-                  <Tooltip title={versionHash} key={versionHash}>
-                    <Paragraph
-                      key={versionHash}
-                      copyable={{
-                        text: versionHash,
-                      }}
-                    >
-                      {versionHash.slice(0, 4)}...
-                      {versionHash.slice(-4)}
-                    </Paragraph>
-                  </Tooltip>
-                ))}
+                {metadataVersionIdsData.map(
+                  (versionHash: string, index: number) => (
+                    <Tooltip title={versionHash} key={`${versionHash + index}`}>
+                      <Paragraph
+                        key={versionHash}
+                        copyable={{
+                          text: versionHash,
+                        }}
+                      >
+                        {versionHash.slice(0, 4)}...
+                        {versionHash.slice(-4)}
+                      </Paragraph>
+                    </Tooltip>
+                  )
+                )}
               </>
             ) : (
               ""
@@ -413,9 +428,9 @@ export default function useDidTable({ didRecord }: PropType) {
           <>
             {timestampsIdsData.length ? (
               <>
-                {timestampsIdsData.map((timestampId: string) => {
+                {timestampsIdsData.map((timestampId: string, index: number) => {
                   return (
-                    <Tooltip title={timestampId} key={timestampId}>
+                    <Tooltip title={timestampId} key={`${timestampId + index}`}>
                       <Paragraph
                         className="d-flex"
                         key={timestampId}

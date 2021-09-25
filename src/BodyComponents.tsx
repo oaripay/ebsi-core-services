@@ -5,6 +5,7 @@ import { config } from "./config";
 import RegisterDid from "./pages/RegisterDid/RegisterDid";
 import TrustedAppRegistry from "./pages/TrustedAppRegistry/TrustedAppRegistry";
 import Main from "./pages/Main/Main";
+import { RegisterDidProvider } from "./pages/RegisterDid/RegisterDid.context";
 
 export default function BodyComponents(): ReactElement {
   return (
@@ -13,7 +14,9 @@ export default function BodyComponents(): ReactElement {
         <TrustedAppRegistry />
       </Route>
       <Route exact path={config.routes.registerDid}>
-        <RegisterDid />
+        <RegisterDidProvider>
+          <RegisterDid />
+        </RegisterDidProvider>
       </Route>
       <Route path="*">
         <Main />

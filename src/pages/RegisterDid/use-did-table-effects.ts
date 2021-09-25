@@ -56,7 +56,6 @@ export const useDidTableEffects = ({
   ]);
 
   useEffect(() => {
-    console.log("Did record", didRecord);
     if (didRecord.controllerIds) {
       setDidControllers(didRecord.controllerIds);
     }

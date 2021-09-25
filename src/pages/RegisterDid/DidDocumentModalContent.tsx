@@ -2,15 +2,10 @@ import { Col, DatePicker, Form, FormInstance, Row, Select } from "antd";
 import React from "react";
 import { config } from "../../config";
 import { HashAlgo } from "./DidTableTypes";
-import { notBeforeDate } from "../../date-validator";
 
 type PropType = {
   form: FormInstance;
 };
-
-// bytes calldata hashValue,
-//   bytes calldata timestampData,
-//   bytes calldata didVersionInfo
 
 export default function DidDocumentModalContent({ form }: PropType) {
   return (
@@ -52,7 +47,6 @@ export default function DidDocumentModalContent({ form }: PropType) {
                 required: true,
                 message: "Please input a timestamp!",
               },
-              notBeforeDate,
             ]}
           >
             <DatePicker style={{ width: "100%" }} />

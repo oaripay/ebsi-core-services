@@ -16,20 +16,22 @@ import { config } from "../../config";
 import useDidRegister from "./use-did-register";
 import RegisterDidTable from "./RegisterDidTable";
 import { getIdentifierFromWalletAddr } from "./DidUtils";
+import { useRegisterDidContext } from "./RegisterDid.context";
 
 export default function RegisterDid() {
   const {
-    registerDid,
-    insertDidAs,
     loading,
     networkId,
     publicKey,
-    walletAddress,
     didDefined,
-    didToBeSent,
     didAsAdministrator,
     didRecord,
-  } = useDidRegister();
+  } = useRegisterDidContext();
+
+  const { registerDid, insertDidAs, walletAddress, didToBeSent } =
+    useDidRegister({
+      publicKey,
+    });
 
   const { Title } = Typography;
 
