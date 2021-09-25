@@ -12,9 +12,10 @@ import useDidControllerModal from "./use-did-controller-modal";
 import AdministratorControllerModalContent from "./AdministratorControllerModalContent";
 import { DataType, ModalPropsType, PropType } from "./DidTableTypes";
 import { useDidTableEffects } from "./use-did-table-effects";
-import DidDocumentModalContent from "./DidDocumentModalContent";
+import AppendDidDocumentHashModalContent from "./AppendDidDocumentHashModalContent";
 import { getIdentifierFromWalletAddr } from "./DidUtils";
 import AdministratorUpdateControllerModalContent from "./AdministratorUpdateControllerModalContent";
+import DetachDidDocumentVersionHashContent from "./DetachDidDocumentVersionHashContent";
 
 export default function useDidTable({ didRecord }: PropType) {
   const { walletAddress } = useWalletContext();
@@ -39,6 +40,7 @@ export default function useDidTable({ didRecord }: PropType) {
   const [insertAdminForm] = Form.useForm();
   const [updateAdminForm] = Form.useForm();
   const [appendDidDocumentVersionHashForm] = Form.useForm();
+  const [detachDidDocumentVersionHashForm] = Form.useForm();
   const [tableLoading] = useState(false);
 
   const identifier = useMemo(() => {
@@ -65,20 +67,6 @@ export default function useDidTable({ didRecord }: PropType) {
     didControllers,
   });
 
-  const {
-    insertDidController,
-    updateDidController,
-    insertAdministrator,
-    updateAdministrator,
-    appendDidDocumentVersionHash,
-  } = useDidControllerModal({
-    insertDidControllerForm,
-    updateDidControllerForm,
-    insertAdminForm,
-    updateAdminForm,
-    appendDidDocumentVersionHashForm,
-  });
-
   const resetModal = useCallback(() => {
     setModal({
       content: <></>,
@@ -88,6 +76,23 @@ export default function useDidTable({ didRecord }: PropType) {
       onOk: undefined,
     });
   }, []);
+
+  const {
+    insertDidController,
+    updateDidController,
+    insertAdministrator,
+    updateAdministrator,
+    appendDidDocumentVersionHash,
+    detachDidDocumentVersionHash,
+  } = useDidControllerModal({
+    insertDidControllerForm,
+    updateDidControllerForm,
+    insertAdminForm,
+    updateAdminForm,
+    appendDidDocumentVersionHashForm,
+    detachDidDocumentVersionHashForm,
+    resetModal,
+  });
 
   const dataSource: DataType = useMemo(() => {
     return [
@@ -297,7 +302,7 @@ export default function useDidTable({ didRecord }: PropType) {
                     });
                   },
                   content: (
-                    <DidDocumentModalContent
+                    <AppendDidDocumentHashModalContent
                       form={appendDidDocumentVersionHashForm}
                     />
                   ),
@@ -310,9 +315,19 @@ export default function useDidTable({ didRecord }: PropType) {
               onClick={() => {
                 setModal({
                   visible: true,
-                  width: 700,
-                  title: "Detach DID document version hash",
-                  content: <h1>vasile</h1>,
+                  width: 600,
+                  title: "Append DID document version hash",
+                  onOk: () => {
+                    detachDidDocumentVersionHash()?.then(() => {
+                      resetModal();
+                    });
+                  },
+                  content: (
+                    <DetachDidDocumentVersionHashContent
+                      form={detachDidDocumentVersionHashForm}
+                      versionHashes={versionHashes}
+                    />
+                  ),
                 });
               }}
             >

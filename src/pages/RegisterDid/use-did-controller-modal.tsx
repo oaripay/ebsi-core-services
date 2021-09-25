@@ -17,6 +17,8 @@ type PropType = {
   insertAdminForm: FormInstance;
   updateAdminForm: FormInstance;
   appendDidDocumentVersionHashForm: FormInstance;
+  detachDidDocumentVersionHashForm: FormInstance;
+  resetModal: () => void;
 };
 
 export default function useDidControllerModal({
@@ -25,12 +27,66 @@ export default function useDidControllerModal({
   insertAdminForm,
   updateAdminForm,
   appendDidDocumentVersionHashForm,
+  detachDidDocumentVersionHashForm,
+  resetModal,
 }: PropType) {
   const { didRegistryContract } = useEthersHook();
 
   const { walletAddress } = useWalletHook();
   const { publicKey } = useRegisterDidContext();
   const { setShowPendingTxNotif } = useNotificationContext();
+
+  const detachDidDocumentVersionHash = useCallback(() => {
+    if (!didRegistryContract || !walletAddress || !publicKey) {
+      return undefined;
+    }
+    return detachDidDocumentVersionHashForm
+      .validateFields(["versionHash"])
+      .then(async () => {
+        const fields = detachDidDocumentVersionHashForm.getFieldsValue([
+          "versionHash",
+        ]);
+        try {
+          const didDocument = createDidDocument(
+            getIdentifierFromWalletAddr(walletAddress),
+            publicKey
+          );
+          const { param } = buildDidParams(didDocument);
+          setShowPendingTxNotif(true);
+          const tx = await didRegistryContract.detachDidDocumentVersionHash(
+            param.identifier,
+            param.hashAlgorithmId,
+            fields.versionHash,
+            param.didVersionInfo
+          );
+          resetModal();
+
+          await tx.wait(1);
+          notification.success({
+            message: "Action successful",
+            description: "Detached version hash!",
+          });
+          setShowPendingTxNotif(false);
+          return true;
+        } catch (ex) {
+          setShowPendingTxNotif(false);
+          notification.error({
+            message: "Error",
+            description:
+              "An error appeared while trying to detach hash. Please try again",
+          });
+          resetModal();
+          return false;
+        }
+      });
+  }, [
+    detachDidDocumentVersionHashForm,
+    didRegistryContract,
+    publicKey,
+    resetModal,
+    setShowPendingTxNotif,
+    walletAddress,
+  ]);
 
   const appendDidDocumentVersionHash = useCallback(() => {
     if (!didRegistryContract || !walletAddress || !publicKey) {
@@ -65,6 +121,8 @@ export default function useDidControllerModal({
             param.timestampData,
             param.didVersionInfo
           );
+          resetModal();
+
           await tx.wait(1);
           notification.success({
             message: "Action successful",
@@ -79,6 +137,7 @@ export default function useDidControllerModal({
             description:
               "An error appeared while trying to append hash. Please try again",
           });
+          resetModal();
           return false;
         }
       });
@@ -86,6 +145,7 @@ export default function useDidControllerModal({
     appendDidDocumentVersionHashForm,
     didRegistryContract,
     publicKey,
+    resetModal,
     setShowPendingTxNotif,
     walletAddress,
   ]);
@@ -103,23 +163,32 @@ export default function useDidControllerModal({
         ]);
         try {
           const didAsBytes = ethers.utils.toUtf8Bytes(fields.attribute);
+          setShowPendingTxNotif(true);
+
           const tx = await didRegistryContract[
             "updateAdministrator(string,bytes)"
           ](getIdentifierFromWalletAddr(fields.walletAddress), didAsBytes);
+          resetModal();
+
           await tx.wait(1);
           notification.success({
             message: "Action successful",
             description: "Administrator was updated successfully!",
           });
+          setShowPendingTxNotif(false);
+          return true;
         } catch (ex) {
           notification.error({
             message: "Error",
             description:
               "An error appeared while trying to update the DID. Please try again",
           });
+          setShowPendingTxNotif(false);
+          resetModal();
+          return false;
         }
       });
-  }, [didRegistryContract, updateAdminForm]);
+  }, [didRegistryContract, resetModal, setShowPendingTxNotif, updateAdminForm]);
 
   const insertAdministrator = useCallback(() => {
     if (!didRegistryContract) {
@@ -131,24 +200,31 @@ export default function useDidControllerModal({
         getIdentifierFromWalletAddr(fields.walletAddress)
       );
       try {
+        setShowPendingTxNotif(true);
         const tx = await didRegistryContract.insertAdministrator(
           getIdentifierFromWalletAddr(fields.walletAddress),
           didAsBytes
         );
+        resetModal();
         await tx.wait(1);
         notification.success({
           message: "Action successful",
           description: "Administrator was inserted successfully!",
         });
+        setShowPendingTxNotif(false);
+        return true;
       } catch (ex) {
         notification.error({
           message: "Error",
           description:
             "An error appeared while trying to insert the DID. Please try again",
         });
+        setShowPendingTxNotif(false);
+        resetModal();
+        return false;
       }
     });
-  }, [insertAdminForm, didRegistryContract]);
+  }, [didRegistryContract, insertAdminForm, setShowPendingTxNotif, resetModal]);
 
   const updateDidController = useCallback(
     (identifier: string) => {
@@ -165,6 +241,7 @@ export default function useDidControllerModal({
             "notAfter",
           ]);
           try {
+            setShowPendingTxNotif(true);
             const tx = await didRegistryContract.updateDidController(
               `0x${Buffer.from(identifier).toString("hex")}`,
               fields.newControllerId,
@@ -176,16 +253,20 @@ export default function useDidControllerModal({
               message: "Action successful",
               description: "DID Controller was updated successfully!",
             });
+            setShowPendingTxNotif(false);
+            return true;
           } catch (ex) {
             notification.error({
               message: "Error",
               description:
                 "An error appeared while trying to update DID Controller. Please try again",
             });
+            setShowPendingTxNotif(false);
+            return false;
           }
         });
     },
-    [didRegistryContract, updateDidControllerForm]
+    [didRegistryContract, setShowPendingTxNotif, updateDidControllerForm]
   );
 
   const insertDidController = useCallback(
@@ -202,27 +283,40 @@ export default function useDidControllerModal({
             "notAfter",
           ]);
           try {
+            setShowPendingTxNotif(true);
             const tx = await didRegistryContract.insertDidController(
               `0x${Buffer.from(identifier).toString("hex")}`,
               fields.newControllerId,
               fields.notBefore.unix(),
               fields.notAfter.unix()
             );
+            resetModal();
+
             await tx.wait(1);
             notification.success({
               message: "Action successful",
               description: "DID Controller was inserted successfully!",
             });
+            setShowPendingTxNotif(false);
+            return true;
           } catch (ex) {
             notification.error({
               message: "Error",
               description:
                 "An error appeared while trying to insert DID Controller. Please try again",
             });
+            resetModal();
+            setShowPendingTxNotif(false);
+            return false;
           }
         });
     },
-    [didRegistryContract, insertDidControllerForm]
+    [
+      didRegistryContract,
+      insertDidControllerForm,
+      resetModal,
+      setShowPendingTxNotif,
+    ]
   );
 
   return {
@@ -231,5 +325,6 @@ export default function useDidControllerModal({
     insertAdministrator,
     updateAdministrator,
     appendDidDocumentVersionHash,
+    detachDidDocumentVersionHash,
   };
 }

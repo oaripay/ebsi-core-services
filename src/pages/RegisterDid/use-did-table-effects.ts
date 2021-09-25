@@ -110,6 +110,7 @@ export const useDidTableEffects = ({
         50
       )
       .then((didVersionIds: PaginatedResponse) => {
+        console.log(didVersionIds);
         setVersionHashes(didVersionIds.items);
       })
       .catch(() => {});

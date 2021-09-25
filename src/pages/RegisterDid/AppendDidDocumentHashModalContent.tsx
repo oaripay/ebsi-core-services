@@ -7,7 +7,7 @@ type PropType = {
   form: FormInstance;
 };
 
-export default function DidDocumentModalContent({ form }: PropType) {
+export default function AppendDidDocumentHashModalContent({ form }: PropType) {
   return (
     <Form
       layout="vertical"
