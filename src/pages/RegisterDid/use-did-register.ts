@@ -36,7 +36,7 @@ export default function useDidRegister() {
 
   const getDidDocumentVersionIds = useCallback(
     async (didRecord: DidRecordType) => {
-      if (!didRegistryContract || !didRecord) {
+      if (!didRegistryContract || !didRecord || !didRecord.controllerIds) {
         return {
           items: [],
         };
