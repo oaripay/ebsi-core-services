@@ -9,6 +9,11 @@ export type ModalPropsType = {
   onOk?: (param?: any) => void;
 };
 
+export type DidRecordType = {
+  controllerIds: string[];
+  totalDidVersions: BigNumber;
+};
+
 export type DataType = {
   didControllers?: string[];
   versionHashes?: string[];

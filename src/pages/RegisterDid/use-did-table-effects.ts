@@ -1,12 +1,14 @@
 import { useEffect } from "react";
 import { DidTableEffectsPropType, PaginatedResponse } from "./DidTableTypes";
 import { useEthersHook } from "../../hooks/use-ethers.hook";
+import useDidRegister from "./use-did-register";
 
 export const useDidTableEffects = ({
   setDidControllers,
   setVersionHashes,
   setVersionInfos,
   setMetadataVersionIds,
+  metadataVersionIds,
   setMetadata,
   setTimestampsIds,
   setAdministratorLastHash,
@@ -14,45 +16,35 @@ export const useDidTableEffects = ({
   identifier,
   versionHashes,
   walletAddress,
-  metadataVersionIds,
   setDidRecordsIds,
 }: DidTableEffectsPropType) => {
   const { didRegistryContract } = useEthersHook();
+  const {
+    getDidRecordIdentifiersByControllerId,
+    getDidDocumentVersionDidTimestampIds,
+    getDidDocumentVersionMetadataIds,
+    getDidDocumentVersionMetadata,
+    getDidDocumentVersionInfo,
+    getDidDocumentVersionIds,
+  } = useDidRegister();
 
   useEffect(() => {
-    if (!didRegistryContract || !walletAddress) {
-      return;
-    }
-    didRegistryContract
-      .getDidRecordIdentifiersByControllerId(walletAddress, 1, 50)
-      .then((data: PaginatedResponse) => {
-        setDidRecordsIds(data.items);
-      });
-  }, [didRegistryContract, walletAddress, setDidRecordsIds]);
+    getDidRecordIdentifiersByControllerId().then((data: PaginatedResponse) => {
+      setDidRecordsIds(data.items);
+    });
+  }, [getDidRecordIdentifiersByControllerId, setDidRecordsIds]);
 
   useEffect(() => {
-    if (!didRegistryContract || !versionHashes.length) {
-      return;
-    }
-    const promises = versionHashes.map(() => {
-      return didRegistryContract
-        .getDidDocumentVersionDidTimestampIds(
-          `0x${Buffer.from(identifier).toString("hex")}`,
-          didRecord.totalDidVersions.toNumber()
-        )
-        .catch(() => {});
-    });
-    Promise.all(promises).then((data) => {
-      setTimestampsIds(data);
-    });
+    getDidDocumentVersionDidTimestampIds(versionHashes, didRecord).then(
+      (data: any) => {
+        setTimestampsIds(data);
+      }
+    );
   }, [
-    didRecord.totalDidVersions,
-    didRegistryContract,
-    identifier,
+    didRecord,
+    getDidDocumentVersionDidTimestampIds,
     setTimestampsIds,
     versionHashes,
-    versionHashes.length,
-    walletAddress,
   ]);
 
   useEffect(() => {
@@ -62,81 +54,34 @@ export const useDidTableEffects = ({
   }, [didRecord, setDidControllers]);
 
   useEffect(() => {
-    if (!didRegistryContract || !versionHashes.length) {
-      return;
-    }
-    didRegistryContract
-      .getDidDocumentVersionMetadataIds(
-        `0x${Buffer.from(identifier).toString("hex")}`,
-        versionHashes[0],
-        1,
-        50
-      )
-      .then((data: any) => {
+    getDidDocumentVersionMetadataIds(versionHashes)
+      .then((data: PaginatedResponse) => {
         setMetadataVersionIds(data.items);
       })
       .catch(() => {});
-  }, [
-    didRecord,
-    didRegistryContract,
-    identifier,
-    setMetadataVersionIds,
-    versionHashes,
-    walletAddress,
-  ]);
+  }, [getDidDocumentVersionMetadataIds, setMetadataVersionIds, versionHashes]);
 
   useEffect(() => {
-    if (!didRegistryContract || !metadataVersionIds.length) {
-      return;
-    }
-    const promises = metadataVersionIds.map((versionIdData: string) => {
-      return didRegistryContract
-        .getDidDocumentVersionMetadata(versionIdData)
-        .catch(() => {});
-    });
-    Promise.all(promises).then((data) => {
+    getDidDocumentVersionMetadata(metadataVersionIds).then((data: any) => {
       setMetadata(data);
     });
-  }, [didRegistryContract, metadataVersionIds, setMetadata]);
+  }, [getDidDocumentVersionMetadata, metadataVersionIds, setMetadata]);
 
   useEffect(() => {
-    if (!didRegistryContract || !didRecord || !didRecord[0]) {
-      return;
-    }
-    didRegistryContract
-      .getDidDocumentVersionIds(
-        `0x${Buffer.from(identifier).toString("hex")}`,
-        1,
-        50
-      )
+    getDidDocumentVersionIds(didRecord)
       .then((didVersionIds: PaginatedResponse) => {
-        console.log(didVersionIds);
         setVersionHashes(didVersionIds.items);
       })
       .catch(() => {});
-    setVersionHashes([]);
-  }, [
-    didRecord,
-    didRegistryContract,
-    identifier,
-    setVersionHashes,
-    walletAddress,
-  ]);
+  }, [didRecord, getDidDocumentVersionIds, setVersionHashes]);
 
   useEffect(() => {
-    if (!didRegistryContract || !didRecord || !didRecord[0]) {
-      return;
-    }
-    let promises = [];
-    if (versionHashes.length) {
-      promises = versionHashes.map((hash: string) =>
-        didRegistryContract.getDidDocumentVersionInfo(hash).catch(() => {})
-      );
-      Promise.all(promises).then((versionInfosTemp: string[]) => {
+    getDidDocumentVersionInfo(versionHashes).then(
+      (versionInfosTemp: string[]) => {
         setVersionInfos(versionInfosTemp);
-      });
-    }
-  }, [didRecord, didRegistryContract, setVersionInfos, versionHashes]);
+      }
+    );
+  }, [getDidDocumentVersionInfo, setVersionInfos, versionHashes]);
 
   useEffect(() => {
     if (!didRegistryContract || !identifier) {

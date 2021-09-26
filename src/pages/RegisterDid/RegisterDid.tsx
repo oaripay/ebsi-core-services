@@ -29,9 +29,7 @@ export default function RegisterDid() {
   } = useRegisterDidContext();
 
   const { registerDid, insertDidAs, walletAddress, didToBeSent } =
-    useDidRegister({
-      publicKey,
-    });
+    useDidRegister();
 
   const { Title } = Typography;
 
