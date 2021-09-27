@@ -6,7 +6,7 @@ import { ethers } from "ethers";
 import KeyEncoder from "key-encoder";
 import fromKeyLike from "jose/jwk/from_key_like";
 import generateKeyPair from "jose/util/generate_key_pair";
-import base64url from "base64url";
+import { base64url } from "multiformats/bases/base64";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 
 const keyEncoder = new KeyEncoder("secp256k1");
@@ -60,7 +60,7 @@ export async function getPrivateKeyHex(
   privateKey: crypto.KeyObject
 ): Promise<string> {
   const privateJwk = await fromKeyLike(privateKey);
-  return base64url.decode(privateJwk.d, "hex");
+  return Buffer.from(base64url.baseDecode(privateJwk.d)).toString("hex");
 }
 
 export function getPublicKeyId(publicKeyPem: string): string {

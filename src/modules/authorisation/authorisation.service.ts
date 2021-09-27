@@ -1,7 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import crypto, { randomUUID } from "crypto";
-import { BadRequestError } from "@cef-ebsi/problem-details-errors";
+import {
+  BadRequestError,
+  ProblemDetailsError,
+} from "@cef-ebsi/problem-details-errors";
 import {
   Session as OAuth2Session,
   AkeResponse as OAuth2AkeResponse,
@@ -33,7 +36,7 @@ import {
   validatePresentation,
   VerifiablePresentation,
 } from "@cef-ebsi/verifiable-presentation";
-import base64url from "base64url";
+import { base64url } from "multiformats/bases/base64";
 import Joi from "joi";
 import { DIDDocument } from "did-resolver";
 import jwtVerify from "jose/jwt/verify";
@@ -233,7 +236,7 @@ export class AuthorisationService {
       );
       const ake1SigPayloadBase64url = ake1Sig.split(".")[1];
       const ake1SigPayload = JSON.parse(
-        base64url.decode(ake1SigPayloadBase64url)
+        Buffer.from(base64url.baseDecode(ake1SigPayloadBase64url)).toString()
       ) as Ake1SigPayload;
       const ake1JwsDetached = ake1Sig.replace(ake1SigPayloadBase64url, "");
 
@@ -282,7 +285,7 @@ export class AuthorisationService {
       let decodedParsedVP: VerifiablePresentation;
       try {
         decodedParsedVP = JSON.parse(
-          base64url.decode(claims.verified_claims)
+          Buffer.from(base64url.baseDecode(claims.verified_claims)).toString()
         ) as VerifiablePresentation;
       } catch (error) {
         throw new BadRequestError(
@@ -420,14 +423,27 @@ export class AuthorisationService {
     } catch (error) {
       const axiosError = error as AxiosError;
       if (axiosError.isAxiosError) {
-        const message =
-          typeof axiosError.response.data === "string"
-            ? axiosError.response.data
-            : JSON.stringify(axiosError.response.data);
+        if (typeof axiosError.response.data !== "object") {
+          throw new BadRequestError("Invalid ID Token", {
+            detail: axiosError.response.data as string,
+          });
+        }
 
-        throw new BadRequestError("Invalid ID Token", {
-          detail: message,
-        });
+        const response = axiosError.response.data as {
+          status: number;
+          title: string;
+          type?: string;
+          detail?: string;
+          instance?: string;
+        };
+
+        if (response && response.status && response.title) {
+          throw new ProblemDetailsError(response.status, response.title, {
+            type: response.type,
+            detail: response.detail,
+            instance: response.instance,
+          });
+        }
       }
       throw error;
     }

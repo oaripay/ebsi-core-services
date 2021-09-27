@@ -23,14 +23,14 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import jwtVerify from "jose/jwt/verify";
 import querystring from "querystring";
 import * as EbsiDidJwt from "@cef-ebsi/did-jwt/dist/jwt";
 import parseJwk from "jose/jwk/parse";
 import { DIDDocument } from "did-resolver";
-import base64url from "base64url";
-import bs58 from "bs58";
+import EbsiWallet from "@cef-ebsi/wallet-lib";
+import { base64url } from "multiformats/bases/base64";
 import vpLib from "@cef-ebsi/verifiable-presentation";
 import { AuthorisationModule } from "./authorisation.module";
 import { AuthenticationRequestResponse } from "./authorisation.interface";
@@ -86,7 +86,7 @@ async function createClient(alg: string) {
     await generateKeys(alg);
 
   const jwk = await fromKeyLike(publicKey);
-  const did = `did:ebsi:${bs58.encode(crypto.randomBytes(32))}`;
+  const did = EbsiWallet.createDid();
 
   return {
     publicKey,
@@ -497,6 +497,84 @@ describe("Authorisation Module", () => {
         expect(response.status).toBe(400);
       });
 
+      it("should handle error from did registry api", async () => {
+        expect.assertions(2);
+
+        const nonce = randomUUID();
+
+        const client = await createTestClient();
+        const clientDid = client.did;
+        const clientPrivateKeys = client.keys;
+        const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
+
+        const payload = {
+          sub: clientDid,
+          sub_jwk: {},
+          sub_did_verification_method_uri: keyObject.id,
+          nonce,
+          claims: {
+            encryption_key: keyObject.publicKeyEncryptionJwk,
+          },
+        };
+
+        const idToken = await createAuthenticationResponseJose({
+          alg,
+          keyId: keyObject.id,
+          nonce,
+          redirectUri: "redirect_uri",
+          privateKeyJwk: keyObject.privateKeyJwk,
+          publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk,
+          payload,
+        });
+
+        // Error from verifyEbsiJWT
+        jest.spyOn(EbsiDidJwt, "verifyEbsiJWT").mockImplementation(() => {
+          throw new Error("error from did registry api");
+        });
+
+        // Error from did registry api
+        jest.spyOn(axios, "get").mockImplementation(() => {
+          const error = new Error("axios error") as unknown as {
+            response: AxiosResponse;
+            isAxiosError: boolean;
+          };
+          error.isAxiosError = true;
+          error.response = {
+            status: 404,
+            data: {
+              title: "Not Found",
+              status: 404,
+              detail: "not found",
+              type: "about:blank",
+            },
+          } as AxiosResponse;
+          // eslint-disable-next-line @typescript-eslint/no-throw-literal
+          throw error;
+        });
+
+        const response = await request(server)
+          .post("/siop-sessions")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send({ id_token: idToken });
+
+        expect(response.body).toStrictEqual(
+          alg === "ES256K"
+            ? {
+                title: "Invalid ID Token",
+                status: 400,
+                detail: "error from did registry api",
+                type: "about:blank",
+              }
+            : {
+                title: "Not Found",
+                status: 404,
+                detail: "not found",
+                type: "about:blank",
+              }
+        );
+        expect(response.status).toBe(alg === "ES256K" ? 400 : 404);
+      });
+
       it(`should create a siop session for a user that uses alg ${alg}`, async () => {
         expect.assertions(2);
 
@@ -598,7 +676,7 @@ describe("Authorisation Module", () => {
               )[0],
               validFrom: "2021-05-18T15:00:42Z",
               credentialSubject: {
-                id: "did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e",
+                id: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj",
               },
               credentialSchema: {
                 id: "https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313338312e332e31322e332e322e332e3738",
@@ -616,8 +694,7 @@ describe("Authorisation Module", () => {
                 type: "EcdsaSecp256k1Signature2019",
                 created: "2021-05-18T15:00:42Z",
                 proofPurpose: "assertionMethod",
-                verificationMethod:
-                  "did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e#keys-1",
+                verificationMethod: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj#keys-1",
                 jws: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ..8NLRMISHCKmScoRFZwd7G3Nj5CaOhoH5qTJHkkNV-WQ1cRjITR-USQcmi_qKOr5H4T1jEeGwEYgG5BnmyfPXMA",
               },
             },
@@ -626,8 +703,7 @@ describe("Authorisation Module", () => {
             type: "EcdsaSecp256k1Signature2019",
             created: "2021-05-18T16:30:01Z",
             proofPurpose: "authentication",
-            verificationMethod:
-              "did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e#keys-1",
+            verificationMethod: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj#keys-1",
             jws: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE2MjEzNTU0MDEsIkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOiJWZXJpZmlhYmxlUHJlc2VudGF0aW9uIiwidmVyaWZpYWJsZUNyZWRlbnRpYWwiOlt7ImlkIjoidmM6ZWJzaTphdXRoZW50aWNhdGlvbiNiNzQ0YjUyOC1hZjY4LTQzYjAtYjI2OS1lYzI5MWY0MjFhYTgiLCJpc3N1ZXIiOiJkaWQ6ZWJzaTo2UVlKYzN0TFJoZXk4OFdQS0Mya3Y1ODh2MXVaMW9pZDN5ZmM1THA1QWJZRCIsInZhbGlkRnJvbSI6IjIwMjEtMDUtMThUMTU6MDA6NDJaIiwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZWJzaTpBYUVrbjczc2VjRk1VVFNnNHZUTGtoWDc5a0pFOG9hQUs3NDhUb1M4WXM5ZSJ9LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjoiaHR0cHM6Ly9hcGkudGVzdC5pbnRlYnNpLnh5ei90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDMxMmUzMzJlMzYyZTMxMmUzNDJlMzEyZTMxMzMzODMxMmUzMzJlMzEzMjJlMzMyZTMyMmUzMzJlMzczOCIsInR5cGUiOiJPSUQifSwiaXNzdWFuY2VEYXRlIjoiMjAyMS0wNS0xOFQxNTowMDo0MloiLCJleHBpcmF0aW9uRGF0ZSI6IjIwMjEtMTEtMTZUMTU6MDA6NDJaIiwiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy9leGFtcGxlcy92MSIsImh0dHBzOi8vdzNjLWNjZy5naXRodWIuaW8vbGRzLWp3czIwMjAvY29udGV4dHMvbGRzLWp3czIwMjAtdjEuanNvbiJdLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiVmVyaWZpYWJsZUF1dGhvcmlzYXRpb24iXSwicHJvb2YiOnsidHlwZSI6IkVjZHNhU2VjcDI1NmsxU2lnbmF0dXJlMjAxOSIsImNyZWF0ZWQiOiIyMDIxLTA1LTE4VDE1OjAwOjQyWiIsInByb29mUHVycG9zZSI6ImFzc2VydGlvbk1ldGhvZCIsInZlcmlmaWNhdGlvbk1ldGhvZCI6ImRpZDplYnNpOkFhRWtuNzNzZWNGTVVUU2c0dlRMa2hYNzlrSkU4b2FBSzc0OFRvUzhZczllI2tleXMtMSIsImp3cyI6ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSkZVekkxTmtzaWZRLi44TkxSTUlTSENLbVNjb1JGWndkN0czTmo1Q2FPaG9INXFUSkhra05WLVdRMWNSaklUUi1VU1FjbWlfcUtPcjVINFQxakVlR3dFWWdHNUJubXlmUFhNQSJ9fV0sImlzcyI6ImRpZDplYnNpOkFhRWtuNzNzZWNGTVVUU2c0dlRMa2hYNzlrSkU4b2FBSzc0OFRvUzhZczllIn0.qt_-j_XDhPAbMyjyAONPLEx-2SEEaLv6uh5ky1m1DyWvsr_GxyhJ9PMVZekXR6td-nkPGk7uuqA2KLCKQTgMEQ",
           },
         };
@@ -638,8 +714,8 @@ describe("Authorisation Module", () => {
           sub_did_verification_method_uri: keyObject.id,
           nonce,
           claims: {
-            verified_claims: base64url.encode(
-              JSON.stringify(mockedVerifiablePresentation)
+            verified_claims: base64url.baseEncode(
+              Buffer.from(JSON.stringify(mockedVerifiablePresentation))
             ),
             encryption_key: keyObject.publicKeyEncryptionJwk,
           },
@@ -778,7 +854,7 @@ describe("Authorisation Module", () => {
                   )[0],
                   validFrom: "2021-05-18T15:00:42Z",
                   credentialSubject: {
-                    id: "did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e",
+                    id: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj",
                   },
                   credentialSchema: {
                     id: "https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313338312e332e31322e332e322e332e3738",
@@ -797,7 +873,7 @@ describe("Authorisation Module", () => {
                     created: "2021-05-18T15:00:42Z",
                     proofPurpose: "assertionMethod",
                     verificationMethod:
-                      "did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e#keys-1",
+                      "did:ebsi:zub5ZZUfHLLptCduwEy8xRj#keys-1",
                     jws: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ..8NLRMISHCKmScoRFZwd7G3Nj5CaOhoH5qTJHkkNV-WQ1cRjITR-USQcmi_qKOr5H4T1jEeGwEYgG5BnmyfPXMA",
                   },
                 },
@@ -806,8 +882,7 @@ describe("Authorisation Module", () => {
                 type: "EcdsaSecp256k1Signature2019",
                 created: "2021-05-18T16:30:01Z",
                 proofPurpose: "authentication",
-                verificationMethod:
-                  "did:ebsi:AaEkn73secFMUTSg4vTLkhX79kJE8oaAK748ToS8Ys9e#keys-1",
+                verificationMethod: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj#keys-1",
                 jws: "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE2MjEzNTU0MDEsIkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOiJWZXJpZmlhYmxlUHJlc2VudGF0aW9uIiwidmVyaWZpYWJsZUNyZWRlbnRpYWwiOlt7ImlkIjoidmM6ZWJzaTphdXRoZW50aWNhdGlvbiNiNzQ0YjUyOC1hZjY4LTQzYjAtYjI2OS1lYzI5MWY0MjFhYTgiLCJpc3N1ZXIiOiJkaWQ6ZWJzaTo2UVlKYzN0TFJoZXk4OFdQS0Mya3Y1ODh2MXVaMW9pZDN5ZmM1THA1QWJZRCIsInZhbGlkRnJvbSI6IjIwMjEtMDUtMThUMTU6MDA6NDJaIiwiY3JlZGVudGlhbFN1YmplY3QiOnsiaWQiOiJkaWQ6ZWJzaTpBYUVrbjczc2VjRk1VVFNnNHZUTGtoWDc5a0pFOG9hQUs3NDhUb1M4WXM5ZSJ9LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjoiaHR0cHM6Ly9hcGkudGVzdC5pbnRlYnNpLnh5ei90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDMxMmUzMzJlMzYyZTMxMmUzNDJlMzEyZTMxMzMzODMxMmUzMzJlMzEzMjJlMzMyZTMyMmUzMzJlMzczOCIsInR5cGUiOiJPSUQifSwiaXNzdWFuY2VEYXRlIjoiMjAyMS0wNS0xOFQxNTowMDo0MloiLCJleHBpcmF0aW9uRGF0ZSI6IjIwMjEtMTEtMTZUMTU6MDA6NDJaIiwiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy9leGFtcGxlcy92MSIsImh0dHBzOi8vdzNjLWNjZy5naXRodWIuaW8vbGRzLWp3czIwMjAvY29udGV4dHMvbGRzLWp3czIwMjAtdjEuanNvbiJdLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiVmVyaWZpYWJsZUF1dGhvcmlzYXRpb24iXSwicHJvb2YiOnsidHlwZSI6IkVjZHNhU2VjcDI1NmsxU2lnbmF0dXJlMjAxOSIsImNyZWF0ZWQiOiIyMDIxLTA1LTE4VDE1OjAwOjQyWiIsInByb29mUHVycG9zZSI6ImFzc2VydGlvbk1ldGhvZCIsInZlcmlmaWNhdGlvbk1ldGhvZCI6ImRpZDplYnNpOkFhRWtuNzNzZWNGTVVUU2c0dlRMa2hYNzlrSkU4b2FBSzc0OFRvUzhZczllI2tleXMtMSIsImp3cyI6ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSkZVekkxTmtzaWZRLi44TkxSTUlTSENLbVNjb1JGWndkN0czTmo1Q2FPaG9INXFUSkhra05WLVdRMWNSaklUUi1VU1FjbWlfcUtPcjVINFQxakVlR3dFWWdHNUJubXlmUFhNQSJ9fV0sImlzcyI6ImRpZDplYnNpOkFhRWtuNzNzZWNGTVVUU2c0dlRMa2hYNzlrSkU4b2FBSzc0OFRvUzhZczllIn0.qt_-j_XDhPAbMyjyAONPLEx-2SEEaLv6uh5ky1m1DyWvsr_GxyhJ9PMVZekXR6td-nkPGk7uuqA2KLCKQTgMEQ",
               },
             },

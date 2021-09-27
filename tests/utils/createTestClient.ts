@@ -1,7 +1,6 @@
 import fromKeyLike, { JWK } from "jose/jwk/from_key_like";
-import crypto from "crypto";
+import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { DIDDocument } from "did-resolver";
-import bs58 from "bs58";
 import { generateKeys, getPrivateKeyHex } from "./keys";
 
 export async function createTestClient(): Promise<{
@@ -18,7 +17,7 @@ export async function createTestClient(): Promise<{
   privateKeyHexES256K: string;
   didDocument: DIDDocument;
 }> {
-  const did = `did:ebsi:${bs58.encode(crypto.randomBytes(32))}`;
+  const did = EbsiWallet.createDid();
 
   const didDocument = {
     "@context": "https://w3id.org/did/v1",

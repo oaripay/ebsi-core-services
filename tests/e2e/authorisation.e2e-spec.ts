@@ -12,7 +12,6 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import canonicalize from "canonicalize";
-import bs58 from "bs58";
 import { JWK, parseJwk } from "jose/jwk/parse";
 import jwtDecrypt from "jose/jwt/decrypt";
 import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
@@ -20,7 +19,7 @@ import generateKeyPair from "jose/util/generate_key_pair";
 import fromKeyLike from "jose/jwk/from_key_like";
 import SignJWT from "jose/jwt/sign";
 import { ConfigService } from "@nestjs/config";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import jwtVerify from "jose/jwt/verify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
@@ -35,7 +34,7 @@ import {
 } from "@cef-ebsi/siop-auth";
 import querystring from "querystring";
 import axios from "axios";
-import base64url from "base64url";
+import { base64url } from "multiformats/bases/base64";
 import { AppModule } from "../../src/app.module";
 import { AuthenticationRequestResponse } from "../../src/modules/authorisation/authorisation.interface";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -344,7 +343,7 @@ describe("Authorisation (e2e)", () => {
     "POST /siop-sessions with alg %s",
     (alg) => {
       it("should reject bad requests", async () => {
-        expect.assertions(10);
+        expect.assertions(12);
 
         const clientDid = configService.get<string>("testClientDid");
         const clientPrivateKeys = JSON.parse(
@@ -382,7 +381,7 @@ describe("Authorisation (e2e)", () => {
         expect(response.status).toBe(400);
 
         let payload: Record<string, unknown> = {
-          sub_did_verification_method_uri: "https://self-issued.me",
+          sub_did_verification_method_uri: `${clientDid}#keys-2`,
           sub: clientDid,
           sub_jwk: {},
           nonce: "nonce",
@@ -416,11 +415,19 @@ describe("Authorisation (e2e)", () => {
         });
         expect(response.status).toBe(400);
 
+        const randomDid = EbsiWallet.createDid();
+        payload = {
+          sub_did_verification_method_uri: `${randomDid}#keys-2`, // wrong DID
+          sub: clientDid,
+          sub_jwk: {},
+          nonce: "nonce",
+        };
+
         idToken = await new SignJWT(payload)
           .setProtectedHeader({
             alg,
             typ: "JWT",
-            kid: "did:ebsi:1234", // wrong DID
+            kid: randomDid, // wrong DID
           })
           .setIssuedAt()
           .setIssuer("https://self-issued.me")
@@ -434,15 +441,15 @@ describe("Authorisation (e2e)", () => {
           .send({ id_token: idToken });
 
         expect(response.body).toStrictEqual({
-          title: "Invalid ID Token",
-          status: 400,
+          title: alg === "ES256K" ? "Invalid ID Token" : "Identifier Not Found",
+          status: alg === "ES256K" ? 400 : 404,
           detail:
             alg === "ES256K"
               ? "resolver_error: Unable to resolve DID document for https://self-issued.me: notFound, registry used: https://api.test.intebsi.xyz/did-registry/v2/identifiers"
-              : (expect.stringContaining("Not Found") as string),
+              : `Identifier ${randomDid} not found`,
           type: "about:blank",
         });
-        expect(response.status).toBe(400);
+        expect(response.status).toBe(alg === "ES256K" ? 400 : 404);
 
         payload = {
           sub_did_verification_method_uri: clientDid,
@@ -507,6 +514,30 @@ describe("Authorisation (e2e)", () => {
             alg === "ES256K"
               ? "invalid_signature: Signature invalid for JWT"
               : "ID Token validation failed: signature verification failed",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
+
+        idToken = await createAuthenticationResponseJose({
+          alg,
+          keyId: "did:ebsi:bad-did#keys1",
+          nonce,
+          redirectUri: "redirect_uri",
+          privateKeyJwk: wrongJwk,
+        });
+
+        response = await request(server)
+          .post("/siop-sessions")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send({ id_token: idToken });
+
+        expect(response.body).toStrictEqual({
+          title: alg === "ES256K" ? "Invalid ID Token" : "Bad Request",
+          status: 400,
+          detail:
+            alg === "ES256K"
+              ? "resolver_error: Unable to resolve DID document for https://self-issued.me: invalidDid, registry used: https://api.test.intebsi.xyz/did-registry/v2/identifiers"
+              : `["did must be a valid DID"]`,
           type: "about:blank",
         });
         expect(response.status).toBe(400);
@@ -710,7 +741,7 @@ describe("Authorisation (e2e)", () => {
       // Since this step requires human intervention (eulogin, recaptcha) this test
       // will skip it and create the response:
       // A verifiable credential signed by onboarding api
-      const did = `did:ebsi:${bs58.encode(crypto.randomBytes(32))}`;
+      const did = EbsiWallet.createDid();
       const privateKey = randomPrivateKeySecp256k1();
       const privateKeyHexEncryption = randomPrivateKeySecp256k1();
       const publicKeyEncryption = new EbsiWallet(
@@ -730,7 +761,9 @@ describe("Authorisation (e2e)", () => {
         tirUrl: trustedIssuersRegistry,
       });
       const nonce = randomUUID();
-      const canonicalizedVP = base64url.encode(canonicalize(vp));
+      const canonicalizedVP = base64url.baseEncode(
+        Buffer.from(canonicalize(vp))
+      );
       // const canonicalizedVP = base64url.encode(JSON.stringify(vp));
       const authenticationResponse =
         await EbsiDidAuth.createAuthenticationResponse({
@@ -778,7 +811,7 @@ describe("Authorisation (e2e)", () => {
 
       // 1. A Trusted Issuer (different from onboarding api)
       // creates a verifiable authorisation
-      const did = `did:ebsi:${bs58.encode(crypto.randomBytes(32))}`;
+      const did = EbsiWallet.createDid();
       const privateKey = randomPrivateKeySecp256k1();
       const privateKeyHexEncryption = randomPrivateKeySecp256k1();
 
@@ -799,7 +832,9 @@ describe("Authorisation (e2e)", () => {
         tirUrl: trustedIssuersRegistry,
       });
       const nonce = randomUUID();
-      const canonicalizedVP = base64url.encode(canonicalize(vp));
+      const canonicalizedVP = base64url.baseEncode(
+        Buffer.from(canonicalize(vp))
+      );
       // const canonicalizedVP = base64url.encode(JSON.stringify(vp));
       const authenticationResponse =
         await EbsiDidAuth.createAuthenticationResponse({

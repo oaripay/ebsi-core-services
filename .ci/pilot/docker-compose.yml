@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   authorisation-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/authorisation-api:pilot_ebsiint-3284-nodejs-update_v1.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/authorisation-api:pilot_ebsiint-3337-did_v1.0.0
     build: ../..
