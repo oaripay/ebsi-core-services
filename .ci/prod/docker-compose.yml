@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   timestamp-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api:prod_ebsiint-3313-timestamp-fix_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api:prod_ebsiint-3332-did-undo-lowercase_v2.0.0
     build: ../..

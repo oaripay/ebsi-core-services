@@ -1,7 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import request from "supertest";
 import crypto from "crypto";
-import * as bs58 from "bs58";
 import { v4 as uuidv4 } from "uuid";
 import { EbsiDidAuth, DidAuthResponseMode, Agent } from "@cef-ebsi/siop-auth";
 import { AkeResponse, Agent as OAuth2Agent } from "@cef-ebsi/oauth2-auth";
@@ -15,11 +14,6 @@ const {
   trustedAppsRegistryApiUrl,
   apiName,
 } = loadConfig();
-
-const createUser = () => ({
-  privateKey: crypto.randomBytes(32).toString("hex"),
-  did: `did:ebsi:${bs58.encode(crypto.randomBytes(32))}`,
-});
 
 export async function oauth2Authentication(trustedApp: {
   privateKey: string;
@@ -52,12 +46,10 @@ export async function oauth2Authentication(trustedApp: {
   );
 }
 
-export async function siopAuthentication(
-  user: {
-    privateKey: string;
-    did: string;
-  } = createUser()
-): Promise<string> {
+export async function siopAuthentication(user: {
+  privateKey: string;
+  did: string;
+}): Promise<string> {
   let response = await request(authorisationApiUrl)
     .post("/authentication-requests")
     .send({

@@ -8,7 +8,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { ethers } from "ethers";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import {
   Session as Oauth2Session,
@@ -17,11 +17,11 @@ import {
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import crypto from "crypto";
 import { JWTPayload } from "@cef-ebsi/did-jwt";
-import base64url from "base64url";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { multibase } from "../../shared/utils";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
@@ -91,17 +91,21 @@ describe("JsonRpc Module", () => {
   let blockNumber = 0;
   let provider: ethers.providers.JsonRpcProvider;
   const genToken = (sub: string, siop = true) =>
-    `${base64url.encode(
-      JSON.stringify({
-        alg: "ES256K",
-        typ: "JWT",
-      })
-    )}.${base64url.encode(
-      JSON.stringify({
-        sub,
-        ...(siop && { login_hint: "did_siop" }),
-      })
-    )}.${base64url.encode("signature")}`;
+    `${multibase.base64url.baseEncode(
+      Buffer.from(
+        JSON.stringify({
+          alg: "ES256K",
+          typ: "JWT",
+        })
+      )
+    )}.${multibase.base64url.baseEncode(
+      Buffer.from(
+        JSON.stringify({
+          sub,
+          ...(siop && { login_hint: "did_siop" }),
+        })
+      )
+    )}.${multibase.base64url.baseEncode(Buffer.from("signature"))}`;
   const testAdmin = {
     token: genToken("admin"),
     did: "did:ebsi:admin",

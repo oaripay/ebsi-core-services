@@ -156,11 +156,7 @@ export class JsonRpcService {
     );
 
     // Check if DID is in the list
-    if (
-      data.items
-        .map((item) => item.did.toLowerCase())
-        .includes(did.toLowerCase())
-    ) {
+    if (data.items.map((item) => item.did).includes(did)) {
       return true;
     }
 
