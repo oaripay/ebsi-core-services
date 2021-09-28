@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ethers } from "ethers";
 import JSONPretty from "react-json-pretty";
 
@@ -10,12 +10,24 @@ import { useWalletContext } from "../../components/Wallet/WalletContext";
 import DidControllerModalContent from "./DidControllerModalContent";
 import useDidControllerModal from "./use-did-controller-modal";
 import AdministratorControllerModalContent from "./AdministratorControllerModalContent";
-import { DataType, ModalPropsType, PropType } from "./DidTableTypes";
-import { useDidTableEffects } from "./use-did-table-effects";
+import {
+  DataType,
+  ModalPropsType,
+  PaginatedResponse,
+  PropType,
+} from "./DidTableTypes";
 import AppendDidDocumentHashModalContent from "./AppendDidDocumentHashModalContent";
 import { getIdentifierFromWalletAddr } from "./DidUtils";
 import AdministratorUpdateControllerModalContent from "./AdministratorUpdateControllerModalContent";
 import DetachDidDocumentVersionHashContent from "./DetachDidDocumentVersionHashContent";
+import { useRegisterDidContext } from "./RegisterDid.context";
+import s from "./style.module.css";
+import useDidRegister from "./use-did-register";
+
+export enum SourceType {
+  MY_DID_RECORD = "MY_DID_RECORD",
+  MY_CONTROLLER_DIDS = "MY_CONTROLLER_DIDS",
+}
 
 export default function useDidTable({ didRecord }: PropType) {
   const { walletAddress } = useWalletContext();
@@ -25,23 +37,63 @@ export default function useDidTable({ didRecord }: PropType) {
     title: "",
     width: 700,
   });
-  const [didControllers, setDidControllers] = useState<string[]>([]);
-  const [versionHashes, setVersionHashes] = useState<string[]>([]);
-  const [versionInfos, setVersionInfos] = useState<string[]>([]);
-  const [metadataVersionIds, setMetadataVersionIds] = useState<string[]>([]);
-  const [metadata, setMetadata] = useState<string[]>([]);
-  const [timestampsIds, setTimestampsIds] = useState<string[]>([]);
-  const [administratorLastHash, setAdministratorLastHash] = useState<string[]>(
-    []
+  const [dataSource, setDataSource] = useState<DataType[]>([]);
+  const [tableLoading, setTableLoading] = useState(false);
+  const [sourceType, setSourceType] = useState<string>(
+    SourceType.MY_DID_RECORD
   );
-  const [didRecordsIdsByController, setDidRecordsIds] = useState<string[]>([]);
   const [insertDidControllerForm] = Form.useForm();
   const [updateDidControllerForm] = Form.useForm();
   const [insertAdminForm] = Form.useForm();
   const [updateAdminForm] = Form.useForm();
   const [appendDidDocumentVersionHashForm] = Form.useForm();
   const [detachDidDocumentVersionHashForm] = Form.useForm();
-  const [tableLoading] = useState(false);
+  const { loadTableData, getDidRecordIdentifiersByControllerId } =
+    useDidRegister();
+
+  console.log({ didRecord });
+
+  const initTable = useCallback(() => {
+    if (walletAddress) {
+      setTableLoading(true);
+
+      if (sourceType === SourceType.MY_DID_RECORD) {
+        loadTableData(getIdentifierFromWalletAddr(walletAddress)).then(
+          (data: DataType | undefined) => {
+            if (data) {
+              setDataSource([data]);
+            }
+            setTableLoading(false);
+          }
+        );
+      }
+      if (sourceType === SourceType.MY_CONTROLLER_DIDS) {
+        getDidRecordIdentifiersByControllerId(walletAddress).then(
+          (didResponse: PaginatedResponse) => {
+            Promise.all(
+              didResponse.items.map((didItem) =>
+                loadTableData(ethers.utils.toUtf8String(didItem))
+              )
+            ).then((data: any) => {
+              if (data && data.length) {
+                setDataSource(data);
+              }
+              setTableLoading(false);
+            });
+          }
+        );
+      }
+    }
+  }, [
+    getDidRecordIdentifiersByControllerId,
+    loadTableData,
+    sourceType,
+    walletAddress,
+  ]);
+
+  useEffect(() => {
+    initTable();
+  }, [initTable]);
 
   const identifier = useMemo(() => {
     if (!walletAddress) {
@@ -50,22 +102,7 @@ export default function useDidTable({ didRecord }: PropType) {
     return getIdentifierFromWalletAddr(walletAddress);
   }, [walletAddress]);
 
-  useDidTableEffects({
-    setDidControllers,
-    setVersionHashes,
-    setVersionInfos,
-    setMetadataVersionIds,
-    setMetadata,
-    setAdministratorLastHash,
-    setTimestampsIds,
-    didRecord,
-    identifier,
-    versionHashes,
-    walletAddress,
-    metadataVersionIds,
-    setDidRecordsIds,
-    didControllers,
-  });
+  const { didAsAdministrator } = useRegisterDidContext();
 
   const resetModal = useCallback(() => {
     setModal({
@@ -94,32 +131,6 @@ export default function useDidTable({ didRecord }: PropType) {
     resetModal,
   });
 
-  const dataSource: DataType = useMemo(() => {
-    return [
-      {
-        did: getIdentifierFromWalletAddr(walletAddress),
-        didControllers,
-        versionHashes,
-        versionInfos,
-        metadataVersionIds,
-        metadata,
-        timestampsIds,
-        administratorLastHash,
-        didRecordsIdsByController,
-      },
-    ];
-  }, [
-    walletAddress,
-    didControllers,
-    versionHashes,
-    versionInfos,
-    metadataVersionIds,
-    metadata,
-    timestampsIds,
-    administratorLastHash,
-    didRecordsIdsByController,
-  ]);
-
   const columns = [
     {
       title: "DID",
@@ -146,45 +157,12 @@ export default function useDidTable({ didRecord }: PropType) {
     {
       title: "Did controller(s)",
       key: "didControllers",
-      render: ({
-        didControllers: didControllersData,
-        didRecordsIdsByController: didRecordsControllersData,
-      }: {
-        didControllers: string[];
-        didRecordsIdsByController: string[];
-      }) => {
+      render: ({ didControllers }: { didControllers: string[] }) => {
         return (
           <Space direction="vertical">
-            {didRecordsControllersData ? (
+            {didControllers ? (
               <>
-                <h3>My controller DIDs</h3>
-                {didRecordsControllersData.map((didRecordItem) => {
-                  return (
-                    <Tooltip
-                      title={didRecordItem}
-                      key={`${didRecordItem}-${Math.random()}`}
-                    >
-                      <Paragraph
-                        className="d-flex"
-                        key={didRecordItem}
-                        copyable={{
-                          text: didRecordItem,
-                        }}
-                      >
-                        {didRecordItem.slice(0, 4)}...
-                        {didRecordItem.slice(-4)}
-                      </Paragraph>
-                    </Tooltip>
-                  );
-                })}
-              </>
-            ) : (
-              <></>
-            )}
-            {didControllersData ? (
-              <>
-                <h3>My DID record</h3>
-                {didControllersData.map((value) => (
+                {didControllers.map((value) => (
                   <React.Fragment key={`${value}-${Math.random()}`}>
                     <Row align="middle">
                       <Tooltip title={value} key={`${value}-${Math.random()}`}>
@@ -210,7 +188,7 @@ export default function useDidTable({ didRecord }: PropType) {
                               updateDidController(
                                 getIdentifierFromWalletAddr(value)
                               )?.then(() => {
-                                resetModal();
+                                initTable();
                               });
                             },
                             content: (
@@ -236,7 +214,7 @@ export default function useDidTable({ didRecord }: PropType) {
                           title: "Insert DID Controller",
                           onOk: () => {
                             insertDidController(identifier)?.then(() => {
-                              resetModal();
+                              initTable();
                             });
                           },
                           content: (
@@ -264,16 +242,13 @@ export default function useDidTable({ didRecord }: PropType) {
     {
       title: "Version hashes",
       key: "versionHashes",
-      render: ({
-        versionHashes: versionHashesData,
-        versionInfos: versionInfosData,
-      }: any) => {
+      render: ({ versionHashes, versionInfos }: any) => {
         return (
           <Space direction="vertical">
-            {versionHashesData ? (
+            {versionHashes ? (
               <>
                 <h3>Version Hash</h3>
-                {versionHashesData.map((versionHash: string, index: number) => (
+                {versionHashes.map((versionHash: string, index: number) => (
                   <Tooltip title={versionHash} key={`${versionHash + index}`}>
                     <Paragraph
                       key={versionHash}
@@ -291,6 +266,7 @@ export default function useDidTable({ didRecord }: PropType) {
               ""
             )}
             <Button
+              disabled
               onClick={() => {
                 setModal({
                   visible: true,
@@ -298,7 +274,7 @@ export default function useDidTable({ didRecord }: PropType) {
                   title: "Append DID document version hash",
                   onOk: () => {
                     appendDidDocumentVersionHash()?.then(() => {
-                      resetModal();
+                      initTable();
                     });
                   },
                   content: (
@@ -312,6 +288,7 @@ export default function useDidTable({ didRecord }: PropType) {
               Append DID document version hash
             </Button>
             <Button
+              disabled
               onClick={() => {
                 setModal({
                   visible: true,
@@ -319,7 +296,7 @@ export default function useDidTable({ didRecord }: PropType) {
                   title: "Append DID document version hash",
                   onOk: () => {
                     detachDidDocumentVersionHash()?.then(() => {
-                      resetModal();
+                      initTable();
                     });
                   },
                   content: (
@@ -333,7 +310,7 @@ export default function useDidTable({ didRecord }: PropType) {
             >
               Detach DID document version hash
             </Button>
-            {versionInfosData ? (
+            {versionInfos ? (
               <>
                 <h3>Version Info data</h3>
                 <Button
@@ -342,24 +319,30 @@ export default function useDidTable({ didRecord }: PropType) {
                       visible: true,
                       width: 850,
                       title: "Version info data",
-                      content: versionInfosData.map(
-                        (versionInfoData: string, index: number) => (
-                          <div key={`${versionInfoData + index}`}>
-                            <Paragraph
-                              copyable={{
-                                text: ethers.utils.toUtf8String(
-                                  versionInfoData
-                                ),
-                              }}
-                            >
-                              Copy JSON
-                            </Paragraph>
-                            <JSONPretty
-                              id="json-pretty"
-                              data={ethers.utils.toUtf8String(versionInfoData)}
-                            />
-                          </div>
-                        )
+                      content: (
+                        <div className={s.scrollableList}>
+                          {versionInfos.map(
+                            (versionInfoData: string, index: number) => (
+                              <div key={`${versionInfoData + index}`}>
+                                <Paragraph
+                                  copyable={{
+                                    text: ethers.utils.toUtf8String(
+                                      versionInfoData
+                                    ),
+                                  }}
+                                >
+                                  Copy JSON
+                                </Paragraph>
+                                <JSONPretty
+                                  id="json-pretty"
+                                  data={ethers.utils.toUtf8String(
+                                    versionInfoData
+                                  )}
+                                />
+                              </div>
+                            )
+                          )}
+                        </div>
                       ),
                     });
                   }}
@@ -377,16 +360,13 @@ export default function useDidTable({ didRecord }: PropType) {
     {
       title: "Metadata",
       key: "metadata",
-      render: ({
-        metadataVersionIds: metadataVersionIdsData,
-        metadata: metadataRow,
-      }: any) => {
+      render: ({ metadataVersionIds, metadata }: any) => {
         return (
           <div>
-            {metadataVersionIdsData ? (
+            {metadataVersionIds ? (
               <>
                 <h3>Metadata Version Ids</h3>
-                {metadataVersionIdsData.map(
+                {metadataVersionIds.map(
                   (versionHash: string, index: number) => (
                     <Tooltip title={versionHash} key={`${versionHash + index}`}>
                       <Paragraph
@@ -405,7 +385,7 @@ export default function useDidTable({ didRecord }: PropType) {
             ) : (
               ""
             )}
-            {metadataVersionIdsData ? (
+            {metadataVersionIds ? (
               <>
                 <h3>Metadata</h3>
                 <Button
@@ -414,7 +394,7 @@ export default function useDidTable({ didRecord }: PropType) {
                       visible: true,
                       width: 700,
                       title: "Metadata",
-                      content: metadataRow.map((metadataItem: string) => (
+                      content: metadata.map((metadataItem: string) => (
                         <div key={metadataItem}>
                           <JSONPretty
                             id="json-pretty"
@@ -437,13 +417,13 @@ export default function useDidTable({ didRecord }: PropType) {
     },
     {
       title: "Timestamp Ids",
-      key: "timestampIds",
-      render: ({ timestampsIds: timestampsIdsData }: any) => {
+      key: "timestampsIds",
+      render: ({ timestampsIds }: any) => {
         return (
           <>
-            {timestampsIdsData.length ? (
+            {timestampsIds.length ? (
               <>
-                {timestampsIdsData.map((timestampId: string, index: number) => {
+                {timestampsIds.map((timestampId: string, index: number) => {
                   return (
                     <Tooltip title={timestampId} key={`${timestampId + index}`}>
                       <Paragraph
@@ -470,12 +450,12 @@ export default function useDidTable({ didRecord }: PropType) {
     {
       title: "Administrator attributes last hash",
       key: "administratorLastHash",
-      render: ({ administratorLastHash: administratorsData }: any) => {
+      render: ({ administratorLastHash }: any) => {
         return (
           <>
-            {administratorsData.length ? (
+            {administratorLastHash.length ? (
               <>
-                {administratorsData.map((administrator: string) => (
+                {administratorLastHash.map((administrator: string) => (
                   <Tooltip title={administrator} key={administrator}>
                     <Paragraph
                       className="d-flex"
@@ -496,13 +476,14 @@ export default function useDidTable({ didRecord }: PropType) {
             <Space direction="vertical">
               <Row>
                 <Button
+                  disabled={didAsAdministrator}
                   onClick={() => {
                     setModal({
                       visible: true,
                       title: "Insert Admin",
                       onOk: () => {
                         insertAdministrator()?.then(() => {
-                          resetModal();
+                          initTable();
                         });
                       },
                       content: (
@@ -526,7 +507,7 @@ export default function useDidTable({ didRecord }: PropType) {
                       title: "Update Admin",
                       onOk: () => {
                         updateAdministrator()?.then(() => {
-                          resetModal();
+                          initTable();
                         });
                       },
                       content: (
@@ -557,5 +538,6 @@ export default function useDidTable({ didRecord }: PropType) {
     setModal,
     resetModal,
     tableLoading,
+    setSourceType,
   };
 }

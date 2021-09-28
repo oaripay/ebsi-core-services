@@ -25,6 +25,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       notification.info({
         message: `Transaction in pending`,
         placement: "bottomRight",
+        key: "pendingTx",
         duration: 0,
         description: (
           <Row align="middle">
@@ -37,7 +38,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       });
       return;
     }
-    notification.destroy();
+    notification.close("pendingTx");
   }, [showPendingTxNotif]);
 
   return (

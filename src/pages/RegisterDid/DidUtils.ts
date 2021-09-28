@@ -24,6 +24,9 @@ type DidParamsOptions = {
   timestamp?: {
     data: string;
   };
+  meta?: {
+    data: string;
+  };
 };
 
 export function fromHexString(hexString: string): Uint8Array {
@@ -57,9 +60,10 @@ export function buildDidParams(
   options?: DidParamsOptions
 ) {
   const timestamp = options?.timestamp || createTimestamp();
+  const metadata = options?.meta || createMetadata();
   const bufferTimestamp = Buffer.from(JSON.stringify(timestamp));
   const bufferDocument = Buffer.from(JSON.stringify(document));
-  const bufferMetadata = Buffer.from(JSON.stringify(createMetadata()));
+  const bufferMetadata = Buffer.from(JSON.stringify(metadata));
   const documentHash = ethers.utils.sha256(bufferDocument);
   return {
     info: {

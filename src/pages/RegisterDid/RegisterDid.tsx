@@ -1,17 +1,6 @@
 import React from "react";
-import JSONPretty from "react-json-pretty";
 
-import {
-  Alert,
-  Button,
-  Col,
-  Row,
-  Space,
-  Spin,
-  Statistic,
-  Typography,
-} from "antd";
-import Paragraph from "antd/es/typography/Paragraph";
+import { Alert, Button, Col, Row, Space, Spin, Statistic } from "antd";
 import { config } from "../../config";
 import useDidRegister from "./use-did-register";
 import RegisterDidTable from "./RegisterDidTable";
@@ -28,10 +17,7 @@ export default function RegisterDid() {
     didRecord,
   } = useRegisterDidContext();
 
-  const { registerDid, insertDidAs, walletAddress, didToBeSent } =
-    useDidRegister();
-
-  const { Title } = Typography;
+  const { registerDid, insertDidAs, walletAddress } = useDidRegister();
 
   const DidAsAdministratorMessage = () =>
     didAsAdministrator ? (
@@ -133,17 +119,6 @@ export default function RegisterDid() {
         </Row>
         <Row className="m-t-10">
           <RegisterDidTable didRecord={didRecord} />
-        </Row>
-        <Row className="m-t-10">
-          <Col span={4}>
-            <Title level={4}>DID document:</Title>
-            <Row>
-              <Col span={16}>
-                <Paragraph copyable={{ text: didToBeSent }} />
-                <JSONPretty id="json-pretty" data={didToBeSent} />
-              </Col>
-            </Row>
-          </Col>
         </Row>
       </Spin>
     </Space>

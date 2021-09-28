@@ -93,11 +93,12 @@ export default function useDidControllerModal({
       return undefined;
     }
     return appendDidDocumentVersionHashForm
-      .validateFields(["hashAlgorithmId", "timestamp"])
+      .validateFields(["hashAlgorithmId", "timestamp", "metadata"])
       .then(async () => {
         const fields = appendDidDocumentVersionHashForm.getFieldsValue([
           "hashAlgorithmId",
           "timestamp",
+          "metadata",
         ]);
         try {
           const didDocument = createDidDocument(
@@ -111,6 +112,7 @@ export default function useDidControllerModal({
                 "hex"
               )}`,
             },
+            meta: fields.metadata,
           });
           setShowPendingTxNotif(true);
 
@@ -119,7 +121,10 @@ export default function useDidControllerModal({
             param.hashAlgorithmId,
             param.hashValue,
             param.timestampData,
-            param.didVersionInfo
+            param.didVersionInfo,
+            {
+              gasLimit: 500000,
+            }
           );
           resetModal();
 
@@ -254,6 +259,7 @@ export default function useDidControllerModal({
               description: "DID Controller was updated successfully!",
             });
             setShowPendingTxNotif(false);
+            resetModal();
             return true;
           } catch (ex) {
             notification.error({
@@ -262,11 +268,17 @@ export default function useDidControllerModal({
                 "An error appeared while trying to update DID Controller. Please try again",
             });
             setShowPendingTxNotif(false);
+            resetModal();
             return false;
           }
         });
     },
-    [didRegistryContract, setShowPendingTxNotif, updateDidControllerForm]
+    [
+      didRegistryContract,
+      resetModal,
+      setShowPendingTxNotif,
+      updateDidControllerForm,
+    ]
   );
 
   const insertDidController = useCallback(

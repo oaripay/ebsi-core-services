@@ -9,15 +9,16 @@ import {
   getIdentifierFromWalletAddr,
 } from "./DidUtils";
 import { useRegisterDidContext } from "./RegisterDid.context";
-import { DidRecordType } from "./DidTableTypes";
+import { DataType, DidRecordType, PaginatedResponse } from "./DidTableTypes";
+import { useNotificationContext } from "../../components/Notification/Notification.context";
 
 export default function useDidRegister() {
   const { didRegistryContract } = useEthersHook();
   const { walletAddress } = useWalletContext();
-
+  const { setShowPendingTxNotif } = useNotificationContext();
   const { publicKey } = useRegisterDidContext();
 
-  const getDidDocumentVersionInfo = useCallback(
+  const getDidDocumentVersionsInfo = useCallback(
     async (versionHashes: string[]) => {
       if (!walletAddress || !didRegistryContract) {
         return [];
@@ -27,7 +28,7 @@ export default function useDidRegister() {
         promises = versionHashes.map((hash: string) =>
           didRegistryContract.getDidDocumentVersionInfo(hash).catch(() => {})
         );
-        return Promise.all(promises);
+        return Promise.all(promises).catch(() => []);
       }
       return [];
     },
@@ -35,21 +36,23 @@ export default function useDidRegister() {
   );
 
   const getDidDocumentVersionIds = useCallback(
-    async (didRecord: DidRecordType) => {
-      if (!didRegistryContract || !didRecord || !didRecord.controllerIds) {
+    async (identifier) => {
+      if (!didRegistryContract || !identifier) {
         return {
           items: [],
         };
       }
-      return didRegistryContract.getDidDocumentVersionIds(
-        `0x${Buffer.from(getIdentifierFromWalletAddr(walletAddress)).toString(
-          "hex"
-        )}`,
-        1,
-        50
-      );
+      return didRegistryContract
+        .getDidDocumentVersionIds(
+          `0x${Buffer.from(identifier).toString("hex")}`,
+          1,
+          50
+        )
+        .catch(() => ({
+          items: [],
+        }));
     },
-    [didRegistryContract, walletAddress]
+    [didRegistryContract]
   );
 
   const getDidDocumentVersionMetadata = useCallback(
@@ -68,56 +71,94 @@ export default function useDidRegister() {
   );
 
   const getDidDocumentVersionMetadataIds = useCallback(
-    async (versionHashes: string[]) => {
+    async (versionHashes: string[], identifier: string) => {
       if (!didRegistryContract || !versionHashes.length) {
-        return {
-          items: [],
-        };
+        return [
+          {
+            items: [],
+          },
+        ];
       }
-      return didRegistryContract.getDidDocumentVersionMetadataIds(
-        `0x${Buffer.from(getIdentifierFromWalletAddr(walletAddress)).toString(
-          "hex"
-        )}`,
-        versionHashes[0],
-        1,
-        50
-      );
+      return Promise.all(
+        versionHashes.map((versionHash) =>
+          didRegistryContract.getDidDocumentVersionMetadataIds(
+            `0x${Buffer.from(identifier).toString("hex")}`,
+            versionHash,
+            1,
+            50
+          )
+        )
+      ).catch(() => {
+        return [];
+      });
     },
-    [didRegistryContract, walletAddress]
+    [didRegistryContract]
+  );
+
+  const getAdministrator = useCallback(
+    (identifier: string) => {
+      if (!didRegistryContract) {
+        return undefined;
+      }
+
+      return didRegistryContract.getAdministrator(identifier).catch(() => {});
+    },
+    [didRegistryContract]
+  );
+
+  const getDidRecord = useCallback(
+    (identifier: string) => {
+      if (!didRegistryContract || !identifier) {
+        return undefined;
+      }
+      return didRegistryContract
+        .getDidRecord(`0x${Buffer.from(identifier).toString("hex")}`)
+        .catch(() => {});
+    },
+    [didRegistryContract]
   );
 
   const getDidDocumentVersionDidTimestampIds = useCallback(
-    async (versionHashes: string[], didRecord: DidRecordType) => {
-      if (!didRegistryContract || !versionHashes.length) {
+    async (
+      versionHashes: string[],
+      didRecord: DidRecordType,
+      identifier: string
+    ) => {
+      if (
+        !didRegistryContract ||
+        !versionHashes.length ||
+        !Object.keys(didRecord).length
+      ) {
         return [];
       }
       const promises = versionHashes.map(() => {
         return didRegistryContract
           .getDidDocumentVersionDidTimestampIds(
-            `0x${Buffer.from(
-              getIdentifierFromWalletAddr(walletAddress)
-            ).toString("hex")}`,
+            `0x${Buffer.from(identifier).toString("hex")}`,
             didRecord.totalDidVersions.toNumber()
           )
           .catch(() => {});
       });
       return Promise.all(promises);
     },
-    [didRegistryContract, walletAddress]
+    [didRegistryContract]
   );
 
-  const getDidRecordIdentifiersByControllerId = useCallback(async () => {
-    if (!didRegistryContract || !walletAddress) {
-      return {
-        items: [],
-      };
-    }
-    return didRegistryContract.getDidRecordIdentifiersByControllerId(
-      walletAddress,
-      1,
-      50
-    );
-  }, [didRegistryContract, walletAddress]);
+  const getDidRecordIdentifiersByControllerId = useCallback(
+    async (walletAddr) => {
+      if (!didRegistryContract || !walletAddr) {
+        return {
+          items: [],
+        };
+      }
+      return didRegistryContract.getDidRecordIdentifiersByControllerId(
+        walletAddr,
+        1,
+        50
+      );
+    },
+    [didRegistryContract]
+  );
 
   const didToBeSent = useMemo(() => {
     if (walletAddress && publicKey) {
@@ -141,13 +182,15 @@ export default function useDidRegister() {
           didUser,
           didAsBytes
         );
-        tx.wait(1).then(() => {
-          notification.success({
-            message: "Action successful",
-            description: "DID was inserted successfully!",
-          });
+        setShowPendingTxNotif(true);
+        await tx.wait(1);
+        notification.success({
+          message: "Action successful",
+          description: "DID was inserted successfully!",
         });
+        setShowPendingTxNotif(false);
       } catch (ex) {
+        setShowPendingTxNotif(false);
         notification.error({
           message: "Error",
           description:
@@ -155,7 +198,7 @@ export default function useDidRegister() {
         });
       }
     },
-    [didRegistryContract]
+    [didRegistryContract, setShowPendingTxNotif]
   );
 
   const registerDid = useCallback(
@@ -174,30 +217,94 @@ export default function useDidRegister() {
       if (!didRegistryContract) {
         return;
       }
-      didRegistryContract
-        .insertDidDocument(
+      try {
+        const tx = await didRegistryContract.insertDidDocument(
           identifier,
           hashAlgorithmId,
           hashValue,
           didVersionInfo,
           timestampData,
           didVersionMetadata
-        )
-        .then(() => {
-          notification.success({
-            message: "Action successful",
-            description: "A DID Document was inserted!",
-          });
-        })
-        .catch(() => {
-          notification.error({
-            message: "Error",
-            description:
-              "An error appeared while trying to insert the DID. Please try again",
-          });
+        );
+        setShowPendingTxNotif(true);
+        await tx.wait(1);
+        notification.success({
+          message: "Action successful",
+          description: "A DID Document was inserted!",
         });
+        setShowPendingTxNotif(false);
+      } catch (ex) {
+        setShowPendingTxNotif(false);
+        notification.error({
+          message: "Error",
+          description:
+            "An error appeared while trying to insert the DID. Please try again",
+        });
+      }
     },
-    [didRegistryContract, publicKey]
+    [didRegistryContract, publicKey, setShowPendingTxNotif]
+  );
+
+  const loadTableData = useCallback(
+    async (didId): Promise<DataType | undefined> => {
+      if (!didId) {
+        return {
+          did: "",
+          didControllers: [],
+          versionHashes: [],
+          versionInfos: [],
+          metadataVersionIds: [],
+          metadata: [],
+          timestampIds: [],
+          administratorLastHash: [],
+        };
+      }
+      const [didRecord, versionHashes, administratorLastHash] =
+        await Promise.all([
+          getDidRecord(didId),
+          getDidDocumentVersionIds(didId),
+          getAdministrator(didId),
+        ]);
+      const [timestampsIds, metadataVersionIds, versionInfos] =
+        await Promise.all([
+          getDidDocumentVersionDidTimestampIds(
+            versionHashes.items,
+            didRecord,
+            didId
+          ),
+          getDidDocumentVersionMetadataIds(versionHashes.items, didId).then(
+            (paginatedItems: PaginatedResponse[]) => {
+              let items: string[] = [];
+              for (const paginatedItem of paginatedItems) {
+                items = [...items, ...paginatedItem.items];
+              }
+              return items;
+            }
+          ),
+          getDidDocumentVersionsInfo(versionHashes.items),
+        ]);
+
+      const metadata = await getDidDocumentVersionMetadata(metadataVersionIds);
+      return {
+        did: didId,
+        didControllers: didRecord?.controllerIds || [],
+        versionHashes: versionHashes.items,
+        versionInfos,
+        metadataVersionIds,
+        metadata,
+        timestampsIds,
+        administratorLastHash: administratorLastHash || [],
+      };
+    },
+    [
+      getAdministrator,
+      getDidDocumentVersionDidTimestampIds,
+      getDidDocumentVersionIds,
+      getDidDocumentVersionMetadata,
+      getDidDocumentVersionMetadataIds,
+      getDidDocumentVersionsInfo,
+      getDidRecord,
+    ]
   );
 
   return {
@@ -210,6 +317,9 @@ export default function useDidRegister() {
     getDidDocumentVersionMetadataIds,
     getDidDocumentVersionMetadata,
     getDidDocumentVersionIds,
-    getDidDocumentVersionInfo,
+    getDidDocumentVersionsInfo,
+    loadTableData,
+    getDidRecord,
+    getAdministrator,
   };
 }

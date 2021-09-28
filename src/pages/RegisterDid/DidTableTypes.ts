@@ -23,7 +23,9 @@ export type DataType = {
   versionInfos?: string[];
   metadataVersionIds?: string[];
   timestampsIds?: string[];
-}[];
+  did?: string;
+  administratorLastHash?: string[];
+};
 
 export type PropType = {
   didRecord: any;
@@ -37,21 +39,4 @@ export type PaginatedResponse = {
 export type HashAlgo = {
   id: number;
   name: string;
-};
-
-export type DidTableEffectsPropType = {
-  setDidControllers: (didControllers: string[]) => void;
-  setVersionHashes: (versionHashes: string[]) => void;
-  setVersionInfos: (versionInfos: string[]) => void;
-  setMetadataVersionIds: (metadataVersionIds: string[]) => void;
-  setMetadata: (metadata: string[]) => void;
-  setTimestampsIds: (timestampsIds: string[]) => void;
-  setAdministratorLastHash: (administratorLashHash: string[]) => void;
-  didRecord: any;
-  identifier: string;
-  versionHashes: string[];
-  walletAddress: string;
-  metadataVersionIds: string[];
-  setDidRecordsIds: (didRecordsIds: string[]) => void;
-  didControllers: string[];
 };
