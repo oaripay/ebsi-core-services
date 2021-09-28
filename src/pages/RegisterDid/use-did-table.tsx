@@ -3,19 +3,14 @@ import { ethers } from "ethers";
 import JSONPretty from "react-json-pretty";
 
 import Paragraph from "antd/es/typography/Paragraph";
-import { Button, Form, Tooltip, Row, Space } from "antd";
+import { Button, Form, Tooltip, Row, Space, notification } from "antd";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 
 import { useWalletContext } from "../../components/Wallet/WalletContext";
 import DidControllerModalContent from "./DidControllerModalContent";
 import useDidControllerModal from "./use-did-controller-modal";
 import AdministratorControllerModalContent from "./AdministratorControllerModalContent";
-import {
-  DataType,
-  ModalPropsType,
-  PaginatedResponse,
-  PropType,
-} from "./DidTableTypes";
+import { DataType, ModalPropsType, PaginatedResponse } from "./DidTableTypes";
 import AppendDidDocumentHashModalContent from "./AppendDidDocumentHashModalContent";
 import { getIdentifierFromWalletAddr } from "./DidUtils";
 import AdministratorUpdateControllerModalContent from "./AdministratorUpdateControllerModalContent";
@@ -29,7 +24,9 @@ export enum SourceType {
   MY_CONTROLLER_DIDS = "MY_CONTROLLER_DIDS",
 }
 
-export default function useDidTable({ didRecord }: PropType) {
+const LS_DIDS_KEY = "EBSI_DIDS";
+
+export default function useDidTable() {
   const { walletAddress } = useWalletContext();
   const [modal, setModal] = useState<ModalPropsType>({
     visible: false,
@@ -51,7 +48,55 @@ export default function useDidTable({ didRecord }: PropType) {
   const { loadTableData, getDidRecordIdentifiersByControllerId } =
     useDidRegister();
 
-  console.log({ didRecord });
+  const [didToBeLoaded, setDidToBeLoaded] = useState("");
+
+  const updateDidsFromLs = useCallback((did: string) => {
+    const itemsStringified = localStorage.getItem(LS_DIDS_KEY);
+    try {
+      const itemsParsed = JSON.parse(itemsStringified || "[]");
+      if (!itemsParsed.includes(did)) {
+        localStorage.setItem(
+          LS_DIDS_KEY,
+          JSON.stringify([...itemsParsed, did])
+        );
+      }
+    } catch (ex) {
+      //
+    }
+  }, []);
+
+  const getDidsFromLs = useCallback(() => {
+    try {
+      const itemsStringified = localStorage.getItem(LS_DIDS_KEY);
+      if (itemsStringified) {
+        return JSON.parse(itemsStringified);
+      }
+      return [];
+    } catch (ex) {
+      return [];
+    }
+  }, []);
+
+  const loadDid = useCallback(() => {
+    if (didToBeLoaded) {
+      const foundItem = dataSource.find((item) => item.did === didToBeLoaded);
+      if (!foundItem) {
+        setTableLoading(true);
+        loadTableData(didToBeLoaded).then((data: DataType | undefined) => {
+          if (data) {
+            updateDidsFromLs(didToBeLoaded);
+            setDataSource((current) => [data, ...current]);
+          }
+          setTableLoading(false);
+        });
+        return;
+      }
+      notification.warn({
+        message: "Cannot load DID",
+        description: "DID already exists!",
+      });
+    }
+  }, [dataSource, didToBeLoaded, loadTableData, updateDidsFromLs]);
 
   const initTable = useCallback(() => {
     if (walletAddress) {
@@ -70,26 +115,37 @@ export default function useDidTable({ didRecord }: PropType) {
       if (sourceType === SourceType.MY_CONTROLLER_DIDS) {
         getDidRecordIdentifiersByControllerId(walletAddress).then(
           (didResponse: PaginatedResponse) => {
-            Promise.all(
-              didResponse.items.map((didItem) =>
-                loadTableData(ethers.utils.toUtf8String(didItem))
-              )
-            ).then((data: any) => {
-              if (data && data.length) {
-                setDataSource(data);
+            const allDids = [
+              ...getDidsFromLs(),
+              ...didResponse.items.map((item) =>
+                ethers.utils.toUtf8String(item)
+              ),
+            ];
+
+            Promise.all(allDids.map((didItem) => loadTableData(didItem))).then(
+              (data: any) => {
+                if (data && data.length) {
+                  setDataSource(data);
+                }
+                setTableLoading(false);
               }
-              setTableLoading(false);
-            });
+            );
           }
         );
       }
     }
   }, [
     getDidRecordIdentifiersByControllerId,
+    getDidsFromLs,
     loadTableData,
     sourceType,
     walletAddress,
   ]);
+
+  const removeDidsFromLs = useCallback(() => {
+    localStorage.removeItem(LS_DIDS_KEY);
+    initTable();
+  }, [initTable]);
 
   useEffect(() => {
     initTable();
@@ -539,5 +595,8 @@ export default function useDidTable({ didRecord }: PropType) {
     resetModal,
     tableLoading,
     setSourceType,
+    loadDid,
+    setDidToBeLoaded,
+    removeDidsFromLs,
   };
 }

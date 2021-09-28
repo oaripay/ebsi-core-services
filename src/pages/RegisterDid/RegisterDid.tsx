@@ -8,14 +8,8 @@ import { getIdentifierFromWalletAddr } from "./DidUtils";
 import { useRegisterDidContext } from "./RegisterDid.context";
 
 export default function RegisterDid() {
-  const {
-    loading,
-    networkId,
-    publicKey,
-    didDefined,
-    didAsAdministrator,
-    didRecord,
-  } = useRegisterDidContext();
+  const { loading, networkId, publicKey, didDefined, didAsAdministrator } =
+    useRegisterDidContext();
 
   const { registerDid, insertDidAs, walletAddress } = useDidRegister();
 
@@ -118,7 +112,7 @@ export default function RegisterDid() {
           </Col>
         </Row>
         <Row className="m-t-10">
-          <RegisterDidTable didRecord={didRecord} />
+          <RegisterDidTable />
         </Row>
       </Spin>
     </Space>

@@ -101,7 +101,7 @@ export default function useDidRegister() {
         return undefined;
       }
 
-      return didRegistryContract.getAdministrator(identifier).catch(() => {});
+      return didRegistryContract.getAdministrator(identifier).catch(() => []);
     },
     [didRegistryContract]
   );
@@ -137,7 +137,7 @@ export default function useDidRegister() {
             `0x${Buffer.from(identifier).toString("hex")}`,
             didRecord.totalDidVersions.toNumber()
           )
-          .catch(() => {});
+          .catch(() => []);
       });
       return Promise.all(promises);
     },
