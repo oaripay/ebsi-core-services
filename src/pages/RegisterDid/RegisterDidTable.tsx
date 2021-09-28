@@ -29,7 +29,7 @@ export default function RegisterDidTable() {
     setDidToBeLoaded,
     removeDidsFromLs,
   } = useDidTable();
-  const { publicKey } = useRegisterDidContext();
+  const { publicKey, didDefined } = useRegisterDidContext();
   return (
     <Row>
       <Col span={24}>
@@ -42,7 +42,7 @@ export default function RegisterDidTable() {
         >
           <>{modal.content}</>
         </Modal>
-        {publicKey ? (
+        {publicKey && didDefined ? (
           <Tabs
             type="card"
             onChange={(activeKey: string) => {
@@ -51,7 +51,7 @@ export default function RegisterDidTable() {
           >
             <TabPane tab="My DID record" key={SourceType.MY_DID_RECORD}>
               <Table
-                rowKey="didControllers"
+                rowKey="did"
                 columns={columns}
                 dataSource={dataSource}
                 loading={tableLoading}
@@ -90,7 +90,7 @@ export default function RegisterDidTable() {
                 </Row>
                 <Row>
                   <Table
-                    rowKey="didControllers"
+                    rowKey="did"
                     columns={columns}
                     dataSource={dataSource}
                     loading={tableLoading}
@@ -105,7 +105,8 @@ export default function RegisterDidTable() {
         ) : (
           <Result
             icon={<SmileOutlined />}
-            title="Please sign message received in metamask in order to see your data!"
+            title=""
+            subTitle="Please sign message received in metamask or create DID in order to see your data"
           />
         )}
       </Col>

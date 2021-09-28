@@ -4,7 +4,6 @@ import { Alert, Button, Col, Row, Space, Spin, Statistic } from "antd";
 import { config } from "../../config";
 import useDidRegister from "./use-did-register";
 import RegisterDidTable from "./RegisterDidTable";
-import { getIdentifierFromWalletAddr } from "./DidUtils";
 import { useRegisterDidContext } from "./RegisterDid.context";
 
 export default function RegisterDid() {
@@ -12,6 +11,7 @@ export default function RegisterDid() {
     useRegisterDidContext();
 
   const { registerDid, insertDidAs, walletAddress } = useDidRegister();
+  const { identifier } = useRegisterDidContext();
 
   const DidAsAdministratorMessage = () =>
     didAsAdministrator ? (
@@ -62,7 +62,7 @@ export default function RegisterDid() {
           <Col>
             <Statistic
               title="DID"
-              value={getIdentifierFromWalletAddr(walletAddress)}
+              value={identifier}
               decimalSeparator=""
               groupSeparator=""
             />
@@ -82,9 +82,7 @@ export default function RegisterDid() {
           <Button
             type="primary"
             disabled={didDefined || !publicKey}
-            onClick={() =>
-              registerDid(getIdentifierFromWalletAddr(walletAddress))
-            }
+            onClick={() => registerDid(identifier)}
           >
             Register DID
           </Button>
@@ -92,9 +90,7 @@ export default function RegisterDid() {
             type="primary"
             className="m-l-4"
             disabled={!didDefined || !publicKey || didAsAdministrator}
-            onClick={() =>
-              insertDidAs(getIdentifierFromWalletAddr(walletAddress))
-            }
+            onClick={() => insertDidAs(identifier)}
           >
             Insert DID as Administrator
           </Button>

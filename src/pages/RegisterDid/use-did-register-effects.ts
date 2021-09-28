@@ -2,11 +2,14 @@ import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import { useEthersHook } from "../../hooks/use-ethers.hook";
 import { useWalletContext } from "../../components/Wallet/WalletContext";
-import { getIdentifierFromWalletAddr } from "./DidUtils";
 
 export type DidRecordDataType = {};
 
-export default function useDidRegisterEffects() {
+export default function useDidRegisterEffects({
+  identifier,
+}: {
+  identifier: string;
+}) {
   const { didRegistryContract } = useEthersHook();
   const { walletAddress } = useWalletContext();
   const { provider } = useEthersHook();
@@ -83,27 +86,26 @@ export default function useDidRegisterEffects() {
   }, [walletAddress]);
 
   useEffect(() => {
-    if (!didRegistryContract || !walletAddress) {
+    if (!didRegistryContract || !identifier) {
       return;
     }
     didRegistryContract
-      .getAdministrator(getIdentifierFromWalletAddr(walletAddress))
+      .getAdministrator(identifier)
       .then(() => {
         setDidAsAdministrator(true);
       })
       .catch(() => {
         setDidAsAdministrator(false);
       });
-  }, [didRegistryContract, walletAddress]);
+  }, [didRegistryContract, identifier]);
 
   useEffect(() => {
-    if (!didRegistryContract || !walletAddress) {
+    if (!didRegistryContract || !identifier) {
       return;
     }
-    const didEbsi = getIdentifierFromWalletAddr(walletAddress);
 
     didRegistryContract
-      .getDidRecord(`0x${Buffer.from(didEbsi).toString("hex")}`)
+      .getDidRecord(`0x${Buffer.from(identifier).toString("hex")}`)
       .then((didRecordData: DidRecordDataType) => {
         setDidRecord(didRecordData);
         setDidDefined(true);
@@ -111,7 +113,7 @@ export default function useDidRegisterEffects() {
       .catch(() => {
         setDidDefined(false);
       });
-  }, [didRegistryContract, walletAddress]);
+  }, [didRegistryContract, identifier]);
 
   return {
     networkId,

@@ -3,20 +3,18 @@ import { useCallback, useMemo } from "react";
 import { notification } from "antd";
 import { useEthersHook } from "../../hooks/use-ethers.hook";
 import { useWalletContext } from "../../components/Wallet/WalletContext";
-import {
-  buildDidParams,
-  createDidDocument,
-  getIdentifierFromWalletAddr,
-} from "./DidUtils";
+import { buildDidParams, createDidDocument, onlyUnique } from "./DidUtils";
 import { useRegisterDidContext } from "./RegisterDid.context";
 import { DataType, DidRecordType, PaginatedResponse } from "./DidTableTypes";
 import { useNotificationContext } from "../../components/Notification/Notification.context";
+
+export const LS_DID = "EBSI_DID";
 
 export default function useDidRegister() {
   const { didRegistryContract } = useEthersHook();
   const { walletAddress } = useWalletContext();
   const { setShowPendingTxNotif } = useNotificationContext();
-  const { publicKey } = useRegisterDidContext();
+  const { publicKey, identifier } = useRegisterDidContext();
 
   const getDidDocumentVersionsInfo = useCallback(
     async (versionHashes: string[]) => {
@@ -36,15 +34,15 @@ export default function useDidRegister() {
   );
 
   const getDidDocumentVersionIds = useCallback(
-    async (identifier) => {
-      if (!didRegistryContract || !identifier) {
+    async (didId) => {
+      if (!didRegistryContract || !didId) {
         return {
           items: [],
         };
       }
       return didRegistryContract
         .getDidDocumentVersionIds(
-          `0x${Buffer.from(identifier).toString("hex")}`,
+          `0x${Buffer.from(didId).toString("hex")}`,
           1,
           50
         )
@@ -71,7 +69,7 @@ export default function useDidRegister() {
   );
 
   const getDidDocumentVersionMetadataIds = useCallback(
-    async (versionHashes: string[], identifier: string) => {
+    async (versionHashes: string[], identifierForDoc: string) => {
       if (!didRegistryContract || !versionHashes.length) {
         return [
           {
@@ -82,7 +80,7 @@ export default function useDidRegister() {
       return Promise.all(
         versionHashes.map((versionHash) =>
           didRegistryContract.getDidDocumentVersionMetadataIds(
-            `0x${Buffer.from(identifier).toString("hex")}`,
+            `0x${Buffer.from(identifierForDoc).toString("hex")}`,
             versionHash,
             1,
             50
@@ -96,24 +94,24 @@ export default function useDidRegister() {
   );
 
   const getAdministrator = useCallback(
-    (identifier: string) => {
+    (didId: string) => {
       if (!didRegistryContract) {
         return undefined;
       }
 
-      return didRegistryContract.getAdministrator(identifier).catch(() => []);
+      return didRegistryContract.getAdministrator(didId).catch(() => []);
     },
     [didRegistryContract]
   );
 
   const getDidRecord = useCallback(
-    (identifier: string) => {
-      if (!didRegistryContract || !identifier) {
+    (didId) => {
+      if (!didRegistryContract || !didId) {
         return undefined;
       }
       return didRegistryContract
-        .getDidRecord(`0x${Buffer.from(identifier).toString("hex")}`)
-        .catch(() => {});
+        .getDidRecord(`0x${Buffer.from(didId).toString("hex")}`)
+        .catch(() => ({}));
     },
     [didRegistryContract]
   );
@@ -122,7 +120,7 @@ export default function useDidRegister() {
     async (
       versionHashes: string[],
       didRecord: DidRecordType,
-      identifier: string
+      identifierDoc: string
     ) => {
       if (
         !didRegistryContract ||
@@ -134,7 +132,7 @@ export default function useDidRegister() {
       const promises = versionHashes.map(() => {
         return didRegistryContract
           .getDidDocumentVersionDidTimestampIds(
-            `0x${Buffer.from(identifier).toString("hex")}`,
+            `0x${Buffer.from(identifierDoc).toString("hex")}`,
             didRecord.totalDidVersions.toNumber()
           )
           .catch(() => []);
@@ -162,14 +160,11 @@ export default function useDidRegister() {
 
   const didToBeSent = useMemo(() => {
     if (walletAddress && publicKey) {
-      const document = createDidDocument(
-        getIdentifierFromWalletAddr(walletAddress),
-        publicKey
-      );
+      const document = createDidDocument(identifier, publicKey);
       return JSON.stringify(buildDidParams(document), null, 2);
     }
     return "";
-  }, [walletAddress, publicKey]);
+  }, [walletAddress, publicKey, identifier]);
 
   const insertDidAs = useCallback(
     async (didUser: string) => {
@@ -186,7 +181,7 @@ export default function useDidRegister() {
         await tx.wait(1);
         notification.success({
           message: "Action successful",
-          description: "DID was inserted successfully!",
+          description: "DID Admin was inserted successfully!",
         });
         setShowPendingTxNotif(false);
       } catch (ex) {
@@ -201,12 +196,50 @@ export default function useDidRegister() {
     [didRegistryContract, setShowPendingTxNotif]
   );
 
+  const getDidFromLs = useCallback((walletAddr: string) => {
+    try {
+      const item = localStorage.getItem(LS_DID);
+      if (item) {
+        return JSON.parse(item)[walletAddr];
+      }
+      return "";
+    } catch (ex) {
+      return "";
+    }
+  }, []);
+
+  const registerDidToLs = useCallback(
+    (did: string) => {
+      if (!walletAddress) {
+        return;
+      }
+      try {
+        let currentData: { [key: string]: string } = {};
+        const lsData = localStorage.getItem(LS_DID);
+        if (lsData) {
+          currentData = JSON.parse(lsData);
+        }
+        if (!currentData[walletAddress]) {
+          localStorage.setItem(
+            LS_DID,
+            JSON.stringify({
+              [walletAddress]: did,
+              ...currentData,
+            })
+          );
+        }
+      } catch (ex) {
+        //
+      }
+    },
+    [walletAddress]
+  );
+
   const registerDid = useCallback(
     async (didUser: string) => {
       const document = createDidDocument(didUser, publicKey);
       const { param } = buildDidParams(document);
       const {
-        identifier,
         hashAlgorithmId,
         hashValue,
         didVersionInfo,
@@ -217,9 +250,10 @@ export default function useDidRegister() {
       if (!didRegistryContract) {
         return;
       }
+
       try {
         const tx = await didRegistryContract.insertDidDocument(
-          identifier,
+          param.identifier,
           hashAlgorithmId,
           hashValue,
           didVersionInfo,
@@ -233,6 +267,7 @@ export default function useDidRegister() {
           description: "A DID Document was inserted!",
         });
         setShowPendingTxNotif(false);
+        registerDidToLs(identifier);
       } catch (ex) {
         setShowPendingTxNotif(false);
         notification.error({
@@ -242,7 +277,13 @@ export default function useDidRegister() {
         });
       }
     },
-    [didRegistryContract, publicKey, setShowPendingTxNotif]
+    [
+      didRegistryContract,
+      identifier,
+      publicKey,
+      registerDidToLs,
+      setShowPendingTxNotif,
+    ]
   );
 
   const loadTableData = useCallback(
@@ -255,16 +296,18 @@ export default function useDidRegister() {
           versionInfos: [],
           metadataVersionIds: [],
           metadata: [],
-          timestampIds: [],
+          timestampsIds: [],
           administratorLastHash: [],
         };
       }
+
       const [didRecord, versionHashes, administratorLastHash] =
         await Promise.all([
           getDidRecord(didId),
           getDidDocumentVersionIds(didId),
           getAdministrator(didId),
         ]);
+
       const [timestampsIds, metadataVersionIds, versionInfos] =
         await Promise.all([
           getDidDocumentVersionDidTimestampIds(
@@ -285,9 +328,13 @@ export default function useDidRegister() {
         ]);
 
       const metadata = await getDidDocumentVersionMetadata(metadataVersionIds);
+
       return {
         did: didId,
-        didControllers: didRecord?.controllerIds || [],
+        didControllers: didRecord?.controllerIds
+          ? didRecord?.controllerIds.filter(onlyUnique)
+          : [],
+
         versionHashes: versionHashes.items,
         versionInfos,
         metadataVersionIds,
@@ -321,5 +368,7 @@ export default function useDidRegister() {
     loadTableData,
     getDidRecord,
     getAdministrator,
+    registerDidToLs,
+    getDidFromLs,
   };
 }

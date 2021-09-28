@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ethers } from "ethers";
 import JSONPretty from "react-json-pretty";
 
@@ -12,12 +12,12 @@ import useDidControllerModal from "./use-did-controller-modal";
 import AdministratorControllerModalContent from "./AdministratorControllerModalContent";
 import { DataType, ModalPropsType, PaginatedResponse } from "./DidTableTypes";
 import AppendDidDocumentHashModalContent from "./AppendDidDocumentHashModalContent";
-import { getIdentifierFromWalletAddr } from "./DidUtils";
 import AdministratorUpdateControllerModalContent from "./AdministratorUpdateControllerModalContent";
 import DetachDidDocumentVersionHashContent from "./DetachDidDocumentVersionHashContent";
 import { useRegisterDidContext } from "./RegisterDid.context";
 import s from "./style.module.css";
 import useDidRegister from "./use-did-register";
+import { onlyUnique } from "./DidUtils";
 
 export enum SourceType {
   MY_DID_RECORD = "MY_DID_RECORD",
@@ -47,6 +47,8 @@ export default function useDidTable() {
   const [detachDidDocumentVersionHashForm] = Form.useForm();
   const { loadTableData, getDidRecordIdentifiersByControllerId } =
     useDidRegister();
+
+  const { identifier } = useRegisterDidContext();
 
   const [didToBeLoaded, setDidToBeLoaded] = useState("");
 
@@ -101,16 +103,11 @@ export default function useDidTable() {
   const initTable = useCallback(() => {
     if (walletAddress) {
       setTableLoading(true);
-
       if (sourceType === SourceType.MY_DID_RECORD) {
-        loadTableData(getIdentifierFromWalletAddr(walletAddress)).then(
-          (data: DataType | undefined) => {
-            if (data) {
-              setDataSource([data]);
-            }
-            setTableLoading(false);
-          }
-        );
+        loadTableData(identifier).then((data: DataType | undefined) => {
+          setDataSource(data ? [data] : []);
+          setTableLoading(false);
+        });
       }
       if (sourceType === SourceType.MY_CONTROLLER_DIDS) {
         getDidRecordIdentifiersByControllerId(walletAddress).then(
@@ -120,7 +117,7 @@ export default function useDidTable() {
               ...didResponse.items.map((item) =>
                 ethers.utils.toUtf8String(item)
               ),
-            ];
+            ].filter(onlyUnique);
 
             Promise.all(allDids.map((didItem) => loadTableData(didItem))).then(
               (data: any) => {
@@ -137,6 +134,7 @@ export default function useDidTable() {
   }, [
     getDidRecordIdentifiersByControllerId,
     getDidsFromLs,
+    identifier,
     loadTableData,
     sourceType,
     walletAddress,
@@ -150,13 +148,6 @@ export default function useDidTable() {
   useEffect(() => {
     initTable();
   }, [initTable]);
-
-  const identifier = useMemo(() => {
-    if (!walletAddress) {
-      return "";
-    }
-    return getIdentifierFromWalletAddr(walletAddress);
-  }, [walletAddress]);
 
   const { didAsAdministrator } = useRegisterDidContext();
 
@@ -213,7 +204,13 @@ export default function useDidTable() {
     {
       title: "Did controller(s)",
       key: "didControllers",
-      render: ({ didControllers }: { didControllers: string[] }) => {
+      render: ({
+        didControllers,
+        did,
+      }: {
+        didControllers: string[];
+        did: string;
+      }) => {
         return (
           <Space direction="vertical">
             {didControllers ? (
@@ -221,7 +218,7 @@ export default function useDidTable() {
                 {didControllers.map((value) => (
                   <React.Fragment key={`${value}-${Math.random()}`}>
                     <Row align="middle">
-                      <Tooltip title={value} key={`${value}-${Math.random()}`}>
+                      <Tooltip title={value}>
                         <Paragraph
                           className="d-flex m-b-0"
                           key={value}
@@ -233,31 +230,6 @@ export default function useDidTable() {
                           {value.slice(-4)}
                         </Paragraph>
                       </Tooltip>
-                      <Button
-                        type="link"
-                        className="m-l-4 p-0"
-                        onClick={() => {
-                          setModal({
-                            visible: true,
-                            title: "Update DID Controller",
-                            onOk: () => {
-                              updateDidController(
-                                getIdentifierFromWalletAddr(value)
-                              )?.then(() => {
-                                initTable();
-                              });
-                            },
-                            content: (
-                              <DidControllerModalContent
-                                form={updateDidControllerForm}
-                              />
-                            ),
-                            width: 500,
-                          });
-                        }}
-                      >
-                        <EditOutlined />
-                      </Button>
                     </Row>
                   </React.Fragment>
                 ))}
@@ -269,7 +241,7 @@ export default function useDidTable() {
                           visible: true,
                           title: "Insert DID Controller",
                           onOk: () => {
-                            insertDidController(identifier)?.then(() => {
+                            insertDidController()?.then(() => {
                               initTable();
                             });
                           },
@@ -284,6 +256,29 @@ export default function useDidTable() {
                     >
                       <PlusOutlined />
                       Insert DID Controller
+                    </Button>
+                  </Row>
+                  <Row>
+                    <Button
+                      onClick={() => {
+                        setModal({
+                          visible: true,
+                          title: "Update DID Controller",
+                          onOk: () => {
+                            updateDidController(did)?.then(() => {
+                              initTable();
+                            });
+                          },
+                          content: (
+                            <DidControllerModalContent
+                              form={updateDidControllerForm}
+                            />
+                          ),
+                          width: 500,
+                        });
+                      }}
+                    >
+                      Update DID Main Controller
                     </Button>
                   </Row>
                 </Space>
@@ -474,7 +469,7 @@ export default function useDidTable() {
     {
       title: "Timestamp Ids",
       key: "timestampsIds",
-      render: ({ timestampsIds }: any) => {
+      render: ({ timestampsIds }: { timestampsIds: string[] }) => {
         return (
           <>
             {timestampsIds.length ? (

@@ -3,11 +3,6 @@ import { ec as EC } from "elliptic";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import bs58 from "bs58";
 import crypto from "crypto";
-import { base58btc } from "multiformats/bases/base58";
-
-export const EBSI_DID_BYTE_LENGTH = 16;
-export const EBSI_DID_VERSION = 0x01;
-export const EBSI_DID_METHOD_PREFIX = "did:ebsi:";
 
 type DocumentType = {
   "@context": string;
@@ -46,18 +41,14 @@ export function createMetadata() {
   };
 }
 
-export const getIdentifierFromWalletAddr = (walletAddress: string) => {
-  return `did:ebsi:${walletAddress}`;
-};
-
-export function computeIdentifier(did: string): string {
-  return `0x${Buffer.from(did).toString("hex")}`;
-}
-
 export function createTimestamp() {
   return {
     data: crypto.randomBytes(32).toString("hex"),
   };
+}
+
+export function computeIdentifier(did: string): string {
+  return `0x${Buffer.from(did).toString("hex")}`;
 }
 
 export function buildDidParams(
@@ -111,13 +102,13 @@ export function createDidDocument(didUser: string, publicKey: string) {
 }
 
 export function createDidIdentifier() {
-  const bytesArray = new Uint8Array(1 + EBSI_DID_BYTE_LENGTH);
-  bytesArray.set([EBSI_DID_VERSION]);
-  bytesArray.set(
-    crypto.randomFillSync(new Uint8Array(EBSI_DID_BYTE_LENGTH)),
-    1
-  );
+  return EbsiWallet.createDid();
+}
 
-  const methodSpecificIdentifier = base58btc.encode(bytesArray);
-  return `${EBSI_DID_METHOD_PREFIX}${methodSpecificIdentifier}`;
+export function onlyUnique(
+  value: string | number,
+  index: string | number,
+  self: any
+) {
+  return self.indexOf(value) === index;
 }

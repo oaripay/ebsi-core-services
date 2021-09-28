@@ -24,7 +24,6 @@
     "http-status-codes": "^1.4.0",
     "lodash": "^4.17.15",
     "moment": "^2.29.1",
-    "multiformats": "^9.4.8",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-json-pretty": "^2.2.0",

@@ -2,12 +2,7 @@ import { useCallback } from "react";
 import { FormInstance, notification } from "antd";
 import { ethers } from "ethers";
 import { useEthersHook } from "../../hooks/use-ethers.hook";
-import {
-  buildDidParams,
-  createDidDocument,
-  getIdentifierFromWalletAddr,
-} from "./DidUtils";
-import useWalletHook from "../../hooks/use-wallet.hook";
+import { buildDidParams, createDidDocument } from "./DidUtils";
 import { useRegisterDidContext } from "./RegisterDid.context";
 import { useNotificationContext } from "../../components/Notification/Notification.context";
 
@@ -32,12 +27,11 @@ export default function useDidControllerModal({
 }: PropType) {
   const { didRegistryContract } = useEthersHook();
 
-  const { walletAddress } = useWalletHook();
-  const { publicKey } = useRegisterDidContext();
+  const { publicKey, identifier } = useRegisterDidContext();
   const { setShowPendingTxNotif } = useNotificationContext();
 
   const detachDidDocumentVersionHash = useCallback(() => {
-    if (!didRegistryContract || !walletAddress || !publicKey) {
+    if (!didRegistryContract || !identifier || !publicKey) {
       return undefined;
     }
     return detachDidDocumentVersionHashForm
@@ -47,10 +41,7 @@ export default function useDidControllerModal({
           "versionHash",
         ]);
         try {
-          const didDocument = createDidDocument(
-            getIdentifierFromWalletAddr(walletAddress),
-            publicKey
-          );
+          const didDocument = createDidDocument(identifier, publicKey);
           const { param } = buildDidParams(didDocument);
           setShowPendingTxNotif(true);
           const tx = await didRegistryContract.detachDidDocumentVersionHash(
@@ -82,14 +73,14 @@ export default function useDidControllerModal({
   }, [
     detachDidDocumentVersionHashForm,
     didRegistryContract,
+    identifier,
     publicKey,
     resetModal,
     setShowPendingTxNotif,
-    walletAddress,
   ]);
 
   const appendDidDocumentVersionHash = useCallback(() => {
-    if (!didRegistryContract || !walletAddress || !publicKey) {
+    if (!didRegistryContract || !identifier || !publicKey) {
       return undefined;
     }
     return appendDidDocumentVersionHashForm
@@ -101,10 +92,7 @@ export default function useDidControllerModal({
           "metadata",
         ]);
         try {
-          const didDocument = createDidDocument(
-            getIdentifierFromWalletAddr(walletAddress),
-            publicKey
-          );
+          const didDocument = createDidDocument(identifier, publicKey);
           const { param } = buildDidParams(didDocument, {
             hashAlgorithmId: fields.hashAlgorithmId,
             timestamp: {
@@ -149,14 +137,14 @@ export default function useDidControllerModal({
   }, [
     appendDidDocumentVersionHashForm,
     didRegistryContract,
+    identifier,
     publicKey,
     resetModal,
     setShowPendingTxNotif,
-    walletAddress,
   ]);
 
   const updateAdministrator = useCallback(async () => {
-    if (!didRegistryContract) {
+    if (!didRegistryContract || !identifier) {
       return undefined;
     }
     return updateAdminForm
@@ -172,7 +160,7 @@ export default function useDidControllerModal({
 
           const tx = await didRegistryContract[
             "updateAdministrator(string,bytes)"
-          ](getIdentifierFromWalletAddr(fields.walletAddress), didAsBytes);
+          ](identifier, didAsBytes);
           resetModal();
 
           await tx.wait(1);
@@ -193,21 +181,25 @@ export default function useDidControllerModal({
           return false;
         }
       });
-  }, [didRegistryContract, resetModal, setShowPendingTxNotif, updateAdminForm]);
+  }, [
+    didRegistryContract,
+    identifier,
+    resetModal,
+    setShowPendingTxNotif,
+    updateAdminForm,
+  ]);
 
   const insertAdministrator = useCallback(() => {
-    if (!didRegistryContract) {
+    if (!didRegistryContract || !identifier) {
       return undefined;
     }
     return insertAdminForm.validateFields(["walletAddress"]).then(async () => {
-      const fields = insertAdminForm.getFieldsValue(["walletAddress"]);
-      const didAsBytes = ethers.utils.toUtf8Bytes(
-        getIdentifierFromWalletAddr(fields.walletAddress)
-      );
+      // const fields = insertAdminForm.getFieldsValue(["walletAddress"]);
+      const didAsBytes = ethers.utils.toUtf8Bytes(identifier);
       try {
         setShowPendingTxNotif(true);
         const tx = await didRegistryContract.insertAdministrator(
-          getIdentifierFromWalletAddr(fields.walletAddress),
+          identifier,
           didAsBytes
         );
         resetModal();
@@ -229,10 +221,16 @@ export default function useDidControllerModal({
         return false;
       }
     });
-  }, [didRegistryContract, insertAdminForm, setShowPendingTxNotif, resetModal]);
+  }, [
+    didRegistryContract,
+    identifier,
+    insertAdminForm,
+    setShowPendingTxNotif,
+    resetModal,
+  ]);
 
   const updateDidController = useCallback(
-    (identifier: string) => {
+    (didId: string) => {
       if (!didRegistryContract) {
         return undefined;
       }
@@ -248,7 +246,7 @@ export default function useDidControllerModal({
           try {
             setShowPendingTxNotif(true);
             const tx = await didRegistryContract.updateDidController(
-              `0x${Buffer.from(identifier).toString("hex")}`,
+              `0x${Buffer.from(didId).toString("hex")}`,
               fields.newControllerId,
               fields.notBefore.unix(),
               fields.notAfter.unix()
@@ -281,55 +279,53 @@ export default function useDidControllerModal({
     ]
   );
 
-  const insertDidController = useCallback(
-    (identifier: string) => {
-      if (!didRegistryContract) {
-        return undefined;
-      }
-      return insertDidControllerForm
-        .validateFields(["newControllerId", "notBefore", "notAfter"])
-        .then(async () => {
-          const fields = insertDidControllerForm.getFieldsValue([
-            "newControllerId",
-            "notBefore",
-            "notAfter",
-          ]);
-          try {
-            setShowPendingTxNotif(true);
-            const tx = await didRegistryContract.insertDidController(
-              `0x${Buffer.from(identifier).toString("hex")}`,
-              fields.newControllerId,
-              fields.notBefore.unix(),
-              fields.notAfter.unix()
-            );
-            resetModal();
+  const insertDidController = useCallback(() => {
+    if (!didRegistryContract || !identifier) {
+      return undefined;
+    }
+    return insertDidControllerForm
+      .validateFields(["newControllerId", "notBefore", "notAfter"])
+      .then(async () => {
+        const fields = insertDidControllerForm.getFieldsValue([
+          "newControllerId",
+          "notBefore",
+          "notAfter",
+        ]);
+        try {
+          setShowPendingTxNotif(true);
+          const tx = await didRegistryContract.insertDidController(
+            `0x${Buffer.from(identifier).toString("hex")}`,
+            fields.newControllerId,
+            fields.notBefore.unix(),
+            fields.notAfter.unix()
+          );
+          resetModal();
 
-            await tx.wait(1);
-            notification.success({
-              message: "Action successful",
-              description: "DID Controller was inserted successfully!",
-            });
-            setShowPendingTxNotif(false);
-            return true;
-          } catch (ex) {
-            notification.error({
-              message: "Error",
-              description:
-                "An error appeared while trying to insert DID Controller. Please try again",
-            });
-            resetModal();
-            setShowPendingTxNotif(false);
-            return false;
-          }
-        });
-    },
-    [
-      didRegistryContract,
-      insertDidControllerForm,
-      resetModal,
-      setShowPendingTxNotif,
-    ]
-  );
+          await tx.wait(1);
+          notification.success({
+            message: "Action successful",
+            description: "DID Controller was inserted successfully!",
+          });
+          setShowPendingTxNotif(false);
+          return true;
+        } catch (ex) {
+          notification.error({
+            message: "Error",
+            description:
+              "An error appeared while trying to insert DID Controller. Please try again",
+          });
+          resetModal();
+          setShowPendingTxNotif(false);
+          return false;
+        }
+      });
+  }, [
+    didRegistryContract,
+    identifier,
+    insertDidControllerForm,
+    resetModal,
+    setShowPendingTxNotif,
+  ]);
 
   return {
     insertDidController,

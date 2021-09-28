@@ -1,7 +1,15 @@
-import React, { createContext, ReactNode, useContext } from "react";
+import React, {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import useDidRegisterEffects, {
   DidRecordDataType,
 } from "./use-did-register-effects";
+import useDidRegister from "./use-did-register";
+import { createDidIdentifier } from "./DidUtils";
 
 type RegisterDidContextType = {
   publicKey: string;
@@ -10,6 +18,7 @@ type RegisterDidContextType = {
   didRecord: DidRecordDataType;
   didAsAdministrator: boolean;
   loading: boolean;
+  identifier: string;
 };
 
 export const RegisterDidContext = createContext<RegisterDidContextType>({
@@ -19,9 +28,13 @@ export const RegisterDidContext = createContext<RegisterDidContextType>({
   didRecord: {},
   didAsAdministrator: false,
   loading: false,
+  identifier: "",
 });
 
 export function RegisterDidProvider({ children }: { children: ReactNode }) {
+  const { registerDidToLs, getDidFromLs } = useDidRegister();
+
+  const [identifier, setIdentifier] = useState("");
   const {
     publicKey,
     networkId,
@@ -29,7 +42,21 @@ export function RegisterDidProvider({ children }: { children: ReactNode }) {
     didRecord,
     didAsAdministrator,
     loading,
-  } = useDidRegisterEffects();
+    walletAddress,
+  } = useDidRegisterEffects({
+    identifier,
+  });
+
+  useEffect(() => {
+    if (walletAddress) {
+      let did = getDidFromLs(walletAddress);
+      if (!did) {
+        did = createDidIdentifier();
+        registerDidToLs(did);
+      }
+      setIdentifier(did);
+    }
+  }, [getDidFromLs, identifier, registerDidToLs, walletAddress]);
 
   return (
     <RegisterDidContext.Provider
@@ -40,6 +67,7 @@ export function RegisterDidProvider({ children }: { children: ReactNode }) {
         didRecord,
         didAsAdministrator,
         loading,
+        identifier,
       }}
     >
       {children}
