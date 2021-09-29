@@ -2,8 +2,9 @@ import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import { useEthersHook } from "../../hooks/use-ethers.hook";
 import { useWalletContext } from "../../components/Wallet/WalletContext";
+import { DidRecordType } from "./DidTableTypes";
 
-export type DidRecordDataType = {};
+const PB_KEY_LS = "did-public-key";
 
 export default function useDidRegisterEffects({
   identifier,
@@ -17,7 +18,7 @@ export default function useDidRegisterEffects({
   const [networkId, setNetworkId] = useState(0);
   const [publicKey, setPublicKey] = useState("");
   const [didDefined, setDidDefined] = useState(false);
-  const [didRecord, setDidRecord] = useState<DidRecordDataType>({});
+  const [didRecord, setDidRecord] = useState<DidRecordType>({});
   const [didAsAdministrator, setDidAsAdministrator] = useState(false);
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export default function useDidRegisterEffects({
   }, [provider]);
 
   useEffect(() => {
-    const pbKeyFromLocalStorage: any = localStorage.getItem("did-public-key");
+    const pbKeyFromLocalStorage: any = localStorage.getItem(PB_KEY_LS);
     const pbKeyParsed = pbKeyFromLocalStorage
       ? JSON.parse(pbKeyFromLocalStorage)
       : {};
@@ -63,7 +64,7 @@ export default function useDidRegisterEffects({
               true
             );
             localStorage.setItem(
-              "did-public-key",
+              PB_KEY_LS,
               JSON.stringify({
                 [walletAddress]: pubKey,
               })
@@ -75,7 +76,7 @@ export default function useDidRegisterEffects({
   }, [walletAddress, provider]);
 
   useEffect(() => {
-    const publicKeyFromLocalStorage = localStorage.getItem("did-public-key");
+    const publicKeyFromLocalStorage = localStorage.getItem(PB_KEY_LS);
     if (publicKeyFromLocalStorage && walletAddress) {
       try {
         setPublicKey(JSON.parse(publicKeyFromLocalStorage)[walletAddress]);
@@ -106,7 +107,7 @@ export default function useDidRegisterEffects({
 
     didRegistryContract
       .getDidRecord(`0x${Buffer.from(identifier).toString("hex")}`)
-      .then((didRecordData: DidRecordDataType) => {
+      .then((didRecordData: DidRecordType) => {
         setDidRecord(didRecordData);
         setDidDefined(true);
       })

@@ -133,7 +133,7 @@ export default function useDidRegister() {
         return didRegistryContract
           .getDidDocumentVersionDidTimestampIds(
             `0x${Buffer.from(identifierDoc).toString("hex")}`,
-            didRecord.totalDidVersions.toNumber()
+            didRecord?.totalDidVersions?.toNumber()
           )
           .catch(() => []);
       });

@@ -5,17 +5,16 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import useDidRegisterEffects, {
-  DidRecordDataType,
-} from "./use-did-register-effects";
+import useDidRegisterEffects from "./use-did-register-effects";
 import useDidRegister from "./use-did-register";
 import { createDidIdentifier } from "./DidUtils";
+import { DidRecordType } from "./DidTableTypes";
 
 type RegisterDidContextType = {
   publicKey: string;
   networkId: number;
   didDefined: boolean;
-  didRecord: DidRecordDataType;
+  didRecord: DidRecordType;
   didAsAdministrator: boolean;
   loading: boolean;
   identifier: string;

@@ -10,8 +10,8 @@ export type ModalPropsType = {
 };
 
 export type DidRecordType = {
-  controllerIds: string[];
-  totalDidVersions: BigNumber;
+  controllerIds?: string[];
+  totalDidVersions?: BigNumber;
 };
 
 export type DataType = {
