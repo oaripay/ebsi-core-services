@@ -28,7 +28,7 @@ export type DataType = {
 };
 
 export type PropType = {
-  didRecord: any;
+  didRecord: DidRecordType;
 };
 
 export type PaginatedResponse = {
