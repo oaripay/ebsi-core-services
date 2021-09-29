@@ -86,7 +86,7 @@ export function AppProvider({
   const basePageErr: string = "";
 
   const [pageErr, setPageErr] = useState(basePageErr);
-  const [metamask, setMetamask] = useState();
+  const [metamask, setMetamask] = useState(false);
   const [clearInput, setClearInput] = useState(false);
 
   useEffect(() => {
@@ -99,7 +99,7 @@ export function AppProvider({
         setMetamask(Window.ethereum);
       }
       Window?.ethereum
-        .request("eth_requestAccounts")
+        .request({ method: "eth_requestAccounts" })
         .then(() => {
           setMetamask(Window.ethereum);
         })
