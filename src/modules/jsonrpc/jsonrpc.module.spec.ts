@@ -10,13 +10,14 @@ import {
   HttpServer,
 } from "@nestjs/common";
 import { ethers } from "ethers";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -423,7 +424,7 @@ describe("JsonRpc Module", () => {
         params: [
           {
             from: wallet.address, // this address is not in the TSR
-            did: "did:ebsi:1",
+            did: EbsiWallet.createDid(),
             attributeData,
           },
         ],
@@ -556,9 +557,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.body).toStrictEqual({
       error: {
         code: -32600,
-        message: `The DID ${
-          testEnv.administrators[0].did
-        } is not controlled by the address ${signer.address.toLowerCase()}`,
+        message: `The DID ${testEnv.administrators[0].did} is not controlled by the address ${signer.address}`,
       },
       id: "45",
       jsonrpc: "2.0",

@@ -3,4 +3,4 @@ version: "3.7"
 services:
   trusted-schemas-registry-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-schemas-registry-api:pilot_ebsiint-3297-attributes-admin_v1.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-schemas-registry-api:pilot_ebsiint-3363-did_v1.0.0

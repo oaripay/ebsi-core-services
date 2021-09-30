@@ -12,11 +12,11 @@ export class SiopJwtAuthGuard extends AuthGuard("siop-jwt") {
     return super.canActivate(context);
   }
 
-  handleRequest<ClientInfo>(
+  handleRequest<TUser = ClientInfo>(
     err: Error,
-    clientInfo: ClientInfo,
+    clientInfo: TUser,
     info: unknown
-  ): ClientInfo {
+  ): TUser {
     // You can throw an exception based on either "info" or "err" arguments
     if (err || info || !clientInfo) {
       throw (

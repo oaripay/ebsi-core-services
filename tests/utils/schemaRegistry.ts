@@ -203,7 +203,7 @@ export async function insertAdmin(
 
   const bufferAttribute = Buffer.from(JSON.stringify(attribute));
 
-  await contract.insertAdministrator(adminDid.toLowerCase(), bufferAttribute);
+  await contract.insertAdministrator(adminDid, bufferAttribute);
 
   return attribute;
 }
@@ -245,7 +245,7 @@ export async function setupTestEnv(
   const createAdminWallet = async () => {
     // Create random wallet and connect it so we can use it later to send transactions
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
-    const did = createDid().toLowerCase();
+    const did = createDid();
     const attribute = await insertAdmin(schemasRegistryContract, did);
     return { wallet, attribute, did };
   };

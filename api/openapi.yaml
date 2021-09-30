@@ -661,10 +661,10 @@ paths:
                   value:
                     self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
                     items:
-                      - did: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
-                      - did: did:ebsi:5yr7tfecbh4tevrsf91hqgdzvrd1oeo6rajyizx8eaa1
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:5yr7tfecbh4tevrsf91hqgdzvrd1oeo6rajyizx8eaa1
+                      - did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+                      - did: did:ebsi:zYmdrcZmDbkt5nCAdNERysn
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zYmdrcZmDbkt5nCAdNERysn
                     total: 2
                     pageSize: 10
                     links:
@@ -676,10 +676,10 @@ paths:
                   value:
                     self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
                     items:
-                      - did: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
-                      - did: did:ebsi:5yr7tfecbh4tevrsf91hqgdzvrd1oeo6rajyizx8eaa1
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:5yr7tfecbh4tevrsf91hqgdzvrd1oeo6rajyizx8eaa1
+                      - did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+                      - did: did:ebsi:zYmdrcZmDbkt5nCAdNERysn
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zYmdrcZmDbkt5nCAdNERysn
                     total: 2
                     pageSize: 10
                     links:
@@ -722,7 +722,7 @@ paths:
           in: path
           schema:
             type: string
-          example: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+          example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
           required: true
       responses:
         200:
@@ -732,7 +732,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Administrator"
               example:
-                did: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+                did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
                 attributes:
                   - hash: 6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
                     body: eyJhZG1pbiI6ImRjY2Y3YzkxMzFmMWZlYmI4OWE5MTYyYSJ9
@@ -780,7 +780,7 @@ paths:
           in: path
           schema:
             type: string
-          example: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+          example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
           required: true
         - in: query
           name: page[after]
@@ -826,30 +826,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
                     items:
                       - id: 0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
                     items:
                       - id: 6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -894,7 +894,7 @@ paths:
           in: path
           schema:
             type: string
-          example: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+          example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
           required: true
         - name: attributeId
           in: path
@@ -910,7 +910,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/AttributeDetails"
               example:
-                did: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+                did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
                 attribute:
                   hash: 6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
                   body: eyJhZG1pbiI6ImRjY2Y3YzkxMzFmMWZlYmI4OWE5MTYyYSJ9
@@ -959,7 +959,7 @@ paths:
           in: path
           schema:
             type: string
-          example: did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib
+          example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
           required: true
         - name: attributeId
           in: path
@@ -1004,30 +1004,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
                     items:
                       - hash: 0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
                         body: eyJhZG1pbiI6ImRjY2Y3YzkxMzFmMWZlYmI4OWE5MTYyYSJ9
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
                     items:
                       - hash: 6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
                         body: eyJhZG1pbiI6ImRjY2Y3YzkxMzFmMWZlYmI4OWE5MTYyYSJ9
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:aeubuyzgmwk9pfegjko8hjy559gxwvhja6hpbqpmu3ib/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
         400:
           description: Bad Request Error
           content:
@@ -1394,7 +1394,7 @@ paths:
                   id: 1
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      did: did:ebsi:erragib3dmyhcgh6txdshfbq6xpfg5j3w88gfjjzhqa3
+                      did: did:ebsi:ztY82rTMVTTQ4QEkNmkbDuv
                       attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
               Build tx to insertPolicy:
                 description: |
@@ -1477,7 +1477,7 @@ paths:
                   method: updateAdministrator
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      did: did:ebsi:erragib3dmyhcgh6txdshfbq6xpfg5j3w88gfjjzhqa3
+                      did: did:ebsi:ztY82rTMVTTQ4QEkNmkbDuv
                       attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
                   id: 1
               Build tx to updateAdministrator (update attribute):
@@ -1494,7 +1494,7 @@ paths:
                   method: updateAdministrator
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      did: did:ebsi:erragib3dmyhcgh6txdshfbq6xpfg5j3w88gfjjzhqa3
+                      did: did:ebsi:ztY82rTMVTTQ4QEkNmkbDuv
                       attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
                   id: 1

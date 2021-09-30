@@ -1,9 +1,5 @@
-import crypto from "crypto";
-import * as bs58 from "bs58";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 
-export const createDid = (): string => {
-  const buf = crypto.randomBytes(32);
-  return `did:ebsi:${bs58.encode(buf)}`;
-};
+export const createDid = (): string => EbsiWallet.createDid();
 
 export default createDid;

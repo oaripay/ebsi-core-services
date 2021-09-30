@@ -1,11 +1,10 @@
 import querystring from "querystring";
 import axios from "axios";
 import {
-  EbsiDidAuth,
   Agent as SiopAgent,
   DidAuthResponseMode,
+  AkeResponse,
 } from "@cef-ebsi/siop-auth";
-import type { AkeResponse } from "@cef-ebsi/siop-auth/dist/Ake";
 import { randomUUID } from "crypto";
 
 export const requestSiopJwt = async ({
@@ -19,6 +18,12 @@ export const requestSiopJwt = async ({
   clientPrivateKey: string;
   authorisationApiUrl: string;
 }): Promise<string> => {
+  // 0. Create agent
+  const siopAgent = new SiopAgent({
+    privateKey: `0x${clientPrivateKey}`,
+    didRegistry,
+  });
+
   // 1. First, the client calls /authentication-requests
   const authenticationRequestsResponse = await axios.post<{ uri: string }>(
     `${authorisationApiUrl}/authentication-requests`,
@@ -33,23 +38,19 @@ export const requestSiopJwt = async ({
     request: string;
   };
 
-  const payload = await EbsiDidAuth.verifyAuthenticationRequest(
-    uriDecoded.request,
-    didRegistry
+  const payload = await siopAgent.verifyAuthenticationRequest(
+    uriDecoded.request
   );
 
   // 3. The client creates an authentication response and gets an ID Token
   const nonce = randomUUID();
 
-  const authenticationResponse = await EbsiDidAuth.createAuthenticationResponse(
-    {
-      hexPrivateKey: `0x${clientPrivateKey}`,
-      did: clientDid,
-      nonce,
-      redirectUri: payload.client_id,
-      responseMode: DidAuthResponseMode.FORM_POST,
-    }
-  );
+  const authenticationResponse = await siopAgent.createAuthenticationResponse({
+    did: clientDid,
+    nonce,
+    redirectUri: payload.client_id,
+    responseMode: DidAuthResponseMode.FORM_POST,
+  });
 
   const authResponseDecoded = querystring.decode(
     authenticationResponse.bodyEncoded ?? ""
@@ -69,11 +70,6 @@ export const requestSiopJwt = async ({
   );
 
   // 5. Finally, the client verifies the SIOP authentication response and gets an access token
-  const siopAgent = new SiopAgent({
-    privateKey: `0x${clientPrivateKey}`,
-    didRegistry,
-  });
-
   const accessToken = await siopAgent.verifyAuthenticationResponse(
     siopSessionsResponse.data,
     nonce

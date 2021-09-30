@@ -12,7 +12,7 @@ import {
   NotFoundError,
   BadRequestError,
 } from "@cef-ebsi/problem-details-errors";
-import { FastifyReply } from "fastify";
+import type { FastifyReply } from "fastify";
 import { AxiosError } from "axios";
 import { InvalidRequestJsonRpcError } from "../modules/jsonrpc/errors";
 import { logAxiosError } from "../shared/utils/axiosErrorLogger";
