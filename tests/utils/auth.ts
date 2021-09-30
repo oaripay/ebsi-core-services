@@ -1,8 +1,7 @@
 import request from "supertest";
 import crypto from "crypto";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { EbsiDidAuth, DidAuthResponseMode, Agent } from "@cef-ebsi/siop-auth";
-import querystring from "querystring";
+import { DidAuthResponseMode, Agent } from "@cef-ebsi/siop-auth";
 import { loadConfig } from "../../src/config/configuration";
 
 const prefixWith0x = (key: string): string =>
@@ -26,20 +25,23 @@ export async function siopAuthentication(
     .send({
       scope: "openid did_authn",
     });
-  const uriDecoded = querystring.decode(
+
+  const agent = new Agent({
+    privateKey: prefixWith0x(user.privateKey),
+    didRegistry: `${didRegistryApiUrl}/identifiers`,
+  });
+
+  const uriDecoded = new URLSearchParams(
     (response.body as { uri: string }).uri.replace("openid://?", "")
-  ) as { request: string; client_id: string };
-  await EbsiDidAuth.verifyAuthenticationRequest(
-    uriDecoded.request,
-    `${didRegistryApiUrl}/identifiers`
   );
 
+  await agent.verifyAuthenticationRequest(uriDecoded.get("request"));
+
   const nonce = crypto.randomBytes(10).toString("base64");
-  const didAuthJwt = await EbsiDidAuth.createAuthenticationResponse({
-    hexPrivateKey: prefixWith0x(user.privateKey),
+  const didAuthJwt = await agent.createAuthenticationResponse({
     did: user.did,
     nonce,
-    redirectUri: uriDecoded.client_id,
+    redirectUri: uriDecoded.get("client_id"),
     responseMode: DidAuthResponseMode.FORM_POST,
   });
 
@@ -47,10 +49,6 @@ export async function siopAuthentication(
     .post("/siop-sessions")
     .send(didAuthJwt.bodyEncoded);
 
-  const agent = new Agent({
-    privateKey: user.privateKey,
-    didRegistry: `${didRegistryApiUrl}/identifiers`,
-  });
   const accessToken = await agent.verifyAuthenticationResponse(
     response.body,
     nonce
