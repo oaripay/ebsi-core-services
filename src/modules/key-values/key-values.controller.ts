@@ -11,7 +11,7 @@ import {
   HttpCode,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyReply } from "fastify";
+import type { FastifyReply } from "fastify";
 import { KeyValuesService } from "./key-values.service";
 import {
   DeleteKeyValueParams,

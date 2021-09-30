@@ -15,7 +15,7 @@ import {
   ParseArrayPipe,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { FastifyRequest, FastifyReply } from "fastify";
+import type { FastifyRequest, FastifyReply } from "fastify";
 import { BadRequestError } from "@cef-ebsi/problem-details-errors";
 import { FilesService } from "./files.service";
 import { FileMetadata, PostFileResponseObject } from "./files.interface";

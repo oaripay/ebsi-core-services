@@ -1,7 +1,7 @@
 import { Strategy } from "passport-http-bearer";
 import { PassportStrategy } from "@nestjs/passport";
 import { Injectable } from "@nestjs/common";
-import { FastifyRequest } from "fastify";
+import type { FastifyRequest } from "fastify";
 import { AuthService } from "../auth.service";
 import { AppInfo } from "../auth.interface";
 
