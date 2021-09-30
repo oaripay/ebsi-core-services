@@ -1244,19 +1244,18 @@
     did-jwt "^5.6.2"
     did-resolver "^3.1.0"
 
-"@cef-ebsi/wallet-lib@^1.0.0-rc.1":
-  version "1.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-1.0.0-rc.1.tgz#ef133048323b6ab26c1f67ea8d6fe2bf61fee102"
-  integrity sha512-wbEPcBsv9hQfDPF4Evrs9bDwnPvdVc2CDo+xEgZsmX/pa3Rpk6UiT8VJM0LCcBXMpoGa6Kigu2pbNdkqr+ckgg==
+"@cef-ebsi/wallet-lib@^1.0.0-rc.2":
+  version "1.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-1.0.0-rc.2.tgz#a0394d62726ff8fdc8989f066776cc7c2b9037e7"
+  integrity sha512-ICIyAozg7RL1/73kSGaCJDwi79rTc9uGJqh/y+PIaKcE9ygpf6SsZe3xg6MmlbATKvxedQIYjlnuolrl0AV2YQ==
   dependencies:
     "@cef-ebsi/did-jwt" "^1.0.0-alpha.8"
-    "@ethersproject/providers" "^5.4.3"
-    "@ethersproject/random" "^5.4.0"
     bn.js "^5.2.0"
-    bs58 "^4.0.1"
     elliptic "^6.5.4"
+    jose "^3.17.0"
     js-sha3 "^0.8.0"
     key-encoder "^2.0.3"
+    multiformats "^9.4.7"
 
 "@cnakazawa/watch@^1.0.3":
   version "1.0.4"
@@ -1496,7 +1495,7 @@
   dependencies:
     "@ethersproject/logger" "^5.4.0"
 
-"@ethersproject/providers@5.4.3", "@ethersproject/providers@^5.4.3":
+"@ethersproject/providers@5.4.3":
   version "5.4.3"
   resolved "https://registry.yarnpkg.com/@ethersproject/providers/-/providers-5.4.3.tgz#4cd7ccd9e12bc3875b33df8b24abf735663958a5"
   integrity sha512-VURwkaWPoUj7jq9NheNDT5Iyy64Qcyf6BOFDwVdHsmLmX/5prNjFrgSX3GHPE4z1BRrVerDxe2yayvXKFm/NNg==
@@ -8022,6 +8021,11 @@ jest@26.6.0:
     import-local "^3.0.2"
     jest-cli "^26.6.0"
 
+jose@^3.17.0:
+  version "3.19.0"
+  resolved "https://registry.yarnpkg.com/jose/-/jose-3.19.0.tgz#4b64c89b619d6256268865ed223c5228203d50df"
+  integrity sha512-G5imz/7oSe8Ohg4EMEhGhMhN+yzACMw7NC7ZrEYSoJekQXHPf+TPQNc/XJkYRm6TFWIbf3HA4OHZhdRv8KsskA==
+
 js-sha3@0.5.7:
   version "0.5.7"
   resolved "https://registry.yarnpkg.com/js-sha3/-/js-sha3-0.5.7.tgz#0d4ffd8002d5333aabaf4a23eed2f6374c9f28e7"
@@ -8938,6 +8942,11 @@ multiformats@^9.4.2:
   version "9.4.5"
   resolved "https://registry.yarnpkg.com/multiformats/-/multiformats-9.4.5.tgz#9ac47bbc87aadb09d4bd05e9cd3da6f4436414f6"
   integrity sha512-zQxukxsHM34EJi3yT3MkUlycY9wEouyrAz0PSN+CyCj6cYchJZ4LrTH74YtlsxVyAK6waz/gnVLmJwi3P0knKg==
+
+multiformats@^9.4.7:
+  version "9.4.8"
+  resolved "https://registry.yarnpkg.com/multiformats/-/multiformats-9.4.8.tgz#46f74ec116f7871f2a334cc6d4ad3d810dbac341"
+  integrity sha512-EOJL02/kv+FD5hoItMhKgkYUUruJYMYFq4NQ6YkCh3jVQ5CuHo+OKdHeR50hAxEQmXQ9yvrM9BxLIk42xtfwnQ==
 
 nan@^2.12.1:
   version "2.15.0"
