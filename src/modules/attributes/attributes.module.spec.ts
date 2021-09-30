@@ -13,7 +13,7 @@ import {
 } from "@nestjs/platform-fastify";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import crypto from "crypto";
-import base64url from "base64url";
+import { base64url } from "multiformats/bases/base64";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { Agent } from "@cef-ebsi/oauth2-auth";
 import { JWTPayload } from "@cef-ebsi/did-jwt";
@@ -69,9 +69,7 @@ describe("Attributes Module", () => {
   let encryptionSecret: string;
   let apiUrl: string;
 
-  const attributeData = base64url.encode(
-    crypto.randomBytes(15).toString("hex")
-  );
+  const attributeData = base64url.baseEncode(crypto.randomBytes(15));
 
   const createAttributeCassandra = (): AttributeCassandraModel => ({
     did: testUser.did,
@@ -720,7 +718,7 @@ describe("Attributes Module", () => {
         visibility: "shared",
         sharedWith: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj",
         contentType: "application/json+ld",
-        data: base64url.encode("encrypted data"),
+        data: base64url.baseEncode(Buffer.from("encrypted data")),
         dataLabel: "document",
         proof: {},
       };
@@ -772,7 +770,7 @@ describe("Attributes Module", () => {
         did: testUser.did,
         visibility: "private",
         contentType: "application/json+ld",
-        data: base64url.encode("encrypted data"),
+        data: base64url.baseEncode(Buffer.from("encrypted data")),
         dataLabel: "document",
         proof: {},
       };

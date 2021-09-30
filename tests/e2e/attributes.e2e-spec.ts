@@ -8,7 +8,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import base64url from "base64url";
+import { base64url } from "multiformats/bases/base64";
 import { Logger } from "@nestjs/common/services/logger.service";
 import { AppModule } from "../../src/app.module";
 import { ApiConfig, loadConfig } from "../../src/config/configuration";
@@ -48,7 +48,7 @@ describe("Attributes", () => {
       sharedWith: testUser1.did,
     }),
     contentType: "application/json+ld",
-    data: base64url.encode(crypto.randomBytes(15).toString("hex")),
+    data: base64url.baseEncode(crypto.randomBytes(15)),
     dataLabel: "document",
     proof: {},
   });
