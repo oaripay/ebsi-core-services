@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import crypto, { randomUUID } from "crypto";
 import {
   BadRequestError,
+  InternalServerError,
   ProblemDetailsError,
 } from "@cef-ebsi/problem-details-errors";
 import {
@@ -16,21 +17,20 @@ import parseJwk from "jose/jwk/parse";
 import EncryptJWT from "jose/jwt/encrypt";
 import {
   DidAuthValidationResponse,
-  EbsiDidAuth,
+  RP,
   IdToken,
-  JWTHeader,
   ResponseClaims,
   Session as SiopSession,
-} from "@cef-ebsi/siop-auth";
-import {
   AkeResponse as SiopAkeResponse,
   Ake1SigPayload,
-} from "@cef-ebsi/siop-auth/dist/Ake";
+  DidAuthErrors,
+} from "@cef-ebsi/siop-auth";
 import {
   createJWT,
   decodeJWT,
   ES256KSigner,
   JWTOptions,
+  JWTHeader,
 } from "@cef-ebsi/did-jwt";
 import {
   validatePresentation,
@@ -38,7 +38,7 @@ import {
 } from "@cef-ebsi/verifiable-presentation";
 import { base64url } from "multiformats/bases/base64";
 import Joi from "joi";
-import { DIDDocument } from "did-resolver";
+import type { DIDDocument } from "did-resolver";
 import jwtVerify from "jose/jwt/verify";
 import { ApiConfig } from "../../config/configuration";
 import { AuthenticationRequestResponse } from "./authorisation.interface";
@@ -141,7 +141,7 @@ export class AuthorisationService {
         },
       },
     };
-    return EbsiDidAuth.createAuthenticationRequest({
+    return RP.createAuthenticationRequest({
       redirectUri: this.siopSessionsUrl,
       hexPrivateKey: this.privateKey,
       kid: this.kid,
@@ -364,13 +364,19 @@ export class AuthorisationService {
     if (header.alg === "ES256K") {
       // Using @cef-ebsi/siop-auth library (ES256K)
       try {
-        validation = await EbsiDidAuth.verifyAuthenticationResponse(
+        validation = await RP.verifyAuthenticationResponse(
           body.id_token,
           this.didRegistry,
           this.siopSessionsUrl
         );
       } catch (error) {
         if (error instanceof Error) {
+          if (error.message.includes(DidAuthErrors.DID_REGISTRY_ERROR)) {
+            throw new InternalServerError(InternalServerError.defaultTitle, {
+              detail: DidAuthErrors.DID_REGISTRY_ERROR,
+            });
+          }
+
           throw new BadRequestError("Invalid ID Token", {
             detail: error.message,
           });

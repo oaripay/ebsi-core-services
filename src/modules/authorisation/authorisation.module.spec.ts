@@ -28,7 +28,7 @@ import jwtVerify from "jose/jwt/verify";
 import querystring from "querystring";
 import * as EbsiDidJwt from "@cef-ebsi/did-jwt/dist/jwt";
 import parseJwk from "jose/jwk/parse";
-import { DIDDocument } from "did-resolver";
+import type { DIDDocument } from "did-resolver";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { base64url } from "multiformats/bases/base64";
 import vpLib from "@cef-ebsi/verifiable-presentation";
@@ -134,7 +134,9 @@ describe("Authorisation Module", () => {
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     apiPrivateKey = configService.get("apiPrivateKey");
     apiDid = configService.get("apiDid");
+  });
 
+  beforeEach(() => {
     // mock axios
     jest
       .spyOn(axios, "get")
@@ -162,7 +164,7 @@ describe("Authorisation Module", () => {
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    jest.restoreAllMocks();
   });
 
   afterAll(async () => {
@@ -355,17 +357,16 @@ describe("Authorisation Module", () => {
           async (): Promise<crypto.KeyObject> =>
             Promise.resolve(trustedApp.publicKey)
         );
-      jest
+
+      const spy = jest
         .spyOn(Session.prototype, "createAccessToken")
         .mockImplementation(
           async (): Promise<AkeResponse> => Promise.resolve(null as AkeResponse)
         );
 
       await request(server).post("/oauth2-sessions").send(authRequest);
-      expect(mockOauth2.createAccessToken).toHaveBeenCalledWith(
-        authRequest,
-        trustedApp.publicKey
-      );
+
+      expect(spy).toHaveBeenCalledWith(authRequest, trustedApp.publicKey);
     });
   });
 
@@ -421,7 +422,7 @@ describe("Authorisation Module", () => {
           status: 400,
           detail:
             alg === "ES256K"
-              ? "The Response Token Issuer Claim (iss) MUST be https://self-issued.me"
+              ? "The Response Token Issuer Claim (iss) MUST be https://self-issued.me."
               : (expect.stringContaining(
                   `"iss" must be [https://self-issued.me]`
                 ) as string),
@@ -488,7 +489,7 @@ describe("Authorisation Module", () => {
           status: 400,
           detail:
             alg === "ES256K"
-              ? "No nonce found in JWT payload"
+              ? "No nonce found in JWT payload."
               : (expect.stringContaining(
                   "without its required peers [nonce]"
                 ) as string),
@@ -497,7 +498,80 @@ describe("Authorisation Module", () => {
         expect(response.status).toBe(400);
       });
 
-      it("should handle error from did registry api", async () => {
+      it("should handle error 404 from DID Registry API", async () => {
+        expect.assertions(2);
+
+        const nonce = randomUUID();
+
+        const client = await createTestClient();
+        const clientDid = client.did;
+        const clientPrivateKeys = client.keys;
+        const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
+
+        const payload = {
+          sub: clientDid,
+          sub_jwk: {},
+          sub_did_verification_method_uri: keyObject.id,
+          nonce,
+          claims: {
+            encryption_key: keyObject.publicKeyEncryptionJwk,
+          },
+        };
+
+        const idToken = await createAuthenticationResponseJose({
+          alg,
+          keyId: keyObject.id,
+          nonce,
+          redirectUri: "redirect_uri",
+          privateKeyJwk: keyObject.privateKeyJwk,
+          publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk,
+          payload,
+        });
+
+        // Error from DID Registry API
+        jest.spyOn(axios, "get").mockImplementation(() => {
+          const error = new Error("axios error") as unknown as {
+            response: AxiosResponse;
+            isAxiosError: boolean;
+          };
+          error.isAxiosError = true;
+          error.response = {
+            status: 404,
+            data: {
+              title: "Not Found",
+              status: 404,
+              detail: "not found",
+              type: "about:blank",
+            },
+          } as AxiosResponse;
+          // eslint-disable-next-line @typescript-eslint/no-throw-literal
+          throw error;
+        });
+
+        const response = await request(server)
+          .post("/siop-sessions")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send({ id_token: idToken });
+
+        expect(response.body).toStrictEqual(
+          alg === "ES256K"
+            ? {
+                title: "Invalid ID Token",
+                status: 400,
+                detail: "The DID Document can't be found.",
+                type: "about:blank",
+              }
+            : {
+                title: "Not Found",
+                status: 404,
+                detail: "not found",
+                type: "about:blank",
+              }
+        );
+        expect(response.status).toBe(alg === "ES256K" ? 400 : 404);
+      });
+
+      it("should handle error 500 from DID Registry API", async () => {
         expect.assertions(2);
 
         const nonce = randomUUID();
@@ -528,11 +602,11 @@ describe("Authorisation Module", () => {
         });
 
         // Error from verifyEbsiJWT
-        jest.spyOn(EbsiDidJwt, "verifyEbsiJWT").mockImplementation(() => {
-          throw new Error("error from did registry api");
-        });
+        // jest.spyOn(EbsiDidJwt, "verifyEbsiJWT").mockImplementation(() => {
+        //   throw new Error("error from DID Registry API");
+        // });
 
-        // Error from did registry api
+        // Error from DID Registry API
         jest.spyOn(axios, "get").mockImplementation(() => {
           const error = new Error("axios error") as unknown as {
             response: AxiosResponse;
@@ -540,11 +614,10 @@ describe("Authorisation Module", () => {
           };
           error.isAxiosError = true;
           error.response = {
-            status: 404,
+            status: 500,
             data: {
-              title: "Not Found",
-              status: 404,
-              detail: "not found",
+              title: "Internal Server Error",
+              status: 500,
               type: "about:blank",
             },
           } as AxiosResponse;
@@ -560,19 +633,18 @@ describe("Authorisation Module", () => {
         expect(response.body).toStrictEqual(
           alg === "ES256K"
             ? {
-                title: "Invalid ID Token",
-                status: 400,
-                detail: "error from did registry api",
+                title: "Internal Server Error",
+                status: 500,
+                detail: "Internal DID Registry error.",
                 type: "about:blank",
               }
             : {
-                title: "Not Found",
-                status: 404,
-                detail: "not found",
+                title: "Internal Server Error",
+                status: 500,
                 type: "about:blank",
               }
         );
-        expect(response.status).toBe(alg === "ES256K" ? 400 : 404);
+        expect(response.status).toBe(500);
       });
 
       it(`should create a siop session for a user that uses alg ${alg}`, async () => {

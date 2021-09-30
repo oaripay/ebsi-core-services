@@ -1,6 +1,6 @@
 import fromKeyLike, { JWK } from "jose/jwk/from_key_like";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
-import { DIDDocument } from "did-resolver";
+import type { DIDDocument } from "did-resolver";
 import { generateKeys, getPrivateKeyHex } from "./keys";
 
 export async function createTestClient(): Promise<{

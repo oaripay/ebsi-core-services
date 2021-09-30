@@ -28,7 +28,7 @@ import {
   Agent as OAuth2Agent,
 } from "@cef-ebsi/oauth2-auth";
 import {
-  EbsiDidAuth,
+  RP,
   Agent as SiopAgent,
   DidAuthResponseMode,
 } from "@cef-ebsi/siop-auth";
@@ -407,7 +407,7 @@ describe("Authorisation (e2e)", () => {
           status: 400,
           detail:
             alg === "ES256K"
-              ? "The Response Token Issuer Claim (iss) MUST be https://self-issued.me"
+              ? "The Response Token Issuer Claim (iss) MUST be https://self-issued.me."
               : (expect.stringContaining(
                   `"iss" must be [https://self-issued.me]`
                 ) as string),
@@ -445,7 +445,7 @@ describe("Authorisation (e2e)", () => {
           status: alg === "ES256K" ? 400 : 404,
           detail:
             alg === "ES256K"
-              ? "resolver_error: Unable to resolve DID document for https://self-issued.me: notFound, registry used: https://api.test.intebsi.xyz/did-registry/v2/identifiers"
+              ? "The DID Document can't be found."
               : `Identifier ${randomDid} not found`,
           type: "about:blank",
         });
@@ -480,7 +480,7 @@ describe("Authorisation (e2e)", () => {
           status: 400,
           detail:
             alg === "ES256K"
-              ? "No nonce found in JWT payload"
+              ? "No nonce found in JWT payload."
               : (expect.stringContaining(
                   "without its required peers [nonce]"
                 ) as string),
@@ -512,7 +512,7 @@ describe("Authorisation (e2e)", () => {
           status: 400,
           detail:
             alg === "ES256K"
-              ? "invalid_signature: Signature invalid for JWT"
+              ? "Error verifying the DID Auth Token signature."
               : "ID Token validation failed: signature verification failed",
           type: "about:blank",
         });
@@ -536,7 +536,7 @@ describe("Authorisation (e2e)", () => {
           status: 400,
           detail:
             alg === "ES256K"
-              ? "resolver_error: Unable to resolve DID document for https://self-issued.me: invalidDid, registry used: https://api.test.intebsi.xyz/did-registry/v2/identifiers"
+              ? "Error verifying the DID Auth Token signature."
               : `["did must be a valid DID"]`,
           type: "about:blank",
         });
@@ -551,7 +551,7 @@ describe("Authorisation (e2e)", () => {
         const privateKey = prefix0x(configService.get<string>("apiPrivateKey"));
         const siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
 
-        const { uri } = await EbsiDidAuth.createAuthenticationRequest({
+        const { uri } = await RP.createAuthenticationRequest({
           redirectUri: siopSessionsUrl,
           hexPrivateKey: privateKey,
           kid: apiKid,
@@ -579,10 +579,18 @@ describe("Authorisation (e2e)", () => {
         const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
 
         let idToken: string;
+        let agent: SiopAgent;
+
         if (alg === "ES256K") {
+          const client = {
+            privateKey: prefix0x(keyObject.privateKeyHexES256K),
+            did: configService.get<string>("testClientDid"),
+            didRegistry: configService.get<string>("didRegistry"),
+          };
+          agent = new SiopAgent(client);
+
           const authenticationResponse =
-            await EbsiDidAuth.createAuthenticationResponse({
-              hexPrivateKey: prefix0x(keyObject.privateKeyHexES256K),
+            await agent.createAuthenticationResponse({
               did: configService.get("testClientDid"),
               nonce,
               redirectUri: uriDecoded.client_id as string,
@@ -636,12 +644,6 @@ describe("Authorisation (e2e)", () => {
         let accessToken: string;
 
         if (alg === "ES256K") {
-          const client = {
-            privateKey: prefix0x(keyObject.privateKeyHexES256K),
-            did: configService.get<string>("testClientDid"),
-            didRegistry: configService.get<string>("didRegistry"),
-          };
-          const agent = new SiopAgent(client);
           accessToken = await agent.verifyAuthenticationResponse(
             response.body,
             nonce
@@ -671,17 +673,6 @@ describe("Authorisation (e2e)", () => {
         });
 
       // 2. The client verifies the response
-      const { uri } = authenticationRequestsResponse.body as { uri: string };
-      const uriDecoded = querystring.decode(uri.replace("openid://?", "")) as {
-        request: string;
-      };
-
-      const payload = await EbsiDidAuth.verifyAuthenticationRequest(
-        uriDecoded.request,
-        configService.get<string>("didRegistry")
-      );
-
-      // 3. The client creates an authentication response and gets an ID Token
       const clientPrivateKeys = JSON.parse(
         Buffer.from(
           configService.get<string>("testClientPrivateKeysBase64"),
@@ -696,11 +687,24 @@ describe("Authorisation (e2e)", () => {
         publicKeyEncryptionJwk?: JWK;
       }[];
       const keyObject = await getKeyByAlg(clientPrivateKeys, "ES256K");
+      const siopAgent = new SiopAgent({
+        privateKey: prefix0x(keyObject.privateKeyHexES256K),
+        didRegistry: configService.get<string>("didRegistry"),
+      });
 
+      const { uri } = authenticationRequestsResponse.body as { uri: string };
+      const uriDecoded = querystring.decode(uri.replace("openid://?", "")) as {
+        request: string;
+      };
+
+      const payload = await siopAgent.verifyAuthenticationRequest(
+        uriDecoded.request
+      );
+
+      // 3. The client creates an authentication response and gets an ID Token
       const nonce = randomUUID();
       const authenticationResponse =
-        await EbsiDidAuth.createAuthenticationResponse({
-          hexPrivateKey: prefix0x(keyObject.privateKeyHexES256K),
+        await siopAgent.createAuthenticationResponse({
           did: configService.get("testClientDid"),
           nonce,
           redirectUri: payload.client_id,
@@ -721,11 +725,6 @@ describe("Authorisation (e2e)", () => {
         .send({ id_token: idToken });
 
       // 5. Finally, the client verifies the SIOP authentication response and gets an access token
-      const siopAgent = new SiopAgent({
-        privateKey: prefix0x(keyObject.privateKeyHexES256K),
-        didRegistry: configService.get<string>("didRegistry"),
-      });
-
       const accessToken = await siopAgent.verifyAuthenticationResponse(
         siopSessionsResponse.body,
         nonce
@@ -756,6 +755,11 @@ describe("Authorisation (e2e)", () => {
       );
 
       // 2. The client creates a verifiable presentation using the verifiable credential
+      const siopAgent = new SiopAgent({
+        privateKey: prefix0x(privateKeyHexEncryption),
+        didRegistry: configService.get<string>("didRegistry"),
+      });
+
       const vp = await createVP(did, privateKey, verifiableCredential, {
         resolver: didRegistry,
         tirUrl: trustedIssuersRegistry,
@@ -764,10 +768,9 @@ describe("Authorisation (e2e)", () => {
       const canonicalizedVP = base64url.baseEncode(
         Buffer.from(canonicalize(vp))
       );
-      // const canonicalizedVP = base64url.encode(JSON.stringify(vp));
+
       const authenticationResponse =
-        await EbsiDidAuth.createAuthenticationResponse({
-          hexPrivateKey: prefix0x(privateKey),
+        await siopAgent.createAuthenticationResponse({
           did,
           nonce,
           redirectUri: "/siop-sessions",
@@ -793,11 +796,6 @@ describe("Authorisation (e2e)", () => {
       expect(siopSessionsResponse.status).toBe(200);
 
       // 4. Finally, the client verifies the SIOP authentication response and gets an access token
-      const siopAgent = new SiopAgent({
-        privateKey: prefix0x(privateKeyHexEncryption),
-        didRegistry: configService.get<string>("didRegistry"),
-      });
-
       const accessToken = await siopAgent.verifyAuthenticationResponse(
         siopSessionsResponse.body,
         nonce
@@ -827,6 +825,11 @@ describe("Authorisation (e2e)", () => {
       );
 
       // 2. The client creates a verifiable presentation using the verifiable credential
+      const siopAgent = new SiopAgent({
+        privateKey: prefix0x(privateKeyHexEncryption),
+        didRegistry: configService.get<string>("didRegistry"),
+      });
+
       const vp = await createVP(did, privateKey, verifiableCredential, {
         resolver: didRegistry,
         tirUrl: trustedIssuersRegistry,
@@ -835,10 +838,9 @@ describe("Authorisation (e2e)", () => {
       const canonicalizedVP = base64url.baseEncode(
         Buffer.from(canonicalize(vp))
       );
-      // const canonicalizedVP = base64url.encode(JSON.stringify(vp));
+
       const authenticationResponse =
-        await EbsiDidAuth.createAuthenticationResponse({
-          hexPrivateKey: prefix0x(privateKey),
+        await siopAgent.createAuthenticationResponse({
           did,
           nonce,
           redirectUri: "/siop-sessions",

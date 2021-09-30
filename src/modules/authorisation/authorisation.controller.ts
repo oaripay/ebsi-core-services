@@ -1,5 +1,5 @@
 import { Controller, Post, Body, HttpCode } from "@nestjs/common";
-import { AkeResponse } from "@cef-ebsi/oauth2-auth";
+import type { AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { AuthorisationService } from "./authorisation.service";
 import {
   AuthenticationRequestDto,
