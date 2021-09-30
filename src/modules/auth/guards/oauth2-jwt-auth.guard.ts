@@ -12,7 +12,11 @@ export class OAuth2JwtAuthGuard extends AuthGuard("oauth2-jwt") {
     return super.canActivate(context);
   }
 
-  handleRequest<AppInfo>(err: Error, appInfo: AppInfo, info: unknown): AppInfo {
+  handleRequest<TUser = AppInfo>(
+    err: Error,
+    appInfo: TUser,
+    info: unknown
+  ): TUser {
     // You can throw an exception based on either "info" or "err" arguments
     if (err || info || !appInfo) {
       throw (

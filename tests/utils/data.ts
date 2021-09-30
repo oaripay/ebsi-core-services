@@ -37,7 +37,7 @@ export const createDidDocument = (did: string): { [x: string]: unknown } => {
         id: `${did}#zQ3shP2mWsZYWgvgM11nenXRTx9L1yiJKmkf9dfX7NaMKb1pX`,
         type: "EcdsaSecp256k1VerificationKey2019",
         controller: did,
-        publicKeyBase58: "d5cW2R53NHTTkv7EQSYR8YxaKx7MVCcchjmK5EgCNXxo",
+        publicKeyBaseMultibase: "zd5cW2R53NHTTkv7EQSYR8YxaKx7MVCcchjmK5EgCNXxo",
       },
       {
         id: `${did}#_Qq0UL2Fq651Q0Fjd6TvnYE-faHiOpRlPVQcY_-tA4A`,

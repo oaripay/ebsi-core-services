@@ -12,11 +12,11 @@ export class OAuth2OrSiopJwtAuthGuard extends AuthGuard("oauth2-siop-jwt") {
     return super.canActivate(context);
   }
 
-  handleRequest<SubjectInfo>(
+  handleRequest<TUser = SubjectInfo>(
     err: Error,
-    subjectInfo: SubjectInfo,
+    subjectInfo: TUser,
     info: unknown
-  ): SubjectInfo {
+  ): TUser {
     // You can throw an exception based on either "info" or "err" arguments
     if (err || info || !subjectInfo) {
       throw (
