@@ -1,5 +1,5 @@
 import { Controller, Body, Post, Response, UseGuards } from "@nestjs/common";
-import { FastifyReply } from "fastify";
+import type { FastifyReply } from "fastify";
 import { BesuService } from "./besu.service";
 import { BesuDto } from "./dto";
 import { JwtAuthGuard } from "../auth/guards";

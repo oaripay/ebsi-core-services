@@ -1,7 +1,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, Logger } from "@nestjs/common";
 import * as DidJwt from "@cef-ebsi/did-jwt";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,

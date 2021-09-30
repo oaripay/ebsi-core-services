@@ -3,11 +3,7 @@ import request from "supertest";
 import axios from "axios";
 import { base58btc } from "multiformats/bases/base58";
 import { Agent as OAuth2Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
-import {
-  EbsiDidAuth,
-  DidAuthResponseMode,
-  Agent as SiopAgent,
-} from "@cef-ebsi/siop-auth";
+import { DidAuthResponseMode, Agent as SiopAgent } from "@cef-ebsi/siop-auth";
 import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
 import { loadConfig } from "../../src/config/configuration";
 
@@ -135,14 +131,17 @@ export async function siopAuthentication(
   const uriDecoded = new URLSearchParams(
     (response.body as { uri: string }).uri.replace("openid://?", "")
   );
-  await EbsiDidAuth.verifyAuthenticationRequest(
-    uriDecoded.get("request"),
-    `${didRegistryApiUrl}/identifiers`
-  );
+
+  const agent = new SiopAgent({
+    privateKey: prefixWith0x(user.privateKey),
+    didRegistry: `${didRegistryApiUrl}/identifiers`,
+  });
+
+  await agent.verifyAuthenticationRequest(uriDecoded.get("request"));
 
   const nonce = crypto.randomBytes(10).toString("base64");
-  const didAuthJwt = await EbsiDidAuth.createAuthenticationResponse({
-    hexPrivateKey: prefixWith0x(user.privateKey),
+
+  const didAuthJwt = await agent.createAuthenticationResponse({
     did: user.did,
     nonce,
     redirectUri: uriDecoded.get("client_id"),
@@ -153,10 +152,6 @@ export async function siopAuthentication(
     .post("/siop-sessions")
     .send(didAuthJwt.bodyEncoded);
 
-  const agent = new SiopAgent({
-    privateKey: user.privateKey,
-    didRegistry: `${didRegistryApiUrl}/identifiers`,
-  });
   const accessToken = await agent.verifyAuthenticationResponse(
     response.body,
     nonce

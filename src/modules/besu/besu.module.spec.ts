@@ -10,7 +10,7 @@ import {
   Logger,
   HttpServer,
 } from "@nestjs/common";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,

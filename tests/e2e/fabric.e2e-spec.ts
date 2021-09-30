@@ -11,7 +11,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { FabricService } from "../../src/modules/fabric/fabric.service";
 import {
   Block,

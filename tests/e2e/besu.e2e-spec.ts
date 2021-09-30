@@ -10,7 +10,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import { ConfigService } from "@nestjs/config";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";

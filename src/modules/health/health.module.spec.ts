@@ -3,7 +3,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
 import { HealthIndicatorResult } from "@nestjs/terminus";
 import { ConfigService } from "@nestjs/config";
-import { FastifyInstance } from "fastify";
+import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
   NestFastifyApplication,
