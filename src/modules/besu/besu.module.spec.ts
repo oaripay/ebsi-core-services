@@ -272,13 +272,8 @@ describe("Besu Module", () => {
     expect(response.status).toBe(400);
   });
 
-  it("should return an error when eth_sendRawTransaction is called without params (SIOP JWT)", async () => {
+  it("should return an error when eth_sendRawTransaction is called using SIOP JWT", async () => {
     expect.assertions(2);
-
-    mockAuthSiop.mockImplementation(
-      async (): Promise<JWTPayload> =>
-        Promise.resolve({ sub: testUser.did, login_hint: "did_siop" })
-    );
 
     const response = await request(server)
       .post("/blockchains/besu")
@@ -291,14 +286,13 @@ describe("Besu Module", () => {
       });
 
     expect(response.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: "42",
-      error: {
-        code: -32602,
-        message: "Expected exactly 1 arguments and got 0",
-      },
+      detail:
+        "This jsonrpc method is restricted to Trusted Apps authorized to use Ledger API",
+      status: 401,
+      title: "Unauthorized",
+      type: "about:blank",
     });
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
   });
 
   it("should prevent deploying new smart contracts", async () => {

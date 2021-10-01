@@ -201,7 +201,7 @@ describe("POST /ledger/v2/blockchains/besu", () => {
     expect(response.status).toBe(400);
   });
 
-  it("should return an error when eth_sendRawTransaction is called without params (SIOP JWT)", async () => {
+  it("should return an error when eth_sendRawTransaction is called using SIOP JWT", async () => {
     expect.assertions(2);
 
     const response = await request(server)
@@ -215,14 +215,12 @@ describe("POST /ledger/v2/blockchains/besu", () => {
       });
 
     expect(response.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: "42",
-      error: {
-        code: -32602,
-        message: "Invalid params",
-      },
+      detail:
+        "This jsonrpc method is restricted to Trusted Apps authorized to use Ledger API",
+      status: 401,
+      title: "Unauthorized",
+      type: "about:blank",
     });
-
-    expect(response.status).toBe(400);
+    expect(response.status).toBe(401);
   });
 });

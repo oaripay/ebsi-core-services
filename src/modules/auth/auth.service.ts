@@ -1,7 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { decodeJWT } from "@cef-ebsi/did-jwt";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { ApiConfig } from "../../config/configuration";
@@ -16,8 +15,6 @@ export class AuthService {
 
   private authorisationApiName: string;
 
-  private siopSession: SiopSession;
-
   private oauth2Session: OAuth2Session;
 
   constructor(
@@ -29,11 +26,6 @@ export class AuthService {
       "authorisationApiName"
     );
 
-    this.siopSession = new SiopSession({
-      didRegistry: `${configService.get<string>(
-        "didRegistryApiUrl"
-      )}/identifiers`,
-    });
     this.oauth2Session = new OAuth2Session("undefined", {
       appName: configService.get<string>("apiName"),
       tarProvider: `${configService.get<string>(
@@ -83,17 +75,17 @@ export class AuthService {
       const { payload } = decodeJWT(token) as unknown as {
         payload: Payload;
       };
+
       if (payload.login_hint === "did_siop") {
-        await this.siopSession.verifyAccessToken(
-          token,
-          this.authorisationApiDid
-        );
-      } else {
-        await this.oauth2Session.verifyAccessToken(
-          token,
-          this.authorisationApiName
+        throw new Error(
+          "This jsonrpc method is restricted to Trusted Apps authorized to use Ledger API"
         );
       }
+
+      await this.oauth2Session.verifyAccessToken(
+        token,
+        this.authorisationApiName
+      );
 
       // Try to store valid JWT in cache
       this.storeJwt(token, now, payload.exp, requestHost);
