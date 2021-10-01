@@ -71,7 +71,7 @@ describe("prepareDidAuthRequest", () => {
     const kid = `${"https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps"}/${appId}`;
 
     const ebsiMocked = jest.spyOn(
-      ebsiDidAuth.EbsiDidAuth,
+      ebsiDidAuth.RP,
       "createAuthenticationRequest"
     );
 

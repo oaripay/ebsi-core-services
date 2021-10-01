@@ -8,7 +8,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { Logger } from "@nestjs/common/services/logger.service";
-import { EbsiDidAuth, DidAuthResponseCall } from "@cef-ebsi/siop-auth";
+import { Agent, DidAuthResponseCall } from "@cef-ebsi/siop-auth";
 import { createFakeToken } from "../auxTests";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -91,15 +91,21 @@ describe("/onboarding/v1 authentication e2e tests", () => {
     const testUserPrivateKey = prefix0x(
       configService.get<string>("testUserPrivateKey")
     );
+    const didRegistry =
+      "https://api.test.intebsi.xyz/did-registry/v2/identifiers";
+
+    const agent = new Agent({
+      privateKey: testUserPrivateKey,
+      didRegistry,
+    });
 
     const didAuthResponseCall: DidAuthResponseCall = {
-      hexPrivateKey: testUserPrivateKey, // private key managed by the user. Should be passed in hexadecimal format
       did: testUserDid, // User DID
       nonce: params.get("nonce"), // same nonce received as a Request Payload after verifying it
       redirectUri: params.get("client_id"), // parsed URI from the DID Auth Request payload
     };
 
-    const didAuthResponseJwt = await EbsiDidAuth.createAuthenticationResponse(
+    const didAuthResponseJwt = await agent.createAuthenticationResponse(
       didAuthResponseCall
     );
 

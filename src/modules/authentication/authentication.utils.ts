@@ -1,4 +1,4 @@
-import { EbsiDidAuth, DidAuthRequestCall } from "@cef-ebsi/siop-auth";
+import { RP, DidAuthRequestCall } from "@cef-ebsi/siop-auth";
 import { InvalidUserAuthentication } from "../../errors";
 import { AuthenticationErrors } from "../../errors/errorCodes";
 
@@ -15,9 +15,8 @@ export async function prepareDidAuthRequest(
       issuer: did,
       kid,
     };
-    const { uri } = await EbsiDidAuth.createAuthenticationRequest(
-      didAuthRequestCall
-    );
+    const { uri } = await RP.createAuthenticationRequest(didAuthRequestCall);
+
     return uri;
   } catch (error) {
     throw new InvalidUserAuthentication(

@@ -8,11 +8,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { Logger } from "@nestjs/common/services/logger.service";
-import {
-  DidAuthRequestPayload,
-  EbsiDidAuth,
-  DidAuthResponseCall,
-} from "@cef-ebsi/siop-auth";
+import { Agent, DidAuthResponseCall } from "@cef-ebsi/siop-auth";
 import {
   Options,
   validateVerifiableCredential,
@@ -86,18 +82,27 @@ describeSkipCI("reCAPTCHA onboarding", () => {
     expect(authenticationRequest.session_token).toBeDefined();
 
     // 2 - User verifies it
-    const didResolver =
+    const didRegistry =
       "https://api.test.intebsi.xyz/did-registry/v2/identifiers";
+
+    const testUserPrivateKey = prefix0x(
+      configService.get<string>("testUserPrivateKey")
+    );
+
+    const agent = new Agent({
+      privateKey: testUserPrivateKey,
+      didRegistry,
+    });
 
     const params = new URLSearchParams(authenticationRequest.session_token);
     const didAuthRequestJwt = params.get("request");
 
-    const requestPayload: DidAuthRequestPayload =
-      await EbsiDidAuth.verifyAuthenticationRequest(
-        didAuthRequestJwt,
-        didResolver as string
-      );
+    const requestPayload = await agent.verifyAuthenticationRequest(
+      didAuthRequestJwt
+    );
+
     const appDid = configService.get<string>("applicationDid");
+
     expect(requestPayload.iss).toBe(appDid);
     expect(requestPayload.client_id).toBe(
       "https://api.test.intebsi.xyz/users-onboarding/v1/authentication-responses"
@@ -105,19 +110,17 @@ describeSkipCI("reCAPTCHA onboarding", () => {
 
     // 3 - Create a DID-Auth response
     const testUserDid = configService.get<string>("testUserDid");
-    const testUserPrivateKey = prefix0x(
-      configService.get<string>("testUserPrivateKey")
-    );
 
     const didAuthResponseCall: DidAuthResponseCall = {
-      hexPrivateKey: testUserPrivateKey, // private key managed by the user. Should be passed in hexadecimal format
       did: testUserDid, // User DID
       nonce: params.get("nonce"), // same nonce received as a Request Payload after verifying it
       redirectUri: params.get("client_id"), // parsed URI from the DID Auth Request payload
     };
-    const didAuthResponseJwt = await EbsiDidAuth.createAuthenticationResponse(
+
+    const didAuthResponseJwt = await agent.createAuthenticationResponse(
       didAuthResponseCall
     );
+
     expect(didAuthResponseJwt.urlEncoded).toBeDefined();
 
     const recaptchaToken = configService.get<string>("testRecaptchaToken");

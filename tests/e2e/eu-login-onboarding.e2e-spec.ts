@@ -8,16 +8,11 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { Logger } from "@nestjs/common/services/logger.service";
-import {
-  DidAuthRequestPayload,
-  EbsiDidAuth,
-  DidAuthResponseCall,
-} from "@cef-ebsi/siop-auth";
+import { DidAuthResponseCall, Agent } from "@cef-ebsi/siop-auth";
 import {
   Options,
   validateVerifiableCredential,
 } from "@cef-ebsi/verifiable-credential";
-// eslint-disable-next-line import/no-extraneous-dependencies
 import "expect-puppeteer";
 import { HTTPRequest } from "puppeteer";
 import { UserAuthentication } from "../../src/shared/dto";
@@ -146,17 +141,25 @@ describe("EU Login onboarding", () => {
     expect(authenticationRequest.session_token).toBeDefined();
 
     // 2 - User verifies it
-    const didResolver =
+    const didRegistry =
       "https://api.test.intebsi.xyz/did-registry/v2/identifiers";
 
     const params = new URLSearchParams(authenticationRequest.session_token);
     const didAuthRequestJwt = params.get("request");
 
-    const requestPayload: DidAuthRequestPayload =
-      await EbsiDidAuth.verifyAuthenticationRequest(
-        didAuthRequestJwt,
-        didResolver as string
-      );
+    const testUserPrivateKey = prefix0x(
+      configService.get<string>("testUserPrivateKey")
+    );
+
+    const agent = new Agent({
+      privateKey: testUserPrivateKey,
+      didRegistry,
+    });
+
+    const requestPayload = await agent.verifyAuthenticationRequest(
+      didAuthRequestJwt
+    );
+
     const appDid = configService.get<string>("applicationDid");
     expect(requestPayload.iss).toBe(appDid);
     expect(requestPayload.client_id).toBe(
@@ -165,19 +168,16 @@ describe("EU Login onboarding", () => {
 
     // 3 - Create a DID-Auth response
     const testUserDid = configService.get<string>("testUserDid");
-    const testUserPrivateKey = prefix0x(
-      configService.get<string>("testUserPrivateKey")
-    );
 
     const didAuthResponseCall: DidAuthResponseCall = {
-      hexPrivateKey: testUserPrivateKey, // private key managed by the user. Should be passed in hexadecimal format
       did: testUserDid, // User DID
       nonce: params.get("nonce"), // same nonce received as a Request Payload after verifying it
       redirectUri: params.get("client_id"), // parsed URI from the DID Auth Request payload
     };
-    const didAuthResponseJwt = await EbsiDidAuth.createAuthenticationResponse(
+    const didAuthResponseJwt = await agent.createAuthenticationResponse(
       didAuthResponseCall
     );
+
     expect(didAuthResponseJwt.urlEncoded).toBeDefined();
 
     // EU Login
@@ -215,6 +215,7 @@ describe("EU Login onboarding", () => {
         "https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers",
       resolver: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
     };
+
     const validation = await validateVerifiableCredential(
       authenticationServerResponse.body.verifiableCredential,
       options
