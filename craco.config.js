@@ -1,3 +1,4 @@
+const path = require("path");
 const CracoLessPlugin = require("craco-less");
 
 module.exports = {
@@ -13,4 +14,12 @@ module.exports = {
       },
     },
   ],
+  webpack: {
+    alias: {
+      "jose/util/random": path.resolve(
+        __dirname,
+        "node_modules/jose/dist/browser/util/random.js"
+      ),
+    },
+  },
 };
