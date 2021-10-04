@@ -298,6 +298,7 @@ export default function useDidRegister() {
           metadata: [],
           timestampsIds: [],
           administratorLastHash: [],
+          exists: false,
         };
       }
 
@@ -331,6 +332,7 @@ export default function useDidRegister() {
 
       return {
         did: didId,
+        exists: Object.keys(didRecord).length > 0,
         didControllers: didRecord?.controllerIds
           ? didRecord?.controllerIds.filter(onlyUnique)
           : [],

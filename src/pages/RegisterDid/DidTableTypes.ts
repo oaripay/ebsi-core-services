@@ -25,6 +25,7 @@ export type DataType = {
   timestampsIds?: string[];
   did?: string;
   administratorLastHash?: string[];
+  exists: boolean;
 };
 
 export type PropType = {

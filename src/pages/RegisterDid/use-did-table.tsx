@@ -85,6 +85,14 @@ export default function useDidTable() {
       if (!foundItem) {
         setTableLoading(true);
         loadTableData(didToBeLoaded).then((data: DataType | undefined) => {
+          if (!data?.exists) {
+            notification.warn({
+              message: "Cannot load DID",
+              description: "DID does not exist!",
+            });
+            setTableLoading(false);
+            return;
+          }
           if (data) {
             updateDidsFromLs(didToBeLoaded);
             setDataSource((current) => [data, ...current]);
