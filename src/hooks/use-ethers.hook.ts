@@ -1,14 +1,14 @@
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { ethers } from "ethers";
 
 import { config } from "../config";
 
 import TarRegistry from "../contracts/tar.json";
 import DidRegistry from "../contracts/DidRegistry.json";
-import { AppContext } from "../AppContext";
+import { useAppContext } from "../AppContext";
 
 export function useEthersHook() {
-  const appCtx = useContext(AppContext);
+  const appCtx = useAppContext();
 
   const provider: ethers.providers.Web3Provider | undefined = useMemo(() => {
     if (appCtx.metamask) {

@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React from "react";
 import { Layout } from "antd";
 import { NewApp } from "./NewApp";
 import { ModalUpdateAuthorization } from "../../Modals/ModalUpdateAuthorization";
@@ -6,13 +6,13 @@ import { ModalUpdateAppPublicKey } from "../../Modals/ModalUpdateAppPublicKey";
 import { ModalUpdateApp } from "../../Modals/ModalUpdateApp";
 import ModalInsertPublicKey from "../../Modals/ModalInsertPublicKey";
 import ModalInsertAuth from "../../Modals/ModalInsertAuth";
-import { AppContext } from "../../AppContext";
+import { useAppContext } from "../../AppContext";
 import { useRegistryContractEventsHook } from "../../hooks/use-registry-contract-events.hook";
 import { useSearchEventsHook } from "../../hooks/use-search-events.hook";
 
 export default function TrustedAppRegistry() {
   const { Footer } = Layout;
-  const appCtx = useContext(AppContext);
+  const appCtx = useAppContext();
   useRegistryContractEventsHook();
   useSearchEventsHook();
 

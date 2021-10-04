@@ -1,12 +1,12 @@
-import { useContext, useEffect } from "react";
+import { useEffect } from "react";
 import { notification } from "antd";
 
 import { useEthersHook } from "./use-ethers.hook";
 import { config } from "../config";
-import { AppContext } from "../AppContext";
+import { useAppContext } from "../AppContext";
 
 export function useRegistryContractEventsHook() {
-  const appCtx = useContext(AppContext);
+  const appCtx = useAppContext();
 
   const { provider } = useEthersHook();
 

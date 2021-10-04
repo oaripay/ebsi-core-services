@@ -1,4 +1,4 @@
-import React, { ReactElement, useContext, useEffect } from "react";
+import React, { ReactElement, useEffect } from "react";
 import {
   Col,
   DatePicker,
@@ -12,7 +12,7 @@ import {
 } from "antd";
 import { ethers } from "ethers";
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import { AppContext } from "../AppContext";
+import { useAppContext } from "../AppContext";
 import { notAfterDate, notBeforeDate } from "../date-validator";
 import { useTableHook } from "../hooks/use-table-hook";
 
@@ -21,7 +21,7 @@ export default function ModalInsertPublicKey(): ReactElement {
 
   const { insertAppPublicKey } = useRegistryContractHook();
   const { loadTableData } = useTableHook();
-  const appCtx = useContext(AppContext);
+  const appCtx = useAppContext();
 
   useEffect(() => {
     if (appCtx.insertPublicKeyModal.show) {

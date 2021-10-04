@@ -1,236 +1,245 @@
-import * as crypto from "crypto";
-import { ec as EC } from "elliptic";
-import bs58 from "bs58";
-
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { ethers } from "ethers";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo } from "react";
 import { notification } from "antd";
 import { useEthersHook } from "../../hooks/use-ethers.hook";
+import { useWalletContext } from "../../components/Wallet/WalletContext";
+import { buildDidParams, createDidDocument, onlyUnique } from "./DidUtils";
+import { useRegisterDidContext } from "./RegisterDid.context";
+import { DataType, DidRecordType, PaginatedResponse } from "./DidTableTypes";
+import { useNotificationContext } from "../../components/Notification/Notification.context";
 
-export function createMetadata() {
-  return {
-    meta: crypto.randomBytes(32).toString("hex"),
-  };
-}
-
-export function createTimestamp() {
-  return {
-    data: crypto.randomBytes(32).toString("hex"),
-  };
-}
-
-export function fromHexString(hexString: string): Uint8Array {
-  const match = hexString.match(/.{1,2}/g);
-  if (!match) throw new Error("String could not be parsed");
-  return new Uint8Array(match.map((byte) => parseInt(byte, 16)));
-}
-
-export function createDidDocument(didUser: string, publicKey: string) {
-  const ec = new EC("secp256k1");
-  const key = ec.keyFromPublic(publicKey.slice(2), "hex");
-  const publicKeyObj = {
-    publicKeyHex: publicKey.slice(2),
-    publicKeyJwk: EbsiWallet.formatPublicKey(key.getPublic(), "jwk"),
-    publicKeyBase58: bs58.encode(fromHexString(publicKey.slice(2))),
-  };
-  return {
-    "@context": "https://w3id.org/did/v1",
-    id: didUser,
-    verificationMethod: [
-      {
-        id: `${didUser}#keys-1`,
-        type: "Secp256k1VerificationKey2018",
-        controller: didUser,
-        ...publicKeyObj,
-      },
-    ],
-    authentication: [`${didUser}#keys-1`],
-    assertionMethod: [`${didUser}#keys-1`],
-  };
-}
-
-export function computeIdentifier(did: string): string {
-  return `0x${Buffer.from(did).toString("hex")}`;
-}
-
-export function buildDidParams(document: any) {
-  const bufferTimestamp = Buffer.from(JSON.stringify(createTimestamp()));
-  const bufferDocument = Buffer.from(JSON.stringify(document));
-  const bufferMetadata = Buffer.from(JSON.stringify(createMetadata()));
-  const documentHash = ethers.utils.sha256(bufferDocument);
-  return {
-    info: {
-      title: "Did document",
-      data: document,
-    },
-    param: {
-      identifier: computeIdentifier(document.id),
-      hashAlgorithmId: 1, // sha256
-      hashValue: documentHash,
-      didVersionInfo: `0x${bufferDocument.toString("hex")}`,
-      timestampData: `0x${bufferTimestamp.toString("hex")}`,
-      didVersionMetadata: `0x${bufferMetadata.toString("hex")}`,
-    },
-  };
-}
+export const LS_DID = "EBSI_DID";
 
 export default function useDidRegister() {
-  const { didRegistryContract, registryContract } = useEthersHook();
-  const { provider } = useEthersHook();
-  const [loading, setLoading] = useState(true);
-  const [networkId, setNetworkId] = useState(0);
-  const [walletAddress, setWalletAddress] = useState("");
-  const [publicKey, setPublicKey] = useState("");
-  const [didDefined, setDidDefined] = useState(false);
-  const [didAsAdministrator, setDidAsAdministrator] = useState(false);
+  const { didRegistryContract } = useEthersHook();
+  const { walletAddress } = useWalletContext();
+  const { setShowPendingTxNotif } = useNotificationContext();
+  const { publicKey, identifier } = useRegisterDidContext();
 
-  useEffect(() => {
-    if (!provider) {
-      return;
-    }
-    Promise.all([
-      provider.getNetwork().then((network) => {
-        setNetworkId(network.chainId);
-      }),
-      provider
-        .getSigner()
-        .getAddress()
-        .then((addr: string) => {
-          setWalletAddress(addr);
-        })
-        .catch(() => {
-          setLoading(false);
-        }),
-    ])
-      .then(() => {
-        setLoading(false);
-      })
-      .catch(() => {
-        setLoading(false);
-      });
-  }, [provider]);
-
-  useEffect(() => {
-    const pbKeyFromLocalStorage: any = localStorage.getItem("did-public-key");
-    const pbKeyParsed = pbKeyFromLocalStorage
-      ? JSON.parse(pbKeyFromLocalStorage)
-      : {};
-
-    if (walletAddress && provider) {
-      const publicKeyForAccount = pbKeyParsed ? pbKeyParsed[walletAddress] : "";
-
-      if (!publicKeyForAccount) {
-        const hash = ethers.utils.keccak256(walletAddress);
-        provider
-          .getSigner()
-          .signMessage(hash)
-          .then((signature) => {
-            const {
-              recoverPublicKey,
-              arrayify,
-              hashMessage,
-              computePublicKey,
-            } = ethers.utils;
-            const pubKey = computePublicKey(
-              recoverPublicKey(arrayify(hashMessage(hash)), signature),
-              true
-            );
-            localStorage.setItem(
-              "did-public-key",
-              JSON.stringify({
-                [walletAddress]: pubKey,
-              })
-            );
-            setPublicKey(pubKey);
-          });
+  const getDidDocumentVersionsInfo = useCallback(
+    async (versionHashes: string[]) => {
+      if (!walletAddress || !didRegistryContract) {
+        return [];
       }
-    }
-  }, [walletAddress, provider]);
-
-  useEffect(() => {
-    const publicKeyFromLocalStorage = localStorage.getItem("did-public-key");
-    if (publicKeyFromLocalStorage && walletAddress) {
-      try {
-        setPublicKey(JSON.parse(publicKeyFromLocalStorage)[walletAddress]);
-      } catch (ex) {
-        //
+      let promises = [];
+      if (versionHashes.length) {
+        promises = versionHashes.map((hash: string) =>
+          didRegistryContract.getDidDocumentVersionInfo(hash).catch(() => {})
+        );
+        return Promise.all(promises).catch(() => []);
       }
-    }
-  }, [walletAddress]);
+      return [];
+    },
+    [didRegistryContract, walletAddress]
+  );
 
-  useEffect(() => {
-    if (!registryContract || !walletAddress) {
-      return;
-    }
-    registryContract
-      .getAdministrator(`did:ebsi:${walletAddress}`)
-      .then(() => {
-        setDidAsAdministrator(true);
-      })
-      .catch(() => {
-        setDidAsAdministrator(false);
+  const getDidDocumentVersionIds = useCallback(
+    async (didId) => {
+      if (!didRegistryContract || !didId) {
+        return {
+          items: [],
+        };
+      }
+      return didRegistryContract
+        .getDidDocumentVersionIds(
+          `0x${Buffer.from(didId).toString("hex")}`,
+          1,
+          50
+        )
+        .catch(() => ({
+          items: [],
+        }));
+    },
+    [didRegistryContract]
+  );
+
+  const getDidDocumentVersionMetadata = useCallback(
+    async (metadataVersionIds: string[]) => {
+      if (!didRegistryContract || !metadataVersionIds.length) {
+        return [];
+      }
+      const promises = metadataVersionIds.map((versionIdData: string) => {
+        return didRegistryContract
+          .getDidDocumentVersionMetadata(versionIdData)
+          .catch(() => {});
       });
-  }, [registryContract, walletAddress]);
+      return Promise.all(promises);
+    },
+    [didRegistryContract]
+  );
 
-  useEffect(() => {
-    if (!didRegistryContract || !walletAddress) {
-      return;
-    }
-    const didEbsi = `did:ebsi:${walletAddress}`;
-
-    didRegistryContract
-      .getDidRecord(`0x${Buffer.from(didEbsi).toString("hex")}`)
-      .then(() => {
-        setDidDefined(true);
-      })
-      .catch(() => {
-        setDidDefined(false);
+  const getDidDocumentVersionMetadataIds = useCallback(
+    async (versionHashes: string[], identifierForDoc: string) => {
+      if (!didRegistryContract || !versionHashes.length) {
+        return [
+          {
+            items: [],
+          },
+        ];
+      }
+      return Promise.all(
+        versionHashes.map((versionHash) =>
+          didRegistryContract.getDidDocumentVersionMetadataIds(
+            `0x${Buffer.from(identifierForDoc).toString("hex")}`,
+            versionHash,
+            1,
+            50
+          )
+        )
+      ).catch(() => {
+        return [];
       });
-  }, [didRegistryContract, walletAddress]);
+    },
+    [didRegistryContract]
+  );
+
+  const getAdministrator = useCallback(
+    (didId: string) => {
+      if (!didRegistryContract) {
+        return undefined;
+      }
+
+      return didRegistryContract.getAdministrator(didId).catch(() => []);
+    },
+    [didRegistryContract]
+  );
+
+  const getDidRecord = useCallback(
+    (didId) => {
+      if (!didRegistryContract || !didId) {
+        return undefined;
+      }
+      return didRegistryContract
+        .getDidRecord(`0x${Buffer.from(didId).toString("hex")}`)
+        .catch(() => ({}));
+    },
+    [didRegistryContract]
+  );
+
+  const getDidDocumentVersionDidTimestampIds = useCallback(
+    async (
+      versionHashes: string[],
+      didRecord: DidRecordType,
+      identifierDoc: string
+    ) => {
+      if (
+        !didRegistryContract ||
+        !versionHashes.length ||
+        !Object.keys(didRecord).length
+      ) {
+        return [];
+      }
+      const promises = versionHashes.map(() => {
+        return didRegistryContract
+          .getDidDocumentVersionDidTimestampIds(
+            `0x${Buffer.from(identifierDoc).toString("hex")}`,
+            didRecord?.totalDidVersions?.toNumber()
+          )
+          .catch(() => []);
+      });
+      return Promise.all(promises);
+    },
+    [didRegistryContract]
+  );
+
+  const getDidRecordIdentifiersByControllerId = useCallback(
+    async (walletAddr) => {
+      if (!didRegistryContract || !walletAddr) {
+        return {
+          items: [],
+        };
+      }
+      return didRegistryContract.getDidRecordIdentifiersByControllerId(
+        walletAddr,
+        1,
+        50
+      );
+    },
+    [didRegistryContract]
+  );
 
   const didToBeSent = useMemo(() => {
     if (walletAddress && publicKey) {
-      const document = createDidDocument(
-        `did:ebsi:${walletAddress}`,
-        publicKey
-      );
+      const document = createDidDocument(identifier, publicKey);
       return JSON.stringify(buildDidParams(document), null, 2);
     }
     return "";
-  }, [walletAddress, publicKey]);
+  }, [walletAddress, publicKey, identifier]);
 
   const insertDidAs = useCallback(
-    (didUser: string) => {
-      if (!registryContract) {
+    async (didUser: string) => {
+      if (!didRegistryContract) {
         return;
       }
       const didAsBytes = ethers.utils.toUtf8Bytes(didUser);
-      registryContract
-        .insertAdministrator(didUser, didAsBytes)
-        .then(() => {
-          notification.success({
-            message: "Action successful",
-            description: "DID was inserted successfully!",
-          });
-        })
-        .catch(() => {
-          notification.error({
-            message: "Error",
-            description:
-              "An error appeared while trying to insert the DID. Please try again",
-          });
+      try {
+        const tx = await didRegistryContract.insertAdministrator(
+          didUser,
+          didAsBytes
+        );
+        setShowPendingTxNotif(true);
+        await tx.wait(1);
+        notification.success({
+          message: "Action successful",
+          description: "DID Admin was inserted successfully!",
         });
+        setShowPendingTxNotif(false);
+      } catch (ex) {
+        setShowPendingTxNotif(false);
+        notification.error({
+          message: "Error",
+          description:
+            "An error appeared while trying to insert the DID. Please try again",
+        });
+      }
     },
-    [registryContract]
+    [didRegistryContract, setShowPendingTxNotif]
+  );
+
+  const getDidFromLs = useCallback((walletAddr: string) => {
+    try {
+      const item = localStorage.getItem(LS_DID);
+      if (item) {
+        return JSON.parse(item)[walletAddr];
+      }
+      return "";
+    } catch (ex) {
+      return "";
+    }
+  }, []);
+
+  const registerDidToLs = useCallback(
+    (did: string) => {
+      if (!walletAddress) {
+        return;
+      }
+      try {
+        let currentData: { [key: string]: string } = {};
+        const lsData = localStorage.getItem(LS_DID);
+        if (lsData) {
+          currentData = JSON.parse(lsData);
+        }
+        if (!currentData[walletAddress]) {
+          localStorage.setItem(
+            LS_DID,
+            JSON.stringify({
+              [walletAddress]: did,
+              ...currentData,
+            })
+          );
+        }
+      } catch (ex) {
+        //
+      }
+    },
+    [walletAddress]
   );
 
   const registerDid = useCallback(
-    (didUser: string) => {
+    async (didUser: string) => {
       const document = createDidDocument(didUser, publicKey);
       const { param } = buildDidParams(document);
       const {
-        identifier,
         hashAlgorithmId,
         hashValue,
         didVersionInfo,
@@ -241,41 +250,127 @@ export default function useDidRegister() {
       if (!didRegistryContract) {
         return;
       }
-      didRegistryContract
-        .insertDidDocument(
-          identifier,
+
+      try {
+        const tx = await didRegistryContract.insertDidDocument(
+          param.identifier,
           hashAlgorithmId,
           hashValue,
           didVersionInfo,
           timestampData,
           didVersionMetadata
-        )
-        .then(() => {
-          notification.success({
-            message: "Action successful",
-            description: "A DID Document was inserted!",
-          });
-        })
-        .catch(() => {
-          notification.error({
-            message: "Error",
-            description:
-              "An error appeared while trying to insert the DID. Please try again",
-          });
+        );
+        setShowPendingTxNotif(true);
+        await tx.wait(1);
+        notification.success({
+          message: "Action successful",
+          description: "A DID Document was inserted!",
         });
+        setShowPendingTxNotif(false);
+        registerDidToLs(identifier);
+      } catch (ex) {
+        setShowPendingTxNotif(false);
+        notification.error({
+          message: "Error",
+          description:
+            "An error appeared while trying to insert the DID. Please try again",
+        });
+      }
     },
-    [didRegistryContract, publicKey]
+    [
+      didRegistryContract,
+      identifier,
+      publicKey,
+      registerDidToLs,
+      setShowPendingTxNotif,
+    ]
+  );
+
+  const loadTableData = useCallback(
+    async (didId): Promise<DataType | undefined> => {
+      if (!didId) {
+        return {
+          did: "",
+          didControllers: [],
+          versionHashes: [],
+          versionInfos: [],
+          metadataVersionIds: [],
+          metadata: [],
+          timestampsIds: [],
+          administratorLastHash: [],
+          exists: false,
+        };
+      }
+
+      const [didRecord, versionHashes, administratorLastHash] =
+        await Promise.all([
+          getDidRecord(didId),
+          getDidDocumentVersionIds(didId),
+          getAdministrator(didId),
+        ]);
+
+      const [timestampsIds, metadataVersionIds, versionInfos] =
+        await Promise.all([
+          getDidDocumentVersionDidTimestampIds(
+            versionHashes.items,
+            didRecord,
+            didId
+          ),
+          getDidDocumentVersionMetadataIds(versionHashes.items, didId).then(
+            (paginatedItems: PaginatedResponse[]) => {
+              let items: string[] = [];
+              for (const paginatedItem of paginatedItems) {
+                items = [...items, ...paginatedItem.items];
+              }
+              return items;
+            }
+          ),
+          getDidDocumentVersionsInfo(versionHashes.items),
+        ]);
+
+      const metadata = await getDidDocumentVersionMetadata(metadataVersionIds);
+
+      return {
+        did: didId,
+        exists: Object.keys(didRecord).length > 0,
+        didControllers: didRecord?.controllerIds
+          ? didRecord?.controllerIds.filter(onlyUnique)
+          : [],
+
+        versionHashes: versionHashes.items,
+        versionInfos,
+        metadataVersionIds,
+        metadata,
+        timestampsIds,
+        administratorLastHash: administratorLastHash || [],
+      };
+    },
+    [
+      getAdministrator,
+      getDidDocumentVersionDidTimestampIds,
+      getDidDocumentVersionIds,
+      getDidDocumentVersionMetadata,
+      getDidDocumentVersionMetadataIds,
+      getDidDocumentVersionsInfo,
+      getDidRecord,
+    ]
   );
 
   return {
     registerDid,
-    networkId,
-    loading,
-    publicKey,
     walletAddress,
-    didDefined,
     didToBeSent,
     insertDidAs,
-    didAsAdministrator,
+    getDidRecordIdentifiersByControllerId,
+    getDidDocumentVersionDidTimestampIds,
+    getDidDocumentVersionMetadataIds,
+    getDidDocumentVersionMetadata,
+    getDidDocumentVersionIds,
+    getDidDocumentVersionsInfo,
+    loadTableData,
+    getDidRecord,
+    getAdministrator,
+    registerDidToLs,
+    getDidFromLs,
   };
 }

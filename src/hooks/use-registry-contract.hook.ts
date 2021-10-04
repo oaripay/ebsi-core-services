@@ -1,16 +1,16 @@
 import { BigNumber } from "ethers";
-import { useCallback, useContext, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { useEthersHook } from "./use-ethers.hook";
 import { domains } from "../constants";
-import { AppContext } from "../AppContext";
+import { useAppContext } from "../AppContext";
 import { config } from "../config";
 
 const { PAGE_SIZE } = config;
 
 export function useRegistryContractHook() {
   const { registryContract } = useEthersHook();
-  const { page } = useContext(AppContext);
+  const { page } = useAppContext();
 
   const [totalItems, setTotalItems] = useState(0);
 

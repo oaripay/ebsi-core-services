@@ -1,34 +1,17 @@
 import React from "react";
-import JSONPretty from "react-json-pretty";
 
-import {
-  Alert,
-  Button,
-  Col,
-  Row,
-  Space,
-  Spin,
-  Statistic,
-  Typography,
-} from "antd";
-import Paragraph from "antd/es/typography/Paragraph";
+import { Alert, Button, Col, Row, Space, Spin, Statistic } from "antd";
 import { config } from "../../config";
 import useDidRegister from "./use-did-register";
+import RegisterDidTable from "./RegisterDidTable";
+import { useRegisterDidContext } from "./RegisterDid.context";
 
 export default function RegisterDid() {
-  const {
-    registerDid,
-    insertDidAs,
-    loading,
-    networkId,
-    publicKey,
-    walletAddress,
-    didDefined,
-    didToBeSent,
-    didAsAdministrator,
-  } = useDidRegister();
+  const { loading, networkId, publicKey, didDefined, didAsAdministrator } =
+    useRegisterDidContext();
 
-  const { Title } = Typography;
+  const { registerDid, insertDidAs, walletAddress } = useDidRegister();
+  const { identifier } = useRegisterDidContext();
 
   const DidAsAdministratorMessage = () =>
     didAsAdministrator ? (
@@ -79,7 +62,7 @@ export default function RegisterDid() {
           <Col>
             <Statistic
               title="DID"
-              value={`did:ebsi:${walletAddress}`}
+              value={identifier}
               decimalSeparator=""
               groupSeparator=""
             />
@@ -99,7 +82,7 @@ export default function RegisterDid() {
           <Button
             type="primary"
             disabled={didDefined || !publicKey}
-            onClick={() => registerDid(`did:ebsi:${walletAddress}`)}
+            onClick={() => registerDid(identifier)}
           >
             Register DID
           </Button>
@@ -107,7 +90,7 @@ export default function RegisterDid() {
             type="primary"
             className="m-l-4"
             disabled={!didDefined || !publicKey || didAsAdministrator}
-            onClick={() => insertDidAs(`did:ebsi:${walletAddress}`)}
+            onClick={() => insertDidAs(identifier)}
           >
             Insert DID as Administrator
           </Button>
@@ -125,15 +108,7 @@ export default function RegisterDid() {
           </Col>
         </Row>
         <Row className="m-t-10">
-          <Col span={4}>
-            <Title level={4}>DID document:</Title>
-            <Row>
-              <Col span={16}>
-                <Paragraph copyable={{ text: didToBeSent }} />
-                <JSONPretty id="json-pretty" data={didToBeSent} />
-              </Col>
-            </Row>
-          </Col>
+          <RegisterDidTable />
         </Row>
       </Spin>
     </Space>
