@@ -115,12 +115,16 @@ paths:
                   description: scope of did siop
                   type: string
             examples:
-              object:
+              ct_v1_onboard_01a:
+                summary: Request Verifiable Authorisation (CT v1 - ONBOARD_01a)
+                description: |
+                  This is test data for the [EBSI Conformance Test V1](https://ec.europa.eu/cefdigital/wiki/x/5YDwG) [ONBOARD_01a](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ONBOARD).
+                  Successful response (HTTP 201) means that the service (wallet) can request a Verifiable Authorisation according to the [specifications]().
                 value:
                   scope: "ebsi users onboarding"
       responses:
         201:
-          description: Success
+          description: Success - The service (wallet) can request a Verifiable Authorisation
           content:
             application/json:
               schema:
@@ -134,7 +138,7 @@ paths:
                   value:
                     session_token: openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.ebsi.zyz%2Faccess-tokens&scope=openid%20did_authn&request=eyJhbGciOiJIUzI1Ni...
         400:
-          description: Bad Request
+          description: Bad Request - The service (wallet) fails to request a Verifiable Authorisation
           content:
             application/problem+json:
               schema:
@@ -176,14 +180,42 @@ paths:
             schema:
               title: DID Auth id_token
               type: object
+              required:
+                - id_token
               properties:
                 id_token:
                   description: did auth id token created by the user candidate to be validated. Notice that this value holds more than the JWT but also parameters like state.
                   type: string
+                  example:
+                    test: "blabla"
+                state:
+                  description: Steat info
+                  type: string
+            example:
+              value:
+                id_token: "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj"
+          application/json:
+            schema:
+              title: DID Authentication ID Token
+              type: object
+              required:
+                - id_token
+              properties:
+                id_token:
+                  description: did auth id token created by the user candidate to be validated. Notice that this value holds more than the JWT but also parameters like state.
+                  type: string
+                state:
+                  description: Steat info
+                  type: string
             examples:
-              scope:
+              ct_v1_onboard_02:
+                summary: Request Verifiable Authorisation (CT v1 - ONBOARD_02)
+                description: |
+                  This is test data for the [EBSI Conformance Test V1](https://ec.europa.eu/cefdigital/wiki/x/5YDwG) [ONBOARD_02](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ONBOARD).
+                  Successful response (HTTP 201) means that the service (wallet) can prove a posession of a DID controlling key according to the [specifications]().
                 value:
                   id_token: "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj"
+                  state: "test"
       responses:
         201:
           description: Success
