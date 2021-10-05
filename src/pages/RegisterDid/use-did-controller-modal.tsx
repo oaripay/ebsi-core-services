@@ -19,7 +19,6 @@ type PropType = {
 export default function useDidControllerModal({
   insertDidControllerForm,
   updateDidControllerForm,
-  insertAdminForm,
   updateAdminForm,
   appendDidDocumentVersionHashForm,
   detachDidDocumentVersionHashForm,
@@ -143,24 +142,20 @@ export default function useDidControllerModal({
     setShowPendingTxNotif,
   ]);
 
-  const updateAdministrator = useCallback(async () => {
-    if (!didRegistryContract || !identifier) {
-      return undefined;
-    }
-    return updateAdminForm
-      .validateFields(["walletAddress", "attribute"])
-      .then(async () => {
-        const fields = updateAdminForm.getFieldsValue([
-          "walletAddress",
-          "attribute",
-        ]);
+  const updateAdministrator = useCallback(
+    async (did: string) => {
+      if (!didRegistryContract) {
+        return undefined;
+      }
+      return updateAdminForm.validateFields(["attribute"]).then(async () => {
+        const fields = updateAdminForm.getFieldsValue(["attribute"]);
         try {
           const didAsBytes = ethers.utils.toUtf8Bytes(fields.attribute);
           setShowPendingTxNotif(true);
 
           const tx = await didRegistryContract[
             "updateAdministrator(string,bytes)"
-          ](identifier, didAsBytes);
+          ](did, didAsBytes);
           resetModal();
 
           await tx.wait(1);
@@ -181,25 +176,20 @@ export default function useDidControllerModal({
           return false;
         }
       });
-  }, [
-    didRegistryContract,
-    identifier,
-    resetModal,
-    setShowPendingTxNotif,
-    updateAdminForm,
-  ]);
+    },
+    [didRegistryContract, resetModal, setShowPendingTxNotif, updateAdminForm]
+  );
 
-  const insertAdministrator = useCallback(() => {
-    if (!didRegistryContract || !identifier) {
-      return undefined;
-    }
-    return insertAdminForm.validateFields(["walletAddress"]).then(async () => {
-      // const fields = insertAdminForm.getFieldsValue(["walletAddress"]);
-      const didAsBytes = ethers.utils.toUtf8Bytes(identifier);
+  const insertAdministrator = useCallback(
+    async (did: string) => {
+      if (!didRegistryContract) {
+        return undefined;
+      }
+      const didAsBytes = ethers.utils.toUtf8Bytes(did);
       try {
         setShowPendingTxNotif(true);
         const tx = await didRegistryContract.insertAdministrator(
-          identifier,
+          did,
           didAsBytes
         );
         resetModal();
@@ -220,14 +210,9 @@ export default function useDidControllerModal({
         resetModal();
         return false;
       }
-    });
-  }, [
-    didRegistryContract,
-    identifier,
-    insertAdminForm,
-    setShowPendingTxNotif,
-    resetModal,
-  ]);
+    },
+    [didRegistryContract, setShowPendingTxNotif, resetModal]
+  );
 
   const updateDidController = useCallback(
     (didId: string) => {

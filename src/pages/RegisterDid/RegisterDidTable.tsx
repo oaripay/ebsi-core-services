@@ -37,7 +37,7 @@ export default function RegisterDidTable() {
           title={modal.title}
           visible={modal.visible}
           width={modal.width}
-          onCancel={resetModal}
+          onCancel={modal.onCancel || resetModal}
           onOk={modal.onOk || resetModal}
         >
           <>{modal.content}</>

@@ -9,7 +9,6 @@ import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { useWalletContext } from "../../components/Wallet/WalletContext";
 import DidControllerModalContent from "./DidControllerModalContent";
 import useDidControllerModal from "./use-did-controller-modal";
-import AdministratorControllerModalContent from "./AdministratorControllerModalContent";
 import { DataType, ModalPropsType, PaginatedResponse } from "./DidTableTypes";
 import AppendDidDocumentHashModalContent from "./AppendDidDocumentHashModalContent";
 import AdministratorUpdateControllerModalContent from "./AdministratorUpdateControllerModalContent";
@@ -164,7 +163,6 @@ export default function useDidTable() {
       content: <></>,
       title: "",
       visible: false,
-      width: 700,
       onOk: undefined,
     });
   }, []);
@@ -251,7 +249,20 @@ export default function useDidTable() {
                           onOk: () => {
                             insertDidController()?.then(() => {
                               initTable();
+                              insertDidControllerForm.resetFields([
+                                "newControllerId",
+                                "notBefore",
+                                "notAfter",
+                              ]);
                             });
+                          },
+                          onCancel: () => {
+                            insertDidControllerForm.resetFields([
+                              "newControllerId",
+                              "notBefore",
+                              "notAfter",
+                            ]);
+                            resetModal();
                           },
                           content: (
                             <DidControllerModalContent
@@ -275,7 +286,20 @@ export default function useDidTable() {
                           onOk: () => {
                             updateDidController(did)?.then(() => {
                               initTable();
+                              updateDidControllerForm.resetFields([
+                                "newControllerId",
+                                "notBefore",
+                                "notAfter",
+                              ]);
                             });
+                          },
+                          onCancel: () => {
+                            updateDidControllerForm.resetFields([
+                              "newControllerId",
+                              "notBefore",
+                              "notAfter",
+                            ]);
+                            resetModal();
                           },
                           content: (
                             <DidControllerModalContent
@@ -333,8 +357,21 @@ export default function useDidTable() {
                   title: "Append DID document version hash",
                   onOk: () => {
                     appendDidDocumentVersionHash()?.then(() => {
+                      appendDidDocumentVersionHashForm.resetFields([
+                        "hashAlgorithmId",
+                        "timestamp",
+                        "metadata",
+                      ]);
                       initTable();
                     });
+                  },
+                  onCancel: () => {
+                    appendDidDocumentVersionHashForm.resetFields([
+                      "hashAlgorithmId",
+                      "timestamp",
+                      "metadata",
+                    ]);
+                    resetModal();
                   },
                   content: (
                     <AppendDidDocumentHashModalContent
@@ -356,7 +393,16 @@ export default function useDidTable() {
                   onOk: () => {
                     detachDidDocumentVersionHash()?.then(() => {
                       initTable();
+                      detachDidDocumentVersionHashForm.resetFields([
+                        "versionHash",
+                      ]);
                     });
+                  },
+                  onCancel: () => {
+                    detachDidDocumentVersionHashForm.resetFields([
+                      "versionHash",
+                    ]);
+                    resetModal();
                   },
                   content: (
                     <DetachDidDocumentVersionHashContent
@@ -509,7 +555,7 @@ export default function useDidTable() {
     {
       title: "Administrator attributes last hash",
       key: "administratorLastHash",
-      render: ({ administratorLastHash }: any) => {
+      render: ({ administratorLastHash, did }: any) => {
         return (
           <>
             {administratorLastHash.length ? (
@@ -537,20 +583,8 @@ export default function useDidTable() {
                 <Button
                   disabled={didAsAdministrator}
                   onClick={() => {
-                    setModal({
-                      visible: true,
-                      title: "Insert Admin",
-                      onOk: () => {
-                        insertAdministrator()?.then(() => {
-                          initTable();
-                        });
-                      },
-                      content: (
-                        <AdministratorControllerModalContent
-                          form={insertAdminForm}
-                        />
-                      ),
-                      width: 500,
+                    insertAdministrator(did)?.then(() => {
+                      initTable();
                     });
                   }}
                 >
@@ -565,9 +599,14 @@ export default function useDidTable() {
                       visible: true,
                       title: "Update Admin",
                       onOk: () => {
-                        updateAdministrator()?.then(() => {
+                        updateAdministrator(did)?.then(() => {
+                          updateAdminForm.resetFields(["attribute"]);
                           initTable();
                         });
+                      },
+                      onCancel: () => {
+                        updateAdminForm.resetFields(["attribute"]);
+                        resetModal();
                       },
                       content: (
                         <AdministratorUpdateControllerModalContent

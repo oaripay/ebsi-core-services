@@ -2,6 +2,7 @@ import { ethers } from "ethers";
 import { ec as EC } from "elliptic";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import bs58 from "bs58";
+import crypto from "crypto";
 
 type DocumentType = {
   "@context": string;
@@ -36,13 +37,13 @@ export function fromHexString(hexString: string): Uint8Array {
 
 export function createMetadata() {
   return {
-    meta: Buffer.from(ethers.utils.randomBytes(32)).toString("hex"),
+    meta: crypto.randomBytes(32).toString("hex"),
   };
 }
 
 export function createTimestamp() {
   return {
-    data: Buffer.from(ethers.utils.randomBytes(32)).toString("hex"),
+    data: crypto.randomBytes(32).toString("hex"),
   };
 }
 

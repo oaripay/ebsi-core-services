@@ -21,13 +21,6 @@ export default function AdministratorUpdateControllerModalContent({
     >
       <Row>
         <Col span={24}>
-          <Form.Item label="Wallet address" name="walletAddress">
-            <Input disabled />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Row>
-        <Col span={24}>
           <Form.Item
             label="Attribute"
             name="attribute"
