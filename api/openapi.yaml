@@ -186,14 +186,8 @@ paths:
                 id_token:
                   description: did auth id token created by the user candidate to be validated. Notice that this value holds more than the JWT but also parameters like state.
                   type: string
-                  example:
-                    test: "blabla"
-                state:
-                  description: Steat info
-                  type: string
             example:
-              value:
-                id_token: "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj"
+              id_token: "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6eVYzQXhWa2JiMllhVUp5UUJraUczQyNrZXktMSJ9.eyJpYXQiOjE2MzMzNDg4NjIsImV4cCI6MTYzMzM0OTE2MiwiaXNzIjoiaHR0cHM6Ly9zZWxmLWlzc3VlZC5tZSIsInN1YiI6IjVaVGFDMW84YmppV3F5eDhVeVRMaTdJRkQyeXVsaGFtRzV6WmEydEFnYXciLCJhdWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3VzZXJzLW9uYm9hcmRpbmcvdjEvYXV0aGVudGljYXRpb24tcmVzcG9uc2VzIiwibm9uY2UiOiIxMGMyODFiYi05YWVhLTRhNzEtODZjMi0wZDc4ZTdhMGY1ZjUiLCJzdWJfandrIjp7Imt0eSI6IkVDIiwiY3J2Ijoic2VjcDI1NmsxIiwieCI6InFKY29QY3BfRC1LcHMzd3hvRHlGTDB0ZzI5V0w5V2VnSlZaT0ZoakVVQWciLCJ5IjoieFFSaGtMVmxwNUNVYVZFNURTb1U1N3M5TFJqTlZFb21MRTl1amNpZDRmOCIsImtpZCI6ImRpZDplYnNpOnp5VjNBeFZrYmIyWWFVSnlRQmtpRzNDI2tleS0xIn19.RA8f0HCHoZEJPLmX9VUWFcHhIVujQHRG8dpYPDrRZma6LByKtFMyt_8UOfHH7kdAHbVXTw0wA0qgt77Hh7XJCg"
           application/json:
             schema:
               title: DID Authentication ID Token
@@ -204,21 +198,23 @@ paths:
                 id_token:
                   description: did auth id token created by the user candidate to be validated. Notice that this value holds more than the JWT but also parameters like state.
                   type: string
-                state:
-                  description: Steat info
-                  type: string
             examples:
               ct_v1_onboard_02:
                 summary: Request Verifiable Authorisation (CT v1 - ONBOARD_02)
                 description: |
-                  This is test data for the [EBSI Conformance Test V1](https://ec.europa.eu/cefdigital/wiki/x/5YDwG) [ONBOARD_02](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ONBOARD).
-                  Successful response (HTTP 201) means that the service (wallet) can prove a posession of a DID controlling key according to the [specifications]().
+                  This is test data for the [EBSI Conformance Test
+                  V1](https://ec.europa.eu/cefdigital/wiki/x/5YDwG)
+                  [ONBOARD_02](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ONBOARD).
+                  Successful response (HTTP 201) means that the service (wallet)
+                  can:
+                  - Create an [EBSI-compliant DID]()
+                  - Can create a DID controlling key supported by EBSI
+                  - Can prove a posession of a DID controlling key as defined in the [specifications]()
                 value:
                   id_token: "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj"
-                  state: "test"
       responses:
         201:
-          description: Success
+          description: Success - The service (wallet) can prove DID key possession.
           content:
             application/json:
               schema:
