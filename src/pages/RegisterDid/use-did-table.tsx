@@ -156,8 +156,6 @@ export default function useDidTable() {
     initTable();
   }, [initTable]);
 
-  const { didAsAdministrator } = useRegisterDidContext();
-
   const resetModal = useCallback(() => {
     setModal({
       content: <></>,
@@ -247,7 +245,7 @@ export default function useDidTable() {
                           visible: true,
                           title: "Insert DID Controller",
                           onOk: () => {
-                            insertDidController()?.then(() => {
+                            insertDidController(did)?.then(() => {
                               initTable();
                               insertDidControllerForm.resetFields([
                                 "newControllerId",
@@ -555,7 +553,7 @@ export default function useDidTable() {
     {
       title: "Administrator attributes last hash",
       key: "administratorLastHash",
-      render: ({ administratorLastHash, did }: any) => {
+      render: ({ administratorLastHash, did, isAdministrator }: any) => {
         return (
           <>
             {administratorLastHash.length ? (
@@ -581,7 +579,7 @@ export default function useDidTable() {
             <Space direction="vertical">
               <Row>
                 <Button
-                  disabled={didAsAdministrator}
+                  disabled={isAdministrator}
                   onClick={() => {
                     insertAdministrator(did)?.then(() => {
                       initTable();
