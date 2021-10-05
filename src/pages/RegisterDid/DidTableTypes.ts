@@ -16,6 +16,7 @@ export type DidRecordType = {
 };
 
 export type DataType = {
+  isAdministrator?: boolean;
   didControllers?: string[];
   versionHashes?: string[];
   metadata?: string[];

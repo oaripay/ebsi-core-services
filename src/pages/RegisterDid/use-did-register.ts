@@ -99,7 +99,7 @@ export default function useDidRegister() {
         return undefined;
       }
 
-      return didRegistryContract.getAdministrator(didId).catch(() => []);
+      return didRegistryContract.getAdministrator(didId);
     },
     [didRegistryContract]
   );
@@ -291,6 +291,7 @@ export default function useDidRegister() {
       if (!didId) {
         return {
           did: "",
+          isAdministrator: false,
           didControllers: [],
           versionHashes: [],
           versionInfos: [],
@@ -302,13 +303,20 @@ export default function useDidRegister() {
         };
       }
 
-      const [didRecord, versionHashes, administratorLastHash] =
-        await Promise.all([
-          getDidRecord(didId),
-          getDidDocumentVersionIds(didId),
-          getAdministrator(didId),
-        ]);
+      const [didRecord, versionHashes] = await Promise.all([
+        getDidRecord(didId),
+        getDidDocumentVersionIds(didId),
+      ]);
+      let administratorLastHash;
+      let isAdministrator;
 
+      try {
+        administratorLastHash = await getAdministrator(didId);
+        isAdministrator = true;
+      } catch (ex) {
+        administratorLastHash = [];
+        isAdministrator = false;
+      }
       const [timestampsIds, metadataVersionIds, versionInfos] =
         await Promise.all([
           getDidDocumentVersionDidTimestampIds(
@@ -332,6 +340,7 @@ export default function useDidRegister() {
 
       return {
         did: didId,
+        isAdministrator,
         exists: Object.keys(didRecord).length > 0,
         didControllers: didRecord?.controllerIds
           ? didRecord?.controllerIds.filter(onlyUnique)
