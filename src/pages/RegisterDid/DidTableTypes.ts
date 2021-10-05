@@ -5,8 +5,9 @@ export type ModalPropsType = {
   visible: boolean;
   content: ReactElement;
   title: string;
-  width: number;
+  width?: number;
   onOk?: (param?: any) => void;
+  onCancel?: () => void;
 };
 
 export type DidRecordType = {
