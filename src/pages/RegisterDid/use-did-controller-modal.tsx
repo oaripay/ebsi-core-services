@@ -231,7 +231,7 @@ export default function useDidControllerModal({
           try {
             setShowPendingTxNotif(true);
             const tx = await didRegistryContract.updateDidController(
-              `0x${Buffer.from(didId).toString("hex")}`,
+              ethers.utils.toUtf8Bytes(didId),
               fields.newControllerId,
               fields.notBefore.unix(),
               fields.notAfter.unix()
@@ -264,53 +264,55 @@ export default function useDidControllerModal({
     ]
   );
 
-  const insertDidController = useCallback(() => {
-    if (!didRegistryContract || !identifier) {
-      return undefined;
-    }
-    return insertDidControllerForm
-      .validateFields(["newControllerId", "notBefore", "notAfter"])
-      .then(async () => {
-        const fields = insertDidControllerForm.getFieldsValue([
-          "newControllerId",
-          "notBefore",
-          "notAfter",
-        ]);
-        try {
-          setShowPendingTxNotif(true);
-          const tx = await didRegistryContract.insertDidController(
-            `0x${Buffer.from(identifier).toString("hex")}`,
-            fields.newControllerId,
-            fields.notBefore.unix(),
-            fields.notAfter.unix()
-          );
-          resetModal();
+  const insertDidController = useCallback(
+    (did: string) => {
+      if (!didRegistryContract) {
+        return undefined;
+      }
+      return insertDidControllerForm
+        .validateFields(["newControllerId", "notBefore", "notAfter"])
+        .then(async () => {
+          const fields = insertDidControllerForm.getFieldsValue([
+            "newControllerId",
+            "notBefore",
+            "notAfter",
+          ]);
+          try {
+            setShowPendingTxNotif(true);
+            const tx = await didRegistryContract.insertDidController(
+              ethers.utils.toUtf8Bytes(did),
+              fields.newControllerId,
+              fields.notBefore.unix(),
+              fields.notAfter.unix()
+            );
+            resetModal();
 
-          await tx.wait(1);
-          notification.success({
-            message: "Action successful",
-            description: "DID Controller was inserted successfully!",
-          });
-          setShowPendingTxNotif(false);
-          return true;
-        } catch (ex) {
-          notification.error({
-            message: "Error",
-            description:
-              "An error appeared while trying to insert DID Controller. Please try again",
-          });
-          resetModal();
-          setShowPendingTxNotif(false);
-          return false;
-        }
-      });
-  }, [
-    didRegistryContract,
-    identifier,
-    insertDidControllerForm,
-    resetModal,
-    setShowPendingTxNotif,
-  ]);
+            await tx.wait(1);
+            notification.success({
+              message: "Action successful",
+              description: "DID Controller was inserted successfully!",
+            });
+            setShowPendingTxNotif(false);
+            return true;
+          } catch (ex) {
+            notification.error({
+              message: "Error",
+              description:
+                "An error appeared while trying to insert DID Controller. Please try again",
+            });
+            resetModal();
+            setShowPendingTxNotif(false);
+            return false;
+          }
+        });
+    },
+    [
+      didRegistryContract,
+      insertDidControllerForm,
+      resetModal,
+      setShowPendingTxNotif,
+    ]
+  );
 
   return {
     insertDidController,

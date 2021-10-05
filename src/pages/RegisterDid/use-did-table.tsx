@@ -247,7 +247,7 @@ export default function useDidTable() {
                           visible: true,
                           title: "Insert DID Controller",
                           onOk: () => {
-                            insertDidController()?.then(() => {
+                            insertDidController(did)?.then(() => {
                               initTable();
                               insertDidControllerForm.resetFields([
                                 "newControllerId",
