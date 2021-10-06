@@ -5,8 +5,9 @@ import { useEthersHook } from "../../hooks/use-ethers.hook";
 import { useWalletContext } from "../../components/Wallet/WalletContext";
 import { buildDidParams, createDidDocument, onlyUnique } from "./DidUtils";
 import { useRegisterDidContext } from "./RegisterDid.context";
-import { DataType, DidRecordType, PaginatedResponse } from "./DidTableTypes";
+import { DataType, DidRecordType } from "./DidTableTypes";
 import { useNotificationContext } from "../../components/Notification/Notification.context";
+import { PaginatedResponseType } from "../../shared/PaginatedResponseType";
 
 export const LS_DID = "EBSI_DID";
 
@@ -325,7 +326,7 @@ export default function useDidRegister() {
             didId
           ),
           getDidDocumentVersionMetadataIds(versionHashes.items, didId).then(
-            (paginatedItems: PaginatedResponse[]) => {
+            (paginatedItems: PaginatedResponseType[]) => {
               let items: string[] = [];
               for (const paginatedItem of paginatedItems) {
                 items = [...items, ...paginatedItem.items];

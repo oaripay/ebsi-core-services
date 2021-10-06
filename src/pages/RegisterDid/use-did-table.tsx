@@ -9,7 +9,7 @@ import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { useWalletContext } from "../../components/Wallet/WalletContext";
 import DidControllerModalContent from "./DidControllerModalContent";
 import useDidControllerModal from "./use-did-controller-modal";
-import { DataType, ModalPropsType, PaginatedResponse } from "./DidTableTypes";
+import { DataType, ModalPropsType } from "./DidTableTypes";
 import AppendDidDocumentHashModalContent from "./AppendDidDocumentHashModalContent";
 import AdministratorUpdateControllerModalContent from "./AdministratorUpdateControllerModalContent";
 import DetachDidDocumentVersionHashContent from "./DetachDidDocumentVersionHashContent";
@@ -17,6 +17,7 @@ import { useRegisterDidContext } from "./RegisterDid.context";
 import s from "./style.module.css";
 import useDidRegister from "./use-did-register";
 import { onlyUnique } from "./DidUtils";
+import { PaginatedResponseType } from "../../shared/PaginatedResponseType";
 
 export enum SourceType {
   MY_DID_RECORD = "MY_DID_RECORD",
@@ -118,7 +119,7 @@ export default function useDidTable() {
       }
       if (sourceType === SourceType.MY_CONTROLLER_DIDS) {
         getDidRecordIdentifiersByControllerId(walletAddress).then(
-          (didResponse: PaginatedResponse) => {
+          (didResponse: PaginatedResponseType) => {
             const allDids = [
               ...getDidsFromLs(),
               ...didResponse.items.map((item) =>

@@ -34,11 +34,6 @@ export type PropType = {
   didRecord: DidRecordType;
 };
 
-export type PaginatedResponse = {
-  howMany: BigNumber;
-  items: string[];
-};
-
 export type HashAlgo = {
   id: number;
   name: string;

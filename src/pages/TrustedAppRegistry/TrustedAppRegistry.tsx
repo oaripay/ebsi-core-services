@@ -7,13 +7,13 @@ import { ModalUpdateApp } from "../../Modals/ModalUpdateApp";
 import ModalInsertPublicKey from "../../Modals/ModalInsertPublicKey";
 import ModalInsertAuth from "../../Modals/ModalInsertAuth";
 import { useAppContext } from "../../AppContext";
-import { useRegistryContractEventsHook } from "../../hooks/use-registry-contract-events.hook";
+import { useVerifyNetworkEffectHook } from "../../hooks/use-verify-network-effect.hook";
 import { useSearchEventsHook } from "../../hooks/use-search-events.hook";
 
 export default function TrustedAppRegistry() {
   const { Footer } = Layout;
   const appCtx = useAppContext();
-  useRegistryContractEventsHook();
+  useVerifyNetworkEffectHook();
   useSearchEventsHook();
 
   if (!appCtx.metamask) {

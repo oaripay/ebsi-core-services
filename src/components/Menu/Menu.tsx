@@ -3,6 +3,7 @@ import { Layout, Menu as MenuAntd } from "antd";
 import {
   AppstoreOutlined,
   HomeOutlined,
+  KeyOutlined,
   UserAddOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
@@ -44,6 +45,14 @@ export default function Menu() {
         >
           <Link to={config.routes.trustedAppsRegistry}>
             Trusted Apps Registry
+          </Link>
+        </MenuAntd.Item>
+        <MenuAntd.Item
+          key={config.routes.trustedIssuersRegistry}
+          icon={<KeyOutlined />}
+        >
+          <Link to={config.routes.trustedIssuersRegistry}>
+            Trusted Issuers Registry
           </Link>
         </MenuAntd.Item>
       </MenuAntd>

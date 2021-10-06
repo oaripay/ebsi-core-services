@@ -5,6 +5,8 @@ import { config } from "../config";
 
 import TarRegistry from "../contracts/tar.json";
 import DidRegistry from "../contracts/DidRegistry.json";
+import TirRegistry from "../contracts/tir.json";
+
 import { useAppContext } from "../AppContext";
 
 export function useEthersHook() {
@@ -29,6 +31,18 @@ export function useEthersHook() {
     return contract.connect(provider.getSigner());
   }, [provider]);
 
+  const trustedIssuersContract = useMemo(() => {
+    if (!provider) {
+      return undefined;
+    }
+    const contract = new ethers.Contract(
+      config.TIR_REGISTRY_ADDRESS,
+      TirRegistry,
+      provider
+    );
+    return contract.connect(provider.getSigner());
+  }, [provider]);
+
   const didRegistryContract = useMemo(() => {
     if (!provider) {
       return undefined;
@@ -41,5 +55,10 @@ export function useEthersHook() {
     return contract.connect(provider.getSigner());
   }, [provider]);
 
-  return { provider, registryContract, didRegistryContract };
+  return {
+    provider,
+    registryContract,
+    didRegistryContract,
+    trustedIssuersContract,
+  };
 }

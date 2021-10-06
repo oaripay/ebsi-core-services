@@ -4,11 +4,15 @@ export const config = {
   REGISTRY_ADDRESS:
     process.env.REACT_APP_REGISTRY_ADDRESS ||
     "0x4d06b562588cb61616959806726c5d9f060b0f21",
+  TIR_REGISTRY_ADDRESS:
+    process.env.REACT_APP_TIR_REGISTRY_ADDRESS ||
+    "0xFdfbCE7F3c12A902B79e0ceB0DB2662331bBA1aF",
   DID_REGISTRY_ADDRESS:
     process.env.REACT_APP_DID_REGISTRY_ADDRESS ||
     "0x15582f47140ff4bd74843583a1e3111032fb91c8",
   routes: {
     trustedAppsRegistry: "/apps-admin/trusted-apps-registry",
+    trustedIssuersRegistry: "/trusted-issuers-registry",
     registerDid: "/apps-admin/register-did",
     default: "/apps-admin",
   },

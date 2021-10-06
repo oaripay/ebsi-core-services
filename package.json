@@ -7,6 +7,7 @@
     "@cef-ebsi/wallet-lib": "^1.0.0-rc.2",
     "@craco/craco": "^6.2.0",
     "@metamask/detect-provider": "^1.2.0",
+    "@testing-library/jest-dom": "^4.2.4",
     "antd": "^4.16.12",
     "bs58": "^4.0.1",
     "craco-less": "^1.18.0",
@@ -14,12 +15,12 @@
     "ethers": "^5.0.2",
     "fuse.js": "^6.2.1",
     "moment": "^2.29.1",
+    "multiformats": "^9.4.8",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-json-pretty": "^2.2.0",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "4.0.3",
-    "@testing-library/jest-dom": "^4.2.4"
+    "react-scripts": "4.0.3"
   },
   "devDependencies": {
     "@testing-library/react": "^9.3.2",

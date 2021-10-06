@@ -6,12 +6,16 @@ import RegisterDid from "./pages/RegisterDid/RegisterDid";
 import TrustedAppRegistry from "./pages/TrustedAppRegistry/TrustedAppRegistry";
 import Main from "./pages/Main/Main";
 import { RegisterDidProvider } from "./pages/RegisterDid/RegisterDid.context";
+import TrustedIssuersRegistry from "./pages/TrustedIssuersRegistry/TrustedIssuersRegistry";
 
 export default function BodyComponents(): ReactElement {
   return (
     <Switch>
       <Route exact path={config.routes.trustedAppsRegistry}>
         <TrustedAppRegistry />
+      </Route>
+      <Route exact path={config.routes.trustedIssuersRegistry}>
+        <TrustedIssuersRegistry />
       </Route>
       <Route exact path={config.routes.registerDid}>
         <RegisterDidProvider>
