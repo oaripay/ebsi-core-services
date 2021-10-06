@@ -1,36 +1,58 @@
-import { Button, Space, Tag, Tooltip, Typography } from "antd";
-import React, { useCallback, useContext } from "react";
+import { Button, Row, Space, Tag, Tooltip, Typography } from "antd";
+import React, { useCallback } from "react";
 import {
   EditOutlined,
-  KeyOutlined,
   PlusOutlined,
   PropertySafetyOutlined,
 } from "@ant-design/icons/lib";
 
-import { AppContext } from "../AppContext";
+import { useAppContext } from "../AppContext";
 import { useRegistryContractHook } from "./use-registry-contract.hook";
-import { useSearch } from "./use-search";
+import Ellipsis from "../components/Ellipsis/Ellipsis";
 
 const { Paragraph } = Typography;
 
 export function useTableHook() {
-  const appCtx = useContext(AppContext);
+  const {
+    setTableLoading,
+    searchedTerm,
+    setTableDataSource,
+    setMissingApps,
+    setSearchedTerm,
+    tableDataSource,
+    missingApps,
+    setInsertPublicKeyModal,
+    setUpdateAppPublicKey,
+    setAuthorizedAppsModal,
+    setUpdateAuthorization,
+    setEditModal,
+  } = useAppContext();
   const { getApplications } = useRegistryContractHook();
-  const { search } = useSearch();
 
   const loadTableData = useCallback(() => {
-    appCtx.setTableLoading(true);
-    if (appCtx.searchedTerm) {
-      search(appCtx.searchedTerm);
-      return;
-    }
-    getApplications().then((data: any) => {
-      appCtx.setTableDataSource(data.tableData);
-      getApplications(data.missingAppsFromTable).then((missingApps: any) => {
-        appCtx.setMissingApps(missingApps.tableData);
+    if (!searchedTerm) {
+      setTableLoading(true);
+      getApplications().then((data: any) => {
+        setTableDataSource(data.tableData);
+        getApplications(data.missingAppsFromTable).then(
+          (newMissingApps: any) => {
+            setMissingApps(newMissingApps.tableData);
+          }
+        );
       });
-    });
-  }, [search, getApplications, appCtx.page, appCtx.searchedTerm]);
+    }
+  }, [
+    getApplications,
+    searchedTerm,
+    setMissingApps,
+    setTableDataSource,
+    setTableLoading,
+  ]);
+
+  const resetTableData = useCallback(() => {
+    setTableDataSource([]);
+    setSearchedTerm("");
+  }, [setSearchedTerm, setTableDataSource]);
 
   const columns = [
     {
@@ -49,18 +71,64 @@ export function useTableHook() {
     },
     {
       title: "Public Key",
-      dataIndex: "publicKeys",
-      key: "publicKeys",
-      render: (pubKeys: string[]) => {
-        return pubKeys.map((pubKey) => {
-          return (
-            <Paragraph copyable={{ text: pubKey }} key={pubKey}>
-              <Tooltip title={pubKey}>
-                <span>{`${pubKey.slice(0, 8)}...${pubKey.slice(-8)}`}</span>
-              </Tooltip>
-            </Paragraph>
-          );
-        });
+      render: (params: any) => {
+        const { publicKeys } = params;
+        return (
+          <>
+            {publicKeys.map((pubKey: string) => {
+              return (
+                <div key={pubKey}>
+                  <Row align="middle">
+                    <Paragraph copyable={{ text: pubKey }} key={pubKey}>
+                      <Tooltip title={pubKey}>
+                        <span>{`${pubKey.slice(0, 8)}...${pubKey.slice(
+                          -8
+                        )}`}</span>
+                      </Tooltip>
+                    </Paragraph>
+                    <Paragraph>
+                      <Button
+                        title="Update an existing public key"
+                        type="link"
+                        className="m-l-4 p-0"
+                        onClick={() => {
+                          setUpdateAppPublicKey({
+                            show: true,
+                            data: {
+                              publicKey: pubKey,
+                              status: params.status,
+                              id: params.id,
+                              name: params.name,
+                            },
+                          });
+                        }}
+                      >
+                        <EditOutlined />
+                      </Button>
+                    </Paragraph>
+                  </Row>
+                </div>
+              );
+            })}
+            <Row>
+              <Button
+                type="link"
+                className="p-0"
+                onClick={() => {
+                  setInsertPublicKeyModal({
+                    show: true,
+                    data: {
+                      appId: params.id,
+                    },
+                  });
+                }}
+              >
+                <PlusOutlined />
+                Add a new key
+              </Button>
+            </Row>
+          </>
+        );
       },
     },
     {
@@ -68,15 +136,16 @@ export function useTableHook() {
       key: "authorizedApps",
       width: 500,
       render: (params: any) => {
-        if (params.authorizedApps.length) {
+        const { authorizedApps } = params;
+        if (authorizedApps.length) {
           return (
-            <Paragraph ellipsis={{ rows: 3, expandable: true, symbol: "More" }}>
+            <Ellipsis>
               {params.authorizedApps.map((authApp: any) => {
-                let name = appCtx.tableDataSource.find(
+                let name = tableDataSource.find(
                   (param: any) => param.id === authApp
                 )?.name;
                 if (!name) {
-                  name = appCtx.missingApps.find(
+                  name = missingApps.find(
                     (param: any) => param.id === authApp
                   )?.name;
                 }
@@ -86,7 +155,7 @@ export function useTableHook() {
                   </Tag>
                 );
               })}
-            </Paragraph>
+            </Ellipsis>
           );
         }
         return <></>;
@@ -97,46 +166,11 @@ export function useTableHook() {
       render: (params: any) => {
         return (
           <Space>
-            <Tooltip title="Add public key">
-              <Button
-                type="default"
-                onClick={() => {
-                  appCtx.setInsertPublicKeyModal({
-                    show: true,
-                    data: {
-                      appId: params.id,
-                    },
-                  });
-                }}
-              >
-                <PlusOutlined />
-                <KeyOutlined />
-              </Button>
-            </Tooltip>
-            <Tooltip title="Update an existing public key">
-              <Button
-                type="default"
-                onClick={() => {
-                  appCtx.setUpdateAppPublicKey({
-                    show: true,
-                    data: {
-                      publicKeys: params.publicKeys,
-                      status: params.status,
-                      id: params.id,
-                      name: params.name,
-                    },
-                  });
-                }}
-              >
-                <EditOutlined />
-                <KeyOutlined />
-              </Button>
-            </Tooltip>
             <Tooltip title="Add authorization">
               <Button
                 type="default"
                 onClick={() => {
-                  appCtx.setAuthorizedAppsModal({
+                  setAuthorizedAppsModal({
                     show: true,
                     data: {
                       name: params.name,
@@ -152,7 +186,7 @@ export function useTableHook() {
               <Button
                 type="default"
                 onClick={() => {
-                  appCtx.setUpdateAuthorization({
+                  setUpdateAuthorization({
                     show: true,
                     data: {
                       appId: params.id,
@@ -169,7 +203,7 @@ export function useTableHook() {
               <Button
                 type="default"
                 onClick={() => {
-                  appCtx.setEditModal({
+                  setEditModal({
                     show: true,
                     data: {
                       domain: params.domain,
@@ -188,5 +222,5 @@ export function useTableHook() {
     },
   ];
 
-  return { columns, loadTableData };
+  return { columns, loadTableData, resetTableData };
 }

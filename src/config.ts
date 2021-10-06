@@ -1,21 +1,49 @@
 export const config = {
   PAGE_SIZE: 50,
   EBSI_CHAIN_ID: process.env.REACT_APP_EBSI_CHAIN_ID || 6175,
-  PROVIDER:
-    process.env.REACT_APP_PROVIDER ||
-    "https://ebsi:password@www.test.intebsi.xyz/besu",
   REGISTRY_ADDRESS:
     process.env.REACT_APP_REGISTRY_ADDRESS ||
     "0x4d06b562588cb61616959806726c5d9f060b0f21",
+  TIR_REGISTRY_ADDRESS:
+    process.env.REACT_APP_TIR_REGISTRY_ADDRESS ||
+    "0xFdfbCE7F3c12A902B79e0ceB0DB2662331bBA1aF",
   DID_REGISTRY_ADDRESS:
     process.env.REACT_APP_DID_REGISTRY_ADDRESS ||
     "0x15582f47140ff4bd74843583a1e3111032fb91c8",
-  NOTIFICATION_URL:
-    process.env.REACT_APP_TAW_TX_URI || "/raw-transaction-signatures",
-  REDIRECT_URL: process.env.REACT_APP_REDIRECT_URL || "http://localhost:3000",
-  WALLET_WEB_CLIENT_URL:
-    process.env.REACT_APP_WALLET_WEB_CLIENT_URL ||
-    "https://app.intebsi.xyz/wallet/notifications",
-  EBSI_API:
-    process.env.REACT_APP_WALLET_API || "https://api.intebsi.xyz/wallet/v1",
+  routes: {
+    trustedAppsRegistry: "/apps-admin/trusted-apps-registry",
+    trustedIssuersRegistry: "/trusted-issuers-registry",
+    registerDid: "/apps-admin/register-did",
+    default: "/apps-admin",
+  },
+  hashAlgos: [
+    {
+      id: 1,
+      name: "SHA-256",
+    },
+    // {
+    //   id: 2,
+    //   name: "SHA-384",
+    // },
+    // {
+    //   id: 3,
+    //   name: "SHA-512",
+    // },
+    // {
+    //   id: 4,
+    //   name: "SHA3-224",
+    // },
+    // {
+    //   id: 5,
+    //   name: "SHA3-256",
+    // },
+    // {
+    //   id: 6,
+    //   name: "SHA3-384",
+    // },
+    // {
+    //   id: 7,
+    //   name: "SHA3-512",
+    // },
+  ],
 };

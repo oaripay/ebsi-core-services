@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   Col,
   DatePicker,
@@ -11,18 +11,16 @@ import {
 } from "antd";
 
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import { AppContext } from "../AppContext";
+import { useAppContext } from "../AppContext";
 import { notAfterDate } from "../date-validator";
 import { useTableHook } from "../hooks/use-table-hook";
 
 export function ModalUpdateAuthorization() {
   const [form] = Form.useForm();
 
-  const {
-    updateAuthorization,
-    getAuthorizationsIds,
-  } = useRegistryContractHook();
-  const appCtx = useContext(AppContext);
+  const { updateAuthorization, getAuthorizationsIds } =
+    useRegistryContractHook();
+  const appCtx = useAppContext();
 
   const { loadTableData } = useTableHook();
 
@@ -30,7 +28,7 @@ export function ModalUpdateAuthorization() {
     if (appCtx.updateAuthorization.show) {
       form.resetFields();
     }
-  }, [appCtx.updateAuthorization.show]);
+  }, [appCtx.updateAuthorization.show, form]);
 
   return (
     <Modal

@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  ReactElement,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 export type AppContextType = {
   tableLoading: true;
@@ -30,9 +37,17 @@ export type AppContextType = {
 
 const defaultValue: any = {};
 export const AppContext = React.createContext<AppContextType>(defaultValue);
+const Window: any = window;
 
-export function AppProvider({ children }: any) {
-  const defaultParams: any = {
+export function AppProvider({
+  children,
+}: {
+  children: ReactElement | ReactElement[];
+}) {
+  const defaultParams: {
+    searchedTerm: string;
+    page: number;
+  } = {
     searchedTerm: "",
     page: 1,
   };
@@ -58,29 +73,23 @@ export function AppProvider({ children }: any) {
 
   const [missingAppsState, setMissingAppsState] = useState([]);
 
-  const [insertPublicKeyModalState, setInsertPublicKeyModalState] = useState(
-    defaultParamsModal
-  );
-  const [authorizedAppsModalState, setAuthorizedAppsModalState] = useState(
-    defaultParamsModal
-  );
-  const [updateAppPublicKeyState, setUpdateAppPublicKeyState] = useState(
-    defaultParamsModal
-  );
+  const [insertPublicKeyModalState, setInsertPublicKeyModalState] =
+    useState(defaultParamsModal);
+  const [authorizedAppsModalState, setAuthorizedAppsModalState] =
+    useState(defaultParamsModal);
+  const [updateAppPublicKeyState, setUpdateAppPublicKeyState] =
+    useState(defaultParamsModal);
 
-  const [updateAuthorizationState, setUpdateAuthorizationState] = useState(
-    defaultParamsModal
-  );
+  const [updateAuthorizationState, setUpdateAuthorizationState] =
+    useState(defaultParamsModal);
 
   const basePageErr: string = "";
 
   const [pageErr, setPageErr] = useState(basePageErr);
-  const [metamask, setMetamask] = useState();
+  const [metamask, setMetamask] = useState(false);
   const [clearInput, setClearInput] = useState(false);
 
   useEffect(() => {
-    const Window: any = window;
-
     if (!Window?.ethereum) {
       setPageErr("Please install MetaMask first.");
     }
@@ -90,13 +99,24 @@ export function AppProvider({ children }: any) {
         setMetamask(Window.ethereum);
       }
       Window?.ethereum
-        .enable()
+        .request({ method: "eth_requestAccounts" })
         .then(() => {
           setMetamask(Window.ethereum);
         })
         .catch(() => {
           setPageErr("You need to allow MetaMask.");
         });
+    }
+  }, [metamask]);
+
+  useEffect(() => {
+    if (Window?.ethereum) {
+      Window?.ethereum.on("chainChanged", () => {
+        Window.location.reload();
+      });
+      Window?.ethereum.on("accountsChanged", () => {
+        Window.location.reload();
+      });
     }
   }, []);
 
@@ -120,100 +140,78 @@ export function AppProvider({ children }: any) {
     [updateAuthorizationState]
   );
 
-  const setTableLoading = useCallback(
-    (tableLoading) => {
-      setTableDataState({
-        ...tableDataState,
-        tableLoading,
-      });
-    },
-    [tableDataState]
-  );
+  const setTableLoading = useCallback((tableLoading) => {
+    setTableDataState((current) => ({
+      ...current,
+      tableLoading,
+    }));
+  }, []);
 
-  const setTableDataSource = useCallback(
-    (tableDataSource: any[]) => {
-      setTableDataState({
-        ...tableDataState,
-        tableDataSource,
-        filteredDataSource: tableDataSource,
-        tableLoading: false,
-      });
-    },
-    [tableDataState]
-  );
+  const setTableDataSource = useCallback((tableDataSource: any[]) => {
+    setTableDataState((current) => ({
+      ...current,
+      tableDataSource,
+      filteredDataSource: tableDataSource,
+      tableLoading: false,
+    }));
+  }, []);
 
-  const setMissingApps = useCallback(
-    (missingApps) => {
-      setMissingAppsState(missingApps);
-    },
-    [missingAppsState]
-  );
+  const setMissingApps = useCallback((missingApps) => {
+    setMissingAppsState(missingApps);
+  }, []);
 
   const setTableFilteredDataSource = useCallback(
     (filteredDataSource: any[]) => {
-      setTableDataState({
-        ...tableDataState,
+      setTableDataState((current) => ({
+        ...current,
         filteredDataSource,
         tableLoading: false,
-      });
+      }));
     },
-    [tableDataState]
+    []
   );
 
-  const setSearchedTerm = useCallback(
-    (searchedTerm: string) => {
-      setAppState({
-        ...appState,
-        searchedTerm,
-      });
-    },
-    [appState]
-  );
+  const setSearchedTerm = useCallback((searchedTerm: string) => {
+    setAppState((current) => ({
+      ...current,
+      searchedTerm,
+    }));
+  }, []);
 
-  const setPage = useCallback(
-    (page: number) => {
-      setAppState({
-        ...appState,
-        page,
-      });
-    },
-    [appState]
-  );
+  const setPage = useCallback((page: number) => {
+    setAppState((current) => ({
+      ...current,
+      page,
+    }));
+  }, []);
 
-  const setEditModal = useCallback(
-    (editModal: any) => {
-      setEditModalState({
-        ...editModalState,
-        ...editModal,
-      });
-    },
-    [editModalState]
-  );
+  const setEditModal = useCallback((editModal: any) => {
+    setEditModalState((current) => ({
+      ...current,
+      ...editModal,
+    }));
+  }, []);
 
-  const setInsertPublicKeyModal = useCallback(
-    (insertPubKeyModal: any) => {
-      setInsertPublicKeyModalState({
-        ...insertPublicKeyModalState,
-        ...insertPubKeyModal,
-      });
-    },
-    [insertPublicKeyModalState]
-  );
+  const setInsertPublicKeyModal = useCallback((insertPubKeyModal: any) => {
+    setInsertPublicKeyModalState((current) => ({
+      ...current,
+      ...insertPubKeyModal,
+    }));
+  }, []);
 
-  const setAuthorizedAppsModal = useCallback(
-    (authorizedAppsModal: any) => {
-      setAuthorizedAppsModalState({
-        ...authorizedAppsModalState,
-        ...authorizedAppsModal,
-      });
-    },
-    [authorizedAppsModalState]
-  );
+  const setAuthorizedAppsModal = useCallback((authorizedAppsModal: any) => {
+    setAuthorizedAppsModalState((current) => ({
+      ...current,
+      ...authorizedAppsModal,
+    }));
+  }, []);
 
-  const props: any = useMemo(() => {
+  const values: any = useMemo(() => {
     return {
       ...appState,
-      ...tableDataState,
+      tableLoading: tableDataState.tableLoading,
+      tableDataSource: tableDataState.tableDataSource,
+      filteredDataSource: tableDataState.filteredDataSource,
       editModal: editModalState,
       updateAppPublicKey: updateAppPublicKeyState,
       updateAuthorization: updateAuthorizationState,
@@ -238,20 +236,34 @@ export function AppProvider({ children }: any) {
     };
   }, [
     appState,
-    missingAppsState,
+    authorizedAppsModalState,
+    clearInput,
     editModalState,
+    insertPublicKeyModalState,
+    metamask,
+    missingAppsState,
+    pageErr,
+    setAuthorizedAppsModal,
+    setEditModal,
     setInsertPublicKeyModal,
-    tableDataState,
+    setMissingApps,
     setPage,
     setSearchedTerm,
-    authorizedAppsModalState,
+    setTableDataSource,
+    setTableFilteredDataSource,
+    setTableLoading,
+    setUpdateAppPublicKey,
+    setUpdateAuthorization,
+    tableDataState.filteredDataSource,
+    tableDataState.tableDataSource,
+    tableDataState.tableLoading,
     updateAppPublicKeyState,
     updateAuthorizationState,
-    updateAuthorizationState,
-    metamask,
-    clearInput,
-    setClearInput,
   ]);
 
-  return <AppContext.Provider value={props}>{children}</AppContext.Provider>;
+  return <AppContext.Provider value={values}>{children}</AppContext.Provider>;
+}
+
+export function useAppContext() {
+  return useContext(AppContext);
 }

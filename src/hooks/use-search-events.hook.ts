@@ -1,12 +1,14 @@
-import { useContext, useEffect } from "react";
-import { AppContext } from "../AppContext";
+import { useEffect } from "react";
+import { useAppContext } from "../AppContext";
 import { useSearch } from "./use-search";
 
 export function useSearchEventsHook() {
-  const appCtx = useContext(AppContext);
+  const appCtx = useAppContext();
   const { search } = useSearch();
 
   useEffect(() => {
-    search(appCtx.searchedTerm.trim());
-  }, [appCtx.searchedTerm]);
+    if (appCtx.searchedTerm) {
+      search(appCtx.searchedTerm.trim());
+    }
+  }, [appCtx.searchedTerm, search]);
 }

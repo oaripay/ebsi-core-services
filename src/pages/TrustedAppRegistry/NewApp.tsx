@@ -2,7 +2,7 @@ import { Button, Row, Space } from "antd";
 import React, { useState } from "react";
 import { PlusOutlined } from "@ant-design/icons/lib";
 
-import { ModalRegisterApp } from "./Modals/ModalRegisterApp";
+import { ModalRegisterApp } from "../../Modals/ModalRegisterApp";
 
 import { Search } from "./Search";
 import { Table } from "./Table";

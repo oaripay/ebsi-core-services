@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   Col,
   Form,
@@ -11,7 +11,7 @@ import {
 } from "antd";
 
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import { AppContext } from "../AppContext";
+import { useAppContext } from "../AppContext";
 import { domains } from "../constants";
 import { useTableHook } from "../hooks/use-table-hook";
 
@@ -20,13 +20,13 @@ export function ModalUpdateApp() {
 
   const { updateApp } = useRegistryContractHook();
   const { loadTableData } = useTableHook();
-  const appCtx = useContext(AppContext);
+  const appCtx = useAppContext();
 
   useEffect(() => {
     if (appCtx.editModal.show) {
       form.resetFields();
     }
-  }, [appCtx.editModal.show]);
+  }, [appCtx.editModal.show, form]);
 
   return (
     <Modal

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   Col,
   DatePicker,
@@ -12,7 +12,7 @@ import {
 } from "antd";
 
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import { AppContext } from "../AppContext";
+import { useAppContext } from "../AppContext";
 import { notAfterDate } from "../date-validator";
 import { useTableHook } from "../hooks/use-table-hook";
 
@@ -20,14 +20,14 @@ export function ModalUpdateAppPublicKey() {
   const [form] = Form.useForm();
 
   const { updateAppPublicKey } = useRegistryContractHook();
-  const appCtx = useContext(AppContext);
+  const appCtx = useAppContext();
   const { loadTableData } = useTableHook();
 
   useEffect(() => {
     if (appCtx.updateAppPublicKey.show) {
       form.resetFields();
     }
-  }, [appCtx.updateAppPublicKey.show]);
+  }, [appCtx.updateAppPublicKey.show, form]);
 
   return (
     <Modal
@@ -101,6 +101,7 @@ export function ModalUpdateAppPublicKey() {
             status: appCtx.updateAppPublicKey.data?.status,
             applicationId: appCtx.updateAppPublicKey.data?.id,
             notAfter: appCtx.updateAppPublicKey?.data?.notAfter,
+            publicKey: appCtx.updateAppPublicKey?.data?.publicKey,
           }}
         >
           <Row>
@@ -113,15 +114,7 @@ export function ModalUpdateAppPublicKey() {
           <Row>
             <Col lg={24}>
               <Form.Item label="Select Public key to update" name="publicKey">
-                <Select style={{ width: "100%" }}>
-                  {appCtx.updateAppPublicKey.data?.publicKeys.map(
-                    (key: string) => (
-                      <Select.Option key={key} value={key}>
-                        {key}
-                      </Select.Option>
-                    )
-                  )}
-                </Select>
+                <Input disabled />
               </Form.Item>
             </Col>
           </Row>

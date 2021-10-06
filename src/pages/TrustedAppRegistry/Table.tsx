@@ -1,34 +1,32 @@
-import React, { useContext, useEffect } from "react";
+import React, { useEffect } from "react";
 import { Table as TableAntd } from "antd";
 
 import { TablePaginationConfig } from "antd/es/table";
-import { useTableHook } from "./hooks/use-table-hook";
-import { AppContext } from "./AppContext";
-import { useRegistryContractHook } from "./hooks/use-registry-contract.hook";
+import { useTableHook } from "../../hooks/use-table-hook";
+import { useAppContext } from "../../AppContext";
+import { useRegistryContractHook } from "../../hooks/use-registry-contract.hook";
 
 export function Table() {
   const { columns, loadTableData } = useTableHook();
-  const appCtx = useContext(AppContext);
+  const { filteredDataSource, tableLoading, setPage } = useAppContext();
   const { totalItems, initTotalItems } = useRegistryContractHook();
 
   useEffect(() => {
     initTotalItems();
-  }, []);
-
-  const { getApplications } = useRegistryContractHook();
+  }, [initTotalItems]);
 
   useEffect(() => {
     loadTableData();
-  }, [getApplications, appCtx.page]);
+  }, [loadTableData]);
 
   return (
     <TableAntd
-      dataSource={appCtx.filteredDataSource}
+      dataSource={filteredDataSource}
       columns={columns}
-      loading={appCtx.tableLoading}
+      loading={tableLoading}
       rowKey="id"
       onChange={(changeEvent: TablePaginationConfig) => {
-        appCtx.setPage(changeEvent.current || 1);
+        setPage(changeEvent.current || 1);
       }}
       pagination={{
         position: ["bottomRight"],

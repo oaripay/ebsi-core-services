@@ -1,25 +1,28 @@
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { ethers } from "ethers";
 
 import { config } from "../config";
 
 import TarRegistry from "../contracts/tar.json";
 import DidRegistry from "../contracts/DidRegistry.json";
-import { AppContext } from "../AppContext";
+import TirRegistry from "../contracts/tir.json";
+
+import { useAppContext } from "../AppContext";
 
 export function useEthersHook() {
-  const appCtx = useContext(AppContext);
+  const appCtx = useAppContext();
 
-  const provider:
-    | ethers.providers.Web3Provider
-    | ethers.providers.JsonRpcProvider = useMemo(() => {
+  const provider: ethers.providers.Web3Provider | undefined = useMemo(() => {
     if (appCtx.metamask) {
       return new ethers.providers.Web3Provider(appCtx.metamask);
     }
-    return new ethers.providers.JsonRpcProvider();
+    return undefined;
   }, [appCtx.metamask]);
 
   const registryContract = useMemo(() => {
+    if (!provider) {
+      return undefined;
+    }
     const contract = new ethers.Contract(
       config.REGISTRY_ADDRESS,
       TarRegistry,
@@ -28,7 +31,22 @@ export function useEthersHook() {
     return contract.connect(provider.getSigner());
   }, [provider]);
 
+  const trustedIssuersContract = useMemo(() => {
+    if (!provider) {
+      return undefined;
+    }
+    const contract = new ethers.Contract(
+      config.TIR_REGISTRY_ADDRESS,
+      TirRegistry,
+      provider
+    );
+    return contract.connect(provider.getSigner());
+  }, [provider]);
+
   const didRegistryContract = useMemo(() => {
+    if (!provider) {
+      return undefined;
+    }
     const contract = new ethers.Contract(
       config.DID_REGISTRY_ADDRESS,
       DidRegistry,
@@ -37,5 +55,10 @@ export function useEthersHook() {
     return contract.connect(provider.getSigner());
   }, [provider]);
 
-  return { provider, registryContract, didRegistryContract };
+  return {
+    provider,
+    registryContract,
+    didRegistryContract,
+    trustedIssuersContract,
+  };
 }

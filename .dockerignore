@@ -5,3 +5,4 @@
 !./package*.json
 !./nginx.conf
 !./yarn.lock
+!./craco.config.js

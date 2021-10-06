@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
   Col,
   DatePicker,
@@ -13,7 +13,7 @@ import {
 import { ethers } from "ethers";
 
 import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import { AppContext } from "../AppContext";
+import { useAppContext } from "../AppContext";
 import { notAfterDate, notBeforeDate } from "../date-validator";
 import { useTableHook } from "../hooks/use-table-hook";
 import { useEthersHook } from "../hooks/use-ethers.hook";
@@ -22,15 +22,15 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
   const [form] = Form.useForm();
 
   const { registerApp } = useRegistryContractHook();
-  const { didRegistryContract } = useEthersHook();
-  const appCtx = useContext(AppContext);
+  const { didRegistryContract, registryContract } = useEthersHook();
+  const appCtx = useAppContext();
   const { loadTableData } = useTableHook();
 
   useEffect(() => {
     if (showAddModal) {
       form.resetFields();
     }
-  }, [showAddModal]);
+  }, [form, showAddModal]);
 
   return (
     <Modal
@@ -78,45 +78,63 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
               return;
             }
 
+            if (!didRegistryContract || !registryContract) {
+              return;
+            }
+
             didRegistryContract
               .getDidRecord(
                 `0x${Buffer.from(fields.appAdministrator).toString("hex")}`
               )
               .then(() => {
-                setShowAddModal(false);
-                registerApp(
-                  registerAppFields.name,
-                  registerAppFields.domain,
-                  registerAppFields.appAdministrator,
-                  registerAppFields.publicKey,
-                  registerAppFields.status,
-                  registerAppFields.notBefore,
-                  registerAppFields.notAfter
-                )
-                  .then((tx: any) => {
-                    tx.wait(1).then(() => {
-                      loadTableData();
-                      notification.success({
-                        message: "Transaction mined",
-                        description: `A new application was created!`,
+                registryContract
+                  .getAdministrator(fields.appAdministrator)
+                  .then(() => {
+                    setShowAddModal(false);
+                    registerApp(
+                      registerAppFields.name,
+                      registerAppFields.domain,
+                      registerAppFields.appAdministrator,
+                      registerAppFields.publicKey,
+                      registerAppFields.status,
+                      registerAppFields.notBefore,
+                      registerAppFields.notAfter
+                    )
+                      .then((tx: any) => {
+                        tx.wait(1).then(() => {
+                          loadTableData();
+                          notification.success({
+                            message: "Transaction mined",
+                            description: `A new application was created!`,
+                          });
+                        });
+                        notification.info({
+                          message: "Transaction",
+                          description: (
+                            <>
+                              <p>A transaction has been broadcasted.</p>
+                            </>
+                          ),
+                        });
+                      })
+                      .catch(() => {
+                        notification.error({
+                          message: "Error",
+                          duration: 5,
+                          description:
+                            "A problem appeared on trying to register app. Please make sure you're logged in wallet client. If that didn't fix please contact an admin for further instructions!",
+                        });
                       });
-                    });
-                    notification.info({
-                      message: "Transaction",
-                      description: (
-                        <>
-                          <p>A transaction has been broadcasted.</p>
-                        </>
-                      ),
-                    });
                   })
                   .catch(() => {
-                    notification.error({
-                      message: "Error",
-                      duration: 5,
-                      description:
-                        "A problem appeared on trying to register app. Please make sure you're logged in wallet client. If that didn't fix please contact an admin for further instructions!",
-                    });
+                    form.setFields([
+                      {
+                        name: "appAdministrator",
+                        errors: [
+                          "DID not defined as administrator in the Registry",
+                        ],
+                      },
+                    ]);
                   });
               })
               .catch(() => {
