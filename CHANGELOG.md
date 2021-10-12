@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.4&targetRepoId=245) (2021-10-04)
+
+### 🚀 Features
+
+- support DID JWT with publicKeyMultibase ([#60](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/pull-requests/60/overview)) - EBSIINT-3368 ([c01a8b1](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/commits/c01a8b11d1c8af2ead9c6626737346a28bd733ef))
+
 ## [2.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.3&targetRepoId=245) (2021-09-09)
 
 ### 🐛 Bug Fixes
