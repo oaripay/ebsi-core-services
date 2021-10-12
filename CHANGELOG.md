@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.5&targetRepoId=251) (2021-10-04)
+
+### 🐛 Bug Fixes
+
+- compare lowercase Ethereum addresses ([#68](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/68/overview)) - EBSIINT-3334 ([2f79d0a](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/2f79d0a6f62a383b9823e11e1e4eaf61963a7421))
+
+### 🚀 Features
+
+- follow the new EBSI DID method specification ([#67](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/67/overview)) - EBSIINT-3334 ([d4a2828](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/d4a28283dfe3c2a34efb3e25610938ca10de4bfa))
+- support DID JWT with publicKeyMultibase ([#69](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/69/overview)) - EBSIINT-3334 ([244f540](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/244f540a1f004490c4f99815dd9c74a9fcceb864))
+
 ## [2.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.4&targetRepoId=251) (2021-09-15)
 
 ### 🚀 Features
