@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.7](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.7&targetRepoId=234) (2021-10-04)
+
+### 🚀 Features
+
+- support DID JWT with publicKeyMultibase ([#44](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/pull-requests/44/overview)) - EBSIINT-3336 ([39f0d07](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/commits/39f0d071c5fddced7691cbb66f9b70437209a538))
+
 ## [1.0.0-rc.6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.6&targetRepoId=234) (2021-09-20)
 
 ### 🐛 Bug Fixes
