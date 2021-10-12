@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.4&targetRepoId=244) (2021-10-04)
+
+### 🚀 Features
+
+- support DID JWT with publicKeyMultibase ([#73](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/73/overview)) - EBSIINT-3367 ([a09f6a4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/a09f6a4da5fa94f774614ff1209a3421cb4c25f9))
+
+### 🐛 Bug Fixes
+
+- prevent SIOP auth for /besu eth_sendRawTransaction ([#74](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/74/overview)) - EBSIINT-3377 ([27ac2fe](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/27ac2fe71355a7e59cbab1f442f804a40f4d076b))
+
 ## [2.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.3&targetRepoId=244) (2021-09-09)
 
 ### 🚀 Features
