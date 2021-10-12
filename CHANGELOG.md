@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.5&targetRepoId=234) (2021-10-04)
+
+### 🐛 Bug Fixes
+
+- undo did lowercasing ([#99](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/99/overview)) - EBSIINT-3329 ([19da49c](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/19da49c65973a1d8a1a79e400768d808eeef990e))
+
+### 🚀 Features
+
+- check DID in /administrators endpoints ([#100](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/100/overview)) - EBSIINT-3329 ([5be0015](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/5be00152247c4629e6297cef6c47de68fd35f31b))
+- support DID JWT with publicKeyMultibase ([#101](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/101/overview)) - EBSIINT-3329 ([d623754](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/d6237542bedf3df686ae8de5d939a5c2cd902f76))
+
 ## [2.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.4&targetRepoId=234) (2021-09-20)
 
 ### 🚀 Features
