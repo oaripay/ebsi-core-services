@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.6&targetRepoId=247) (2021-10-04)
+
+### 🚀 Features
+
+- follow the new EBSI DID method specification ([#80](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/pull-requests/80/overview)) - EBSIINT-3332 ([9381eb2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/commits/9381eb288beb6142069e6c9334c475ca539aa781))
+- support DID JWT with publicKeyMultibase ([#81](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/pull-requests/81/overview)) - EBSIINT-3332 ([a62abe8](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/commits/a62abe87f1d9423fed496109c380a7d3d0f621a9))
+
 ## [2.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.5&targetRepoId=247) (2021-09-16)
 
 ### 🚀 Features
