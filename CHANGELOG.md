@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.3&targetRepoId=387) (2021-10-04)
+
+### 🐛 Bug Fixes
+
+- follow the new EBSI DID method specification ([#35](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/pull-requests/35/overview)) - EBSIINT-3335 ([fdcfef6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/commits/fdcfef655a3ad4599851d93415459396910e405f))
+
+### 🚀 Features
+
+- support DID JWT with publicKeyMultibase ([#36](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/pull-requests/36/overview)) - EBSIINT-3335 ([e74dee2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/commits/e74dee237e457348e8911a41c73b89f767920d93))
+
 ## [1.0.0-rc.2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.2&targetRepoId=387) (2021-09-16)
 
 ### 🚀 Features
