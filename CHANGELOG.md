@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.4&targetRepoId=248) (2021-10-04)
+
+### 🐛 Bug Fixes
+
+- follow new EBSI DID specifications ([#72](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/72/overview)) - EBSIINT-3333 ([f087bc6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/commits/f087bc63bb17fc0045c18561e13197a3e7ba4396))
+
+### 🚀 Features
+
+- support DID JWT with publicKeyMultibase ([#75](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/75/overview)) - EBSIINT-3333 ([fb0a1a3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/commits/fb0a1a38f6247410dd88a0890690d7f32cca2819))
+- validate DID in /administrators endpoints ([#74](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/74/overview)) - EBSIINT-3333 ([8cdc188](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/commits/8cdc188d2e88956351c4f7d8494af3edd1aeaa8f))
+
 ## [2.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.3&targetRepoId=248) (2021-09-15)
 
 ### 🚀 Features
