@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.11](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.10&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.11&targetRepoId=359) (2021-10-04)
+
+### 🚀 Features
+
+- return error 500 in /siop-sessions if the DID Registry returns 500 ([#60](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/60/overview)) - EBSIINT-3337 ([5c489ff](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/5c489ff5aee6e3e54ce87db7f13cbab1de0b6c87))
+
 ## [1.0.0-rc.10](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.9&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.10&targetRepoId=359) (2021-09-09)
 
 ### 🚀 Features
