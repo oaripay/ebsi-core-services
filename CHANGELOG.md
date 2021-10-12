@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-schemas-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.3&targetRepoId=292) (2021-10-04)
+
+### 🚀 Features
+
+- support DID JWT with publicKeyMultibase ([#43](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-schemas-registry-api/pull-requests/43/overview)) - EBSIINT-3363 ([67670a0](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-schemas-registry-api/commits/67670a0e349a750b6da035377b22e890a2618e3e))
+- support new EBSI DID specifications ([#42](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-schemas-registry-api/pull-requests/42/overview)) - EBSIINT-3363 ([7243519](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-schemas-registry-api/commits/7243519fbc91b0e55b93c92927a8a711a8a0a36e))
+
 ## [1.0.0-rc.2](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-schemas-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.2&targetRepoId=292)(2021-09-15)
 
 ### 🚀 Features
