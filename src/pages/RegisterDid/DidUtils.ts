@@ -86,7 +86,7 @@ export function createDidDocument(didUser: string, publicKey: string) {
     publicKeyBase58: bs58.encode(fromHexString(publicKey.slice(2))),
   };
   return {
-    "@context": "https://w3id.org/did/v1",
+    "@context": "https://www.w3.org/ns/did/v1",
     id: didUser,
     verificationMethod: [
       {
