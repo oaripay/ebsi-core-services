@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.4&targetRepoId=318) (2021-10-04)
+
+### 🐛 Bug Fixes
+
+- undo lowercase dids ([#33](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/pull-requests/33/overview)) - EBSIINT-3330 ([d39da93](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/commits/d39da932956be2bfff20e332f3f9ca968e9f26fb))
+
+### 🚀 Features
+
+- support DID JWT with publicKeyMultibase ([#34](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/pull-requests/34/overview)) - EBSIINT-3330 ([e0bb413](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/commits/e0bb41315874309e81a31c714dc9fb4231bb3f3b))
+
 ## [1.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.3&targetRepoId=318) (2021-09-09)
 
 ### 🐛 Bug Fixes
