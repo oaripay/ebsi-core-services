@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.4&targetRepoId=252) (2021-10-04)
+
+### 🚀 Features
+
+- follow the new EBSI DID method specification ([#49](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/49/overview)) - EBSIINT-3331 ([a28b15f](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/commits/a28b15f24e1780a196312e4fdaa3be27b933f5a2))
+- support DID JWT with publicKeyMultibase ([#50](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/50/overview)) - EBSIINT-3331 ([d05d2c8](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/commits/d05d2c82fca5464a4139684c7c5858b7dfd2bf9c))
+
 ## [2.0.0-rc.3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.2&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.3&targetRepoId=252) (2021-09-09)
 
 ### 🐛 Bug Fixes
