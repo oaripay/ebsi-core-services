@@ -3,4 +3,4 @@ version: "3.7"
 services:
   users-onboarding-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/users-onboarding-api:prod_ebsiint-3336-public-key-multibase_v1.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/users-onboarding-api:prod_ebsiint-3427-verify-did_v1.0.0

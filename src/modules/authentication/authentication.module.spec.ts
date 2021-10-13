@@ -1,6 +1,8 @@
 import request from "supertest";
+import crypto from "crypto";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { Test, TestingModule } from "@nestjs/testing";
+import { JWK } from "jose/types";
 import {
   INestApplication,
   HttpServer,
@@ -12,7 +14,10 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import { JWTVerified } from "@cef-ebsi/did-jwt";
+import * as EbsiDidJwt from "@cef-ebsi/did-jwt/dist/jwt";
+import { Resolver } from "did-resolver";
+import { JWTVerified, createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { AuthenticationModule } from "./authentication.module";
 import {
   AuthenticationResponse,
@@ -165,6 +170,66 @@ describe("Authentication Module", () => {
       expect(response.status).toBe(400);
     });
 
+    it("should reject a request with a token with an existing did but bad signature", async () => {
+      const did = EbsiWallet.createDid();
+      const privateKey = crypto.randomBytes(32).toString("hex");
+      const publicKey = new EbsiWallet(privateKey).getPublicKey({
+        format: "jwk",
+      }) as JWK;
+      const idToken = await createJWT(
+        {},
+        {
+          issuer: "https://self-issued.me",
+          signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+        },
+        {
+          kid: `${did}#keys-1`,
+        }
+      );
+
+      // Mock access token verification
+      jest
+        .spyOn(AuthService.prototype, "validateToken")
+        .mockResolvedValue({} as JWTVerified);
+
+      const didResolved = {
+        didResolutionMetadata: {
+          contenType: "application/did+ld+json",
+        },
+        didDocumentMetadata: {},
+        didDocument: {
+          "@context": "https://w3id.org/did/v1",
+          id: did,
+          verificationMethod: [
+            {
+              id: `${did}#keys-1`,
+              type: "EcdsaSecp256k1VerificationKey2019",
+              controller: did,
+              publicKeyJWK: publicKey,
+            },
+          ],
+        },
+      };
+
+      jest.spyOn(Resolver.prototype, "resolve").mockResolvedValue(didResolved);
+
+      jest
+        .spyOn(EbsiDidJwt, "verifyEbsiJWT")
+        .mockRejectedValue(new Error("invalid signature"));
+
+      const response = await request(server)
+        .post("/authentication-responses")
+        .auth("token", { type: "bearer" })
+        .send({ id_token: idToken });
+
+      expect(response.body).toStrictEqual({
+        title: "invalid signature",
+        status: 400,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
     it("should return a verifiable authorization", async () => {
       expect.assertions(2);
 
@@ -175,6 +240,84 @@ describe("Authentication Module", () => {
       jest
         .spyOn(AuthService.prototype, "validateToken")
         .mockResolvedValue({} as JWTVerified);
+
+      jest.spyOn(Resolver.prototype, "resolve").mockResolvedValue({
+        didResolutionMetadata: {
+          error: "notFound",
+          message: "did not found",
+        },
+        didDocumentMetadata: {},
+        didDocument: null,
+      });
+
+      const response = await request(server)
+        .post("/authentication-responses")
+        .auth("token", { type: "bearer" })
+        .send({ id_token: idToken });
+
+      expect(response.status).toBe(201);
+
+      const responseBody = response.body as VerifiableAuthorization;
+
+      expect(responseBody.verifiableCredential).toBeDefined();
+    });
+
+    it("should return a verifiable authorisation (existing did)", async () => {
+      const did = EbsiWallet.createDid();
+      const privateKey = crypto.randomBytes(32).toString("hex");
+      const publicKey = new EbsiWallet(privateKey).getPublicKey({
+        format: "jwk",
+      }) as JWK;
+      const idToken = await createJWT(
+        {},
+        {
+          issuer: "https://self-issued.me",
+          signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+        },
+        {
+          kid: `${did}#keys-1`,
+        }
+      );
+
+      // Mock access token verification
+      jest
+        .spyOn(AuthService.prototype, "validateToken")
+        .mockResolvedValue({} as JWTVerified);
+
+      const didResolved = {
+        didResolutionMetadata: {
+          contenType: "application/did+ld+json",
+        },
+        didDocumentMetadata: {},
+        didDocument: {
+          "@context": "https://w3id.org/did/v1",
+          id: did,
+          verificationMethod: [
+            {
+              id: `${did}#keys-1`,
+              type: "EcdsaSecp256k1VerificationKey2019",
+              controller: did,
+              publicKeyJWK: publicKey,
+            },
+          ],
+        },
+      };
+
+      jest.spyOn(Resolver.prototype, "resolve").mockResolvedValue(didResolved);
+
+      jest.spyOn(EbsiDidJwt, "verifyEbsiJWT").mockResolvedValue(
+        Promise.resolve({
+          payload: {},
+          didResolutionResult: didResolved,
+          issuer: "issuer",
+          signer: {
+            id: "id",
+            type: "type",
+            controller: "controller",
+          },
+          jwt: idToken,
+        })
+      );
 
       const response = await request(server)
         .post("/authentication-responses")

@@ -9,6 +9,7 @@ import { JWK } from "jose/types";
 import { createJWT, ES256KSigner } from "did-jwt";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import type { FastifyInstance } from "fastify";
+import { Resolver } from "did-resolver";
 import crypto from "crypto";
 import * as authenticationModule from "./authentication.module";
 import { ApiConfig } from "../../config/configuration";
@@ -74,7 +75,7 @@ describe("authentication service tests", () => {
     });
   });
 
-  it("should validate the response and call the getDidFromKid", async () => {
+  it("should validate the response", async () => {
     expect.assertions(1);
     const authenticationService: AuthenticationService =
       new AuthenticationService(configService);
@@ -96,9 +97,18 @@ describe("authentication service tests", () => {
       ),
     };
 
-    const mockedDidFromKid = jest.spyOn(utils, "getDidFromKid");
-    await authenticationService.validateResponse(mockedAuthRequest);
-    expect(mockedDidFromKid).toHaveBeenCalledWith(kid);
+    jest.spyOn(Resolver.prototype, "resolve").mockResolvedValue({
+      didResolutionMetadata: {
+        error: "notFound",
+        message: "did not found",
+      },
+      didDocumentMetadata: {},
+      didDocument: null,
+    });
+
+    await expect(
+      authenticationService.validateResponse(mockedAuthRequest)
+    ).resolves.not.toThrow();
   });
 
   it("should throw an error if the id_token can not be decoded", async () => {
@@ -121,6 +131,16 @@ describe("authentication service tests", () => {
       id_token:
         "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg",
     };
+
+    jest.spyOn(Resolver.prototype, "resolve").mockResolvedValue({
+      didResolutionMetadata: {
+        error: "notFound",
+        message: "did not found",
+      },
+      didDocumentMetadata: {},
+      didDocument: null,
+    });
+
     await expect(
       authenticationService.validateResponse(mockedAuthRequest)
     ).rejects.toThrow("sub_jwk missing in token payload");

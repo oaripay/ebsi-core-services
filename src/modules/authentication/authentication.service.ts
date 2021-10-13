@@ -1,7 +1,14 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { compactVerify } from "jose/jws/compact/verify";
 import { parseJwk } from "jose/jwk/parse";
-import { createJWT, decodeJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import {
+  createJWT,
+  decodeJWT,
+  ES256KSigner,
+  verifyEbsiJWT,
+} from "@cef-ebsi/did-jwt";
+import { Resolver } from "did-resolver";
+import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
 import { ConfigService } from "@nestjs/config";
 import { randomUUID } from "crypto";
 import {
@@ -28,11 +35,7 @@ import {
 } from "../../errors/errorCodes";
 import { ApiConfig } from "../../config/configuration";
 
-import {
-  getDidFromKid,
-  prefix0x,
-  prepareDidAuthRequest,
-} from "./authentication.utils";
+import { prefix0x, prepareDidAuthRequest } from "./authentication.utils";
 
 const USERS_ONBOARDING_SCOPE = "ebsi users onboarding";
 
@@ -52,6 +55,8 @@ export default class AuthenticationService {
 
   private applicationDid: string;
 
+  private authResponsesEndpoint: string;
+
   constructor(private configService: ConfigService<ApiConfig>) {
     this.privateKey = prefix0x(this.configService.get<string>("apiPrivateKey"));
     this.didResolver = configService.get<string>("didResolver");
@@ -65,6 +70,8 @@ export default class AuthenticationService {
     const applicationId = this.configService.get<string>("applicationId");
     this.applicationDid = this.configService.get<string>("applicationDid");
     this.kid = `${trustedAppRegistry}/${applicationId}`;
+
+    this.authResponsesEndpoint = `${this.domain}${this.apiUrlPrefix}/authentication-responses`;
   }
 
   async startAuthentication(
@@ -99,12 +106,38 @@ export default class AuthenticationService {
         `${OnboardingErrors.ERROR_DECODING_ID_TOKEN}: ${error as string}`
       );
     }
-    let kid: string;
-    /* TODO:
-       - check state and nonce
-       - check if the DID is registered in the DID Registry
-     */
-    // Verify that the JWK public key match with token signature
+
+    const { kid } = decodedIdToken.header;
+
+    if (typeof kid !== "string" || kid === "")
+      throw new InvalidUserAuthentication(
+        `${OnboardingErrors.ERROR_DECODING_ID_TOKEN}: kid not present in the headers`
+      );
+
+    // check if the DID exists
+    const did = kid.split("#")[0];
+    const resolver = new Resolver(getResolver({ registry: this.didResolver }));
+    const result = await resolver.resolve(did);
+    const { error: resError } = result.didResolutionMetadata;
+    if (!resError || resError !== "notFound") {
+      if (!result.didDocument)
+        throw new InvalidUserAuthentication(
+          result.didResolutionMetadata.message
+        );
+
+      try {
+        await verifyEbsiJWT(idToken, {
+          didRegistry: this.didResolver,
+          callbackUrl: this.authResponsesEndpoint,
+        });
+      } catch (error) {
+        throw new InvalidUserAuthentication((error as Error).message);
+      }
+      return did;
+    }
+
+    // The DID does not exist: Check the signature of the JWT using the
+    // public key defined in sub_jwk
     if (!decodedIdToken.payload.sub_jwk)
       throw new InvalidUserAuthentication(OnboardingErrors.MISSING_SUB_JWK);
     try {
@@ -120,7 +153,6 @@ export default class AuthenticationService {
         throw new InvalidUserAuthentication(
           OnboardingErrors.ERROR_SIGNATURE_AUTHENTICATION_RESPONSE
         );
-      kid = protectedHeader.kid;
     } catch (error) {
       throw new InvalidUserAuthentication(
         `${OnboardingErrors.ERROR_SIGNATURE_AUTHENTICATION_RESPONSE}: ${
@@ -128,17 +160,7 @@ export default class AuthenticationService {
         }`
       );
     }
-    /* const validation = await EbsiDidAuth.verifyAuthenticationResponse(
-      jwt,
-      this.didResolver,
-      `${this.domain}${this.apiUrlPrefix}/authentication-responses`,
-      payload.nonce // skipping verification
-    );
-    if (!validation || !validation.signatureValidation)
-      throw new InvalidUserAuthentication(
-        OnboardingErrors.ERROR_SIGNATURE_AUTHENTICATION_RESPONSE
-      ); */
-    return getDidFromKid(kid);
+    return did;
   }
 
   async createVerifiableAuthorisation(
