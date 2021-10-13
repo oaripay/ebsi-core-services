@@ -1133,7 +1133,7 @@ paths:
                         publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
                 "[pilot] Success":
                   value:
-                    "@context": https://w3id.org/did/v1
+                    "@context": https://www.w3.org/ns/did/v1
                     id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     verificationMethod:
                       - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
@@ -1348,7 +1348,7 @@ paths:
                         publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
                 "[pilot] Success":
                   value:
-                    "@context": https://w3id.org/did/v1
+                    "@context": https://www.w3.org/ns/did/v1
                     id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     verificationMethod:
                       - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
