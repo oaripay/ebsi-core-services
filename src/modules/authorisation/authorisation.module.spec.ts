@@ -529,24 +529,34 @@ describe("Authorisation Module", () => {
         });
 
         // Error from DID Registry API
-        jest.spyOn(axios, "get").mockImplementation(() => {
-          const error = new Error("axios error") as unknown as {
-            response: AxiosResponse;
-            isAxiosError: boolean;
-          };
-          error.isAxiosError = true;
-          error.response = {
-            status: 404,
-            data: {
-              title: "Not Found",
+        if (alg === "ES256K") {
+          jest
+            .spyOn(EbsiDidJwt, "verifyEbsiJWT")
+            .mockRejectedValue(
+              new Error(
+                `resolver_error: Unable to resolve DID document for ${clientDid}: notFound, registry used: xxx`
+              )
+            );
+        } else {
+          jest.spyOn(axios, "get").mockImplementation(() => {
+            const error = new Error("axios error") as unknown as {
+              response: AxiosResponse;
+              isAxiosError: boolean;
+            };
+            error.isAxiosError = true;
+            error.response = {
               status: 404,
-              detail: "not found",
-              type: "about:blank",
-            },
-          } as AxiosResponse;
-          // eslint-disable-next-line @typescript-eslint/no-throw-literal
-          throw error;
-        });
+              data: {
+                title: "Not Found",
+                status: 404,
+                detail: "not found",
+                type: "about:blank",
+              },
+            } as AxiosResponse;
+            // eslint-disable-next-line @typescript-eslint/no-throw-literal
+            throw error;
+          });
+        }
 
         const response = await request(server)
           .post("/siop-sessions")
@@ -601,29 +611,34 @@ describe("Authorisation Module", () => {
           payload,
         });
 
-        // Error from verifyEbsiJWT
-        // jest.spyOn(EbsiDidJwt, "verifyEbsiJWT").mockImplementation(() => {
-        //   throw new Error("error from DID Registry API");
-        // });
-
         // Error from DID Registry API
-        jest.spyOn(axios, "get").mockImplementation(() => {
-          const error = new Error("axios error") as unknown as {
-            response: AxiosResponse;
-            isAxiosError: boolean;
-          };
-          error.isAxiosError = true;
-          error.response = {
-            status: 500,
-            data: {
-              title: "Internal Server Error",
+        if (alg === "ES256K") {
+          jest
+            .spyOn(EbsiDidJwt, "verifyEbsiJWT")
+            .mockRejectedValue(
+              new Error(
+                `resolver_error: Unable to resolve DID document for ${clientDid}: internalServorError, registry used: xxx`
+              )
+            );
+        } else {
+          jest.spyOn(axios, "get").mockImplementation(() => {
+            const error = new Error("axios error") as unknown as {
+              response: AxiosResponse;
+              isAxiosError: boolean;
+            };
+            error.isAxiosError = true;
+            error.response = {
               status: 500,
-              type: "about:blank",
-            },
-          } as AxiosResponse;
-          // eslint-disable-next-line @typescript-eslint/no-throw-literal
-          throw error;
-        });
+              data: {
+                title: "Internal Server Error",
+                status: 500,
+                type: "about:blank",
+              },
+            } as AxiosResponse;
+            // eslint-disable-next-line @typescript-eslint/no-throw-literal
+            throw error;
+          });
+        }
 
         const response = await request(server)
           .post("/siop-sessions")

@@ -21,8 +21,8 @@ export async function getKeyByAlg(
   publicKeyJwk?: JWK;
   privateKeyEncryptionJwk?: JWK;
   publicKeyEncryptionJwk?: JWK;
-  privateKeyEncryption: KeyLike;
-  publicKeyEncryption?: KeyLike;
+  privateKeyEncryption: KeyLike | Uint8Array;
+  publicKeyEncryption?: KeyLike | Uint8Array;
   privateKeyHexES256K: string;
 }> {
   const types = {
