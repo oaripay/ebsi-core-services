@@ -372,6 +372,28 @@ describe("Identifiers Module", () => {
       ).toStrictEqual(expect.stringContaining("application/did+ld+json"));
     });
 
+    it("should return a specific DID Document as 'application/did+json' if 'Accept' header is 'application/did+json'", async () => {
+      expect.assertions(4);
+
+      const { didDocuments } = testEnv;
+      const { did, didDocument } = didDocuments[0];
+
+      const response = await request(server)
+        .get(`/identifiers/${did}`)
+        .set("Accept", "application/did+json");
+
+      const { "@context": context, ...didDocWithoutContext } = didDocument;
+
+      expect(response.body).toStrictEqual(didDocWithoutContext);
+      expect(
+        (response.body as { [x: string]: unknown })["@context"]
+      ).toBeUndefined();
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/did+json"));
+    });
+
     it("should throw an error if the identifier is not a valid did", async () => {
       expect.assertions(2);
 
@@ -633,7 +655,7 @@ describe("Identifiers Module", () => {
   });
 
   describe("GET /identifiers/{did}/versions/{versionId}", () => {
-    it("should return a specific DID Document version", async () => {
+    it("should return a specific DID document version", async () => {
       expect.assertions(3);
 
       const { didDocuments } = testEnv;
@@ -649,6 +671,29 @@ describe("Identifiers Module", () => {
       expect(
         (response.headers as { "content-type": string })["content-type"]
       ).toStrictEqual(expect.stringContaining("application/did+ld+json"));
+    });
+
+    it("should return a specific DID document version as 'application/did+json' if 'Accept' header is 'application/did+json'", async () => {
+      expect.assertions(4);
+
+      const { didDocuments } = testEnv;
+      const { did, didDocument, didDocumentBuffer } = didDocuments[0];
+      const versionId = ethers.utils.sha256(didDocumentBuffer);
+
+      const response = await request(server)
+        .get(`/identifiers/${did}/versions/${versionId}`)
+        .set("Accept", "application/did+json");
+
+      const { "@context": context, ...didDocWithoutContext } = didDocument;
+
+      expect(response.body).toStrictEqual(didDocWithoutContext);
+      expect(
+        (response.body as { [x: string]: unknown })["@context"]
+      ).toBeUndefined();
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/did+json"));
     });
 
     it("should throw an error if the identifier is not a valid did", async () => {

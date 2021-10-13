@@ -1,5 +1,14 @@
-import { Controller, Get, Query, Param, Header } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Query,
+  Param,
+  Header,
+  Headers,
+  Res,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import type { FastifyReply } from "fastify";
 import IdentifiersService from "./identifiers.service";
 import {
   formatIdentifiers,
@@ -52,12 +61,21 @@ export default class IdentifiersController {
   }
 
   @Get("/:did")
-  @Header("Content-Type", "application/did+ld+json")
   async getIdentifier(
-    @Param() params: GetIdentifierParamsDto
+    @Param() params: GetIdentifierParamsDto,
+    @Headers("Accept") accept: string,
+    @Res() res: FastifyReply
   ): Promise<{ [x: string]: unknown }> {
     const { did } = params;
-    return this.didMethodsService.getIdentifier(did);
+
+    const identifier = await this.didMethodsService.getIdentifier(did);
+
+    if (accept === "application/did+json") {
+      const { "@context": context, ...otherProps } = identifier;
+      return res.type("application/did+json").send(otherProps);
+    }
+
+    return res.type("application/did+ld+json").send(identifier);
   }
 
   @Get("/:did/versions")
@@ -88,12 +106,24 @@ export default class IdentifiersController {
   }
 
   @Get("/:did/versions/:versionId")
-  @Header("Content-Type", "application/did+ld+json")
   async getIdentifierVersion(
-    @Param() params: GetIdentifierVersionParamsDto
+    @Param() params: GetIdentifierVersionParamsDto,
+    @Headers("Accept") accept: string,
+    @Res() res: FastifyReply
   ): Promise<{ [x: string]: unknown }> {
     const { did, versionId } = params;
-    return this.didMethodsService.getIdentifierVersion(did, versionId);
+
+    const identifierVersion = await this.didMethodsService.getIdentifierVersion(
+      did,
+      versionId
+    );
+
+    if (accept === "application/did+json") {
+      const { "@context": context, ...otherProps } = identifierVersion;
+      return res.type("application/did+json").send(otherProps);
+    }
+
+    return res.type("application/did+ld+json").send(identifierVersion);
   }
 
   @Get("/:did/versions/:versionId/metadata")

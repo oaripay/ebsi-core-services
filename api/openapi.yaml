@@ -1123,8 +1123,7 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    "@context":
-                      - https://www.w3.org/ns/did/v1
+                    "@context": https://www.w3.org/ns/did/v1
                     id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     verificationMethod:
                       - controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
@@ -1134,6 +1133,30 @@ paths:
                 "[pilot] Success":
                   value:
                     "@context": https://www.w3.org/ns/did/v1
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    verificationMethod:
+                      - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+                        type: Secp256k1VerificationKey2018
+                        controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        publicKeyHex: 04f9139fbd3b9780863b17e8390934a1017fc8d0f18b84f02acb04f24c9cae261e45745c6507881509b9e6d837329153ea75fafb2c1a5d504702d04f1e22a80ecc
+                    authentication:
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    assertionMethod:
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+            application/did+json:
+              schema:
+                $ref: "#/components/schemas/DIDDocument"
+              examples:
+                "[test] Success":
+                  value:
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    verificationMethod:
+                      - controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#vm-3
+                        type: EcdsaSecp256k1RecoveryMethod2020
+                        publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
+                "[pilot] Success":
+                  value:
                     id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     verificationMethod:
                       - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
@@ -1338,8 +1361,7 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    "@context":
-                      - https://www.w3.org/ns/did/v1
+                    "@context": https://www.w3.org/ns/did/v1
                     id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     verificationMethod:
                       - controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
@@ -1349,6 +1371,30 @@ paths:
                 "[pilot] Success":
                   value:
                     "@context": https://www.w3.org/ns/did/v1
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    verificationMethod:
+                      - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+                        type: Secp256k1VerificationKey2018
+                        controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        publicKeyHex: 04f9139fbd3b9780863b17e8390934a1017fc8d0f18b84f02acb04f24c9cae261e45745c6507881509b9e6d837329153ea75fafb2c1a5d504702d04f1e22a80ecc
+                    authentication:
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    assertionMethod:
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+            application/did+json:
+              schema:
+                $ref: "#/components/schemas/DIDDocument"
+              examples:
+                "[test] Success":
+                  value:
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    verificationMethod:
+                      - controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#vm-3
+                        type: EcdsaSecp256k1RecoveryMethod2020
+                        publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
+                "[pilot] Success":
+                  value:
                     id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     verificationMethod:
                       - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
