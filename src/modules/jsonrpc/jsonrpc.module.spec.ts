@@ -1691,7 +1691,50 @@ describe("JsonRpc Module", () => {
               timestampData,
               didVersionMetadata,
             } as InsertDidDocumentParam,
-            expectedErrorMessage: "didVersionInfo must be a hexadecimal JSON",
+            expectedErrorMessage:
+              "didVersionInfo must be a DID document encoded in hexadecimal",
+            accessToken: userAccessToken,
+          });
+
+          // Test case: DID document has an invalid `@context`
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              hashAlgorithmId: 0,
+              hashValue: canonicalizedDidDocumentHash,
+              didVersionInfo: `0x${Buffer.from(
+                JSON.stringify({
+                  // Invalid @context
+                  "@context": "https://w3id.org/did/v1",
+                  id: identifier,
+                })
+              ).toString("hex")}`,
+              timestampData,
+              didVersionMetadata,
+            } as InsertDidDocumentParam,
+            expectedErrorMessage:
+              "didVersionInfo must be a DID document encoded in hexadecimal",
+            accessToken: userAccessToken,
+          });
+
+          // Test case: DID document is missing an `id`
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier,
+              hashAlgorithmId: 0,
+              hashValue: canonicalizedDidDocumentHash,
+              didVersionInfo: `0x${Buffer.from(
+                JSON.stringify({
+                  "@context": "https://www.w3.org/ns/did/v1",
+                })
+              ).toString("hex")}`,
+              timestampData,
+              didVersionMetadata,
+            } as InsertDidDocumentParam,
+            expectedErrorMessage:
+              "didVersionInfo must be a DID document encoded in hexadecimal",
             accessToken: userAccessToken,
           });
 
@@ -1750,23 +1793,6 @@ describe("JsonRpc Module", () => {
             } as InsertDidDocumentParam,
             expectedErrorMessage: `DID Document's "id" ${controllerDid} doesn't match JWT's DID ${adminDid}`,
             accessToken: adminAccessToken,
-          });
-
-          testSetup.push({
-            params: {
-              from: signer.address,
-              identifier,
-              hashAlgorithmId: 0,
-              hashValue: canonicalizedDidDocumentHash,
-              // We pass an empty DID Document
-              didVersionInfo: `0x${Buffer.from(JSON.stringify({})).toString(
-                "hex"
-              )}`,
-              timestampData,
-              didVersionMetadata,
-            } as InsertDidDocumentParam,
-            expectedErrorMessage: "DID Document is missing an id",
-            accessToken: userAccessToken,
           });
 
           break;
@@ -2060,7 +2086,8 @@ describe("JsonRpc Module", () => {
 
               timestampData,
             } as AppendDidDocumentVersionHashParam,
-            expectedErrorMessage: "didVersionInfo must be a hexadecimal JSON",
+            expectedErrorMessage:
+              "didVersionInfo must be a DID document encoded in hexadecimal",
             accessToken: userAccessToken,
           });
 
@@ -2106,7 +2133,8 @@ describe("JsonRpc Module", () => {
               hashValue: canonicalizedDidDocumentHash,
               didVersionInfo: "0x1234ab",
             } as DetachDidDocumentVersionParam,
-            expectedErrorMessage: "didVersionInfo must be a hexadecimal JSON",
+            expectedErrorMessage:
+              "didVersionInfo must be a DID document encoded in hexadecimal",
             accessToken: userAccessToken,
           });
 
@@ -2154,7 +2182,8 @@ describe("JsonRpc Module", () => {
               didVersionInfo: "0x1234ab",
               didVersionMetadata,
             } as AppendDidDocumentVersionMetadataParam,
-            expectedErrorMessage: "didVersionInfo must be a hexadecimal JSON",
+            expectedErrorMessage:
+              "didVersionInfo must be a DID document encoded in hexadecimal",
             accessToken: userAccessToken,
           });
 

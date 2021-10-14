@@ -1,10 +1,10 @@
-import { Agent } from "@cef-ebsi/oauth2-auth";
+import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { InternalServerError } from "@cef-ebsi/problem-details-errors";
 import { decodeJWT } from "@cef-ebsi/did-jwt";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import { ApiConfig } from "../../config/configuration";
 import {
@@ -68,10 +68,10 @@ export class LedgerService {
 
     // Send request payload to Authorisation API
     try {
-      const res = await axios.post(
-        `${this.authorisationApiUrl}/oauth2-sessions`,
-        requestComponent
-      );
+      const res = await axios.post<
+        typeof requestComponent,
+        AxiosResponse<AkeResponse>
+      >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent);
 
       const accessToken = await this.agent.verifyAuthenticationResponse(
         res.data,

@@ -1,5 +1,5 @@
-import { Agent as OAuth2Agent } from "@cef-ebsi/oauth2-auth";
-import axios from "axios";
+import { Agent as OAuth2Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
+import axios, { AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 
 export const requestOAuth2Jwt = async ({
@@ -29,10 +29,10 @@ export const requestOAuth2Jwt = async ({
   );
 
   // Send request payload to Authorisation API
-  const oauth2Response = await axios.post(
-    `${authorisationApiUrl}/oauth2-sessions`,
-    oauth2RequestComponent
-  );
+  const oauth2Response = await axios.post<
+    typeof oauth2RequestComponent,
+    AxiosResponse<AkeResponse>
+  >(`${authorisationApiUrl}/oauth2-sessions`, oauth2RequestComponent);
 
   return oauth2Agent.verifyAuthenticationResponse(oauth2Response.data, nonce);
 };

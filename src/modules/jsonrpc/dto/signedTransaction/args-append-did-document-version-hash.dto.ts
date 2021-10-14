@@ -6,7 +6,11 @@ import {
   Min,
   Validate,
 } from "class-validator";
-import { IsHexadecimalDidRule, IsHexadecimalJson } from "../../validators";
+import {
+  IsHexadecimalDidRule,
+  IsHexadecimalJson,
+  IsHexadecimalJsonLdDidDocument,
+} from "../../validators";
 
 export class ArgsAppendDidDocumentVersionHash {
   // Consumer calling function must convert Base58 DID identifier into bytes in hex format
@@ -24,7 +28,7 @@ export class ArgsAppendDidDocumentVersionHash {
   hashValue: string;
 
   // Stringified JSON DID Document(hex-encoded)
-  @IsHexadecimalJson()
+  @IsHexadecimalJsonLdDidDocument()
   @Matches(/^0x/)
   didVersionInfo: string;
 

@@ -3,7 +3,7 @@ import { base58btc } from "multiformats/bases/base58";
 
 export const IS_DID = "isDid";
 
-export function isDid(value: string): boolean {
+export function isDid(value: unknown): boolean {
   if (typeof value !== "string") return false;
 
   const parts = value.split(":");

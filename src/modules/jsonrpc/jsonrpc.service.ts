@@ -225,10 +225,6 @@ export class JsonRpcService {
       Buffer.from(remove0xPrefix(didDocument), "hex").toString("utf-8")
     ) as { id?: string };
 
-    if (!parsedDidDocument.id) {
-      throw new Error("DID Document is missing an id");
-    }
-
     if (clientId !== parsedDidDocument.id) {
       throw new Error(
         `DID Document's "id" ${parsedDidDocument.id} doesn't match JWT's DID ${clientId}`

@@ -1,5 +1,5 @@
 import querystring from "querystring";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import {
   Agent as SiopAgent,
   DidAuthResponseMode,
@@ -30,12 +30,12 @@ export const requestSiopJwt = async ({
   });
 
   // 1. First, the client calls /authentication-requests
-  const authenticationRequestsResponse = await axios.post<{ uri: string }>(
-    `${authorisationApiUrl}/authentication-requests`,
-    {
-      scope: "openid did_authn",
-    }
-  );
+  const authenticationRequestsResponse = await axios.post<
+    { scope: string },
+    AxiosResponse<{ uri: string }>
+  >(`${authorisationApiUrl}/authentication-requests`, {
+    scope: "openid did_authn",
+  });
 
   // 2. The client verifies the response
   const { uri } = authenticationRequestsResponse.data;
@@ -64,7 +64,10 @@ export const requestSiopJwt = async ({
   const idToken = authResponseDecoded.id_token;
 
   // 4. The client call /siop-sessions with the ID Token
-  const siopSessionsResponse = await axios.post<AkeResponse>(
+  const siopSessionsResponse = await axios.post<
+    string,
+    AxiosResponse<AkeResponse>
+  >(
     `${authorisationApiUrl}/siop-sessions`,
     querystring.stringify({ id_token: idToken }),
     {
@@ -148,12 +151,16 @@ export const requestNewUserSiopJwt = async ({
     authenticationResponse.bodyEncoded
   );
 
-  const idToken = authResponseDecoded.id_token;
+  let idToken = authResponseDecoded.id_token;
 
-  const siopSessionsResponse = await axios.post(
-    `${authorisationApiUrl}/siop-sessions`,
-    { id_token: idToken }
-  );
+  if (Array.isArray(idToken)) {
+    [idToken] = idToken;
+  }
+
+  const siopSessionsResponse = await axios.post<
+    { id_token: string },
+    AxiosResponse<AkeResponse>
+  >(`${authorisationApiUrl}/siop-sessions`, { id_token: idToken });
 
   const accessToken = await agent.verifyAuthenticationResponse(
     siopSessionsResponse.data,
