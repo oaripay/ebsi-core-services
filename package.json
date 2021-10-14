@@ -3,7 +3,7 @@
   "version": "2.0.0-rc.4",
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --moderate --skip-dev",
+    "audit": "audit-ci --moderate --skip-dev -a 1004731",
     "build": "nest build -p tsconfig.production.json",
     "clinic:doctor": "yarn build && clinic doctor -- node dist/main",
     "clinic:bubbleprof": "yarn build && clinic bubbleprof -- node dist/main",
