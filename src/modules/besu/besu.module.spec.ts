@@ -18,8 +18,6 @@ import {
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { JWTPayload, Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
 import { ethers } from "ethers";
-import { ConfigService } from "@nestjs/config";
-import { ApiConfig } from "../../config/configuration";
 import { BesuModule } from "./besu.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { BesuService } from "./besu.service";
@@ -30,10 +28,6 @@ describe("Besu Module", () => {
   let server: HttpServer;
   let hardhatServer: JsonRpcServer;
   let besuService: BesuService;
-  let testUser: {
-    did: string;
-    privateKey: string;
-  };
   let tokenOAuth2: string;
   let tokenSiop: string;
   const ganachePort = 8547; // 8546 might already be used for ssh port forwarding
@@ -61,13 +55,6 @@ describe("Besu Module", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-
-    const configService =
-      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-    testUser = configService.get<{
-      did: string;
-      privateKey: string;
-    }>("testUser");
 
     // Turn off logger
     Logger.overrideLogger(false);

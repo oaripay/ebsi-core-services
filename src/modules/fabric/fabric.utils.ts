@@ -1,4 +1,7 @@
-import * as b64 from "multiformats/bases/base64";
+import * as ClassValidator from "class-validator";
+import { ClassConstructor, ClassTransformer } from "class-transformer";
+import { base64url } from "multiformats/bases/base64";
+import { RequestReadContractDto } from "./dto/request-read-contract.dto";
 import { PaginatedList } from "./interfaces";
 
 type PaginationLinks = {
@@ -67,4 +70,48 @@ export function paginateString<T>(
 }
 
 export const encodeMultibase64url = (buffer: Buffer): string =>
-  b64.base64url.encode(buffer).toString();
+  base64url.encode(buffer).toString();
+
+type JsonRpcDtos = RequestReadContractDto;
+
+const getErrorMessages = (
+  errors: ClassValidator.ValidationError[]
+): string[] => {
+  return errors
+    .map((err) => {
+      const errorMessages: string[] = [];
+      if (err.constraints) {
+        errorMessages.push(...Object.values(err.constraints));
+      }
+
+      if (err.children) {
+        errorMessages.push(...getErrorMessages(err.children));
+      }
+
+      return errorMessages;
+    })
+    .flat();
+};
+
+export const validateClass = async (
+  classType: ClassConstructor<JsonRpcDtos>,
+  data: JsonRpcDtos
+): Promise<void> => {
+  const dataClass = new ClassTransformer().plainToClass<
+    JsonRpcDtos,
+    JsonRpcDtos
+  >(classType, data);
+  const errors = await ClassValidator.validate(dataClass);
+
+  if (errors.length > 0) {
+    const errorMessages = getErrorMessages(errors);
+
+    if (errorMessages.length === 1) {
+      throw new Error(`Validation error: ${errorMessages[0]}`);
+    }
+
+    throw new Error(
+      `Validation errors:${errorMessages.map((err) => `\n- ${err}`).join()}`
+    );
+  }
+};

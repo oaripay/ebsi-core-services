@@ -1012,6 +1012,177 @@ describe("Fabric Module", () => {
     });
   });
 
+  describe("GET /ledger/v2/blockchains/fabric/jsonrpc", () => {
+    it("should read a contract", async () => {
+      expect.assertions(3);
+
+      // Mock Wallets
+      jest
+        .spyOn(Wallets, "newFileSystemWallet")
+        .mockImplementation(() => Wallets.newInMemoryWallet());
+
+      // Mock GetTransactionByID not found
+      const evaluateTransaction = jest.fn().mockImplementation(() => {
+        return Buffer.from("NOTEXISTS");
+      });
+      jest
+        .spyOn(Gateway.prototype, "connect")
+        .mockImplementation(() => Promise.resolve());
+      jest.spyOn(Gateway.prototype, "getNetwork").mockImplementation(() =>
+        Promise.resolve({
+          getGateway: jest.fn(),
+          getContract: jest.fn().mockImplementation(() => ({
+            evaluateTransaction,
+          })),
+          getChannel: jest.fn(),
+          addCommitListener: jest.fn(),
+          removeCommitListener: jest.fn(),
+          addBlockListener: jest.fn(),
+          removeBlockListener: jest.fn(),
+        })
+      );
+
+      const channelName = "iossdrpocchannel";
+      const contractName = "iossdrpociossvatid";
+      const fcn = "checkIossVatIdExists";
+      const args = [crypto.randomBytes(6).toString("hex")];
+
+      const response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "readContract",
+          params: [{ channelName, contractName, fcn, args }],
+        });
+
+      expect(evaluateTransaction).toHaveBeenCalledWith(fcn, args[0]);
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 1,
+        result: Buffer.from("NOTEXISTS").toString("base64"),
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should reject internal errors", async () => {
+      expect.assertions(3);
+
+      // Mock Wallets
+      jest
+        .spyOn(Wallets, "newFileSystemWallet")
+        .mockImplementation(() => Wallets.newInMemoryWallet());
+
+      const evaluateTransaction = jest.fn().mockImplementation(() => {
+        throw new Error("internal error get network");
+      });
+      jest
+        .spyOn(Gateway.prototype, "connect")
+        .mockImplementation(() => Promise.resolve());
+      jest.spyOn(Gateway.prototype, "getNetwork").mockImplementation(() =>
+        Promise.resolve({
+          getGateway: jest.fn(),
+          getContract: jest.fn().mockImplementation(() => ({
+            evaluateTransaction,
+          })),
+          getChannel: jest.fn(),
+          addCommitListener: jest.fn(),
+          removeCommitListener: jest.fn(),
+          addBlockListener: jest.fn(),
+          removeBlockListener: jest.fn(),
+        })
+      );
+
+      const channelName = "iossdrpocchannel";
+      const contractName = "iossdrpociossvatid";
+      const fcn = "checkIossVatIdExists";
+      const args = [crypto.randomBytes(6).toString("hex")];
+
+      const response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "readContract",
+          params: [{ channelName, contractName, fcn, args }],
+        });
+
+      expect(evaluateTransaction).toHaveBeenCalledWith(fcn, args[0]);
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 1,
+        error: {
+          code: -32603,
+          message:
+            "The server encountered an internal error and was unable to complete your request",
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should reject bad requests", async () => {
+      expect.assertions(6);
+      let response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({});
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        error: {
+          code: -32600,
+          message:
+            '["jsonrpc must be equal to 2.0","method must be a valid method","params must be an array"]',
+        },
+        id: null,
+      });
+      expect(response.status).toBe(200);
+
+      response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "badMethod",
+          params: [],
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        error: {
+          code: -32600,
+          message: '["method must be a valid method"]',
+        },
+        id: 1,
+      });
+      expect(response.status).toBe(200);
+
+      response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "readContract",
+          params: [
+            {
+              badParameter: "bad param",
+            },
+          ],
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 1,
+        error: {
+          code: -32600,
+          message: expect.stringContaining("Validation errors") as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+  });
+
   describe("Feature toggle", () => {
     it("should prevent access to /fabric endpoints if FABRIC_ENABLED is different from 'true'", async () => {
       expect.assertions(2);

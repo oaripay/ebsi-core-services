@@ -6,7 +6,6 @@ import { Gateway, GatewayOptions, Wallets, X509Identity } from "fabric-network";
 import {
   InternalServerError,
   NotFoundError,
-  ProblemDetailsError,
 } from "@cef-ebsi/problem-details-errors";
 import * as fabprotos from "fabric-protos";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -22,7 +21,9 @@ import {
 } from "./interfaces";
 import { ApiConfig } from "../../config/configuration";
 import { decodePageAfter, encodePageAfter } from "./fabric.formatter";
-import { encodeMultibase64url } from "./fabric.utils";
+import { encodeMultibase64url, validateClass } from "./fabric.utils";
+import { RequestReadContractDto } from "./dto/request-read-contract.dto";
+import { InvalidRequestJsonRpcError } from "./errors";
 
 @Injectable()
 export class FabricService implements OnModuleDestroy {
@@ -102,9 +103,9 @@ export class FabricService implements OnModuleDestroy {
       this.gateway = gateway;
     } catch (error) {
       this.logger.error(error);
-      throw new InternalServerError(InternalServerError.defaultTitle, {
-        detail: `Ledger API gateway could not connect to Hyperledger Fabric ledger`,
-      });
+      throw new Error(
+        "Ledger API gateway could not connect to Hyperledger Fabric ledger"
+      );
     }
   }
 
@@ -123,17 +124,13 @@ export class FabricService implements OnModuleDestroy {
       const contract = network.getContract(chaincode);
       queryResult = await contract.evaluateTransaction(query, ...args);
     } catch (error) {
-      throw new InternalServerError(InternalServerError.defaultTitle, {
-        detail: `Query to Hyperledger Fabric ledger failed: ${
-          (error as Error).message
-        }`,
-      });
+      throw new Error(
+        `Query to Hyperledger Fabric ledger failed: ${(error as Error).message}`
+      );
     }
 
     if (!queryResult) {
-      throw new InternalServerError(InternalServerError.defaultTitle, {
-        detail: "Query to Hyperledger Fabric result is empty",
-      });
+      throw new Error("Query to Hyperledger Fabric result is empty");
     }
 
     return queryResult;
@@ -158,18 +155,13 @@ export class FabricService implements OnModuleDestroy {
         [channelName, blockIndex]
       );
     } catch (e) {
-      // Unknown error
-      if (!(e instanceof ProblemDetailsError)) {
-        this.logger.error(e);
-        throw new InternalServerError();
-      }
-
-      if (e.detail.includes("Entry not found in index")) {
+      if ((e as Error).message.includes("Entry not found in index")) {
         throw new NotFoundError(NotFoundError.defaultTitle, {
           detail: `Block ${blockIndex} not found`,
         });
       }
 
+      this.logger.error(e);
       throw e;
     }
 
@@ -305,18 +297,13 @@ export class FabricService implements OnModuleDestroy {
           [channelName, blockIndex.toString()]
         );
       } catch (e) {
-        // Unknown error
-        if (!(e instanceof ProblemDetailsError)) {
-          this.logger.error(e);
-          throw new InternalServerError();
-        }
-
-        if (e.detail.includes("Entry not found in index")) {
+        if ((e as Error).message.includes("Entry not found in index")) {
           throw new NotFoundError(NotFoundError.defaultTitle, {
             detail: `Block ${blockIndex} not found`,
           });
         }
 
+        this.logger.error(e);
         throw e;
       }
 
@@ -405,18 +392,13 @@ export class FabricService implements OnModuleDestroy {
         [channelName, transactionId]
       );
     } catch (e) {
-      // Unknown error
-      if (!(e instanceof ProblemDetailsError)) {
-        this.logger.error(e);
-        throw new InternalServerError();
-      }
-
-      if (e.detail.includes("Entry not found in index")) {
+      if ((e as Error).message.includes("Entry not found in index")) {
         throw new NotFoundError(NotFoundError.defaultTitle, {
           detail: `Transaction ${transactionId} not found`,
         });
       }
 
+      this.logger.error(e);
       throw e;
     }
 
@@ -455,6 +437,25 @@ export class FabricService implements OnModuleDestroy {
         })),
       }),
     };
+  }
+
+  async readContract(
+    body: RequestReadContractDto,
+    id?: number | string
+  ): Promise<string> {
+    try {
+      await validateClass(RequestReadContractDto, body);
+    } catch (err) {
+      throw new InvalidRequestJsonRpcError((err as Error).message, id);
+    }
+    const { channelName, contractName, fcn, args } = body.params[0];
+    const bufferResponse = await this.executeQuery(
+      channelName,
+      contractName,
+      fcn,
+      args
+    );
+    return bufferResponse.toString("base64");
   }
 }
 

@@ -26,9 +26,20 @@ const mockGetResponse = jest.fn().mockImplementation(() => ({
     })),
   })),
 }));
+
+const mockGetRequest = jest.fn().mockImplementation(() => ({
+  url: "/blockchains/besu",
+  body: {
+    jsonrpc: "2.0",
+    id: 1,
+    method: "eth_sendRawTransaction",
+    params: ["0x0"],
+  },
+}));
+
 const mockHttpArgumentsHost = jest.fn().mockImplementation(() => ({
   getResponse: mockGetResponse,
-  getRequest: jest.fn(),
+  getRequest: mockGetRequest,
 }));
 
 const mockArgumentsHost = {

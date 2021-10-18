@@ -619,4 +619,92 @@ describe("Fabric e2e tests", () => {
       });
     });
   });
+
+  describe("GET /ledger/v2/blockchains/fabric/jsonrpc", () => {
+    it("should read a contract", async () => {
+      expect.assertions(2);
+      const response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "readContract",
+          params: [
+            {
+              channelName: "iossdrpocchannel",
+              contractName: "iossdrpociossvatid",
+              fcn: "checkIossVatIdExists",
+              args: [crypto.randomBytes(6).toString("hex")],
+            },
+          ],
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 1,
+        result: Buffer.from("NOTEXISTS").toString("base64"),
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should reject bad requests", async () => {
+      expect.assertions(6);
+      let response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({});
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        error: {
+          code: -32600,
+          message:
+            '["jsonrpc must be equal to 2.0","method must be a valid method","params must be an array"]',
+        },
+        id: null,
+      });
+      expect(response.status).toBe(200);
+
+      response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "badMethod",
+          params: [],
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        error: {
+          code: -32600,
+          message: '["method must be a valid method"]',
+        },
+        id: 1,
+      });
+      expect(response.status).toBe(200);
+
+      response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "readContract",
+          params: [
+            {
+              badParameter: "bad param",
+            },
+          ],
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 1,
+        error: {
+          code: -32600,
+          message: expect.stringContaining("Validation errors") as string,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+  });
 });

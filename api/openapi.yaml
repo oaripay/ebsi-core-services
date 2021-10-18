@@ -125,7 +125,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/BesuResponse"
+                $ref: "#/components/schemas/JsonRpcResponse"
               examples:
                 Get Block:
                   value:
@@ -210,6 +210,84 @@ paths:
                   $ref: "#/components/examples/BesuPermissions"
                 Deployment Forbidden:
                   $ref: "#/components/examples/NoDeploySC"
+  /ledger/v2/blockchains/fabric/jsonrpc:
+    post:
+      operationId: post-ledger-v2-blockchains-fabric-jsonrpc
+      tags:
+        - Hyperledger Fabric
+      summary: Hyperledger Fabric JSON-RPC
+      description: Hyperledger Fabric JSON-RPC APIs.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: |
+          The body follows the
+          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+          It requires the following fields:
+
+          - **jsonrpc**: Must be exactly '2.0'
+          - **method**: Method invoked. It must be "readContract"
+          - **params**: Array of parameters.
+          - **id**: Identifier established by the client.
+        content:
+          application/json:
+            schema:
+              required:
+                - jsonrpc
+                - id
+                - method
+                - params
+              type: object
+              properties:
+                jsonrpc:
+                  description: Must be exactly '2.0'
+                  type: string
+                method:
+                  description: JSON RPC method to be invoked
+                  type: string
+                params:
+                  description: Array of parameters
+                  type: array
+                  items:
+                    oneOf:
+                      - type: boolean
+                      - type: object
+                      - type: string
+                id:
+                  description: Identifier established by the client
+                  type: integer
+                  example: 1
+            examples:
+              Read Contract:
+                value:
+                  jsonrpc: "2.0"
+                  id: 1
+                  method: "readContract"
+                  params:
+                    - channelName: "iossdrpocchannel"
+                      contractName: "iossdrpociossvatid"
+                      fcn: "checkIossVatIdExists"
+                      args: ["ABCDEF123456"]
+      responses:
+        200:
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonRpcResponse"
+              examples:
+                Read Contract:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: RVhJU1RT
+                Invalid Request:
+                  $ref: "#/components/examples/InvalidRequestJsonRpcError"
+                Method Not Found:
+                  $ref: "#/components/examples/MethodNotFoundJsonRpcError"
+                Internal Error:
+                  $ref: "#/components/examples/InternalJsonRpcError"
   /ledger/v2/blockchains/fabric/channels:
     get:
       tags:
@@ -851,8 +929,8 @@ paths:
                   $ref: "#/components/examples/InternalError"
 components:
   schemas:
-    BesuResponse:
-      title: Hyperledger Besu Response
+    JsonRpcResponse:
+      title: JSON RPC Response
       type: object
       properties:
         jsonrpc:
@@ -868,6 +946,16 @@ components:
             - type: boolean
             - type: object
             - type: string
+        error:
+          description: Error details
+          type: object
+          properties:
+            code:
+              description: Error code
+              type: integer
+            message:
+              description: Error message
+              type: string
     Problem:
       description: A Problem Details object (RFC 7807)
       type: object
@@ -1045,6 +1133,27 @@ components:
         status: 500
         detail: The server encountered an internal error and was unable to complete your request.
         type: about:blank
+    InvalidRequestJsonRpcError:
+      value:
+        jsonrpc: "2.0"
+        id: 1
+        error:
+          code: -32600
+          message: Validations Errors ...
+    MethodNotFoundJsonRpcError:
+      value:
+        jsonrpc: "2.0"
+        id: 1
+        error:
+          code: -32601
+          message: Method Not Found
+    InternalJsonRpcError:
+      value:
+        jsonrpc: "2.0"
+        id: 1
+        error:
+          code: -32603
+          message: The server encountered an internal error and was unable to complete your request
   securitySchemes:
     bearerAuth:
       type: http

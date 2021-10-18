@@ -5,6 +5,8 @@ import {
   Param,
   HttpCode,
   UseGuards,
+  Post,
+  Body,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
@@ -22,6 +24,17 @@ import { GetChannelParams } from "./dto/get-channel.params";
 import { FabricEnabledGuard } from "./fabric.guard";
 import { PaginationQueryTransactionsDto } from "./dto/pagination-query-transactions.dto";
 import { GetChannelTransactionParams } from "./dto/get-channel-transaction.params";
+import { JsonRpcDto } from "./dto/jsonrpc.dto";
+import { JsonRpcResponseObject } from "./fabric.interface";
+import { RequestReadContractDto } from "./dto/request-read-contract.dto";
+import { MethodNotFoundJsonRpcError } from "./errors";
+
+function formatJsonRpcResponse(
+  result: unknown,
+  id: string | number
+): JsonRpcResponseObject {
+  return { jsonrpc: "2.0", id: id ?? null, result };
+}
 
 @Controller("/blockchains/fabric")
 @UseGuards(FabricEnabledGuard)
@@ -36,6 +49,26 @@ export class FabricController {
   ) {
     this.apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     this.domain = this.configService.get<string>("domain");
+  }
+
+  @HttpCode(200)
+  @Post("/jsonrpc")
+  async jsonRPC(@Body() body: JsonRpcDto): Promise<JsonRpcResponseObject> {
+    const { method, id } = body;
+    switch (method) {
+      case "readContract": {
+        const result = await this.fabricService.readContract(
+          body as RequestReadContractDto,
+          id
+        );
+        return formatJsonRpcResponse(result, id);
+      }
+      default:
+        throw new MethodNotFoundJsonRpcError(
+          `The method '${method}' is invalid`,
+          id
+        );
+    }
   }
 
   @Get("/channels")
