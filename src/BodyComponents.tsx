@@ -7,6 +7,7 @@ import TrustedAppRegistry from "./pages/TrustedAppRegistry/TrustedAppRegistry";
 import Main from "./pages/Main/Main";
 import { RegisterDidProvider } from "./pages/RegisterDid/RegisterDid.context";
 import TrustedIssuersRegistry from "./pages/TrustedIssuersRegistry/TrustedIssuersRegistry";
+import TrustedSchemasRegistry from "./pages/TrustedShemasRegistry/TrustedSchemasRegistry";
 
 export default function BodyComponents(): ReactElement {
   return (
@@ -21,6 +22,15 @@ export default function BodyComponents(): ReactElement {
         <RegisterDidProvider>
           <RegisterDid />
         </RegisterDidProvider>
+      </Route>
+      <Route exact path={config.routes.trustedSchemaRegistry}>
+        <TrustedSchemasRegistry />
+      </Route>
+      <Route path={config.routes.trustedSchemaRegistryRevision}>
+        <TrustedSchemasRegistry />
+      </Route>
+      <Route path={config.routes.trustedSchemaRegistryRevisionMetadata}>
+        <TrustedSchemasRegistry />
       </Route>
       <Route path="*">
         <Main />

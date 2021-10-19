@@ -9,6 +9,7 @@
     "@metamask/detect-provider": "^1.2.0",
     "@testing-library/jest-dom": "^4.2.4",
     "antd": "^4.16.12",
+    "bn.js": "^5.2.0",
     "bs58": "^4.0.1",
     "craco-less": "^1.18.0",
     "elliptic": "^6.5.4",
