@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.6&targetRepoId=234) (2021-10-15)
+
+### 🚀 Features
+
+- support application/did+json content type for DID documents ([#105](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/105/overview)) - EBSIINT-3417 ([a345078](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/a345078d1a292ac50b0dd72f554ffde55b0021b5))
+- validate DID document before sending it to the ledger ([#106](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/106/overview)) - EBSIINT-3416 ([c84d63a](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/c84d63a21a8a6799cfdee96c5949016401b795a0))
+
+### 🐛 Bug Fixes
+
+- update Node.js version to v14.18.1 ([#107](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/107/overview)) - EBSIINT-3432 ([36dd205](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/36dd205fa7553f4e6fa4a93b27fa68078d3346b3))
+
 ## [2.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.5&targetRepoId=234) (2021-10-04)
 
 ### 🐛 Bug Fixes

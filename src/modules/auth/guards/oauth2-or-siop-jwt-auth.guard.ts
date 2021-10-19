@@ -1,6 +1,6 @@
 import { ExecutionContext, Injectable } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
-import { Observable } from "rxjs";
+import type { Observable } from "rxjs";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { SubjectInfo } from "../auth.interface";
 
