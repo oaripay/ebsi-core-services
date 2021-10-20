@@ -269,6 +269,35 @@ paths:
                       contractName: "iossdrpociossvatid"
                       fcn: "checkIossVatIdExists"
                       args: ["ABCDEF123456"]
+              Send Proposal:
+                value:
+                  jsonrpc: "2.0"
+                  id: 1
+                  method: "sendProposal"
+                  params:
+                    - channelName: "iossdrpocchannel"
+                      contractName: "iossdrpociossvatid"
+                      action:
+                        init: false
+                        transientMap:
+                          iossvatid: eyJpb3NzdmF0aWQiOiIwNWY0OWQ1ZWE3OGEifQ==
+                        transactionId: e35bb106916bc1c9338a811cae2fdcd5b6d9a10fa70248588a61d6d3bdbf780b
+                        args:
+                          - cmVnaXN0ZXJJb3NzVmF0SWQ=
+                          - MjAyMS0xMC0xMw==
+                          - MjAyMS0xMC0xNQ==
+                          - MjAyMS0xMC0xMyAxNToyMDo0NQ==
+                          - OTlhOTNhZDctYjk4OC00ZWRkLWE1MzgtNDk3YmI3YWE2MzA4
+                          - Nzk4NTllYmMyOTE4M2UzNzBmZGE=
+                        fcn: registerIossVatId
+                        header:
+                          signature_header: CugIChF...
+                          channel_header: CAMQARoMCM...
+                        proposal:
+                          header: Cn4IAxABG...
+                          payload: CpsBCpgBCA...
+                      payload: CogKCn4IAxABGgwIzfKbiw...
+                      signature: MEUCIQC/rRRItmu3HcgS+...
       responses:
         200:
           description: Response
@@ -282,6 +311,21 @@ paths:
                     jsonrpc: "2.0"
                     id: 1
                     result: RVhJU1RT
+                Send Proposal:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      errors: []
+                      responses:
+                        - connection: {}
+                          endorsement:
+                            endorser: 4eME...
+                            signature: MU/raH+...
+                          payload: CapMr...
+                          response:
+                            message: ""
+                            payload: ""
                 Invalid Request:
                   $ref: "#/components/examples/InvalidRequestJsonRpcError"
                 Method Not Found:

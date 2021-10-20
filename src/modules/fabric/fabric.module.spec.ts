@@ -30,6 +30,7 @@ import {
 } from "./interfaces";
 import { ApiConfig } from "../../config/configuration";
 import { encodeMultibase64url } from "./fabric.utils";
+import { FabricUser } from "../../../tests/utils/FabricUser";
 
 function createFabricAction(): FabricAction {
   const action: FabricAction = {
@@ -1062,6 +1063,130 @@ describe("Fabric Module", () => {
         jsonrpc: "2.0",
         id: 1,
         result: Buffer.from("NOTEXISTS").toString("base64"),
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should send a proposal", async () => {
+      expect.assertions(2);
+      // Mock Wallets
+      jest
+        .spyOn(Wallets, "newFileSystemWallet")
+        .mockImplementation(() => Wallets.newInMemoryWallet());
+
+      const evaluateTransaction = jest.fn().mockImplementation(() => {
+        return Buffer.from("NOTEXISTS");
+      });
+
+      const sendEndorsement = jest.fn().mockImplementation(() => {
+        return {
+          errors: [],
+          responses: [
+            {
+              connection: {},
+              endorsement: {
+                endorser: crypto.randomBytes(10),
+                signature: crypto.randomBytes(10),
+              },
+              payload: crypto.randomBytes(10),
+              response: {
+                status: 200,
+                message: "",
+                payload: crypto.randomBytes(10),
+              },
+            },
+          ],
+        };
+      });
+
+      jest
+        .spyOn(Gateway.prototype, "connect")
+        .mockImplementation(() => Promise.resolve());
+      jest.spyOn(Gateway.prototype, "getNetwork").mockImplementation(() =>
+        Promise.resolve({
+          getGateway: jest.fn(),
+          getContract: jest.fn().mockImplementation(() => ({
+            evaluateTransaction,
+          })),
+          getChannel: jest.fn().mockImplementation(() => ({
+            newEndorsement: jest.fn().mockImplementation(() => ({
+              send: sendEndorsement,
+            })),
+            getEndorsers: jest.fn(),
+          })),
+          addCommitListener: jest.fn(),
+          removeCommitListener: jest.fn(),
+          addBlockListener: jest.fn(),
+          removeBlockListener: jest.fn(),
+        })
+      );
+
+      const iossvatid = crypto.randomBytes(6).toString("hex");
+      const startDate = new Date().toISOString().slice(0, -14);
+      const endDate = new Date(Date.now() + 3e8).toISOString().slice(0, -14);
+      const { params } = FabricUser.prepareTxParams(
+        iossvatid,
+        startDate,
+        endDate
+      );
+      const action = {
+        init: false,
+        transientMap: {
+          iossvatid: crypto.randomBytes(12).toString("base64"),
+        },
+        transactionId: crypto.randomBytes(32).toString("hex"),
+        args: params.map((p) => Buffer.from(p).toString("base64")),
+        fcn: "registerIossVatId",
+        header: {
+          signature_header: crypto.randomBytes(12).toString("base64"),
+          channel_header: crypto.randomBytes(12).toString("base64"),
+        },
+        proposal: {
+          header: crypto.randomBytes(12).toString("base64"),
+          payload: crypto.randomBytes(12).toString("base64"),
+        },
+      };
+      const payload = crypto.randomBytes(12).toString("base64");
+      const signature = crypto.randomBytes(12).toString("base64");
+
+      const response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "sendProposal",
+          params: [
+            {
+              channelName: "iossdrpocchannel",
+              contractName: "iossdrpociossvatid",
+              action,
+              payload,
+              signature,
+            },
+          ],
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 1,
+        result: {
+          errors: expect.arrayContaining([]) as unknown,
+          responses: expect.arrayContaining([
+            expect.objectContaining({
+              connection: expect.anything() as unknown,
+              endorsement: {
+                endorser: expect.any(String) as string,
+                signature: expect.any(String) as string,
+              },
+              payload: expect.any(String) as string,
+              response: {
+                message: expect.any(String) as string,
+                payload: expect.any(String) as string,
+                status: expect.any(Number) as number,
+              },
+            }),
+          ]) as unknown,
+        },
       });
       expect(response.status).toBe(200);
     });

@@ -28,6 +28,7 @@ import { JsonRpcDto } from "./dto/jsonrpc.dto";
 import { JsonRpcResponseObject } from "./fabric.interface";
 import { RequestReadContractDto } from "./dto/request-read-contract.dto";
 import { MethodNotFoundJsonRpcError } from "./errors";
+import { RequestSendProposalDto } from "./dto/request-send-proposal.dto";
 
 function formatJsonRpcResponse(
   result: unknown,
@@ -59,6 +60,13 @@ export class FabricController {
       case "readContract": {
         const result = await this.fabricService.readContract(
           body as RequestReadContractDto,
+          id
+        );
+        return formatJsonRpcResponse(result, id);
+      }
+      case "sendProposal": {
+        const result = await this.fabricService.sendProposal(
+          body as RequestSendProposalDto,
           id
         );
         return formatJsonRpcResponse(result, id);

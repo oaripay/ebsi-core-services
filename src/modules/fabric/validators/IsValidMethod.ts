@@ -1,6 +1,6 @@
 import { registerDecorator, buildMessage } from "class-validator";
 
-const allowedMethods = ["readContract"];
+const allowedMethods = ["readContract", "sendProposal"];
 
 export function IsValidMethod() {
   return (object: unknown, propertyName: string): void => {

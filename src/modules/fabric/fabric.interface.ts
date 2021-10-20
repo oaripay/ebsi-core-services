@@ -5,4 +5,18 @@ export interface JsonRpcResponseObject {
   error?: unknown;
 }
 
-export default JsonRpcResponseObject;
+export interface ProposalAction {
+  init: boolean;
+  transientMap?: Record<string, Buffer>;
+  transactionId: string;
+  args: Buffer[];
+  fcn: string;
+  header: {
+    signature_header: Buffer;
+    channel_header: Buffer;
+  };
+  proposal: {
+    header: Buffer;
+    payload: Buffer;
+  };
+}

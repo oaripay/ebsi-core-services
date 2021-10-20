@@ -20,6 +20,7 @@ import {
 } from "../../src/modules/fabric/interfaces";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import { FabricUser } from "../utils/FabricUser";
 
 jest.setTimeout(60000);
 
@@ -643,6 +644,101 @@ describe("Fabric e2e tests", () => {
         jsonrpc: "2.0",
         id: 1,
         result: Buffer.from("NOTEXISTS").toString("base64"),
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should send a proposal", async () => {
+      const user = new FabricUser();
+      await user.init("user1_be_tax", "./wallet");
+      const iossvatid = crypto.randomBytes(6).toString("hex");
+      const startDate = new Date().toISOString().slice(0, -14);
+      const endDate = new Date(Date.now() + 3e8).toISOString().slice(0, -14);
+      const { action, payload, signature } = user.buildSignProposal(
+        iossvatid,
+        startDate,
+        endDate
+      );
+      expect.assertions(2);
+      const response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "sendProposal",
+          params: [
+            {
+              channelName: "iossdrpocchannel",
+              contractName: "iossdrpociossvatid",
+              action,
+              payload,
+              signature,
+            },
+          ],
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 1,
+        result: {
+          errors: expect.arrayContaining([]) as unknown,
+          responses: expect.arrayContaining([
+            expect.objectContaining({
+              connection: expect.anything() as unknown,
+              endorsement: {
+                endorser: expect.any(String) as string,
+                signature: expect.any(String) as string,
+              },
+              payload: expect.any(String) as string,
+              response: {
+                message: expect.any(String) as string,
+                payload: expect.any(String) as string,
+                status: expect.any(Number) as number,
+              },
+            }),
+          ]) as unknown,
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should reject bad params for sendProposal", async () => {
+      const user = new FabricUser();
+      await user.init("user1_be_tax", "./wallet");
+      const iossvatid = crypto.randomBytes(7).toString("hex");
+      const startDate = new Date().toISOString().slice(0, -14);
+      const endDate = new Date(Date.now() + 3e8).toISOString().slice(0, -14);
+      const { action, payload, signature } = user.buildSignProposal(
+        iossvatid,
+        startDate,
+        endDate
+      );
+      expect.assertions(2);
+      const response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "sendProposal",
+          params: [
+            {
+              channelName: "iossdrpocchannel",
+              contractName: "iossdrpociossvatid",
+              action,
+              payload,
+              signature,
+            },
+          ],
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 1,
+        error: {
+          code: -32600,
+          message:
+            "Invalid response: Incorrect ioss vat id length. It must be 12 chars long",
+        },
       });
       expect(response.status).toBe(200);
     });

@@ -10,7 +10,7 @@ import {
 import * as fabprotos from "fabric-protos";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore fabric-common doesn't expose the TS definition correctly - https://github.com/hyperledger/fabric-sdk-node/pull/477
-import { BlockData, BlockDecoder } from "fabric-common";
+import { BlockData, BlockDecoder, ProposalResponse } from "fabric-common";
 import {
   Block,
   FabricChannelHeader,
@@ -24,6 +24,8 @@ import { decodePageAfter, encodePageAfter } from "./fabric.formatter";
 import { encodeMultibase64url, validateClass } from "./fabric.utils";
 import { RequestReadContractDto } from "./dto/request-read-contract.dto";
 import { InvalidRequestJsonRpcError } from "./errors";
+import { RequestSendProposalDto } from "./dto/request-send-proposal.dto";
+import { ProposalAction } from "./fabric.interface";
 
 @Injectable()
 export class FabricService implements OnModuleDestroy {
@@ -456,6 +458,119 @@ export class FabricService implements OnModuleDestroy {
       args
     );
     return bufferResponse.toString("base64");
+  }
+
+  async sendProposal(
+    body: RequestSendProposalDto,
+    id?: number | string
+  ): Promise<{
+    errors: ProposalResponse["errors"];
+    responses: {
+      connection: unknown;
+      endorsement: {
+        endorser: string;
+        signature: string;
+      };
+      payload: string;
+      response: {
+        status: number;
+        message: string;
+        payload: string;
+      };
+    }[];
+    queryResults: string[];
+  }> {
+    try {
+      await validateClass(RequestSendProposalDto, body);
+    } catch (err) {
+      throw new InvalidRequestJsonRpcError((err as Error).message, id);
+    }
+    await this.connectGateway();
+    const { channelName, contractName, action, payload, signature } =
+      body.params[0];
+    const channel = (await this.gateway.getNetwork(channelName)).getChannel();
+    const endorsement = channel.newEndorsement(contractName);
+
+    /* eslint-disable no-underscore-dangle */
+    (endorsement as unknown as { _payload: Buffer })._payload = Buffer.from(
+      payload,
+      "base64"
+    );
+    (endorsement as unknown as { _signature: Buffer })._signature = Buffer.from(
+      signature,
+      "base64"
+    );
+
+    let transientMap: ProposalAction["transientMap"] = {};
+    if (action.transientMap) {
+      transientMap = JSON.parse(
+        JSON.stringify(action.transientMap)
+      ) as ProposalAction["transientMap"];
+      Object.keys(transientMap).forEach((key) => {
+        transientMap[key] = Buffer.from(
+          transientMap[key] as unknown as string,
+          "base64"
+        );
+      });
+    }
+
+    (endorsement as unknown as { _action: ProposalAction })._action = {
+      init: action.init,
+      transientMap,
+      transactionId: action.transactionId,
+      args: action.args.map((arg) => Buffer.from(arg, "base64")),
+      fcn: action.fcn,
+      header: {
+        signature_header: Buffer.from(action.header.signature_header, "base64"),
+        channel_header: Buffer.from(action.header.channel_header, "base64"),
+      },
+      proposal: {
+        header: Buffer.from(action.proposal.header, "base64"),
+        payload: Buffer.from(action.proposal.payload, "base64"),
+      },
+    };
+
+    const proposalResponses = await endorsement.send({
+      targets: channel.getEndorsers(),
+    });
+    const validResponse = proposalResponses.responses.find(
+      (p) => p.endorsement
+    );
+    if (!validResponse) {
+      let message: string;
+      const invalidResponse = proposalResponses.responses.find(
+        (p) => p.endorsement === null
+      );
+      if (invalidResponse) {
+        message = invalidResponse.response.message;
+      } else {
+        message = `errors: ${proposalResponses.errors
+          .map((error) => error.message)
+          .join(",")}`;
+      }
+
+      throw new InvalidRequestJsonRpcError(`Invalid response: ${message}`, id);
+    }
+
+    return {
+      errors: proposalResponses.errors,
+      responses: proposalResponses.responses.map((response) => ({
+        connection: response.connection,
+        endorsement: {
+          endorser: response.endorsement.endorser.toString("base64"),
+          signature: response.endorsement.signature.toString("base64"),
+        },
+        payload: response.payload.toString("base64"),
+        response: {
+          status: response.response.status,
+          message: response.response.message,
+          payload: response.response.payload.toString("base64"),
+        },
+      })),
+      queryResults: proposalResponses.queryResults?.map((queryResult) =>
+        queryResult.toString("base64")
+      ),
+    };
   }
 }
 
