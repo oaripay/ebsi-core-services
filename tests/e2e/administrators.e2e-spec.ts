@@ -227,7 +227,6 @@ describe("Administrators (e2e)", () => {
     });
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each([
     "insertAdministrator",
     "updateAdministrator",

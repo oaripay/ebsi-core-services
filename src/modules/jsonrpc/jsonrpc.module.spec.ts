@@ -57,6 +57,7 @@ import {
 } from "../../../tests/utils/data";
 import { ApiConfig } from "../../config/configuration";
 import { LedgerService } from "../ledger/ledger.service";
+import { JsonRpcService } from "./jsonrpc.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -110,6 +111,7 @@ describe("JsonRpc Module", () => {
   let configService: ConfigService<ApiConfig>;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let ledgerService: LedgerService;
+  let jsonRpcService: JsonRpcService;
   let appAccessToken: string;
   let adminAccessToken: string;
   let userAccessToken: string;
@@ -273,6 +275,7 @@ describe("JsonRpc Module", () => {
     server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
 
     const firstAlgMultihash = testEnv.hashAlgorithms[0].multihash;
 
@@ -322,6 +325,10 @@ describe("JsonRpc Module", () => {
         signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
       }
     );
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   afterAll(async () => {
@@ -795,8 +802,185 @@ describe("JsonRpc Module", () => {
     expect(responseSend.status).toBe(400);
   });
 
+  // EBSIINT-3464: signedTransaction should throw an error if the DID document is not valid
+  describe.each([
+    "insertDidDocument",
+    "updateDidDocument",
+    "appendDidDocumentVersionHash",
+    "detachDidDocumentVersionHash",
+    "appendDidDocumentVersionMetadata",
+    "detachDidDocumentVersionMetadata",
+  ])("/jsonrpc with method signedTransaction (%s)", (method: string) => {
+    it(`should throw an error if the client tries to use ${method} with an invalid DID document`, async () => {
+      expect.assertions(4);
+      const wallet = ethers.Wallet.createRandom();
+      const from = wallet.address;
+      const did = createDid();
+
+      // The DID document is incorrect because its "id" property is different from the DID of the JWT (controllerDid)
+      const incorrectDidDocument = prepareDidDocument(did, "sha2-256");
+      const {
+        didDocumentBuffer,
+        canonicalizedDidDocumentHash,
+        timestampDataBuffer,
+        didVersionMetadataBuffer,
+      } = incorrectDidDocument;
+      const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+      const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
+      const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
+      const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
+        "hex"
+      )}`;
+
+      let data = "";
+
+      switch (method) {
+        case "insertDidDocument": {
+          data = didRegistryContract.interface.encodeFunctionData(
+            "insertDidDocument",
+            [
+              identifier,
+              0, // hashAlgorithmId
+              canonicalizedDidDocumentHash, // hashValue
+              didVersionInfo,
+              timestampData ?? "0x",
+              didVersionMetadata ?? "0x",
+            ]
+          );
+          break;
+        }
+        case "updateDidDocument": {
+          data = didRegistryContract.interface.encodeFunctionData(
+            "updateDidDocument",
+            [
+              identifier,
+              0, // hashAlgorithmId
+              canonicalizedDidDocumentHash, // hashValue
+              didVersionInfo,
+              timestampData ?? "0x",
+              didVersionMetadata ?? "0x",
+            ]
+          );
+          break;
+        }
+        case "appendDidDocumentVersionHash": {
+          data = didRegistryContract.interface.encodeFunctionData(
+            "appendDidDocumentVersionHash",
+            [
+              identifier,
+              0, // hashAlgorithmId
+              canonicalizedDidDocumentHash, // hashValue
+              timestampData ?? "0x",
+              didVersionInfo,
+            ]
+          );
+          break;
+        }
+        case "detachDidDocumentVersionHash": {
+          data = didRegistryContract.interface.encodeFunctionData(
+            "detachDidDocumentVersionHash",
+            [
+              identifier,
+              0, // hashAlgorithmId
+              canonicalizedDidDocumentHash, // hashValue
+              didVersionInfo,
+            ]
+          );
+          break;
+        }
+        case "appendDidDocumentVersionMetadata": {
+          data = didRegistryContract.interface.encodeFunctionData(
+            "appendDidDocumentVersionMetadata",
+            [identifier, didVersionInfo, didVersionMetadata]
+          );
+          break;
+        }
+        case "detachDidDocumentVersionMetadata": {
+          data = didRegistryContract.interface.encodeFunctionData(
+            "detachDidDocumentVersionMetadata",
+            [identifier, didVersionInfo, didVersionMetadata]
+          );
+          break;
+        }
+        default: {
+          throw new Error(`Test Error: Invalid method ${method}`);
+        }
+      }
+
+      const { chainId } = await didRegistryContract.provider.getNetwork();
+      const actualChainId = ethers.BigNumber.from(chainId).toHexString();
+
+      const nonceInt = await didRegistryContract.provider.getTransactionCount(
+        from
+      );
+
+      const transaction = {
+        from,
+        to: didRegistryContract.address,
+        data,
+        value: "0x0",
+        nonce: ethers.BigNumber.from(nonceInt).toHexString(),
+        chainId: actualChainId,
+        gasLimit: "0x1000000",
+        gasPrice: "0x0",
+      };
+
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(transaction))
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await wallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      // Mock access token verification
+      jest
+        .spyOn(SiopSession.prototype, "verifyAccessToken")
+        .mockImplementation(async () => Promise.resolve({}));
+
+      const checkDidDocumentSpy = jest.spyOn(
+        jsonRpcService,
+        "checkDidDocument"
+      );
+
+      // Send transaction with userAccessToken (DID: controllerDid)
+      const responseSend = await request(server)
+        .post("/jsonrpc")
+        .auth(userAccessToken, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "signedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction: transaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(checkDidDocumentSpy).toHaveBeenCalledTimes(1);
+      expect(checkDidDocumentSpy).toHaveBeenCalledWith(
+        controllerDid,
+        identifier,
+        didVersionInfo
+      );
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        error: {
+          code: -32600,
+          message: `DID Document's "id" ${did} doesn't match JWT's DID ${controllerDid}`,
+        },
+      });
+      expect(responseSend.status).toBe(400);
+    });
+  });
+
   // Tests to be repeated for every method
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   describe.each([
     "insertDidMethod",
     "insertAdministrator",
@@ -1174,7 +1358,7 @@ describe("JsonRpc Module", () => {
 
       const responseSend = await request(server)
         .post("/jsonrpc")
-        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "signedTransaction",

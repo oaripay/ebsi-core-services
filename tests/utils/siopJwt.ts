@@ -8,7 +8,7 @@ import {
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { randomUUID } from "crypto";
 import canonicalize from "canonicalize";
-import base64url from "base64url";
+import { base64url } from "multiformats/bases/base64";
 import { createVP } from "./verifiablePresentation";
 import { createVerifiableAuthorisation } from "./verifiableAuthorisation";
 import { prefixWith0x } from "../../src/shared/utils/strings.utils";
@@ -127,8 +127,8 @@ export const requestNewUserSiopJwt = async ({
     clientPrivateKey,
   });
 
-  const canonicalizedVP = base64url.encode(
-    canonicalize(verifiablePresentation)
+  const canonicalizedVP = base64url.baseEncode(
+    Buffer.from(canonicalize(verifiablePresentation))
   );
 
   const agent = new SiopAgent({

@@ -233,6 +233,7 @@ export class JsonRpcService {
   }
 
   async verifyTransaction(
+    clientId: string,
     param: SignedTransactionParam
   ): Promise<{ signer: string; functionName: string }> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
@@ -328,12 +329,22 @@ export class JsonRpcService {
       case "insertDidDocument": {
         const castArgs = args as unknown as ArgsInsertDidDocument;
         await validateClass(ArgsInsertDidDocument, castArgs);
+        this.checkDidDocument(
+          clientId,
+          castArgs.identifier,
+          castArgs.didVersionInfo
+        );
         await this.checkHash(castArgs.hashAlgorithmId, castArgs.hashValue);
         break;
       }
       case "updateDidDocument": {
         const castArgs = args as unknown as ArgsUpdateDidDocument;
         await validateClass(ArgsUpdateDidDocument, castArgs);
+        this.checkDidDocument(
+          clientId,
+          castArgs.identifier,
+          castArgs.didVersionInfo
+        );
         await this.checkHash(castArgs.hashAlgorithmId, castArgs.hashValue);
         break;
       }
@@ -375,26 +386,44 @@ export class JsonRpcService {
       case "appendDidDocumentVersionHash": {
         const castArgs = args as unknown as ArgsAppendDidDocumentVersionHash;
         await validateClass(ArgsAppendDidDocumentVersionHash, castArgs);
+        this.checkDidDocument(
+          clientId,
+          castArgs.identifier,
+          castArgs.didVersionInfo
+        );
         await this.checkHash(castArgs.hashAlgorithmId, castArgs.hashValue);
         break;
       }
       case "detachDidDocumentVersionHash": {
         const castArgs = args as unknown as ArgsDetachDidDocumentVersionHash;
         await validateClass(ArgsDetachDidDocumentVersionHash, castArgs);
+        this.checkDidDocument(
+          clientId,
+          castArgs.identifier,
+          castArgs.didVersionInfo
+        );
         await this.checkHash(castArgs.hashAlgorithmId, castArgs.hashValue);
         break;
       }
       case "appendDidDocumentVersionMetadata": {
-        await validateClass(
-          ArgsAppendDidDocumentVersionMetadata,
-          args as unknown as ArgsAppendDidDocumentVersionMetadata
+        const castArgs =
+          args as unknown as ArgsAppendDidDocumentVersionMetadata;
+        await validateClass(ArgsAppendDidDocumentVersionMetadata, castArgs);
+        this.checkDidDocument(
+          clientId,
+          castArgs.identifier,
+          castArgs.didVersionInfo
         );
         break;
       }
       case "detachDidDocumentVersionMetadata": {
-        await validateClass(
-          ArgsDetachDidDocumentVersionMetadata,
-          args as unknown as ArgsDetachDidDocumentVersionMetadata
+        const castArgs =
+          args as unknown as ArgsDetachDidDocumentVersionMetadata;
+        await validateClass(ArgsDetachDidDocumentVersionMetadata, castArgs);
+        this.checkDidDocument(
+          clientId,
+          castArgs.identifier,
+          castArgs.didVersionInfo
         );
         break;
       }
@@ -848,7 +877,7 @@ export class JsonRpcService {
     }
   }
 
-  async buildTransactionAppendDidMethodVersionHash(
+  async buildTransactionAppendDidDocumentVersionHash(
     clientId: string,
     body: RequestAppendDidDocumentVersionHashDto,
     id?: number | string
@@ -885,7 +914,7 @@ export class JsonRpcService {
     }
   }
 
-  async buildTransactionDetachDidMethodVersionHash(
+  async buildTransactionDetachDidDocumentVersionHash(
     clientId: string,
     body: RequestDetachDidDocumentVersionHashDto,
     id?: number | string
@@ -915,7 +944,7 @@ export class JsonRpcService {
     }
   }
 
-  async buildTransactionAppendDidMethodVersionMetadata(
+  async buildTransactionAppendDidDocumentVersionMetadata(
     clientId: string,
     body: RequestAppendDidDocumentVersionMetadataDto,
     id?: number | string
@@ -943,7 +972,7 @@ export class JsonRpcService {
     }
   }
 
-  async buildTransactionDetachDidMethodVersionMetadata(
+  async buildTransactionDetachDidDocumentVersionMetadata(
     clientId: string,
     body: RequestDetachDidDocumentVersionMetadataDto,
     id?: number | string
@@ -980,7 +1009,10 @@ export class JsonRpcService {
       await validateClass(RequestSignedTransactionDto, body);
 
       const request = body.params[0];
-      const { signer, functionName } = await this.verifyTransaction(request);
+      const { signer, functionName } = await this.verifyTransaction(
+        clientId,
+        request
+      );
 
       await this.checkWritePermission(functionName, signer, clientId);
 

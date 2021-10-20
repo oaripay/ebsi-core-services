@@ -4,12 +4,12 @@ import {
 } from "@cef-ebsi/verifiable-presentation";
 import { VerifiableCredential } from "@cef-ebsi/verifiable-credential";
 import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
-import base64url from "base64url";
+import { base64url } from "multiformats/bases/base64";
 import { JWTPayload } from "jose/types";
 
 const extractIatFromJwt = (jwt: string): number => {
   const token = jwt.split(".");
-  const payload = base64url.decode(token[1]);
+  const payload = Buffer.from(base64url.baseDecode(token[1])).toString();
   return (JSON.parse(payload) as JWTPayload).iat;
 };
 

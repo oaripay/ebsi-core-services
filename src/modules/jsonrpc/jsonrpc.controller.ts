@@ -154,7 +154,7 @@ export default class AppController {
       }
       case "appendDidDocumentVersionHash": {
         const transaction =
-          await this.jsonRpcService.buildTransactionAppendDidMethodVersionHash(
+          await this.jsonRpcService.buildTransactionAppendDidDocumentVersionHash(
             subject.sub,
             body as RequestAppendDidDocumentVersionHashDto,
             id
@@ -163,7 +163,7 @@ export default class AppController {
       }
       case "detachDidDocumentVersionHash": {
         const transaction =
-          await this.jsonRpcService.buildTransactionDetachDidMethodVersionHash(
+          await this.jsonRpcService.buildTransactionDetachDidDocumentVersionHash(
             subject.sub,
             body as RequestDetachDidDocumentVersionHashDto,
             id
@@ -172,7 +172,7 @@ export default class AppController {
       }
       case "appendDidDocumentVersionMetadata": {
         const transaction =
-          await this.jsonRpcService.buildTransactionAppendDidMethodVersionMetadata(
+          await this.jsonRpcService.buildTransactionAppendDidDocumentVersionMetadata(
             subject.sub,
             body as RequestAppendDidDocumentVersionMetadataDto,
             id
@@ -181,7 +181,7 @@ export default class AppController {
       }
       case "detachDidDocumentVersionMetadata": {
         const transaction =
-          await this.jsonRpcService.buildTransactionDetachDidMethodVersionMetadata(
+          await this.jsonRpcService.buildTransactionDetachDidDocumentVersionMetadata(
             subject.sub,
             body as RequestDetachDidDocumentVersionMetadataDto,
             id
