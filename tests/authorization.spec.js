@@ -834,7 +834,7 @@ describe("trusted application registry", () => {
         expect(r1.total.toString()).toStrictEqual("0");
         expect(r1.howMany.toString()).toStrictEqual("0");
         expect(r1.prev.toString()).toStrictEqual("1");
-        expect(r1.next.toString()).toStrictEqual("0");
+        expect(r1.next.toString()).toStrictEqual("1");
       });
       it("getauthorizations should failed with wrong page size", async () => {
         expect.assertions(0);
@@ -1228,7 +1228,7 @@ describe("trusted application registry", () => {
         expect(r1.total.toString()).toStrictEqual("0");
         expect(r1.howMany.toString()).toStrictEqual("0");
         expect(r1.prev.toString()).toStrictEqual("1");
-        expect(r1.next.toString()).toStrictEqual("0");
+        expect(r1.next.toString()).toStrictEqual("1");
       });
     });
   });
