@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   ledger-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/ledger-api:test_ebsiint-3437-fabric-send-proposal_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/ledger-api:test_ebsiint-3438-fabric-commit-transaction_v2.0.0
     build: ../..

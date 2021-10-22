@@ -1169,24 +1169,97 @@ describe("Fabric Module", () => {
       expect(response.body).toStrictEqual({
         jsonrpc: "2.0",
         id: 1,
-        result: {
-          errors: expect.arrayContaining([]) as unknown,
-          responses: expect.arrayContaining([
-            expect.objectContaining({
-              connection: expect.anything() as unknown,
-              endorsement: {
-                endorser: expect.any(String) as string,
-                signature: expect.any(String) as string,
-              },
+        result: expect.arrayContaining([
+          expect.objectContaining({
+            endorsement: {
+              endorser: expect.any(String) as string,
+              signature: expect.any(String) as string,
+            },
+            payload: expect.any(String) as string,
+            response: {
+              message: expect.any(String) as string,
               payload: expect.any(String) as string,
-              response: {
-                message: expect.any(String) as string,
-                payload: expect.any(String) as string,
-                status: expect.any(Number) as number,
-              },
-            }),
-          ]) as unknown,
+              status: expect.any(Number) as number,
+            },
+          }),
+        ]) as unknown,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should send a commit", async () => {
+      expect.assertions(2);
+      // Mock Wallets
+      jest
+        .spyOn(Wallets, "newFileSystemWallet")
+        .mockImplementation(() => Wallets.newInMemoryWallet());
+
+      jest
+        .spyOn(Gateway.prototype, "connect")
+        .mockImplementation(() => Promise.resolve());
+      jest.spyOn(Gateway.prototype, "getNetwork").mockImplementation(() =>
+        Promise.resolve({
+          getGateway: jest.fn(),
+          getContract: jest.fn().mockImplementation(() => ({
+            createTransaction: jest.fn().mockImplementation(() => ({
+              eventHandlerStrategyFactory: jest.fn().mockImplementation(() => ({
+                startListening: jest.fn(),
+                waitForEvents: jest.fn(),
+              })),
+            })),
+          })),
+          getChannel: jest.fn().mockImplementation(() => ({
+            getEndorsers: jest.fn(),
+            getCommitters: jest.fn(),
+            newEndorsement: jest.fn().mockImplementation(() => ({
+              newCommit: jest.fn().mockImplementation(() => ({
+                send: jest.fn(),
+              })),
+            })),
+          })),
+          addCommitListener: jest.fn(),
+          removeCommitListener: jest.fn(),
+          addBlockListener: jest.fn(),
+          removeBlockListener: jest.fn(),
+        })
+      );
+
+      const action = {
+        init: false,
+        payload: {
+          header: {
+            signature_header: crypto.randomBytes(12).toString("base64"),
+            channel_header: crypto.randomBytes(12).toString("base64"),
+          },
+          data: crypto.randomBytes(12).toString("base64"),
         },
+      };
+      const payload = crypto.randomBytes(12).toString("base64");
+      const signature = crypto.randomBytes(12).toString("base64");
+      const transactionId = crypto.randomBytes(32).toString("hex");
+
+      const response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "commitTransaction",
+          params: [
+            {
+              channelName: "iossdrpocchannel",
+              contractName: "iossdrpociossvatid",
+              action,
+              payload,
+              signature,
+              transactionId,
+            },
+          ],
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 1,
+        result: "OK",
       });
       expect(response.status).toBe(200);
     });

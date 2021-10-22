@@ -3,6 +3,7 @@ import { ClassConstructor, ClassTransformer } from "class-transformer";
 import { base64url } from "multiformats/bases/base64";
 import { RequestReadContractDto } from "./dto/request-read-contract.dto";
 import { RequestSendProposalDto } from "./dto/request-send-proposal.dto";
+import { RequestCommitTransactionDto } from "./dto/request-commit-transaction.dto";
 import { PaginatedList } from "./interfaces";
 
 type PaginationLinks = {
@@ -73,7 +74,10 @@ export function paginateString<T>(
 export const encodeMultibase64url = (buffer: Buffer): string =>
   base64url.encode(buffer).toString();
 
-type JsonRpcDtos = RequestReadContractDto | RequestSendProposalDto;
+type JsonRpcDtos =
+  | RequestReadContractDto
+  | RequestSendProposalDto
+  | RequestCommitTransactionDto;
 
 const getErrorMessages = (
   errors: ClassValidator.ValidationError[]

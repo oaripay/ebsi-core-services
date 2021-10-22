@@ -20,3 +20,23 @@ export interface ProposalAction {
     payload: Buffer;
   };
 }
+
+export interface CommitAction {
+  init: boolean;
+  payload: {
+    header: {
+      signature_header: Buffer;
+      channel_header: Buffer;
+    };
+    data: Buffer;
+  };
+}
+
+export interface ProposalResponseBase64 {
+  endorsement: {
+    endorser: string;
+    signature: string;
+  };
+  payload: string;
+  response: { status: number; message: string; payload: string };
+}

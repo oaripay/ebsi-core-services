@@ -298,6 +298,24 @@ paths:
                           payload: CpsBCpgBCA...
                       payload: CogKCn4IAxABGgwIzfKbiw...
                       signature: MEUCIQC/rRRItmu3HcgS+...
+              Commit Transaction:
+                value:
+                  jsonrpc: "2.0"
+                  id: 1
+                  method: commitTransaction
+                  params:
+                    - channelName: "iossdrpocchannel"
+                      contractName: "iossdrpociossvatid"
+                      action:
+                        init: false
+                        payload:
+                          header:
+                            signature_header: CugIChF...
+                            channel_header: CAMQARoMCM...
+                          data: PeMY4e...
+                      payload: CogKCn4IAxABGgwIzfKbiw...
+                      signature: MEUCIQC/rRRItmu3HcgS+...
+                      transactionId: fed4...
       responses:
         200:
           description: Response
@@ -316,16 +334,18 @@ paths:
                     jsonrpc: "2.0"
                     id: 1
                     result:
-                      errors: []
-                      responses:
-                        - connection: {}
-                          endorsement:
-                            endorser: 4eME...
-                            signature: MU/raH+...
-                          payload: CapMr...
-                          response:
-                            message: ""
-                            payload: ""
+                      - endorsement:
+                          endorser: 4eME...
+                          signature: MU/raH+...
+                        payload: CapMr...
+                        response:
+                          message: ""
+                          payload: ""
+                Commit Transaction:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: OK
                 Invalid Request:
                   $ref: "#/components/examples/InvalidRequestJsonRpcError"
                 Method Not Found:

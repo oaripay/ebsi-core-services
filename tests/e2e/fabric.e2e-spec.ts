@@ -21,6 +21,7 @@ import {
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { FabricUser } from "../utils/FabricUser";
+import { ProposalResponseBase64 } from "../../src/modules/fabric/fabric.interface";
 
 jest.setTimeout(60000);
 
@@ -649,6 +650,7 @@ describe("Fabric e2e tests", () => {
     });
 
     it("should send a proposal", async () => {
+      expect.assertions(2);
       const user = new FabricUser();
       await user.init("user1_be_tax", "./wallet");
       const iossvatid = crypto.randomBytes(6).toString("hex");
@@ -680,26 +682,150 @@ describe("Fabric e2e tests", () => {
       expect(response.body).toStrictEqual({
         jsonrpc: "2.0",
         id: 1,
-        result: {
-          errors: expect.arrayContaining([]) as unknown,
-          responses: expect.arrayContaining([
-            expect.objectContaining({
-              connection: expect.anything() as unknown,
-              endorsement: {
-                endorser: expect.any(String) as string,
-                signature: expect.any(String) as string,
-              },
+        result: expect.arrayContaining([
+          expect.objectContaining({
+            endorsement: {
+              endorser: expect.any(String) as string,
+              signature: expect.any(String) as string,
+            },
+            payload: expect.any(String) as string,
+            response: {
+              message: expect.any(String) as string,
               payload: expect.any(String) as string,
-              response: {
-                message: expect.any(String) as string,
-                payload: expect.any(String) as string,
-                status: expect.any(Number) as number,
-              },
-            }),
-          ]) as unknown,
-        },
+              status: expect.any(Number) as number,
+            },
+          }),
+        ]) as unknown,
       });
       expect(response.status).toBe(200);
+    });
+
+    it("should commit a transaction and verify the iossvat added", async () => {
+      expect.assertions(7);
+      const user = new FabricUser();
+      await user.init("user1_be_tax", "./wallet");
+      const iossvatid = crypto.randomBytes(6).toString("hex");
+      const startDate = new Date().toISOString().slice(0, -14);
+      const endDate = new Date(Date.now() + 3e8).toISOString().slice(0, -14);
+      const { action, payload, signature } = user.buildSignProposal(
+        iossvatid,
+        startDate,
+        endDate
+      );
+
+      let response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "sendProposal",
+          params: [
+            {
+              channelName: "iossdrpocchannel",
+              contractName: "iossdrpociossvatid",
+              action,
+              payload,
+              signature,
+            },
+          ],
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 1,
+        result: expect.arrayContaining([
+          expect.objectContaining({
+            endorsement: {
+              endorser: expect.any(String) as string,
+              signature: expect.any(String) as string,
+            },
+            payload: expect.any(String) as string,
+            response: {
+              message: expect.any(String) as string,
+              payload: expect.any(String) as string,
+              status: expect.any(Number) as number,
+            },
+          }),
+        ]) as unknown,
+      });
+      expect(response.status).toBe(200);
+
+      const { result: propResponses } = response.body as {
+        result: ProposalResponseBase64[];
+      };
+
+      // build and sign commit using the responses
+      user.setProposalResponses(propResponses);
+      const commit = user.buildSignCommit();
+
+      response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "commitTransaction",
+          params: [
+            {
+              channelName: "iossdrpocchannel",
+              contractName: "iossdrpociossvatid",
+              action: commit.action,
+              payload: commit.payload,
+              signature: commit.signature,
+              transactionId: commit.transactionId,
+            },
+          ],
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 1,
+        result: "OK",
+      });
+      expect(response.status).toBe(200);
+
+      // verify iossvatid recently added
+      response = await request(server)
+        .post(`/blockchains/fabric/jsonrpc`)
+        .send({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "readContract",
+          params: [
+            {
+              channelName: "iossdrpocchannel",
+              contractName: "iossdrpociossvatid",
+              fcn: "getIossVatId",
+              args: [iossvatid],
+            },
+          ],
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 1,
+        result: expect.any(String) as string,
+      });
+      expect(response.status).toBe(200);
+
+      const { result } = response.body as { result: string };
+      let resultJson: Record<string, unknown>;
+      try {
+        resultJson = JSON.parse(
+          Buffer.from(result, "base64").toString()
+        ) as Record<string, unknown>;
+      } catch (error) {
+        throw new Error(`Result cannot be parsed to JSON: ${result}`);
+      }
+      expect(resultJson).toStrictEqual({
+        iossvatid,
+        startdate: startDate,
+        enddate: endDate,
+        iossvatidsalted: expect.any(String) as string,
+        keypdc: expect.any(String) as string,
+        keyws: expect.any(String) as string,
+        modificationdatetime: expect.any(String) as string,
+        operation: "C",
+      });
     });
 
     it("should reject bad params for sendProposal", async () => {

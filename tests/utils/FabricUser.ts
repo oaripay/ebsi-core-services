@@ -1,9 +1,20 @@
 /* eslint-disable no-underscore-dangle */
 import { Wallets } from "fabric-network";
-import { Client, Channel, Endorsement, IdentityContext } from "fabric-common";
+import {
+  Client,
+  Channel,
+  Endorsement,
+  IdentityContext,
+  EndorsementResponse,
+} from "fabric-common";
 import crypto from "crypto";
-import { ProposalAction } from "../../src/modules/fabric/fabric.interface";
+import {
+  CommitAction,
+  ProposalAction,
+  ProposalResponseBase64,
+} from "../../src/modules/fabric/fabric.interface";
 import { ProposalActionDto } from "../../src/modules/fabric/dto/proposal-action.dto";
+import { CommitActionDto } from "../../src/modules/fabric/dto/commit-action.dto";
 
 const channelName = "iossdrpocchannel";
 const contractName = "iossdrpociossvatid";
@@ -107,18 +118,63 @@ export class FabricUser {
     };
   }
 
-  /*
-    buildSignCommit() {
-      const commit = this.endorsement.newCommit();
-      commit.build(this.identityContext);
-      commit.sign(this.identityContext);
-      return {
-        caction: commit._action,
-        cpayload: commit._payload,
-        csignature: commit._signature,
+  setProposalResponses(responses: ProposalResponseBase64[]): void {
+    (
+      this.endorsement as unknown as {
+        _proposalResponses: EndorsementResponse[];
       }
-    }
-    */
+    )._proposalResponses = responses.map((response) => ({
+      connection: {
+        type: "",
+        name: "",
+        url: "",
+        options: {},
+      },
+      endorsement: {
+        endorser: Buffer.from(response.endorsement.endorser, "base64"),
+        signature: Buffer.from(response.endorsement.signature, "base64"),
+      },
+      payload: Buffer.from(response.payload, "base64"),
+      response: {
+        status: response.response.status,
+        message: response.response.message,
+        payload: Buffer.from(response.response.payload, "base64"),
+      },
+    }));
+  }
+
+  buildSignCommit(): {
+    action: CommitActionDto;
+    payload: string;
+    signature: string;
+    transactionId: string;
+  } {
+    const commit = this.endorsement.newCommit();
+    commit.build(this.identityContext);
+    commit.sign(this.identityContext);
+
+    const action = (commit as unknown as { _action: CommitAction })._action;
+    const payload = (commit as unknown as { _payload: Buffer })._payload;
+    const signature = (commit as unknown as { _signature: Buffer })._signature;
+
+    return {
+      action: {
+        init: action.init,
+        payload: {
+          header: {
+            signature_header:
+              action.payload.header.signature_header.toString("base64"),
+            channel_header:
+              action.payload.header.channel_header.toString("base64"),
+          },
+          data: action.payload.data.toString("base64"),
+        },
+      },
+      payload: payload.toString("base64"),
+      signature: signature.toString("base64"),
+      transactionId: this.endorsement.getTransactionId(),
+    };
+  }
 }
 
 export default FabricUser;

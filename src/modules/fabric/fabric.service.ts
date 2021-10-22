@@ -2,7 +2,13 @@ import fs from "fs";
 import path from "path";
 import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Gateway, GatewayOptions, Wallets, X509Identity } from "fabric-network";
+import {
+  Gateway,
+  GatewayOptions,
+  Network,
+  Wallets,
+  X509Identity,
+} from "fabric-network";
 import {
   InternalServerError,
   NotFoundError,
@@ -10,7 +16,7 @@ import {
 import * as fabprotos from "fabric-protos";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore fabric-common doesn't expose the TS definition correctly - https://github.com/hyperledger/fabric-sdk-node/pull/477
-import { BlockData, BlockDecoder, ProposalResponse } from "fabric-common";
+import { BlockData, BlockDecoder } from "fabric-common";
 import {
   Block,
   FabricChannelHeader,
@@ -25,7 +31,12 @@ import { encodeMultibase64url, validateClass } from "./fabric.utils";
 import { RequestReadContractDto } from "./dto/request-read-contract.dto";
 import { InvalidRequestJsonRpcError } from "./errors";
 import { RequestSendProposalDto } from "./dto/request-send-proposal.dto";
-import { ProposalAction } from "./fabric.interface";
+import {
+  CommitAction,
+  ProposalAction,
+  ProposalResponseBase64,
+} from "./fabric.interface";
+import { RequestCommitTransactionDto } from "./dto/request-commit-transaction.dto";
 
 @Injectable()
 export class FabricService implements OnModuleDestroy {
@@ -96,6 +107,7 @@ export class FabricService implements OnModuleDestroy {
     const gatewayOptions: GatewayOptions = {
       identity: this.fabricConfig.username,
       wallet,
+      discovery: { enabled: true, asLocalhost: false },
     };
 
     const gateway = new Gateway();
@@ -463,23 +475,7 @@ export class FabricService implements OnModuleDestroy {
   async sendProposal(
     body: RequestSendProposalDto,
     id?: number | string
-  ): Promise<{
-    errors: ProposalResponse["errors"];
-    responses: {
-      connection: unknown;
-      endorsement: {
-        endorser: string;
-        signature: string;
-      };
-      payload: string;
-      response: {
-        status: number;
-        message: string;
-        payload: string;
-      };
-    }[];
-    queryResults: string[];
-  }> {
+  ): Promise<ProposalResponseBase64[]> {
     try {
       await validateClass(RequestSendProposalDto, body);
     } catch (err) {
@@ -530,47 +526,96 @@ export class FabricService implements OnModuleDestroy {
       },
     };
 
-    const proposalResponses = await endorsement.send({
+    const { responses } = await endorsement.send({
       targets: channel.getEndorsers(),
     });
-    const validResponse = proposalResponses.responses.find(
-      (p) => p.endorsement
-    );
-    if (!validResponse) {
-      let message: string;
-      const invalidResponse = proposalResponses.responses.find(
-        (p) => p.endorsement === null
-      );
-      if (invalidResponse) {
-        message = invalidResponse.response.message;
-      } else {
-        message = `errors: ${proposalResponses.errors
-          .map((error) => error.message)
-          .join(",")}`;
-      }
 
+    const validResponse = responses.find((p) => p.endorsement);
+    if (!validResponse) {
+      const invalidResponse = responses.find((p) => p.endorsement === null);
+      const { message } = invalidResponse.response;
       throw new InvalidRequestJsonRpcError(`Invalid response: ${message}`, id);
     }
 
-    return {
-      errors: proposalResponses.errors,
-      responses: proposalResponses.responses.map((response) => ({
-        connection: response.connection,
-        endorsement: {
-          endorser: response.endorsement.endorser.toString("base64"),
-          signature: response.endorsement.signature.toString("base64"),
+    return responses.map((response) => ({
+      endorsement: {
+        endorser: response.endorsement.endorser.toString("base64"),
+        signature: response.endorsement.signature.toString("base64"),
+      },
+      payload: response.payload.toString("base64"),
+      response: {
+        status: response.response.status,
+        message: response.response.message,
+        payload: response.response.payload.toString("base64"),
+      },
+    }));
+  }
+
+  async commitTransaction(
+    body: RequestCommitTransactionDto,
+    id?: number | string
+  ): Promise<string> {
+    try {
+      await validateClass(RequestCommitTransactionDto, body);
+    } catch (err) {
+      throw new InvalidRequestJsonRpcError((err as Error).message, id);
+    }
+    await this.connectGateway();
+    const {
+      channelName,
+      contractName,
+      action,
+      payload,
+      signature,
+      transactionId,
+    } = body.params[0];
+    const network = await this.gateway.getNetwork(channelName);
+    const contract = network.getContract(contractName);
+    const channel = network.getChannel();
+    const transaction = contract.createTransaction("empty");
+    const eventHandler = (
+      transaction as unknown as {
+        eventHandlerStrategyFactory: (
+          transactionId: string,
+          network: Network
+        ) => {
+          startListening: () => Promise<void>;
+          waitForEvents: () => Promise<void>;
+        };
+      }
+    ).eventHandlerStrategyFactory(transactionId, network);
+    await eventHandler.startListening();
+    const endorsement = channel.newEndorsement(contractName);
+    const commit = endorsement.newCommit();
+    (commit as unknown as { _payload: Buffer })._payload = Buffer.from(
+      payload,
+      "base64"
+    );
+    (commit as unknown as { _signature: Buffer })._signature = Buffer.from(
+      signature,
+      "base64"
+    );
+    (commit as unknown as { _action: CommitAction })._action = {
+      init: action.init,
+      payload: {
+        header: {
+          signature_header: Buffer.from(
+            action.payload.header.signature_header,
+            "base64"
+          ),
+          channel_header: Buffer.from(
+            action.payload.header.channel_header,
+            "base64"
+          ),
         },
-        payload: response.payload.toString("base64"),
-        response: {
-          status: response.response.status,
-          message: response.response.message,
-          payload: response.response.payload.toString("base64"),
-        },
-      })),
-      queryResults: proposalResponses.queryResults?.map((queryResult) =>
-        queryResult.toString("base64")
-      ),
+        data: Buffer.from(action.payload.data, "base64"),
+      },
     };
+    await commit.send({
+      targets: channel.getCommitters(),
+    });
+    await eventHandler.waitForEvents();
+    return "OK";
   }
 }
 
