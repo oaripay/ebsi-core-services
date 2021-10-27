@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.12](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.11&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.12&targetRepoId=359) (2021-10-15)
+
+### 🐛 Bug Fixes
+
+- expect DID documents to have "[@context](https://ec.europa.eu/context)": "https://www.w3.org/ns/did/v1" ([#65](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/65/overview)) - EBSIINT-3415 ([521966b](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/521966b394ef854675448041c2bd9383d3732ede))
+- update Node.js version to v14.18.1 ([#66](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/66/overview)) - EBSIINT-3432 ([48ce0ea](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/48ce0ea81672fece5f7cb0085f4b2eea44886f57))
+
 ## [1.0.0-rc.11](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.10&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.11&targetRepoId=359) (2021-10-04)
 
 ### 🚀 Features
