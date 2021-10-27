@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
-## [2.0.0-rc.6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.6&targetRepoId=234) (2021-10-15)
+## [2.0.0-rc.6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.6&targetRepoId=234) (2021-10-20)
 
 ### 🚀 Features
 
@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. 🤘
 
 ### 🐛 Bug Fixes
 
+- check DID document when signedTransaction is called ([#110](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/110/overview)) - EBSIINT-3464 ([ecc144e](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/ecc144e12b59fc01b7afebec0c446d2d63c39b74))
 - update Node.js version to v14.18.1 ([#107](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/107/overview)) - EBSIINT-3432 ([36dd205](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/36dd205fa7553f4e6fa4a93b27fa68078d3346b3))
 
 ## [2.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.5&targetRepoId=234) (2021-10-04)
