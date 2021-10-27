@@ -144,7 +144,7 @@ export default class SessionsService {
       );
     }
 
-    const userEU = await this.parseEULoginUser(userInfo.data);
+    const userEU = await this.parseEULoginUser(userInfo.data as string);
 
     if (!userEU) {
       throw new InvalidUserAuthentication(

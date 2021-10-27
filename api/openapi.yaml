@@ -44,12 +44,12 @@ paths:
             examples:
               EULogin:
                 value:
-                  onboarding: "eu-login"
+                  onboarding: eu-login
                   info:
-                    eul-ticket: "EU Login ticket number"
+                    eul-ticket: EU Login ticket number
               reCAPTCHA:
                 value:
-                  onboarding: "recaptcha"
+                  onboarding: recaptcha
                   info:
                     token: 03AGdBq24EL3Pvtf6wNbAoBHFbrgYCbFQrAtOUTN80C_OTgo5UmdYXXbQwEBzWXpZdHvV18kqy2X3ZO5MjYI7-48aEuzaUSi0d4cyssNOrEDhnQ6Fwkw_nPCsOvqn66_8KSjWAFJWcVSDZYiEa3N8cAuPtisha65ypOSQZGTQO8OtvmX3ots3_3Lg0RYE0FR8nmSHvprBzepB_bNRgIkzFyMQLrWCwT1DIxNlG26fbsYqgHTlqc5_XmLovWoUldx_gptqfsqVw5OhCsf4T_sMSESS6FmNYf_5wW_LLdvtTNcTuENfKFzpJWgTNCrUo7jyBKLJQiuo6d6D0mwO3oWx9JJ2h6cGSRqtMukW5kdO_0kuZ2O7mFKkMo_Godnhf3iHTcNqfIHKvd7hoUbb21SOiLNv4gdQ2v0WyhnZGbPPgGaltpTV5UgboUrCAxhwCsQecjKhW10WAzBaw
       responses:
@@ -68,32 +68,11 @@ paths:
                   value:
                     Bearer: eyJhbGciOiJFUzI1NiIsImN0eSI6IkpXVCIsImtpZCI6IiIsInR5cCI6IkpXVCJ9.eyJhdEhhc2giOiI4Rlo1YzdROTlWaldETU14Nis4WUt2dTVVTVNuQWpwdWFzSDg1L1JUb3M0PSIsImV4cCI6MTYxNjU3NjEyMCwiaWF0IjoxNjE2NTc2MDAwLCJpc3MiOiJVc2VycyBPbmJvYXJkaW5nIEFQSSIsIm5vbmNlIjoiMDRhYjEzNzUtMGU1MS00YjUyLWE4NTUtM2UxYmY3NWJkOTViIiwic3ViIjoiVXNlcnMgT25ib2FyZGluZyBBUEkifQ.BWfmeyyyN-4CruvkBYOQahsWH5TZEpFn8FU1BY6iazVuxpz2QccN6KEOhIzTDV_cy-lKb64vDO2YjAzcMfJfaw
         400:
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Bad Request Error:
-                  $ref: "#/components/examples/BadRequest"
+          $ref: "#/components/responses/400"
         404:
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Not Found:
-                  $ref: "#/components/examples/NotFound"
+          $ref: "#/components/responses/404"
         500:
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
+          $ref: "#/components/responses/500"
   /users-onboarding/v1/authentication-requests:
     post:
       tags:
@@ -101,6 +80,8 @@ paths:
       summary: Authentication requests
       description: The user performs a request to this endpoint to start did siop by requesting the creation of the request. The endpoint returns a SIOP DID authentication request.
       operationId: post-users-onboarding-api-authentication-requests
+      parameters:
+        - $ref: "#/components/parameters/headerConformance"
       requestBody:
         required: true
         description: |
@@ -121,7 +102,7 @@ paths:
                   This is test data for the [EBSI Conformance Test V1](https://ec.europa.eu/cefdigital/wiki/x/5YDwG) [ONBOARD_01a](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ONBOARD).
                   Successful response (HTTP 201) means that the service (wallet) can request a Verifiable Authorisation according to the [specifications]().
                 value:
-                  scope: "ebsi users onboarding"
+                  scope: ebsi users onboarding
       responses:
         201:
           description: Success - The service (wallet) can request a Verifiable Authorisation
@@ -136,34 +117,13 @@ paths:
               examples:
                 Success:
                   value:
-                    session_token: openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.ebsi.zyz%2Faccess-tokens&scope=openid%20did_authn&request=eyJhbGciOiJIUzI1Ni...
+                    session_token: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.ebsi.zyz%2Faccess-tokens&scope=openid%20did_authn&request=eyJhbGciOiJIUzI1Ni..."
         400:
-          description: Bad Request - The service (wallet) fails to request a Verifiable Authorisation
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Bad Request Error:
-                  $ref: "#/components/examples/BadRequest"
+          $ref: "#/components/responses/400"
         404:
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Not Found:
-                  $ref: "#/components/examples/NotFound"
+          $ref: "#/components/responses/404"
         500:
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
+          $ref: "#/components/responses/500"
   /users-onboarding/v1/authentication-responses:
     post:
       tags:
@@ -173,6 +133,8 @@ paths:
       operationId: post-users-onboarding-api-authentication-responses
       security:
         - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/headerConformance"
       requestBody:
         required: true
         content:
@@ -184,10 +146,10 @@ paths:
                 - id_token
               properties:
                 id_token:
-                  description: did auth id token created by the user candidate to be validated. Notice that this value holds more than the JWT but also parameters like state.
+                  description: DID authentication ID Token.
                   type: string
             example:
-              id_token: "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6eVYzQXhWa2JiMllhVUp5UUJraUczQyNrZXktMSJ9.eyJpYXQiOjE2MzMzNDg4NjIsImV4cCI6MTYzMzM0OTE2MiwiaXNzIjoiaHR0cHM6Ly9zZWxmLWlzc3VlZC5tZSIsInN1YiI6IjVaVGFDMW84YmppV3F5eDhVeVRMaTdJRkQyeXVsaGFtRzV6WmEydEFnYXciLCJhdWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3VzZXJzLW9uYm9hcmRpbmcvdjEvYXV0aGVudGljYXRpb24tcmVzcG9uc2VzIiwibm9uY2UiOiIxMGMyODFiYi05YWVhLTRhNzEtODZjMi0wZDc4ZTdhMGY1ZjUiLCJzdWJfandrIjp7Imt0eSI6IkVDIiwiY3J2Ijoic2VjcDI1NmsxIiwieCI6InFKY29QY3BfRC1LcHMzd3hvRHlGTDB0ZzI5V0w5V2VnSlZaT0ZoakVVQWciLCJ5IjoieFFSaGtMVmxwNUNVYVZFNURTb1U1N3M5TFJqTlZFb21MRTl1amNpZDRmOCIsImtpZCI6ImRpZDplYnNpOnp5VjNBeFZrYmIyWWFVSnlRQmtpRzNDI2tleS0xIn19.RA8f0HCHoZEJPLmX9VUWFcHhIVujQHRG8dpYPDrRZma6LByKtFMyt_8UOfHH7kdAHbVXTw0wA0qgt77Hh7XJCg"
+              id_token: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj
           application/json:
             schema:
               title: DID Authentication ID Token
@@ -211,7 +173,7 @@ paths:
                   - Can create a DID controlling key supported by EBSI
                   - Can prove a posession of a DID controlling key as defined in the [specifications]()
                 value:
-                  id_token: "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj"
+                  id_token: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj
       responses:
         201:
           description: Success - The service (wallet) can prove DID key possession.
@@ -222,7 +184,7 @@ paths:
                 properties:
                   verifiableCredential:
                     type: object
-                    description: this field contains the Verifiable Credential requested, i.e. the Verifiable Authorisation
+                    description: This field contains the Verifiable Credential requested, i.e. the Verifiable Authorisation
               examples:
                 Success:
                   value:
@@ -234,43 +196,22 @@ paths:
                         issuanceDate: "2021-04-26T15:55:02Z"
                         "@context":
                           - "https://www.w3.org/2018/credentials/v1"
-                        type: "VerifiableCredential"
+                        type: VerifiableCredential
                         proof:
-                          type: "EcdsaSecp256k1Signature2019"
+                          type: EcdsaSecp256k1Signature2019
                           created: "2021-04-26T15:55:02Z"
-                          proofPurpose: "assertionMethod"
+                          proofPurpose: assertionMethod
                           verificationMethod: "did:ebsi:zwC56DZdiJh8kSxbgg4fMCu#keys-1"
-                          jws: "351Oed421iLbLLJjINWF_EAXN6EaBk1AJUqbpHqpv7TZOA7PnCmgyurvPVvjjmw"
+                          jws: 351Oed421iLbLLJjINWF_EAXN6EaBk1AJUqbpHqpv7TZOA7PnCmgyurvPVvjjmw
         400:
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Bad Request Error:
-                  $ref: "#/components/examples/BadRequest"
+          $ref: "#/components/responses/400"
         404:
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Not Found:
-                  $ref: "#/components/examples/NotFound"
+          $ref: "#/components/responses/404"
         500:
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
+          $ref: "#/components/responses/500"
 components:
   schemas:
-    Problem:
+    problem:
       description: A Problem Details object (RFC 7807)
       type: object
       properties:
@@ -278,13 +219,11 @@ components:
           type: string
           format: uri
           description: |
-            An absolute URI that identifies the problem type. When dereferenced,
-            it SHOULD provide human-readable documentation for the problem type.
+            An absolute URI that identifies the problem type. When dereferenced, it SHOULD provide human-readable documentation for the problem type.
           default: about:blank
         title:
           type: string
-          description: |
-            A short summary of the problem type.
+          description: A short summary of the problem type.
           example: Internal Server Error
         status:
           type: integer
@@ -303,24 +242,64 @@ components:
           type: string
           format: uri
           description: |
-            An absolute URI that identifies the specific occurrence of the problem.
-            It may or may not yield further information if dereferenced.
+            An absolute URI that identifies the specific occurrence of the problem. It may or may
+            not yield further information if dereferenced.
+  responses:
+    400:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/problem"
+          examples:
+            Bad Request:
+              $ref: "#/components/examples/BadRequest"
+    404:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/problem"
+          examples:
+            Not Found:
+              $ref: "#/components/examples/NotFound"
+    500:
+      description: Internal Error
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/problem"
+          examples:
+            Internal Server Error:
+              $ref: "#/components/examples/InternalError"
   examples:
     BadRequest:
       value:
-        title: Bad request
+        title: Bad Request
         status: 400
-        detail: Bad request
+        detail: Bad request.
     NotFound:
       value:
-        title: Not found
+        title: Not Found
         status: 404
         detail: Not found
     InternalError:
       value:
-        title: Internal error
+        title: Internal Server Error
         status: 500
-        detail: Internal error
+        detail: The server encountered an internal error and was unable to process your request.
+  parameters:
+    headerConformance:
+      in: header
+      name: Conformance
+      description: |
+        Conformance test UUID. UUID V4 should be used. The header is
+        required when running the conformance tests to log the activities.
+      required: false
+      schema:
+        type: string
+        format: uuid
+      example: edb60e02-398d-4b62-8028-85710b2476a5
   securitySchemes:
     bearerAuth:
       type: http
