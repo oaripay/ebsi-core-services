@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.5&targetRepoId=248) (2021-10-18)
+
+### 🐛 Bug Fixes
+
+- update Node.js version to v14.18.1 ([#78](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/78/overview)) - EBSIINT-3432 ([6f68816](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/commits/6f6881624ed4cc35b4a917888b28683d6e6d2358))
+
 ## [2.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.4&targetRepoId=248) (2021-10-04)
 
 ### 🐛 Bug Fixes
