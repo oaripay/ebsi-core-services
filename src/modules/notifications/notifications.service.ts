@@ -6,10 +6,10 @@ import {
   BadRequestError,
   InternalServerError,
 } from "@cef-ebsi/problem-details-errors";
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import crypto, { randomUUID } from "crypto";
 import { decodeJWT } from "@cef-ebsi/did-jwt";
-import { Agent } from "@cef-ebsi/oauth2-auth";
+import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { ApiConfig } from "../../config/configuration";
 import {
@@ -88,10 +88,10 @@ export class NotificationsService {
 
     // Send request payload to Authorisation API
     try {
-      const res = await axios.post(
-        `${this.authorisationApiUrl}/oauth2-sessions`,
-        requestComponent
-      );
+      const res = await axios.post<
+        typeof requestComponent,
+        AxiosResponse<AkeResponse>
+      >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent);
 
       const accessToken = await this.agent.verifyAuthenticationResponse(
         res.data,

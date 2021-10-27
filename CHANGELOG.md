@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.5&targetRepoId=318) (2021-10-15)
+
+### 🐛 Bug Fixes
+
+- update Node.js version to v14.18.1 ([#37](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/pull-requests/37/overview)) - EBSIINT-3432 ([e1c6cfb](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/commits/e1c6cfb3e0347504cdaefddefae1ae93ad16a4ff))
+
 ## [1.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.4&targetRepoId=318) (2021-10-04)
 
 ### 🐛 Bug Fixes

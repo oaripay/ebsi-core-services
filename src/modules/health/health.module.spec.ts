@@ -4,7 +4,6 @@ import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
 import { HealthIndicatorResult } from "@nestjs/terminus";
 import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
-import type { AxiosResponse } from "axios";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -48,7 +47,9 @@ describe("Health module", () => {
 
       const spy = jest
         .spyOn(httpService, "request")
-        .mockImplementation(() => of({} as AxiosResponse<unknown>));
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        .mockImplementation(() => of({}));
 
       const response = await request(server).get("/health").send();
 
