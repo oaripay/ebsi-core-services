@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.5&targetRepoId=244) (2021-10-27)
+
+### 🚀 Features
+
+- add Fabric "sendProposal" method ([#80](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/80/overview)) - EBSIINT-3437 ([a8cbb0f](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/a8cbb0f5fb7b1d97c9c09191ac5b1c8bfc961bec))
+- implement Fabric JSON-RPC readContract method ([#78](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/78/overview)) - EBSIINT-3436 ([b8abbcb](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/b8abbcb7bedd917bb096dd554ddd91eb21b99fe5))
+- method commitTransaction for jsonrpc endpoint fabric ([#81](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/81/overview)) - EBSIINT-3438 ([79992e7](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/79992e76546087f00dbf1d6c051059b26b72ee19))
+
+### 🐛 Bug Fixes
+
+- update Node.js version to v14.18.1 ([#77](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/77/overview)) - EBSIINT-3432 ([4cee632](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/4cee632a41034b3f93920ad405f11b465fffa034))
+
 ## [2.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.4&targetRepoId=244) (2021-10-04)
 
 ### 🚀 Features
