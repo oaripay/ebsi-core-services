@@ -13,7 +13,7 @@ abstract contract PolicyDetailed is PolicyStorage {
      */
     function insertPolicy(
         OPERATION_TYPE opType,
-        PolicyDefinition[] calldata policyDefinitions,
+        PolicyCondition[] calldata policyDefinitions,
         string calldata policyName
     ) external {
         require(bytes(policyName).length > 0, "Policy: invalid name");
@@ -28,7 +28,7 @@ abstract contract PolicyDetailed is PolicyStorage {
                 )
             );
         }
-        Policies storage ps = policyStorage();
+        PolicyContractStorage storage ps = policyStorage();
         uint256 policyId = ps.lastPolicyId + 1;
         ps.lastPolicyId = policyId;
         Policy storage policy = ps.policies[policyId];

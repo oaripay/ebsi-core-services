@@ -14,7 +14,7 @@ contract PolicyRegistry is PolicyStorage, Initializable {
     }
 
     function _onInitialize(uint256 _version) internal initializer {
-        Policies storage ps = PolicyStorage.policyStorage();
+        PolicyContractStorage storage ps = PolicyStorage.policyStorage();
         ps.version = _version;
     }
 
@@ -22,7 +22,7 @@ contract PolicyRegistry is PolicyStorage, Initializable {
      * @dev Returns the version of the PolicyStorage SC
      */
     function version() public view returns (uint256) {
-        Policies storage ps = PolicyStorage.policyStorage();
+        PolicyContractStorage storage ps = PolicyStorage.policyStorage();
         return ps.version;
     }
 
@@ -30,7 +30,7 @@ contract PolicyRegistry is PolicyStorage, Initializable {
      * @dev Returns the version of the Timestamp SC
      */
     function setVersion(uint256 _version) public {
-        Policies storage ps = PolicyStorage.policyStorage();
+        PolicyContractStorage storage ps = PolicyStorage.policyStorage();
         ps.version = _version;
     }
 }

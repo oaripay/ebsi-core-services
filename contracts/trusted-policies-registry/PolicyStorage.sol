@@ -6,33 +6,48 @@ contract PolicyStorage {
     bytes32 public constant POLICY_DIAMOND_STORAGE_POSITION =
         keccak256("diamond.standard.policy.registry.storage");
 
-    enum TYPE {TYPE_UINT256, TYPE_BYTES, TYPE_ADDRESS, TYPE_BYTES32, TYPE_STRING, TYPE_BOOLEAN}
-    enum OPERATION {EQUAL /* @TODO: to be implemented: , GREATER_THAN, SMALLER_THAN */}
-    enum OPERATION_TYPE {AND /* @TODO: to be implemented: OR, XOR, NOR **/}
-
-    struct Policies {
-        uint256 version;
-        uint256 lastPolicyId;
-        mapping (address => mapping (string => bytes)) userAttributes;
-        mapping(uint => Policy) policies;
+    enum TYPE {
+        TYPE_UINT256,
+        TYPE_BYTES,
+        TYPE_ADDRESS,
+        TYPE_BYTES32,
+        TYPE_STRING,
+        TYPE_BOOLEAN
+    }
+    enum OPERATION {
+        EQUAL /* @TODO: to be implemented: , GREATER_THAN, SMALLER_THAN */
+    }
+    enum OPERATION_TYPE {
+        AND /* @TODO: to be implemented: OR, XOR, NOR **/
     }
 
-    struct PolicyDefinition {
+    struct PolicyContractStorage {
+        uint256 version;
+        uint256 lastPolicyId;
+        mapping(address => mapping(string => bytes)) userAttributes;
+        mapping(uint256 => Policy) policies;
+    }
+
+    struct PolicyCondition {
         string name;
         string attributeName;
-        TYPE policyType;
-        bytes value;
-        OPERATION policyOperation;
+        TYPE attributeType;
+        bytes attributeValue;
+        OPERATION attributeOperation;
     }
 
     struct Policy {
         OPERATION_TYPE opType;
-        PolicyDefinition[]  policyDefinitions;
+        PolicyCondition[] policyDefinitions;
         string policyName;
     }
 
     // Creates and returns the storage pointer to the struct.
-    function policyStorage() internal pure returns (Policies storage ps) {
+    function policyStorage()
+        internal
+        pure
+        returns (PolicyContractStorage storage ps)
+    {
         bytes32 position = POLICY_DIAMOND_STORAGE_POSITION;
         assembly {
             ps.slot := position
