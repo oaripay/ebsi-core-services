@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.9;
 
 contract PolicyStorage {
     // The state variables we care about.
@@ -14,11 +14,17 @@ contract PolicyStorage {
         TYPE_STRING,
         TYPE_BOOLEAN
     }
+
     enum OPERATION {
         EQUAL /* @TODO: to be implemented: , GREATER_THAN, SMALLER_THAN */
     }
+
     enum OPERATION_TYPE {
         AND /* @TODO: to be implemented: OR, XOR, NOR **/
+    }
+
+    enum ASSERT_TYPE {
+        DID
     }
 
     struct PolicyContractStorage {
@@ -30,15 +36,16 @@ contract PolicyStorage {
 
     struct PolicyCondition {
         string name;
-        string attributeName;
-        TYPE attributeType;
-        bytes attributeValue;
+        string attributeName; //updateDidDocument
+        TYPE typeOfValue;
+        bytes value; //assertDid
         OPERATION attributeOperation;
     }
 
     struct Policy {
         OPERATION_TYPE opType;
-        PolicyCondition[] policyDefinitions;
+        mapping(uint256 => PolicyCondition) policyConditions;
+        uint256 policyConditionsSize;
         string policyName;
     }
 

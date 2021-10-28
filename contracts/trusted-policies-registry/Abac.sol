@@ -1,11 +1,22 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.9;
 
 import "hardhat/console.sol";
 
 contract Abac {
-    enum TYPE {TYPE_INTEGER, TYPE_ADDRESS, TYPE_BYTES32}
-    enum OPERATION {EQUAL, GREATER_THAN, SMALLER_THAN}
-    enum OPERATION_TYPE {AND , OR}
+    enum TYPE {
+        TYPE_INTEGER,
+        TYPE_ADDRESS,
+        TYPE_BYTES32
+    }
+    enum OPERATION {
+        EQUAL,
+        GREATER_THAN,
+        SMALLER_THAN
+    }
+    enum OPERATION_TYPE {
+        AND,
+        OR
+    }
 
     struct Policy {
         string name;
@@ -17,27 +28,33 @@ contract Abac {
 
     struct PolicyType {
         OPERATION_TYPE op_type;
-        Policy[]  policies;
+        Policy[] policies;
     }
 
     event Success(string str);
 
-
-    mapping (address => mapping (string => bytes)) public userAttributes;
+    mapping(address => mapping(string => bytes)) public userAttributes;
     Policy[] public policyList;
-    mapping(uint => PolicyType) public complexPolicies;
+    mapping(uint256 => PolicyType) public complexPolicies;
 
-
-    modifier applyPolicy (uint policyId) {
+    modifier applyPolicy(uint256 policyId) {
         Policy memory appliedPolicy = policyList[policyId];
 
         if (appliedPolicy.policyType == TYPE.TYPE_INTEGER) {
-            uint policyValue = toUint256(appliedPolicy.value, 0);
+            uint256 policyValue = toUint256(appliedPolicy.value, 0);
             if (appliedPolicy.policyOperation == OPERATION.EQUAL) {
                 // get user userAttribute
-                uint userAttributeToBeChecked = toUint256(userAttributes[msg.sender][appliedPolicy.attributeName], 0);
-                require (userAttributeToBeChecked == policyValue, "Attribute not met requirements");
-            } else if (appliedPolicy.policyOperation == OPERATION.GREATER_THAN) {
+                uint256 userAttributeToBeChecked = toUint256(
+                    userAttributes[msg.sender][appliedPolicy.attributeName],
+                    0
+                );
+                require(
+                    userAttributeToBeChecked == policyValue,
+                    "Attribute not met requirements"
+                );
+            } else if (
+                appliedPolicy.policyOperation == OPERATION.GREATER_THAN
+            ) {
                 // to be implemented
             }
         } else if (appliedPolicy.policyType == TYPE.TYPE_ADDRESS) {
@@ -48,36 +65,48 @@ contract Abac {
         _;
     }
 
-
-    constructor () {
+    constructor() {
         // define policies
         Policy memory firstPolicy;
         firstPolicy.name = string("one policy");
         firstPolicy.policyType = TYPE.TYPE_INTEGER;
-        firstPolicy.value = abi.encodePacked(uint(1));
+        firstPolicy.value = abi.encodePacked(uint256(1));
         firstPolicy.attributeName = string("attribute1");
         firstPolicy.policyOperation = OPERATION.EQUAL;
         policyList.push(firstPolicy);
     }
 
-
-    function addUserAttribute (address user, string calldata attribute, bytes calldata value) public /* modifier onlyOwner here */ {
+    function addUserAttribute(
+        address user,
+        string calldata attribute,
+        bytes calldata value
+    ) public /* modifier onlyOwner here */
+    {
         userAttributes[user][attribute] = value;
     }
 
-
-    function toAddress(bytes memory _bytes, uint256 _start) internal pure returns (address) {
+    function toAddress(bytes memory _bytes, uint256 _start)
+        internal
+        pure
+        returns (address)
+    {
         require(_bytes.length >= _start + 20, "toAddress_outOfBounds");
         address tempAddress;
 
         assembly {
-            tempAddress := div(mload(add(add(_bytes, 0x20), _start)), 0x1000000000000000000000000)
+            tempAddress := div(
+                mload(add(add(_bytes, 0x20), _start)),
+                0x1000000000000000000000000
+            )
         }
 
         return tempAddress;
     }
 
-    function toUint256(bytes memory _bytes, uint256 _start) internal returns (uint256) {
+    function toUint256(bytes memory _bytes, uint256 _start)
+        internal
+        returns (uint256)
+    {
         require(_bytes.length >= _start + 32, "toUint256_outOfBounds");
         uint256 tempUint;
 
@@ -88,7 +117,11 @@ contract Abac {
         return tempUint;
     }
 
-    function toBytes32(bytes memory _bytes, uint256 _start) internal pure returns (bytes32) {
+    function toBytes32(bytes memory _bytes, uint256 _start)
+        internal
+        pure
+        returns (bytes32)
+    {
         require(_bytes.length >= _start + 32, "toBytes32_outOfBounds");
         bytes32 tempBytes32;
 
@@ -99,17 +132,12 @@ contract Abac {
         return tempBytes32;
     }
 
-    function methodAppliedPolicy ()
-    applyPolicy(0)
-    external
-    returns (string memory) {
+    function methodAppliedPolicy()
+        external
+        applyPolicy(0)
+        returns (string memory)
+    {
         emit Success("methodAppliedPolicy");
         return string("methodAppliedPolicy");
     }
-
-
-
-
-
-
 }

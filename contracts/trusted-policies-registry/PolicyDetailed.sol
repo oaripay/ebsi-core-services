@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
 import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
@@ -13,13 +13,13 @@ abstract contract PolicyDetailed is PolicyStorage {
      */
     function insertPolicy(
         OPERATION_TYPE opType,
-        PolicyCondition[] calldata policyDefinitions,
+        PolicyCondition[] calldata policyConditions,
         string calldata policyName
     ) external {
-        require(bytes(policyName).length > 0, "Policy: invalid name");
-        for (uint256 i; i < policyDefinitions.length; i++) {
+        require(bytes(policyName).length > 0, "Policy: name required");
+        for (uint256 i; i < policyConditions.length; i++) {
             require(
-                bytes(policyDefinitions[i].attributeName).length > 0,
+                bytes(policyConditions[i].attributeName).length > 0,
                 string(
                     abi.encodePacked(
                         "Policy: invalid attribute name on counter ",
@@ -34,7 +34,9 @@ abstract contract PolicyDetailed is PolicyStorage {
         Policy storage policy = ps.policies[policyId];
         policy.opType = opType;
         policy.policyName = policyName;
-        policy.policyDefinitions = policyDefinitions;
+        for (uint256 i = 0; i < policyConditions.length; i++) {
+            policy.policyConditions[i] = policyConditions[i];
+        }
     }
 
     /**

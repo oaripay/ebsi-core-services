@@ -17,7 +17,7 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["./scripts", "./tests"],
+  "include": ["./scripts", "./tests", "./src", ",./helpers"],
   "files": ["./hardhat.config.ts"],
   "exclude": ["node_modules", "artifacts", "cache"]
 }
