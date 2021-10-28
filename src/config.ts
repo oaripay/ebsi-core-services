@@ -15,12 +15,12 @@ export const config = {
     "0x9F6079ED5f2659b2a218A88e93A00Bb087a4CcbA",
   routes: {
     trustedAppsRegistry: "/apps-admin/trusted-apps-registry",
-    trustedIssuersRegistry: "/trusted-issuers-registry",
-    trustedSchemaRegistry: "/trusted-schema-registry",
+    trustedIssuersRegistry: "/apps-admin/trusted-issuers-registry",
+    trustedSchemaRegistry: "/apps-admin/trusted-schema-registry",
     trustedSchemaRegistryRevision:
-      "/trusted-schema-registry/revision/:schemaId",
+      "/apps-admin/trusted-schema-registry/revision/:schemaId",
     trustedSchemaRegistryRevisionMetadata:
-      "/trusted-schema-registry/metadata/:revisionId",
+      "/apps-admin/trusted-schema-registry/metadata/:revisionId",
     registerDid: "/apps-admin/register-did",
     default: "/apps-admin",
   },
