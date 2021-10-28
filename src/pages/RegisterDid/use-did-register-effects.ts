@@ -2,7 +2,8 @@ import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 import { useEthersHook } from "../../hooks/use-ethers.hook";
 import { useWalletContext } from "../../components/Wallet/WalletContext";
-import { DidRecordType } from "./DidTableTypes";
+import { DidRecordType, HashAlgo } from "./DidTableTypes";
+import { PaginatedResponseType } from "../../shared/PaginatedResponseType";
 
 const PB_KEY_LS = "did-public-key";
 
@@ -20,6 +21,7 @@ export default function useDidRegisterEffects({
   const [didDefined, setDidDefined] = useState(false);
   const [didRecord, setDidRecord] = useState<DidRecordType>({});
   const [didAsAdministrator, setDidAsAdministrator] = useState(false);
+  const [hashAlgos, setHashAlgos] = useState<HashAlgo[]>([]);
 
   useEffect(() => {
     if (!provider) {
@@ -87,6 +89,29 @@ export default function useDidRegisterEffects({
   }, [walletAddress]);
 
   useEffect(() => {
+    if (!didRegistryContract) {
+      return;
+    }
+    didRegistryContract
+      .getHashAlgorithms(1, 50)
+      .then(async (data: PaginatedResponseType) => {
+        const hashAlgorithms = await Promise.all(
+          data.items.map((item) =>
+            didRegistryContract.getHashAlgorithmById(item)
+          )
+        );
+        setHashAlgos(
+          data.items.map((item, index) => {
+            return {
+              id: index,
+              name: hashAlgorithms[index].ianaName,
+            };
+          })
+        );
+      });
+  }, [didRegistryContract]);
+
+  useEffect(() => {
     if (!didRegistryContract || !identifier) {
       return;
     }
@@ -124,5 +149,6 @@ export default function useDidRegisterEffects({
     didDefined,
     didAsAdministrator,
     didRecord,
+    hashAlgos,
   };
 }

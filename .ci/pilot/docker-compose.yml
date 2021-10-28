@@ -7,4 +7,4 @@ services:
       args:
         REACT_APP_REGISTRY_ADDRESS: ${REACT_APP_REGISTRY_ADDRESS}
         REACT_APP_EBSI_CHAIN_ID: ${REACT_APP_EBSI_CHAIN_ID}
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry-web-client:prod-v0.0.25
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry-web-client:prod-v0.0.28

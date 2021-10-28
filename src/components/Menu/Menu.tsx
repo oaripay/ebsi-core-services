@@ -5,6 +5,7 @@ import {
   HomeOutlined,
   KeyOutlined,
   UserAddOutlined,
+  DeploymentUnitOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import { useMenuContext } from "./Menu.context";
@@ -53,6 +54,14 @@ export default function Menu() {
         >
           <Link to={config.routes.trustedIssuersRegistry}>
             Trusted Issuers Registry
+          </Link>
+        </MenuAntd.Item>
+        <MenuAntd.Item
+          key={config.routes.trustedSchemaRegistry}
+          icon={<DeploymentUnitOutlined />}
+        >
+          <Link to={config.routes.trustedSchemaRegistry}>
+            Trusted Schema Registry
           </Link>
         </MenuAntd.Item>
       </MenuAntd>
