@@ -8,7 +8,7 @@ import React, {
 import useDidRegisterEffects from "./use-did-register-effects";
 import useDidRegister from "./use-did-register";
 import { createDidIdentifier } from "./DidUtils";
-import { DidRecordType } from "./DidTableTypes";
+import { DidRecordType, HashAlgo } from "./DidTableTypes";
 
 type RegisterDidContextType = {
   publicKey: string;
@@ -18,6 +18,7 @@ type RegisterDidContextType = {
   didAsAdministrator: boolean;
   loading: boolean;
   identifier: string;
+  hashAlgos: HashAlgo[];
 };
 
 export const RegisterDidContext = createContext<RegisterDidContextType>({
@@ -28,6 +29,7 @@ export const RegisterDidContext = createContext<RegisterDidContextType>({
   didAsAdministrator: false,
   loading: false,
   identifier: "",
+  hashAlgos: [],
 });
 
 export function RegisterDidProvider({ children }: { children: ReactNode }) {
@@ -42,6 +44,7 @@ export function RegisterDidProvider({ children }: { children: ReactNode }) {
     didAsAdministrator,
     loading,
     walletAddress,
+    hashAlgos,
   } = useDidRegisterEffects({
     identifier,
   });
@@ -67,6 +70,7 @@ export function RegisterDidProvider({ children }: { children: ReactNode }) {
         didAsAdministrator,
         loading,
         identifier,
+        hashAlgos,
       }}
     >
       {children}

@@ -48,7 +48,7 @@ export default function useDidTable() {
   const { loadTableData, getDidRecordIdentifiersByControllerId } =
     useDidRegister();
 
-  const { identifier } = useRegisterDidContext();
+  const { identifier, hashAlgos } = useRegisterDidContext();
 
   const [didToBeLoaded, setDidToBeLoaded] = useState("");
 
@@ -348,7 +348,6 @@ export default function useDidTable() {
               ""
             )}
             <Button
-              disabled
               onClick={() => {
                 setModal({
                   visible: true,
@@ -375,6 +374,7 @@ export default function useDidTable() {
                   content: (
                     <AppendDidDocumentHashModalContent
                       form={appendDidDocumentVersionHashForm}
+                      hashAlgos={hashAlgos}
                     />
                   ),
                 });
@@ -383,7 +383,6 @@ export default function useDidTable() {
               Append DID document version hash
             </Button>
             <Button
-              disabled
               onClick={() => {
                 setModal({
                   visible: true,

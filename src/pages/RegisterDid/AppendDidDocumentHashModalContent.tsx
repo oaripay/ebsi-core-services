@@ -1,13 +1,16 @@
 import { Col, DatePicker, Form, FormInstance, Row, Select } from "antd";
 import React from "react";
-import { config } from "../../config";
 import { HashAlgo } from "./DidTableTypes";
 
 type PropType = {
   form: FormInstance;
+  hashAlgos: HashAlgo[];
 };
 
-export default function AppendDidDocumentHashModalContent({ form }: PropType) {
+export default function AppendDidDocumentHashModalContent({
+  form,
+  hashAlgos,
+}: PropType) {
   return (
     <Form
       layout="vertical"
@@ -26,7 +29,7 @@ export default function AppendDidDocumentHashModalContent({ form }: PropType) {
             rules={[{ required: true }]}
           >
             <Select style={{ width: "100%" }} onChange={() => {}}>
-              {config.hashAlgos.map((hashAlgo: HashAlgo) => {
+              {hashAlgos.map((hashAlgo: HashAlgo) => {
                 return (
                   <Select.Option key={hashAlgo.id} value={hashAlgo.id}>
                     {hashAlgo.name}
