@@ -8,7 +8,7 @@ import {
 } from "@cef-ebsi/problem-details-errors";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import crypto, { randomUUID } from "crypto";
-import { decodeJWT } from "@cef-ebsi/did-jwt";
+import { decodeJWT } from "did-jwt";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { ApiConfig } from "../../config/configuration";

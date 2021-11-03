@@ -11,9 +11,11 @@ import {
   InternalServerError,
   NotFoundError,
   BadRequestError,
+  TooManyRequestsError,
 } from "@cef-ebsi/problem-details-errors";
 import type { FastifyReply } from "fastify";
 import { AxiosError } from "axios";
+import { ThrottlerException } from "@nestjs/throttler";
 import { logAxiosError } from "../shared/utils";
 
 @Catch()
@@ -26,7 +28,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     let problemError: ProblemDetailsError;
 
-    if (err instanceof NotFoundException) {
+    if (err instanceof ThrottlerException) {
+      problemError = new TooManyRequestsError(
+        TooManyRequestsError.defaultTitle
+      );
+    } else if (err instanceof NotFoundException) {
       problemError = new NotFoundError(NotFoundError.defaultTitle, {
         detail: err.message,
       });
