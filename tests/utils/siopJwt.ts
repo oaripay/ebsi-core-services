@@ -9,6 +9,7 @@ import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { randomUUID } from "crypto";
 import canonicalize from "canonicalize";
 import { base64url } from "multiformats/bases/base64";
+import type { JWK } from "jose/types";
 import { createVP } from "./verifiablePresentation";
 import { createVerifiableAuthorisation } from "./verifiableAuthorisation";
 import { prefixWith0x } from "../../src/shared/utils/strings.utils";
@@ -108,7 +109,7 @@ export const requestNewUserSiopJwt = async ({
 }): Promise<string> => {
   const publicKeyEncryption = new EbsiWallet(clientPrivateKey).getPublicKey({
     format: "jwk",
-  }) as JsonWebKey;
+  }) as JWK;
   const verifiableCredential = await createVerifiableAuthorisation(
     clientDid,
     authorisationCredentialSchema,

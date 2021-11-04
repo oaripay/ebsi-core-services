@@ -14,7 +14,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import { createJWT, ES256KSigner } from "did-jwt";
 import { Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import canonicalize from "canonicalize";

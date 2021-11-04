@@ -3,7 +3,7 @@ import {
   VerifiablePresentation,
 } from "@cef-ebsi/verifiable-presentation";
 import { VerifiableCredential } from "@cef-ebsi/verifiable-credential";
-import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import { createJWT, ES256KSigner } from "did-jwt";
 import { base64url } from "multiformats/bases/base64";
 import { JWTPayload } from "jose/types";
 

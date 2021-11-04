@@ -5,7 +5,7 @@ import {
   SignatureValue,
   VerifiableCredential,
 } from "@cef-ebsi/verifiable-credential";
-import { createJWT, decodeJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
 import { randomUUID } from "crypto";
 
 export async function createVerifiableAuthorisation(
