@@ -31,7 +31,7 @@ import {
   ES256KSigner,
   JWTOptions,
   JWTHeader,
-} from "@cef-ebsi/did-jwt";
+} from "did-jwt";
 import {
   validatePresentation,
   VerifiablePresentation,

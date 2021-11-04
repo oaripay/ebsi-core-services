@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
-                nodejs(nodeJSInstallationName: '14.17.2') {
+                nodejs(nodeJSInstallationName: '16.13.0') {
                     sh 'yarn install --frozen-lockfile'
                     sh 'yarn run audit'
                 }
@@ -11,7 +11,7 @@ pipeline {
         }
         stage('Lint') {
             steps {
-                nodejs(nodeJSInstallationName: '14.17.2') {
+                nodejs(nodeJSInstallationName: '16.13.0') {
                     sh 'yarn lint'
                 }
             }
@@ -21,7 +21,7 @@ pipeline {
                 API_PRIVATE_KEY=credentials('API_AUTHORISATION_PRIVATE_KEY')
             }
             steps {
-                nodejs(nodeJSInstallationName: '14.17.2') {
+                nodejs(nodeJSInstallationName: '16.13.0') {
                     sh 'yarn test:ci'
                 }
             }

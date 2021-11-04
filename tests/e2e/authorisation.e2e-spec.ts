@@ -14,7 +14,7 @@ import {
 import canonicalize from "canonicalize";
 import { JWK, parseJwk } from "jose/jwk/parse";
 import jwtDecrypt from "jose/jwt/decrypt";
-import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import { createJWT, ES256KSigner } from "did-jwt";
 import generateKeyPair from "jose/util/generate_key_pair";
 import fromKeyLike from "jose/jwk/from_key_like";
 import SignJWT from "jose/jwt/sign";
@@ -383,6 +383,7 @@ describe("Authorisation (e2e)", () => {
         let payload: Record<string, unknown> = {
           sub_did_verification_method_uri: `${clientDid}#keys-2`,
           sub: clientDid,
+          did: clientDid,
           sub_jwk: {},
           nonce: "nonce",
         };
@@ -407,7 +408,7 @@ describe("Authorisation (e2e)", () => {
           status: 400,
           detail:
             alg === "ES256K"
-              ? "The Response Token Issuer Claim (iss) MUST be https://self-issued.me."
+              ? "The Response Token Issuer Claim (iss) MUST contain https://self-issued.me."
               : (expect.stringContaining(
                   `"iss" must be [https://self-issued.me]`
                 ) as string),
@@ -419,6 +420,7 @@ describe("Authorisation (e2e)", () => {
         payload = {
           sub_did_verification_method_uri: `${randomDid}#keys-2`, // wrong DID
           sub: clientDid,
+          did: randomDid,
           sub_jwk: {},
           nonce: "nonce",
         };
@@ -454,6 +456,7 @@ describe("Authorisation (e2e)", () => {
         payload = {
           sub_did_verification_method_uri: clientDid,
           sub: clientDid,
+          did: clientDid,
           sub_jwk: {},
           nonce: undefined, // missing nonce
         };
@@ -764,6 +767,83 @@ describe("Authorisation (e2e)", () => {
         resolver: didRegistry,
         tirUrl: trustedIssuersRegistry,
       });
+      const nonce = randomUUID();
+      const canonicalizedVP = base64url.baseEncode(
+        Buffer.from(canonicalize(vp))
+      );
+
+      const authenticationResponse =
+        await siopAgent.createAuthenticationResponse({
+          did,
+          nonce,
+          redirectUri: "/siop-sessions",
+          responseMode: DidAuthResponseMode.FORM_POST,
+          claims: {
+            verified_claims: canonicalizedVP,
+            encryption_key: { ...publicKeyEncryption },
+          },
+        });
+
+      const authResponseDecoded = querystring.decode(
+        authenticationResponse.bodyEncoded ?? ""
+      );
+
+      const idToken = authResponseDecoded.id_token;
+
+      // 3. The client calls /siop-sessions with the ID Token
+      const siopSessionsResponse = await request(server)
+        .post("/siop-sessions")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send({ id_token: idToken });
+
+      expect(siopSessionsResponse.status).toBe(200);
+
+      // 4. Finally, the client verifies the SIOP authentication response and gets an access token
+      const accessToken = await siopAgent.verifyAuthenticationResponse(
+        siopSessionsResponse.body,
+        nonce
+      );
+
+      expect(accessToken).toBeDefined();
+    });
+
+    it("should support the full SIOP flow (EdDSA) for an unknown user (not registered did)", async () => {
+      expect.assertions(2);
+
+      // 1. The user creates an authentication request in Onboarding API
+      // Since this step requires human intervention (eulogin, recaptcha) this test
+      // will skip it and create the response:
+      // A verifiable credential signed by onboarding api
+      const did = EbsiWallet.createDid();
+      const privateKey = crypto.randomBytes(64).toString("base64");
+      const privateKeyHexEncryption = randomPrivateKeySecp256k1();
+      const publicKeyEncryption = new EbsiWallet(
+        privateKeyHexEncryption
+      ).getPublicKey({ format: "jwk" }) as JsonWebKey;
+      const verifiableCredential = await createVerifiableAuthorisation(
+        did,
+        authorisationCredentialSchema,
+        onboardingApiPrivateKey,
+        onboardingAllowlist[0], // must be did of onboarding api
+        didRegistry
+      );
+
+      // 2. The client creates a verifiable presentation using the verifiable credential
+      const siopAgent = new SiopAgent({
+        privateKey: prefix0x(privateKeyHexEncryption),
+        didRegistry: configService.get<string>("didRegistry"),
+      });
+
+      const vp = await createVP(
+        did,
+        privateKey,
+        verifiableCredential,
+        {
+          resolver: didRegistry,
+          tirUrl: trustedIssuersRegistry,
+        },
+        "EdDSA"
+      );
       const nonce = randomUUID();
       const canonicalizedVP = base64url.baseEncode(
         Buffer.from(canonicalize(vp))

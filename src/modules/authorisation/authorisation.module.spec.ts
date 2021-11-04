@@ -26,7 +26,7 @@ import {
 import type { FastifyInstance } from "fastify";
 import jwtVerify from "jose/jwt/verify";
 import querystring from "querystring";
-import * as EbsiDidJwt from "@cef-ebsi/did-jwt/dist/jwt";
+import didJwt from "did-jwt";
 import parseJwk from "jose/jwk/parse";
 import type { DIDDocument } from "did-resolver";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
@@ -422,7 +422,7 @@ describe("Authorisation Module", () => {
           status: 400,
           detail:
             alg === "ES256K"
-              ? "The Response Token Issuer Claim (iss) MUST be https://self-issued.me."
+              ? "The Response Token Issuer Claim (iss) MUST contain https://self-issued.me."
               : (expect.stringContaining(
                   `"iss" must be [https://self-issued.me]`
                 ) as string),
@@ -448,8 +448,8 @@ describe("Authorisation Module", () => {
           .setExpirationTime("15s")
           .sign(clientPrivateKey);
 
-        // Fake verifyEbsiJWT result
-        jest.spyOn(EbsiDidJwt, "verifyEbsiJWT").mockImplementation(async () =>
+        // Fake verifyJWT result
+        jest.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
           Promise.resolve({
             payload,
             didResolutionResult: {
@@ -531,7 +531,7 @@ describe("Authorisation Module", () => {
         // Error from DID Registry API
         if (alg === "ES256K") {
           jest
-            .spyOn(EbsiDidJwt, "verifyEbsiJWT")
+            .spyOn(didJwt, "verifyJWT")
             .mockRejectedValue(
               new Error(
                 `resolver_error: Unable to resolve DID document for ${clientDid}: notFound, registry used: xxx`
@@ -614,7 +614,7 @@ describe("Authorisation Module", () => {
         // Error from DID Registry API
         if (alg === "ES256K") {
           jest
-            .spyOn(EbsiDidJwt, "verifyEbsiJWT")
+            .spyOn(didJwt, "verifyJWT")
             .mockRejectedValue(
               new Error(
                 `resolver_error: Unable to resolve DID document for ${clientDid}: internalServorError, registry used: xxx`
@@ -692,8 +692,8 @@ describe("Authorisation Module", () => {
           payload,
         });
 
-        // Fake verifyEbsiJWT result
-        jest.spyOn(EbsiDidJwt, "verifyEbsiJWT").mockImplementation(async () =>
+        // Fake verifyJWT result
+        jest.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
           Promise.resolve({
             payload,
             didResolutionResult: {
@@ -818,8 +818,8 @@ describe("Authorisation Module", () => {
           payload,
         });
 
-        // Fake verifyEbsiJWT result
-        jest.spyOn(EbsiDidJwt, "verifyEbsiJWT").mockImplementation(async () =>
+        // Fake verifyJWT result
+        jest.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
           Promise.resolve({
             payload,
             didResolutionResult: {
