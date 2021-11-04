@@ -9,7 +9,7 @@ import { ConfigService } from "@nestjs/config";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import jsonpatch, { Operation } from "fast-json-patch";
-import { decodeJWT } from "@cef-ebsi/did-jwt";
+import { decodeJWT } from "did-jwt";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { ApiConfig } from "../../config/configuration";
 import {

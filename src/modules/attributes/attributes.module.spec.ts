@@ -16,7 +16,7 @@ import crypto from "crypto";
 import { base64url } from "multiformats/bases/base64";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { Agent } from "@cef-ebsi/oauth2-auth";
-import { JWTPayload } from "@cef-ebsi/did-jwt";
+import { JWTPayload } from "did-jwt";
 import jsonwebtoken from "jsonwebtoken";
 import type { FastifyInstance } from "fastify";
 import axios from "axios";
