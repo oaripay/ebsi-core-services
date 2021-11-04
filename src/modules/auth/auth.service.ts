@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { decodeJWT } from "@cef-ebsi/did-jwt";
+import { decodeJWT } from "did-jwt";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { Session as Oauth2Session } from "@cef-ebsi/oauth2-auth";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";

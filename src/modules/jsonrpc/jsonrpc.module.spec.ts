@@ -16,7 +16,7 @@ import {
 } from "@cef-ebsi/oauth2-auth";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import crypto from "crypto";
-import { JWTPayload } from "@cef-ebsi/did-jwt";
+import { JWTPayload } from "did-jwt";
 import {
   FastifyAdapter,
   NestFastifyApplication,

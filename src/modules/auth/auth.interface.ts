@@ -1,4 +1,4 @@
-import { JWTPayload } from "@cef-ebsi/did-jwt";
+import { JWTPayload } from "did-jwt";
 
 export interface UserInfo {
   did?: string;

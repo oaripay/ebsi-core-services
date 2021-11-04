@@ -3,7 +3,7 @@ import { InternalServerError } from "@cef-ebsi/problem-details-errors";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { decodeJWT } from "@cef-ebsi/did-jwt";
+import { decodeJWT } from "did-jwt";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { v4 as uuidV4 } from "uuid";
 import { ApiConfig } from "../../config/configuration";
