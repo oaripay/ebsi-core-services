@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Button,
   Col,
@@ -12,7 +12,7 @@ import {
 } from "antd";
 import { SmileOutlined } from "@ant-design/icons";
 
-import useDidTable, { SourceType } from "./use-did-table";
+import useDidTable, { SourceType } from "./hooks/use-did-table";
 import { useRegisterDidContext } from "./RegisterDid.context";
 
 const { TabPane } = Tabs;
@@ -27,8 +27,9 @@ export default function RegisterDidTable() {
     setSourceType,
     loadDid,
     setDidToBeLoaded,
-    removeDidsFromLs,
+    removeDidsFromStorage,
   } = useDidTable();
+  const [actionLoading, setActionLoading] = useState(false);
   const { publicKey, didDefined } = useRegisterDidContext();
   return (
     <Row>
@@ -38,7 +39,17 @@ export default function RegisterDidTable() {
           visible={modal.visible}
           width={modal.width}
           onCancel={modal.onCancel || resetModal}
-          onOk={modal.onOk || resetModal}
+          confirmLoading={actionLoading}
+          onOk={async () => {
+            setActionLoading(true);
+            if (modal.onOk) {
+              await modal.onOk();
+              setActionLoading(false);
+              return;
+            }
+            resetModal();
+            setActionLoading(false);
+          }}
         >
           <>{modal.content}</>
         </Modal>
@@ -82,7 +93,7 @@ export default function RegisterDidTable() {
                       <Button type="primary" onClick={loadDid}>
                         Load DID
                       </Button>
-                      <Button onClick={removeDidsFromLs}>
+                      <Button onClick={removeDidsFromStorage}>
                         Remove DIDs from Browser Data
                       </Button>
                     </Space>

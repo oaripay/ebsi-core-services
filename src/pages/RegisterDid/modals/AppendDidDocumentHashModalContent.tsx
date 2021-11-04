@@ -1,6 +1,6 @@
 import { Col, DatePicker, Form, FormInstance, Row, Select } from "antd";
 import React from "react";
-import { HashAlgo } from "./DidTableTypes";
+import { HashAlgo } from "../DidTableTypes";
 
 type PropType = {
   form: FormInstance;

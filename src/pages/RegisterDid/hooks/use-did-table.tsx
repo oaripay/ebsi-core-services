@@ -6,25 +6,27 @@ import Paragraph from "antd/es/typography/Paragraph";
 import { Button, Form, Tooltip, Row, Space, notification } from "antd";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
 
-import { useWalletContext } from "../../components/Wallet/WalletContext";
-import DidControllerModalContent from "./DidControllerModalContent";
+import { useWalletContext } from "../../../components/Wallet/WalletContext";
+import DidControllerModalContent from "../modals/DidControllerModalContent";
 import useDidControllerModal from "./use-did-controller-modal";
-import { DataType, ModalPropsType } from "./DidTableTypes";
-import AppendDidDocumentHashModalContent from "./AppendDidDocumentHashModalContent";
-import AdministratorUpdateControllerModalContent from "./AdministratorUpdateControllerModalContent";
-import DetachDidDocumentVersionHashContent from "./DetachDidDocumentVersionHashContent";
-import { useRegisterDidContext } from "./RegisterDid.context";
-import s from "./style.module.css";
+import { DataType, ModalPropsType } from "../DidTableTypes";
+import AppendDidDocumentHashModalContent from "../modals/AppendDidDocumentHashModalContent";
+import AdministratorUpdateControllerModalContent from "../modals/AdministratorUpdateControllerModalContent";
+import DetachDidDocumentVersionHashContent from "../modals/DetachDidDocumentVersionHashContent";
+import { useRegisterDidContext } from "../RegisterDid.context";
+import s from "../style.module.css";
 import useDidRegister from "./use-did-register";
-import { onlyUnique } from "./DidUtils";
-import { PaginatedResponseType } from "../../shared/PaginatedResponseType";
+import { onlyUnique } from "../DidUtils";
+import { PaginatedResponseType } from "../../../shared/PaginatedResponseType";
+import UpdateDidDocumentModalContent from "../modals/UpdateDidDocumentModalContent";
+import useDidLs from "./use-did-ls";
 
 export enum SourceType {
   MY_DID_RECORD = "MY_DID_RECORD",
   MY_CONTROLLER_DIDS = "MY_CONTROLLER_DIDS",
 }
 
-const LS_DIDS_KEY = "EBSI_DIDS";
+type TablePositionType = "boolean" | "left" | "right" | "undefined";
 
 export default function useDidTable() {
   const { walletAddress } = useWalletContext();
@@ -41,43 +43,21 @@ export default function useDidTable() {
   );
   const [insertDidControllerForm] = Form.useForm();
   const [updateDidControllerForm] = Form.useForm();
+  const [updateDidForm] = Form.useForm();
   const [insertAdminForm] = Form.useForm();
   const [updateAdminForm] = Form.useForm();
   const [appendDidDocumentVersionHashForm] = Form.useForm();
   const [detachDidDocumentVersionHashForm] = Form.useForm();
-  const { loadTableData, getDidRecordIdentifiersByControllerId } =
-    useDidRegister();
+  const {
+    loadTableData,
+    getDidRecordIdentifiersByControllerId,
+    updateDidDocument,
+  } = useDidRegister();
 
   const { identifier, hashAlgos } = useRegisterDidContext();
 
   const [didToBeLoaded, setDidToBeLoaded] = useState("");
-
-  const updateDidsFromLs = useCallback((did: string) => {
-    const itemsStringified = localStorage.getItem(LS_DIDS_KEY);
-    try {
-      const itemsParsed = JSON.parse(itemsStringified || "[]");
-      if (!itemsParsed.includes(did)) {
-        localStorage.setItem(
-          LS_DIDS_KEY,
-          JSON.stringify([...itemsParsed, did])
-        );
-      }
-    } catch (ex) {
-      //
-    }
-  }, []);
-
-  const getDidsFromLs = useCallback(() => {
-    try {
-      const itemsStringified = localStorage.getItem(LS_DIDS_KEY);
-      if (itemsStringified) {
-        return JSON.parse(itemsStringified);
-      }
-      return [];
-    } catch (ex) {
-      return [];
-    }
-  }, []);
+  const { updateDidsFromLs, getDidsFromLs, removeDidsFromLs } = useDidLs();
 
   const loadDid = useCallback(() => {
     if (didToBeLoaded) {
@@ -148,10 +128,10 @@ export default function useDidTable() {
     walletAddress,
   ]);
 
-  const removeDidsFromLs = useCallback(() => {
-    localStorage.removeItem(LS_DIDS_KEY);
+  const removeDidsFromStorage = useCallback(() => {
+    removeDidsFromLs();
     initTable();
-  }, [initTable]);
+  }, [initTable, removeDidsFromLs]);
 
   useEffect(() => {
     initTable();
@@ -183,10 +163,14 @@ export default function useDidTable() {
     resetModal,
   });
 
+  const position: TablePositionType = "left";
+
   const columns = [
     {
       title: "DID",
       key: "did",
+      fixed: position,
+      width: 200,
       render: ({ did }: { did: string }) => {
         if (!did) {
           return <></>;
@@ -202,6 +186,43 @@ export default function useDidTable() {
               {did.slice(0, 4)}...
               {did.slice(-4)}
             </Paragraph>
+            <Button
+              type="default"
+              onClick={() => {
+                setModal({
+                  visible: true,
+                  title: "Update DID",
+                  onOk: () => {
+                    return updateDidDocument(
+                      did,
+                      updateDidForm.getFieldValue("document")
+                    )?.then(() => {
+                      initTable();
+                      updateDidForm.resetFields([
+                        "identifier",
+                        "hashAlgorithmId",
+                        "metadata",
+                      ]);
+                      resetModal();
+                    });
+                  },
+                  onCancel: () => {
+                    updateDidForm.resetFields([
+                      "identifier",
+                      "hashAlgorithmId",
+                      "metadata",
+                    ]);
+                    resetModal();
+                  },
+                  content: (
+                    <UpdateDidDocumentModalContent form={updateDidForm} />
+                  ),
+                  width: 500,
+                });
+              }}
+            >
+              <EditOutlined /> Update DID
+            </Button>
           </Tooltip>
         );
       },
@@ -637,6 +658,6 @@ export default function useDidTable() {
     setSourceType,
     loadDid,
     setDidToBeLoaded,
-    removeDidsFromLs,
+    removeDidsFromStorage,
   };
 }

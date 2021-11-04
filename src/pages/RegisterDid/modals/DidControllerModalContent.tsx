@@ -1,7 +1,7 @@
 import React from "react";
 import { Col, DatePicker, Form, Input, Row, FormInstance } from "antd";
 import { ethers } from "ethers";
-import { notAfterDate, notBeforeDate } from "../../date-validator";
+import { notAfterDate, notBeforeDate } from "../../../date-validator";
 
 type PropType = {
   form: FormInstance;

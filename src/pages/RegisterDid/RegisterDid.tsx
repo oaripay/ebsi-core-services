@@ -2,7 +2,7 @@ import React from "react";
 
 import { Alert, Button, Col, Row, Space, Spin, Statistic } from "antd";
 import { config } from "../../config";
-import useDidRegister from "./use-did-register";
+import useDidRegister from "./hooks/use-did-register";
 import RegisterDidTable from "./RegisterDidTable";
 import { useRegisterDidContext } from "./RegisterDid.context";
 

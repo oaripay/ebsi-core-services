@@ -4,7 +4,7 @@ import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import bs58 from "bs58";
 import crypto from "crypto";
 
-type DocumentType = {
+export type DocumentType = {
   "@context": string;
   id: string;
   verificationMethod: {

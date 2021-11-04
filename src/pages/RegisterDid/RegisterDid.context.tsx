@@ -5,8 +5,8 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import useDidRegisterEffects from "./use-did-register-effects";
-import useDidRegister from "./use-did-register";
+import useDidRegisterEffects from "./hooks/use-did-register-effects";
+import useDidRegister from "./hooks/use-did-register";
 import { createDidIdentifier } from "./DidUtils";
 import { DidRecordType, HashAlgo } from "./DidTableTypes";
 
