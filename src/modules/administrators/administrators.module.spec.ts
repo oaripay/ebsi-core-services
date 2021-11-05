@@ -15,7 +15,7 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { Session } from "@cef-ebsi/siop-auth";
-import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import { createJWT, ES256KSigner } from "did-jwt";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { AdministratorsModule } from "./administrators.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";

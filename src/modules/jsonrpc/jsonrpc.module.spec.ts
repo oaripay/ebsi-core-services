@@ -15,7 +15,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import { createJWT, ES256KSigner } from "did-jwt";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { JsonRpcModule } from "./jsonrpc.module";
