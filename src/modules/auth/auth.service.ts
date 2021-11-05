@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { JWTPayload } from "@cef-ebsi/did-jwt";
+import type { JWTPayload } from "did-jwt";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { ClientInfo } from "./auth.interface";
