@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { decodeJWT } from "@cef-ebsi/did-jwt";
+import { decodeJWT } from "did-jwt";
 import { Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { ApiConfig } from "../../config/configuration";

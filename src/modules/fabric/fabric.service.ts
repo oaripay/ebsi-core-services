@@ -113,7 +113,10 @@ export class FabricService implements OnModuleDestroy {
     const gateway = new Gateway();
 
     try {
-      await gateway.connect(this.connectionProfile, gatewayOptions);
+      await gateway.connect(
+        this.connectionProfile as Record<string, unknown>,
+        gatewayOptions
+      );
       this.gateway = gateway;
     } catch (error) {
       this.logger.error(error);

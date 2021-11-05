@@ -4,7 +4,7 @@ node {
             checkout scm
         }
         stage('Unit test') {
-            nodejs(nodeJSInstallationName: '14.17.2') {
+            nodejs(nodeJSInstallationName: '16.13.0') {
                 sh 'yarn install --frozen-lockfile'
                 sh 'yarn run audit'
                 sh 'yarn lint'

@@ -4,7 +4,7 @@ import axios from "axios";
 import { base58btc } from "multiformats/bases/base58";
 import { Agent as OAuth2Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { DidAuthResponseMode, Agent as SiopAgent } from "@cef-ebsi/siop-auth";
-import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import { createJWT, ES256KSigner } from "did-jwt";
 import { loadConfig } from "../../src/config/configuration";
 
 const {
