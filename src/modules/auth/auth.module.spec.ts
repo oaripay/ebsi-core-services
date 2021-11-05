@@ -1,6 +1,6 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, Logger } from "@nestjs/common";
-import * as DidJwt from "@cef-ebsi/did-jwt";
+import * as DidJwt from "did-jwt";
 import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
@@ -11,7 +11,7 @@ import { AuthModule } from "./auth.module";
 import { AuthService } from "./auth.service";
 import { JwtCacheService } from "./jwt-cache.service";
 
-jest.mock("@cef-ebsi/did-jwt", () => ({
+jest.mock("did-jwt", () => ({
   decodeJWT: jest.fn(),
 }));
 
