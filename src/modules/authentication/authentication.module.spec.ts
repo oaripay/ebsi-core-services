@@ -14,9 +14,8 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import * as EbsiDidJwt from "@cef-ebsi/did-jwt/dist/jwt";
 import { Resolver } from "did-resolver";
-import { JWTVerified, createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import didJwt, { JWTVerified, createJWT, ES256KSigner } from "did-jwt";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { AuthenticationModule } from "./authentication.module";
 import {
@@ -214,7 +213,7 @@ describe("Authentication Module", () => {
       jest.spyOn(Resolver.prototype, "resolve").mockResolvedValue(didResolved);
 
       jest
-        .spyOn(EbsiDidJwt, "verifyEbsiJWT")
+        .spyOn(didJwt, "verifyJWT")
         .mockRejectedValue(new Error("invalid signature"));
 
       const response = await request(server)
@@ -305,7 +304,7 @@ describe("Authentication Module", () => {
 
       jest.spyOn(Resolver.prototype, "resolve").mockResolvedValue(didResolved);
 
-      jest.spyOn(EbsiDidJwt, "verifyEbsiJWT").mockResolvedValue(
+      jest.spyOn(didJwt, "verifyJWT").mockResolvedValue(
         Promise.resolve({
           payload: {},
           didResolutionResult: didResolved,

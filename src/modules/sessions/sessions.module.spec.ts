@@ -12,7 +12,7 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { ConfigService } from "@nestjs/config";
-import { decodeJWT } from "@cef-ebsi/did-jwt";
+import { decodeJWT } from "did-jwt";
 import { ApiConfig } from "../../config/configuration";
 import { SessionsModule } from "./sessions.module";
 import { SessionToken, UserEU } from "../../shared/interfaces/index";

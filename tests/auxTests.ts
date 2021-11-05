@@ -7,7 +7,7 @@ import fromKeyLike from "jose/jwk/from_key_like";
 import generateKeyPair from "jose/util/generate_key_pair";
 import { base64url } from "multiformats/bases/base64";
 import axios from "axios";
-import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import { createJWT, ES256KSigner } from "did-jwt";
 import { loadConfig } from "../src/config/configuration";
 
 const keyEncoder = new KeyEncoder("secp256k1");

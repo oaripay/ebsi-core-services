@@ -4,7 +4,7 @@ import * as xml2js from "xml2js";
 import * as XMLprocessors from "xml2js/lib/processors";
 import querystring from "querystring";
 import { ConfigService } from "@nestjs/config";
-import { createJWT, ES256KSigner } from "@cef-ebsi/did-jwt";
+import { createJWT, ES256KSigner } from "did-jwt";
 import { ApiConfig } from "../../config/configuration";
 import { InvalidSession, InvalidUserAuthentication } from "../../errors";
 import { UserAuthentication } from "../../shared/dto";

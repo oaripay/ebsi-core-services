@@ -1,12 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { compactVerify } from "jose/jws/compact/verify";
 import { parseJwk } from "jose/jwk/parse";
-import {
-  createJWT,
-  decodeJWT,
-  ES256KSigner,
-  verifyEbsiJWT,
-} from "@cef-ebsi/did-jwt";
+import { createJWT, decodeJWT, ES256KSigner, verifyJWT } from "did-jwt";
 import { Resolver } from "did-resolver";
 import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
 import { ConfigService } from "@nestjs/config";
@@ -114,20 +109,22 @@ export default class AuthenticationService {
         `${OnboardingErrors.ERROR_DECODING_ID_TOKEN}: kid not present in the headers`
       );
 
-    // check if the DID exists
+    // Check if the DID exists
     const did = kid.split("#")[0];
     const resolver = new Resolver(getResolver({ registry: this.didResolver }));
     const result = await resolver.resolve(did);
     const { error: resError } = result.didResolutionMetadata;
+
     if (!resError || resError !== "notFound") {
-      if (!result.didDocument)
+      if (!result.didDocument) {
         throw new InvalidUserAuthentication(
           result.didResolutionMetadata.message
         );
+      }
 
       try {
-        await verifyEbsiJWT(idToken, {
-          didRegistry: this.didResolver,
+        await verifyJWT(idToken, {
+          resolver,
           callbackUrl: this.authResponsesEndpoint,
         });
       } catch (error) {
@@ -138,21 +135,26 @@ export default class AuthenticationService {
 
     // The DID does not exist: Check the signature of the JWT using the
     // public key defined in sub_jwk
-    if (!decodedIdToken.payload.sub_jwk)
+    if (!decodedIdToken.payload.sub_jwk) {
       throw new InvalidUserAuthentication(OnboardingErrors.MISSING_SUB_JWK);
+    }
+
     try {
       const publicKey = await parseJwk({
         alg: "ES256",
         ...decodedIdToken.payload.sub_jwk,
       });
+
       const { payload, protectedHeader } = await compactVerify(
         idToken,
         publicKey
       );
-      if (!payload || !protectedHeader)
+
+      if (!payload || !protectedHeader) {
         throw new InvalidUserAuthentication(
           OnboardingErrors.ERROR_SIGNATURE_AUTHENTICATION_RESPONSE
         );
+      }
     } catch (error) {
       throw new InvalidUserAuthentication(
         `${OnboardingErrors.ERROR_SIGNATURE_AUTHENTICATION_RESPONSE}: ${
