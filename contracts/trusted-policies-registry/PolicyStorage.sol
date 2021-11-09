@@ -45,8 +45,10 @@ contract PolicyStorage {
     struct Policy {
         OPERATION_TYPE opType;
         mapping(uint256 => PolicyCondition) policyConditions;
-        uint256 policyConditionsSize;
+        uint256 policyConditionsCount;
         string policyName;
+        string registry;
+        bool status;
     }
 
     // Creates and returns the storage pointer to the struct.

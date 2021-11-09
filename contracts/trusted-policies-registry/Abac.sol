@@ -79,9 +79,8 @@ contract Abac {
     function addUserAttribute(
         address user,
         string calldata attribute,
-        bytes calldata value
-    ) public /* modifier onlyOwner here */
-    {
+        bytes calldata value /* modifier onlyOwner here */
+    ) public {
         userAttributes[user][attribute] = value;
     }
 
