@@ -8,6 +8,8 @@ import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./utils/Strings.sol";
 
 abstract contract PolicyDetailed is PolicyStorage {
+    using Pagination for uint256;
+
     /**
      * @dev insert an Policy
      */
@@ -132,6 +134,49 @@ abstract contract PolicyDetailed is PolicyStorage {
             "Policy: invalid policy"
         );
         policy.status = true;
+    }
+
+    function getPolicies(uint256 page, uint256 pageSize)
+        external
+        view
+        returns (
+            uint256[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
+    {
+        require(pageSize <= 50, "PSize not <=50");
+        require(pageSize > 0, "PSize not >0");
+        require(page > 0, "Page not >0");
+        PolicyContractStorage storage ps = policyStorage();
+        return ps.lastPolicyId.paginate(page, pageSize);
+    }
+
+    function getPolicy(uint256 _policyId)
+        external
+        view
+        returns (
+            uint256 policyId,
+            string memory registry,
+            string memory policyName,
+            OPERATION_TYPE opType,
+            bool status,
+            PolicyCondition[] memory policyConditions
+        )
+    {
+        PolicyContractStorage storage ps = policyStorage();
+        require(ps.lastPolicyId >= _policyId, "Policy: invalid policy");
+        Policy storage policy = ps.policies[_policyId];
+        registry = policy.registry;
+        policyId = _policyId;
+        policyName = policy.policyName;
+        opType = policy.opType;
+        status = policy.status;
+        for (uint256 i = 1; i <= policy.policyConditionsCount; i++) {
+            policyConditions[i] = policy.policyConditions[i];
+        }
     }
 
     uint256[50] private ______gap;
