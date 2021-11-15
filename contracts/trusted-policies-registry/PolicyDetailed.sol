@@ -166,6 +166,7 @@ abstract contract PolicyDetailed is PolicyStorage {
         )
     {
         PolicyContractStorage storage ps = policyStorage();
+
         require(ps.policyCount > _policyId, "Policy: invalid policy");
         Policy storage policy = ps.policies[_policyId];
         registry = policy.registry;
@@ -173,9 +174,18 @@ abstract contract PolicyDetailed is PolicyStorage {
         policyName = policy.policyName;
         opType = policy.opType;
         status = policy.status;
+        PolicyCondition[] memory policyConditions;
         for (uint256 i; i < policy.policyConditionsCount; i++) {
             policyConditions[i] = policy.policyConditions[i];
         }
+        return (
+            policyId,
+            registry,
+            policyName,
+            opType,
+            status,
+            policyConditions
+        );
     }
 
     uint256[50] private ______gap;
