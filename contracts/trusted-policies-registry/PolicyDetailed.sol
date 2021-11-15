@@ -24,7 +24,7 @@ abstract contract PolicyDetailed is PolicyStorage {
             require(bytes(policyName).length > 0, "Policy: name required");
             require(bytes(registry).length > 0, "Policy: registry required");
             PolicyContractStorage storage ps = policyStorage();
-            uint256 policyId = ps.lastPolicyId + 1;
+            uint256 policyId = ps.lastPolicyId;
             ps.lastPolicyId = policyId;
             Policy storage policy = ps.policies[policyId];
             policy.opType = opType;
@@ -46,6 +46,7 @@ abstract contract PolicyDetailed is PolicyStorage {
                     policy.policyConditionsCount
                 ] = policyConditions[i];
             }
+            ps.lastPolicyId++;
         }
     }
 
@@ -56,8 +57,12 @@ abstract contract PolicyDetailed is PolicyStorage {
         uint256 policyId,
         PolicyCondition[] calldata policyConditions
     ) external {
-        require(policyId > 0, "Policy: invalid policy Id");
         PolicyContractStorage storage ps = policyStorage();
+
+        require(
+            bytes(ps.policies[policyId].policyName).length > 0,
+            "Policy: invalid policy Id"
+        );
         Policy storage policy = ps.policies[policyId];
         require(policy.status, "Policy: policy does not exist or inactive");
         for (uint256 i; i < policyConditions.length; i++) {
@@ -70,10 +75,10 @@ abstract contract PolicyDetailed is PolicyStorage {
                     )
                 )
             );
-            policy.policyConditionsCount++;
             policy.policyConditions[
                 policy.policyConditionsCount
             ] = policyConditions[i];
+            policy.policyConditionsCount++;
         }
     }
 
