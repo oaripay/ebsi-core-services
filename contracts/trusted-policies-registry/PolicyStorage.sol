@@ -29,7 +29,7 @@ contract PolicyStorage {
 
     struct PolicyContractStorage {
         uint256 version;
-        uint256 lastPolicyId;
+        uint256 policyCount;
         mapping(address => mapping(string => bytes)) userAttributes;
         mapping(uint256 => Policy) policies;
     }

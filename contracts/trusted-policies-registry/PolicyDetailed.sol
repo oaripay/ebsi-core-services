@@ -24,8 +24,7 @@ abstract contract PolicyDetailed is PolicyStorage {
             require(bytes(policyName).length > 0, "Policy: name required");
             require(bytes(registry).length > 0, "Policy: registry required");
             PolicyContractStorage storage ps = policyStorage();
-            uint256 policyId = ps.lastPolicyId;
-            ps.lastPolicyId = policyId;
+            uint256 policyId = ps.policyCount;
             Policy storage policy = ps.policies[policyId];
             policy.opType = opType;
             policy.status = true;
@@ -41,12 +40,12 @@ abstract contract PolicyDetailed is PolicyStorage {
                         )
                     )
                 );
-                policy.policyConditionsCount++;
                 policy.policyConditions[
                     policy.policyConditionsCount
                 ] = policyConditions[i];
+                policy.policyConditionsCount++;
             }
-            ps.lastPolicyId++;
+            ps.policyCount++;
         }
     }
 
@@ -59,10 +58,7 @@ abstract contract PolicyDetailed is PolicyStorage {
     ) external {
         PolicyContractStorage storage ps = policyStorage();
 
-        require(
-            bytes(ps.policies[policyId].policyName).length > 0,
-            "Policy: invalid policy Id"
-        );
+        require(ps.policyCount > policyId, "Policy: invalid policy Id");
         Policy storage policy = ps.policies[policyId];
         require(policy.status, "Policy: policy does not exist or inactive");
         for (uint256 i; i < policyConditions.length; i++) {
@@ -85,8 +81,8 @@ abstract contract PolicyDetailed is PolicyStorage {
     function deletePolicyCondition(uint256 policyId, uint256 policyConditionId)
         external
     {
-        require(policyId > 0, "Policy: invalid policy Id");
         PolicyContractStorage storage ps = policyStorage();
+        require(ps.lastPolicyId >= policyId, "Policy: invalid policy Id");
         Policy storage policy = ps.policies[policyId];
         require(policy.status, "Policy: policy does not exist or inactive");
         require(
@@ -113,8 +109,8 @@ abstract contract PolicyDetailed is PolicyStorage {
         string calldata policyName,
         string calldata registry
     ) external {
-        require(policyId > 0, "Policy: invalid policy Id");
         PolicyContractStorage storage ps = policyStorage();
+        require(policyId < ps.policyCount, "Policy: invalid policy Id");
         Policy storage policy = ps.policies[policyId];
         require(policy.status, "Policy: policy does not exist or inactive");
         policy.opType = opType;
@@ -123,16 +119,16 @@ abstract contract PolicyDetailed is PolicyStorage {
     }
 
     function deactivatePolicy(uint256 policyId) external {
-        require(policyId > 0, "Policy: invalid policy Id");
         PolicyContractStorage storage ps = policyStorage();
+        require(policyId < ps.policyCount, "Policy: invalid policy Id");
         Policy storage policy = ps.policies[policyId];
         require(policy.status, "Policy: invalid policy");
         policy.status = false;
     }
 
     function activatePolicy(uint256 policyId) external {
-        require(policyId > 0, "Policy: invalid policy Id");
         PolicyContractStorage storage ps = policyStorage();
+        require(policyId < ps.policyCount, "Policy: invalid policy Id");
         Policy storage policy = ps.policies[policyId];
         require(
             policy.status == false && ps.lastPolicyId >= policyId,
@@ -156,7 +152,7 @@ abstract contract PolicyDetailed is PolicyStorage {
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
         PolicyContractStorage storage ps = policyStorage();
-        return ps.lastPolicyId.paginate(page, pageSize);
+        return ps.policyCount.paginate(page, pageSize);
     }
 
     function getPolicy(uint256 _policyId)
@@ -172,7 +168,7 @@ abstract contract PolicyDetailed is PolicyStorage {
         )
     {
         PolicyContractStorage storage ps = policyStorage();
-        require(ps.lastPolicyId >= _policyId, "Policy: invalid policy");
+        require(ps.policyCount > _policyId, "Policy: invalid policy");
         Policy storage policy = ps.policies[_policyId];
         registry = policy.registry;
         policyId = _policyId;
