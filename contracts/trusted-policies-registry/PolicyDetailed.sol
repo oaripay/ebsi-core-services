@@ -82,7 +82,7 @@ abstract contract PolicyDetailed is PolicyStorage {
         external
     {
         PolicyContractStorage storage ps = policyStorage();
-        require(ps.lastPolicyId >= policyId, "Policy: invalid policy Id");
+        require(ps.policyCount > policyId, "Policy: invalid policy Id");
         Policy storage policy = ps.policies[policyId];
         require(policy.status, "Policy: policy does not exist or inactive");
         require(
@@ -131,7 +131,7 @@ abstract contract PolicyDetailed is PolicyStorage {
         require(policyId < ps.policyCount, "Policy: invalid policy Id");
         Policy storage policy = ps.policies[policyId];
         require(
-            policy.status == false && ps.lastPolicyId >= policyId,
+            policy.status == false && ps.policyCount > policyId,
             "Policy: invalid policy"
         );
         policy.status = true;
