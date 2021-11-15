@@ -174,7 +174,9 @@ abstract contract PolicyDetailed is PolicyStorage {
         policyName = policy.policyName;
         opType = policy.opType;
         status = policy.status;
-        PolicyCondition[] memory policyConditions;
+        PolicyCondition[] memory policyConditions = new PolicyCondition[](
+            policy.policyConditionsCount
+        );
         for (uint256 i; i < policy.policyConditionsCount; i++) {
             policyConditions[i] = policy.policyConditions[i];
         }
