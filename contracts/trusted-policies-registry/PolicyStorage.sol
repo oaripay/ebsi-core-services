@@ -31,6 +31,8 @@ contract PolicyStorage {
         uint256 version;
         uint256 policyCount;
         mapping(address => mapping(string => bytes)) userAttributes;
+        mapping(address => string[]) listOfUserAttributes;
+        address[] addresses;
         mapping(uint256 => Policy) policies;
     }
 

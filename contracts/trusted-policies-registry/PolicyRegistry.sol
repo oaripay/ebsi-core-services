@@ -3,13 +3,13 @@ pragma solidity ^0.8.9;
 
 import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 import "./PolicyStorage.sol";
-import "./PolicyDetailed.sol";
+import "./PolicyListManagement.sol";
 
 /**
  * @title example of stored values on a SC with pause functionality.
  *
  */
-contract PolicyRegistry is PolicyStorage, Initializable, PolicyDetailed {
+contract PolicyRegistry is PolicyStorage, Initializable, PolicyListManagement {
     function initialize(uint256 version) public initializer {
         _onInitialize(version);
     }
@@ -34,4 +34,6 @@ contract PolicyRegistry is PolicyStorage, Initializable, PolicyDetailed {
         PolicyContractStorage storage ps = PolicyStorage.policyStorage();
         ps.version = _version;
     }
+
+    uint256[50] private ______gap;
 }

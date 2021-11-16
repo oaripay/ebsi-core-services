@@ -7,7 +7,7 @@ import "./PolicyStorage.sol";
 import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./utils/Strings.sol";
 
-abstract contract PolicyDetailed is PolicyStorage {
+abstract contract PolicyListManagement is PolicyStorage {
     using Pagination for uint256;
 
     /**
@@ -189,6 +189,4 @@ abstract contract PolicyDetailed is PolicyStorage {
             policyConditions
         );
     }
-
-    uint256[50] private ______gap;
 }
