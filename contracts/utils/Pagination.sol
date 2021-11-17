@@ -179,4 +179,35 @@ library Pagination {
 
         return (items, self.length, howMany, prev, next);
     }
+
+    function paginate(
+        address[] memory self,
+        uint256 page,
+        uint256 pageSize
+    )
+        internal
+        pure
+        returns (
+            address[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
+    {
+        uint256 cursor;
+        (cursor, howMany, next, prev) = getPaginationParameters(
+            self.length,
+            page,
+            pageSize
+        );
+        items = new address[](howMany);
+        if (howMany > 0) {
+            for (uint256 i = 0; i < howMany; i++) {
+                items[i] = self[cursor + i];
+            }
+        }
+
+        return (items, self.length, howMany, prev, next);
+    }
 }
