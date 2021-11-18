@@ -2,8 +2,15 @@ import { ethers } from "hardhat";
 import { PolicyRegistry } from "../src/types";
 
 async function main() {
+  const paginationFactory = await ethers.getContractFactory("Pagination");
+  const pagination = await paginationFactory.deploy();
   const policyRegistryFactory = await ethers.getContractFactory(
-    "PolicyRegistry"
+    "PolicyRegistry",
+    {
+      libraries: {
+        Pagination: pagination.address,
+      },
+    }
   );
   const policyContract =
     (await policyRegistryFactory.deploy()) as PolicyRegistry;
