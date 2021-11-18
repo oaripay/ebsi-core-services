@@ -20,7 +20,8 @@ contract PolicyStorage {
     }
 
     enum OPERATION_TYPE {
-        AND /* @TODO: to be implemented: OR, XOR, NOR **/
+        AND,
+        OR /* @TODO: to be implemented: XOR, NOR **/
     }
 
     enum ASSERT_TYPE {
