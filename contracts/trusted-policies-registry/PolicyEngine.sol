@@ -6,7 +6,7 @@ import "./PolicyStorage.sol";
 import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 abstract contract PolicyEngine is PolicyStorage {
-    function applyPolicy(uint256 policyId, address user)
+    function checkPolicy(uint256 policyId, address user)
         external
         view
         returns (bool)
