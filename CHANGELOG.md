@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.9](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.9&targetRepoId=234) (2021-11-16)
+
+### 🚀 Features
+
+- update Node.js to v16.13.0 ([#54](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/pull-requests/54/overview)) - EBSIINT-3496 ([7687827](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/commits/76878276092143e56c8a54feb1e753bdccdd70a2))
+
 ## [1.0.0-rc.8](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.8&targetRepoId=234) (2021-10-18)
 
 ### 🐛 Bug Fixes
