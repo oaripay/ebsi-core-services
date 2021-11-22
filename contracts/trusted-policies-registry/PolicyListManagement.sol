@@ -10,6 +10,31 @@ import "./utils/Strings.sol";
 abstract contract PolicyListManagement is PolicyStorage {
     using Pagination for uint256;
 
+    event PolicyInserted(
+        uint256 indexed policyId,
+        string policyName,
+        string registry
+    );
+    event PolicyConditionInserted(
+        uint256 indexed conditionId,
+        string attributeName,
+        bytes value
+    );
+    event PolicyConditionDeleted(
+        uint256 indexed conditionId,
+        string attributeName,
+        bytes value
+    );
+    event PolicyUpdated(
+        uint256 indexed policyId,
+        string oldName,
+        string newName,
+        string oldRegistry,
+        string newRegistry
+    );
+    event PolicyDeactivated(uint256 indexed policyId);
+    event PolicyActivated(uint256 indexed policyId);
+
     /**
      * @dev insert an Policy
      */
@@ -42,8 +67,14 @@ abstract contract PolicyListManagement is PolicyStorage {
                 );
                 policy.policyConditions[i] = policyConditions[i];
                 policy.policyConditionsCount++;
+                emit PolicyConditionInserted(
+                    i,
+                    policyConditions[i].attributeName,
+                    policyConditions[i].value
+                );
             }
             ps.policyCount++;
+            emit PolicyInserted(policyId, policyName, registry);
         }
     }
 
@@ -73,6 +104,11 @@ abstract contract PolicyListManagement is PolicyStorage {
                 policy.policyConditionsCount
             ] = policyConditions[i];
             policy.policyConditionsCount++;
+            emit PolicyConditionInserted(
+                i,
+                policyConditions[i].attributeName,
+                policyConditions[i].value
+            );
         }
     }
 
@@ -87,6 +123,7 @@ abstract contract PolicyListManagement is PolicyStorage {
             policy.policyConditionsCount > policyConditionId,
             "Policy: invalid condition"
         );
+        PolicyCondition memory pc = policy.policyConditions[policyConditionId];
         policy.policyConditions[policyConditionId] = policy.policyConditions[
             policy.policyConditionsCount
         ];
@@ -99,6 +136,11 @@ abstract contract PolicyListManagement is PolicyStorage {
             OPERATION.EQUAL
         );
         policy.policyConditionsCount--;
+        emit PolicyConditionDeleted(
+            policyConditionId,
+            pc.attributeName,
+            pc.value
+        );
     }
 
     function updatePolicy(
@@ -111,9 +153,18 @@ abstract contract PolicyListManagement is PolicyStorage {
         require(policyId < ps.policyCount, "Policy: invalid policy Id");
         Policy storage policy = ps.policies[policyId];
         require(policy.status, "Policy: policy does not exist or inactive");
+        string memory oldPolicyName = policy.policyName;
+        string memory oldRegistryName = policy.registry;
         policy.opType = opType;
         policy.policyName = policyName;
         policy.registry = registry;
+        emit PolicyUpdated(
+            policyId,
+            oldPolicyName,
+            policyName,
+            oldRegistryName,
+            registry
+        );
     }
 
     function deactivatePolicy(uint256 policyId) external {
@@ -122,6 +173,7 @@ abstract contract PolicyListManagement is PolicyStorage {
         Policy storage policy = ps.policies[policyId];
         require(policy.status, "Policy: invalid policy");
         policy.status = false;
+        emit PolicyDeactivated(policyId);
     }
 
     function activatePolicy(uint256 policyId) external {
@@ -133,6 +185,7 @@ abstract contract PolicyListManagement is PolicyStorage {
             "Policy: invalid policy"
         );
         policy.status = true;
+        emit PolicyActivated(policyId);
     }
 
     function getPolicies(uint256 page, uint256 pageSize)
