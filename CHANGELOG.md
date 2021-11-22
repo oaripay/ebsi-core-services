@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv1.0.0&targetRepoId=387) (2021-11-16)
+
+### 🚀 Features
+
+- update Node.js to v16.13.0 ([#42](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/pull-requests/42/overview)) - EBSIINT-3496 ([17b1f57](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/commits/17b1f57855c3b3a19c5de3885fbacf4cef50870d))
+
 ## [1.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.4&targetRepoId=387) (2021-10-18)
 
 ### 🐛 Bug Fixes
