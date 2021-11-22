@@ -71,9 +71,9 @@ abstract contract UserAttributesManagement is PolicyStorage {
             ) {
                 ps.listOfUserAttributes[user][i] = ps.listOfUserAttributes[
                     user
-                ][ps.listOfUserAttributes[user].length];
+                ][ps.listOfUserAttributes[user].length - 1];
                 delete ps.listOfUserAttributes[user][
-                    ps.listOfUserAttributes[user].length
+                    ps.listOfUserAttributes[user].length - 1
                 ];
             }
         }
