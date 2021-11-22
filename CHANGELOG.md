@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.6&targetRepoId=248) (2021-11-22)
+
+### 🚀 Features
+
+- update Node.js to v16.13.0 ([#81](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/81/overview)) - EBSIINT-3496 ([651df02](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/commits/651df02b3c4bb91805777ebd8c91b7937c36ab1a))
+
+### 🐛 Bug Fixes
+
+- lint ([04462d0](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/commits/04462d0113e6860a88977144cbdcc698e129d3aa))
+- skip audit vulnerabilities ([#85](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/85/overview)) - EBSIINT-3497 ([14c47ba](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/commits/14c47bad0c18e9c2a46d0d03256c99dfe32d23a2))
+
 ## [2.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.5&targetRepoId=248) (2021-10-18)
 
 ### 🐛 Bug Fixes
