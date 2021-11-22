@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.6&targetRepoId=244) (2021-11-15)
+
+### 🚀 Features
+
+- update Node.js to v16.13.0 ([#83](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/83/overview)) - EBSIINT-3496 ([8a7b184](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/8a7b184c8e4c7a4b8e49d649c812b77a35ec6546))
+
 ## [2.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.5&targetRepoId=244) (2021-10-27)
 
 ### 🚀 Features
