@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.8](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=247) (2021-11-16)
+
+### 🚀 Features
+
+- update Node.js to v16.13.0 ([#87](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/pull-requests/87/overview)) - EBSIINT-3496 ([4889c28](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/commits/4889c2801866d2fd203d730b846759979cdc8571))
+
 ## [2.0.0-rc.7](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.7&targetRepoId=247) (2021-10-18)
 
 ### 🐛 Bug Fixes
@@ -43,7 +49,7 @@ All notable changes to this project will be documented in this file. 🤘
 
 - validate hashes ([#56](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/pull-requests/56/overview)) - EBSIINT-3046 ([4092453](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/commits/40924531b1e4a937a11b94eef57a6eca1e358e5e))
 
-### 🐛 Bug Fixes
+### �� Bug Fixes
 
 - support lowercase DID ([#58](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/pull-requests/58/overview)) - EBSIINT-3095 ([a906b26](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/commits/a906b2672093d7dc82f0befe77e241508a6910c4))
 
