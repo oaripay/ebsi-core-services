@@ -3,7 +3,7 @@
   "version": "2.0.0-rc.5",
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --moderate --skip-dev -a 1004746",
+    "audit": "audit-ci --moderate --skip-dev -a 1004897",
     "prebuild": "rimraf dist",
     "build": "nest build -p tsconfig.production.json",
     "configure:cassandra": "yarn configure:cassandra:keyspace && yarn configure:cassandra:tables",
