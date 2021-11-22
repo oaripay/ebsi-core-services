@@ -10,7 +10,7 @@ import {
 import type { FastifyInstance } from "fastify";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { Agent } from "@cef-ebsi/oauth2-auth";
-import { JWTPayload } from "@cef-ebsi/did-jwt";
+import { JWTPayload } from "did-jwt";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import jsonwebtoken from "jsonwebtoken";
 import { NotificationsModule } from "./notifications.module";

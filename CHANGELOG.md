@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.6&targetRepoId=318) (2021-11-15)
+
+### 🚀 Features
+
+- implement rate-limiting ([#42](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/pull-requests/42/overview)) - EBSIINT-3487 ([e5ce24c](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/commits/e5ce24cc893574804f967dcaccd8948b4bca5094))
+- update Node.js to v16.13.0 ([#44](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/pull-requests/44/overview)) - EBSIINT-3496 ([57e34f6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/commits/57e34f67d3bc8a43c7f08b1825ca8b9fb62e2510))
+
 ## [1.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.5&targetRepoId=318) (2021-10-15)
 
 ### 🐛 Bug Fixes
