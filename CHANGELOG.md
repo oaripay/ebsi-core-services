@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-schemas-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv1.0.0&targetRepoId=292) (2021-11-16)
+
+### 🚀 Features
+
+- update Node.js to v16.13.0 ([#49](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-schemas-registry-api/pull-requests/49/overview)) - EBSIINT-3496 ([58cf93d](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-schemas-registry-api/commits/58cf93d126a56a1f2093c1386b79cc733a60864c))
+
 ## [1.0.0-rc.4](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-schemas-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.4&targetRepoId=292) (2021-10-18)
 
 ### 🐛 Bug Fixes
