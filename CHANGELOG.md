@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.13](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.12&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.13&targetRepoId=359) (2021-11-15)
+
+### 🚀 Features
+
+- update Node.js to v16.13.0 ([#70](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/pull-requests/70/overview)) - EBSIINT-3496 ([a9a5b10](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/commits/a9a5b10a514a3217ced0dc9ce3af7ee33fd8f6bf))
+
 ## [1.0.0-rc.12](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.11&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.12&targetRepoId=359) (2021-10-15)
 
 ### 🐛 Bug Fixes
