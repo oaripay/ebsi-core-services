@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.6&targetRepoId=252) (2021-11-15)
+
+### 🚀 Features
+
+- update Node.js to v16.13.0 ([#56](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/56/overview)) - EBSIINT-3496 ([bb856e3](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/commits/bb856e30a63bd4bf90cc7d647401520287793449))
+
 ## [2.0.0-rc.5](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.5&targetRepoId=252) (2021-10-15)
 
 ### 🐛 Bug Fixes
