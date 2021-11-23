@@ -62,22 +62,25 @@ abstract contract UserAttributesManagement is PolicyStorage {
             ps.userAttributes[user][attribute].length > 0,
             "Policy: attr invalid"
         );
-        ps.userAttributes[user][attribute] = new bytes(0);
 
-        for (uint256 i; i < ps.listOfUserAttributes[user].length; i++) {
+        ps.userAttributes[user][attribute] = new bytes(0);
+        uint256 length = ps.listOfUserAttributes[user].length;
+
+        for (uint256 i; i < length; i++) {
             if (
                 keccak256(abi.encodePacked(ps.listOfUserAttributes[user][i])) ==
                 keccak256(abi.encodePacked(attribute))
             ) {
+                // insert in the position i the last element of the array
                 ps.listOfUserAttributes[user][i] = ps.listOfUserAttributes[
                     user
-                ][ps.listOfUserAttributes[user].length - 1];
-                delete ps.listOfUserAttributes[user][
-                    ps.listOfUserAttributes[user].length - 1
-                ];
+                ][length - 1];
+                // delete last element from the array
+                ps.listOfUserAttributes[user].pop();
+                emit UserAttributeDeleted(user, attribute);
+                break;
             }
         }
-        emit UserAttributeDeleted(user, attribute);
     }
 
     function getUsers(uint256 page, uint256 pageSize)
