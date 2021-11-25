@@ -36,7 +36,10 @@ abstract contract UserAttributesManagement is PolicyStorage {
             ps.listOfUserAttributes[user].push(attributes[i]);
             emit UserAttributeInserted(user, attributes[i], values[i]);
         }
-        ps.addresses.push(user);
+        if (!ps.userAddressExists[user]) {
+            ps.addresses.push(user);
+            ps.userAddressExists[user] = true;
+        }
     }
 
     function updateUserAttribute(

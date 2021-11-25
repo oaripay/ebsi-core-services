@@ -33,7 +33,10 @@ contract PolicyStorage {
         uint256 policyCount;
         mapping(address => mapping(string => bytes)) userAttributes;
         mapping(address => string[]) listOfUserAttributes;
+        mapping(string => uint256[]) policyNameToPolicyIds;
+        mapping(string => uint256[]) registryNameToPolicyIds;
         address[] addresses;
+        mapping(address => bool) userAddressExists;
         mapping(uint256 => Policy) policies;
     }
 

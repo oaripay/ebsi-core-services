@@ -55,6 +55,9 @@ abstract contract PolicyListManagement is PolicyStorage {
             policy.status = true;
             policy.policyName = policyName;
             policy.registry = registry;
+            // add to search index
+            ps.policyNameToPolicyIds[policyName].push(policyId);
+            ps.registryNameToPolicyIds[registry].push(policyId);
             for (uint256 i; i < policyConditions.length; i++) {
                 require(
                     bytes(policyConditions[i].attributeName).length > 0,
@@ -158,6 +161,54 @@ abstract contract PolicyListManagement is PolicyStorage {
         policy.opType = opType;
         policy.policyName = policyName;
         policy.registry = registry;
+        // update search index
+        if (
+            keccak256(abi.encodePacked(policyName)) !=
+            keccak256(abi.encodePacked(oldPolicyName))
+        ) {
+            // update index for policyName
+            for (
+                uint256 i;
+                i < ps.policyNameToPolicyIds[oldPolicyName].length;
+                i++
+            ) {
+                if (ps.policyNameToPolicyIds[oldPolicyName][i] == policyId) {
+                    ps.policyNameToPolicyIds[oldPolicyName][i] = ps
+                        .policyNameToPolicyIds[oldPolicyName][
+                            ps.policyNameToPolicyIds[oldPolicyName].length - 1
+                        ];
+                    ps.policyNameToPolicyIds[oldPolicyName].pop();
+                    // move to the new policy Name index
+                    ps.policyNameToPolicyIds[policyName].push(policyId);
+                    break;
+                }
+            }
+        }
+        if (
+            keccak256(abi.encodePacked(registry)) !=
+            keccak256(abi.encodePacked(oldRegistryName))
+        ) {
+            // update index for registry
+            for (
+                uint256 i;
+                i < ps.registryNameToPolicyIds[oldRegistryName].length;
+                i++
+            ) {
+                if (
+                    ps.registryNameToPolicyIds[oldRegistryName][i] == policyId
+                ) {
+                    ps.registryNameToPolicyIds[oldRegistryName][i] = ps
+                        .registryNameToPolicyIds[oldRegistryName][
+                            ps.registryNameToPolicyIds[oldRegistryName].length -
+                                1
+                        ];
+                    ps.registryNameToPolicyIds[oldRegistryName].pop();
+                    // move to the new policy Name index
+                    ps.registryNameToPolicyIds[registry].push(policyId);
+                    break;
+                }
+            }
+        }
         emit PolicyUpdated(
             policyId,
             oldPolicyName,
@@ -241,5 +292,15 @@ abstract contract PolicyListManagement is PolicyStorage {
             status,
             policyConditions
         );
+    }
+
+    function searchPolicy(string calldata searchString)
+        external
+        view
+        returns (uint256[] memory byPolicyName, uint256[] memory byRegistryName)
+    {
+        PolicyContractStorage storage ps = policyStorage();
+        byPolicyName = ps.policyNameToPolicyIds[searchString];
+        byRegistryName = ps.registryNameToPolicyIds[searchString];
     }
 }
