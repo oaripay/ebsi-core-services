@@ -34,7 +34,7 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {},
     local: {
-      url: `http://localhost:8545`,
+      url: `https://www.test.intebsi.xyz/jsonrpc`,
       accounts: [privKey],
       gas: 20000000,
       gasPrice: 0,

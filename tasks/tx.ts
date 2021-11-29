@@ -7,6 +7,7 @@ task("tx", "Prints the detail for the transaction hash")
     await ethers.provider
       .getTransactionReceipt(taskArgs.hash)
       .then((receipt) => {
+        console.log(receipt);
         console.log(`
         From: ${receipt.from}
         To: ${receipt.to}
