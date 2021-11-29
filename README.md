@@ -143,6 +143,7 @@ STORAGE = Storage of version location from the appendix below
            | TrustedSchemaRegistry 	| SchemaSCRegistry 	| diamond.standard.trusted.schema.smart.contracts.storage 	|
            | TrustedLedgerRegistry 	| LedgerSCRegistry 	| diamond.standard.trusted.ledger.smart.contracts.storage 	|
            | Timestamp             	| Timestamp        	| diamond.standard.timestamp.storage                      	|
+           | PolicyRegisty         	| PolicyRegistry   	| diamond.standard.policy.registry.storage                 	|
 
 
 ## Scripts
