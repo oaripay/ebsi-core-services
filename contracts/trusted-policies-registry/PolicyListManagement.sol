@@ -126,18 +126,23 @@ abstract contract PolicyListManagement is PolicyStorage {
             policy.policyConditionsCount > policyConditionId,
             "Policy: invalid condition"
         );
+
         PolicyCondition memory pc = policy.policyConditions[policyConditionId];
         policy.policyConditions[policyConditionId] = policy.policyConditions[
-            policy.policyConditionsCount
+            policy.policyConditionsCount - 1
         ];
+
         bytes memory zeroBytes;
-        policy.policyConditions[policy.policyConditionsCount] = PolicyCondition(
+        policy.policyConditions[
+            policy.policyConditionsCount - 1
+        ] = PolicyCondition(
             "",
             "",
             TYPE.TYPE_BYTES32,
             zeroBytes,
             OPERATION.EQUAL
         );
+
         policy.policyConditionsCount--;
         emit PolicyConditionDeleted(
             policyConditionId,
