@@ -21,6 +21,7 @@ abstract contract UserAttributesManagement is PolicyStorage {
         string[] calldata attributes,
         bytes[] calldata values
     ) external {
+        require(user != address(0), "Policy: invalid user address");
         PolicyContractStorage storage ps = policyStorage();
         require(attributes.length > 0, "Policy: invalid attr list");
         require(
@@ -47,6 +48,7 @@ abstract contract UserAttributesManagement is PolicyStorage {
         string calldata attribute,
         bytes calldata value
     ) external {
+        require(user != address(0), "Policy: invalid user address");
         PolicyContractStorage storage ps = policyStorage();
         require(value.length > 0, "Policy: invalid value");
         require(
@@ -60,6 +62,7 @@ abstract contract UserAttributesManagement is PolicyStorage {
     function deleteUserAttribute(address user, string calldata attribute)
         external
     {
+        require(user != address(0), "Policy: invalid user address");
         PolicyContractStorage storage ps = policyStorage();
         require(
             ps.userAttributes[user][attribute].length > 0,
@@ -122,6 +125,7 @@ abstract contract UserAttributesManagement is PolicyStorage {
         require(pageSize <= 50, "PSize not <=50");
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
+        require(user != address(0), "Policy: invalid user address");
         PolicyContractStorage storage ps = policyStorage();
         require(
             ps.listOfUserAttributes[user].length > 0,
@@ -135,6 +139,7 @@ abstract contract UserAttributesManagement is PolicyStorage {
         view
         returns (bytes memory value)
     {
+        require(user != address(0), "Policy: invalid user address");
         PolicyContractStorage storage ps = policyStorage();
         return ps.userAttributes[user][attribute];
     }
