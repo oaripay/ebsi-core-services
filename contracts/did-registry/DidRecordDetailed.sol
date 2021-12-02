@@ -476,14 +476,16 @@ contract DidRecordDetailed is DidRecordStorage {
     }
 
     /**
-    * @dev getDidDocumentVersionDidTimestampIds returns version didTimestampIds
-    */
-    function getDidDocumentVersionDidTimestampIds(bytes calldata identifier, uint256 versionId)
-    public
-    view
-    returns (bytes32[] memory didTimestampIds)
-    {
+     * @dev getDidDocumentVersionDidTimestampIds returns version didTimestampIds
+     */
+    function getDidDocumentVersionDidTimestampIds(
+        bytes calldata identifier,
+        uint256 versionId
+    ) public view returns (bytes32[] memory didTimestampIds) {
         DidRecords storage rs = recordStorage();
-        didTimestampIds = rs.getDidDocumentVersionDidTimestampIds(identifier, versionId);
+        didTimestampIds = rs.getDidDocumentVersionDidTimestampIds(
+            identifier,
+            versionId
+        );
     }
 }

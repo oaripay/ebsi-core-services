@@ -1,9 +1,9 @@
 import { ethers } from "hardhat";
-import { Contract } from "ethers";
 import { expect } from "chai";
+import { DidRegistry } from "../src/types";
 
 describe("Policy", () => {
-  let ts: Contract;
+  let ts: DidRegistry;
   const resAttributeHash = [...Array(11).keys()].map((i) =>
     ethers.utils.sha256(ethers.utils.toUtf8Bytes(`data-update-${i}`))
   );
@@ -73,12 +73,14 @@ describe("Policy", () => {
         DidRecordLib: didRecordLib.address,
       },
     });
-    ts = await contractFactory.deploy();
+    ts = (await contractFactory.deploy()) as DidRegistry;
     await ts.initialize(42);
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(ts.address).to.properAddress;
   });
+
   it("insert Policy should work", async () => {
     const policyId = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     const data = ethers.utils.toUtf8Bytes(
@@ -118,6 +120,7 @@ describe("Policy", () => {
       "pol exist"
     );
   });
+
   it("insert Policy for two policyId", async () => {
     const policyId = "policyId:ebsi:1";
     const data = ethers.utils.toUtf8Bytes(
@@ -174,6 +177,7 @@ describe("Policy", () => {
     expect(policies.prev.toString()).to.equal("1");
     expect(policies.next.toString()).to.equal("1");
   });
+
   it("update Policy should work", async () => {
     const policyId = "policyId:ebsi:1";
     // insert did and attribute1v0
@@ -219,6 +223,7 @@ describe("Policy", () => {
     expect(res1V1[0]).to.equal(ethers.utils.hexlify(attribute1v1));
     expect(res1V1[1]).to.equal(secondHash);
   });
+
   it("update Policy should fail if policy does not exists", async () => {
     const policyId = "policyId:ebsi:1";
     const attribute1v0 = ethers.utils.toUtf8Bytes(
@@ -230,7 +235,7 @@ describe("Policy", () => {
     await expect(ts.getPolicy(policyId)).to.be.revertedWith("pol unknown");
   });
 
-  it("get policies should failed with wrong page size", async () => {
+  it("get policies should fail with wrong page size", async () => {
     for (let i = 0; i < 11; i += 1) {
       const did = `${i}`;
       const data = `data${i}`;
@@ -247,6 +252,7 @@ describe("Policy", () => {
     // pagesize > 50 should revert
     await expect(ts.getPolicies(1, 52)).to.be.revertedWith("PSize not <=50");
   });
+
   it("get policies should work with page==X and pagesize less than total", async () => {
     for (let i = 0; i < 11; i += 1) {
       const did = `${i}`;
@@ -291,6 +297,7 @@ describe("Policy", () => {
     expect(r9.prev.toString()).to.equal("3");
     expect(r9.next.toString()).to.equal("4");
   });
+
   it("get policies by hash should work or revert if not found", async () => {
     for (let i = 0; i < 11; i += 1) {
       const did = `${i}`;
@@ -358,6 +365,7 @@ describe("Policy", () => {
       )
     ).to.be.revertedWith("pol data unknown");
   });
+
   it("get policies Revisions should work or revert if not found", async () => {
     for (let i = 0; i < 11; i += 1) {
       const did = `${i}`;
@@ -415,7 +423,7 @@ describe("Policy", () => {
     }
   });
 
-  it("get attributebyHash should failed with wrong page size", async () => {
+  it("get attributebyHash should fail with wrong page size", async () => {
     const did = `didi`;
     const firstinputdata = ethers.utils.toUtf8Bytes("data-update-0");
     const didFirstInputHash = ethers.utils.sha256(firstinputdata);
@@ -425,7 +433,7 @@ describe("Policy", () => {
       const inputdata = ethers.utils.toUtf8Bytes(data);
       // INSERT SHOULD BE DONE IN ORDER !!!
       // eslint-disable-next-line no-await-in-loop
-      await ts.functions["updatePolicy(string,bytes)"](did, inputdata);
+      await ts.updatePolicy(did, inputdata);
     }
 
     // pagesize = 0 should revert
@@ -442,6 +450,7 @@ describe("Policy", () => {
       ts.getPolicyRevisions(didFirstInputHash, 1, 52)
     ).to.be.revertedWith("PSize not <=50");
   });
+
   it("get attributebyHash should work", async () => {
     const did = `didi`;
     const firstinputdata = ethers.utils.toUtf8Bytes("data-update-0");
@@ -452,7 +461,7 @@ describe("Policy", () => {
       const inputdata = ethers.utils.toUtf8Bytes(data);
       // INSERT SHOULD BE DONE IN ORDER !!!
       // eslint-disable-next-line no-await-in-loop
-      await ts.functions["updatePolicy(string,bytes)"](did, inputdata);
+      await ts.updatePolicy(did, inputdata);
     }
     // page = 0 and pagesize is less than total
     const r0 = await ts.getPolicyRevisions(did, 1, 10);

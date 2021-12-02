@@ -41,7 +41,7 @@ library DidTimestampLib {
         // insert only if it doesn't exist
         if (ts.didTimestampsStore[timestampId].hash.value.length == 0) {
             ts.didTimestampsStore[timestampId] = DidTimestampStorage
-                .DidTimestamp(
+            .DidTimestamp(
                 DidTimestampStorage.Hash(hashAlgorithmId, hashValue),
                 msg.sender,
                 block.number,

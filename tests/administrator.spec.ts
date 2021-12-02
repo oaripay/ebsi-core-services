@@ -1,13 +1,14 @@
 import { ethers } from "hardhat";
-import { Contract } from "ethers";
 import { expect } from "chai";
+import { DidRegistry } from "../src/types";
 
 describe("Administrator", () => {
-  let ts: Contract;
+  let ts: DidRegistry;
   const resGetAttributeHash = [...Array(11).keys()].map((i) =>
     ethers.utils.sha256(ethers.utils.toUtf8Bytes(`data-update-${i}`))
   );
   const resAttributeHash = [...Array(11).keys()].map((i) => i.toString());
+
   beforeEach(async () => {
     const paginationFactory = await ethers.getContractFactory("Pagination", {});
     const paginationLib = await paginationFactory.deploy();
@@ -58,12 +59,14 @@ describe("Administrator", () => {
         DidRecordLib: didRecordLib.address,
       },
     });
-    ts = await contractFactory.deploy();
+    ts = (await contractFactory.deploy()) as DidRegistry;
     await ts.initialize(42);
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(ts.address).to.properAddress;
   });
+
   it("get administrator should revert for an unknown did", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     // insert did and attribute1v0
@@ -76,6 +79,7 @@ describe("Administrator", () => {
       "admin unknown"
     );
   });
+
   it("get administrator should return all the latest hashes", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     // insert did and attribute1v0
@@ -149,6 +153,7 @@ describe("Administrator", () => {
     const res4 = await ts.getAdministrator(did);
     expect(res4).to.deep.equal([attr1v2Hash, attr2v1Hash, attr3v0Hash]);
   });
+
   it("get administrator attributeHistory should return all the version hashes for an attribute", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     // insert did and attribute1v0
@@ -256,6 +261,7 @@ describe("Administrator", () => {
     );
     expect(resAttr3.items).to.deep.equal([attr3v0Hash]);
   });
+
   it("get administrator attributeRevisions should revert for an unknown hash", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     // insert did and attribute1v0
@@ -273,6 +279,7 @@ describe("Administrator", () => {
       )
     ).to.be.revertedWith("attr unknown");
   });
+
   it("get administrator attributebyHash should revert for an unknown hash", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     // insert did and attribute1v0
@@ -288,6 +295,7 @@ describe("Administrator", () => {
       )
     ).to.be.revertedWith("attr unknown");
   });
+
   it("get administrator attributebyHash should return the attribute data and the did", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     // insert did and attribute1v0
@@ -370,7 +378,7 @@ describe("Administrator", () => {
     ]);
   });
 
-  it("get attributebyHash should failed with wrong page size", async () => {
+  it("get attributebyHash should fail with wrong page size", async () => {
     const did = `didi`;
     const firstinputdata = ethers.utils.toUtf8Bytes("data-update-0");
     const didFirstInputHash = ethers.utils.sha256(firstinputdata);
@@ -401,6 +409,7 @@ describe("Administrator", () => {
       ts.getAdministratorAttributeRevisions(didFirstInputHash, 1, 52)
     ).to.be.revertedWith("PSize not <=50");
   });
+
   it("get attributebyHash should work", async () => {
     const did = `didi`;
     const firstinputdata = ethers.utils.toUtf8Bytes("data-update-0");
@@ -477,6 +486,7 @@ describe("Administrator", () => {
     );
     expect(attributeVersions.items[0]).to.deep.equal(firstAttrHash);
   });
+
   it("insert for two did should fail if it is the same attribute for both", async () => {
     const did1 = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     const did1Hash = ethers.utils.sha256(ethers.utils.toUtf8Bytes(did1));
@@ -505,6 +515,7 @@ describe("Administrator", () => {
       "attr exist"
     );
   });
+
   it("insert for two did", async () => {
     const did1 = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     const did1Hash = ethers.utils.sha256(ethers.utils.toUtf8Bytes(did1));
@@ -546,6 +557,7 @@ describe("Administrator", () => {
     );
     expect(attributeVersions2.items[0]).to.deep.equal(firstAttrHash2);
   });
+
   it("insert should fail if attribute exists", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
@@ -566,7 +578,7 @@ describe("Administrator", () => {
     );
   });
 
-  it("get administrators should failed with wrong page size", async () => {
+  it("get administrators should fail with wrong page size", async () => {
     for (let i = 0; i < 11; i += 1) {
       const did = `${i}`;
       const data = `data${i}`;
@@ -586,6 +598,7 @@ describe("Administrator", () => {
       "PSize not <=50"
     );
   });
+
   it("get administrators should work with page==X and pagesize eq total", async () => {
     for (let i = 0; i < 11; i += 1) {
       const did = `${i}`;
@@ -638,6 +651,7 @@ describe("Administrator", () => {
       .to.emit(ts, "UpdateAdministratorAttribute")
       .withArgs(didHash, newAttrHash, firstAttrHash, firstAttrHash, did, 2, 1);
   });
+
   it("update should fail if admin unknowns", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     const data = ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798";
@@ -648,6 +662,7 @@ describe("Administrator", () => {
       ts.functions["updateAdministrator(string,bytes)"](did, inputdata)
     ).to.be.revertedWith("admin unknown");
   });
+
   it("update should fail if lastversHash is incorrect", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     const didHash = ethers.utils.sha256(ethers.utils.toUtf8Bytes(did));
@@ -681,6 +696,7 @@ describe("Administrator", () => {
       )
     ).to.be.revertedWith("lastVers != DID");
   });
+
   it("update should fail if attribute exists", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     const didHash = ethers.utils.sha256(ethers.utils.toUtf8Bytes(did));
@@ -702,6 +718,7 @@ describe("Administrator", () => {
       )
     ).to.be.revertedWith("attr exist");
   });
+
   it("update should fail if attribute is new", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     const didHash = ethers.utils.sha256(ethers.utils.toUtf8Bytes(did));
@@ -726,6 +743,7 @@ describe("Administrator", () => {
       )
     ).to.be.revertedWith("lastVers != DID");
   });
+
   it("update two different attributes should fail if the second version attribute is already a version of another attribute", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     const didHash = ethers.utils.sha256(ethers.utils.toUtf8Bytes(did));
@@ -803,6 +821,7 @@ describe("Administrator", () => {
       )
     ).to.be.revertedWith("attr exist");
   });
+
   it("update two different attributes", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     const didHash = ethers.utils.sha256(ethers.utils.toUtf8Bytes(did));
@@ -911,25 +930,17 @@ describe("Administrator", () => {
       attr2NewAttrHash,
       attr2NewAttrHashV3,
     ];
-    const attributeVersionsWithFirstHash = await ts.getAdministratorAttributeRevisions(
-      attr2Versions[0],
-      1,
-      10
-    );
+    const attributeVersionsWithFirstHash =
+      await ts.getAdministratorAttributeRevisions(attr2Versions[0], 1, 10);
     expect(attributeVersionsWithFirstHash.items).to.deep.equal(attr2Versions);
-    const attributeVersionsWithSecondHash = await ts.getAdministratorAttributeRevisions(
-      attr2Versions[1],
-      1,
-      10
-    );
+    const attributeVersionsWithSecondHash =
+      await ts.getAdministratorAttributeRevisions(attr2Versions[1], 1, 10);
     expect(attributeVersionsWithSecondHash.items).to.deep.equal(attr2Versions);
-    const attributeVersionsWithThirdHash = await ts.getAdministratorAttributeRevisions(
-      attr2Versions[2],
-      1,
-      10
-    );
+    const attributeVersionsWithThirdHash =
+      await ts.getAdministratorAttributeRevisions(attr2Versions[2], 1, 10);
     expect(attributeVersionsWithThirdHash.items).to.deep.equal(attr2Versions);
   });
+
   it("update two different attributes for two did", async () => {
     const did = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
     const didHash = ethers.utils.sha256(ethers.utils.toUtf8Bytes(did));
@@ -1057,26 +1068,17 @@ describe("Administrator", () => {
     // check that we retrieve the did attribute
     // we should have two attribute version for did2's attribute
     const constDid2Attrib = [firstAttrHash2, did2AttributNewDataHash];
-    const attributeVersionsWithFirstHash = await ts.getAdministratorAttributeRevisions(
-      constDid2Attrib[0],
-      1,
-      10
-    );
+    const attributeVersionsWithFirstHash =
+      await ts.getAdministratorAttributeRevisions(constDid2Attrib[0], 1, 10);
     expect(attributeVersionsWithFirstHash.items).to.deep.equal(constDid2Attrib);
-    const attributeVersionsWithSecondHash = await ts.getAdministratorAttributeRevisions(
-      constDid2Attrib[1],
-      1,
-      10
-    );
+    const attributeVersionsWithSecondHash =
+      await ts.getAdministratorAttributeRevisions(constDid2Attrib[1], 1, 10);
     expect(attributeVersionsWithSecondHash.items).to.deep.equal(
       constDid2Attrib
     );
     // check with on attribut version from did1
-    const attributeVersionsForDid1Attribute = await ts.getAdministratorAttributeRevisions(
-      attr2NewAttrHash,
-      1,
-      10
-    );
+    const attributeVersionsForDid1Attribute =
+      await ts.getAdministratorAttributeRevisions(attr2NewAttrHash, 1, 10);
     expect(attributeVersionsForDid1Attribute.items).to.deep.equal([
       firstAttr2Hash,
       attr2NewAttrHash,

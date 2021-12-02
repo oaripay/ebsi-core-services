@@ -13,7 +13,8 @@ library HashAlgoLib {
         string ianaName,
         uint256 outputLength,
         string oid,
-        HashAlgoStorage.Status status
+        HashAlgoStorage.Status status,
+        string multihash
     );
 
     event UpdateHashAlgo(
@@ -22,7 +23,8 @@ library HashAlgoLib {
         string ianaName,
         uint256 outputLength,
         string oid,
-        HashAlgoStorage.Status status
+        HashAlgoStorage.Status status,
+        string multihash
     );
 
     /**
@@ -33,14 +35,10 @@ library HashAlgoLib {
         uint256 outputLength,
         string memory ianaName,
         string memory oid,
-        HashAlgoStorage.Status status
+        HashAlgoStorage.Status status,
+        string memory multihash
     ) external {
         require(outputLength > 0, "outputLength==0");
-        require(keccak256(bytes(oid)) != keccak256(bytes("")), "oid empty");
-        require(
-            keccak256(bytes(ianaName)) != keccak256(bytes("")),
-            "ianaName empty"
-        );
         require(uint256(status) > 0, "status==0");
         uint256 hashId = hs.hashAlgorithms.numberOfAlgorithms;
         // Add an entry to the hashAlgorithms.id enum. Value is the ianaName
@@ -51,7 +49,8 @@ library HashAlgoLib {
             outputLength,
             ianaName,
             oid,
-            status
+            status,
+            multihash
         );
 
         // Increment the hashAlgorithms.numberOfAlgorithms value
@@ -63,7 +62,8 @@ library HashAlgoLib {
             ianaName,
             outputLength,
             oid,
-            status
+            status,
+            multihash
         );
     }
 
@@ -76,14 +76,10 @@ library HashAlgoLib {
         uint256 outputLength,
         string memory ianaName,
         string memory oid,
-        HashAlgoStorage.Status status
+        HashAlgoStorage.Status status,
+        string memory multihash
     ) external {
         require(outputLength > 0, "outputLength==0");
-        require(keccak256(bytes(oid)) != keccak256(bytes("")), "oid empty");
-        require(
-            keccak256(bytes(ianaName)) != keccak256(bytes("")),
-            "ianaName empty"
-        );
         require(uint256(status) > 0, "status==0");
         require(
             bytes(hs.hashAlgorithms.id[hashAlgorithmId]).length > 0,
@@ -99,7 +95,8 @@ library HashAlgoLib {
             outputLength,
             ianaName,
             oid,
-            status
+            status,
+            multihash
         );
 
         emit UpdateHashAlgo(
@@ -108,7 +105,8 @@ library HashAlgoLib {
             ianaName,
             outputLength,
             oid,
-            status
+            status,
+            multihash
         );
     }
 
@@ -125,7 +123,8 @@ library HashAlgoLib {
             uint256 outputLength,
             string memory ianaName,
             string memory oid,
-            HashAlgoStorage.Status status
+            HashAlgoStorage.Status status,
+            string memory multihash
         )
     {
         require(
@@ -137,6 +136,7 @@ library HashAlgoLib {
         ianaName = hs.infoStore[hashAlgorithmId].ianaName;
         oid = hs.infoStore[hashAlgorithmId].oid;
         status = hs.infoStore[hashAlgorithmId].status;
+        multihash = hs.infoStore[hashAlgorithmId].multihash;
     }
 
     /**

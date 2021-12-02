@@ -4,4 +4,3 @@ contracts/bootstrap-ethereum-sc
 coverage
 node_modules
 src
-coverage.json
