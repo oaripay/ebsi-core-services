@@ -296,7 +296,7 @@ describe("HashAlgorithms (e2e)", () => {
           .auth(testAdmin.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
-            method: "signedTransaction",
+            method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
@@ -365,7 +365,7 @@ describe("HashAlgorithms (e2e)", () => {
       .auth(testUser.token, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "signedTransaction",
+        method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",

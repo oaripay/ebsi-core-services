@@ -12,7 +12,7 @@ import {
   RequestTimestampRecordHashesDto,
   RequestTimestampRecordVersionHashesDto,
   RequestAppendRecordVersionHashesDto,
-  RequestSignedTransactionDto,
+  RequestSendSignedTransactionDto,
   UnsignedTransaction,
   RequestDetachRecordVersionHashDto,
   ArgsDetachRecordVersionHash,
@@ -55,7 +55,7 @@ export function formatEthersSignature(
 }
 
 type JsonRpcDtos =
-  | RequestSignedTransactionDto
+  | RequestSendSignedTransactionDto
   | RequestInsertHashAlgorithmDto
   | RequestUpdateHashAlgorithmDto
   | RequestTimestampHashesDto
@@ -81,7 +81,7 @@ export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,
   data: JsonRpcDtos
 ): Promise<void> => {
-  const dataClass = new ClassTransformer().plainToClass<
+  const dataClass = new ClassTransformer().plainToInstance<
     JsonRpcDtos,
     JsonRpcDtos
   >(classType, data);

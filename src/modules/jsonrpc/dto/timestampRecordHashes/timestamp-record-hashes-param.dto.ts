@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsTimestampRecordHashes } from "../signedTransaction";
+import { ArgsTimestampRecordHashes } from "../sendSignedTransaction";
 
 export class TimestampRecordHashesParam extends ArgsTimestampRecordHashes {
   @IsEthereumAddress()

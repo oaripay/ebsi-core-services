@@ -354,7 +354,7 @@ describe("JsonRpc Module", () => {
         .auth(testAdmin.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
@@ -416,7 +416,7 @@ describe("JsonRpc Module", () => {
         .auth(testUser.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
@@ -463,7 +463,7 @@ describe("JsonRpc Module", () => {
     expect(response.status).toBe(400);
   });
 
-  it("should throw an error when sendTransaction is used with a wrong chainId", async () => {
+  it("should throw an error when sendSignedTransaction is used with a wrong chainId", async () => {
     expect.assertions(2);
 
     const transaction = {
@@ -492,7 +492,7 @@ describe("JsonRpc Module", () => {
       .auth(testUser.token, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "signedTransaction",
+        method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
@@ -560,7 +560,7 @@ describe("JsonRpc Module", () => {
       .auth(testUser.token, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "signedTransaction",
+        method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
@@ -627,7 +627,7 @@ describe("JsonRpc Module", () => {
     "appendRecordVersionHashes",
     "revokeRecordOwner",
   ])("/jsonrpc with method %s", (method: string) => {
-    it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
+    it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(4);
 
       let param: JsonRpcParams = null;
@@ -859,7 +859,7 @@ describe("JsonRpc Module", () => {
         .auth(testAdmin.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
@@ -1991,7 +1991,7 @@ describe("JsonRpc Module", () => {
         .auth(testUser.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
@@ -2023,7 +2023,7 @@ describe("JsonRpc Module", () => {
         .auth(testAdmin.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
@@ -2060,7 +2060,7 @@ describe("JsonRpc Module", () => {
   ])(
     "/jsonrpc with method %s even if timestamp data is empty",
     (method: string) => {
-      it("should return a valid unsigned transaction that we can sign and send to signedTransaction even if timestamp data is empty", async () => {
+      it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction even if timestamp data is empty", async () => {
         expect.assertions(4);
 
         let param: JsonRpcParams = null;
@@ -2181,7 +2181,7 @@ describe("JsonRpc Module", () => {
           .auth(testAdmin.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
-            method: "signedTransaction",
+            method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
@@ -2217,7 +2217,7 @@ describe("JsonRpc Module", () => {
   ])(
     "/jsonrpc with method %s using a Trusted App as user",
     (method: string) => {
-      it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
+      it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
         expect.assertions(4);
 
         let param: JsonRpcParams = null;
@@ -2345,7 +2345,7 @@ describe("JsonRpc Module", () => {
           .auth(testApp.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
-            method: "signedTransaction",
+            method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",
@@ -2714,7 +2714,7 @@ describe("JsonRpc Module", () => {
     "appendRecordVersionHashes",
     "revokeRecordOwner",
   ])("record owners test suite for method %s", (method: string) => {
-    it("should fail when trying to perform a signedTransaction", async () => {
+    it("should fail when trying to perform a sendSignedTransaction", async () => {
       expect.assertions(4);
 
       let param: JsonRpcParams = null;
@@ -2845,7 +2845,7 @@ describe("JsonRpc Module", () => {
         .auth(testAdmin.token, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",

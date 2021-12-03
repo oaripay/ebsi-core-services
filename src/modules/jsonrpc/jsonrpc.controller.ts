@@ -4,7 +4,7 @@ import { InvalidRequestJsonRpcError } from "./errors";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   JsonRpcDto,
-  RequestSignedTransactionDto,
+  RequestSendSignedTransactionDto,
   RequestInsertHashAlgorithmDto,
   RequestUpdateHashAlgorithmDto,
   RequestTimestampHashesDto,
@@ -128,9 +128,11 @@ export default class AppController {
           );
         return jsonRpcResponse(result, id);
       }
+      case "sendSignedTransaction":
       case "signedTransaction": {
+        // Note: "signedTransaction" is deprecated and will be replaced by "sendSignedTransaction" in the next major version
         const result = await this.jsonRpcService.sendTransaction(
-          body as RequestSignedTransactionDto,
+          body as RequestSendSignedTransactionDto,
           user,
           id
         );

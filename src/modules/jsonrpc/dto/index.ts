@@ -1,6 +1,6 @@
 export * from "./jsonrpc.dto";
 export * from "./insertHashAlgorithm";
-export * from "./signedTransaction";
+export * from "./sendSignedTransaction";
 export * from "./updateHashAlgorithm";
 export * from "./timestampHashes";
 export * from "./timestampRecordHashes";

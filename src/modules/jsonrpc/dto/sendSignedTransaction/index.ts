@@ -9,6 +9,6 @@ export * from "./args-detach-record-version-hash.dto";
 export * from "./args-revoke-record-owner.dto";
 export * from "./args-insert-record-owner.dto";
 export * from "./args-insert-record-version-info.dto";
-export * from "./request-signed-transaction.dto";
+export * from "./request-send-signed-transaction.dto";
 export * from "./signed-transaction-param.dto";
 export * from "./unsigned-transaction.dto";

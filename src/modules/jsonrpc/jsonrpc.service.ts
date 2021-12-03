@@ -13,7 +13,7 @@ import {
   ArgsInsertRecordVersionInfo,
   RequestInsertHashAlgorithmDto,
   RequestUpdateHashAlgorithmDto,
-  RequestSignedTransactionDto,
+  RequestSendSignedTransactionDto,
   RequestTimestampHashesDto,
   RequestTimestampRecordHashesDto,
   RequestTimestampRecordVersionHashesDto,
@@ -847,12 +847,12 @@ export class JsonRpcService {
   }
 
   async sendTransaction(
-    body: RequestSignedTransactionDto,
+    body: RequestSendSignedTransactionDto,
     user: UserInfo,
     id?: number | string
   ): Promise<string> {
     try {
-      await validateClass(RequestSignedTransactionDto, body);
+      await validateClass(RequestSendSignedTransactionDto, body);
 
       const request = body.params[0];
       const { signer, functionName, args } = await this.verifyTransaction(
