@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
+import { Signer } from "ethers";
 import { PolicyRegistry } from "../src/types";
 
 describe("Policy", () => {
@@ -23,6 +24,11 @@ describe("Policy", () => {
     },
   ];
 
+  let owner: Signer;
+  let addr1: Signer;
+  const OPERATOR_ROLE =
+    "0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929";
+
   before(async () => {
     const paginationFactory = await ethers.getContractFactory("Pagination", {});
     const pagination = await paginationFactory.deploy();
@@ -35,6 +41,7 @@ describe("Policy", () => {
       }
     );
     policyContract = (await policyRegistryFactory.deploy()) as PolicyRegistry;
+    [owner, addr1] = await ethers.getSigners();
     await policyContract.deployed();
 
     await policyContract.initialize(12);
@@ -143,6 +150,16 @@ describe("Policy", () => {
       );
     });
 
+    it("Should be reverted if it doesn't have operator role", async () => {
+      await expect(
+        policyContract.connect(addr1).deactivatePolicy(0)
+      ).to.be.revertedWith(
+        `AccessControl: account ${(
+          await addr1.getAddress()
+        ).toLowerCase()} is missing role ${OPERATOR_ROLE}`
+      );
+    });
+
     it("Should deactivate policy", async () => {
       await expect(policyContract.deactivatePolicy(0))
         .to.emit(policyContract, "PolicyDeactivated")
@@ -172,6 +189,16 @@ describe("Policy", () => {
       );
     });
 
+    it("Should be reverted if it doesn't have operator role", async () => {
+      await expect(
+        policyContract.connect(addr1).activatePolicy(0)
+      ).to.be.revertedWith(
+        `AccessControl: account ${(
+          await addr1.getAddress()
+        ).toLowerCase()} is missing role ${OPERATOR_ROLE}`
+      );
+    });
+
     it("Should activate policy", async () => {
       await policyContract.deactivatePolicy(0);
       let policy = await policyContract.getPolicy(0);
@@ -198,6 +225,16 @@ describe("Policy", () => {
       ).to.be.revertedWith("Policy: policy does not exist or inactive");
     });
 
+    it("Should be reverted if it doesn't have operator role", async () => {
+      await expect(
+        policyContract.connect(addr1).updatePolicy(1, 0, "policy", "registry")
+      ).to.be.revertedWith(
+        `AccessControl: account ${(
+          await addr1.getAddress()
+        ).toLowerCase()} is missing role ${OPERATOR_ROLE}`
+      );
+    });
+
     it("Should update policy", async () => {
       await expect(policyContract.updatePolicy(1, 0, "policy", "registry"))
         .to.emit(policyContract, "PolicyUpdated")
@@ -222,6 +259,16 @@ describe("Policy", () => {
       await expect(
         policyContract.addPolicyConditions(0, [])
       ).to.be.revertedWith("Policy: policy does not exist or inactive");
+    });
+
+    it("Should be reverted if it doesn't have operator role", async () => {
+      await expect(
+        policyContract.connect(addr1).addPolicyConditions(1, [])
+      ).to.be.revertedWith(
+        `AccessControl: account ${(
+          await addr1.getAddress()
+        ).toLowerCase()} is missing role ${OPERATOR_ROLE}`
+      );
     });
 
     it("Should be able to add empty policyConditions array", async () => {
@@ -313,6 +360,24 @@ describe("Policy", () => {
       ).to.be.revertedWith("Policy: invalid condition");
     });
 
+    it("Should be reverted if it doesn't have operator role", async () => {
+      await expect(
+        policyContract.connect(addr1).addPolicyConditions(1, [
+          {
+            name: "name3",
+            attributeName: "attr3",
+            value: ethers.utils.toUtf8Bytes("4hcd6s"),
+            attributeOperation: 0,
+            typeOfValue: 3,
+          },
+        ])
+      ).to.be.revertedWith(
+        `AccessControl: account ${(
+          await addr1.getAddress()
+        ).toLowerCase()} is missing role ${OPERATOR_ROLE}`
+      );
+    });
+
     it("Should delete policyCondition", async () => {
       await policyContract.addPolicyConditions(1, [
         {
@@ -387,6 +452,16 @@ describe("Policy", () => {
       ).to.be.revertedWith("Policy: invalid attribute name on counter 0");
     });
 
+    it("Should be reverted if it doesn't have operator role", async () => {
+      await expect(
+        policyContract.connect(addr1).insertPolicy(0, pcs, "name", "registry")
+      ).to.be.revertedWith(
+        `AccessControl: account ${(
+          await addr1.getAddress()
+        ).toLowerCase()} is missing role ${OPERATOR_ROLE}`
+      );
+    });
+
     it("Should insert policy", async () => {
       await expect(policyContract.insertPolicy(0, pcs, "name", "registry"))
         .to.emit(policyContract, "PolicyInserted")
@@ -403,6 +478,15 @@ describe("Policy", () => {
       expect(policyName).to.equal("name");
       expect(opType).to.equal(0);
       expect(status).to.be.true;
+    });
+  });
+
+  describe("Access Control", async () => {
+    it("Admin Should be able to grant role", async () => {
+      await policyContract.grantRole(OPERATOR_ROLE, await addr1.getAddress());
+      await policyContract.connect(addr1).addPolicyConditions(1, []);
+      const policy = await policyContract.getPolicy(1);
+      expect(policy.policyConditions).to.have.length(pcs.length);
     });
   });
 

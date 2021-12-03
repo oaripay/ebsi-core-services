@@ -2,12 +2,14 @@
 pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 import "./PolicyStorage.sol";
 import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
-import "./utils/Strings.sol";
+import "./Roles.sol";
 
-abstract contract PolicyListManagement is PolicyStorage {
+abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
     using Pagination for uint256;
 
     event PolicyInserted(
@@ -43,7 +45,7 @@ abstract contract PolicyListManagement is PolicyStorage {
         PolicyCondition[] calldata policyConditions,
         string calldata policyName,
         string calldata registry
-    ) external {
+    ) external onlyRole(OPERATOR_ROLE) {
         {
             // to make sure not going into stack too deep
             require(bytes(policyName).length > 0, "Policy: name required");
@@ -87,7 +89,7 @@ abstract contract PolicyListManagement is PolicyStorage {
     function addPolicyConditions(
         uint256 policyId,
         PolicyCondition[] calldata policyConditions
-    ) external {
+    ) external onlyRole(OPERATOR_ROLE) {
         PolicyContractStorage storage ps = policyStorage();
 
         require(ps.policyCount > policyId, "Policy: invalid policy Id");
@@ -117,6 +119,7 @@ abstract contract PolicyListManagement is PolicyStorage {
 
     function deletePolicyCondition(uint256 policyId, uint256 policyConditionId)
         external
+        onlyRole(OPERATOR_ROLE)
     {
         PolicyContractStorage storage ps = policyStorage();
         require(ps.policyCount > policyId, "Policy: invalid policy Id");
@@ -156,7 +159,7 @@ abstract contract PolicyListManagement is PolicyStorage {
         OPERATION_TYPE opType,
         string calldata policyName,
         string calldata registry
-    ) external {
+    ) external onlyRole(OPERATOR_ROLE) {
         PolicyContractStorage storage ps = policyStorage();
         require(policyId < ps.policyCount, "Policy: invalid policy Id");
         Policy storage policy = ps.policies[policyId];
@@ -223,7 +226,10 @@ abstract contract PolicyListManagement is PolicyStorage {
         );
     }
 
-    function deactivatePolicy(uint256 policyId) external {
+    function deactivatePolicy(uint256 policyId)
+        external
+        onlyRole(OPERATOR_ROLE)
+    {
         PolicyContractStorage storage ps = policyStorage();
         require(policyId < ps.policyCount, "Policy: invalid policy Id");
         Policy storage policy = ps.policies[policyId];
@@ -232,7 +238,7 @@ abstract contract PolicyListManagement is PolicyStorage {
         emit PolicyDeactivated(policyId);
     }
 
-    function activatePolicy(uint256 policyId) external {
+    function activatePolicy(uint256 policyId) external onlyRole(OPERATOR_ROLE) {
         PolicyContractStorage storage ps = policyStorage();
         require(policyId < ps.policyCount, "Policy: invalid policy Id");
         Policy storage policy = ps.policies[policyId];

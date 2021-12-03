@@ -2,11 +2,18 @@
 pragma solidity ^0.8.9;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
+
 import "./PolicyStorage.sol";
 import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
-import "./utils/Strings.sol";
+import "./Roles.sol";
 
-abstract contract UserAttributesManagement is PolicyStorage {
+abstract contract UserAttributesManagement is
+    PolicyStorage,
+    AccessControl,
+    Roles
+{
     using Pagination for address[];
     using Pagination for string[];
 
@@ -20,7 +27,7 @@ abstract contract UserAttributesManagement is PolicyStorage {
         address user,
         string[] calldata attributes,
         bytes[] calldata values
-    ) external {
+    ) external onlyRole(OPERATOR_ROLE) {
         require(user != address(0), "Policy: invalid user address");
         PolicyContractStorage storage ps = policyStorage();
         require(attributes.length > 0, "Policy: invalid attr list");
@@ -47,7 +54,7 @@ abstract contract UserAttributesManagement is PolicyStorage {
         address user,
         string calldata attribute,
         bytes calldata value
-    ) external {
+    ) external onlyRole(OPERATOR_ROLE) {
         require(user != address(0), "Policy: invalid user address");
         PolicyContractStorage storage ps = policyStorage();
         require(value.length > 0, "Policy: invalid value");
@@ -61,6 +68,7 @@ abstract contract UserAttributesManagement is PolicyStorage {
 
     function deleteUserAttribute(address user, string calldata attribute)
         external
+        onlyRole(OPERATOR_ROLE)
     {
         require(user != address(0), "Policy: invalid user address");
         PolicyContractStorage storage ps = policyStorage();
