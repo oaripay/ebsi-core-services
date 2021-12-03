@@ -2,7 +2,7 @@ import * as ClassValidator from "class-validator";
 import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
 import {
-  RequestSignedTransactionDto,
+  RequestSendSignedTransactionDto,
   UnsignedTransaction,
   ArgsInsertAdministrator,
   RequestInsertAdministratorDto,
@@ -69,7 +69,7 @@ export function formatEthersSignature(
 }
 
 type JsonRpcDtos =
-  | RequestSignedTransactionDto
+  | RequestSendSignedTransactionDto
   | ArgsInsertAdministrator
   | RequestInsertAdministratorDto
   | ArgsUpdateAdministrator
@@ -129,7 +129,7 @@ export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,
   data: JsonRpcDtos
 ): Promise<void> => {
-  const dataClass = new ClassTransformer().plainToClass<
+  const dataClass = new ClassTransformer().plainToInstance<
     JsonRpcDtos,
     JsonRpcDtos
   >(classType, data);

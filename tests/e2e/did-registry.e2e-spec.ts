@@ -541,7 +541,7 @@ describe("DID Registry (e2e)", () => {
         .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",

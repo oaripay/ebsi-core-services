@@ -15,6 +15,6 @@ export * from "./args-update-did-document.dto";
 export * from "./args-update-did-method.dto";
 export * from "./args-update-hash-algorithm.dto";
 export * from "./args-update-policy.dto";
-export * from "./request-signed-transaction.dto";
+export * from "./request-send-signed-transaction.dto";
 export * from "./signed-transaction-param.dto";
 export * from "./unsigned-transaction.dto";

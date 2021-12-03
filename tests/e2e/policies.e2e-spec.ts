@@ -207,7 +207,7 @@ describe("Policies (e2e)", () => {
           .auth(testUserAccessToken, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
-            method: "signedTransaction",
+            method: "sendSignedTransaction",
             params: [
               {
                 protocol: "eth",

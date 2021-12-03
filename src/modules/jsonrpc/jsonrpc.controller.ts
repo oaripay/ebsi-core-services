@@ -5,7 +5,7 @@ import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import { OAuth2OrSiopJwtAuthGuard } from "../auth/guards";
 import {
   JsonRpcDto,
-  RequestSignedTransactionDto,
+  RequestSendSignedTransactionDto,
   RequestInsertAdministratorDto,
   RequestUpdateAdministratorDto,
   RequestInsertHashAlgorithmDto,
@@ -188,10 +188,12 @@ export default class AppController {
           );
         return formatJsonRpcResponse(transaction, id);
       }
+      case "sendSignedTransaction":
       case "signedTransaction": {
+        // Note: "signedTransaction" is deprecated and will be replaced by "sendSignedTransaction" in the next major version
         const result = await this.jsonRpcService.sendTransaction(
           subject.sub,
-          body as RequestSignedTransactionDto,
+          body as RequestSendSignedTransactionDto,
           id
         );
         return formatJsonRpcResponse(result, id);

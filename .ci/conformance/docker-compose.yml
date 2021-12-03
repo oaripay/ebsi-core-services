@@ -1,0 +1,6 @@
+version: "3.7"
+
+services:
+  did-registry-api:
+    build: ../..
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api:conformance_ebsiint-3474-send_signed_transaction_v2.0.0

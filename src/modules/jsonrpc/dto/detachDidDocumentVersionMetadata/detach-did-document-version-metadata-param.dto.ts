@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsDetachDidDocumentVersionMetadata } from "../signedTransaction";
+import { ArgsDetachDidDocumentVersionMetadata } from "../sendSignedTransaction";
 
 export class DetachDidDocumentVersionMetadataParam extends ArgsDetachDidDocumentVersionMetadata {
   @IsEthereumAddress()

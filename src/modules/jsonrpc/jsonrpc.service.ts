@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
 import {
-  RequestSignedTransactionDto,
+  RequestSendSignedTransactionDto,
   SignedTransactionParam,
   UnsignedTransaction,
   ArgsInsertAdministrator,
@@ -1002,11 +1002,11 @@ export class JsonRpcService {
 
   async sendTransaction(
     clientId: string,
-    body: RequestSignedTransactionDto,
+    body: RequestSendSignedTransactionDto,
     id?: number | string
   ): Promise<string> {
     try {
-      await validateClass(RequestSignedTransactionDto, body);
+      await validateClass(RequestSendSignedTransactionDto, body);
 
       const request = body.params[0];
       const { signer, functionName } = await this.verifyTransaction(

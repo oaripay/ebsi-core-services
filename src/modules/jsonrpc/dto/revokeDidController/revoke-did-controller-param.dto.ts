@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsRevokeDidController } from "../signedTransaction";
+import { ArgsRevokeDidController } from "../sendSignedTransaction";
 
 export class RevokeDidControllerParam extends ArgsRevokeDidController {
   @IsEthereumAddress()

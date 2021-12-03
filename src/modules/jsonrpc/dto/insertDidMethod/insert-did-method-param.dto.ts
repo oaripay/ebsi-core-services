@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsInsertDidMethod } from "../signedTransaction";
+import { ArgsInsertDidMethod } from "../sendSignedTransaction";
 
 export class InsertDidMethodParam extends ArgsInsertDidMethod {
   @IsEthereumAddress()

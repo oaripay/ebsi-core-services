@@ -460,7 +460,7 @@ describe("JsonRpc Module", () => {
     expect(response.status).toBe(400);
   });
 
-  it("should throw an error when sendTransaction is used with a wrong chainId", async () => {
+  it("should throw an error when sendSignedTransaction is used with a wrong chainId", async () => {
     expect.assertions(2);
     const wallet = ethers.Wallet.createRandom();
     const { did } = adminV1;
@@ -496,7 +496,7 @@ describe("JsonRpc Module", () => {
       .auth(appAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "signedTransaction",
+        method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
@@ -613,7 +613,7 @@ describe("JsonRpc Module", () => {
       .auth(appAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "signedTransaction",
+        method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
@@ -695,7 +695,7 @@ describe("JsonRpc Module", () => {
       .auth(adminAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "signedTransaction",
+        method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
@@ -777,7 +777,7 @@ describe("JsonRpc Module", () => {
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "signedTransaction",
+        method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
@@ -802,7 +802,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.status).toBe(400);
   });
 
-  // EBSIINT-3464: signedTransaction should throw an error if the DID document is not valid
+  // EBSIINT-3464: sendSignedTransaction should throw an error if the DID document is not valid
   describe.each([
     "insertDidDocument",
     "updateDidDocument",
@@ -810,7 +810,7 @@ describe("JsonRpc Module", () => {
     "detachDidDocumentVersionHash",
     "appendDidDocumentVersionMetadata",
     "detachDidDocumentVersionMetadata",
-  ])("/jsonrpc with method signedTransaction (%s)", (method: string) => {
+  ])("/jsonrpc with method sendSignedTransaction (%s)", (method: string) => {
     it(`should throw an error if the client tries to use ${method} with an invalid DID document`, async () => {
       expect.assertions(4);
       const wallet = ethers.Wallet.createRandom();
@@ -948,7 +948,7 @@ describe("JsonRpc Module", () => {
         .auth(userAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
@@ -1011,7 +1011,7 @@ describe("JsonRpc Module", () => {
       .replace("(with optional params)", "")
       .replace("(without validTo)", "");
 
-    it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
+    it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(4);
 
       // Mock access token verification
@@ -1361,7 +1361,7 @@ describe("JsonRpc Module", () => {
         .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
@@ -2795,7 +2795,7 @@ describe("JsonRpc Module", () => {
         .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
@@ -2828,7 +2828,7 @@ describe("JsonRpc Module", () => {
         .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",

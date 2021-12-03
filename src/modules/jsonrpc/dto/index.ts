@@ -1,5 +1,5 @@
 export * from "./jsonrpc.dto";
-export * from "./signedTransaction";
+export * from "./sendSignedTransaction";
 export * from "./appendDidDocumentVersionHash";
 export * from "./appendDidDocumentVersionMetadata";
 export * from "./detachDidDocumentVersionHash";
