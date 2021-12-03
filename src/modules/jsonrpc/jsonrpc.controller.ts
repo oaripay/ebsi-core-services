@@ -4,7 +4,7 @@ import { InvalidRequestJsonRpcError } from "./errors";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   JsonRpcDto,
-  RequestSignedTransactionDto,
+  RequestSendSignedTransactionDto,
   RequestInsertLedgerInfoDto,
   RequestUpdateLedgerInfoByIdDto,
   RequestUpdateLedgerInfoByNameDto,
@@ -101,10 +101,12 @@ export default class AppController {
           );
         return jsonRpcResponse(result, id);
       }
+      case "sendSignedTransaction":
       case "signedTransaction": {
+        // Note: "signedTransaction" is deprecated and will be replaced by "sendSignedTransaction" in the next major version
         const result = await this.jsonRpcService.sendTransaction(
           client.did,
-          body as RequestSignedTransactionDto,
+          body as RequestSendSignedTransactionDto,
           id
         );
         return jsonRpcResponse(result, id);

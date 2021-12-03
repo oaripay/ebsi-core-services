@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsInsertLedgerInfo } from "../signedTransaction";
+import { ArgsInsertLedgerInfo } from "../sendSignedTransaction";
 
 export class InsertLedgerInfoParam extends ArgsInsertLedgerInfo {
   @IsEthereumAddress()

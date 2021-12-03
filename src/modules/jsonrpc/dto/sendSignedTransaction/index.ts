@@ -6,6 +6,6 @@ export * from "./args-update-ledger-name.dto";
 export * from "./args-update-smart-contract-info-by-id.dto";
 export * from "./args-update-smart-contract-info-by-name.dto";
 export * from "./args-update-smart-contract-name.dto";
-export * from "./request-signed-transaction.dto";
+export * from "./request-send-signed-transaction.dto";
 export * from "./signed-transaction-param.dto";
 export * from "./unsigned-transaction.dto";

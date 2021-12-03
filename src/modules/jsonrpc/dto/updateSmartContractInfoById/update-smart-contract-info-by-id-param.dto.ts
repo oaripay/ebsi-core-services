@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsUpdateSmartContractInfoById } from "../signedTransaction";
+import { ArgsUpdateSmartContractInfoById } from "../sendSignedTransaction";
 
 export class UpdateSmartContractInfoByIdParam extends ArgsUpdateSmartContractInfoById {
   @IsEthereumAddress()

@@ -1,5 +1,5 @@
 export * from "./jsonrpc.dto";
-export * from "./signedTransaction";
+export * from "./sendSignedTransaction";
 export * from "./insertLedgerInfo";
 export * from "./insertSmartContractInfo";
 export * from "./updateLedgerInfoById";

@@ -4,7 +4,7 @@ import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
 import { isISO8601 } from "class-validator";
 import {
-  RequestSignedTransactionDto,
+  RequestSendSignedTransactionDto,
   SignedTransactionParam,
   UnsignedTransaction,
   ArgsInsertLedgerInfo,
@@ -517,11 +517,11 @@ export class JsonRpcService {
 
   async sendTransaction(
     clientId: string,
-    body: RequestSignedTransactionDto,
+    body: RequestSendSignedTransactionDto,
     id?: number | string
   ): Promise<string> {
     try {
-      await validateClass(RequestSignedTransactionDto, body);
+      await validateClass(RequestSendSignedTransactionDto, body);
 
       const request = body.params[0];
       const { signer, functionName } = await this.verifyTransaction(request);

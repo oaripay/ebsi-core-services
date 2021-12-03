@@ -294,7 +294,7 @@ describe("JsonRpc Module", () => {
       .auth(userAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "signedTransaction",
+        method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
@@ -409,7 +409,7 @@ describe("JsonRpc Module", () => {
       .auth(adminAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "signedTransaction",
+        method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
@@ -493,7 +493,7 @@ describe("JsonRpc Module", () => {
       .auth(userAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "signedTransaction",
+        method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
@@ -529,7 +529,7 @@ describe("JsonRpc Module", () => {
     "updateSmartContractInfoByName",
     "updateSmartContractName",
   ])("/jsonrpc with method %s", (method: string) => {
-    it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
+    it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(4);
 
       let param: JsonRpcParams = null;
@@ -700,7 +700,7 @@ describe("JsonRpc Module", () => {
         .auth(adminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
@@ -1506,7 +1506,7 @@ describe("JsonRpc Module", () => {
         .auth(adminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
@@ -1538,7 +1538,7 @@ describe("JsonRpc Module", () => {
         .auth(adminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
