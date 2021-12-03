@@ -369,7 +369,7 @@ describe("JsonRpc Module", () => {
     expect(response.status).toBe(400);
   });
 
-  it("should throw an error when sendTransaction is used with a wrong chainId", async () => {
+  it("should throw an error when sendSignedTransaction is used with a wrong chainId", async () => {
     expect.assertions(2);
 
     // Mock access token verification
@@ -404,7 +404,7 @@ describe("JsonRpc Module", () => {
       .auth(userAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "signedTransaction",
+        method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
@@ -487,7 +487,7 @@ describe("JsonRpc Module", () => {
       .auth(userAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "signedTransaction",
+        method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
@@ -609,7 +609,7 @@ describe("JsonRpc Module", () => {
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "signedTransaction",
+        method: "sendSignedTransaction",
         params: [
           {
             protocol: "eth",
@@ -648,7 +648,7 @@ describe("JsonRpc Module", () => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
 
-    it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
+    it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(4);
 
       // Mock access token verification
@@ -710,7 +710,7 @@ describe("JsonRpc Module", () => {
         .auth("jwt", { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
@@ -931,7 +931,7 @@ describe("JsonRpc Module", () => {
         .auth("jwt", { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",
@@ -963,7 +963,7 @@ describe("JsonRpc Module", () => {
         .auth("jwt", { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",

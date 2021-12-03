@@ -10,7 +10,7 @@ import {
   RequestUpdateIssuerDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
-  RequestSignedTransactionDto,
+  RequestSendSignedTransactionDto,
 } from "./dto";
 import { SiopJwtAuthGuard } from "../auth/guards";
 import { Client, ClientInfo } from "../auth/decorators";
@@ -83,10 +83,12 @@ export class JsonRpcController {
           );
         return jsonRpcResponse(transaction, id);
       }
+      case "sendSignedTransaction":
       case "signedTransaction": {
+        // Note: "signedTransaction" is deprecated and will be replaced by "sendSignedTransaction" in the next major version
         const result = await this.jsonRpcService.sendTransaction(
           client.did,
-          body as RequestSignedTransactionDto,
+          body as RequestSendSignedTransactionDto,
           id
         );
         return jsonRpcResponse(result, id);
