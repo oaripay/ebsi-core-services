@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsUpdateApp } from "../signedTransaction";
+import { ArgsUpdateApp } from "../sendSignedTransaction";
 
 export class UpdateAppParam extends ArgsUpdateApp {
   @IsEthereumAddress()

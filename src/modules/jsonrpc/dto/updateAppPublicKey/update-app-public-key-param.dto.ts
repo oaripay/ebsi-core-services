@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsUpdateAppPublicKey } from "../signedTransaction";
+import { ArgsUpdateAppPublicKey } from "../sendSignedTransaction";
 
 export class UpdateAppPublicKeyParam extends ArgsUpdateAppPublicKey {
   @IsEthereumAddress()

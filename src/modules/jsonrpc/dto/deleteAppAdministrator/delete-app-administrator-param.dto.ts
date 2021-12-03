@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsDeleteAppAdministrator } from "../signedTransaction";
+import { ArgsDeleteAppAdministrator } from "../sendSignedTransaction";
 
 export class DeleteAppAdministratorParam extends ArgsDeleteAppAdministrator {
   @IsEthereumAddress()

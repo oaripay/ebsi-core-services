@@ -586,7 +586,7 @@ describe("Apps (e2e)", () => {
     "insertAppPublicKey",
     "updateAppPublicKey",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
-    it("should return a valid unsigned transaction that we can sign and send to signedTransaction", async () => {
+    it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(5);
 
       let param: JsonRpcParams = null;
@@ -720,7 +720,7 @@ describe("Apps (e2e)", () => {
         .auth(testUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
-          method: "signedTransaction",
+          method: "sendSignedTransaction",
           params: [
             {
               protocol: "eth",

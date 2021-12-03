@@ -5,3 +5,4 @@ dist
 node_modules
 submodules
 .clinic
+src/contracts

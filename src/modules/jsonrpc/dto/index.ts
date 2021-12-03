@@ -9,7 +9,7 @@ export * from "./insertAppPublicKey";
 export * from "./insertPolicy";
 export * from "./insertAuthorization";
 export * from "./updateAuthorization";
-export * from "./signedTransaction";
+export * from "./sendSignedTransaction";
 export * from "./updateAdministrator";
 export * from "./updateApp";
 export * from "./updateAppPublicKey";

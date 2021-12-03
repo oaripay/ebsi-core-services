@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsInsertRevocation } from "../signedTransaction";
+import { ArgsInsertRevocation } from "../sendSignedTransaction";
 
 export class InsertRevocationParam extends ArgsInsertRevocation {
   @IsEthereumAddress()

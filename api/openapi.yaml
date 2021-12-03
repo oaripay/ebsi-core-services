@@ -1485,7 +1485,7 @@ paths:
           - **method**: Method that to be invoked. Possible values: deleteAppAdministrator,
           insertAdministrator, insertApp, insertAppAdministrator, insertAppInfo,
           insertAppPublicKey, insertAuthorization, insertPolicy, insertRevocation,
-          signedTransaction, updateAdministrator, updateApp, updateAppPublicKey,
+          sendSignedTransaction, updateAdministrator, updateApp, updateAppPublicKey,
           updateAuthorization, and updatePolicy.
           - **params**: Array of parameters
           - **id**: Identifier stablished by the client
@@ -1549,7 +1549,7 @@ paths:
                       attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
               Build tx to insertApp:
                 description: |
-                  Call to build an unsigned transaction to insert an App. This method requires admin rights in the Trusted Apps Registry. 
+                  Call to build an unsigned transaction to insert an App. This method requires admin rights in the Trusted Apps Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -1575,7 +1575,7 @@ paths:
                   id: 1
               Build tx to insertAppAdministrator:
                 description: |
-                  Call to build an unsigned transaction to insert an app administrator. This method requires admin rights in the Trusted Apps Registry. 
+                  Call to build an unsigned transaction to insert an app administrator. This method requires admin rights in the Trusted Apps Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -1591,7 +1591,7 @@ paths:
                   id: 1
               Build tx to insertAppInfo:
                 description: |
-                  Call to build an unsigned transaction to insert app info. This method requires admin rights in the Trusted Apps Registry. 
+                  Call to build an unsigned transaction to insert app info. This method requires admin rights in the Trusted Apps Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -1607,7 +1607,7 @@ paths:
                   id: 1
               Build tx to insertAppPublicKey:
                 description: |
-                  Call to build an unsigned transaction to insert a public key. This method requires admin rights in the Trusted Apps Registry. 
+                  Call to build an unsigned transaction to insert a public key. This method requires admin rights in the Trusted Apps Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -1629,7 +1629,7 @@ paths:
                   id: 1
               Build tx to insertAuthorization:
                 description: |
-                  Call to build an unsigned transaction to insert an authorisation. This method requires admin rights in the Trusted Apps Registry. 
+                  Call to build an unsigned transaction to insert an authorisation. This method requires admin rights in the Trusted Apps Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -1671,7 +1671,7 @@ paths:
                       policyData: "0x7b22706f6c696379223a22396361663735323733373936353135656465613631323165227d"
               Build tx to insertRevocation:
                 description: |
-                  Call to build an unsigned transaction to insert a revocation. This method requires admin rights in the Trusted Apps Registry. 
+                  Call to build an unsigned transaction to insert a revocation. This method requires admin rights in the Trusted Apps Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -1723,7 +1723,7 @@ paths:
                   id: 1
               Build tx to updateApp:
                 description: |
-                  Call to build an unsigned transaction to update an app. This method requires admin rights in the Trusted Apps Registry. 
+                  Call to build an unsigned transaction to update an app. This method requires admin rights in the Trusted Apps Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -1741,7 +1741,7 @@ paths:
                   id: 1
               Build tx to updateAppPublicKey:
                 description: |
-                  Call to build an unsigned transaction to update an existing public key. This method requires admin rights in the Trusted Apps Registry. 
+                  Call to build an unsigned transaction to update an existing public key. This method requires admin rights in the Trusted Apps Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -1759,7 +1759,7 @@ paths:
                   id: 1
               Build tx to updateAuthorization:
                 description: |
-                  Call to build an unsigned transaction to update an authorisation. This method requires admin rights in the Trusted Apps Registry. 
+                  Call to build an unsigned transaction to update an authorisation. This method requires admin rights in the Trusted Apps Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -1795,6 +1795,29 @@ paths:
                       policyData: "0x1234567890..."
               Send Transaction:
                 description: Call to send a signed transaction to the blockchain.
+                value:
+                  jsonrpc: "2.0"
+                  method: sendSignedTransaction
+                  params:
+                    - protocol: eth
+                      unsignedTransaction:
+                        from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                        data: "0x0000..."
+                        nonce: "0x00"
+                        chainId: "0x1b3b"
+                        gasLimit: "0x10000"
+                        gasPrice: "0x00"
+                        value: "0x00"
+                      r: "0x..."
+                      s: "0x..."
+                      v: "0x..."
+                      signedRawTransaction: "--- signed raw transaction ---"
+                  id: 1
+              Send Transaction (DEPRECATED):
+                description: |
+                  THIS METHOD IS DEPRECATED! Use "sendSignedTransaction" instead.
+                  Call to send a signed transaction to the blockchain.
                 value:
                   jsonrpc: "2.0"
                   method: signedTransaction

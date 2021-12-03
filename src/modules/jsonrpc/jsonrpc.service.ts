@@ -9,7 +9,7 @@ import {
   RequestInsertAppAdministratorDto,
   RequestInsertAppInfoDto,
   RequestInsertAdministratorDto,
-  RequestSignedTransactionDto,
+  RequestSendSignedTransactionDto,
   RequestUpdateAdministratorDto,
   RequestUpdateAppDto,
   RequestInsertRevocationDto,
@@ -670,11 +670,11 @@ export class JsonRpcService {
 
   async sendTransaction(
     clientId: string,
-    body: RequestSignedTransactionDto,
+    body: RequestSendSignedTransactionDto,
     id?: number | string
   ): Promise<string> {
     try {
-      await validateClass(RequestSignedTransactionDto, body);
+      await validateClass(RequestSendSignedTransactionDto, body);
 
       const request = body.params[0];
       const signer = await this.verifyTransaction(request);

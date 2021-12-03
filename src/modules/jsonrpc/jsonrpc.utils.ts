@@ -7,7 +7,7 @@ import {
   RequestInsertAppAdministratorDto,
   RequestInsertAppInfoDto,
   RequestInsertAdministratorDto,
-  RequestSignedTransactionDto,
+  RequestSendSignedTransactionDto,
   RequestUpdateAdministratorDto,
   RequestUpdateAppDto,
   RequestInsertRevocationDto,
@@ -40,7 +40,7 @@ type JsonRpcDtos =
   | RequestInsertAppAdministratorDto
   | RequestInsertAppInfoDto
   | RequestInsertAdministratorDto
-  | RequestSignedTransactionDto
+  | RequestSendSignedTransactionDto
   | RequestUpdateAdministratorDto
   | RequestUpdateAppDto
   | RequestInsertRevocationDto
@@ -98,7 +98,7 @@ export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,
   data: JsonRpcDtos
 ): Promise<void> => {
-  const dataClass = new ClassTransformer().plainToClass(classType, data);
+  const dataClass = new ClassTransformer().plainToInstance(classType, data);
   const errors = await ClassValidator.validate(dataClass);
   if (errors.length > 0) {
     throw new Error(errors.toString());

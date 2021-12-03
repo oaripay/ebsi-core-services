@@ -12,6 +12,6 @@ export * from "./args-update-app-public-key.dto";
 export * from "./args-update-app.dto";
 export * from "./args-update-authorization.dto";
 export * from "./args-update-policy.dto";
-export * from "./request-signed-transaction.dto";
+export * from "./request-send-signed-transaction.dto";
 export * from "./signed-transaction-param.dto";
 export * from "./unsigned-transaction.dto";
