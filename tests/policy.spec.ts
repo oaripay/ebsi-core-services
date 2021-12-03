@@ -405,4 +405,71 @@ describe("Policy", () => {
       expect(status).to.be.true;
     });
   });
+
+  describe("searchPolicy", () => {
+    it("Should return searched policy ids", async () => {
+      // search missing string
+      let [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
+        "test policy"
+      );
+      expect(byPolicyName).to.have.length(0);
+      expect(byPolicyRegistry).to.have.length(0);
+
+      // search by name of policy 0
+      [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
+        "test policy 1"
+      );
+      expect(byPolicyRegistry).to.have.length(0);
+      expect(byPolicyName).to.deep.equal([ethers.BigNumber.from(0)]);
+
+      // search by registry of policy 2
+      [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
+        "registry 3"
+      );
+      expect(byPolicyName).to.have.length(0);
+      expect(byPolicyRegistry).to.deep.equal([ethers.BigNumber.from(2)]);
+
+      // check another policy with the same name / registry
+      await policyContract.insertPolicy(0, [], "test policy 2", "registry 3");
+      [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
+        "registry 3"
+      );
+      expect(byPolicyName).to.have.length(0);
+      expect(byPolicyRegistry).to.deep.equal([
+        ethers.BigNumber.from(2),
+        ethers.BigNumber.from(3),
+      ]);
+      [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
+        "test policy 2"
+      );
+      expect(byPolicyRegistry).to.have.length(0);
+      expect(byPolicyName).to.deep.equal([
+        ethers.BigNumber.from(1),
+        ethers.BigNumber.from(3),
+      ]);
+
+      // update policy 1
+      await policyContract.updatePolicy(
+        1,
+        0,
+        "test policy 2 updated",
+        "registry 3"
+      );
+      [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
+        "test policy 2"
+      );
+      expect(byPolicyName).to.deep.equal([ethers.BigNumber.from(3)]);
+      expect(byPolicyRegistry).to.have.length(0);
+
+      [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
+        "registry 3"
+      );
+      expect(byPolicyName).to.have.length(0);
+      expect(byPolicyRegistry).to.deep.equal([
+        ethers.BigNumber.from(2),
+        ethers.BigNumber.from(3),
+        ethers.BigNumber.from(1),
+      ]);
+    });
+  });
 });
