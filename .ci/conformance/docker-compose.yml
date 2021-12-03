@@ -1,0 +1,6 @@
+version: "3.7"
+
+services:
+  trusted-schemas-registry-api:
+    build: ../..
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-schemas-registry-api:conformance_ebsiint-3474-send_signed_transaction_v1.0.0
