@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   ledger-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/ledger-api:prod_ebsiint-3496-node16_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/ledger-api:prod_ebsiint-3606-prep-conformance_v2.0.0
     build: ../..
