@@ -60,6 +60,21 @@ const defaultConfig = {
     RECAPTCHA_REGISTERED_HOSTNAME: "intebsi.xyz",
     LOG_LEVEL: "info",
   },
+  conformance: {
+    DOMAIN: "https://api.conformance.intebsi.xyz",
+    HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
+    AUTHORISATION: "https://api.conformance.intebsi.xyz/authorisation/v1",
+    TRUSTED_APPS_REGISTRY:
+      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v2/apps",
+    DID_RESOLVER:
+      "https://api.conformance.intebsi.xyz/did-registry/v2/identifiers",
+    EU_LOGIN_VALIDATE_SERVICE_URL:
+      "https://ecas.ec.europa.eu/cas/TicketValidationService",
+    EULOGIN_SERVICE_PARAM:
+      "https://app.conformance.intebsi.xyz/users-onboarding/authentication",
+    RECAPTCHA_REGISTERED_HOSTNAME: "intebsi.xyz",
+    LOG_LEVEL: "info",
+  },
   pilot: {
     DOMAIN: "https://api.preprod.ebsi.eu",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
@@ -145,7 +160,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
   load: [loadConfig],
   validationSchema: Joi.object({
     // Common API variables
-    EBSI_ENV: Joi.string().valid("local", "test", "pilot", "prod").required(),
+    EBSI_ENV: Joi.string()
+      .valid("local", "test", "conformance", "pilot", "prod")
+      .required(),
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
