@@ -18,6 +18,10 @@ const defaultConfig = {
   test: {
     KEYSPACE: "ebsi_test",
   },
+  conformance: {
+    // conformance env connected to cassandra in preprod
+    KEYSPACE: "ebsi_pilot",
+  },
   pilot: {
     KEYSPACE: "ebsi_pilot",
   },
