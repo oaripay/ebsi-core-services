@@ -4,7 +4,11 @@ if (!REACT_APP_EBSI_ENV) {
   throw new Error("REACT_APP_EBSI_ENV must be defined");
 }
 
-if (!["local", "test", "pilot", "prod"].includes(REACT_APP_EBSI_ENV)) {
+if (
+  !["local", "test", "conformance", "pilot", "prod"].includes(
+    REACT_APP_EBSI_ENV
+  )
+) {
   throw new Error(
     `REACT_APP_EBSI_ENV has an unknown value: ${REACT_APP_EBSI_ENV}`
   );
@@ -36,6 +40,12 @@ const defaultConfig: { [index: string]: ApiConfig } = {
     REACT_APP_WALLET: "https://app.test.intebsi.xyz/users-onboarding",
     REACT_APP_EULOGIN: "https://ecas.ec.europa.eu/cas",
     REACT_APP_API_URL: "https://api.test.intebsi.xyz/users-onboarding/v1",
+  },
+  conformance: {
+    REACT_APP_WALLET: "https://app.conformance.intebsi.xyz/users-onboarding",
+    REACT_APP_EULOGIN: "https://ecas.ec.europa.eu/cas",
+    REACT_APP_API_URL:
+      "https://api.conformance.intebsi.xyz/users-onboarding/v1",
   },
   pilot: {
     REACT_APP_WALLET: "https://app.preprod.ebsi.eu/users-onboarding",

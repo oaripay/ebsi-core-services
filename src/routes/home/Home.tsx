@@ -21,6 +21,10 @@ export function Home(): JSX.Element {
           return <PageHeader title="Welcome to the Test environment" />;
         }
 
+        if (process.env.REACT_APP_EBSI_ENV === "conformance") {
+          return <PageHeader title="Welcome to the Conformance environment" />;
+        }
+
         if (process.env.REACT_APP_EBSI_ENV === "pilot") {
           return (
             <PageHeader title="Welcome to the Pre Production environment" />

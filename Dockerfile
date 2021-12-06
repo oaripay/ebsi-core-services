@@ -6,7 +6,7 @@
 #
 # Required ARG variables:
 #   - PUBLIC_URL
-#   - REACT_APP_EBSI_ENV ("local", "test", "pilot", "prod")
+#   - REACT_APP_EBSI_ENV ("local", "test", "conformance", "pilot", "prod")
 #   - REACT_APP_CAPTCHA_KEY
 #
 
