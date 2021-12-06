@@ -3,4 +3,4 @@ version: "3.7"
 services:
   notifications-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/notifications-api:test_ebsiint-3496-node16_v1.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/notifications-api:test_ebsiint-3606-prep-conformance_v1.0.0
