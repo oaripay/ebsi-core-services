@@ -49,6 +49,17 @@ const defaultConfig = {
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     DID_REGISTRY: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
   },
+  conformance: {
+    LOG_LEVEL: "info",
+    DOMAIN: "https://api.conformance.intebsi.xyz",
+    TRUSTED_APPS_REGISTRY:
+      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v2/apps",
+    TRUSTED_ISSUERS_REGISTRY:
+      "https://api.conformance.intebsi.xyz/trusted-issuers-registry/v2/issuers",
+    HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
+    DID_REGISTRY:
+      "https://api.conformance.intebsi.xyz/did-registry/v2/identifiers",
+  },
   pilot: {
     LOG_LEVEL: "warn",
     DOMAIN: "https://api.preprod.ebsi.eu",
@@ -119,7 +130,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
   load: [loadConfig],
   validationSchema: Joi.object({
     // Common API variables
-    EBSI_ENV: Joi.string().valid("local", "test", "pilot", "prod").required(),
+    EBSI_ENV: Joi.string()
+      .valid("local", "test", "conformance", "pilot", "prod")
+      .required(),
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
