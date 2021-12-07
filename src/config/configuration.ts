@@ -5,7 +5,9 @@ import Joi from "joi";
 export interface ApiConfig {
   apiPort: number;
   apiPrivateKey: string;
+  apiKid: string;
   apiUrlPrefix: string;
+  apiName: string;
   authorisationApiDid: string;
   authorisationApiUrl: string;
   didRegistryApiUrl: string;
@@ -13,8 +15,10 @@ export interface ApiConfig {
   localOrigin: string;
   logLevel: string;
   externalEbsiApiHealthCheck: string;
-  testUserDid: string;
-  testUserPrivateKey: string;
+  // Ledger & SC
+  ledgerApiUrl: string;
+  ledgerApiName: string;
+  contractAddr: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -24,6 +28,7 @@ const defaultConfig = {
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
     DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v2",
     LOG_LEVEL: "debug",
   },
   test: {
@@ -31,21 +36,8 @@ const defaultConfig = {
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
     DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v2",
     LOG_LEVEL: "info",
-  },
-  pilot: {
-    DOMAIN: "https://api.preprod.ebsi.eu",
-    HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
-    AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v1",
-    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v2",
-    LOG_LEVEL: "warn",
-  },
-  prod: {
-    DOMAIN: "https://api.ebsi.eu",
-    HEALTH_CHECK: "https://api.ebsi.eu/docs/",
-    AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v1",
-    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2",
-    LOG_LEVEL: "error",
   },
   conformance: {
     DOMAIN: "https://api.conformance.intebsi.xyz",
@@ -53,7 +45,24 @@ const defaultConfig = {
     AUTHORISATION_API_URL:
       "https://api.conformance.intebsi.xyz/authorisation/v1",
     DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v2",
+    LEDGER_API_URL: "https://api.conformance.intebsi.xyz/ledger/v2",
     LOG_LEVEL: "info",
+  },
+  pilot: {
+    DOMAIN: "https://api.preprod.ebsi.eu",
+    HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
+    AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v1",
+    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v2",
+    LEDGER_API_URL: "https://api.preprod.ebsi.eu/ledger/v2",
+    LOG_LEVEL: "warn",
+  },
+  prod: {
+    DOMAIN: "https://api.ebsi.eu",
+    HEALTH_CHECK: "https://api.ebsi.eu/docs/",
+    AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v1",
+    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2",
+    LEDGER_API_URL: "https://api.ebsi.eu/ledger/v2",
+    LOG_LEVEL: "error",
   },
 };
 
@@ -66,7 +75,9 @@ export const loadConfig = (): ApiConfig => {
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
-    apiUrlPrefix: process.env.API_URL_PREFIX || "/conformance/v1",
+    apiKid: process.env.API_KID,
+    apiName: process.env.API_NAME || "trusted-policies-registry-api",
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-policies-registry/v1",
     authorisationApiDid: process.env.AUTHORISATION_API_DID,
     authorisationApiUrl:
       process.env.AUTHORISATION_API_URL ||
@@ -79,8 +90,11 @@ export const loadConfig = (): ApiConfig => {
     didRegistryApiUrl:
       process.env.DID_REGISTRY_API_URL ||
       defaultConfig[EBSI_ENV].DID_REGISTRY_API_URL,
-    testUserDid: process.env.TEST_USER_DID,
-    testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
+    // Ledger & SC
+    ledgerApiUrl:
+      process.env.LEDGER_API_URL || defaultConfig[EBSI_ENV].LEDGER_API_URL,
+    ledgerApiName: process.env.LEDGER_API_NAME || "ledger-api",
+    contractAddr: process.env.CONTRACT_ADDR,
   };
 };
 
@@ -102,8 +116,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_PRIVATE_KEY: Joi.string().required(),
-    API_DID: Joi.string(),
+    API_KID: Joi.string().uri().required(),
     API_URL_PREFIX: Joi.string(),
+    API_NAME: Joi.string(),
     AUTHORISATION_API_DID: Joi.string().required(),
     AUTHORISATION_API_URL: Joi.string().uri(),
     NOTIFICATIONS_API_URL: Joi.string().uri(),
@@ -119,5 +134,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri(),
     LOCAL_ORIGIN: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
+    // Ledger & SC
+    CONTRACT_ADDR: Joi.string().required(),
+    LEDGER_API_URL: Joi.string().uri(),
+    LEDGER_API_NAME: Joi.string(),
   }),
 });

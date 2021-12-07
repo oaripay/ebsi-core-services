@@ -18,7 +18,7 @@ paths:
         - Trusted Policies Registry API
       summary: Get list of policies
       description: Returns list of policies registered in the blockchain.
-      operationId: get-policies-registry-api
+      operationId: get-policies
       security:
         - bearerAuth: []
       responses:
@@ -29,20 +29,84 @@ paths:
               schema:
                 type: object
                 properties:
-                  todo:
-                    description: todo
+                  self:
                     type: string
+                    description: URI to policies
+                  items:
+                    type: array
+                    description: List of policies
+                    items:
+                      type: object
+                      properties:
+                        policyId:
+                          type: string
+                          description: ID of the policy
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
               examples:
-                properties:
+                "[test] Success":
                   value:
-                    todo: "todo"
+                    self: https://api.test.intebsi.xyz/trusted-policies-registry/v1/policies?page[after]=3&page[size]=2
+                    items:
+                      - policyId: "0"
+                        href: https://api.test.intebsi.xyz/trusted-policies-registry/v1/policies/0
+                      - policyId: "1"
+                        href: https://api.test.intebsi.xyz/trusted-policies-registry/v1/policies/1
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.test.intebsi.xyz/trusted-policies-registry/v1/policies?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/trusted-policies-registry/v1/policies?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/trusted-policies-registry/v1/policies?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/trusted-policies-registry/v1/policies?page[after]=62&page[size]=2
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/trusted-policies-registry/v1/policies?page[after]=3&page[size]=2
+                    items:
+                      - policyId: "0"
+                        href: https://api.preprod.ebsi.eu/trusted-policies-registry/v1/policies/0
+                      - policyId: "1"
+                        href: https://api.preprod.ebsi.eu/trusted-policies-registry/v1/policies/1
+                    total: 124
+                    pageSize: 2
+                    links:
+                      first: https://api.preprod.ebsi.eu/trusted-policies-registry/v1/policies?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/trusted-policies-registry/v1/policies?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/trusted-policies-registry/v1/policies?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/trusted-policies-registry/v1/policies?page[after]=62&page[size]=2
         400:
           $ref: "#/components/responses/400"
         500:
           $ref: "#/components/responses/500"
 components:
   schemas:
-    problem:
+    Links:
+      title: Links
+      type: object
+      description: Links model used for pagination.
+      properties:
+        first:
+          type: string
+          description: Hyperlink to the first page.
+        prev:
+          type: string
+          description: Hyperlink to the previous page.
+        next:
+          type: string
+          description: Hyperlink to the next page.
+        last:
+          type: string
+          description: Hyperlink to the last page.
+    Problem:
       description: A Problem Details object (RFC 7807)
       type: object
       properties:
@@ -81,7 +145,7 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: "#/components/schemas/problem"
+            $ref: "#/components/schemas/Problem"
           examples:
             Bad Request:
               $ref: "#/components/examples/BadRequest"
@@ -90,7 +154,7 @@ components:
       content:
         application/problem+json:
           schema:
-            $ref: "#/components/schemas/problem"
+            $ref: "#/components/schemas/Problem"
           examples:
             Internal Server Error:
               $ref: "#/components/examples/InternalError"
