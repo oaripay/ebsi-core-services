@@ -15,6 +15,7 @@ abstract contract PolicyEngine is PolicyStorage {
         require(ps.policyCount > policyId, "Policy: invalid policy");
 
         Policy storage policy = ps.policies[policyId];
+        require(policy.status, "Policy: inactive");
 
         if (policy.opType == OPERATION_TYPE.AND) {
             // applied policy for AND OPS
@@ -43,7 +44,7 @@ abstract contract PolicyEngine is PolicyStorage {
                 } else if (
                     policy.policyConditions[i].typeOfValue == TYPE.TYPE_UINT256
                 ) {
-                    // cast value to bytes32
+                    // cast value to uint256
                     if (
                         toUint256(policy.policyConditions[i].value, 0) !=
                         toUint256(userAttrValue, 0)
@@ -54,10 +55,21 @@ abstract contract PolicyEngine is PolicyStorage {
                 } else if (
                     policy.policyConditions[i].typeOfValue == TYPE.TYPE_ADDRESS
                 ) {
-                    // cast value to bytes32
+                    // cast value to address
                     if (
                         toAddress(policy.policyConditions[i].value, 0) !=
                         toAddress(userAttrValue, 0)
+                    ) {
+                        // attr didnt check
+                        return false;
+                    }
+                } else if (
+                    policy.policyConditions[i].typeOfValue == TYPE.TYPE_BOOLEAN
+                ) {
+                    // cast value to boolean
+                    if (
+                        toBool(policy.policyConditions[i].value, 0) !=
+                        toBool(userAttrValue, 0)
                     ) {
                         // attr didnt check
                         return false;
@@ -120,5 +132,20 @@ abstract contract PolicyEngine is PolicyStorage {
         }
 
         return tempBytes32;
+    }
+
+    function toBool(bytes memory _bytes, uint256 _start)
+        internal
+        pure
+        returns (bool)
+    {
+        require(_bytes.length >= _start + 32, "toBool_outOfBounds");
+        bool tempBool;
+
+        assembly {
+            tempBool := mload(add(add(_bytes, 0x20), _start))
+        }
+
+        return tempBool;
     }
 }
