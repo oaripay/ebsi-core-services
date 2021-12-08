@@ -1,11 +1,12 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PoliciesService } from "./policies.service";
 import { formatPolicies } from "./policies.formatter";
-import { PolicyLink } from "./policies.interface";
+import { PolicyLink, PolicyResponseObject } from "./policies.interface";
 import { PaginationQuery } from "../../shared/dto";
 import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
+import { GetPolicyParams } from "./dto";
 
 @Controller("/policies")
 export class PoliciesController {
@@ -33,6 +34,15 @@ export class PoliciesController {
       query["page[size]"],
       baseUrl
     );
+  }
+
+  @Get("/:policyId")
+  async getPolicy(
+    @Param() params: GetPolicyParams
+  ): Promise<PolicyResponseObject> {
+    const { policyId } = params;
+
+    return this.policiesService.getPolicy(policyId);
   }
 }
 

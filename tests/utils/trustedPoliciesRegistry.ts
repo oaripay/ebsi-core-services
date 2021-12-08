@@ -5,58 +5,107 @@ import { ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
 import { PolicyRegistry } from "../../src/contracts";
+import {
+  ATTRIBUTE_OPERATIONS,
+  ATTRIBUTE_TYPES,
+  OPERATION_TYPES,
+} from "../../src/modules/policies/policies.interface";
 
 export interface PolicyObject {
-  opType: ethers.BigNumberish;
-  policyConditions?: unknown[];
+  opType: number;
+  policyConditions: {
+    name: string;
+    attributeName: string;
+    typeOfValue: number;
+    value: ethers.BytesLike;
+    expectedValue: string | number | boolean;
+    attributeOperation: number;
+  }[];
   policyName: string;
   registry: string;
+  status: true;
 }
 
 export async function insertPolicy(
   contract: PolicyRegistry
 ): Promise<PolicyObject> {
-  const opType = 0;
+  const opType = OPERATION_TYPES.indexOf("AND");
   const policyConditions = [
     {
-      name: "name1",
-      attributeName: "attrName1",
+      name: "condition-string",
+      attributeName: "any",
       value: ethers.utils.toUtf8Bytes("vxc4gdbfgb"),
-      attributeOperation: 0,
-      typeOfValue: 3,
+      expectedValue: "vxc4gdbfgb",
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("STRING"),
     },
     {
-      name: "name2",
-      attributeName: "attrName2",
+      name: "condition-bytes",
+      attributeName: "any",
       value: ethers.utils.toUtf8Bytes("asdasdd"),
-      attributeOperation: 0,
-      typeOfValue: 1,
+      expectedValue: "0x61736461736464", // bytes representation of "asdasdd"
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("BYTES"),
+    },
+    {
+      name: "condition-boolean-uint8array",
+      attributeName: "any",
+      value: new Uint8Array([0]), // Uint8Array([0]) => false
+      expectedValue: false,
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
+    },
+    {
+      name: "condition-boolean-array",
+      attributeName: "any",
+      value: [1], // [1] => true
+      expectedValue: true,
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
+    },
+    {
+      name: "condition-boolean-string",
+      attributeName: "any",
+      value: "0x01", // "0x01" => true
+      expectedValue: true,
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
+    },
+    {
+      name: "condition-address",
+      attributeName: "any",
+      value: "0x00000000219ab540356cbb839cbe05303d7705fa",
+      expectedValue: "0x00000000219ab540356cbb839cbe05303d7705fa",
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("ADDRESS"),
+    },
+    {
+      name: "condition-uint256",
+      attributeName: "any",
+      value: `0x${(42).toString(16)}`, // 42 in hex
+      expectedValue: "42", // as string, because UINT256 can be greater than JS' Number.MAX_SAFE_INTEGER
+      attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+      typeOfValue: ATTRIBUTE_TYPES.indexOf("UINT256"),
     },
   ];
   const policyName = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
   const registry = `registry-test-${crypto.randomBytes(16).toString("hex")}`;
 
-  await contract.insertPolicy(opType, policyConditions, policyName, registry);
+  await contract.insertPolicy(
+    opType,
+    // Remove "expectedValue" from properties
+    policyConditions.map(({ expectedValue, ...otherProps }) => otherProps),
+    policyName,
+    registry
+  );
 
   return {
     opType,
     policyConditions,
     policyName,
     registry,
+    status: true,
   };
-}
-
-export async function updatePolicy(
-  contract: PolicyRegistry,
-  policyId: ethers.BigNumberish
-): Promise<PolicyObject> {
-  const opType = 0;
-  const policyName = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
-  const registry = `registry-test-${crypto.randomBytes(16).toString("hex")}`;
-
-  await contract.updatePolicy(policyId, opType, policyName, registry);
-
-  return { opType, policyName, registry };
 }
 
 export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> {
@@ -91,33 +140,15 @@ export async function setupTestEnv(
   provider: ethers.providers.JsonRpcProvider;
   policiesRegistryContract: PolicyRegistry;
   policies: PolicyObject[];
-  policyRevisions: { [x: string]: PolicyObject[] };
 }> {
   const ethersProvider = hre.ethers.provider;
 
   // Deploy contract
   const policiesRegistryContract = await deployPoliciesRegistryContract();
 
-  const policyRevisions = {};
-
   // Create as many policies as requested
   const createPolicy = async () => {
     const policy = await insertPolicy(policiesRegistryContract);
-
-    /*
-    const createRevision = async () =>
-      updatePolicy(policiesRegistryContract, policy.policyId);
-
-    // For each policy, add revisions
-    policyRevisions[policy.policyId] = [
-      // The first revision is the policy itself
-      policy,
-      // Then, we add new revisions
-      ...(await range(0, (opts.policiesRevisionsTotal ?? 1) - 1)
-        .pipe(mergeMap(createRevision), toArray())
-        .toPromise()),
-    ];
-    */
 
     return policy;
   };
@@ -134,6 +165,5 @@ export async function setupTestEnv(
     provider: ethersProvider,
     policiesRegistryContract,
     policies,
-    policyRevisions,
   };
 }

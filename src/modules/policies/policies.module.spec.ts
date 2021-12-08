@@ -16,6 +16,11 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerService } from "../../shared/services/ledger.service";
+import {
+  ATTRIBUTE_OPERATIONS,
+  ATTRIBUTE_TYPES,
+  OPERATION_TYPES,
+} from "./policies.interface";
 
 jest.setTimeout(90000);
 
@@ -257,6 +262,65 @@ describe("Policies Module", () => {
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
+    });
+  });
+
+  describe("GET /policies/{policyId}", () => {
+    it("should return a specific policy", async () => {
+      expect.assertions(2);
+
+      // Get first policy
+      const { policies } = testEnv;
+      const policyId = 0;
+
+      const response = await request(server).get(`/policies/${policyId}`);
+
+      expect(response.body).toStrictEqual({
+        policyId: `${policyId}`,
+        policyName: policies[policyId].policyName,
+        registry: policies[policyId].registry,
+        status: policies[policyId].status,
+        operationType: OPERATION_TYPES[policies[policyId].opType],
+        policyConditions: policies[policyId].policyConditions.map(
+          (condition) => ({
+            attributeName: condition.attributeName,
+            attributeOperation:
+              ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+            value: condition.expectedValue,
+            name: condition.name,
+            typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+          })
+        ),
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the policy ID is not valid", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/policies/invalid-policy-id");
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["policyId must be a number string"]',
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the policy is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/policies/42");
+
+      expect(response.body).toStrictEqual({
+        title: "Policy Not Found",
+        status: 404,
+        detail: "Policy 42 not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
     });
   });
 });

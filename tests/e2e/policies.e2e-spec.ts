@@ -13,7 +13,14 @@ import {
 import type { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { PolicyLink } from "../../src/modules/policies/policies.interface";
+import {
+  ATTRIBUTE_OPERATIONS,
+  ATTRIBUTE_TYPES,
+  OPERATION_TYPES,
+  PolicyConditionStructOutput,
+  PolicyLink,
+  PolicyResponseObject,
+} from "../../src/modules/policies/policies.interface";
 import { PaginatedList } from "../../src/shared/interfaces";
 
 interface SupertestPoliciesResponse {
@@ -76,6 +83,65 @@ describe("Policies (e2e)", () => {
         })
       );
       expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /policies/{policyId}", () => {
+    it("should return a specific policy", async () => {
+      expect.assertions(2);
+
+      // Get first policy
+      const policyId = 0;
+
+      const response = await request(server).get(`/policies/${policyId}`);
+
+      expect(response.body).toStrictEqual<PolicyResponseObject>({
+        policyId: `${policyId}`,
+        policyName: expect.any(String) as string,
+        registry: expect.any(String) as string,
+        status: expect.any(Boolean) as boolean,
+        operationType: expect.any(String) as typeof OPERATION_TYPES[number],
+        policyConditions: expect.arrayContaining<PolicyConditionStructOutput>(
+          expect.objectContaining<PolicyConditionStructOutput>({
+            attributeName: expect.any(String) as string,
+            attributeOperation: expect.any(
+              String
+            ) as typeof ATTRIBUTE_OPERATIONS[number],
+            value: expect.any(String) as string,
+            name: expect.any(String) as string,
+            typeOfValue: expect.any(String) as typeof ATTRIBUTE_TYPES[number],
+          }) as PolicyConditionStructOutput[]
+        ) as PolicyConditionStructOutput[],
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the policy ID is not valid", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/policies/invalid-policy-id");
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["policyId must be a number string"]',
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the policy is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/policies/69042");
+
+      expect(response.body).toStrictEqual({
+        title: "Policy Not Found",
+        status: 404,
+        detail: "Policy 69042 not found",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
     });
   });
 });
