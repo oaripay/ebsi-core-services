@@ -218,7 +218,9 @@ paths:
                       properties:
                         timestampId:
                           type: string
-                          description: multibase base64url encoded sha256(hash)
+                          description: |
+                            Multihash of the sha256 of the original hash, encoded in multibase
+                            base64url.
                         href:
                           type: string
                           description: Link to the resource
@@ -292,16 +294,36 @@ paths:
       description: Returns a timestamp by its ID
       parameters:
         - name: timestampId
-          description: multibase base64url encoded multihash timestamp ID
+          description: |
+            Multihash of the sha256 of the original hash, encoded in multibase base64url.
+
+            ```
+            timestampId = multibase_base64url(multihash(sha256(original_hash)))
+            ```
+
+            Example: let's assume the original hash is a sha3-224 with the value
+            `0xb2a8e000d1f25778cecf6b29fc0e7f811fb5f4a3a8230585e9056921`.
+
+            It is stored in the smart contract with the timestamp ID
+            `0xb2a8e000d1f25778cecf6b29fc0e7f811fb5f4a3a8230585e9056921`, which corresponds to the
+            sha256 of the original hash.
+
+            The multihash representation of
+            `0xb2a8e000d1f25778cecf6b29fc0e7f811fb5f4a3a8230585e9056921` is
+            `EiCPQS4deZG8y1FXlG9sW1vDfMbpulXYTkn0HWj2OWd61A` (encoded in base64url).
+
+            At the API-level, the timestamp ID is then
+            `uEiCPQS4deZG8y1FXlG9sW1vDfMbpulXYTkn0HWj2OWd61A`, i.e. it's the multibase base64url
+            (prefix "u") encoded multihash.
           in: path
           schema:
             type: string
           examples:
             "[test] timestampId":
-              description: valid test multibase base64url encoded timestampId
+              description: Valid test timestampId
               value: uEiAbFEn1TXr__LSFdj16CqLZR48_R9TQfd088lEXspM-5A
             "[pilot] timestampId":
-              description: valid preprod multibase base64url encoded timestampId
+              description: Valid preprod timestampId
               value: uEiAbFEn1TXr__LSFdj16CqLZR48_R9TQfd088lEXspM-5A
           required: true
       responses:
