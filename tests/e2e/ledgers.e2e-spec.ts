@@ -19,6 +19,7 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import {
   InsertLedgerInfoParam,
+  UnsignedTransaction,
   UpdateLedgerInfoByIdParam,
   UpdateLedgerInfoByNameParam,
   UpdateLedgerNameParam,
@@ -207,7 +208,9 @@ describe("Ledgers (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction))
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await adminTestWallet.signTransaction(uTx);
