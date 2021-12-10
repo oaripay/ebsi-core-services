@@ -40,7 +40,10 @@ describe("App module", () => {
   });
 
   afterAll(async () => {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 
@@ -50,7 +53,7 @@ describe("App module", () => {
 
       const response = await request(server).get("/");
 
-      expect(response.text).toStrictEqual("ok");
+      expect(response.text).toBe("ok");
       expect(response.status).toBe(200);
     });
 

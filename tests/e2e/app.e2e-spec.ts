@@ -43,7 +43,7 @@ describe("AppController (e2e)", () => {
     it("should return 'ok'", async () => {
       expect.assertions(2);
       const response = await request(server).get("/");
-      expect(response.text).toStrictEqual("ok");
+      expect(response.text).toBe("ok");
       expect(response.status).toBe(200);
     });
   });

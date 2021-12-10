@@ -13,13 +13,6 @@ import { ApiConfig } from "./config/configuration";
 import { EbsiValidationPipe } from "./pipes/ebsi-validation.pipe";
 import { setupInterceptors } from "./axiosInterceptors";
 
-declare const module: {
-  hot: {
-    accept: () => void;
-    dispose: (cb: () => Promise<void>) => void;
-  };
-};
-
 async function bootstrap(): Promise<void> {
   const fastifyAdapter = new FastifyAdapter();
   fastifyAdapter.enableCors({ methods: "*" });
@@ -86,13 +79,6 @@ async function bootstrap(): Promise<void> {
       logger.log(`Server listening on ${address}`, "main");
     }
   });
-
-  if (module.hot) {
-    module.hot.accept();
-    module.hot.dispose(async () => {
-      await app.close();
-    });
-  }
 }
 
 bootstrap()

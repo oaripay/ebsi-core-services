@@ -371,7 +371,9 @@ describe("Notifications module (e2e)", () => {
       const id = location.slice(location.lastIndexOf("/") + 1);
 
       // wait the ttl
-      await new Promise((r) => setTimeout(r, ttl + 200));
+      await new Promise((r) => {
+        setTimeout(r, ttl + 200);
+      });
 
       const responseGet = await request(server)
         .get(`/notifications/${id}`)
