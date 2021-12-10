@@ -316,7 +316,7 @@ export class JsonRpcService {
 
       if (prevAttributeHash) data.push(prefixWith0x(prevAttributeHash));
 
-      let functionSig;
+      let functionSig: string;
 
       if (prevAttributeHash) {
         // using updateAdministrator function (did, attributeData, lastVersHash)
@@ -329,6 +329,8 @@ export class JsonRpcService {
       const encodedData = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         functionSig,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
@@ -375,7 +377,7 @@ export class JsonRpcService {
 
       if (prevAttributeHash) data.push(prefixWith0x(prevAttributeHash));
 
-      let functionSig;
+      let functionSig: string;
 
       if (prevAttributeHash) {
         // using updateIssuer function (did, attributeData, lastVersHash)
@@ -388,6 +390,8 @@ export class JsonRpcService {
       const encodedData = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         functionSig,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore

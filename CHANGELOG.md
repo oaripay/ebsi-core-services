@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.8](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=251) (2021-12-06)
+
+### 🚀 Features
+
+- add sendSignedTransaction alias ([#80](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/80/overview)) - EBSIINT-3474 ([474997a](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/474997a5e9faf4d4b0669fce69886c74638d1c98))
+
 ## [2.0.0-rc.7](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv2.0.0&targetRepoId=251) (2021-11-15)
 
 ### 🚀 Features

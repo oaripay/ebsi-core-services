@@ -103,7 +103,7 @@ Or you can run the different linters independently:
 ### ESLint
 
 ```sh
-yarn lint:ts
+yarn lint:eslint
 ```
 
 or with yarn:
