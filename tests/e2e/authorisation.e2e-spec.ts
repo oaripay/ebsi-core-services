@@ -185,8 +185,8 @@ describe("Authorisation (e2e)", () => {
         )
       );
 
-      expect(query.scope).toStrictEqual("openid did_authn");
-      expect(query.response_type).toStrictEqual("id_token");
+      expect(query.scope).toBe("openid did_authn");
+      expect(query.response_type).toBe("id_token");
       expect(query.client_id).toBeDefined();
       expect(query.nonce).toBeDefined();
       expect(query.request).toBeDefined();
@@ -206,6 +206,10 @@ describe("Authorisation (e2e)", () => {
         response_type: "id_token",
         client_id: expect.any(String) as string,
         nonce: expect.any(String) as string,
+        redirect_uri: expect.stringContaining(
+          "/authorisation/v1/siop-sessions"
+        ) as string,
+        response_mode: "post",
         iss: configService.get<string>("apiDid"),
         claims: expect.objectContaining({}) as { id_token: unknown },
       });
@@ -648,7 +652,7 @@ describe("Authorisation (e2e)", () => {
 
         if (alg === "ES256K") {
           accessToken = await agent.verifyAuthenticationResponse(
-            response.body,
+            response.body as AkeResponse,
             nonce
           );
         } else {
@@ -729,7 +733,7 @@ describe("Authorisation (e2e)", () => {
 
       // 5. Finally, the client verifies the SIOP authentication response and gets an access token
       const accessToken = await siopAgent.verifyAuthenticationResponse(
-        siopSessionsResponse.body,
+        siopSessionsResponse.body as AkeResponse,
         nonce
       );
 
@@ -800,7 +804,7 @@ describe("Authorisation (e2e)", () => {
 
       // 4. Finally, the client verifies the SIOP authentication response and gets an access token
       const accessToken = await siopAgent.verifyAuthenticationResponse(
-        siopSessionsResponse.body,
+        siopSessionsResponse.body as AkeResponse,
         nonce
       );
 
@@ -877,7 +881,7 @@ describe("Authorisation (e2e)", () => {
 
       // 4. Finally, the client verifies the SIOP authentication response and gets an access token
       const accessToken = await siopAgent.verifyAuthenticationResponse(
-        siopSessionsResponse.body,
+        siopSessionsResponse.body as AkeResponse,
         nonce
       );
 

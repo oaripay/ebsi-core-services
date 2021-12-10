@@ -168,7 +168,10 @@ describe("Authorisation Module", () => {
   });
 
   afterAll(async () => {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 
@@ -217,8 +220,8 @@ describe("Authorisation Module", () => {
         )
       );
 
-      expect(query.scope).toStrictEqual("openid did_authn");
-      expect(query.response_type).toStrictEqual("id_token");
+      expect(query.scope).toBe("openid did_authn");
+      expect(query.response_type).toBe("id_token");
       expect(query.client_id).toBeDefined();
       expect(query.nonce).toBeDefined();
       expect(query.request).toBeDefined();
@@ -235,6 +238,10 @@ describe("Authorisation Module", () => {
         response_type: "id_token",
         client_id: expect.any(String) as string,
         nonce: expect.any(String) as string,
+        redirect_uri: expect.stringContaining(
+          "/authorisation/v1/siop-sessions"
+        ) as string,
+        response_mode: "post",
         iss: configService.get<string>("apiDid"),
         exp: expect.any(Number) as number,
         claims: expect.any(Object) as unknown,

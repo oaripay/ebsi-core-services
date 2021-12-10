@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.14](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.13&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.14&targetRepoId=359) (2021-12-06)
+
 ## [1.0.0-rc.13](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.12&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.13&targetRepoId=359) (2021-11-15)
 
 ### 🚀 Features
