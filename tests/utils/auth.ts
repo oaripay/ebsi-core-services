@@ -1,6 +1,6 @@
 import request from "supertest";
 import crypto from "crypto";
-import { DidAuthResponseMode, Agent } from "@cef-ebsi/siop-auth";
+import { DidAuthResponseMode, Agent, AkeResponse } from "@cef-ebsi/siop-auth";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { loadConfig } from "../../src/config/configuration";
 
@@ -51,7 +51,7 @@ export async function siopAuthentication(
     .send(didAuthJwt.bodyEncoded);
 
   const accessToken = await agent.verifyAuthenticationResponse(
-    response.body,
+    response.body as AkeResponse,
     nonce
   );
 

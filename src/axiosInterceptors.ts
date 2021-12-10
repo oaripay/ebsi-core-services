@@ -1,7 +1,7 @@
 import { LoggerService } from "@nestjs/common";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
-function hasOwnProperty<X extends unknown, Y extends PropertyKey>(
+function hasOwnProperty<X, Y extends PropertyKey>(
   obj: X,
   prop: Y
 ): obj is X & Record<Y, unknown> {

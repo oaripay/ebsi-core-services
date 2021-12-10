@@ -9,7 +9,7 @@ describe("multihashEncode", () => {
         "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
         "sha2-256"
       )
-    ).toStrictEqual(
+    ).toBe(
       "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
     );
 
@@ -19,7 +19,7 @@ describe("multihashEncode", () => {
         "0x41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
         "sha2-256"
       )
-    ).toStrictEqual(
+    ).toBe(
       "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
     );
   });

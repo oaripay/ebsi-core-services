@@ -140,7 +140,10 @@ describe("Attributes Module", () => {
   });
 
   afterAll(async () => {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 
@@ -178,19 +181,17 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "select * from attribute_storage where did = ? allow filtering",
-              testUser.did,
-              { fetchSize: 2 },
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from attribute_storage where did = ? allow filtering",
+            testUser.did,
+            { fetchSize: 2 },
+          ],
+        }),
         headerJwt
       );
 
@@ -236,19 +237,17 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "select * from attribute_storage where did = ? allow filtering",
-              testUser.did,
-              { fetchSize: 10, pageState: "123abc" },
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from attribute_storage where did = ? allow filtering",
+            testUser.did,
+            { fetchSize: 10, pageState: "123abc" },
+          ],
+        }),
         headerJwt
       );
 
@@ -283,19 +282,17 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "select * from attribute_storage where shared_with = ? allow filtering",
-              testUser.did,
-              { fetchSize: 10, pageState: "123abc" },
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from attribute_storage where shared_with = ? allow filtering",
+            testUser.did,
+            { fetchSize: 10, pageState: "123abc" },
+          ],
+        }),
         headerJwt
       );
 
@@ -346,15 +343,13 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: ["select * from attribute_storage where hash = ?", hash],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: ["select * from attribute_storage where hash = ?", hash],
+        }),
         headerJwt
       );
 
@@ -394,18 +389,16 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "select * from attribute_storage where hash = ?",
-              attributeCassandra.hash,
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from attribute_storage where hash = ?",
+            attributeCassandra.hash,
+          ],
+        }),
         headerJwt
       );
 
@@ -426,18 +419,16 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "select * from attribute_storage where hash = ?",
-              attributeCassandra.hash,
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from attribute_storage where hash = ?",
+            attributeCassandra.hash,
+          ],
+        }),
         headerJwt
       );
 
@@ -472,18 +463,16 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "select * from attribute_storage where hash = ?",
-              attributeCassandra.hash,
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from attribute_storage where hash = ?",
+            attributeCassandra.hash,
+          ],
+        }),
         headerJwt
       );
 
@@ -526,18 +515,16 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "select * from attribute_storage where hash = ?",
-              attributeCassandra.hash,
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from attribute_storage where hash = ?",
+            attributeCassandra.hash,
+          ],
+        }),
         headerJwt
       );
 
@@ -563,18 +550,16 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "select * from attribute_storage where hash = ?",
-              attributeCassandra.hash,
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from attribute_storage where hash = ?",
+            attributeCassandra.hash,
+          ],
+        }),
         headerJwt
       );
 
@@ -731,18 +716,16 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "select did from attribute_storage where hash = ?",
-              expect.any(String) as string,
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select did from attribute_storage where hash = ?",
+            expect.any(String) as string,
+          ],
+        }),
         headerJwt
       );
 
@@ -783,42 +766,38 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "select did from attribute_storage where hash = ?",
-              expect.any(String) as string,
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select did from attribute_storage where hash = ?",
+            expect.any(String) as string,
+          ],
+        }),
         headerJwt
       );
 
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "insert into attribute_storage (hash, did, visibility, shared_with, content_type, data, data_label) values (?, ?, ?, ?, ?, ?, ?)",
-              expect.any(String) as string,
-              attribute.did,
-              attribute.visibility,
-              "",
-              attribute.contentType,
-              attribute.data,
-              attribute.dataLabel,
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "insert into attribute_storage (hash, did, visibility, shared_with, content_type, data, data_label) values (?, ?, ?, ?, ?, ?, ?)",
+            expect.any(String) as string,
+            attribute.did,
+            attribute.visibility,
+            "",
+            attribute.contentType,
+            attribute.data,
+            attribute.dataLabel,
+          ],
+        }),
         headerJwt
       );
 
@@ -851,15 +830,13 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: ["select did from attribute_storage where hash = ?", hash],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: ["select did from attribute_storage where hash = ?", hash],
+        }),
         headerJwt
       );
 
@@ -892,15 +869,13 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: ["select did from attribute_storage where hash = ?", hash],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: ["select did from attribute_storage where hash = ?", hash],
+        }),
         headerJwt
       );
 
@@ -939,30 +914,26 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: ["select did from attribute_storage where hash = ?", hash],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: ["select did from attribute_storage where hash = ?", hash],
+        }),
         headerJwt
       );
 
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: ["delete from attribute_storage where hash = ?", hash],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: ["delete from attribute_storage where hash = ?", hash],
+        }),
         headerJwt
       );
 
@@ -1064,18 +1035,16 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "select * from attribute_storage where hash = ?",
-              expect.any(String) as string,
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from attribute_storage where hash = ?",
+            expect.any(String) as string,
+          ],
+        }),
         headerJwt
       );
 
@@ -1115,18 +1084,16 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "select * from attribute_storage where hash = ?",
-              expect.any(String) as string,
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from attribute_storage where hash = ?",
+            expect.any(String) as string,
+          ],
+        }),
         headerJwt
       );
 
@@ -1207,40 +1174,36 @@ describe("Attributes Module", () => {
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "select * from attribute_storage where hash = ?",
-              attributeCassandra.hash,
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "select * from attribute_storage where hash = ?",
+            attributeCassandra.hash,
+          ],
+        }),
         headerJwt
       );
 
       numberCall += 1;
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
-        ...[
-          expect.stringContaining("/distributed/jsonrpc"),
-          expect.objectContaining({
-            id: expect.any(Number) as number,
-            jsonrpc: "2.0",
-            method: "cassandra_call",
-            params: [
-              "update attribute_storage set visibility = ?, shared_with = ?, content_type = ?, data_label = ? where hash = ?",
-              "shared",
-              "did:ebsi:zub5ZZUfHLLptCduwEy8xRj",
-              "application/json",
-              "document2",
-              attributeCassandra.hash,
-            ],
-          }),
-        ],
+        expect.stringContaining("/distributed/jsonrpc"),
+        expect.objectContaining({
+          id: expect.any(Number) as number,
+          jsonrpc: "2.0",
+          method: "cassandra_call",
+          params: [
+            "update attribute_storage set visibility = ?, shared_with = ?, content_type = ?, data_label = ? where hash = ?",
+            "shared",
+            "did:ebsi:zub5ZZUfHLLptCduwEy8xRj",
+            "application/json",
+            "document2",
+            attributeCassandra.hash,
+          ],
+        }),
         headerJwt
       );
 
