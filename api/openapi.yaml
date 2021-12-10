@@ -168,6 +168,185 @@ paths:
                   $ref: "#/components/examples/NotFound"
         500:
           $ref: "#/components/responses/500"
+  /trusted-policies-registry/v1/jsonrpc:
+    post:
+      operationId: post-jsonrpc
+      tags:
+        - Trusted Policies Registry API
+      summary: Helper APIs
+      description: |
+        Helper APIs that assist the construction of blockchain transactions and interaction with
+        the ledger (Write operation on ledger).
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: |
+          The body follows the
+          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+
+          It requires the following fields:
+
+          - **jsonrpc**: Must be exactly '2.0'
+          - **method**: Method to be invoked. Possible values: 'insertPolicy', 'updatePolicy',
+          'sendSignedTransaction'
+          - **params**: Array of parameters
+          - **id**: Identifier stablished by the client
+        content:
+          application/json:
+            schema:
+              required:
+                - jsonrpc
+                - id
+                - method
+                - params
+              type: object
+              properties:
+                jsonrpc:
+                  description: Must be exactly '2.0'
+                  type: string
+                method:
+                  description: Method that needs to be invoked
+                  type: string
+                params:
+                  description: Array of parameters
+                  type: array
+                  items:
+                    type: object
+                id:
+                  description: Identifier established by the client
+                  type: integer
+                  example: 1
+            examples:
+              Build tx to insertPolicy:
+                description: |
+                  Call to build an unsigned transaction to insert a policy in the registry.
+                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
+
+                   Parameters:
+                   - **from**: Ethereum address of the administrator
+                   - **opType**: operation type. 0 = "AND", 1 = "OR"
+                   - **policyName**: name of the policy.
+                   - **registry**: name of the registry.
+                   - **policyConditions**: array of condition objects:
+                     - **name**: name of the condition
+                     - **attributeName**: name of the attribute on which it applies
+                     - **value**: value to compare to
+                     - **typeOfValue**: value type. 0 = "UINT256", 1 = "BYTES", 2 = "ADDRESS",
+                       3= "BYTES32", 4 = "STRING", 5 = "BOOLEAN"
+                     - **attributeOperation**: operation to apply. 0 = "EQUAL"
+                value:
+                  jsonrpc: "2.0"
+                  method: insertPolicy
+                  id: 1
+                  params:
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      opType: 0
+                      policyName: policy-test-237a346cd80aea1afb21d66ce39f7695
+                      registry: registry-test-98efbd91f1c40d254f4fd699a3f7b9fa
+                      policyConditions:
+                        - name: condition-string
+                          attributeName: any
+                          value: "0x76786334676462666762"
+                          attributeOperation: 0
+                          typeOfValue: 4
+                        - name: condition-bytes
+                          attributeName: any
+                          value: "0x61736461736464"
+                          attributeOperation: 0
+                          typeOfValue: 1
+                        - name: condition-boolean-uint8array
+                          attributeName: any
+                          value: "0x00"
+                          attributeOperation: 0
+                          typeOfValue: 5
+                        - name: condition-address
+                          attributeName: any
+                          value: "0x00000000219ab540356cbb839cbe05303d7705fa"
+                          attributeOperation: 0
+                          typeOfValue: 2
+                        - name: condition-uint256
+                          attributeName: any
+                          value: "0x2a"
+                          attributeOperation: 0
+                          typeOfValue: 0
+              Build tx to updatePolicy:
+                description: |
+                  Call to build an unsigned transaction to update a policy.
+                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
+
+                   Parameters:
+                   - **from**: Ethereum address of the administrator
+                   - **policyId**: Policy Id
+                   - **opType**: operation type. 0 = "AND", 1 = "OR"
+                   - **policyName**: name of the policy.
+                   - **registry**: name of the registry.
+                value:
+                  jsonrpc: "2.0"
+                  method: updatePolicy
+                  id: 1
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      policyId: "1"
+                      opType: 0
+                      policyName: policy-test-0245fd52e9606e375ffe7d46718d60c8
+                      registry: registry-test-867fc5181e2a0df61094cb565cf18d96
+              Send Transaction:
+                description: Call to send a signed transaction to the blockchain.
+                value:
+                  jsonrpc: "2.0"
+                  method: sendSignedTransaction
+                  id: 1
+                  params:
+                    - protocol: eth
+                      unsignedTransaction:
+                        from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                        data: "0x0000..."
+                        nonce: "0x00"
+                        chainId: "0x1b3b"
+                        gasLimit: "0x10000"
+                        gasPrice: "0x00"
+                        value: "0x00"
+                      r: "0x..."
+                      s: "0x..."
+                      v: "0x..."
+                      signedRawTransaction: "--- signed raw transaction ---"
+      responses:
+        200:
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonRpcResponse"
+              examples:
+                Build tx:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                      data: "0x0000..."
+                      nonce: "0x00"
+                      chainId: "0x1b3b"
+                      gasLimit: "0x10000"
+                      gasPrice: "0x00"
+                      value: "0x00"
+                Send Transaction:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
+        400:
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+              examples:
+                Bad Request:
+                  $ref: "#/components/examples/BadRequest"
 components:
   schemas:
     Links:
@@ -236,6 +415,21 @@ components:
                 oneOf:
                   - type: string
                   - type: boolean
+    JsonRpcResponse:
+      title: Json Rpc Response
+      type: object
+      properties:
+        jsonrpc:
+          description: Must be exactly '2.0'
+          type: string
+        id:
+          description: Same identifier established by the client in the call
+          type: integer
+        result:
+          description: Result of the call
+          oneOf:
+            - type: object
+            - type: string
     Problem:
       description: A Problem Details object (RFC 7807)
       type: object

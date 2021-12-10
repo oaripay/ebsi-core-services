@@ -161,7 +161,8 @@ yarn audit
 
 ## Testing
 
-Reminder: you need to set `API_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests!
+Reminder: you need to set `API_PRIVATE_KEY`, `TEST_USER_DID`, `TEST_USER_PRIVATE_KEY`, `TEST_ADMIN_DID` and `TEST_ADMIN_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests!
+
 Run all the tests:
 
 ```sh

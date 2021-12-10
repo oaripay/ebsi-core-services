@@ -19,6 +19,11 @@ export interface ApiConfig {
   ledgerApiUrl: string;
   ledgerApiName: string;
   contractAddr: string;
+  // Tests
+  testAdminDid: string;
+  testAdminPrivateKey: string;
+  testUserDid: string;
+  testUserPrivateKey: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -95,6 +100,10 @@ export const loadConfig = (): ApiConfig => {
       process.env.LEDGER_API_URL || defaultConfig[EBSI_ENV].LEDGER_API_URL,
     ledgerApiName: process.env.LEDGER_API_NAME || "ledger-api",
     contractAddr: process.env.CONTRACT_ADDR,
+    testAdminDid: process.env.TEST_ADMIN_DID || "",
+    testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY || "",
+    testUserDid: process.env.TEST_USER_DID || "",
+    testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY || "",
   };
 };
 
@@ -138,5 +147,10 @@ export const ApiConfigModule = ConfigModule.forRoot({
     CONTRACT_ADDR: Joi.string().required(),
     LEDGER_API_URL: Joi.string().uri(),
     LEDGER_API_NAME: Joi.string(),
+    // Tests
+    TEST_ADMIN_DID: Joi.string().allow(""),
+    TEST_ADMIN_PRIVATE_KEY: Joi.string().allow(""),
+    TEST_USER_DID: Joi.string().allow(""),
+    TEST_USER_PRIVATE_KEY: Joi.string().allow(""),
   }),
 });

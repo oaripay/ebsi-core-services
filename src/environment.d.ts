@@ -20,6 +20,11 @@ declare global {
       LEDGER_API_URL: string;
       LEDGER_API_NAME: string;
       CONTRACT_ADDR: string;
+      // Tests
+      TEST_ADMIN_DID: string;
+      TEST_ADMIN_PRIVATE_KEY: string;
+      TEST_USER_DID: string;
+      TEST_USER_PRIVATE_KEY: string;
     }
   }
 }
