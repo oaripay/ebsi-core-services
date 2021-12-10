@@ -4,7 +4,7 @@ import {
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
 import { HashName } from "multihashes";
-import type { TransactionDescription } from "@ethersproject/abi";
+import type { ethers } from "ethers";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { Timestamp } from "../../contracts/timestamp";
@@ -92,7 +92,7 @@ export default class TimestampsService {
     //   ...
     // }
     const transaction = block.transactions.find((tx) => {
-      let parsedTx: TransactionDescription;
+      let parsedTx: ethers.utils.TransactionDescription;
       try {
         parsedTx = contractInterface.parseTransaction(tx);
       } catch (e) {
@@ -111,7 +111,7 @@ export default class TimestampsService {
       return parsedTx.args.hashAlgorithmIds.some(
         (hashAlgId, index) =>
           // Compare hash algorithm ID
-          hash.algorithm.eq(hashAlgId) &&
+          hash.algorithm.eq(hashAlgId as ethers.BigNumberish) &&
           // Compare hash value
           index in parsedTx.args.hashValues &&
           (parsedTx.args.hashValues as string[])[index] === hash.value

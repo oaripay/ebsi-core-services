@@ -22,6 +22,7 @@ import {
   InsertHashAlgorithmParam,
   UpdateHashAlgorithmParam,
   TimestampHashesParam,
+  UnsignedTransaction,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
@@ -222,7 +223,9 @@ describe("Timestamp (e2e)", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction))
+          JSON.parse(
+            JSON.stringify(unsignedTransaction)
+          ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testUser.wallet.signTransaction(uTx);
@@ -308,7 +311,9 @@ describe("Timestamp (e2e)", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction))
+          JSON.parse(
+            JSON.stringify(unsignedTransaction)
+          ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testUser.wallet.signTransaction(uTx);
@@ -388,7 +393,9 @@ describe("Timestamp (e2e)", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction))
+          JSON.parse(
+            JSON.stringify(unsignedTransaction)
+          ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testAdmin.wallet.signTransaction(uTx);
@@ -482,7 +489,9 @@ describe("Timestamp (e2e)", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction))
+          JSON.parse(
+            JSON.stringify(unsignedTransaction)
+          ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testApp.wallet.signTransaction(uTx);

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.9](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.9&targetRepoId=247) (2021-12-06)
+
+### 🚀 Features
+
+- add sendSignedTransaction alias ([#91](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/pull-requests/91/overview)) - EBSIINT-3474 ([7c2c9ad](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/commits/7c2c9adad91999972ed069700c0e5bf3f3f087c7))
+
 ## [2.0.0-rc.8](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=247) (2021-11-16)
 
 ### 🚀 Features

@@ -81,7 +81,7 @@ const ianaToMultihashAlg: Record<string, HashName> = {
   "sha3-512": "sha3-512",
 };
 
-const multihashToNodeHashAlg = {
+const multihashToNodeHashAlg: Partial<Record<HashName, string>> = {
   "sha2-256": "sha256",
   "sha2-512": "sha512",
   "sha3-224": "sha3-224",
@@ -131,7 +131,7 @@ export async function insertRecord(
   sender: string,
   hashAlgorithm: HashAlgorithmObject
 ): Promise<RecordObject> {
-  const hashAlgorithmIds = Array(3).fill(0);
+  const hashAlgorithmIds = Array(3).fill(0) as number[];
   const hashValues = Array(3)
     .fill(0)
     .map(

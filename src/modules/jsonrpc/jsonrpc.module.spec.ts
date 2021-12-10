@@ -21,6 +21,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import type { HashName } from "multihashes";
 import { multibase } from "../../shared/utils";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -143,7 +144,7 @@ describe("JsonRpc Module", () => {
     timestampContract = testEnv.timestampContract;
     provider = testEnv.provider;
 
-    const multihashToNodeHashAlg = {
+    const multihashToNodeHashAlg: Partial<Record<HashName, string>> = {
       "sha2-256": "sha256",
       "sha2-512": "sha512",
       "sha3-224": "sha3-224",
@@ -341,7 +342,9 @@ describe("JsonRpc Module", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction))
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       // user in the transaction
@@ -405,7 +408,9 @@ describe("JsonRpc Module", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction))
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await testUser.wallet.signTransaction(uTx);
@@ -481,7 +486,7 @@ describe("JsonRpc Module", () => {
     };
 
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction))
+      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await testUser.wallet.signTransaction(uTx);
@@ -547,7 +552,7 @@ describe("JsonRpc Module", () => {
     const transaction = responseBuild.body.result as UnsignedTransaction;
 
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction))
+      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
     );
 
     uTx.chainId = Number(uTx.chainId);
@@ -848,7 +853,9 @@ describe("JsonRpc Module", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction))
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await testAdmin.wallet.signTransaction(uTx);
@@ -1072,9 +1079,9 @@ describe("JsonRpc Module", () => {
       let param2: JsonRpcParams = null;
       let param3: JsonRpcParams = null;
 
-      let expectedErrorMessage1;
-      let expectedErrorMessage2;
-      let expectedErrorMessage3;
+      let expectedErrorMessage1: string;
+      let expectedErrorMessage2: string;
+      let expectedErrorMessage3: string;
 
       switch (method) {
         case "insertHashAlgorithm": {
@@ -1979,7 +1986,9 @@ describe("JsonRpc Module", () => {
       const transaction2 = responseBuild2.body.result as UnsignedTransaction;
 
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(transaction1))
+        JSON.parse(
+          JSON.stringify(transaction1)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx1 = await testUser.wallet.signTransaction(uTx);
@@ -2170,7 +2179,9 @@ describe("JsonRpc Module", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction))
+          JSON.parse(
+            JSON.stringify(unsignedTransaction)
+          ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testAdmin.wallet.signTransaction(uTx);
@@ -2334,7 +2345,9 @@ describe("JsonRpc Module", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction))
+          JSON.parse(
+            JSON.stringify(unsignedTransaction)
+          ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testApp.wallet.signTransaction(uTx);
@@ -2834,7 +2847,9 @@ describe("JsonRpc Module", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction))
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await testAdmin.wallet.signTransaction(uTx);

@@ -19,7 +19,7 @@ export function IsMultihash(
     {
       name: IS_MULTIHASH,
       validator: {
-        validate: (value) => isMultihash(value),
+        validate: (value) => typeof value === "string" && isMultihash(value),
         defaultMessage: buildMessage(
           (eachPrefix) => `${eachPrefix}$property must be a valid multihash`,
           validationOptions
