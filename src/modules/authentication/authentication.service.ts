@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { compactVerify } from "jose/jws/compact/verify";
-import { parseJwk } from "jose/jwk/parse";
+import { JWK, parseJwk } from "jose/jwk/parse";
 import { createJWT, decodeJWT, ES256KSigner, verifyJWT } from "did-jwt";
 import { Resolver } from "did-resolver";
 import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
@@ -118,7 +118,7 @@ export default class AuthenticationService {
     if (!resError || resError !== "notFound") {
       if (!result.didDocument) {
         throw new InvalidUserAuthentication(
-          result.didResolutionMetadata.message
+          result.didResolutionMetadata.message as string
         );
       }
 
@@ -143,7 +143,7 @@ export default class AuthenticationService {
       const publicKey = await parseJwk({
         alg: "ES256",
         ...decodedIdToken.payload.sub_jwk,
-      });
+      } as JWK);
 
       const { payload, protectedHeader } = await compactVerify(
         idToken,

@@ -135,7 +135,11 @@ export default class SessionsService {
     try {
       userInfo = await axios.get(`${this.euloginService}?${parameters}`);
     } catch (error) {
-      throw new InvalidUserAuthentication(error);
+      if (error instanceof Error) {
+        throw new InvalidUserAuthentication(error.message);
+      }
+
+      throw new InvalidUserAuthentication(error as string);
     }
 
     if (!userInfo || !userInfo.data) {
@@ -211,7 +215,11 @@ export default class SessionsService {
       );
       return { Bearer: token };
     } catch (error) {
-      throw new InvalidSession(error);
+      if (error instanceof Error) {
+        throw new InvalidSession(error.message);
+      }
+
+      throw new InvalidSession(error as string);
     }
   }
 }

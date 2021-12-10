@@ -25,7 +25,7 @@ describe("add0xPrefix", () => {
       prefix0x(
         "0a9a229c18f1777949243bbe875b754b77fb9cb3612c8b5c37876888f54f9731"
       )
-    ).toStrictEqual(
+    ).toBe(
       "0x0a9a229c18f1777949243bbe875b754b77fb9cb3612c8b5c37876888f54f9731"
     );
   });
@@ -37,7 +37,7 @@ describe("add0xPrefix", () => {
       prefix0x(
         "0x0a9a229c18f1777949243bbe875b754b77fb9cb3612c8b5c37876888f54f9731"
       )
-    ).toStrictEqual(
+    ).toBe(
       "0x0a9a229c18f1777949243bbe875b754b77fb9cb3612c8b5c37876888f54f9731"
     );
   });

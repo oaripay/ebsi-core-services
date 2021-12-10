@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.10](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.9&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.10&targetRepoId=234) (2021-12-06)
+
 ## [1.0.0-rc.9](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.9&targetRepoId=234) (2021-11-16)
 
 ### 🚀 Features

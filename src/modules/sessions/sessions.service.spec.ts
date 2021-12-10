@@ -50,7 +50,10 @@ describe("sessions service tests", () => {
   });
 
   afterAll(async () => {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 
@@ -180,6 +183,22 @@ describe("sessions service tests", () => {
       );
     });
 
+    it("should throw error when EU Login returns an error", async () => {
+      expect.assertions(1);
+      mockedAxios.get.mockRejectedValue(new Error("EU Login error"));
+      await expect(
+        sessionsService.validateTicket(userEU.toString())
+      ).rejects.toThrow(new InvalidUserAuthentication("EU Login error"));
+    });
+
+    it("should throw error when EU Login returns an error (as string)", async () => {
+      expect.assertions(1);
+      mockedAxios.get.mockRejectedValue("EU Login error");
+      await expect(
+        sessionsService.validateTicket(userEU.toString())
+      ).rejects.toThrow(new InvalidUserAuthentication("EU Login error"));
+    });
+
     it("should throw error when ERROR_EUTICKET_VALIDATION", async () => {
       expect.assertions(1);
       mockedAxios.get.mockResolvedValue({
@@ -246,6 +265,18 @@ describe("sessions service tests", () => {
       expect(
         await sessionsService.validateRecaptcha("fakeToken")
       ).toBeUndefined();
+    });
+
+    it("should return InvalidUserAuthentication when recaptcha returns an error", async () => {
+      expect.assertions(1);
+      mockedAxios.get.mockRejectedValue(new Error("recaptcha error"));
+      await expect(
+        sessionsService.validateRecaptcha("fakeToken")
+      ).rejects.toThrow(
+        new InvalidUserAuthentication(
+          OnboardingErrors.ERROR_RECAPTCHA_VALIDATION
+        )
+      );
     });
   });
 

@@ -39,7 +39,10 @@ describe("authentication service tests", () => {
   });
 
   afterAll(async () => {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 
@@ -168,7 +171,7 @@ describe("authentication service tests", () => {
       "VerifiableCredential",
       "VerifiableAuthorisation",
     ]);
-    expect(response.verifiableCredential.issuer).toStrictEqual(
+    expect(response.verifiableCredential.issuer).toBe(
       "did:ebsi:zwC56DZdiJh8kSxbgg4fMCu"
     );
     expect(response.verifiableCredential.issuanceDate).toBeDefined();
@@ -181,7 +184,7 @@ describe("authentication service tests", () => {
       response.verifiableCredential.validFrom <
         response.verifiableCredential.expirationDate
     ).toBeTruthy();
-    expect(response.verifiableCredential.credentialSubject.id).toStrictEqual(
+    expect(response.verifiableCredential.credentialSubject.id).toBe(
       "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
     );
     expect(response.verifiableCredential.credentialSchema).toBeDefined();

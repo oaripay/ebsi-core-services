@@ -54,7 +54,10 @@ describe("Authentication Module", () => {
   });
 
   afterAll(async () => {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 
@@ -112,7 +115,7 @@ describe("Authentication Module", () => {
 
       const responseBody = response.body as UnauthorizedError;
 
-      expect(responseBody.detail).toStrictEqual("Missing JWT");
+      expect(responseBody.detail).toBe("Missing JWT");
       expect(response.status).toBe(401);
     });
 
@@ -128,7 +131,7 @@ describe("Authentication Module", () => {
         .send({ id_token: idToken });
       const responseBody = response.body as UnauthorizedError;
 
-      expect(responseBody.title).toStrictEqual(
+      expect(responseBody.title).toBe(
         "unexpected issuer found in session token"
       );
       expect(response.status).toBe(401);

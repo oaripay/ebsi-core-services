@@ -43,11 +43,16 @@ describe("Sessions Module", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
   });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
+
   afterAll(async () => {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 
@@ -69,6 +74,7 @@ describe("Sessions Module", () => {
         (response.headers as { "content-type": string })["content-type"]
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
+
     it("should return a session token for recaptcha", async () => {
       expect.assertions(3);
       const body = {
@@ -101,6 +107,7 @@ describe("Sessions Module", () => {
         })
       );
     });
+
     it("should return a session token for eu-login", async () => {
       expect.assertions(3);
 
