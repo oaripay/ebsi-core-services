@@ -113,7 +113,10 @@ describe("Files Module", () => {
   });
 
   afterAll(async () => {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 
@@ -352,9 +355,9 @@ describe("Files Module", () => {
         .send();
 
       expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
-      expect(
-        (response as { header: unknown[] }).header["content-type"]
-      ).toStrictEqual("application/octet-stream");
+      expect((response as { header: unknown[] }).header["content-type"]).toBe(
+        "application/octet-stream"
+      );
       expect(response.body).toStrictEqual(file);
       expect(response.status).toBe(200);
     });
@@ -1431,7 +1434,7 @@ describe("Files Module", () => {
           42 * 1024 * 1024 - byteLength(file) - byteLength(metadata)
         }`,
       });
-      expect(response.text).toStrictEqual("");
+      expect(response.text).toBe("");
       expect(response.status).toBe(204);
     });
   });

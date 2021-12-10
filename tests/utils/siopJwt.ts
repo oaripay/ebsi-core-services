@@ -1,6 +1,10 @@
 import { randomUUID } from "crypto";
 import request from "supertest";
-import { Agent as SiopAgent, DidAuthResponseMode } from "@cef-ebsi/siop-auth";
+import {
+  Agent as SiopAgent,
+  AkeResponse,
+  DidAuthResponseMode,
+} from "@cef-ebsi/siop-auth";
 
 export const requestSiopJwt = async ({
   didRegistry,
@@ -50,7 +54,7 @@ export const requestSiopJwt = async ({
 
   // 5. Finally, the client verifies the SIOP authentication response and gets an access token
   const accessToken = await siopAgent.verifyAuthenticationResponse(
-    response.body,
+    response.body as AkeResponse,
     nonce
   );
 

@@ -106,7 +106,10 @@ describe("Key-Values Module", () => {
   });
 
   afterAll(async () => {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 
@@ -764,7 +767,7 @@ describe("Key-Values Module", () => {
         did,
         numberBytes: `${42 * 1024 * 1024 - byteLength(value)}`,
       });
-      expect(response.text).toStrictEqual("");
+      expect(response.text).toBe("");
       expect(response.status).toBe(204);
     });
   });

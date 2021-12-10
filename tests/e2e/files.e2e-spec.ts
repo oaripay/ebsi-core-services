@@ -668,7 +668,7 @@ describe("Files (e2e)", () => {
         .auth(testUserAccessToken, { type: "bearer" })
         .send();
 
-      expect(response.text).toStrictEqual("");
+      expect(response.text).toBe("");
       expect(response.status).toBe(204);
 
       // Check if GET works
