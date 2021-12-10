@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.7](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.7&targetRepoId=244) (2021-12-06)
+
 ## [2.0.0-rc.6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.6&targetRepoId=244) (2021-11-15)
 
 ### 🚀 Features

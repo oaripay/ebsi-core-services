@@ -151,7 +151,7 @@ describe("Besu Module", () => {
       title: "Bad Request",
       status: 400,
       detail:
-        '["jsonrpc must be equal to 2.0","method must be a valid method","params must be an array"]',
+        '["jsonrpc must be equal to 2.0","method must be a valid method","each value in params must be a string","params must be an array"]',
       type: "about:blank",
     });
     expect(response.status).toBe(400);
@@ -341,7 +341,7 @@ describe("Besu Module", () => {
 
     expect(response.body).toStrictEqual({
       detail:
-        "Error parsing the transaction: invalid RLP: not enough bytes for string length",
+        "Error parsing the transaction: Invalid serialized tx input. Must be array",
       status: 400,
       title: "Bad Request",
       type: "about:blank",

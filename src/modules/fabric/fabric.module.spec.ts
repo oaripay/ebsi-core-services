@@ -153,8 +153,11 @@ describe("Fabric Module", () => {
   });
 
   afterAll(async () => {
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
   });
 
   describe("GET /channels", () => {
@@ -209,7 +212,7 @@ describe("Fabric Module", () => {
         `/blockchains/fabric/channels/${channelsNames[0]}`
       );
 
-      expect(response.text).toStrictEqual("");
+      expect(response.text).toBe("");
       expect(response.status).toBe(204);
     });
 
