@@ -313,7 +313,7 @@ describe("JsonRpc Module", () => {
     };
 
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction))
+      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await wallet.signTransaction(uTx);
@@ -395,7 +395,7 @@ describe("JsonRpc Module", () => {
     const transaction = responseBuild.body.result as UnsignedTransaction;
 
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction))
+      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
     );
 
     uTx.chainId = Number(uTx.chainId);
@@ -519,7 +519,9 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(unsignedTransaction))
+      JSON.parse(
+        JSON.stringify(unsignedTransaction)
+      ) as unknown as UnsignedTransaction
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await signer.signTransaction(uTx);
@@ -802,7 +804,9 @@ describe("JsonRpc Module", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction))
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await signer.signTransaction(uTx);
@@ -1023,9 +1027,9 @@ describe("JsonRpc Module", () => {
       let param2: JsonRpcParams = null;
       let param3: JsonRpcParams = null;
 
-      let expectedErrorMessage1;
-      let expectedErrorMessage2;
-      let expectedErrorMessage3;
+      let expectedErrorMessage1: string;
+      let expectedErrorMessage2: string;
+      let expectedErrorMessage3: string;
 
       const appPublicKey = "this is a public key";
       const publicKeyHex = `0x${Buffer.from(appPublicKey).toString("hex")}`;
@@ -1789,7 +1793,9 @@ describe("JsonRpc Module", () => {
       const randomSigner = ethers.Wallet.createRandom();
 
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(transaction1))
+        JSON.parse(
+          JSON.stringify(transaction1)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx1 = await randomSigner.signTransaction(uTx);

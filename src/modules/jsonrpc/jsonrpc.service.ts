@@ -460,7 +460,7 @@ export class JsonRpcService {
         data.push(prefixWith0x(prevAttributeHash));
       }
 
-      let functionSig;
+      let functionSig: string;
 
       if (prevAttributeHash) {
         // using updateAdministrator function (did, attributeData, lastVersHash)
@@ -472,6 +472,8 @@ export class JsonRpcService {
 
       // TODO: double check result
       const encodedData = this.tarContract.interface.encodeFunctionData(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         functionSig,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore

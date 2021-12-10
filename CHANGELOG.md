@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.7](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.7&targetRepoId=248) (2021-12-06)
+
+### 🚀 Features
+
+- add sendSignedTransaction alias ([#87](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/87/overview)) - EBSIINT-3474 ([aa892c6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/commits/aa892c6b1feef7dce70f2bab82e117a24318a9d1))
+
 ## [2.0.0-rc.6](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.6&targetRepoId=248) (2021-11-22)
 
 ### 🚀 Features

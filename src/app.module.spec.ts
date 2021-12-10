@@ -43,7 +43,10 @@ describe("App Module", () => {
   });
 
   afterAll(async () => {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 
