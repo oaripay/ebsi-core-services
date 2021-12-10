@@ -1,24 +1,9 @@
-import { Transaction, TxOptions } from "@ethereumjs/tx";
+import { Transaction } from "@ethereumjs/tx";
 import Common from "@ethereumjs/common";
 import { BesuDto } from "./dto";
 
-function isHexPrefixed(str: string): boolean {
-  return str.slice(0, 2) === "0x";
-}
-
-function stripHexPrefix(str: string): string {
-  if (typeof str !== "string") {
-    return str;
-  }
-  return isHexPrefixed(str) ? str.slice(2) : str;
-}
-
-function padToEven(a: string): string {
-  return a.length % 2 ? `0${a}` : a;
-}
-
-function deserialize(serializedTransaction: string, chainId: number) {
-  const optsChain: TxOptions = {
+function deserialize(serializedTransaction, chainId: number) {
+  const optsChain = {
     common: Common.forCustomChain(
       "mainnet",
       {
@@ -30,12 +15,11 @@ function deserialize(serializedTransaction: string, chainId: number) {
     ),
   };
 
-  const serialized = isHexPrefixed(serializedTransaction)
-    ? Buffer.from(padToEven(stripHexPrefix(serializedTransaction)), "hex")
-    : Buffer.from(serializedTransaction);
-
   try {
-    const tx = Transaction.fromSerializedTx(serialized, optsChain);
+    const tx = Transaction.fromRlpSerializedTx(
+      serializedTransaction,
+      optsChain
+    );
 
     return tx.toJSON();
   } catch (error: unknown) {

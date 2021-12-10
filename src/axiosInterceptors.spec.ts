@@ -53,7 +53,7 @@ describe("setupInterceptors", () => {
     );
 
     // Expect a response from the local server
-    expect(response.data).toBe("local");
+    expect(response.data).toStrictEqual("local");
   });
 
   it("should not call the remote server if the local server responded with a status < 500", async () => {
@@ -103,7 +103,7 @@ describe("setupInterceptors", () => {
     );
 
     // Expect a response from the remote server
-    expect(response.data).toBe("remote");
+    expect(response.data).toStrictEqual("remote");
 
     // Check if the logger has been called as expected
     expect(logger.debug).toHaveBeenCalledWith(
@@ -152,7 +152,7 @@ describe("setupInterceptors", () => {
     );
 
     // Expect a response from the remote server
-    expect(response.data).toBe("remote");
+    expect(response.data).toStrictEqual("remote");
 
     // Check if the logger has been called as expected
     expect(logger.debug).toHaveBeenCalledWith(

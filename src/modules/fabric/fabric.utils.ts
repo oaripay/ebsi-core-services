@@ -102,7 +102,7 @@ export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,
   data: JsonRpcDtos
 ): Promise<void> => {
-  const dataClass = new ClassTransformer().plainToInstance<
+  const dataClass = new ClassTransformer().plainToClass<
     JsonRpcDtos,
     JsonRpcDtos
   >(classType, data);

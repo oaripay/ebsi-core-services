@@ -153,7 +153,7 @@ export async function siopAuthentication(
     .send(didAuthJwt.bodyEncoded);
 
   const accessToken = await agent.verifyAuthenticationResponse(
-    response.body as AkeResponse,
+    response.body,
     nonce
   );
 
