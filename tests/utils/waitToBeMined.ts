@@ -9,7 +9,9 @@ export const waitToBeMined = async (
   let receipt: TransactionReceipt;
   /* eslint-disable no-await-in-loop */
   while (!mined) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => {
+      setTimeout(resolve, 500);
+    });
 
     receipt = await (
       await ledgerService.getContract()

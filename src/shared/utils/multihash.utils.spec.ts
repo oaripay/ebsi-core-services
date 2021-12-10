@@ -11,7 +11,7 @@ describe("multihashEncode", () => {
           "sha2-256"
         )
       ).toString("hex")
-    ).toStrictEqual(
+    ).toBe(
       "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
     );
 
@@ -22,7 +22,7 @@ describe("multihashEncode", () => {
           "sha3-256"
         )
       ).toString("hex")
-    ).toStrictEqual(
+    ).toBe(
       "162041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
     );
 
@@ -34,7 +34,7 @@ describe("multihashEncode", () => {
           "sha2-256"
         )
       ).toString("hex")
-    ).toStrictEqual(
+    ).toBe(
       "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
     );
 
@@ -52,7 +52,7 @@ describe("multihashEncode", () => {
           8
         )
       ).toString("hex")
-    ).toStrictEqual("120841dd7b6443542e75");
+    ).toBe("120841dd7b6443542e75");
   });
 
   it("should throw an error when the input is not valid", () => {

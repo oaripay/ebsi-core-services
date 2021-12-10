@@ -40,6 +40,7 @@ import {
   AppendDidDocumentVersionMetadataParam,
   DetachDidDocumentVersionMetadataParam,
   UpdateDidControllerParam,
+  UnsignedTransaction,
 } from "../../src/modules/jsonrpc/dto";
 import { DidMethodResponseObject } from "../../src/modules/did-methods/did-methods.interface";
 import {
@@ -530,7 +531,9 @@ describe("DID Registry (e2e)", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction))
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await signer.signTransaction(uTx);

@@ -19,6 +19,7 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import {
   InsertHashAlgorithmParam,
+  UnsignedTransaction,
   UpdateHashAlgorithmParam,
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
@@ -194,7 +195,9 @@ describe("HashAlgorithms (e2e)", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction))
+          JSON.parse(
+            JSON.stringify(unsignedTransaction)
+          ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testClientWallet.signTransaction(uTx);

@@ -19,6 +19,7 @@ import { Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import canonicalize from "canonicalize";
 import { useContainer } from "class-validator";
+import type { HashName } from "multihashes";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
@@ -164,16 +165,16 @@ describe("JsonRpc Module", () => {
   const badControllerDid =
     "did:unregistered-method:0xb9c5714089478a327f09197987f16f9e5d936e8a";
 
-  const multihashToNodeHashAlg = {
+  const multihashToNodeHashAlg: Partial<Record<HashName, string>> = {
     "sha2-256": "sha256",
     "sha2-512": "sha512",
     "sha3-224": "sha3-224",
     "sha3-256": "sha3-256",
     "sha3-384": "sha3-384",
     "sha3-512": "sha3-512",
-  };
+  } as const;
 
-  const computeHash = (value: string, multihash: string): string =>
+  const computeHash = (value: string, multihash: HashName): string =>
     `0x${crypto
       .createHash(multihashToNodeHashAlg[multihash])
       .update(value, "utf-8")
@@ -182,7 +183,7 @@ describe("JsonRpc Module", () => {
 
   const prepareDidDocument = (
     did: string,
-    multihash: string
+    multihash: HashName
   ): DidDocumentDataset => {
     const didDocument = createDidDocument(did);
 
@@ -332,7 +333,10 @@ describe("JsonRpc Module", () => {
   });
 
   afterAll(async () => {
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 
@@ -480,7 +484,7 @@ describe("JsonRpc Module", () => {
     };
 
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction))
+      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await wallet.signTransaction(uTx);
@@ -602,7 +606,9 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(unsignedTransaction))
+      JSON.parse(
+        JSON.stringify(unsignedTransaction)
+      ) as unknown as UnsignedTransaction
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await signer.signTransaction(uTx);
@@ -684,7 +690,9 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(unsignedTransaction))
+      JSON.parse(
+        JSON.stringify(unsignedTransaction)
+      ) as unknown as UnsignedTransaction
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await signer.signTransaction(uTx);
@@ -766,7 +774,9 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(unsignedTransaction))
+      JSON.parse(
+        JSON.stringify(unsignedTransaction)
+      ) as unknown as UnsignedTransaction
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await signer.signTransaction(uTx);
@@ -926,7 +936,9 @@ describe("JsonRpc Module", () => {
       };
 
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(transaction))
+        JSON.parse(
+          JSON.stringify(transaction)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await wallet.signTransaction(uTx);
@@ -1350,7 +1362,9 @@ describe("JsonRpc Module", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction))
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await signer.signTransaction(uTx);
@@ -2783,7 +2797,9 @@ describe("JsonRpc Module", () => {
       const randomSigner = ethers.Wallet.createRandom();
 
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(transaction1))
+        JSON.parse(
+          JSON.stringify(transaction1)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx1 = await randomSigner.signTransaction(uTx);

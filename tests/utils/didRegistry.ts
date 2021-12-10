@@ -90,7 +90,7 @@ const ianaToMultihashAlg: Record<string, HashName> = {
   "sha3-512": "sha3-512",
 };
 
-const ianaToNodeHashAlg = {
+const ianaToNodeHashAlg: Record<string, string> = {
   "sha-256": "sha256",
   "sha-512": "sha512",
   "sha3-224": "sha3-224",

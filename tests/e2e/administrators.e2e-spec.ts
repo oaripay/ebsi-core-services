@@ -33,6 +33,7 @@ import { requestSiopJwt } from "../utils/siopJwt";
 import { requestOAuth2Jwt } from "../utils/oauth2Jwt";
 import { createDid } from "../utils/data";
 import { LedgerService } from "../../src/modules/ledger/ledger.service";
+import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -188,7 +189,9 @@ describe("Administrators (e2e)", () => {
         });
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction))
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await signer.signTransaction(uTx);
@@ -325,7 +328,9 @@ describe("Administrators (e2e)", () => {
         });
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction))
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await testClientWallet.signTransaction(uTx);

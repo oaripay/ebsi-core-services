@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.8](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=234) (2021-12-06)
+
+### 🚀 Features
+
+- add sendSignedTransaction alias ([#116](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/pull-requests/116/overview)) - EBSIINT-3474 ([dddf0f8](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/commits/dddf0f85defeca770853e681c1618c7a82347b58))
+
 ## [2.0.0-rc.7](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.7&targetRepoId=234) (2021-11-16)
 
 ### 🚀 Features
