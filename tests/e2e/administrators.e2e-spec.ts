@@ -32,6 +32,7 @@ import { waitToBeMined } from "../utils/waitToBeMined";
 import { createDid } from "../utils/data";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { ContractService } from "../../src/shared/services/contract.service";
+import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -705,7 +706,9 @@ describe("Administrators (e2e)", () => {
       const unsignedTransaction = responseBuild.body.result;
 
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction))
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await adminTestWallet.signTransaction(uTx);
