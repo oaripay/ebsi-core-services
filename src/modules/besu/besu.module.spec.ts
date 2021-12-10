@@ -341,7 +341,7 @@ describe("Besu Module", () => {
 
     expect(response.body).toStrictEqual({
       detail:
-        "Error parsing the transaction: Invalid serialized tx input. Must be array",
+        "Error parsing the transaction: invalid RLP: not enough bytes for string length",
       status: 400,
       title: "Bad Request",
       type: "about:blank",

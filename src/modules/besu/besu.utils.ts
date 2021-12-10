@@ -30,11 +30,12 @@ function deserialize(serializedTransaction: string, chainId: number) {
     ),
   };
 
+  const serialized = isHexPrefixed(serializedTransaction)
+    ? Buffer.from(padToEven(stripHexPrefix(serializedTransaction)), "hex")
+    : Buffer.from(serializedTransaction);
+
   try {
-    const tx = Transaction.fromSerializedTx(
-      Buffer.from(padToEven(stripHexPrefix(serializedTransaction)), "hex"),
-      optsChain
-    );
+    const tx = Transaction.fromSerializedTx(serialized, optsChain);
 
     return tx.toJSON();
   } catch (error: unknown) {
