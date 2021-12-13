@@ -11,6 +11,14 @@ import {
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
   ArgsUpdatePolicy,
+  RequestAddPolicyConditionsDto,
+  ArgsAddPolicyConditions,
+  ArgsDeletePolicyCondition,
+  RequestDeletePolicyConditionDto,
+  RequestActivatePolicyDto,
+  RequestDeactivatePolicyDto,
+  ArgsActivatePolicy,
+  ArgsDeactivatePolicy,
 } from "./dto";
 import { InvalidRequestJsonRpcError } from "./errors";
 import {
@@ -176,6 +184,34 @@ export class JsonRpcService {
         );
         break;
       }
+      case "addPolicyConditions": {
+        await validateClass(
+          ArgsAddPolicyConditions,
+          args as unknown as ArgsAddPolicyConditions
+        );
+        break;
+      }
+      case "deletePolicyCondition": {
+        await validateClass(
+          ArgsDeletePolicyCondition,
+          args as unknown as ArgsDeletePolicyCondition
+        );
+        break;
+      }
+      case "activatePolicy": {
+        await validateClass(
+          ArgsActivatePolicy,
+          args as unknown as ArgsActivatePolicy
+        );
+        break;
+      }
+      case "deactivatePolicy": {
+        await validateClass(
+          ArgsDeactivatePolicy,
+          args as unknown as ArgsDeactivatePolicy
+        );
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -272,6 +308,92 @@ export class JsonRpcService {
         policyName,
         registry,
       ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionAddPolicyConditions(
+    body: RequestAddPolicyConditionsDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestAddPolicyConditionsDto, body);
+      const { from, policyId, policyConditions } = body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("addPolicyConditions", [
+        policyId,
+        policyConditions,
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionDeletePolicyCondition(
+    body: RequestDeletePolicyConditionDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestDeletePolicyConditionDto, body);
+      const { from, policyId, policyConditionId } = body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("deletePolicyCondition", [
+        policyId,
+        policyConditionId,
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionActivatePolicy(
+    body: RequestActivatePolicyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestActivatePolicyDto, body);
+      const { from, policyId } = body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("activatePolicy", [policyId]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionDeactivatePolicy(
+    body: RequestDeactivatePolicyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestDeactivatePolicyDto, body);
+      const { from, policyId } = body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("deactivatePolicy", [policyId]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {

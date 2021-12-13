@@ -28,6 +28,10 @@ import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interfa
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { PaginatedList } from "../../src/shared/interfaces";
 import {
+  ActivatePolicyParam,
+  AddPolicyConditionsParam,
+  DeactivatePolicyParam,
+  DeletePolicyConditionParam,
   InsertPolicyParam,
   UnsignedTransaction,
   UpdatePolicyParam,
@@ -48,7 +52,13 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertPolicyParam | UpdatePolicyParam;
+type JsonRpcParams =
+  | InsertPolicyParam
+  | UpdatePolicyParam
+  | AddPolicyConditionsParam
+  | DeletePolicyConditionParam
+  | ActivatePolicyParam
+  | DeactivatePolicyParam;
 
 jest.setTimeout(180000);
 
@@ -63,6 +73,7 @@ describe("Policies (e2e)", () => {
 
   const policy1 = createPolicy();
   const policy2 = createPolicy();
+  const policy3 = createPolicy();
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -358,574 +369,915 @@ describe("Policies (e2e)", () => {
     });
 
     // Tests to be repeated for every method
-    describe.each(["insertPolicy", "updatePolicy"])(
-      "/jsonrpc with method %s",
-      (method: string) => {
-        it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
-          expect.assertions(7);
+    describe.each([
+      "insertPolicy",
+      "updatePolicy",
+      "addPolicyConditions",
+      "deletePolicyCondition",
+      "deactivatePolicy",
+      "activatePolicy",
+    ])("/jsonrpc with method %s", (method: string) => {
+      it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
+        expect.assertions(7);
 
-          let param: JsonRpcParams = null;
-          let lastPolicyId: string;
+        let param: JsonRpcParams = null;
 
-          // Use test account, as defined in hardhat.config.ts
-          const signer = adminTestWallet;
+        // Get number of existing policies
+        const response: SupertestPoliciesResponse = await request(server).get(
+          "/policies"
+        );
+        // Update last policy
+        const lastPolicyId = `${response.body.total - 1}`;
 
-          switch (method) {
-            case "insertPolicy": {
-              const { opType, policyConditions, policyName, registry } =
-                policy1;
-              param = {
-                from: signer.address,
-                opType,
-                policyConditions,
-                policyName,
-                registry,
-              } as InsertPolicyParam;
-              break;
-            }
-            case "updatePolicy": {
-              // Get number of existing policies
-              const response: SupertestPoliciesResponse = await request(
-                server
-              ).get("/policies");
-              // Update last policy
-              lastPolicyId = `${response.body.total - 1}`;
+        // Use test account, as defined in hardhat.config.ts
+        const signer = adminTestWallet;
 
-              const { opType, policyName, registry } = policy2;
-              param = {
-                from: signer.address,
-                policyId: lastPolicyId,
-                opType,
-                policyName,
-                registry,
-              } as UpdatePolicyParam;
-              break;
-            }
-            default: {
-              throw new Error(`Test Error: Invalid method ${method}`);
-            }
+        switch (method) {
+          case "insertPolicy": {
+            const { opType, policyConditions, policyName, registry } = policy1;
+            param = {
+              from: signer.address,
+              opType,
+              policyConditions,
+              policyName,
+              registry,
+            } as InsertPolicyParam;
+            break;
           }
+          case "updatePolicy": {
+            const { opType, policyName, registry } = policy2;
+            param = {
+              from: signer.address,
+              policyId: lastPolicyId,
+              opType,
+              policyName,
+              registry,
+            } as UpdatePolicyParam;
+            break;
+          }
+          case "addPolicyConditions": {
+            const { policyConditions } = policy3;
+            param = {
+              from: signer.address,
+              policyId: lastPolicyId,
+              policyConditions,
+            } as AddPolicyConditionsParam;
+            break;
+          }
+          case "deletePolicyCondition": {
+            param = {
+              from: signer.address,
+              policyId: lastPolicyId,
+              policyConditionId: "2",
+            } as DeletePolicyConditionParam;
+            break;
+          }
+          case "deactivatePolicy": {
+            param = {
+              from: signer.address,
+              policyId: lastPolicyId,
+            } as DeactivatePolicyParam;
+            break;
+          }
+          case "activatePolicy": {
+            param = {
+              from: signer.address,
+              policyId: lastPolicyId,
+            } as ActivatePolicyParam;
+            break;
+          }
+          default: {
+            throw new Error(`Test Error: Invalid method ${method}`);
+          }
+        }
 
-          const responseBuild: SupertestJsonRpcResponse = await request(server)
-            .post("/jsonrpc")
-            .auth(testAdminAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method,
-              params: [param],
-              id: 231,
-            });
-
-          expect(responseBuild.body).toStrictEqual({
+        const responseBuild: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testAdminAccessToken, { type: "bearer" })
+          .send({
             jsonrpc: "2.0",
+            method,
+            params: [param],
             id: 231,
-            result: {
-              chainId: expect.any(String) as string,
-              data: expect.any(String) as string,
-              from: param.from,
-              gasLimit: expect.any(String) as string,
-              gasPrice: expect.any(String) as string,
-              nonce: expect.any(String) as string,
-              to: expect.any(String) as string,
-              value: "0x0",
-            },
           });
-          expect(responseBuild.status).toBe(200);
 
-          const unsignedTransaction = responseBuild.body.result;
-          const uTx = formatEthersUnsignedTransaction(
-            JSON.parse(
-              JSON.stringify(unsignedTransaction)
-            ) as unknown as UnsignedTransaction
-          );
-          uTx.chainId = Number(uTx.chainId);
-          const sgnTx = await signer.signTransaction(uTx);
-          const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+        expect(responseBuild.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: 231,
+          result: {
+            chainId: expect.any(String) as string,
+            data: expect.any(String) as string,
+            from: param.from,
+            gasLimit: expect.any(String) as string,
+            gasPrice: expect.any(String) as string,
+            nonce: expect.any(String) as string,
+            to: expect.any(String) as string,
+            value: "0x0",
+          },
+        });
+        expect(responseBuild.status).toBe(200);
 
-          const responseSend: SupertestJsonRpcResponse = await request(server)
-            .post("/jsonrpc")
-            .auth(testAdminAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "sendSignedTransaction",
-              params: [
-                {
-                  protocol: "eth",
-                  unsignedTransaction,
-                  r,
-                  s,
-                  v: `0x${Number(v).toString(16)}`,
-                  signedRawTransaction: sgnTx,
-                },
-              ],
-              id: "45",
-            });
+        const unsignedTransaction = responseBuild.body.result;
+        const uTx = formatEthersUnsignedTransaction(
+          JSON.parse(
+            JSON.stringify(unsignedTransaction)
+          ) as unknown as UnsignedTransaction
+        );
+        uTx.chainId = Number(uTx.chainId);
+        const sgnTx = await signer.signTransaction(uTx);
+        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
-          expect(responseSend.body).toStrictEqual({
+        const responseSend: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testAdminAccessToken, { type: "bearer" })
+          .send({
             jsonrpc: "2.0",
+            method: "sendSignedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r,
+                s,
+                v: `0x${Number(v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
             id: "45",
-            result: expect.any(String) as string,
           });
-          expect(responseSend.status).toBe(200);
 
-          // Wait to be mined
-          const receipt = await waitToBeMined(
-            ledgerService,
-            responseSend.body.result as string
-          );
-          expect(receipt.status).toBe(1);
-
-          // Check if policy has been inserted/updated correctly
-          let expectedResponseBody: unknown;
-          let actualResponse: SupertestPoliciesResponse;
-
-          switch (method) {
-            case "insertPolicy": {
-              const { opType, policyConditions, policyName, registry } =
-                policy1;
-
-              // Get number of existing policies
-              const getPoliciesResponse: SupertestPoliciesResponse =
-                await request(server).get("/policies");
-
-              const policyId = `${getPoliciesResponse.body.total - 1}`;
-
-              // Expected response
-              expectedResponseBody = {
-                policyId: `${policyId}`,
-                operationType: OPERATION_TYPES[opType],
-                policyConditions: policyConditions.map((condition) => ({
-                  attributeName: condition.attributeName,
-                  attributeOperation:
-                    ATTRIBUTE_OPERATIONS[condition.attributeOperation],
-                  name: condition.name,
-
-                  typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
-                  value: condition.expectedValue,
-                })),
-                policyName,
-                registry,
-                status: true,
-              } as PolicyResponseObject;
-
-              // Actual response
-              actualResponse = await request(server).get(
-                `/policies/${policyId}`
-              );
-
-              break;
-            }
-            case "updatePolicy": {
-              const { policyConditions } = policy1;
-              const { opType, policyName, registry } = policy2;
-
-              // Expected response
-              expectedResponseBody = {
-                policyId: `${lastPolicyId}`,
-                operationType: OPERATION_TYPES[opType],
-                policyConditions: policyConditions.map((condition) => ({
-                  attributeName: condition.attributeName,
-                  attributeOperation:
-                    ATTRIBUTE_OPERATIONS[condition.attributeOperation],
-                  name: condition.name,
-
-                  typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
-                  value: condition.expectedValue,
-                })),
-                policyName,
-                registry,
-                status: true,
-              } as PolicyResponseObject;
-
-              // Actual response
-              actualResponse = await request(server).get(
-                `/policies/${lastPolicyId}`
-              );
-
-              break;
-            }
-            default: {
-              break;
-            }
-          }
-
-          expect(actualResponse.body).toStrictEqual(expectedResponseBody);
-          expect(actualResponse.status).toBe(200);
+        expect(responseSend.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: "45",
+          result: expect.any(String) as string,
         });
+        expect(responseSend.status).toBe(200);
 
-        it("should accept a request without id", async () => {
-          expect.assertions(2);
+        // Wait to be mined
+        const receipt = await waitToBeMined(
+          ledgerService,
+          responseSend.body.result as string
+        );
+        expect(receipt.status).toBe(1);
 
-          const signer = adminTestWallet;
+        // Check if policy has been inserted/updated correctly
+        let expectedResponseBody: unknown;
+        let actualResponse: SupertestPoliciesResponse;
 
-          let param: JsonRpcParams = null;
+        switch (method) {
+          case "insertPolicy": {
+            const { opType, policyConditions, policyName, registry } = policy1;
 
-          switch (method) {
-            case "insertPolicy": {
-              const { opType, policyConditions, policyName, registry } =
-                policy1;
-              param = {
-                from: signer.address,
-                opType,
-                policyConditions,
-                policyName,
-                registry,
-              } as InsertPolicyParam;
-              break;
-            }
-            case "updatePolicy": {
-              const { opType, policyName, registry } = policy2;
-              param = {
-                from: signer.address,
-                opType,
-                policyId: "1",
-                policyName,
-                registry,
-              } as UpdatePolicyParam;
-              break;
-            }
-            default: {
-              throw new Error(`Test Error: Invalid method ${method}`);
-            }
+            // Get number of existing policies
+            const getPoliciesResponse: SupertestPoliciesResponse =
+              await request(server).get("/policies");
+
+            const policyId = `${getPoliciesResponse.body.total - 1}`;
+
+            // Expected response
+            expectedResponseBody = {
+              policyId: `${policyId}`,
+              operationType: OPERATION_TYPES[opType],
+              policyConditions: policyConditions.map((condition) => ({
+                attributeName: condition.attributeName,
+                attributeOperation:
+                  ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+                name: condition.name,
+                typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+                value: condition.expectedValue,
+              })),
+              policyName,
+              registry,
+              status: true,
+            } as PolicyResponseObject;
+
+            // Actual response
+            actualResponse = await request(server).get(`/policies/${policyId}`);
+
+            break;
           }
+          case "updatePolicy": {
+            const { policyConditions } = policy1;
+            const { opType, policyName, registry } = policy2;
 
-          const responseBuild = await request(server)
-            .post("/jsonrpc")
-            .auth(testAdminAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method,
-              params: [param],
-              // no id defined
-            });
+            // Expected response
+            expectedResponseBody = {
+              policyId: `${lastPolicyId}`,
+              operationType: OPERATION_TYPES[opType],
+              policyConditions: policyConditions.map((condition) => ({
+                attributeName: condition.attributeName,
+                attributeOperation:
+                  ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+                name: condition.name,
+                typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+                value: condition.expectedValue,
+              })),
+              policyName,
+              registry,
+              status: true,
+            } as PolicyResponseObject;
 
-          expect(responseBuild.body).toStrictEqual({
+            // Actual response
+            actualResponse = await request(server).get(
+              `/policies/${lastPolicyId}`
+            );
+
+            break;
+          }
+          case "addPolicyConditions": {
+            const { policyConditions } = policy1;
+            const { opType, policyName, registry } = policy2;
+            const { policyConditions: newPolicyConditions } = policy3;
+
+            // Expected response
+            expectedResponseBody = {
+              policyId: `${lastPolicyId}`,
+              operationType: OPERATION_TYPES[opType],
+              policyConditions: [
+                ...policyConditions,
+                ...newPolicyConditions,
+              ].map((condition) => ({
+                attributeName: condition.attributeName,
+                attributeOperation:
+                  ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+                name: condition.name,
+                typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+                value: condition.expectedValue,
+              })),
+              policyName,
+              registry,
+              status: true,
+            } as PolicyResponseObject;
+
+            // Actual response
+            actualResponse = await request(server).get(
+              `/policies/${lastPolicyId}`
+            );
+
+            break;
+          }
+          case "deletePolicyCondition": {
+            const { policyConditions } = policy1;
+            const { opType, policyName, registry } = policy2;
+            const { policyConditions: newPolicyConditions } = policy3;
+
+            // Remove condition with conditionId = "2"
+            // I.e. move last item to index = 2, then remove last item
+            const conditions = [...policyConditions, ...newPolicyConditions];
+            conditions.splice(2, 1, conditions[conditions.length - 1]);
+            conditions.pop();
+
+            // Expected response
+            expectedResponseBody = {
+              policyId: `${lastPolicyId}`,
+              operationType: OPERATION_TYPES[opType],
+              policyConditions: conditions.map((condition) => ({
+                attributeName: condition.attributeName,
+                attributeOperation:
+                  ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+                name: condition.name,
+                typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+                value: condition.expectedValue,
+              })),
+              policyName,
+              registry,
+              status: true,
+            } as PolicyResponseObject;
+
+            // Actual response
+            actualResponse = await request(server).get(
+              `/policies/${lastPolicyId}`
+            );
+
+            break;
+          }
+          case "deactivatePolicy": {
+            const { policyConditions } = policy1;
+            const { opType, policyName, registry } = policy2;
+            const { policyConditions: newPolicyConditions } = policy3;
+
+            // Remove condition with conditionId = "2"
+            // I.e. move last item to index = 2, then remove last item
+            const conditions = [...policyConditions, ...newPolicyConditions];
+            conditions.splice(2, 1, conditions[conditions.length - 1]);
+            conditions.pop();
+
+            // Expected response
+            expectedResponseBody = {
+              policyId: `${lastPolicyId}`,
+              operationType: OPERATION_TYPES[opType],
+              policyConditions: conditions.map((condition) => ({
+                attributeName: condition.attributeName,
+                attributeOperation:
+                  ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+                name: condition.name,
+                typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+                value: condition.expectedValue,
+              })),
+              policyName,
+              registry,
+              status: false,
+            } as PolicyResponseObject;
+
+            // Actual response
+            actualResponse = await request(server).get(
+              `/policies/${lastPolicyId}`
+            );
+
+            break;
+          }
+          case "activatePolicy": {
+            const { policyConditions } = policy1;
+            const { opType, policyName, registry } = policy2;
+            const { policyConditions: newPolicyConditions } = policy3;
+
+            // Remove condition with conditionId = "2"
+            // I.e. move last item to index = 2, then remove last item
+            const conditions = [...policyConditions, ...newPolicyConditions];
+            conditions.splice(2, 1, conditions[conditions.length - 1]);
+            conditions.pop();
+
+            // Expected response
+            expectedResponseBody = {
+              policyId: `${lastPolicyId}`,
+              operationType: OPERATION_TYPES[opType],
+              policyConditions: conditions.map((condition) => ({
+                attributeName: condition.attributeName,
+                attributeOperation:
+                  ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+                name: condition.name,
+                typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+                value: condition.expectedValue,
+              })),
+              policyName,
+              registry,
+              status: true,
+            } as PolicyResponseObject;
+
+            // Actual response
+            actualResponse = await request(server).get(
+              `/policies/${lastPolicyId}`
+            );
+
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+
+        expect(actualResponse.body).toStrictEqual(expectedResponseBody);
+        expect(actualResponse.status).toBe(200);
+      });
+
+      it("should accept a request without id", async () => {
+        expect.assertions(2);
+
+        const signer = adminTestWallet;
+
+        let param: JsonRpcParams = null;
+
+        switch (method) {
+          case "insertPolicy": {
+            const { opType, policyConditions, policyName, registry } = policy1;
+            param = {
+              from: signer.address,
+              opType,
+              policyConditions,
+              policyName,
+              registry,
+            } as InsertPolicyParam;
+            break;
+          }
+          case "updatePolicy": {
+            const { opType, policyName, registry } = policy2;
+            param = {
+              from: signer.address,
+              opType,
+              policyId: "1",
+              policyName,
+              registry,
+            } as UpdatePolicyParam;
+            break;
+          }
+          case "addPolicyConditions": {
+            const { policyConditions } = policy2;
+            param = {
+              from: signer.address,
+              policyId: "1",
+              policyConditions,
+            } as AddPolicyConditionsParam;
+            break;
+          }
+          case "deletePolicyCondition": {
+            param = {
+              from: signer.address,
+              policyId: "1",
+              policyConditionId: "2",
+            } as DeletePolicyConditionParam;
+            break;
+          }
+          case "deactivatePolicy": {
+            param = {
+              from: signer.address,
+              policyId: "1",
+            } as DeactivatePolicyParam;
+            break;
+          }
+          case "activatePolicy": {
+            param = {
+              from: signer.address,
+              policyId: "1",
+            } as ActivatePolicyParam;
+            break;
+          }
+          default: {
+            throw new Error(`Test Error: Invalid method ${method}`);
+          }
+        }
+
+        const responseBuild = await request(server)
+          .post("/jsonrpc")
+          .auth(testAdminAccessToken, { type: "bearer" })
+          .send({
             jsonrpc: "2.0",
-            id: null,
-            result: expect.objectContaining({}) as unknown,
+            method,
+            params: [param],
+            // no id defined
           });
-          expect(responseBuild.status).toBe(200);
+
+        expect(responseBuild.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: null,
+          result: expect.objectContaining({}) as unknown,
         });
+        expect(responseBuild.status).toBe(200);
+      });
 
-        it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
-          const signer = ethers.Wallet.createRandom();
+      it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
+        const signer = ethers.Wallet.createRandom();
 
-          const params: JsonRpcParams[] = [];
-          const expectedErrorMessages: string[] = [];
+        const params: JsonRpcParams[] = [];
+        const expectedErrorMessages: string[] = [];
 
-          switch (method) {
-            case "insertPolicy": {
-              params.push({
-                from: signer.address,
-                opType: policy1.opType,
-                policyConditions: policy1.policyConditions.map(
-                  ({ expectedValue, ...condition }) => condition
-                ),
-                // policyName: policy1.policyName, <- missing policyName
-                registry: policy1.registry,
-              } as InsertPolicyParam);
+        switch (method) {
+          case "insertPolicy": {
+            params.push({
+              from: signer.address,
+              opType: policy1.opType,
+              policyConditions: policy1.policyConditions.map(
+                ({ expectedValue, ...condition }) => condition
+              ),
+              // policyName: policy1.policyName, <- missing policyName
+              registry: policy1.registry,
+            } as InsertPolicyParam);
 
-              expectedErrorMessages.push(
-                "- Invalid params.0.policyName provided: policyName must be a string"
-              );
+            expectedErrorMessages.push(
+              "- Invalid params.0.policyName provided: policyName must be a string"
+            );
 
-              params.push({
-                from: signer.address,
-                opType: policy2.opType,
-                // policyConditions: policy2.policyConditions, <- missing policyConditions
-                policyName: policy2.policyName,
-                registry: policy2.registry,
-              } as InsertPolicyParam);
+            params.push({
+              from: signer.address,
+              opType: policy2.opType,
+              // policyConditions: policy2.policyConditions, <- missing policyConditions
+              policyName: policy2.policyName,
+              registry: policy2.registry,
+            } as InsertPolicyParam);
 
-              expectedErrorMessages.push(
-                "Invalid params.0.policyConditions provided: policyConditions must be an array"
-              );
+            expectedErrorMessages.push(
+              "Invalid params.0.policyConditions provided: policyConditions must be an array"
+            );
 
-              params.push({
-                from: signer.address,
-                opType: policy2.opType,
-                policyConditions: [
-                  ...policy2.policyConditions,
-                  {
-                    name: "condition-string",
-                    attributeName: "any",
-                    value: `0x${Buffer.from("vxc4gdbfgb", "utf-8").toString(
-                      "hex"
-                    )}`,
-                    expectedValue: "vxc4gdbfgb",
-                    attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
-                    typeOfValue: 47, // invalid typeOfValue
-                  },
-                ].map(({ expectedValue, ...condition }) => condition),
-                policyName: policy2.policyName,
-                registry: policy2.registry,
-              } as InsertPolicyParam);
+            params.push({
+              from: signer.address,
+              opType: policy2.opType,
+              policyConditions: [
+                ...policy2.policyConditions,
+                {
+                  name: "condition-string",
+                  attributeName: "any",
+                  value: `0x${Buffer.from("vxc4gdbfgb", "utf-8").toString(
+                    "hex"
+                  )}`,
+                  expectedValue: "vxc4gdbfgb",
+                  attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+                  typeOfValue: 47, // invalid typeOfValue
+                },
+              ].map(({ expectedValue, ...condition }) => condition),
+              policyName: policy2.policyName,
+              registry: policy2.registry,
+            } as InsertPolicyParam);
 
-              expectedErrorMessages.push(
-                "Invalid params.0.policyConditions.5.typeOfValue provided: typeOfValue must be less or equal to 5"
-              );
+            expectedErrorMessages.push(
+              "Invalid params.0.policyConditions.5.typeOfValue provided: typeOfValue must be less or equal to 5"
+            );
 
-              params.push({
-                from: "bad address",
-                opType: policy2.opType,
-                policyConditions: policy2.policyConditions,
-                policyName: policy2.policyName,
-                registry: policy2.registry,
-              } as InsertPolicyParam);
+            params.push({
+              from: "bad address",
+              opType: policy2.opType,
+              policyConditions: policy2.policyConditions,
+              policyName: policy2.policyName,
+              registry: policy2.registry,
+            } as InsertPolicyParam);
 
-              expectedErrorMessages.push(
-                "Invalid params.0.from provided: from must be an Ethereum address"
-              );
+            expectedErrorMessages.push(
+              "Invalid params.0.from provided: from must be an Ethereum address"
+            );
 
-              break;
-            }
-            case "updatePolicy": {
-              params.push({
-                from: signer.address,
-                opType: policy1.opType,
-                policyId: "1",
-                // policyName: policy1.policyName, <- missing policyName
-                registry: policy1.registry,
-              } as UpdatePolicyParam);
-
-              expectedErrorMessages.push(
-                "- Invalid params.0.policyName provided: policyName must be a string"
-              );
-
-              params.push({
-                from: signer.address,
-                opType: policy2.opType,
-                policyId: "1",
-                policyName: policy2.policyName,
-                registry: 15, // Invalid registry
-              } as unknown as UpdatePolicyParam);
-
-              expectedErrorMessages.push(
-                "Invalid params.0.registry provided: registry must be a string"
-              );
-
-              params.push({
-                from: signer.address,
-                opType: policy2.opType,
-                policyId: "0x69042",
-                policyName: policy2.policyName,
-                registry: policy2.registry,
-              } as UpdatePolicyParam);
-
-              expectedErrorMessages.push(
-                "Invalid params.0.policyId provided: policyId must be a number string"
-              );
-
-              params.push({
-                from: "bad address",
-                opType: policy2.opType,
-                policyId: "1",
-                policyName: policy2.policyName,
-                registry: policy2.registry,
-              } as UpdatePolicyParam);
-
-              expectedErrorMessages.push(
-                "Invalid params.0.from provided: from must be an Ethereum address"
-              );
-
-              break;
-            }
-            default: {
-              throw new Error(`Test Error: Invalid method ${method}`);
-            }
+            break;
           }
+          case "updatePolicy": {
+            params.push({
+              from: signer.address,
+              opType: policy1.opType,
+              policyId: "1",
+              // policyName: policy1.policyName, <- missing policyName
+              registry: policy1.registry,
+            } as UpdatePolicyParam);
 
-          expect.assertions(params.length * 2);
+            expectedErrorMessages.push(
+              "- Invalid params.0.policyName provided: policyName must be a string"
+            );
 
-          await Promise.all(
-            params.map(async (param, index) => {
-              const response1 = await request(server)
-                .post("/jsonrpc")
-                .auth(testAdminAccessToken, {
-                  type: "bearer",
-                })
-                .send({
-                  jsonrpc: "2.0",
-                  method,
-                  params: [param],
-                  id: 231,
-                });
+            params.push({
+              from: signer.address,
+              opType: policy2.opType,
+              policyId: "1",
+              policyName: policy2.policyName,
+              registry: 15, // Invalid registry
+            } as unknown as UpdatePolicyParam);
 
-              expect(response1.body).toStrictEqual({
+            expectedErrorMessages.push(
+              "Invalid params.0.registry provided: registry must be a string"
+            );
+
+            params.push({
+              from: signer.address,
+              opType: policy2.opType,
+              policyId: "0x69042",
+              policyName: policy2.policyName,
+              registry: policy2.registry,
+            } as UpdatePolicyParam);
+
+            expectedErrorMessages.push(
+              "Invalid params.0.policyId provided: policyId must be a number string"
+            );
+
+            params.push({
+              from: "bad address",
+              opType: policy2.opType,
+              policyId: "1",
+              policyName: policy2.policyName,
+              registry: policy2.registry,
+            } as UpdatePolicyParam);
+
+            expectedErrorMessages.push(
+              "Invalid params.0.from provided: from must be an Ethereum address"
+            );
+
+            break;
+          }
+          case "addPolicyConditions": {
+            params.push({
+              from: signer.address,
+              policyId: "test",
+              policyConditions: policy2.policyConditions.map(
+                ({ expectedValue, ...condition }) => condition
+              ),
+            } as AddPolicyConditionsParam);
+
+            expectedErrorMessages.push(
+              "- Invalid params.0.policyId provided: policyId must be a number string"
+            );
+
+            params.push({
+              from: signer.address,
+              policyId: "1",
+              // policyConditions: policy3.policyConditions, <- missing policyConditions
+            } as AddPolicyConditionsParam);
+
+            expectedErrorMessages.push(
+              "- Invalid params.0.policyConditions provided: policyConditions must be an array"
+            );
+
+            params.push({
+              from: signer.address,
+              policyId: "1",
+              policyConditions: [
+                ...policy2.policyConditions,
+                {
+                  name: "condition-string",
+                  attributeName: "any",
+                  value: `0x${Buffer.from("vxc4gdbfgb", "utf-8").toString(
+                    "hex"
+                  )}`,
+                  expectedValue: "vxc4gdbfgb",
+                  attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+                  typeOfValue: 47, // invalid typeOfValue
+                },
+              ].map(({ expectedValue, ...condition }) => condition),
+            } as AddPolicyConditionsParam);
+
+            expectedErrorMessages.push(
+              "Invalid params.0.policyConditions.5.typeOfValue provided: typeOfValue must be less or equal to 5"
+            );
+            break;
+          }
+          case "deletePolicyCondition": {
+            params.push({
+              from: signer.address,
+              policyId: "test",
+              policyConditionId: "1",
+            } as DeletePolicyConditionParam);
+
+            expectedErrorMessages.push(
+              "- Invalid params.0.policyId provided: policyId must be a number string"
+            );
+
+            params.push({
+              from: signer.address,
+              policyId: "1",
+              policyConditionId: "test",
+            } as DeletePolicyConditionParam);
+
+            expectedErrorMessages.push(
+              "- Invalid params.0.policyConditionId provided: policyConditionId must be a number string"
+            );
+
+            break;
+          }
+          case "deactivatePolicy": {
+            params.push({
+              from: signer.address,
+              policyId: "test",
+            } as DeactivatePolicyParam);
+
+            expectedErrorMessages.push(
+              "- Invalid params.0.policyId provided: policyId must be a number string"
+            );
+
+            break;
+          }
+          case "activatePolicy": {
+            params.push({
+              from: signer.address,
+              policyId: "test",
+            } as ActivatePolicyParam);
+
+            expectedErrorMessages.push(
+              "- Invalid params.0.policyId provided: policyId must be a number string"
+            );
+
+            break;
+          }
+          default: {
+            throw new Error(`Test Error: Invalid method ${method}`);
+          }
+        }
+
+        expect.assertions(params.length * 2);
+
+        await Promise.all(
+          params.map(async (param, index) => {
+            const response1 = await request(server)
+              .post("/jsonrpc")
+              .auth(testAdminAccessToken, {
+                type: "bearer",
+              })
+              .send({
                 jsonrpc: "2.0",
+                method,
+                params: [param],
                 id: 231,
-                error: {
-                  code: -32600,
-                  message: expect.stringContaining(
-                    expectedErrorMessages[index]
-                  ) as string,
-                },
               });
-              expect(response1.status).toBe(400);
-            })
-          );
-        });
 
-        it("should throw an error when the unsignedTransaction has been tampered", async () => {
-          expect.assertions(6);
-
-          const signer = adminTestWallet;
-
-          let param1: JsonRpcParams;
-          let param2: JsonRpcParams;
-
-          switch (method) {
-            case "insertPolicy": {
-              const { opType, policyConditions, policyName, registry } =
-                policy1;
-
-              param1 = {
-                from: signer.address,
-                opType,
-                policyConditions,
-                policyName,
-                registry,
-              } as InsertPolicyParam;
-              param2 = {
-                from: signer.address,
-                opType,
-                policyConditions,
-                policyName: "another name",
-                registry,
-              } as InsertPolicyParam;
-              break;
-            }
-            case "updatePolicy": {
-              const { opType, policyName, registry } = policy1;
-
-              param1 = {
-                from: signer.address,
-                policyId: "1",
-                opType,
-                policyName,
-                registry,
-              } as UpdatePolicyParam;
-              param2 = {
-                from: signer.address,
-                policyId: "1",
-                opType,
-                policyName: "another name",
-                registry,
-              } as UpdatePolicyParam;
-              break;
-            }
-            default: {
-              throw new Error(`Test Error: Invalid method ${method}`);
-            }
-          }
-
-          const responseBuild1: SupertestJsonRpcResponse = await request(server)
-            .post("/jsonrpc")
-            .auth(testAdminAccessToken, { type: "bearer" })
-            .send({
+            expect(response1.body).toStrictEqual({
               jsonrpc: "2.0",
-              method,
-              params: [param1],
               id: 231,
+              error: {
+                code: -32600,
+                message: expect.stringContaining(
+                  expectedErrorMessages[index]
+                ) as string,
+              },
             });
+            expect(response1.status).toBe(400);
+          })
+        );
+      });
 
-          expect(responseBuild1.status).toBe(200);
+      it("should throw an error when the unsignedTransaction has been tampered", async () => {
+        expect.assertions(6);
 
-          const transaction1 = responseBuild1.body
-            .result as UnsignedTransaction;
+        const signer = adminTestWallet;
 
-          const responseBuild2: SupertestJsonRpcResponse = await request(server)
-            .post("/jsonrpc")
-            .auth(testAdminAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method,
-              params: [param2],
-              id: 232,
-            });
+        let param1: JsonRpcParams;
+        let param2: JsonRpcParams;
 
-          expect(responseBuild2.status).toBe(200);
-          const transaction2 = responseBuild2.body
-            .result as UnsignedTransaction;
+        switch (method) {
+          case "insertPolicy": {
+            const { opType, policyConditions, policyName, registry } = policy1;
 
-          const randomSigner = ethers.Wallet.createRandom();
+            param1 = {
+              from: signer.address,
+              opType,
+              policyConditions,
+              policyName,
+              registry,
+            } as InsertPolicyParam;
+            param2 = {
+              from: signer.address,
+              opType,
+              policyConditions,
+              policyName: "another name",
+              registry,
+            } as InsertPolicyParam;
+            break;
+          }
+          case "updatePolicy": {
+            const { opType, policyName, registry } = policy1;
 
-          const uTx = formatEthersUnsignedTransaction(
-            JSON.parse(
-              JSON.stringify(transaction1)
-            ) as unknown as UnsignedTransaction
-          );
-          uTx.chainId = Number(uTx.chainId);
-          const sgnTx1 = await randomSigner.signTransaction(uTx);
-          const { r, s, v } = ethers.utils.parseTransaction(sgnTx1);
+            param1 = {
+              from: signer.address,
+              policyId: "1",
+              opType,
+              policyName,
+              registry,
+            } as UpdatePolicyParam;
+            param2 = {
+              from: signer.address,
+              policyId: "1",
+              opType,
+              policyName: "another name",
+              registry,
+            } as UpdatePolicyParam;
+            break;
+          }
+          case "addPolicyConditions": {
+            const { policyConditions } = policy2;
 
-          // Tampering signatures
-          const responseSend1 = await request(server)
-            .post("/jsonrpc")
-            .auth(testAdminAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "sendSignedTransaction",
-              params: [
-                {
-                  protocol: "eth",
-                  unsignedTransaction: transaction2,
-                  r,
-                  s,
-                  v: `0x${Number(v).toString(16)}`,
-                  signedRawTransaction: sgnTx1,
-                },
-              ],
-              id: "45",
-            });
+            param1 = {
+              from: signer.address,
+              policyId: "1",
+              policyConditions,
+            } as AddPolicyConditionsParam;
 
-          expect(responseSend1.body).toStrictEqual({
+            param2 = {
+              from: signer.address,
+              policyId: "2",
+              policyConditions,
+            } as AddPolicyConditionsParam;
+            break;
+          }
+          case "deletePolicyCondition": {
+            param1 = {
+              from: signer.address,
+              policyId: "1",
+              policyConditionId: "2",
+            } as DeletePolicyConditionParam;
+
+            param2 = {
+              from: signer.address,
+              policyId: "1",
+              policyConditionId: "3",
+            } as DeletePolicyConditionParam;
+            break;
+          }
+          case "deactivatePolicy": {
+            param1 = {
+              from: signer.address,
+              policyId: "1",
+            } as DeactivatePolicyParam;
+
+            param2 = {
+              from: signer.address,
+              policyId: "2",
+            } as DeactivatePolicyParam;
+
+            break;
+          }
+          case "activatePolicy": {
+            param1 = {
+              from: signer.address,
+              policyId: "1",
+            } as ActivatePolicyParam;
+
+            param2 = {
+              from: signer.address,
+              policyId: "2",
+            } as ActivatePolicyParam;
+
+            break;
+          }
+          default: {
+            throw new Error(`Test Error: Invalid method ${method}`);
+          }
+        }
+
+        const responseBuild1: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testAdminAccessToken, { type: "bearer" })
+          .send({
             jsonrpc: "2.0",
+            method,
+            params: [param1],
+            id: 231,
+          });
+
+        expect(responseBuild1.status).toBe(200);
+
+        const transaction1 = responseBuild1.body.result as UnsignedTransaction;
+
+        const responseBuild2: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testAdminAccessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method,
+            params: [param2],
+            id: 232,
+          });
+
+        expect(responseBuild2.status).toBe(200);
+        const transaction2 = responseBuild2.body.result as UnsignedTransaction;
+
+        const randomSigner = ethers.Wallet.createRandom();
+
+        const uTx = formatEthersUnsignedTransaction(
+          JSON.parse(
+            JSON.stringify(transaction1)
+          ) as unknown as UnsignedTransaction
+        );
+        uTx.chainId = Number(uTx.chainId);
+        const sgnTx1 = await randomSigner.signTransaction(uTx);
+        const { r, s, v } = ethers.utils.parseTransaction(sgnTx1);
+
+        // Tampering signatures
+        const responseSend1 = await request(server)
+          .post("/jsonrpc")
+          .auth(testAdminAccessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "sendSignedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction: transaction2,
+                r,
+                s,
+                v: `0x${Number(v).toString(16)}`,
+                signedRawTransaction: sgnTx1,
+              },
+            ],
             id: "45",
-            error: {
-              code: -32600,
-              message: expect.stringContaining(
-                "does not match with the signedRawTransaction"
-              ) as string,
-            },
           });
-          expect(responseSend1.status).toBe(400);
 
-          // Tampering "from"
-          transaction1.from = transaction2.from;
-          const responseSend2 = await request(server)
-            .post("/jsonrpc")
-            .auth(testAdminAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "sendSignedTransaction",
-              params: [
-                {
-                  protocol: "eth",
-                  unsignedTransaction: transaction1,
-                  r,
-                  s,
-                  v: `0x${Number(v).toString(16)}`,
-                  signedRawTransaction: sgnTx1,
-                },
-              ],
-              id: "46",
-            });
-
-          expect(responseSend2.body).toStrictEqual({
-            jsonrpc: "2.0",
-            id: "46",
-            error: {
-              code: -32600,
-              message: expect.stringContaining(
-                "does not match with unsignedTransaction.from"
-              ) as string,
-            },
-          });
-          expect(responseSend1.status).toBe(400);
+        expect(responseSend1.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: "45",
+          error: {
+            code: -32600,
+            message: expect.stringContaining(
+              "does not match with the signedRawTransaction"
+            ) as string,
+          },
         });
-      }
-    );
+        expect(responseSend1.status).toBe(400);
+
+        // Tampering "from"
+        transaction1.from = transaction2.from;
+        const responseSend2 = await request(server)
+          .post("/jsonrpc")
+          .auth(testAdminAccessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "sendSignedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction: transaction1,
+                r,
+                s,
+                v: `0x${Number(v).toString(16)}`,
+                signedRawTransaction: sgnTx1,
+              },
+            ],
+            id: "46",
+          });
+
+        expect(responseSend2.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: "46",
+          error: {
+            code: -32600,
+            message: expect.stringContaining(
+              "does not match with unsignedTransaction.from"
+            ) as string,
+          },
+        });
+        expect(responseSend1.status).toBe(400);
+      });
+    });
   });
 
   describe("/policies", () => {

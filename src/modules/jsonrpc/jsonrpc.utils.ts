@@ -8,6 +8,14 @@ import {
   RequestInsertPolicyDto,
   ArgsUpdatePolicy,
   RequestUpdatePolicyDto,
+  ArgsAddPolicyConditions,
+  RequestAddPolicyConditionsDto,
+  ArgsDeletePolicyCondition,
+  RequestDeletePolicyConditionDto,
+  ArgsActivatePolicy,
+  RequestActivatePolicyDto,
+  ArgsDeactivatePolicy,
+  RequestDeactivatePolicyDto,
 } from "./dto";
 
 export function formatEthersUnsignedTransaction(
@@ -43,7 +51,15 @@ type JsonRpcDtos =
   | ArgsInsertPolicy
   | RequestInsertPolicyDto
   | ArgsUpdatePolicy
-  | RequestUpdatePolicyDto;
+  | RequestUpdatePolicyDto
+  | ArgsAddPolicyConditions
+  | RequestAddPolicyConditionsDto
+  | ArgsDeletePolicyCondition
+  | RequestDeletePolicyConditionDto
+  | ArgsActivatePolicy
+  | RequestActivatePolicyDto
+  | ArgsDeactivatePolicy
+  | RequestDeactivatePolicyDto;
 
 const flattenValidationErrors = (
   errors: ClassValidator.ValidationError[],
@@ -81,6 +97,6 @@ export const validateClass = async (
   >(classType, data);
   const errors = await ClassValidator.validate(dataClass);
   if (errors.length > 0) {
-    throw new Error(flattenValidationErrors(errors)); // errors.toString());
+    throw new Error(flattenValidationErrors(errors));
   }
 };

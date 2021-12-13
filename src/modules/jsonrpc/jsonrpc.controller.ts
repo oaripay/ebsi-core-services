@@ -7,6 +7,10 @@ import {
   RequestSendSignedTransactionDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
+  RequestAddPolicyConditionsDto,
+  RequestDeletePolicyConditionDto,
+  RequestActivatePolicyDto,
+  RequestDeactivatePolicyDto,
 } from "./dto";
 import { SiopJwtAuthGuard } from "../auth/guards";
 import { Client, ClientInfo } from "../auth/decorators";
@@ -43,6 +47,37 @@ export default class AppController {
           body as RequestUpdatePolicyDto,
           id
         );
+        return jsonRpcResponse(result, id);
+      }
+      case "addPolicyConditions": {
+        const result =
+          await this.jsonRpcService.buildTransactionAddPolicyConditions(
+            body as RequestAddPolicyConditionsDto,
+            id
+          );
+        return jsonRpcResponse(result, id);
+      }
+      case "deletePolicyCondition": {
+        const result =
+          await this.jsonRpcService.buildTransactionDeletePolicyCondition(
+            body as RequestDeletePolicyConditionDto,
+            id
+          );
+        return jsonRpcResponse(result, id);
+      }
+      case "activatePolicy": {
+        const result = await this.jsonRpcService.buildTransactionActivatePolicy(
+          body as RequestActivatePolicyDto,
+          id
+        );
+        return jsonRpcResponse(result, id);
+      }
+      case "deactivatePolicy": {
+        const result =
+          await this.jsonRpcService.buildTransactionDeactivatePolicy(
+            body as RequestDeactivatePolicyDto,
+            id
+          );
         return jsonRpcResponse(result, id);
       }
       case "sendSignedTransaction": {

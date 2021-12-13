@@ -7,7 +7,7 @@ import {
   Min,
   Max,
 } from "class-validator";
-import { PolicyConditionDto } from "../insertPolicy/policy-condition.dto";
+import { PolicyConditionDto } from "../shared/policy-condition.dto";
 import { OPERATION_TYPES } from "../../../policies/policies.interface";
 
 export class ArgsInsertPolicy {

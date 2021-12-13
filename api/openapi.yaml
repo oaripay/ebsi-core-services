@@ -189,6 +189,7 @@ paths:
 
           - **jsonrpc**: Must be exactly '2.0'
           - **method**: Method to be invoked. Possible values: 'insertPolicy', 'updatePolicy',
+          'addPolicyConditions', 'deletePolicyCondition', 'deactivatePolicy', 'activatePolicy',
           'sendSignedTransaction'
           - **params**: Array of parameters
           - **id**: Identifier stablished by the client
@@ -277,7 +278,7 @@ paths:
 
                    Parameters:
                    - **from**: Ethereum address of the administrator
-                   - **policyId**: Policy Id
+                   - **policyId**: Policy ID
                    - **opType**: operation type. 0 = "AND", 1 = "OR"
                    - **policyName**: name of the policy.
                    - **registry**: name of the registry.
@@ -291,6 +292,103 @@ paths:
                       opType: 0
                       policyName: policy-test-0245fd52e9606e375ffe7d46718d60c8
                       registry: registry-test-867fc5181e2a0df61094cb565cf18d96
+              Build tx to addPolicyConditions:
+                description: |
+                  Call to build an unsigned transaction to add conditions to an existing policy in
+                  the registry.
+                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
+
+                   Parameters:
+                   - **from**: Ethereum address of the administrator
+                   - **policyId**: Policy ID
+                   - **policyConditions**: array of condition objects:
+                     - **name**: name of the condition
+                     - **attributeName**: name of the attribute on which it applies
+                     - **value**: value to compare to
+                     - **typeOfValue**: value type. 0 = "UINT256", 1 = "BYTES", 2 = "ADDRESS",
+                       3= "BYTES32", 4 = "STRING", 5 = "BOOLEAN"
+                     - **attributeOperation**: operation to apply. 0 = "EQUAL"
+                value:
+                  jsonrpc: "2.0"
+                  method: addPolicyConditions
+                  id: 1
+                  params:
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      policyId: "1"
+                      policyConditions:
+                        - name: condition-string
+                          attributeName: any
+                          value: "0x76786334676462666762"
+                          attributeOperation: 0
+                          typeOfValue: 4
+                        - name: condition-bytes
+                          attributeName: any
+                          value: "0x61736461736464"
+                          attributeOperation: 0
+                          typeOfValue: 1
+                        - name: condition-boolean-uint8array
+                          attributeName: any
+                          value: "0x00"
+                          attributeOperation: 0
+                          typeOfValue: 5
+                        - name: condition-address
+                          attributeName: any
+                          value: "0x00000000219ab540356cbb839cbe05303d7705fa"
+                          attributeOperation: 0
+                          typeOfValue: 2
+                        - name: condition-uint256
+                          attributeName: any
+                          value: "0x2a"
+                          attributeOperation: 0
+                          typeOfValue: 0
+              Build tx to deletePolicyCondition:
+                description: |
+                  Call to build an unsigned transaction to delete a condition from an existing
+                  policy in the registry.
+                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
+
+                   Parameters:
+                   - **from**: Ethereum address of the administrator
+                   - **policyId**: Policy ID
+                   - **policyConditionId:**: ID of the policiy condition to remove
+                value:
+                  jsonrpc: "2.0"
+                  method: deletePolicyCondition
+                  id: 1
+                  params:
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      policyId: "1"
+                      policyConditionId: "2"
+              Build tx to deactivatePolicy:
+                description: |
+                  Call to build an unsigned transaction to deactivate a policy in the registry.
+                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
+
+                   Parameters:
+                   - **from**: Ethereum address of the administrator
+                   - **policyId**: ID of the policy to deactivate
+                value:
+                  jsonrpc: "2.0"
+                  method: deactivatePolicy
+                  id: 1
+                  params:
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      policyId: "1"
+              Build tx to activatePolicy:
+                description: |
+                  Call to build an unsigned transaction to activate a policy in the registry.
+                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
+
+                   Parameters:
+                   - **from**: Ethereum address of the administrator
+                   - **policyId**: ID of the policy to activate
+                value:
+                  jsonrpc: "2.0"
+                  method: activatePolicy
+                  id: 1
+                  params:
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      policyId: "1"
               Send Transaction:
                 description: Call to send a signed transaction to the blockchain.
                 value:
