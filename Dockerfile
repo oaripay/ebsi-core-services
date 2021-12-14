@@ -4,6 +4,8 @@ COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
 
 FROM base as builder
+COPY submodules submodules
+COPY hardhat.config.ts ./
 RUN yarn install --frozen-lockfile --silent && yarn cache clean
 COPY nest-cli.json tsconfig*.json ./
 COPY src src

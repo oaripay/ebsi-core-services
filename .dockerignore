@@ -3,8 +3,10 @@
 
 # Only add what is necessary
 !package.json
+!hardhat.config.ts
 !nest-cli.json
 !tsconfig.production.json
 !tsconfig.json
 !yarn.lock
 !src
+!submodules/trusted-policies-registry-ethereum-sc/contracts
