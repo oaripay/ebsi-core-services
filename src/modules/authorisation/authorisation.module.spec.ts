@@ -46,7 +46,6 @@ import {
   createAuthenticationResponseJose,
   getKeyByAlg,
 } from "../../../tests/utils/didAuth";
-
 import { ApiConfig } from "../../config/configuration";
 import { ClaimRequest } from "./dto";
 
