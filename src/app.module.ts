@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { APP_GUARD } from "@nestjs/core";
+import { APP_GUARD, APP_INTERCEPTOR } from "@nestjs/core";
 import { ThrottlerModule } from "@nestjs/throttler";
 import { ConfigService } from "@nestjs/config";
 import { AppController } from "./app.controller";
@@ -7,6 +7,7 @@ import { NotificationsModule } from "./modules/notifications/notifications.modul
 import { HealthModule } from "./modules/health/health.module";
 import { ApiConfigModule, ApiConfig } from "./config/configuration";
 import { EbsiThrottler } from "./guards";
+import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 
 @Module({
   imports: [
@@ -24,6 +25,10 @@ import { EbsiThrottler } from "./guards";
   ],
   controllers: [AppController],
   providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
     {
       provide: APP_GUARD,
       useClass: EbsiThrottler,
