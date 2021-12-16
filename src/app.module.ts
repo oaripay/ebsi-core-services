@@ -1,11 +1,13 @@
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ApiConfigModule } from "./config/configuration";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { HashAlgorithmsModule } from "./modules/hash-algorithms/hash-algorithms.module";
 import { RecordsModule } from "./modules/records/records.module";
 import { TimestampsModule } from "./modules/timestamps/timestamps.module";
 import { HealthModule } from "./modules/health/health.module";
+import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 
 @Module({
   imports: [
@@ -17,7 +19,13 @@ import { HealthModule } from "./modules/health/health.module";
     HealthModule,
   ],
   controllers: [],
-  providers: [ConfigService],
+  providers: [
+    ConfigService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+  ],
 })
 export class AppModule {}
 
