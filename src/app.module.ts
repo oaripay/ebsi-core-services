@@ -1,14 +1,22 @@
 import { Module } from "@nestjs/common";
 import { TerminusModule } from "@nestjs/terminus";
+import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
 import { ApiConfigModule } from "./config/configuration";
 import { AttributesModule } from "./modules/attributes/attributes.module";
 import { HealthModule } from "./modules/health/health.module";
+import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 
 @Module({
   imports: [ApiConfigModule, TerminusModule, AttributesModule, HealthModule],
   controllers: [],
-  providers: [ConfigService],
+  providers: [
+    ConfigService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+  ],
 })
 export class AppModule {}
 
