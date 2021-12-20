@@ -1332,7 +1332,8 @@ paths:
 
           - **jsonrpc**: Must be exactly '2.0'
           - **method**: Method that to be invoked. Possible values: insertAdministrator,
-          insertIssuer, insertPolicy, sendSignedTransaction.
+          updateAdministrator, insertIssuer, updateIssuer, insertPolicy, updatePolicy, and
+          sendSignedTransaction.
           - **params**: Array of parameters
           - **id**: Identifier stablished by the client
         content:
