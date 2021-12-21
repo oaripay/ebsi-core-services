@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
-import WebSocket from "ws";
+import type WebSocket from "ws";
 import {
   BadRequestError,
   ForbiddenError,
@@ -20,8 +20,35 @@ interface WsResponse {
   response: string;
 }
 
+interface JsonRpcResponseError extends Error {
+  reason: string;
+  code: string;
+  status: number;
+  headers: Record<string, unknown>;
+  body: string;
+  requestBody: string;
+  requestMethod: string;
+  url: string;
+}
+
 function isWsResponse(value: unknown): value is WsResponse {
   return !!value && !!(value as WsResponse).response;
+}
+
+function hasOwnProperty<X extends unknown, Y extends PropertyKey>(
+  obj: X,
+  prop: Y
+): obj is X & Record<Y, unknown> {
+  return Object.prototype.hasOwnProperty.call(obj, prop) as boolean;
+}
+
+function isJsonRpcResponseError(value: unknown): value is JsonRpcResponseError {
+  if (!(value instanceof Error) || !value || typeof value !== "object") {
+    return false;
+  }
+
+  // Check error properties (must at least have "body")
+  return hasOwnProperty(value, "body") && typeof value.body === "string";
 }
 
 // As returned by Besu
@@ -35,7 +62,7 @@ const jsonRpcErrorCodeToHttpCode = (code: number): number => {
 export class BesuService implements OnModuleDestroy {
   private readonly logger = new Logger(BesuService.name);
 
-  private ethersProvider: ethers.providers.WebSocketProvider;
+  private ethersProvider: ethers.providers.JsonRpcProvider;
 
   private reconnectWebSocket = true;
 
@@ -43,19 +70,39 @@ export class BesuService implements OnModuleDestroy {
 
   constructor(private configService: ConfigService<ApiConfig>) {}
 
-  initWebSocketProvider(): void {
-    let pingTimeout: NodeJS.Timeout | null = null;
-    let keepAliveInterval: NodeJS.Timeout | null = null;
-
+  initBesuProvider(): void {
     const besuRpcNode = this.getBesuRpcNode();
 
+    if (!besuRpcNode || typeof besuRpcNode !== "string") {
+      throw new Error("Invalid or missing BESU_RPC_NODE");
+    }
+
+    // Useful for local testing
+    if (besuRpcNode.startsWith("http")) {
+      const { origin, pathname, username, password } = new URL(besuRpcNode);
+      this.ethersProvider = new ethers.providers.JsonRpcProvider({
+        url: `${origin}${pathname}`,
+        ...(username &&
+          password && {
+            user: username,
+            password,
+          }),
+      });
+      return;
+    }
+
     this.ethersProvider = new ethers.providers.WebSocketProvider(besuRpcNode);
+
+    let pingTimeout: NodeJS.Timeout | null = null;
+    let keepAliveInterval: NodeJS.Timeout | null = null;
 
     // Reconnect WS on accidental close
     // Inspired by https://github.com/ethers-io/ethers.js/issues/1053#issuecomment-808736570
 
     // eslint-disable-next-line no-underscore-dangle
-    const websocket = this.ethersProvider._websocket as WebSocket;
+    const websocket = (
+      this.ethersProvider as ethers.providers.WebSocketProvider
+    )._websocket as WebSocket;
 
     if (!websocket) {
       // Allow websocket to be undefined during unit tests
@@ -86,7 +133,7 @@ export class BesuService implements OnModuleDestroy {
 
       if (this.reconnectWebSocket) {
         this.logger.log("Trying to reconnect");
-        this.initWebSocketProvider();
+        this.initBesuProvider();
       }
     });
 
@@ -122,7 +169,7 @@ export class BesuService implements OnModuleDestroy {
     let isDeployingSC = false;
 
     if (!this.ethersProvider) {
-      this.initWebSocketProvider();
+      this.initBesuProvider();
     }
 
     try {
@@ -180,6 +227,31 @@ export class BesuService implements OnModuleDestroy {
         }
       }
 
+      if (isJsonRpcResponseError(e)) {
+        try {
+          const response = JSON.parse(e.body) as BesuResponseObject;
+          return {
+            status:
+              e.status ??
+              jsonRpcErrorCodeToHttpCode(parseInt(response.error.code, 10)),
+            data: {
+              ...response,
+              id: query.id,
+            },
+          };
+        } catch (err) {
+          // Log whatever could be useful for debugging
+          this.logger.log("An error occured while parsing Besu's reponse");
+          this.logger.log(err);
+
+          // Don't reveal details to the client
+          throw new InternalServerError(InternalServerError.defaultTitle, {
+            detail:
+              "The server encountered an internal error and was unable to complete your request",
+          });
+        }
+      }
+
       // Log whatever could be useful for debugging
       this.logger.error("An error occured while querying Besu");
       this.logger.error(e);
@@ -193,7 +265,11 @@ export class BesuService implements OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
-    if (this.ethersProvider && this.ethersProvider.destroy) {
+    if (
+      this.ethersProvider &&
+      this.ethersProvider instanceof ethers.providers.WebSocketProvider &&
+      this.ethersProvider.destroy
+    ) {
       this.reconnectWebSocket = false;
       await this.ethersProvider.destroy();
     }

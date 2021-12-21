@@ -1,8 +1,12 @@
+export interface BesuResponseErrorObject {
+  code?: string;
+}
+
 export interface BesuResponseObject {
   jsonrpc: string;
   id: string | number;
   result?: unknown;
-  error?: unknown;
+  error?: BesuResponseErrorObject;
 }
 
 export interface BesuServiceResponse {
