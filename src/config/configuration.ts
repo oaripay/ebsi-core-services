@@ -26,8 +26,6 @@ export interface ApiConfig {
     did: string;
     privateKey: string;
   };
-  throttleTtl: number;
-  throttleLimit: number;
 }
 
 // Default values to be used, depending on the environment
@@ -116,8 +114,6 @@ export const loadConfig = (): ApiConfig => {
       did: process.env.TEST_USER_DID_2,
       privateKey: process.env.TEST_USER_PRIVATE_KEY_2,
     },
-    throttleTtl: parseInt(process.env.THROTTLE_TTL, 10),
-    throttleLimit: parseInt(process.env.THROTTLE_LIMIT, 10),
   };
 };
 
@@ -164,7 +160,5 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_USER_PRIVATE_KEY_1: Joi.string(),
     TEST_USER_DID_2: Joi.string(),
     TEST_USER_PRIVATE_KEY_2: Joi.string(),
-    THROTTLE_TTL: Joi.number(),
-    THROTTLE_LIMIT: Joi.number(),
   }),
 });
