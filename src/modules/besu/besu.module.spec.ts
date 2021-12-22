@@ -157,7 +157,7 @@ describe("Besu Module", () => {
         title: "Bad Request",
         status: 400,
         detail:
-          '["jsonrpc must be equal to 2.0","method must be a valid method","each value in params must be a string","params must be an array"]',
+          '["jsonrpc must be equal to 2.0","method must be a valid method","params must be an array"]',
         type: "about:blank",
       });
       expect(response.status).toBe(400);
