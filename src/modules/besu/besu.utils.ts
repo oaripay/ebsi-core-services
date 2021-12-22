@@ -2,7 +2,7 @@ import { Transaction, TxOptions } from "@ethereumjs/tx";
 import Common from "@ethereumjs/common";
 import { BesuDto } from "./dto";
 
-function deserialize(serializedTransaction: string, chainId: number) {
+function deserialize(serializedTransaction: unknown, chainId: number) {
   const optsChain: TxOptions = {
     common: Common.forCustomChain(
       "mainnet",

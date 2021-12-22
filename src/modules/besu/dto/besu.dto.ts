@@ -1,4 +1,4 @@
-import { IsArray, Equals, IsOptional, IsString } from "class-validator";
+import { IsArray, Equals, IsOptional } from "class-validator";
 import { IsValidMethod } from "../validators";
 
 export class BesuDto {
@@ -9,8 +9,7 @@ export class BesuDto {
   method: string;
 
   @IsArray()
-  @IsString({ each: true })
-  params: string[];
+  params: unknown[];
 
   @IsOptional()
   id: number | string;
