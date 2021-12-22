@@ -1,9 +1,9 @@
-import { Transaction } from "@ethereumjs/tx";
+import { Transaction, TxOptions } from "@ethereumjs/tx";
 import Common from "@ethereumjs/common";
 import { BesuDto } from "./dto";
 
-function deserialize(serializedTransaction, chainId: number) {
-  const optsChain = {
+function deserialize(serializedTransaction: string, chainId: number) {
+  const optsChain: TxOptions = {
     common: Common.forCustomChain(
       "mainnet",
       {
@@ -16,7 +16,9 @@ function deserialize(serializedTransaction, chainId: number) {
   };
 
   try {
-    const tx = Transaction.fromRlpSerializedTx(
+    const tx = Transaction.fromSerializedTx(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       serializedTransaction,
       optsChain
     );
@@ -24,10 +26,13 @@ function deserialize(serializedTransaction, chainId: number) {
     return tx.toJSON();
   } catch (error: unknown) {
     const err = error as Error;
-    if (err.message.includes(`chain id ${chainId}`))
+
+    if (err.message.includes(`chain id ${chainId}`)) {
       err.message = `Invalid chain id. Please set chain id to 0x${chainId.toString(
         16
       )}`;
+    }
+
     throw err;
   }
 }

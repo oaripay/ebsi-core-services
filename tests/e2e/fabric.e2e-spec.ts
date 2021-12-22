@@ -51,8 +51,11 @@ describe("Fabric e2e tests", () => {
   });
 
   afterAll(async () => {
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
-    await new Promise<void>((resolve) => setTimeout(() => resolve(), 500)); // avoid jest open handle error
   });
 
   describe("GET /ledger/v2/blockchains/fabric/channels", () => {
@@ -112,7 +115,7 @@ describe("Fabric e2e tests", () => {
         `/blockchains/fabric/channels/${channelsNames[0]}`
       );
 
-      expect(response.text).toStrictEqual("");
+      expect(response.text).toBe("");
       expect(response.status).toBe(204);
     });
 

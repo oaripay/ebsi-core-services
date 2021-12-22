@@ -35,7 +35,7 @@ function isWsResponse(value: unknown): value is WsResponse {
   return !!value && !!(value as WsResponse).response;
 }
 
-function hasOwnProperty<X extends unknown, Y extends PropertyKey>(
+function hasOwnProperty<X, Y extends PropertyKey>(
   obj: X,
   prop: Y
 ): obj is X & Record<Y, unknown> {
