@@ -1,7 +1,6 @@
-import SignJWT from "jose/jwt/sign";
-import { JWK } from "jose/jwk/thumbprint";
-import parseJwk, { KeyLike } from "jose/jwk/parse";
-import { KeyObject } from "crypto";
+import { KeyObject } from "node:crypto";
+import { SignJWT, importJWK } from "jose";
+import type { JWK, KeyLike } from "jose";
 import { getPrivateKeyHex } from "./keys";
 
 export async function getKeyByAlg(
@@ -32,13 +31,13 @@ export async function getKeyByAlg(
     EdDSA: "Ed25519VerificationKey2018",
   };
   const keyObject = keys.find((p) => p.type === types[alg]);
-  const privateKeyEncryption = await parseJwk(
+  const privateKeyEncryption = await importJWK(
     keyObject.privateKeyEncryptionJwk ?? keyObject.privateKeyJwk,
     alg
   );
   const publicKeyEncryption =
     keyObject.publicKeyEncryptionJwk || keyObject.publicKeyJwk
-      ? await parseJwk(
+      ? await importJWK(
           keyObject.publicKeyEncryptionJwk ?? keyObject.publicKeyJwk,
           alg
         )
@@ -68,7 +67,7 @@ export async function createAuthenticationResponseJose(input: {
   const { alg, keyId, nonce, redirectUri, privateKeyJwk, publicKeyJwk } = input;
   const [did] = keyId.split("#");
 
-  const privateKey = await parseJwk(privateKeyJwk, alg);
+  const privateKey = await importJWK(privateKeyJwk, alg);
   const payload = input?.payload ?? {
     sub: did,
     sub_jwk: publicKeyJwk || {},

@@ -1,11 +1,10 @@
-import crypto from "crypto";
-import parseJwk, { JWK } from "jose/jwk/parse";
+import crypto from "node:crypto";
+import { importJWK, exportJWK, generateKeyPair } from "jose";
+import type { JWK } from "jose";
 import { ec as EC } from "elliptic";
 import secp256k1 from "secp256k1";
 import { ethers } from "ethers";
 import KeyEncoder from "key-encoder";
-import fromKeyLike from "jose/jwk/from_key_like";
-import generateKeyPair from "jose/util/generate_key_pair";
 import { base64url } from "multiformats/bases/base64";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 
@@ -59,7 +58,7 @@ export async function generateKeys(alg: string): Promise<{
 export async function getPrivateKeyHex(
   privateKey: crypto.KeyObject
 ): Promise<string> {
-  const privateJwk = await fromKeyLike(privateKey);
+  const privateJwk = await exportJWK(privateKey);
   return Buffer.from(base64url.baseDecode(privateJwk.d)).toString("hex");
 }
 
@@ -73,7 +72,7 @@ export async function getPublicKey(_privateKey: string): Promise<PublicKey> {
   const privKey = ec.keyFromPrivate(privateKey);
   const pubPoint = privKey.getPublic();
   const jwk = EbsiWallet.formatPublicKey(pubPoint, "jwk") as JWK;
-  const publicKey = await parseJwk(jwk, "ES256K");
+  const publicKey = await importJWK(jwk, "ES256K");
   const publicKeyObject = publicKey as crypto.KeyObject;
   const publicKeyPem = publicKeyObject
     .export({

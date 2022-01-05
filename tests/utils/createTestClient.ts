@@ -1,4 +1,5 @@
-import fromKeyLike, { JWK } from "jose/jwk/from_key_like";
+import { exportJWK } from "jose";
+import type { JWK } from "jose";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import type { DIDDocument } from "did-resolver";
 import { generateKeys, getPrivateKeyHex } from "./keys";
@@ -40,16 +41,16 @@ export async function createTestClient(): Promise<{
   for (let i = 0; i < 4; i += 1) {
     const id = `${did}#keys-${i + 1}`;
     const ks = await generateKeys(algs[i]);
-    const jwk = await fromKeyLike(ks.publicKey);
-    const jwkPriv = await fromKeyLike(ks.privateKey);
+    const jwk = await exportJWK(ks.publicKey);
+    const jwkPriv = await exportJWK(ks.privateKey);
     const type = types[i];
     if (algs[i] === "ES256K") {
       privateKeyHexES256K = await getPrivateKeyHex(ks.privateKey);
     }
     if (algs[i] === "EdDSA") {
       const enc = {
-        jwk: await fromKeyLike(ks.publicKeyEncryption),
-        jwkPriv: await fromKeyLike(ks.privateKeyEncryption),
+        jwk: await exportJWK(ks.publicKeyEncryption),
+        jwkPriv: await exportJWK(ks.privateKeyEncryption),
       };
       didDocument.verificationMethod.push({
         id,

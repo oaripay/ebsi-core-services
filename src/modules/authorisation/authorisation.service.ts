@@ -1,6 +1,6 @@
+import crypto, { randomUUID } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import crypto, { randomUUID } from "crypto";
 import {
   BadRequestError,
   InternalServerError,
@@ -8,41 +8,31 @@ import {
 } from "@cef-ebsi/problem-details-errors";
 import {
   Session as OAuth2Session,
-  AkeResponse as OAuth2AkeResponse,
   InvalidAppError,
   InvalidTokenError,
 } from "@cef-ebsi/oauth2-auth";
-import axios, { AxiosError } from "axios";
-import parseJwk from "jose/jwk/parse";
-import EncryptJWT from "jose/jwt/encrypt";
-import {
+import type { AkeResponse as OAuth2AkeResponse } from "@cef-ebsi/oauth2-auth";
+import axios from "axios";
+import type { AxiosError } from "axios";
+import { importJWK, EncryptJWT, jwtVerify } from "jose";
+import { RP, Session as SiopSession, DidAuthErrors } from "@cef-ebsi/siop-auth";
+import type {
   DidAuthValidationResponse,
-  RP,
   IdToken,
   ResponseClaims,
-  Session as SiopSession,
   AkeResponse as SiopAkeResponse,
   Ake1SigPayload,
-  DidAuthErrors,
 } from "@cef-ebsi/siop-auth";
-import {
-  createJWT,
-  decodeJWT,
-  ES256KSigner,
-  JWTOptions,
-  JWTHeader,
-} from "did-jwt";
-import {
-  validatePresentation,
-  VerifiablePresentation,
-} from "@cef-ebsi/verifiable-presentation";
+import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
+import type { JWTOptions, JWTHeader } from "did-jwt";
+import { validatePresentation } from "@cef-ebsi/verifiable-presentation";
+import type { VerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
 import { base64url } from "multiformats/bases/base64";
 import Joi from "joi";
 import type { DIDDocument } from "did-resolver";
-import jwtVerify from "jose/jwt/verify";
-import { ApiConfig } from "../../config/configuration";
-import { AuthenticationRequestResponse } from "./authorisation.interface";
-import {
+import type { ApiConfig } from "../../config/configuration";
+import type { AuthenticationRequestResponse } from "./authorisation.interface";
+import type {
   ClaimRequest,
   OAuth2SessionDto,
   SiopSessionDto,
@@ -209,7 +199,7 @@ export class AuthorisationService {
         headerOpts
       );
 
-      const encryptionKey = (await parseJwk(
+      const encryptionKey = (await importJWK(
         validation.signer.publicKeyJwk,
         header.alg
       )) as crypto.KeyObject;
@@ -480,7 +470,7 @@ export class AuthorisationService {
 
     let publicKey: crypto.KeyObject;
     try {
-      publicKey = (await parseJwk(
+      publicKey = (await importJWK(
         publicKeyJwk,
         header.alg
       )) as crypto.KeyObject;

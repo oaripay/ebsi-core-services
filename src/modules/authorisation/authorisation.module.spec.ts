@@ -1,17 +1,17 @@
+import crypto, { randomUUID } from "node:crypto";
+import { URLSearchParams } from "node:url";
 import request from "supertest";
-import crypto, { randomUUID } from "crypto";
-import fromKeyLike from "jose/jwk/from_key_like";
+import { SignJWT, importJWK, exportJWK, jwtVerify } from "jose";
 import {
   Session,
   Agent,
-  AkeResponse,
-  Ake1SigPayload,
   InvalidTokenError,
   InvalidAppError,
 } from "@cef-ebsi/oauth2-auth";
-import SignJWT from "jose/jwt/sign";
+import type { Ake1SigPayload, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { Test, TestingModule } from "@nestjs/testing";
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
+import type { AxiosResponse } from "axios";
 import {
   INestApplication,
   ValidationPipe,
@@ -24,16 +24,13 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import jwtVerify from "jose/jwt/verify";
-import querystring from "querystring";
 import didJwt from "did-jwt";
-import parseJwk from "jose/jwk/parse";
 import type { DIDDocument } from "did-resolver";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { base64url } from "multiformats/bases/base64";
 import vpLib from "@cef-ebsi/verifiable-presentation";
 import { AuthorisationModule } from "./authorisation.module";
-import { AuthenticationRequestResponse } from "./authorisation.interface";
+import type { AuthenticationRequestResponse } from "./authorisation.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import {
   getPublicKey,
@@ -46,8 +43,8 @@ import {
   createAuthenticationResponseJose,
   getKeyByAlg,
 } from "../../../tests/utils/didAuth";
-import { ApiConfig } from "../../config/configuration";
-import { ClaimRequest } from "./dto";
+import type { ApiConfig } from "../../config/configuration";
+import type { ClaimRequest } from "./dto";
 
 jest.mock("@cef-ebsi/verifiable-presentation", () => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -84,7 +81,7 @@ async function createClient(alg: string) {
   const { publicKey, privateKey, publicKeyEncryption, privateKeyEncryption } =
     await generateKeys(alg);
 
-  const jwk = await fromKeyLike(publicKey);
+  const jwk = await exportJWK(publicKey);
   const did = EbsiWallet.createDid();
 
   return {
@@ -212,23 +209,23 @@ describe("Authorisation Module", () => {
 
       expect(response.status).toBe(200);
 
-      const query = querystring.decode(
+      const query = new URLSearchParams(
         (response.body as AuthenticationRequestResponse).uri.replace(
           "openid://?",
           ""
         )
       );
 
-      expect(query.scope).toBe("openid did_authn");
-      expect(query.response_type).toBe("id_token");
-      expect(query.client_id).toBeDefined();
-      expect(query.nonce).toBeDefined();
-      expect(query.request).toBeDefined();
+      expect(query.get("scope")).toBe("openid did_authn");
+      expect(query.get("response_type")).toBe("id_token");
+      expect(query.get("client_id")).toBeDefined();
+      expect(query.get("nonce")).toBeDefined();
+      expect(query.get("request")).toBeDefined();
 
       const { publicKeyObject } = await getPublicKey(apiPrivateKey);
 
       const verification = await jwtVerify(
-        query.request as string,
+        query.get("request"),
         publicKeyObject
       );
       expect(verification.payload).toStrictEqual({
@@ -386,7 +383,7 @@ describe("Authorisation Module", () => {
         const clientDid = client.did;
         const clientPrivateKeys = client.keys;
         const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
-        const clientPrivateKey = await parseJwk(keyObject.privateKeyJwk, alg);
+        const clientPrivateKey = await importJWK(keyObject.privateKeyJwk, alg);
 
         let response = await request(server)
           .post("/siop-sessions")

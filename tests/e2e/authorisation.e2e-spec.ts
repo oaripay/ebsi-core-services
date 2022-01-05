@@ -1,44 +1,39 @@
+import crypto, { randomUUID } from "node:crypto";
+import type { JsonWebKey } from "node:crypto";
+import { URLSearchParams } from "node:url";
 import request from "supertest";
-import crypto, { randomUUID } from "crypto";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import { ValidationPipe, Logger } from "@nestjs/common";
+import type { INestApplication, HttpServer } from "@nestjs/common";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import canonicalize from "canonicalize";
-import { JWK, parseJwk } from "jose/jwk/parse";
-import jwtDecrypt from "jose/jwt/decrypt";
+import {
+  exportJWK,
+  generateKeyPair,
+  importJWK,
+  jwtDecrypt,
+  jwtVerify,
+  SignJWT,
+} from "jose";
+import type { JWK } from "jose";
 import { createJWT, ES256KSigner } from "did-jwt";
-import generateKeyPair from "jose/util/generate_key_pair";
-import fromKeyLike from "jose/jwk/from_key_like";
-import SignJWT from "jose/jwt/sign";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
-import jwtVerify from "jose/jwt/verify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import {
-  Ake1SigPayload,
-  AkeResponse,
-  Agent as OAuth2Agent,
-} from "@cef-ebsi/oauth2-auth";
+import { Agent as OAuth2Agent } from "@cef-ebsi/oauth2-auth";
+import type { Ake1SigPayload, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import {
   RP,
   Agent as SiopAgent,
   DidAuthResponseMode,
 } from "@cef-ebsi/siop-auth";
-import querystring from "querystring";
 import axios from "axios";
 import { base64url } from "multiformats/bases/base64";
 import { AppModule } from "../../src/app.module";
-import { AuthenticationRequestResponse } from "../../src/modules/authorisation/authorisation.interface";
+import type { AuthenticationRequestResponse } from "../../src/modules/authorisation/authorisation.interface";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { ApiConfig } from "../../src/config/configuration";
+import type { ApiConfig } from "../../src/config/configuration";
 import { getPublicKey, randomPrivateKeySecp256k1 } from "../utils/keys";
 import { createVerifiableAuthorisation } from "../utils/verifiableAuthorisation";
 import { createVP } from "../utils/verfiablePresentation";
@@ -178,24 +173,24 @@ describe("Authorisation (e2e)", () => {
 
       expect(response.status).toBe(200);
 
-      const query = querystring.decode(
+      const query = new URLSearchParams(
         (response.body as AuthenticationRequestResponse).uri.replace(
           "openid://?",
           ""
         )
       );
 
-      expect(query.scope).toBe("openid did_authn");
-      expect(query.response_type).toBe("id_token");
-      expect(query.client_id).toBeDefined();
-      expect(query.nonce).toBeDefined();
-      expect(query.request).toBeDefined();
+      expect(query.get("scope")).toBe("openid did_authn");
+      expect(query.get("response_type")).toBe("id_token");
+      expect(query.get("client_id")).toBeDefined();
+      expect(query.get("nonce")).toBeDefined();
+      expect(query.get("request")).toBeDefined();
 
       const { publicKeyObject } = await getPublicKey(
         configService.get("apiPrivateKey")
       );
       const verification = await jwtVerify(
-        query.request as string,
+        query.get("request"),
         publicKeyObject
       );
 
@@ -365,7 +360,7 @@ describe("Authorisation (e2e)", () => {
         }[];
         const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
 
-        const clientPrivateKey = await parseJwk(keyObject.privateKeyJwk, alg);
+        const clientPrivateKey = await importJWK(keyObject.privateKeyJwk, alg);
         const domain = configService.get<string>("domain");
         const urlPrefix = configService.get<string>("apiUrlPrefix");
         const siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
@@ -495,7 +490,7 @@ describe("Authorisation (e2e)", () => {
         });
         expect(response.status).toBe(400);
 
-        const wrongJwk = await fromKeyLike(
+        const wrongJwk = await exportJWK(
           (
             await generateKeyPair(alg)
           ).privateKey
@@ -565,7 +560,7 @@ describe("Authorisation (e2e)", () => {
           issuer: apiDid,
         });
 
-        const uriDecoded = querystring.decode(uri.replace("openid://?", ""));
+        const uriDecoded = new URLSearchParams(uri.replace("openid://?", ""));
 
         const nonce = randomUUID();
 
@@ -600,21 +595,21 @@ describe("Authorisation (e2e)", () => {
             await agent.createAuthenticationResponse({
               did: configService.get("testClientDid"),
               nonce,
-              redirectUri: uriDecoded.client_id as string,
+              redirectUri: uriDecoded.get("client_id"),
               responseMode: DidAuthResponseMode.FORM_POST,
             });
 
-          const authResponseDecoded = querystring.decode(
+          const authResponseDecoded = new URLSearchParams(
             authenticationResponse.bodyEncoded || ""
           );
 
-          idToken = authResponseDecoded.id_token as string;
+          idToken = authResponseDecoded.get("id_token");
         } else {
           idToken = await createAuthenticationResponseJose({
             alg,
             keyId: keyObject.id,
             nonce,
-            redirectUri: uriDecoded.client_id as string,
+            redirectUri: uriDecoded.get("client_id"),
             privateKeyJwk: keyObject.privateKeyJwk,
             publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk,
           });
@@ -700,12 +695,10 @@ describe("Authorisation (e2e)", () => {
       });
 
       const { uri } = authenticationRequestsResponse.body as { uri: string };
-      const uriDecoded = querystring.decode(uri.replace("openid://?", "")) as {
-        request: string;
-      };
+      const uriDecoded = new URLSearchParams(uri.replace("openid://?", ""));
 
       const payload = await siopAgent.verifyAuthenticationRequest(
-        uriDecoded.request
+        uriDecoded.get("request")
       );
 
       // 3. The client creates an authentication response and gets an ID Token
@@ -719,11 +712,11 @@ describe("Authorisation (e2e)", () => {
           claims: {},
         });
 
-      const authResponseDecoded = querystring.decode(
+      const authResponseDecoded = new URLSearchParams(
         authenticationResponse.bodyEncoded ?? ""
       );
 
-      const idToken = authResponseDecoded.id_token;
+      const idToken = authResponseDecoded.get("id_token");
 
       // 4. The client calls /siop-sessions with the ID Token
       const siopSessionsResponse = await request(server)
@@ -788,11 +781,11 @@ describe("Authorisation (e2e)", () => {
           },
         });
 
-      const authResponseDecoded = querystring.decode(
+      const authResponseDecoded = new URLSearchParams(
         authenticationResponse.bodyEncoded ?? ""
       );
 
-      const idToken = authResponseDecoded.id_token;
+      const idToken = authResponseDecoded.get("id_token");
 
       // 3. The client calls /siop-sessions with the ID Token
       const siopSessionsResponse = await request(server)
@@ -865,11 +858,11 @@ describe("Authorisation (e2e)", () => {
           },
         });
 
-      const authResponseDecoded = querystring.decode(
+      const authResponseDecoded = new URLSearchParams(
         authenticationResponse.bodyEncoded ?? ""
       );
 
-      const idToken = authResponseDecoded.id_token;
+      const idToken = authResponseDecoded.get("id_token");
 
       // 3. The client calls /siop-sessions with the ID Token
       const siopSessionsResponse = await request(server)
@@ -935,11 +928,11 @@ describe("Authorisation (e2e)", () => {
           },
         });
 
-      const authResponseDecoded = querystring.decode(
+      const authResponseDecoded = new URLSearchParams(
         authenticationResponse.bodyEncoded ?? ""
       );
 
-      const idToken = authResponseDecoded.id_token;
+      const idToken = authResponseDecoded.get("id_token");
 
       // 3. The client calls /siop-sessions with the ID Token
       const siopSessionsResponse = await request(server)
