@@ -9,9 +9,6 @@ module.exports = {
     "^.+\\.(t|j)s$": "ts-jest",
   },
   moduleFileExtensions: ["js", "json", "ts"],
-  moduleNameMapper: {
-    "^jose/(.*)$": "<rootDir>/node_modules/jose/dist/node/cjs/$1",
-  },
   coverageDirectory: "./coverage/",
   collectCoverageFrom: [
     "src/**/*.(t|j)s",

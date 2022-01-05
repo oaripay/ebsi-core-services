@@ -1,3 +1,4 @@
+import { TextDecoder } from "node:util";
 import { multibase } from "./multibase.utils";
 
 const bases: Record<

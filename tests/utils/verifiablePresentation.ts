@@ -1,11 +1,9 @@
-import {
-  createVerifiablePresentation,
-  VerifiablePresentation,
-} from "@cef-ebsi/verifiable-presentation";
-import { VerifiableCredential } from "@cef-ebsi/verifiable-credential";
+import type { VerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
+import type { VerifiableCredential } from "@cef-ebsi/verifiable-credential";
+import type { JWTPayload } from "jose";
+import { createVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
 import { createJWT, ES256KSigner } from "did-jwt";
 import { base64url } from "multiformats/bases/base64";
-import { JWTPayload } from "jose/types";
 
 const extractIatFromJwt = (jwt: string): number => {
   const token = jwt.split(".");

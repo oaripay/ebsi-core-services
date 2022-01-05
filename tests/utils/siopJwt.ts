@@ -1,4 +1,5 @@
-import querystring from "querystring";
+import { URLSearchParams } from "node:url";
+import { randomUUID } from "node:crypto";
 import axios, { AxiosResponse } from "axios";
 import {
   Agent as SiopAgent,
@@ -6,10 +7,9 @@ import {
   AkeResponse,
 } from "@cef-ebsi/siop-auth";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { randomUUID } from "crypto";
 import canonicalize from "canonicalize";
 import { base64url } from "multiformats/bases/base64";
-import type { JWK } from "jose/types";
+import type { JWK } from "jose";
 import { createVP } from "./verifiablePresentation";
 import { createVerifiableAuthorisation } from "./verifiableAuthorisation";
 import { prefixWith0x } from "../../src/shared/utils/strings.utils";
@@ -40,12 +40,11 @@ export const requestSiopJwt = async ({
 
   // 2. The client verifies the response
   const { uri } = authenticationRequestsResponse.data;
-  const uriDecoded = querystring.decode(uri.replace("openid://?", "")) as {
-    request: string;
-  };
+
+  const uriDecoded = new URLSearchParams(uri.replace("openid://?", ""));
 
   const payload = await siopAgent.verifyAuthenticationRequest(
-    uriDecoded.request
+    uriDecoded.get("request")
   );
 
   // 3. The client creates an authentication response and gets an ID Token
@@ -58,11 +57,11 @@ export const requestSiopJwt = async ({
     responseMode: DidAuthResponseMode.FORM_POST,
   });
 
-  const authResponseDecoded = querystring.decode(
+  const authResponseDecoded = new URLSearchParams(
     authenticationResponse.bodyEncoded ?? ""
   );
 
-  const idToken = authResponseDecoded.id_token;
+  const idToken = authResponseDecoded.get("id_token");
 
   // 4. The client call /siop-sessions with the ID Token
   const siopSessionsResponse = await axios.post<
@@ -70,7 +69,7 @@ export const requestSiopJwt = async ({
     AxiosResponse<AkeResponse>
   >(
     `${authorisationApiUrl}/siop-sessions`,
-    querystring.stringify({ id_token: idToken }),
+    new URLSearchParams({ id_token: idToken }).toString(),
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -148,11 +147,11 @@ export const requestNewUserSiopJwt = async ({
     },
   });
 
-  const authResponseDecoded = querystring.decode(
+  const authResponseDecoded = new URLSearchParams(
     authenticationResponse.bodyEncoded
   );
 
-  let idToken = authResponseDecoded.id_token;
+  let idToken = authResponseDecoded.get("id_token");
 
   if (Array.isArray(idToken)) {
     [idToken] = idToken;
