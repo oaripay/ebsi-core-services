@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import { URLSearchParams } from "node:url";
+import crypto from "node:crypto";
 import request from "supertest";
 import axios from "axios";
 import { base58btc } from "multiformats/bases/base58";
