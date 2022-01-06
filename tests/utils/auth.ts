@@ -1,5 +1,6 @@
+import { URLSearchParams } from "node:url";
+import crypto from "node:crypto";
 import request from "supertest";
-import crypto from "crypto";
 import { DidAuthResponseMode, Agent, AkeResponse } from "@cef-ebsi/siop-auth";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { loadConfig } from "../../src/config/configuration";
