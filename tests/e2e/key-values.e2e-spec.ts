@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
+import { URL } from "node:url";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
