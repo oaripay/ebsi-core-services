@@ -78,187 +78,185 @@ paths:
                     proofPurpose: assertionMethod
                     verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
                     jws: eyJh..Iw
-              ct_ONBOARD_04_B:
-                summary: Transfer Verifiable Authorisation  (CT V1 ONBOARD_04_B)
+              issuer-mock-authorize:
+                summary: Call conformance /issuer-mock/authorize (async)
                 description: |
-                  This is test data for [CT V1 ONBOARD_04_B](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ONBOARD).
-                  'payload' is a properly formed verifiable Authorisation.
+                  Call conformance service in the endpoint /issuer-mock/authorize
+                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
+                  for the details of this endpoint
                 value:
-                  schemaId: notification-001
+                  schemaId: notifications-001
                   type:
                     - Notification
-                    - StoreVerifiableAuthorisation
+                    - QueryConformance
                   "@context":
                     - https://www.w3.org/2018/credentials/v1
                     - https://essif.europa.eu/schemas/vc/2020/v1
                     - https://essif.europa.eu/schemas/notifications/2020/v1
-                  from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-                  to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                  issuanceDate: "2019-06-22T14:11:44Z"
-                  expirationDate: "2019-06-27T14:11:44Z"
+                  from: did:ebsi:zaHbvRybDEwsick4MEJcbP7
+                  to: did:ebsi:z21SqMJ53fYS69VZRYTUEDag
+                  issuanceDate: "2022-01-07T10:49:45.530Z"
+                  expirationDate: "2022-01-07T11:49:45.530Z"
                   payload:
-                    verifiableCredential:
-                      id: vc:ebsi:authentication#bfc64c03-a203-4005-8ce7-9593d1421636
-                      issuer: did:ebsi:zwC56DZdiJh8kSxbgg4fMCu
-                      validFrom: "2021-10-12T09:44:01Z"
-                      credentialSubject:
-                        id: did:ebsi:zctk4PzNdbyCzKWwV5VZh3t
-                      credentialSchema:
-                        id: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313338312e332e31322e332e322e332e3738
-                        type: OID
-                      issuanceDate: "2021-10-12T09:44:01Z"
-                      expirationDate: "2022-04-12T09:44:01Z"
-                      "@context":
-                        - https://www.w3.org/2018/credentials/v1
-                        - https://www.w3.org/2018/credentials/examples/v1
-                        - https://w3c-ccg.github.io/lds-jws2020/contexts/lds-jws2020-v1.json
-                      type:
-                        - VerifiableCredential
-                        - VerifiableAuthorisation
+                    id: 350
+                    endpoint: "/issuer-mock/authorize"
+                    headers:
+                      conformance: be5313b7-6a01-44f9-819e-a6eba82183cb
+                    body:
+                      scope: openid conformance_testing
+                      response_type: code
+                      redirect_uri: http://localhost:3000
+                      client_id: http://localhost:3000
+                      response_mode: post
+                      state: d5253c942f32
+                      nonce: 4533fab4276c
+                  proof:
+                    type: EcdsaSecp256k1Signature2019
+                    created: "2022-01-07T10:49:45.530Z"
+                    proofPurpose: assertionMethod
+                    verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#key-1
+                    jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0..vSjVu9BUzKpZ9WHRrdERhlbnhVmFnLn9cf_WqgHB3Ebta92AOHmX3hbo0gNAPK_xLwV0UDF93gVQy2tL-XyOZw
+              issuer-mock-token:
+                summary: Call conformance /issuer-mock/token (async)
+                description: |
+                  Call conformance service in the endpoint /issuer-mock/token
+                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
+                  for the details of this endpoint
+                value:
+                  schemaId: notifications-001
+                  type:
+                    - Notification
+                    - QueryConformance
+                  "@context":
+                    - https://www.w3.org/2018/credentials/v1
+                    - https://essif.europa.eu/schemas/vc/2020/v1
+                    - https://essif.europa.eu/schemas/notifications/2020/v1
+                  from: did:ebsi:zaHbvRybDEwsick4MEJcbP7
+                  to: did:ebsi:z21SqMJ53fYS69VZRYTUEDag
+                  issuanceDate: "2022-01-07T10:49:52.496Z"
+                  expirationDate: "2022-01-07T11:49:52.496Z"
+                  payload:
+                    id: 868
+                    endpoint: "/issuer-mock/token"
+                    headers:
+                      conformance: f59ff75a-87bb-4173-8a55-04ae608256dc
+                    body:
+                      code: 220b026f59786a7ad8c6
+                      grant_type: authorization_code
+                      redirect_uri: http://localhost:3000
+                  proof:
+                    type: EcdsaSecp256k1Signature2019
+                    created: "2022-01-07T10:49:52.496Z"
+                    proofPurpose: assertionMethod
+                    verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#key-1
+                    jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0..yXleByER5d-BkFUu4Ih7VGezpZ4GPRgZyuyKPP19fKEFZ16pKdDI529rflKT0ExlS3hLrdspJyMreH2d9Qx-uw
+              issuer-mock-credential:
+                summary: Call conformance /issuer-mock/credential (async)
+                description: |
+                  Call conformance service in the endpoint /issuer-mock/credential
+                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
+                  for the details of this endpoint
+                value:
+                  schemaId: notifications-001
+                  type:
+                    - Notification
+                    - QueryConformance
+                  "@context":
+                    - https://www.w3.org/2018/credentials/v1
+                    - https://essif.europa.eu/schemas/vc/2020/v1
+                    - https://essif.europa.eu/schemas/notifications/2020/v1
+                  from: did:ebsi:zaHbvRybDEwsick4MEJcbP7
+                  to: did:ebsi:z21SqMJ53fYS69VZRYTUEDag
+                  issuanceDate: "2022-01-07T10:50:05.340Z"
+                  expirationDate: "2022-01-07T11:50:05.340Z"
+                  payload:
+                    id: 960
+                    endpoint: "/issuer-mock/credential"
+                    headers:
+                      conformance: 652ced8b-c834-4b1d-b823-fa4f2e5e7ecd
+                      authorization: Bearer 32164be2809b7e8acdaf
+                    body:
+                      type: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x1ee207961aba4a8ba018bacf3aaa338df9884d52e993468297e775a585abe4d8
+                      format: jwt_vc
+                      did: did:ebsi:zaHbvRybDEwsick4MEJcbP7
                       proof:
-                        type: EcdsaSecp256k1Signature2019
-                        created: "2021-10-12T09:44:01Z"
-                        proofPurpose: assertionMethod
-                        verificationMethod: did:ebsi:zwC56DZdiJh8kSxbgg4fMCu#keys-1
-                        jws: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ..XzsjuUGM8Z8iGEn_s9sS4MbsHBxnEmYBvnn3BTc6tUig9e_1FIBPtE8Fgs8UM6HKeHGYOrY-_0rm8vT3zh_X3Q
+                        type: JWS
+                        verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#keys-1
+                        jws: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE2NDE1NTI2MDUsImNfbm9uY2UiOiJmYWY4NTQxYjhmMTliMDc4ODY0MSIsImlzcyI6ImRpZDplYnNpOnphSGJ2UnliREV3c2ljazRNRUpjYlA3In0.U8bXVEHbZ0YV47_fr11vgTTgiOqGncCxOafzsdulw9bhhKjozw_WOMG3uYF55uME-a2-FHdBAtXxh_obxf3WmQ
+                      grant_type: authorization_code
+                      redirect_uri: http://localhost:3000
                   proof:
                     type: EcdsaSecp256k1Signature2019
-                    created: "2019-11-17T14:00:00Z"
+                    created: "2022-01-07T10:50:05.340Z"
                     proofPurpose: assertionMethod
-                    verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
-                    jws: eyJh..Iw
-              ct_ISSUE_011:
-                summary: Request Verifiable Attestation  (CT V1 ISSUE_011)
+                    verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#key-1
+                    jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0..ZpnEmJgrbzyytg0JkmQU40-8jDxJiPw8700sZfG_jazlw0Tnhz_ogJFv_lTW8JBMRSEWD0KHK9inKgczRM2BEQ
+              verifier-mock-authentication-requests:
+                summary: Call conformance /verifier-mock/authentication-requests (async)
                 description: |
-                  This is test data for [CT V1 ISSUE_011](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ISSUE).
-                  'payload' is a properly formed verifiable Attestation request.
+                  Call conformance service in the endpoint /verifier-mock/authentication-requests
+                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
+                  for the details of this endpoint
                 value:
-                  schemaId: notification-001
+                  schemaId: notifications-001
                   type:
                     - Notification
-                    - RequestVerifiableAttestation
+                    - QueryConformance
                   "@context":
                     - https://www.w3.org/2018/credentials/v1
                     - https://essif.europa.eu/schemas/vc/2020/v1
                     - https://essif.europa.eu/schemas/notifications/2020/v1
-                  from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-                  to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                  issuanceDate: "2019-06-22T14:11:44Z"
-                  expirationDate: "2019-06-27T14:11:44Z"
-                  payload: {}
-                  proof:
-                    type: EcdsaSecp256k1Signature2019
-                    created: "2019-11-17T14:00:00Z"
-                    proofPurpose: assertionMethod
-                    verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
-                    jws: eyJh..Iw
-              ct_ISSUE_031:
-                summary: Transfer Verifiable Attestation  (CT V1 ISSUE_031)
-                description: |
-                  This is test data for [CT V1 ISSUE_031](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ISSUE).
-                  'payload' is a properly formed verifiable Attestation.
-                value:
-                  schemaId: notification-001
-                  type:
-                    - Notification
-                    - StoreVerifiableAttestation
-                  "@context":
-                    - https://www.w3.org/2018/credentials/v1
-                    - https://essif.europa.eu/schemas/vc/2020/v1
-                    - https://essif.europa.eu/schemas/notifications/2020/v1
-                  from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-                  to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                  issuanceDate: "2019-06-22T14:11:44Z"
-                  expirationDate: "2019-06-27T14:11:44Z"
+                  from: did:ebsi:zaHbvRybDEwsick4MEJcbP7
+                  to: did:ebsi:z21SqMJ53fYS69VZRYTUEDag
+                  issuanceDate: "2022-01-07T10:50:12.242Z"
+                  expirationDate: "2022-01-07T11:50:12.242Z"
                   payload:
-                    verifiableCredential:
-                      id: vc:ebsi:attestation#bfc64c03-a203-4005-8ce7-9593d1421636
-                      issuer: did:ebsi:zwC56DZdiJh8kSxbgg4fMCu
-                      validFrom: "2021-10-12T09:44:01Z"
-                      credentialSubject:
-                        id: did:ebsi:zctk4PzNdbyCzKWwV5VZh3t
-                      credentialSchema:
-                        id: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313338312e332e31322e332e322e332e3738
-                        type: OID
-                      issuanceDate: "2021-10-12T09:44:01Z"
-                      expirationDate: "2022-04-12T09:44:01Z"
-                      "@context":
-                        - https://www.w3.org/2018/credentials/v1
-                        - https://www.w3.org/2018/credentials/examples/v1
-                        - https://w3c-ccg.github.io/lds-jws2020/contexts/lds-jws2020-v1.json
-                      type:
-                        - VerifiableCredential
-                        - VerifiableAttestation
-                      proof:
-                        type: EcdsaSecp256k1Signature2019
-                        created: "2021-10-12T09:44:01Z"
-                        proofPurpose: assertionMethod
-                        verificationMethod: did:ebsi:zwC56DZdiJh8kSxbgg4fMCu#keys-1
-                        jws: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ..XzsjuUGM8Z8iGEn_s9sS4MbsHBxnEmYBvnn3BTc6tUig9e_1FIBPtE8Fgs8UM6HKeHGYOrY-_0rm8vT3zh_X3Q
+                    id: 859
+                    endpoint: "/verifier-mock/authentication-requests"
+                    headers:
+                      conformance: 796dd904-9680-4656-8134-8a83576a3a3f
+                    body: {}
                   proof:
                     type: EcdsaSecp256k1Signature2019
-                    created: "2019-11-17T14:00:00Z"
+                    created: "2022-01-07T10:50:12.242Z"
                     proofPurpose: assertionMethod
-                    verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
-                    jws: eyJh..Iw
-              ct_VERIFY_031:
-                summary: Transfer Verifiable Presentation  (CT V1 VERIFY_031)
+                    verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#key-1
+                    jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0..EJzkXFofHn5l6aPhBlDc8AFqGdwM5gOwSxfODlIsdrisMbxM69FR17sY8GhnMXdyK8NT__dBa3L031M68fi3iQ
+              verifier-mock-authentication-responses:
+                summary: Call conformance /verifier-mock/authentication-responses (async)
                 description: |
-                  This is test data for [CT V1 VERIFY_031](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:VERIFY).
-                  'payload' is a properly formed verifiable presentation.
+                  Call conformance service in the endpoint /verifier-mock/authentication-requests
+                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
+                  for the details of this endpoint
                 value:
-                  schemaId: notification-001
+                  schemaId: notifications-001
                   type:
                     - Notification
-                    - StoreVerifiablePresentation
+                    - QueryConformance
                   "@context":
                     - https://www.w3.org/2018/credentials/v1
                     - https://essif.europa.eu/schemas/vc/2020/v1
                     - https://essif.europa.eu/schemas/notifications/2020/v1
-                  from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-                  to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                  issuanceDate: "2019-06-22T14:11:44Z"
-                  expirationDate: "2019-06-27T14:11:44Z"
+                  from: did:ebsi:zaHbvRybDEwsick4MEJcbP7
+                  to: did:ebsi:z21SqMJ53fYS69VZRYTUEDag
+                  issuanceDate: "2022-01-07T10:50:25.002Z"
+                  expirationDate: "2022-01-07T11:50:25.002Z"
                   payload:
-                    response_type: id_token
-                    client_id: did:ebsi:1234
-                    redirect_uri: https://client.example.org/cb
-                    scope: openid
-                    nonce: acasfir6AKqGhg
-                    registration:
-                      subject_identifier_types_supported:
-                        - did
-                      did_methods_supported:
-                        - "did:ebsi:"
-                      vp_formats:
-                        jwt_vp:
-                          alg:
-                            - EdDSA
-                            - ES256K
-                        ldp_vp:
-                          proof_type:
-                            - Ed25519Signature2018
-                      client_name: Example Client
-                      client_purpose: DID Authentication
-                      tos_uri: https://client.example.org/tos.html
-                      logo_uri: https://client.example.org/images/did_logo.png
-                    exp: 1311281970
-                    iat: 1311280970
-                    claims:
+                    id: 355
+                    endpoint: "/verifier-mock/authentication-responses"
+                    headers:
+                      conformance: 0d5f1940-ee87-47e0-b41f-9e339431484d
+                    body:
+                      id_token: {}
                       vp_token:
-                        verifiable_presentations:
-                          presentation_definition:
-                            id: <definition-id>
-                            input_descriptors:
-                              - id: <input-id, e.g., V-ID>
-                                schema:
-                                  - uri: https://<base-uri>/contexts/v1/VerifiableID
+                        - format: jwt_vp
+                          presentation: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvaWRlbnRpZmllcnMvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0.eyJpYXQiOjE2NDE1NTI2MjQsImlzcyI6ImRpZDplYnNpOnphSGJ2UnliREV3c2ljazRNRUpjYlA3Iiwibm9uY2UiOiIwMmE0ZmY4MC1kYjlhLTQzMGEtOWFmZi0wYjM3OTc4ZGZjNTIiLCJ2YyI6ImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSkZVekkxTmtzaWZRLmV5SnBZWFFpT2pFMk5ERTFOVEkyTVRBc0luWmpJanA3SWtCamIyNTBaWGgwSWpwYkltaDBkSEJ6T2k4dmQzZDNMbmN6TG05eVp5OHlNREU0TDJOeVpXUmxiblJwWVd4ekwzWXhJbDBzSW1sa0lqb2lkWEp1T21WaWMyazZjM1JoZEhWek9tbGtaVzUwYVhSNU9uWmxjbWxtYVdGaWJHVkpSQ014WW1RNE1ESmxaUzAyWW1JekxUUTVORFF0T1dFeVl5MW1OR1V6WW1RME1tWTFaalFpTENKMGVYQmxJanBiSWxabGNtbG1hV0ZpYkdWRGNtVmtaVzUwYVdGc0lpd2lWbVZ5YVdacFlXSnNaVUYwZEdWemRHRjBhVzl1SWl3aVZtVnlhV1pwWVdKc1pVbGtJbDBzSW1semMzVmxjaUk2SW1ScFpEcGxZbk5wT25veU1WTnhUVW8xTTJaWlV6WTVWbHBTV1ZSVlJVUmhaeUlzSW1semMzVmhibU5sUkdGMFpTSTZJakl3TWpJdE1ERXRNRGRVTVRBNk5UQTZNVEJhSWl3aWRtRnNhV1JHY205dElqb2lNakF5TWkwd01TMHdOMVF4TURvMU1Eb3hNRm9pTENKamNtVmtaVzUwYVdGc1UzVmlhbVZqZENJNmV5SnBaQ0k2SW1ScFpEcGxZbk5wT25waFNHSjJVbmxpUkVWM2MybGphelJOUlVwallsQTNJaXdpWm1GdGFXeDVUbUZ0WlNJNklrUnZaU0lzSW1acGNuTjBUbUZ0WlNJNklrcHZhRzRpTENKa1lYUmxUMlpDYVhKMGFDSTZJakU1T1RrdE1ETXRNaklpTENKd1pYSnpiMjVoYkVsa1pXNTBhV1pwWlhJaU9pSkZVeTlCVkM4eE1qTTBOVFkzT0RraWZTd2lZM0psWkdWdWRHbGhiRk5qYUdWdFlTSTZleUpwWkNJNkltaDBkSEJ6T2k4dllYQnBMbkJ5WlhCeWIyUXVaV0p6YVM1bGRTOTBjblZ6ZEdWa0xYTmphR1Z0WVhNdGNtVm5hWE4wY25rdmRqRXZjMk5vWlcxaGN5OHdlREUwWWpBMVlqa3lNVE5rWW1VM1pETTBNMlZqTVdabE1XUXpZemhqTnpNNVlUTm1NMlJqTldFMU9XSmhaVFUxWldJek9HWmhNR015T1RVeE1qUm1ORGtqSWl3aWRIbHdaU0k2SWtaMWJHeEtjMjl1VTJOb1pXMWhWbUZzYVdSaGRHOXlNakF5TVNKOUxDSmpjbVZrWlc1MGFXRnNVM1JoZEhWeklqcDdJbWxrSWpvaWRYSnVPbVZpYzJrNmMzUmhkSFZ6T21sa1pXNTBhWFI1T25abGNtbG1hV0ZpYkdWSlJDTXhaR1ZsTXpVMVpDMHdORE15TFRRNU1UQXRZV001WXkwM01HUTRPV1U0WkRZM05HVWlMQ0owZVhCbElqb2lRM0psWkdWdWRHbGhiRk4wWVhSMWMweHBjM1F5TURJd0luMHNJbVY0Y0dseVlYUnBiMjVFWVhSbElqb2lNakF6TWkwd01TMHdOMVF4TURvMU1Eb3hNRm9pTENKbGRtbGtaVzVqWlNJNlczc2lkSGx3WlNJNld5SkViMk4xYldWdWRGWmxjbWxtYVdOaGRHbHZiaUpkTENKMlpYSnBabWxsY2lJNkltUnBaRHBsWW5OcE9ub3lNVk54VFVvMU0yWlpVelk1VmxwU1dWUlZSVVJoWnlJc0ltVjJhV1JsYm1ObFJHOWpkVzFsYm5RaU9sc2lVR0Z6YzNCdmNuUWlYU3dpYzNWaWFtVmpkRkJ5WlhObGJtTmxJam9pVUdoNWMybGpZV3dpTENKa2IyTjFiV1Z1ZEZCeVpYTmxibU5sSWpwYklsQm9lWE5wWTJGc0lsMTlYWDBzSW1semN5STZJbVJwWkRwbFluTnBPbm95TVZOeFRVbzFNMlpaVXpZNVZscFNXVlJWUlVSaFp5SjkuNVp5TWU2dlhjZGtNc21Oa0RtT3RTRXRROUNtWFdnby1JLVpMWGdrNlFRb1owdHVTNko3TmJ6RkZKaUtJbUpYeFllT2prNmgtNlNGR245d1g3bmd2OHcifQ.QRZFdMbDGH7RimJZnzbIIBgJHosshRMlla2_gzkks2QN05_cz0V7KM0_SHpHXoNDIJrSHDD8mxtUWmjdGIusGw
                   proof:
                     type: EcdsaSecp256k1Signature2019
-                    created: "2019-11-17T14:00:00Z"
+                    created: "2022-01-07T10:50:25.002Z"
                     proofPurpose: assertionMethod
-                    verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
-                    jws: eyJh..Iw
+                    verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#key-1
+                    jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0..nUd_K2neIQh8RB_ecmKPEN9hsZOWo5Q7ImZbcx4p1mldBHKNB3JTNFSOCJyoEWnl9Qz1Xf2aJ0vtoADR-Bb2pg
         required: true
       responses:
         "201":
@@ -522,6 +520,153 @@ paths:
                       proofPurpose: assertionMethod
                       verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
                       jws: eyJh..Iw
+                Notification response /issuer-mock/authorize:
+                  description: |
+                    Notification response when calling /issuer-mock/authorize
+                    asynchronously (through notifications api). The response from the endpoint
+                    is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
+                    for the details of the response of this endpoint.
+                  value:
+                    schemaId: notifications-001
+                    type:
+                      - Notification
+                      - ResponseConformance
+                    "@context":
+                      - https://essif.europa.eu/schemas/notifications/2020/v1
+                    from: did:ebsi:z21SqMJ53fYS69VZRYTUEDag
+                    to: did:ebsi:zaHbvRybDEwsick4MEJcbP7
+                    issuanceDate: "2022-01-07T10:49:50.479Z"
+                    expirationDate: "2022-01-07T11:49:50.479Z"
+                    payload:
+                      id: 350
+                      status: 200
+                      body:
+                        state: d5253c942f32
+                        code: 220b026f59786a7ad8c6
+                    proof:
+                      type: EcdsaSecp256k1Signature2019
+                      created: "2022-01-07T10:49:50.479Z"
+                      proofPurpose: assertionMethod
+                      verificationMethod: did:ebsi:z21SqMJ53fYS69VZRYTUEDag#keys-1
+                      jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvaWRlbnRpZmllcnMvZGlkOmVic2k6ejIxU3FNSjUzZllTNjlWWlJZVFVFRGFnI2tleXMtMSIsInR5cCI6IkpXVCJ9..RAoCrm_zMW_iFXQzYW_gapqXqKyAtwlpt-k7qUUGvFjx1Euq7SQ9FKjjfUYvmy23uO0JAf5Y90i2H0xctc9OhQ
+                Notification response /issuer-mock/token:
+                  description: |
+                    Notification response when calling /issuer-mock/token
+                    asynchronously (through notifications api). The response from the endpoint
+                    is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
+                    for the details of the response of this endpoint.
+                  value:
+                    schemaId: notifications-001
+                    type:
+                      - Notification
+                      - ResponseConformance
+                    "@context":
+                      - https://essif.europa.eu/schemas/notifications/2020/v1
+                    from: did:ebsi:z21SqMJ53fYS69VZRYTUEDag
+                    to: did:ebsi:zaHbvRybDEwsick4MEJcbP7
+                    issuanceDate: "2022-01-07T10:50:00.510Z"
+                    expirationDate: "2022-01-07T11:50:00.510Z"
+                    payload:
+                      id: 868
+                      status: 200
+                      body:
+                        token_type: Bearer
+                        access_token: 32164be2809b7e8acdaf
+                        expires_in: 3600
+                        c_nonce: faf8541b8f19b0788641
+                        id_token: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE2NDE1NTI2MDAsInN1YiI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImlzcyI6ImRpZDplYnNpOnoyMVNxTUo1M2ZZUzY5VlpSWVRVRURhZyJ9.YIdjUCinbG2DRU0VhFTOPcHK9D0iLcx6zBPmF94phfVOx8IVZwOLMfnEp_9xx87-UNODVCLWNR2UdjUgQyv14A
+                    proof:
+                      type: EcdsaSecp256k1Signature2019
+                      created: "2022-01-07T10:50:00.510Z"
+                      proofPurpose: assertionMethod
+                      verificationMethod: did:ebsi:z21SqMJ53fYS69VZRYTUEDag#keys-1
+                      jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvaWRlbnRpZmllcnMvZGlkOmVic2k6ejIxU3FNSjUzZllTNjlWWlJZVFVFRGFnI2tleXMtMSIsInR5cCI6IkpXVCJ9..mvJScTqSslyZ79KYxxkzTA-21ojZ4DO_KAe-LYi28wq-vyhON4na8evTHxUA_JaaJc2nOdu_nlKMJMwD_ZgCrQ
+
+                Notification response /issuer-mock/credential:
+                  description: |
+                    Notification response when calling /issuer-mock/credential
+                    asynchronously (through notifications api). The response from the endpoint
+                    is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
+                    for the details of the response of this endpoint.
+                  value:
+                    schemaId: notifications-001
+                    type:
+                      - Notification
+                      - ResponseConformance
+                    "@context":
+                      - https://essif.europa.eu/schemas/notifications/2020/v1
+                    from: did:ebsi:z21SqMJ53fYS69VZRYTUEDag
+                    to: did:ebsi:zaHbvRybDEwsick4MEJcbP7
+                    issuanceDate: "2022-01-07T10:50:10.694Z"
+                    expirationDate: "2022-01-07T11:50:10.694Z"
+                    payload:
+                      id: 960
+                      status: 200
+                      body:
+                        format: jwt_vc
+                        credential: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE2NDE1NTI2MTAsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sImlkIjoidXJuOmVic2k6c3RhdHVzOmlkZW50aXR5OnZlcmlmaWFibGVJRCMxYmQ4MDJlZS02YmIzLTQ5NDQtOWEyYy1mNGUzYmQ0MmY1ZjQiLCJ0eXBlIjpbIlZlcmlmaWFibGVDcmVkZW50aWFsIiwiVmVyaWZpYWJsZUF0dGVzdGF0aW9uIiwiVmVyaWZpYWJsZUlkIl0sImlzc3VlciI6ImRpZDplYnNpOnoyMVNxTUo1M2ZZUzY5VlpSWVRVRURhZyIsImlzc3VhbmNlRGF0ZSI6IjIwMjItMDEtMDdUMTA6NTA6MTBaIiwidmFsaWRGcm9tIjoiMjAyMi0wMS0wN1QxMDo1MDoxMFoiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnphSGJ2UnliREV3c2ljazRNRUpjYlA3IiwiZmFtaWx5TmFtZSI6IkRvZSIsImZpcnN0TmFtZSI6IkpvaG4iLCJkYXRlT2ZCaXJ0aCI6IjE5OTktMDMtMjIiLCJwZXJzb25hbElkZW50aWZpZXIiOiJFUy9BVC8xMjM0NTY3ODkifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHBzOi8vYXBpLnByZXByb2QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDE0YjA1YjkyMTNkYmU3ZDM0M2VjMWZlMWQzYzhjNzM5YTNmM2RjNWE1OWJhZTU1ZWIzOGZhMGMyOTUxMjRmNDkjIiwidHlwZSI6IkZ1bGxKc29uU2NoZW1hVmFsaWRhdG9yMjAyMSJ9LCJjcmVkZW50aWFsU3RhdHVzIjp7ImlkIjoidXJuOmVic2k6c3RhdHVzOmlkZW50aXR5OnZlcmlmaWFibGVJRCMxZGVlMzU1ZC0wNDMyLTQ5MTAtYWM5Yy03MGQ4OWU4ZDY3NGUiLCJ0eXBlIjoiQ3JlZGVudGlhbFN0YXR1c0xpc3QyMDIwIn0sImV4cGlyYXRpb25EYXRlIjoiMjAzMi0wMS0wN1QxMDo1MDoxMFoiLCJldmlkZW5jZSI6W3sidHlwZSI6WyJEb2N1bWVudFZlcmlmaWNhdGlvbiJdLCJ2ZXJpZmllciI6ImRpZDplYnNpOnoyMVNxTUo1M2ZZUzY5VlpSWVRVRURhZyIsImV2aWRlbmNlRG9jdW1lbnQiOlsiUGFzc3BvcnQiXSwic3ViamVjdFByZXNlbmNlIjoiUGh5c2ljYWwiLCJkb2N1bWVudFByZXNlbmNlIjpbIlBoeXNpY2FsIl19XX0sImlzcyI6ImRpZDplYnNpOnoyMVNxTUo1M2ZZUzY5VlpSWVRVRURhZyJ9.5ZyMe6vXcdkMsmNkDmOtSEtQ9CmXWgo-I-ZLXgk6QQoZ0tuS6J7NbzFFJiKImJXxYeOjk6h-6SFGn9wX7ngv8w
+                        c_nonce: e6c55943a6f63763018f
+                        c_nonce_expires_in: 900
+                    proof:
+                      type: EcdsaSecp256k1Signature2019
+                      created: "2022-01-07T10:50:10.694Z"
+                      proofPurpose: assertionMethod
+                      verificationMethod: did:ebsi:z21SqMJ53fYS69VZRYTUEDag#keys-1
+                      jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvaWRlbnRpZmllcnMvZGlkOmVic2k6ejIxU3FNSjUzZllTNjlWWlJZVFVFRGFnI2tleXMtMSIsInR5cCI6IkpXVCJ9..tcp5qabH8RH0zFEXoYYmixkXfUn0uk7EixXV3AF8VoNr5j-Osj3KH86SGH0iBmZlqjiOs7g8vDmetZJd4FGwqw
+                Notification response /verifier-mock/authentication-requests:
+                  description: |
+                    Notification response when calling /verifier-mock/authentication-requests
+                    asynchronously (through notifications api). The response from the endpoint
+                    is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
+                    for the details of the response of this endpoint.
+                  value:
+                    schemaId: notifications-001
+                    type:
+                      - Notification
+                      - ResponseConformance
+                    "@context":
+                      - https://essif.europa.eu/schemas/notifications/2020/v1
+                    from: did:ebsi:z21SqMJ53fYS69VZRYTUEDag
+                    to: did:ebsi:zaHbvRybDEwsick4MEJcbP7
+                    issuanceDate: "2022-01-07T10:50:21.041Z"
+                    expirationDate: "2022-01-07T11:50:21.041Z"
+                    payload:
+                      id: 859
+                      status: 200
+                      body: openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.conformance.intebsi.xyz%2Fconformance%2Fv1%2Fverifier-mock%2Fauthentication-responses&scope=ebsi%20conformance%20mock&nonce=8fb71c5f-bc18-4657-aa3b-87520af8c7cd&request=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6MjFTcU1KNTNmWVM2OVZaUllUVUVEYWcvI2tleXMtMSJ9.eyJpYXQiOjE2NDE1NTI2MjEsImV4cCI6MTY0MTU1MjkyMSwiaXNzIjoiZGlkOmVic2k6ejIxU3FNSjUzZllTNjlWWlJZVFVFRGFnIiwic2NvcGUiOiJlYnNpIGNvbmZvcm1hbmNlIG1vY2siLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJyZXNwb25zZV9tb2RlIjoicG9zdCIsImNsaWVudF9pZCI6Imh0dHBzOi8vYXBpLmNvbmZvcm1hbmNlLmludGVic2kueHl6L2NvbmZvcm1hbmNlL3YxL3ZlcmlmaWVyLW1vY2svYXV0aGVudGljYXRpb24tcmVzcG9uc2VzIiwicmVkaXJlY3RfdXJpIjoiaHR0cHM6Ly9hcGkuY29uZm9ybWFuY2UuaW50ZWJzaS54eXovY29uZm9ybWFuY2UvdjEvdmVyaWZpZXItbW9jay9hdXRoZW50aWNhdGlvbi1yZXNwb25zZXMiLCJub25jZSI6IjhmYjcxYzVmLWJjMTgtNDY1Ny1hYTNiLTg3NTIwYWY4YzdjZCIsInJlZ2lzdHJhdGlvbiI6Im1vY2sgcmVnaXN0cmF0aW9uIiwiY2xhaW1zIjp7ImlkX3Rva2VuIjp7ImFjciI6bnVsbCwidmVyaWZpYWJsZV9wcmVzZW50YXRpb25zIjp7InByZXNlbnRhdGlvbl9kZWZpbml0aW9uIjp7ImlucHV0X2Rlc2NyaXB0b3JzIjpbeyJzY2hlbWEiOnsidXJpIjoiaHR0cHM6Ly9hcGkucHJlcHJvZC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92MS9zY2hlbWFzLzB4MTRiMDViOTIxM2RiZTdkMzQzZWMxZmUxZDNjOGM3MzlhM2YzZGM1YTU5YmFlNTVlYjM4ZmEwYzI5NTEyNGY0OSMifX1dfX19fX0.ptOiYPAXehdXU9IiRmebE1rUcDqRBy7AKbiZ-CXjLb3we7EXMQMu8tiTvm_H8RWp6soypu2MwWKd1Fp54dQzvw
+                    proof:
+                      type: EcdsaSecp256k1Signature2019
+                      created: "2022-01-07T10:50:21.041Z"
+                      proofPurpose: assertionMethod
+                      verificationMethod: did:ebsi:z21SqMJ53fYS69VZRYTUEDag#keys-1
+                      jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvaWRlbnRpZmllcnMvZGlkOmVic2k6ejIxU3FNSjUzZllTNjlWWlJZVFVFRGFnI2tleXMtMSIsInR5cCI6IkpXVCJ9..TrO70eJDvHS47d-Pr37zn5rAJJJkUheCZpCBBKb-QNt3yV0Y13tju8rlvvufk5RQpE3kca0YY5PadC1yKdmrYQ
+                Notification response /verifier-mock/authentication-responses:
+                  description: |
+                    Notification response when calling /verifier-mock/authentication-responses
+                    asynchronously (through notifications api). The response from the endpoint
+                    is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
+                    for the details of the response of this endpoint.
+                  value:
+                    schemaId: notifications-001
+                    type:
+                      - Notification
+                      - ResponseConformance
+                    "@context":
+                      - https://essif.europa.eu/schemas/notifications/2020/v1
+                    from: did:ebsi:z21SqMJ53fYS69VZRYTUEDag
+                    to: did:ebsi:zaHbvRybDEwsick4MEJcbP7
+                    issuanceDate: "2022-01-07T10:50:30.659Z"
+                    expirationDate: "2022-01-07T11:50:30.659Z"
+                    payload:
+                      id: 355
+                      status: 200
+                      body: true
+                    proof:
+                      type: EcdsaSecp256k1Signature2019
+                      created: "2022-01-07T10:50:30.659Z"
+                      proofPurpose: assertionMethod
+                      verificationMethod: did:ebsi:z21SqMJ53fYS69VZRYTUEDag#keys-1
+                      jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvaWRlbnRpZmllcnMvZGlkOmVic2k6ejIxU3FNSjUzZllTNjlWWlJZVFVFRGFnI2tleXMtMSIsInR5cCI6IkpXVCJ9..fVH0CGq7o2sNK2rr1Jc8MBCGTljNsoNoNKwIOyOvTH5rTjAYMxLPMEaSr7OTsVa_VzQbzAlCxB2UWNi1r89ceQ
         "400":
           description: Bad Request
           content:
