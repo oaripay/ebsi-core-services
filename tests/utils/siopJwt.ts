@@ -1,5 +1,6 @@
+import { randomUUID } from "node:crypto";
+import { URLSearchParams } from "node:url";
 import request from "supertest";
-import { randomUUID } from "crypto";
 import {
   Agent as SiopAgent,
   AkeResponse,
