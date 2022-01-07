@@ -1,11 +1,11 @@
+import { randomUUID } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
-import { compactVerify } from "jose/jws/compact/verify";
-import { JWK, parseJwk } from "jose/jwk/parse";
+import { compactVerify, importJWK } from "jose";
+import type { JWK } from "jose";
 import { createJWT, decodeJWT, ES256KSigner, verifyJWT } from "did-jwt";
 import { Resolver } from "did-resolver";
 import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
 import { ConfigService } from "@nestjs/config";
-import { randomUUID } from "crypto";
 import {
   createCredential,
   createVerifiableCredential,
@@ -140,7 +140,7 @@ export default class AuthenticationService {
     }
 
     try {
-      const publicKey = await parseJwk({
+      const publicKey = await importJWK({
         alg: "ES256",
         ...decodedIdToken.payload.sub_jwk,
       } as JWK);

@@ -1,10 +1,7 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import KeyEncoder from "key-encoder";
 import EthCrypto from "eth-crypto";
-import EncryptJWT from "jose/jwt/encrypt";
-import jwtDecrypt from "jose/jwt/decrypt";
-import fromKeyLike from "jose/jwk/from_key_like";
-import generateKeyPair from "jose/util/generate_key_pair";
+import { EncryptJWT, jwtDecrypt, generateKeyPair, exportJWK } from "jose";
 import { base64url } from "multiformats/bases/base64";
 import axios from "axios";
 import { createJWT, ES256KSigner } from "did-jwt";
@@ -53,7 +50,7 @@ export function getPublicKeyHex(publicKey: crypto.KeyObject): string {
 export async function getPrivateKeyHex(
   privateKey: crypto.KeyObject
 ): Promise<string> {
-  const privateJwk = await fromKeyLike(privateKey);
+  const privateJwk = await exportJWK(privateKey);
   return Buffer.from(base64url.baseDecode(privateJwk.d)).toString("hex");
 }
 

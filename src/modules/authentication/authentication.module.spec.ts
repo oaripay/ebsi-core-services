@@ -1,8 +1,8 @@
 import request from "supertest";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { Test, TestingModule } from "@nestjs/testing";
-import { JWK } from "jose/types";
+import type { JWK } from "jose";
 import {
   INestApplication,
   HttpServer,

@@ -1,3 +1,4 @@
+import { URLSearchParams } from "node:url";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, HttpServer } from "@nestjs/common";
 import request from "supertest";
@@ -14,7 +15,7 @@ import {
   validateVerifiableCredential,
 } from "@cef-ebsi/verifiable-credential";
 import "expect-puppeteer";
-import { HTTPRequest } from "puppeteer";
+import type { HTTPRequest } from "puppeteer";
 import { UserAuthentication } from "../../src/shared/dto";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";

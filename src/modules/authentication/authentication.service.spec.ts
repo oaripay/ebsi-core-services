@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import { INestApplication } from "@nestjs/common";
 import {
   FastifyAdapter,
@@ -5,12 +6,11 @@ import {
 } from "@nestjs/platform-fastify";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import { JWK } from "jose/types";
+import type { JWK } from "jose";
 import { createJWT, ES256KSigner } from "did-jwt";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import type { FastifyInstance } from "fastify";
 import { Resolver } from "did-resolver";
-import crypto from "crypto";
 import * as authenticationModule from "./authentication.module";
 import { ApiConfig } from "../../config/configuration";
 import AuthenticationService from "./authentication.service";
