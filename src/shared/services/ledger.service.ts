@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import { InternalServerError } from "@cef-ebsi/problem-details-errors";
 import { ConfigService } from "@nestjs/config";
@@ -5,7 +6,6 @@ import { ethers } from "ethers";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { decodeJWT } from "did-jwt";
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { v4 as uuidV4 } from "uuid";
 import { ApiConfig } from "../../config/configuration";
 import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
 import { prefixWith0x, logAxiosError } from "../utils";
@@ -58,7 +58,7 @@ export class LedgerService {
   }
 
   private async getAccessToken() {
-    const nonce = uuidV4();
+    const nonce = randomUUID();
 
     const requestComponent = await this.agent.createRequestPayload(
       this.configService.get<string>("ledgerApiName"),

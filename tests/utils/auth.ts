@@ -1,7 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
+import { randomBytes, randomUUID } from "node:crypto";
+import { URLSearchParams } from "node:url";
 import request from "supertest";
-import crypto from "crypto";
-import { v4 as uuidv4 } from "uuid";
 import { DidAuthResponseMode, Agent } from "@cef-ebsi/siop-auth";
 import { AkeResponse, Agent as OAuth2Agent } from "@cef-ebsi/oauth2-auth";
 import { loadConfig } from "../../src/config/configuration";
@@ -25,7 +25,7 @@ export async function oauth2Authentication(trustedApp: {
     .id;
   const kid = `${trustedAppsRegistryApiUrl}/apps/${appId}`;
 
-  const nonce = uuidv4();
+  const nonce = randomUUID();
   const agent = new OAuth2Agent(trustedApp.privateKey, {
     issuer: trustedApp.name,
     kid,
@@ -66,7 +66,7 @@ export async function siopAuthentication(user: {
 
   await agent.verifyAuthenticationRequest(uriDecoded.get("request"));
 
-  const nonce = crypto.randomBytes(10).toString("base64");
+  const nonce = randomBytes(10).toString("base64");
 
   const didAuthJwt = await agent.createAuthenticationResponse({
     did: user.did,
