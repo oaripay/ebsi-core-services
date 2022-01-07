@@ -1,3 +1,4 @@
+import { URL } from "node:url";
 import { InternalServerError } from "@cef-ebsi/problem-details-errors";
 import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
