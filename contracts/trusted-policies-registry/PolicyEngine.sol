@@ -11,6 +11,24 @@ abstract contract PolicyEngine is PolicyStorage {
         view
         returns (bool)
     {
+        return _checkPolicy(policyId, user);
+    }
+
+    function checkPolicy(string calldata policyName, address user)
+        external
+        view
+        returns (bool)
+    {
+        PolicyContractStorage storage ps = policyStorage();
+        require(ps.policyNameDefined[policyName], "policy does not exists");
+        return _checkPolicy(ps.policyNameToPolicyId[policyName], user);
+    }
+
+    function _checkPolicy(uint256 policyId, address user)
+        internal
+        view
+        returns (bool)
+    {
         PolicyContractStorage storage ps = policyStorage();
         require(ps.policyCount > policyId, "Policy: invalid policy");
 

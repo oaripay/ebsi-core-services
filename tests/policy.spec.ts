@@ -48,9 +48,9 @@ describe("Policy", () => {
     expect(await policyContract.version()).to.equal(12);
     expect(policyContract.address).to.properAddress;
 
-    await policyContract.insertPolicy(0, [], "test policy 1", "registry 1");
-    await policyContract.insertPolicy(0, pcs, "test policy 2", "registry 2");
-    await policyContract.insertPolicy(0, [], "test policy 3", "registry 3");
+    await policyContract.insertPolicy(0, [], "test policy 1", "description 1");
+    await policyContract.insertPolicy(0, pcs, "test policy 2", "description 2");
+    await policyContract.insertPolicy(0, [], "test policy 3", "description 3");
   });
 
   beforeEach(async () => {
@@ -69,10 +69,16 @@ describe("Policy", () => {
     });
 
     it("Should return policy 1", async () => {
-      const [policyId, registry, policyName, opType, status, policyConditions] =
-        await policyContract.getPolicy(1);
+      const [
+        policyId,
+        description,
+        policyName,
+        opType,
+        status,
+        policyConditions,
+      ] = await policyContract.getPolicy(1);
       expect(policyId).to.equal(1);
-      expect(registry).to.equal("registry 2");
+      expect(description).to.equal("description 2");
       expect(policyName).to.equal("test policy 2");
       expect(opType).to.equal(0);
       expect(status).to.be.true;
@@ -90,10 +96,16 @@ describe("Policy", () => {
     });
 
     it("Should return policy 0", async () => {
-      const [policyId, registry, policyName, opType, status, policyConditions] =
-        await policyContract.getPolicy(0);
+      const [
+        policyId,
+        description,
+        policyName,
+        opType,
+        status,
+        policyConditions,
+      ] = await policyContract.getPolicy(0);
       expect(policyId).to.equal(0);
-      expect(registry).to.equal("registry 1");
+      expect(description).to.equal("description 1");
       expect(policyName).to.equal("test policy 1");
       expect(opType).to.equal(0);
       expect(status).to.be.true;
@@ -218,6 +230,12 @@ describe("Policy", () => {
       ).to.be.revertedWith("Policy: invalid policy Id");
     });
 
+    it("Should fail for duplicate name", async () => {
+      await expect(
+        policyContract.updatePolicy(2, 0, "test policy 1", "another desc")
+      ).to.be.revertedWith("Policy Name already exists");
+    });
+
     it("Should fail for inactive policy", async () => {
       await policyContract.deactivatePolicy(0);
       await expect(
@@ -227,7 +245,9 @@ describe("Policy", () => {
 
     it("Should be reverted if it doesn't have operator role", async () => {
       await expect(
-        policyContract.connect(addr1).updatePolicy(1, 0, "policy", "registry")
+        policyContract
+          .connect(addr1)
+          .updatePolicy(1, 0, "policy", "description")
       ).to.be.revertedWith(
         `AccessControl: account ${(
           await addr1.getAddress()
@@ -236,13 +256,13 @@ describe("Policy", () => {
     });
 
     it("Should update policy", async () => {
-      await expect(policyContract.updatePolicy(1, 0, "policy", "registry"))
+      await expect(policyContract.updatePolicy(1, 0, "policy", "description"))
         .to.emit(policyContract, "PolicyUpdated")
-        .withArgs(1, "test policy 2", "policy", "registry 2", "registry");
+        .withArgs(1, "test policy 2", "policy", "description 2", "description");
       const policy = await policyContract.getPolicy(1);
       expect(policy.policyId).to.equal(1);
       expect(policy.policyName).to.equal("policy");
-      expect(policy.registry).to.equal("registry");
+      expect(policy.description).to.equal("description");
       expect(policy.policyConditions).to.have.length(pcs.length);
     });
   });
@@ -423,14 +443,33 @@ describe("Policy", () => {
   describe("insertPolicy", () => {
     it("Should fail for empty name", async () => {
       await expect(
-        policyContract.insertPolicy(1, [], "", "registry")
+        policyContract.insertPolicy(1, [], "", "description")
       ).to.be.revertedWith("Policy: name required");
     });
 
-    it("Should fail for empty registry", async () => {
+    it("Should fail for empty description", async () => {
       await expect(
         policyContract.insertPolicy(1, [], "name", "")
-      ).to.be.revertedWith("Policy: registry required");
+      ).to.be.revertedWith("Policy: description required");
+    });
+
+    it("Should fail for same policyName", async () => {
+      await expect(
+        policyContract.insertPolicy(
+          1,
+          [
+            {
+              name: "test policy 1",
+              attributeName: "testAttr",
+              value: ethers.utils.toUtf8Bytes("vxc4gdbfgb"),
+              attributeOperation: 0,
+              typeOfValue: 3,
+            },
+          ],
+          "test policy 1",
+          "description"
+        )
+      ).to.be.revertedWith("Policy: policy exists");
     });
 
     it("Should fail for empty attribute policy condition", async () => {
@@ -447,14 +486,16 @@ describe("Policy", () => {
             },
           ],
           "name",
-          "registry"
+          "description"
         )
       ).to.be.revertedWith("Policy: invalid attribute name on counter 0");
     });
 
     it("Should be reverted if it doesn't have operator role", async () => {
       await expect(
-        policyContract.connect(addr1).insertPolicy(0, pcs, "name", "registry")
+        policyContract
+          .connect(addr1)
+          .insertPolicy(0, pcs, "name", "description")
       ).to.be.revertedWith(
         `AccessControl: account ${(
           await addr1.getAddress()
@@ -463,18 +504,24 @@ describe("Policy", () => {
     });
 
     it("Should insert policy", async () => {
-      await expect(policyContract.insertPolicy(0, pcs, "name", "registry"))
+      await expect(policyContract.insertPolicy(0, pcs, "name", "description"))
         .to.emit(policyContract, "PolicyInserted")
-        .withArgs(3, "name", "registry")
+        .withArgs(3, "name", "description")
         .to.emit(policyContract, "PolicyConditionInserted")
         .withArgs(0, pcs[0].attributeName, ethers.utils.hexlify(pcs[0].value))
         .to.emit(policyContract, "PolicyConditionInserted")
         .withArgs(1, pcs[1].attributeName, ethers.utils.hexlify(pcs[1].value));
-      const [policyId, registry, policyName, opType, status, policyConditions] =
-        await policyContract.getPolicy(3);
+      const [
+        policyId,
+        description,
+        policyName,
+        opType,
+        status,
+        policyConditions,
+      ] = await policyContract.getPolicy(3);
       expect(policyConditions).to.have.length(2);
       expect(policyId).to.equal(3);
-      expect(registry).to.equal("registry");
+      expect(description).to.equal("description");
       expect(policyName).to.equal("name");
       expect(opType).to.equal(0);
       expect(status).to.be.true;
@@ -493,63 +540,64 @@ describe("Policy", () => {
   describe("searchPolicy", () => {
     it("Should return searched policy ids", async () => {
       // search missing string
-      let [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
-        "test policy"
-      );
+      let [byPolicyName, byPolicyDescription] =
+        await policyContract.searchPolicy("test policy");
       expect(byPolicyName).to.have.length(0);
-      expect(byPolicyRegistry).to.have.length(0);
+      expect(byPolicyDescription).to.have.length(0);
 
       // search by name of policy 0
-      [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
+      [byPolicyName, byPolicyDescription] = await policyContract.searchPolicy(
         "test policy 1"
       );
-      expect(byPolicyRegistry).to.have.length(0);
+      expect(byPolicyDescription).to.have.length(0);
       expect(byPolicyName).to.deep.equal([ethers.BigNumber.from(0)]);
 
       // search by registry of policy 2
-      [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
-        "registry 3"
+      [byPolicyName, byPolicyDescription] = await policyContract.searchPolicy(
+        "description 3"
       );
       expect(byPolicyName).to.have.length(0);
-      expect(byPolicyRegistry).to.deep.equal([ethers.BigNumber.from(2)]);
+      expect(byPolicyDescription).to.deep.equal([ethers.BigNumber.from(2)]);
 
-      // check another policy with the same name / registry
-      await policyContract.insertPolicy(0, [], "test policy 2", "registry 3");
-      [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
-        "registry 3"
+      // check another policy with the same name / description
+      await policyContract.insertPolicy(
+        0,
+        [],
+        "test policy two",
+        "description 3"
+      );
+      [byPolicyName, byPolicyDescription] = await policyContract.searchPolicy(
+        "description 3"
       );
       expect(byPolicyName).to.have.length(0);
-      expect(byPolicyRegistry).to.deep.equal([
+      expect(byPolicyDescription).to.deep.equal([
         ethers.BigNumber.from(2),
         ethers.BigNumber.from(3),
       ]);
-      [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
-        "test policy 2"
+      [byPolicyName, byPolicyDescription] = await policyContract.searchPolicy(
+        "test policy two"
       );
-      expect(byPolicyRegistry).to.have.length(0);
-      expect(byPolicyName).to.deep.equal([
-        ethers.BigNumber.from(1),
-        ethers.BigNumber.from(3),
-      ]);
+      expect(byPolicyDescription).to.have.length(0);
+      expect(byPolicyName).to.deep.equal([ethers.BigNumber.from(3)]);
 
       // update policy 1
       await policyContract.updatePolicy(
         1,
         0,
         "test policy 2 updated",
-        "registry 3"
+        "description 3"
       );
-      [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
+      [byPolicyName, byPolicyDescription] = await policyContract.searchPolicy(
         "test policy 2"
       );
-      expect(byPolicyName).to.deep.equal([ethers.BigNumber.from(3)]);
-      expect(byPolicyRegistry).to.have.length(0);
+      expect(byPolicyName).to.have.length(0);
+      expect(byPolicyDescription).to.have.length(0);
 
-      [byPolicyName, byPolicyRegistry] = await policyContract.searchPolicy(
-        "registry 3"
+      [byPolicyName, byPolicyDescription] = await policyContract.searchPolicy(
+        "description 3"
       );
       expect(byPolicyName).to.have.length(0);
-      expect(byPolicyRegistry).to.deep.equal([
+      expect(byPolicyDescription).to.deep.equal([
         ethers.BigNumber.from(2),
         ethers.BigNumber.from(3),
         ethers.BigNumber.from(1),
