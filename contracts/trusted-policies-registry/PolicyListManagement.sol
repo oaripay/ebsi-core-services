@@ -278,6 +278,38 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
             PolicyCondition[] memory policyConditions
         )
     {
+        return _getPolicy(_policyId);
+    }
+
+    function getPolicy(string calldata _policyName)
+        external
+        view
+        returns (
+            uint256 policyId,
+            string memory description,
+            string memory policyName,
+            OPERATION_TYPE opType,
+            bool status,
+            PolicyCondition[] memory policyConditions
+        )
+    {
+        PolicyContractStorage storage ps = policyStorage();
+        require(ps.policyNameDefined[_policyName], "policy does not exists");
+        return _getPolicy(ps.policyNameToPolicyId[_policyName]);
+    }
+
+    function _getPolicy(uint256 _policyId)
+        internal
+        view
+        returns (
+            uint256 policyId,
+            string memory description,
+            string memory policyName,
+            OPERATION_TYPE opType,
+            bool status,
+            PolicyCondition[] memory policyConditions
+        )
+    {
         PolicyContractStorage storage ps = policyStorage();
 
         require(ps.policyCount > _policyId, "Policy: invalid policy");
