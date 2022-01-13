@@ -266,6 +266,34 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         return ps.policyCount.paginate(page, pageSize);
     }
 
+    function getPolicyNames(uint256 page, uint256 pageSize)
+        external
+        view
+        returns (
+            string[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
+    {
+        require(pageSize <= 50, "PSize not <=50");
+        require(pageSize > 0, "PSize not >0");
+        require(page > 0, "Page not >0");
+        PolicyContractStorage storage ps = policyStorage();
+        uint256[] memory itemsUint;
+        (itemsUint, total, howMany, prev, next) = ps.policyCount.paginate(
+            page,
+            pageSize
+        );
+        string[] memory itemsStrings = new string[](itemsUint.length);
+
+        for (uint256 i; i < itemsUint.length; i++) {
+            itemsStrings[i] = ps.policies[itemsUint[i]].policyName;
+        }
+        return (itemsStrings, total, howMany, prev, next);
+    }
+
     function getPolicy(uint256 _policyId)
         external
         view

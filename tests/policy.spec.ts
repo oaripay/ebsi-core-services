@@ -63,7 +63,7 @@ describe("Policy", () => {
 
   describe("getPolicy", () => {
     it("Should fail for invalid policy", async () => {
-      await expect(policyContract.getPolicy(3)).to.be.revertedWith(
+      await expect(policyContract["getPolicy(uint256)"](3)).to.be.revertedWith(
         "Policy: invalid policy"
       );
     });
@@ -76,7 +76,7 @@ describe("Policy", () => {
         opType,
         status,
         policyConditions,
-      ] = await policyContract.getPolicy(1);
+      ] = await policyContract["getPolicy(uint256)"](1);
       expect(policyId).to.equal(1);
       expect(description).to.equal("description 2");
       expect(policyName).to.equal("test policy 2");
@@ -103,7 +103,7 @@ describe("Policy", () => {
         opType,
         status,
         policyConditions,
-      ] = await policyContract.getPolicy(0);
+      ] = await policyContract["getPolicy(uint256)"](0);
       expect(policyId).to.equal(0);
       expect(description).to.equal("description 1");
       expect(policyName).to.equal("test policy 1");
@@ -140,6 +140,13 @@ describe("Policy", () => {
       expect(paginatedPolicies.howMany.toString()).to.equal("3");
       expect(paginatedPolicies.prev.toString()).to.equal("1");
       expect(paginatedPolicies.next.toString()).to.equal("1");
+
+      const paginatedPolicyNames = await policyContract.getPolicyNames(1, 10);
+      expect(paginatedPolicyNames.items).to.deep.equal([
+        "test policy 1",
+        "test policy 2",
+        "test policy 3",
+      ]);
     });
 
     it("Should return first page", async () => {
@@ -176,7 +183,7 @@ describe("Policy", () => {
       await expect(policyContract.deactivatePolicy(0))
         .to.emit(policyContract, "PolicyDeactivated")
         .withArgs(0);
-      const policy = await policyContract.getPolicy(0);
+      const policy = await policyContract["getPolicy(uint256)"](0);
       expect(policy.status).to.be.false;
     });
 
@@ -213,12 +220,12 @@ describe("Policy", () => {
 
     it("Should activate policy", async () => {
       await policyContract.deactivatePolicy(0);
-      let policy = await policyContract.getPolicy(0);
+      let policy = await policyContract["getPolicy(uint256)"](0);
       expect(policy.status).to.be.false;
       await expect(policyContract.activatePolicy(0))
         .to.emit(policyContract, "PolicyActivated")
         .withArgs(0);
-      policy = await policyContract.getPolicy(0);
+      policy = await policyContract["getPolicy(uint256)"](0);
       expect(policy.status).to.be.true;
     });
   });
@@ -259,7 +266,7 @@ describe("Policy", () => {
       await expect(policyContract.updatePolicy(1, 0, "policy", "description"))
         .to.emit(policyContract, "PolicyUpdated")
         .withArgs(1, "test policy 2", "policy", "description 2", "description");
-      const policy = await policyContract.getPolicy(1);
+      const policy = await policyContract["getPolicy(uint256)"](1);
       expect(policy.policyId).to.equal(1);
       expect(policy.policyName).to.equal("policy");
       expect(policy.description).to.equal("description");
@@ -293,7 +300,7 @@ describe("Policy", () => {
 
     it("Should be able to add empty policyConditions array", async () => {
       await policyContract.addPolicyConditions(1, []);
-      const policy = await policyContract.getPolicy(1);
+      const policy = await policyContract["getPolicy(uint256)"](1);
       expect(policy.policyConditions).to.have.length(pcs.length);
     });
 
@@ -333,7 +340,7 @@ describe("Policy", () => {
         .withArgs(0, "attr 1", ethers.utils.hexlify(addPcs[0].value))
         .to.emit(policyContract, "PolicyConditionInserted")
         .withArgs(1, "attr 2", ethers.utils.hexlify(addPcs[1].value));
-      const policy = await policyContract.getPolicy(1);
+      const policy = await policyContract["getPolicy(uint256)"](1);
       expect(policy.policyConditions).to.have.length(
         pcs.length + addPcs.length
       );
@@ -412,7 +419,7 @@ describe("Policy", () => {
       await expect(policyContract.deletePolicyCondition(1, 1))
         .to.emit(policyContract, "PolicyConditionDeleted")
         .withArgs(1, pcs[1].attributeName, ethers.utils.hexlify(pcs[1].value));
-      let policy = await policyContract.getPolicy(1);
+      let policy = await policyContract["getPolicy(uint256)"](1);
       expect(policy.policyConditions).to.have.length(2);
       expect(policy.policyConditions[0].name).to.equal(pcs[0].name);
       expect(policy.policyConditions[1].name).to.equal("name3");
@@ -426,14 +433,14 @@ describe("Policy", () => {
           typeOfValue: 3,
         },
       ]);
-      policy = await policyContract.getPolicy(1);
+      policy = await policyContract["getPolicy(uint256)"](1);
       expect(policy.policyConditions).to.have.length(3);
       expect(policy.policyConditions[2].name).to.equal("name4");
 
       await expect(await policyContract.deletePolicyCondition(1, 0))
         .to.emit(policyContract, "PolicyConditionDeleted")
         .withArgs(0, pcs[0].attributeName, ethers.utils.hexlify(pcs[0].value));
-      policy = await policyContract.getPolicy(1);
+      policy = await policyContract["getPolicy(uint256)"](1);
       expect(policy.policyConditions).to.have.length(2);
       expect(policy.policyConditions[0].name).to.equal("name4");
       expect(policy.policyConditions[1].name).to.equal("name3");
@@ -518,7 +525,7 @@ describe("Policy", () => {
         opType,
         status,
         policyConditions,
-      ] = await policyContract.getPolicy(3);
+      ] = await policyContract["getPolicy(uint256)"](3);
       expect(policyConditions).to.have.length(2);
       expect(policyId).to.equal(3);
       expect(description).to.equal("description");
@@ -532,7 +539,7 @@ describe("Policy", () => {
     it("Admin Should be able to grant role", async () => {
       await policyContract.grantRole(OPERATOR_ROLE, await addr1.getAddress());
       await policyContract.connect(addr1).addPolicyConditions(1, []);
-      const policy = await policyContract.getPolicy(1);
+      const policy = await policyContract["getPolicy(uint256)"](1);
       expect(policy.policyConditions).to.have.length(pcs.length);
     });
   });
