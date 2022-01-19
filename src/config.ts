@@ -17,23 +17,23 @@ export const config = {
     process.env.REACT_APP_POLICY_REGISTRY_ADDRESS ||
     "0x17a340418937A38b3Cb62FdA42241eB0722868A6",
   routes: {
-    trustedAppsRegistry: "/apps-admin/trusted-apps-registry",
+    trustedAppsRegistry: "/registries-manager/trusted-apps-registry",
     trustedAppsRegistryPublicKeys:
-      "/apps-admin/trusted-apps-registry/public-keys/:id",
+      "/registries-manager/trusted-apps-registry/public-keys/:id",
     trustedAppsRegistryAuthorizations:
-      "/apps-admin/trusted-apps-registry/authorizations/:id",
-    trustedIssuersRegistry: "/apps-admin/trusted-issuers-registry",
+      "/registries-manager/trusted-apps-registry/authorizations/:id",
+    trustedIssuersRegistry: "/registries-manager/trusted-issuers-registry",
     trustedIssuersRegistryAttributes:
-      "/apps-admin/trusted-issuers-registry/:attribute",
-    trustedSchemaRegistry: "/apps-admin/trusted-schema-registry",
+      "/registries-manager/trusted-issuers-registry/:attribute",
+    trustedSchemaRegistry: "/registries-manager/trusted-schema-registry",
     trustedSchemaRegistryRevision:
-      "/apps-admin/trusted-schema-registry/revision/:schemaId",
+      "/registries-manager/trusted-schema-registry/revision/:schemaId",
     trustedSchemaRegistryRevisionMetadata:
-      "/apps-admin/trusted-schema-registry/metadata/:revisionId",
-    trustedPoliciesRegistry: "/apps-admin/trusted-policies-registry",
+      "/registries-manager/trusted-schema-registry/metadata/:revisionId",
+    trustedPoliciesRegistry: "/registries-manager/trusted-policies-registry",
     trustedPoliciesRegistryAttributes:
-      "/apps-admin/trusted-policies-registry/:address/attributes",
-    registerDid: "/apps-admin/register-did",
-    default: "/apps-admin",
+      "/registries-manager/trusted-policies-registry/:address/attributes",
+    registerDid: "/registries-manager/register-did",
+    default: "/registries-manager",
   },
 };

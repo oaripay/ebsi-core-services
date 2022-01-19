@@ -64,7 +64,7 @@
     "lint:prettier": "prettier --check \"**/*.{md,mdx,html,json,yml,js,jsx,ts,tsx,css,scss}\"",
     "lint": "npm run lint:js && npm run lint:css && npm run lint:prettier"
   },
-  "homepage": "/apps-admin",
+  "homepage": "/registries-manager",
   "browserslist": {
     "production": [
       ">0.2%",
