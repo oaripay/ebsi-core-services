@@ -1,21 +1,21 @@
 import React, { ReactElement } from "react";
-import { Col, Form, Input, Modal, Row, Select, Spin } from "antd";
+import { Col, Form, Input, Modal, Row, Spin } from "antd";
 import useAddRevision from "./hooks/use-add-revision";
 
 export default function AddAttributeRevisionModal({
   showModal,
   setModal,
   did,
-  attributes,
+  attribute,
   loadTableData,
 }: {
-  attributes: string[];
+  attribute: string;
   did: string;
   showModal: boolean;
   setModal: (options: {
     show: boolean;
     did: string;
-    attributes: string[];
+    attribute: string;
   }) => void;
   loadTableData: () => void;
 }): ReactElement {
@@ -31,7 +31,7 @@ export default function AddAttributeRevisionModal({
         setModal({
           show: false,
           did: "",
-          attributes: [],
+          attribute,
         });
         form.resetFields(["attribute", "revision"]);
       }}
@@ -44,7 +44,7 @@ export default function AddAttributeRevisionModal({
         setModal({
           show: false,
           did: "",
-          attributes: [],
+          attribute: "",
         });
         form.resetFields(["attribute", "revision"]);
         loadTableData();
@@ -55,34 +55,19 @@ export default function AddAttributeRevisionModal({
           layout="vertical"
           form={form}
           initialValues={{
-            versionHash: "",
+            attribute,
             revision: "",
           }}
         >
           <Row>
             <Col span={24}>
-              {attributes.length ? (
-                <Form.Item
-                  label="Attribute"
-                  name="attribute"
-                  rules={[{ required: true }]}
-                >
-                  <Select style={{ width: "100%" }} onChange={() => {}}>
-                    {attributes.map((attr: string) => {
-                      return (
-                        <Select.Option
-                          key={`${attr + Math.random()}`}
-                          value={attr}
-                        >
-                          {attr}
-                        </Select.Option>
-                      );
-                    })}
-                  </Select>
-                </Form.Item>
-              ) : (
-                ""
-              )}
+              <Form.Item
+                label="Attribute"
+                name="attribute"
+                rules={[{ required: true }]}
+              >
+                <Input placeholder="{ <attribute>: <value>}" disabled />
+              </Form.Item>
             </Col>
           </Row>
           <Row>

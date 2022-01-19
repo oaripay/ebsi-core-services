@@ -11,15 +11,15 @@ import {
   Space,
 } from "antd";
 import { ethers } from "ethers";
-import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import { useAppContext } from "../AppContext";
-import { notAfterDate, notBeforeDate } from "../date-validator";
-import { useTableHook } from "../hooks/use-table-hook";
+import { useAppContext } from "../../../AppContext";
+import { notAfterDate, notBeforeDate } from "../../../date-validator";
+import { useTableHook } from "../use-table-hook";
+import { useTrustedAppPublicKeysHook } from "../use-trusted-app-public-keys.hook";
 
 export default function ModalInsertPublicKey(): ReactElement {
   const [form] = Form.useForm();
 
-  const { insertAppPublicKey } = useRegistryContractHook();
+  const { insertAppPublicKey } = useTrustedAppPublicKeysHook();
   const { loadTableData } = useTableHook();
   const appCtx = useAppContext();
 

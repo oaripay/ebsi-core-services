@@ -2,14 +2,14 @@ import React, { useEffect } from "react";
 import { Table as TableAntd } from "antd";
 
 import { TablePaginationConfig } from "antd/es/table";
-import { useTableHook } from "../../hooks/use-table-hook";
+import { useTableHook } from "./use-table-hook";
 import { useAppContext } from "../../AppContext";
-import { useRegistryContractHook } from "../../hooks/use-registry-contract.hook";
+import { useTrustedAppHook } from "./use-trusted-app.hook";
 
 export function Table() {
   const { columns, loadTableData } = useTableHook();
   const { filteredDataSource, tableLoading, setPage } = useAppContext();
-  const { totalItems, initTotalItems } = useRegistryContractHook();
+  const { totalItems, initTotalItems } = useTrustedAppHook();
 
   useEffect(() => {
     initTotalItems();
@@ -29,7 +29,7 @@ export function Table() {
         setPage(changeEvent.current || 1);
       }}
       pagination={{
-        position: ["bottomRight"],
+        position: ["bottomCenter"],
         showSizeChanger: false,
         total: totalItems,
         defaultPageSize: 50,

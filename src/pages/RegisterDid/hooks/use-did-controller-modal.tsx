@@ -1,10 +1,10 @@
 import { useCallback } from "react";
 import { FormInstance, notification } from "antd";
 import { ethers } from "ethers";
-import { useEthersHook } from "../../hooks/use-ethers.hook";
-import { buildDidParams, createDidDocument } from "./DidUtils";
-import { useRegisterDidContext } from "./RegisterDid.context";
-import { useNotificationContext } from "../../components/Notification/Notification.context";
+import { useEthersHook } from "../../../hooks/use-ethers.hook";
+import { buildDidParams, createDidDocument } from "../DidUtils";
+import { useRegisterDidContext } from "../RegisterDid.context";
+import { useNotificationContext } from "../../../components/Notification/Notification.context";
 
 type PropType = {
   insertDidControllerForm: FormInstance;

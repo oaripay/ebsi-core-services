@@ -10,16 +10,17 @@ import {
   Space,
 } from "antd";
 
-import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import { useAppContext } from "../AppContext";
-import { notAfterDate } from "../date-validator";
-import { useTableHook } from "../hooks/use-table-hook";
+import { useTrustedAppHook } from "../use-trusted-app.hook";
+import { useAppContext } from "../../../AppContext";
+import { notAfterDate } from "../../../date-validator";
+import { useTableHook } from "../use-table-hook";
+import { useAuthorizedApps } from "../use-authorized-apps";
 
 export function ModalUpdateAuthorization() {
   const [form] = Form.useForm();
 
-  const { updateAuthorization, getAuthorizationsIds } =
-    useRegistryContractHook();
+  const { updateAuthorization } = useAuthorizedApps();
+  const { getAuthorizationsIds } = useTrustedAppHook();
   const appCtx = useAppContext();
 
   const { loadTableData } = useTableHook();
@@ -117,7 +118,7 @@ export function ModalUpdateAuthorization() {
           layout="vertical"
           form={form}
           initialValues={{
-            appId: appCtx.updateAuthorization.data?.authorizationId,
+            appId: appCtx.updateAuthorization.data?.appId,
             permissions: 15,
             status: 1,
           }}
@@ -128,17 +129,9 @@ export function ModalUpdateAuthorization() {
                 <Select style={{ width: "100%" }} onChange={() => {}}>
                   {appCtx.updateAuthorization.data?.authorizedApps?.map(
                     (app: string) => {
-                      let name = appCtx.tableDataSource.find(
-                        (param: any) => param.id === app
-                      )?.name;
-                      if (!name) {
-                        name = appCtx.missingApps.find(
-                          (param: any) => param.id === app
-                        )?.name;
-                      }
                       return (
                         <Select.Option key={app} value={app}>
-                          {name}
+                          {app}
                         </Select.Option>
                       );
                     }

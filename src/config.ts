@@ -13,14 +13,26 @@ export const config = {
   TSR_ADDRESS:
     process.env.REACT_APP_TSR_ADDRESS ||
     "0x9F6079ED5f2659b2a218A88e93A00Bb087a4CcbA",
+  POLICY_REGISTRY_ADDRESS:
+    process.env.REACT_APP_POLICY_REGISTRY_ADDRESS ||
+    "0x17a340418937A38b3Cb62FdA42241eB0722868A6",
   routes: {
     trustedAppsRegistry: "/apps-admin/trusted-apps-registry",
+    trustedAppsRegistryPublicKeys:
+      "/apps-admin/trusted-apps-registry/public-keys/:id",
+    trustedAppsRegistryAuthorizations:
+      "/apps-admin/trusted-apps-registry/authorizations/:id",
     trustedIssuersRegistry: "/apps-admin/trusted-issuers-registry",
+    trustedIssuersRegistryAttributes:
+      "/apps-admin/trusted-issuers-registry/:attribute",
     trustedSchemaRegistry: "/apps-admin/trusted-schema-registry",
     trustedSchemaRegistryRevision:
       "/apps-admin/trusted-schema-registry/revision/:schemaId",
     trustedSchemaRegistryRevisionMetadata:
       "/apps-admin/trusted-schema-registry/metadata/:revisionId",
+    trustedPoliciesRegistry: "/apps-admin/trusted-policies-registry",
+    trustedPoliciesRegistryAttributes:
+      "/apps-admin/trusted-policies-registry/:address/attributes",
     registerDid: "/apps-admin/register-did",
     default: "/apps-admin",
   },

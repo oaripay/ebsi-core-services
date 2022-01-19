@@ -54,12 +54,10 @@ export default function useAddTrustedIssuer() {
         return;
       }
       if (didExists) {
-        form.setFields([
-          {
-            name: "did",
-            errors: ["Did already exists!"],
-          },
-        ]);
+        notification.error({
+          message: "Error",
+          description: `DID already exists`,
+        });
         setIsSubmitting(false);
         setShowPendingTxNotif(false);
         return;

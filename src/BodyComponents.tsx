@@ -8,6 +8,9 @@ import Main from "./pages/Main/Main";
 import { RegisterDidProvider } from "./pages/RegisterDid/RegisterDid.context";
 import TrustedIssuersRegistry from "./pages/TrustedIssuersRegistry/TrustedIssuersRegistry";
 import TrustedSchemasRegistry from "./pages/TrustedShemasRegistry/TrustedSchemasRegistry";
+import TrustedPoliciesRegistry from "./pages/TrustedPoliciesRegistry/TrustedPoliciesRegistry";
+import PublicKeys from "./pages/TrustedAppRegistry/PublicKeys";
+import Authorizations from "./pages/TrustedAppRegistry/Authorizations";
 
 export default function BodyComponents(): ReactElement {
   return (
@@ -15,7 +18,16 @@ export default function BodyComponents(): ReactElement {
       <Route exact path={config.routes.trustedAppsRegistry}>
         <TrustedAppRegistry />
       </Route>
+      <Route exact path={config.routes.trustedAppsRegistryPublicKeys}>
+        <PublicKeys />
+      </Route>
+      <Route exact path={config.routes.trustedAppsRegistryAuthorizations}>
+        <Authorizations />
+      </Route>
       <Route exact path={config.routes.trustedIssuersRegistry}>
+        <TrustedIssuersRegistry />
+      </Route>
+      <Route exact path={config.routes.trustedIssuersRegistryAttributes}>
         <TrustedIssuersRegistry />
       </Route>
       <Route exact path={config.routes.registerDid}>
@@ -32,6 +44,13 @@ export default function BodyComponents(): ReactElement {
       <Route path={config.routes.trustedSchemaRegistryRevisionMetadata}>
         <TrustedSchemasRegistry />
       </Route>
+      <Route path={config.routes.trustedPoliciesRegistryAttributes}>
+        <TrustedPoliciesRegistry />
+      </Route>
+      <Route path={config.routes.trustedPoliciesRegistry}>
+        <TrustedPoliciesRegistry />
+      </Route>
+
       <Route path="*">
         <Main />
       </Route>

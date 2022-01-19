@@ -1,13 +1,19 @@
 import { ethers } from "ethers";
 import { useCallback, useMemo } from "react";
 import { notification } from "antd";
-import { useEthersHook } from "../../hooks/use-ethers.hook";
-import { useWalletContext } from "../../components/Wallet/WalletContext";
-import { buildDidParams, createDidDocument, onlyUnique } from "./DidUtils";
-import { useRegisterDidContext } from "./RegisterDid.context";
-import { DataType, DidRecordType } from "./DidTableTypes";
-import { useNotificationContext } from "../../components/Notification/Notification.context";
-import { PaginatedResponseType } from "../../shared/PaginatedResponseType";
+import { useEthersHook } from "../../../hooks/use-ethers.hook";
+import { useWalletContext } from "../../../components/Wallet/WalletContext";
+import {
+  buildDidParams,
+  createDidDocument,
+  DocumentType,
+  onlyUnique,
+} from "../DidUtils";
+import { useRegisterDidContext } from "../RegisterDid.context";
+import { DataType, DidRecordType } from "../DidTableTypes";
+import { useNotificationContext } from "../../../components/Notification/Notification.context";
+import { PaginatedResponseType } from "../../../shared/PaginatedResponseType";
+import { PAGE_SIZE } from "../contants";
 
 export const LS_DID = "EBSI_DID";
 
@@ -45,7 +51,7 @@ export default function useDidRegister() {
         .getDidDocumentVersionIds(
           `0x${Buffer.from(didId).toString("hex")}`,
           1,
-          50
+          PAGE_SIZE
         )
         .catch(() => ({
           items: [],
@@ -84,7 +90,7 @@ export default function useDidRegister() {
             `0x${Buffer.from(identifierForDoc).toString("hex")}`,
             versionHash,
             1,
-            50
+            PAGE_SIZE
           )
         )
       ).catch(() => {
@@ -236,6 +242,43 @@ export default function useDidRegister() {
     [walletAddress]
   );
 
+  const updateDidDocument = useCallback(
+    async (didId: string, document: string) => {
+      if (!didRegistryContract) {
+        return;
+      }
+      const documentParsed: DocumentType = JSON.parse(document);
+      const { param } = buildDidParams(documentParsed);
+      const { hashValue, didVersionInfo, timestampData, didVersionMetadata } =
+        param;
+
+      try {
+        const tx = await didRegistryContract.updateDidDocument(
+          ethers.utils.toUtf8Bytes(didId),
+          param.hashAlgorithmId,
+          hashValue,
+          didVersionInfo,
+          timestampData,
+          didVersionMetadata
+        );
+        await tx.wait(1);
+        notification.success({
+          message: "Action successful",
+          description: "A DID Document was updated!",
+        });
+        setShowPendingTxNotif(false);
+      } catch (ex) {
+        setShowPendingTxNotif(false);
+        notification.error({
+          message: "Error",
+          description:
+            "An error appeared while trying to update the DID. Please try again",
+        });
+      }
+    },
+    [didRegistryContract, setShowPendingTxNotif]
+  );
+
   const registerDid = useCallback(
     async (didUser: string) => {
       const document = createDidDocument(didUser, publicKey);
@@ -371,6 +414,7 @@ export default function useDidRegister() {
     walletAddress,
     didToBeSent,
     insertDidAs,
+    updateDidDocument,
     getDidRecordIdentifiersByControllerId,
     getDidDocumentVersionDidTimestampIds,
     getDidDocumentVersionMetadataIds,

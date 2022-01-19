@@ -35,7 +35,7 @@ export default function useTrustedSchemasMetadataTable() {
             }}
           >
             <EyeOutlined />
-            Show schema
+            Show metadata
           </Button>
         );
       },

@@ -1,9 +1,9 @@
 import { ethers } from "ethers";
 import { useEffect, useState } from "react";
-import { useEthersHook } from "../../hooks/use-ethers.hook";
-import { useWalletContext } from "../../components/Wallet/WalletContext";
-import { DidRecordType, HashAlgo } from "./DidTableTypes";
-import { PaginatedResponseType } from "../../shared/PaginatedResponseType";
+import { useEthersHook } from "../../../hooks/use-ethers.hook";
+import { useWalletContext } from "../../../components/Wallet/WalletContext";
+import { DidRecordType, HashAlgo } from "../DidTableTypes";
+import { PaginatedResponseType } from "../../../shared/PaginatedResponseType";
 
 const PB_KEY_LS = "did-public-key";
 
@@ -108,7 +108,8 @@ export default function useDidRegisterEffects({
             };
           })
         );
-      });
+      })
+      .catch(() => {});
   }, [didRegistryContract]);
 
   useEffect(() => {

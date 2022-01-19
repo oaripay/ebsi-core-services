@@ -1,14 +1,13 @@
 import React from "react";
-import { Layout } from "antd";
+import { Col, Layout, Row, Space } from "antd";
 import { NewApp } from "./NewApp";
-import { ModalUpdateAuthorization } from "../../Modals/ModalUpdateAuthorization";
-import { ModalUpdateAppPublicKey } from "../../Modals/ModalUpdateAppPublicKey";
-import { ModalUpdateApp } from "../../Modals/ModalUpdateApp";
-import ModalInsertPublicKey from "../../Modals/ModalInsertPublicKey";
-import ModalInsertAuth from "../../Modals/ModalInsertAuth";
+import { ModalUpdateAppPublicKey } from "./modals/ModalUpdateAppPublicKey";
+import { ModalUpdateApp } from "./modals/ModalUpdateApp";
+import ModalInsertPublicKey from "./modals/ModalInsertPublicKey";
 import { useAppContext } from "../../AppContext";
 import { useVerifyNetworkEffectHook } from "../../hooks/use-verify-network-effect.hook";
 import { useSearchEventsHook } from "../../hooks/use-search-events.hook";
+import InfoCard from "./InfoCard";
 
 export default function TrustedAppRegistry() {
   const { Footer } = Layout;
@@ -20,14 +19,18 @@ export default function TrustedAppRegistry() {
     return <></>;
   }
   return (
-    <div>
-      <NewApp />
-      <ModalUpdateAuthorization />
-      <ModalUpdateAppPublicKey />
-      <ModalUpdateApp />
-      <ModalInsertPublicKey />
-      <ModalInsertAuth />
+    <Space direction="vertical" className="content-container" size="middle">
+      <InfoCard />
+      <Row>
+        <Col>
+          <NewApp />
+          <ModalUpdateAppPublicKey />
+          <ModalUpdateApp />
+          <ModalInsertPublicKey />
+        </Col>
+      </Row>
+
       <Footer style={{ textAlign: "center" }}>EBSI</Footer>
-    </div>
+    </Space>
   );
 }

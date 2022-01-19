@@ -1,16 +1,12 @@
 import { useCallback, useMemo } from "react";
 import Fuse from "fuse.js";
 import { useAppContext } from "../AppContext";
-import { useRegistryContractHook } from "./use-registry-contract.hook";
+import { useTrustedAppHook } from "../pages/TrustedAppRegistry/use-trusted-app.hook";
 
 export function useSearch() {
-  const {
-    tableDataSource,
-    setTableFilteredDataSource,
-    setTableLoading,
-    setMissingApps,
-  } = useAppContext();
-  const { getAppByName, getApplications } = useRegistryContractHook();
+  const { tableDataSource, setTableFilteredDataSource, setTableLoading } =
+    useAppContext();
+  const { getAppByName, getApplications } = useTrustedAppHook();
 
   const options = useMemo(
     () => ({
@@ -48,11 +44,6 @@ export function useSearch() {
             setTableLoading(true);
             getApplications([result.applicationId]).then((data: any) => {
               setTableFilteredDataSource(data.tableData);
-              getApplications(data.missingAppsFromTable).then(
-                (missingApps: any) => {
-                  setMissingApps(missingApps.tableData);
-                }
-              );
             });
           } else {
             setTableLoading(true);
@@ -73,7 +64,6 @@ export function useSearch() {
       setTableFilteredDataSource,
       setTableLoading,
       getApplications,
-      setMissingApps,
       fuse,
     ]
   );

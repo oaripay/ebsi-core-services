@@ -36,6 +36,10 @@ export default function useUpdateTrustedIssuer() {
           setIsSubmitting(false);
           return true;
         } catch (ex) {
+          notification.error({
+            message: "Error",
+            description: "Attribute already exists!",
+          });
           setShowPendingTxNotif(false);
           setIsSubmitting(false);
           return false;

@@ -1,6 +1,8 @@
 import React, { ReactElement, useCallback, useMemo } from "react";
-import { PageHeader, Space } from "antd";
+import { Card, Col, PageHeader, Row, Space } from "antd";
 import { useParams } from "react-router-dom";
+import Title from "antd/lib/typography/Title";
+import { EyeOutlined } from "@ant-design/icons";
 import TrustedSchemaTab from "./TrustedSchemasTab";
 import { useVerifyNetworkEffectHook } from "../../hooks/use-verify-network-effect.hook";
 import TrustedRevisionTab from "./TrustedRevisionTab";
@@ -40,11 +42,32 @@ export default function TrustedSchemasRegistry(): ReactElement {
   return (
     <ModalProvider>
       <Space direction="vertical" className="content-container" size="middle">
-        <PageHeader
-          className="site-page-header p-0"
-          title="Trusted Schemas Registry"
-          subTitle={subtitle}
-        />
+        <Card title={<Title>Trusted Schema Registry</Title>}>
+          <Row>
+            <Col>
+              <p>
+                Trusted Schemas Registry (TSR) is an EBSI core service. It
+                enables to:
+              </p>
+              <ul>
+                <li>register a new schema</li>
+                <li>update a registered schema</li>
+                <li>read and validate registered schemas</li>
+              </ul>
+              <Row align="middle">
+                <a
+                  href="https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/EBSI+V2+-+Trusted+Schemas+Registry+API"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <EyeOutlined /> See more
+                </a>
+              </Row>
+            </Col>
+          </Row>
+        </Card>
+        <PageHeader className="site-page-header p-0" subTitle={subtitle} />
+
         <Component />
       </Space>
     </ModalProvider>

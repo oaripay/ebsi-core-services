@@ -71,8 +71,6 @@ export function AppProvider({
   const [tableDataState, setTableDataState] = useState(defaultParamsTable);
   const [editModalState, setEditModalState] = useState(defaultParamsModal);
 
-  const [missingAppsState, setMissingAppsState] = useState([]);
-
   const [insertPublicKeyModalState, setInsertPublicKeyModalState] =
     useState(defaultParamsModal);
   const [authorizedAppsModalState, setAuthorizedAppsModalState] =
@@ -156,10 +154,6 @@ export function AppProvider({
     }));
   }, []);
 
-  const setMissingApps = useCallback((missingApps) => {
-    setMissingAppsState(missingApps);
-  }, []);
-
   const setTableFilteredDataSource = useCallback(
     (filteredDataSource: any[]) => {
       setTableDataState((current) => ({
@@ -218,7 +212,6 @@ export function AppProvider({
       authorizedAppsModal: authorizedAppsModalState,
       setTableLoading,
       setTableDataSource,
-      setMissingApps,
       setSearchedTerm,
       setTableFilteredDataSource,
       setEditModal,
@@ -229,7 +222,6 @@ export function AppProvider({
       pageErr,
       metamask,
       setPage,
-      missingApps: missingAppsState,
       insertPublicKeyModal: insertPublicKeyModalState,
       clearInput,
       setClearInput,
@@ -241,12 +233,10 @@ export function AppProvider({
     editModalState,
     insertPublicKeyModalState,
     metamask,
-    missingAppsState,
     pageErr,
     setAuthorizedAppsModal,
     setEditModal,
     setInsertPublicKeyModal,
-    setMissingApps,
     setPage,
     setSearchedTerm,
     setTableDataSource,
