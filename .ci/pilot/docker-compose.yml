@@ -3,4 +3,4 @@ version: "3.7"
 services:
   users-onboarding-api:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/users-onboarding-api:pilot_ebsiint-3760-docker-deps-update_v1.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/users-onboarding-api:pilot_ebsiint-3783-clean-conformance_v1.0.0

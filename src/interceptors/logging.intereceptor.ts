@@ -34,18 +34,22 @@ export class LoggingInterceptor implements NestInterceptor {
       .switchToHttp()
       .getRequest<FastifyRequest>();
     const { method, url, body, headers } = req;
-    const ctx = `${this.ctxPrefix} - ${method} - ${url}`;
-    const message = `Incoming request - ${method} - ${url}`;
+    const { conformance } = headers;
+    if (conformance) {
+      const ctx = `${this.ctxPrefix} - ${method} - ${url}`;
+      const message = `Incoming request - ${method} - ${url}`;
 
-    this.logger.log(
-      {
-        message,
-        method,
-        body,
-        headers,
-      },
-      ctx
-    );
+      this.logger.log(
+        {
+          message,
+          method,
+          body,
+          headers,
+          conformance,
+        },
+        ctx
+      );
+    }
 
     return call$.handle().pipe(
       tap({
@@ -71,18 +75,22 @@ export class LoggingInterceptor implements NestInterceptor {
     const res: FastifyReply = context
       .switchToHttp()
       .getResponse<FastifyReply>();
-    const { method, url } = req;
-    const { statusCode } = res;
-    const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
-    const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
+    const { method, url, headers } = req;
+    const { conformance } = headers;
 
-    this.logger.log(
-      {
-        message,
-        body,
-      },
-      ctx
-    );
+    if (conformance) {
+      const { statusCode } = res;
+      const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
+      const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
+      this.logger.log(
+        {
+          message,
+          body,
+          conformance,
+        },
+        ctx
+      );
+    }
   }
 
   /**
@@ -94,36 +102,26 @@ export class LoggingInterceptor implements NestInterceptor {
     const req: FastifyRequest = context
       .switchToHttp()
       .getRequest<FastifyRequest>();
-    const { method, url, body } = req;
+    const { method, url, body, headers } = req;
+    const { conformance } = headers;
 
     if (error instanceof HttpException) {
       const statusCode: number = error.getStatus();
       const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
       const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
+      const jsonLog = {
+        method,
+        url,
+        body,
+        message,
+        error,
+        conformance,
+      };
 
       if (statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
-        this.logger.error(
-          {
-            method,
-            url,
-            body,
-            message,
-            error,
-          },
-          error.stack,
-          ctx
-        );
-      } else {
-        this.logger.warn(
-          {
-            method,
-            url,
-            error,
-            body,
-            message,
-          },
-          ctx
-        );
+        this.logger.error(jsonLog, error.stack, ctx);
+      } else if (conformance) {
+        this.logger.warn(jsonLog, ctx);
       }
     } else {
       this.logger.error(
