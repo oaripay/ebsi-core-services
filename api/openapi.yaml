@@ -2172,6 +2172,7 @@ paths:
             'sendSignedTransaction'
           - **id**: Identifier stablished by the client
 
+          [conformance description]
           [EBSI conformance testing](https://ec.europa.eu/cefdigital/wiki/x/5YDwG)
 
           The API supports the following EBSI conformance tests
@@ -2203,7 +2204,7 @@ paths:
                   type: integer
                   example: 1
             examples:
-              ct1_did_01:
+              "[conformance] ct1_did_01":
                 summary: Build blockchain transaction to register a DID Document (CT V1 DID_01)
                 description: |
                   EBSI conformance test: Build blockchain transaction to register a DID Document (DID_01).
@@ -2225,7 +2226,7 @@ paths:
                       timestampData: "0x7b2264617461223a2274657374222c2272223a2239333133313465363232633231613635227d"
                       didVersionMetadata: "0x7b226d657461223a2238313239336463633863623537623930663835383662396237343139333530653636316166623530663563633461656666376632643532373863623530353562227d"
                   id: 1
-              ct1_did_02:
+              "[conformance] ct1_did_02":
                 summary: Send blockchain transaction to register a DID Document (CT V1 DID_02)
                 description: >
                   EBSI conformance test: Send blockchain transaction to register a DID Document (DID_02).

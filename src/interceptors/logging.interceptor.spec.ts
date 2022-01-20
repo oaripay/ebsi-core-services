@@ -1,12 +1,7 @@
 import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { INestApplication, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -14,6 +9,7 @@ import {
 import type { FastifyInstance } from "fastify";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { createJWT, ES256KSigner } from "did-jwt";
+import { Logger } from "@nestjs/common/services/logger.service";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 import { createDid } from "../../tests/utils/data";
@@ -22,8 +18,6 @@ jest.setTimeout(60000);
 
 describe("Logging interceptor", () => {
   let app: INestApplication;
-  let server: HttpServer;
-
   const mockedLogger = {
     log: jest.fn(),
     warn: jest.fn(),
@@ -45,7 +39,6 @@ describe("Logging interceptor", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
   });
 
   afterEach(() => {
@@ -53,10 +46,25 @@ describe("Logging interceptor", () => {
   });
 
   describe("GET /health", () => {
+    it("should NOT log the request and response", async () => {
+      expect.assertions(1);
+
+      await request(app.getHttpServer()).get(`/health`);
+
+      const calls = mockedLogger.log.mock.calls.length;
+      expect(mockedLogger.log).toHaveBeenNthCalledWith(
+        calls,
+        "Nest application successfully started",
+        "NestApplication"
+      );
+    });
+
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      await request(server).get(`/health`);
+      await request(app.getHttpServer())
+        .get(`/health`)
+        .set("conformance", "test-id-conformance");
 
       const calls = mockedLogger.log.mock.calls.length;
 
@@ -69,9 +77,11 @@ describe("Logging interceptor", () => {
             "accept-encoding": "gzip, deflate",
             connection: "close",
             host: expect.stringContaining("127.0.0.1:") as string,
+            conformance: "test-id-conformance",
           },
           message: "Incoming request - GET - /health",
           method: "GET",
+          conformance: "test-id-conformance",
         },
         "LoggingInterceptor - GET - /health",
         "LoggingInterceptor"
@@ -96,6 +106,7 @@ describe("Logging interceptor", () => {
             status: "ok",
           },
           message: "Outgoing response - 200 - GET - /health",
+          conformance: "test-id-conformance",
         },
         "LoggingInterceptor - 200 - GET - /health",
         "LoggingInterceptor"
@@ -121,9 +132,10 @@ describe("Logging interceptor", () => {
         }
       );
 
-      await request(server)
+      await request(app.getHttpServer())
         .post("/jsonrpc")
         .auth(userAccessToken, { type: "bearer" })
+        .set("conformance", "test-id-conformance")
         .send("invalid body");
 
       const logCalls = mockedLogger.log.mock.calls.length;
@@ -141,9 +153,11 @@ describe("Logging interceptor", () => {
             "content-length": "12",
             "content-type": "application/x-www-form-urlencoded",
             host: expect.stringContaining("127.0.0.1:") as string,
+            conformance: "test-id-conformance",
           },
           message: "Incoming request - POST - /jsonrpc",
           method: "POST",
+          conformance: "test-id-conformance",
         },
         "LoggingInterceptor - POST - /jsonrpc",
         "LoggingInterceptor"
@@ -160,6 +174,7 @@ describe("Logging interceptor", () => {
           message: "Outgoing response - 400 - POST - /jsonrpc",
           method: "POST",
           url: "/jsonrpc",
+          conformance: "test-id-conformance",
         },
         "LoggingInterceptor - 400 - POST - /jsonrpc",
         "LoggingInterceptor"
