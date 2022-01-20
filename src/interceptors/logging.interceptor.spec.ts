@@ -42,10 +42,25 @@ describe("Logging interceptor", () => {
   });
 
   describe("GET /health", () => {
+    it("should NOT log the request and response", async () => {
+      expect.assertions(1);
+
+      await request(app.getHttpServer()).get(`/health`);
+
+      const calls = mockedLogger.log.mock.calls.length;
+      expect(mockedLogger.log).toHaveBeenNthCalledWith(
+        calls,
+        "Nest application successfully started",
+        "NestApplication"
+      );
+    });
+
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      await request(app.getHttpServer()).get(`/health`);
+      await request(app.getHttpServer())
+        .get(`/health`)
+        .set("conformance", "test-id-conformance");
 
       const calls = mockedLogger.log.mock.calls.length;
 
@@ -58,9 +73,11 @@ describe("Logging interceptor", () => {
             "accept-encoding": "gzip, deflate",
             connection: "close",
             host: expect.stringContaining("127.0.0.1:") as string,
+            conformance: "test-id-conformance",
           },
           message: "Incoming request - GET - /health",
           method: "GET",
+          conformance: "test-id-conformance",
         },
         "LoggingInterceptor - GET - /health",
         "LoggingInterceptor"
@@ -85,6 +102,7 @@ describe("Logging interceptor", () => {
             status: "ok",
           },
           message: "Outgoing response - 200 - GET - /health",
+          conformance: "test-id-conformance",
         },
         "LoggingInterceptor - 200 - GET - /health",
         "LoggingInterceptor"
@@ -98,6 +116,7 @@ describe("Logging interceptor", () => {
 
       await request(app.getHttpServer())
         .post("/authentication-requests")
+        .set("conformance", "test-id-conformance")
         .send("invalid body");
 
       const logCalls = mockedLogger.log.mock.calls.length;
@@ -114,9 +133,11 @@ describe("Logging interceptor", () => {
             "content-length": "12",
             "content-type": "application/x-www-form-urlencoded",
             host: expect.stringContaining("127.0.0.1:") as string,
+            conformance: "test-id-conformance",
           },
           message: "Incoming request - POST - /authentication-requests",
           method: "POST",
+          conformance: "test-id-conformance",
         },
         "LoggingInterceptor - POST - /authentication-requests",
         "LoggingInterceptor"
@@ -133,6 +154,7 @@ describe("Logging interceptor", () => {
           message: "Outgoing response - 400 - POST - /authentication-requests",
           method: "POST",
           url: "/authentication-requests",
+          conformance: "test-id-conformance",
         },
         "LoggingInterceptor - 400 - POST - /authentication-requests",
         "LoggingInterceptor"
