@@ -46,12 +46,14 @@ paths:
         description: |
           Notification Request Input
 
-          [EBSI conformance testing](https://ec.europa.eu/cefdigital/wiki/x/5YDwG) The API supports
+          [conformance description]
+          [EBSI conformance testing](https://ec.europa.eu/cefdigital/wiki/pages/viewpage.action?spaceKey=EBSIEA&title=EBSI+Wallet+Conformance+Testing) The API supports
           the following EBSI conformance tests:
-          * Transfer Verifiable Authorisation (CT V1 ONBOARD_04_B)
-          * Request Verifiable Attestation (CT V1 ISSUE_011)
-          * Transfer Verifiable Attestation (CT V1 ISSUE_031)
-          * Transfer Verifiable Presentation (CT V1 VERIFY_031)
+          * Call conformance /issuer-mock/authorize
+          * Call conformance /issuer-mock/token
+          * Call conformance /issuer-mock/credential
+          * Call conformance /verifier-mock/authentication-requests
+          * Call conformance /verifier-mock/authentication-responses
         content:
           application/json:
             schema:
@@ -78,7 +80,7 @@ paths:
                     proofPurpose: assertionMethod
                     verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
                     jws: eyJh..Iw
-              issuer-mock-authorize:
+              "[conformance] issuer-mock-authorize":
                 summary: Call conformance /issuer-mock/authorize (async)
                 description: |
                   Call conformance service in the endpoint /issuer-mock/authorize
@@ -116,7 +118,7 @@ paths:
                     proofPurpose: assertionMethod
                     verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#key-1
                     jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0..vSjVu9BUzKpZ9WHRrdERhlbnhVmFnLn9cf_WqgHB3Ebta92AOHmX3hbo0gNAPK_xLwV0UDF93gVQy2tL-XyOZw
-              issuer-mock-token:
+              "[conformance] issuer-mock-token":
                 summary: Call conformance /issuer-mock/token (async)
                 description: |
                   Call conformance service in the endpoint /issuer-mock/token
@@ -150,7 +152,7 @@ paths:
                     proofPurpose: assertionMethod
                     verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#key-1
                     jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0..yXleByER5d-BkFUu4Ih7VGezpZ4GPRgZyuyKPP19fKEFZ16pKdDI529rflKT0ExlS3hLrdspJyMreH2d9Qx-uw
-              issuer-mock-credential:
+              "[conformance] issuer-mock-credential":
                 summary: Call conformance /issuer-mock/credential (async)
                 description: |
                   Call conformance service in the endpoint /issuer-mock/credential
@@ -191,7 +193,7 @@ paths:
                     proofPurpose: assertionMethod
                     verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#key-1
                     jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0..ZpnEmJgrbzyytg0JkmQU40-8jDxJiPw8700sZfG_jazlw0Tnhz_ogJFv_lTW8JBMRSEWD0KHK9inKgczRM2BEQ
-              verifier-mock-authentication-requests:
+              "[conformance] verifier-mock-authentication-requests":
                 summary: Call conformance /verifier-mock/authentication-requests (async)
                 description: |
                   Call conformance service in the endpoint /verifier-mock/authentication-requests
@@ -222,10 +224,10 @@ paths:
                     proofPurpose: assertionMethod
                     verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#key-1
                     jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0..EJzkXFofHn5l6aPhBlDc8AFqGdwM5gOwSxfODlIsdrisMbxM69FR17sY8GhnMXdyK8NT__dBa3L031M68fi3iQ
-              verifier-mock-authentication-responses:
+              "[conformance] verifier-mock-authentication-responses":
                 summary: Call conformance /verifier-mock/authentication-responses (async)
                 description: |
-                  Call conformance service in the endpoint /verifier-mock/authentication-requests
+                  Call conformance service in the endpoint /verifier-mock/authentication-responses
                   through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
                   for the details of this endpoint
                 value:
@@ -520,7 +522,7 @@ paths:
                       proofPurpose: assertionMethod
                       verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
                       jws: eyJh..Iw
-                Notification response /issuer-mock/authorize:
+                "[conformance] Notification response /issuer-mock/authorize":
                   description: |
                     Notification response when calling /issuer-mock/authorize
                     asynchronously (through notifications api). The response from the endpoint
@@ -549,7 +551,7 @@ paths:
                       proofPurpose: assertionMethod
                       verificationMethod: did:ebsi:z21SqMJ53fYS69VZRYTUEDag#keys-1
                       jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvaWRlbnRpZmllcnMvZGlkOmVic2k6ejIxU3FNSjUzZllTNjlWWlJZVFVFRGFnI2tleXMtMSIsInR5cCI6IkpXVCJ9..RAoCrm_zMW_iFXQzYW_gapqXqKyAtwlpt-k7qUUGvFjx1Euq7SQ9FKjjfUYvmy23uO0JAf5Y90i2H0xctc9OhQ
-                Notification response /issuer-mock/token:
+                "[conformance] Notification response /issuer-mock/token":
                   description: |
                     Notification response when calling /issuer-mock/token
                     asynchronously (through notifications api). The response from the endpoint
@@ -582,7 +584,7 @@ paths:
                       verificationMethod: did:ebsi:z21SqMJ53fYS69VZRYTUEDag#keys-1
                       jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvaWRlbnRpZmllcnMvZGlkOmVic2k6ejIxU3FNSjUzZllTNjlWWlJZVFVFRGFnI2tleXMtMSIsInR5cCI6IkpXVCJ9..mvJScTqSslyZ79KYxxkzTA-21ojZ4DO_KAe-LYi28wq-vyhON4na8evTHxUA_JaaJc2nOdu_nlKMJMwD_ZgCrQ
 
-                Notification response /issuer-mock/credential:
+                "[conformance] Notification response /issuer-mock/credential":
                   description: |
                     Notification response when calling /issuer-mock/credential
                     asynchronously (through notifications api). The response from the endpoint
@@ -613,7 +615,7 @@ paths:
                       proofPurpose: assertionMethod
                       verificationMethod: did:ebsi:z21SqMJ53fYS69VZRYTUEDag#keys-1
                       jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvaWRlbnRpZmllcnMvZGlkOmVic2k6ejIxU3FNSjUzZllTNjlWWlJZVFVFRGFnI2tleXMtMSIsInR5cCI6IkpXVCJ9..tcp5qabH8RH0zFEXoYYmixkXfUn0uk7EixXV3AF8VoNr5j-Osj3KH86SGH0iBmZlqjiOs7g8vDmetZJd4FGwqw
-                Notification response /verifier-mock/authentication-requests:
+                "[conformance] Notification response /verifier-mock/authentication-requests":
                   description: |
                     Notification response when calling /verifier-mock/authentication-requests
                     asynchronously (through notifications api). The response from the endpoint
@@ -640,7 +642,7 @@ paths:
                       proofPurpose: assertionMethod
                       verificationMethod: did:ebsi:z21SqMJ53fYS69VZRYTUEDag#keys-1
                       jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvaWRlbnRpZmllcnMvZGlkOmVic2k6ejIxU3FNSjUzZllTNjlWWlJZVFVFRGFnI2tleXMtMSIsInR5cCI6IkpXVCJ9..TrO70eJDvHS47d-Pr37zn5rAJJJkUheCZpCBBKb-QNt3yV0Y13tju8rlvvufk5RQpE3kca0YY5PadC1yKdmrYQ
-                Notification response /verifier-mock/authentication-responses:
+                "[conformance] Notification response /verifier-mock/authentication-responses":
                   description: |
                     Notification response when calling /verifier-mock/authentication-responses
                     asynchronously (through notifications api). The response from the endpoint
