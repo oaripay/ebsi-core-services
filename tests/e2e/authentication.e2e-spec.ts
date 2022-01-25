@@ -30,7 +30,7 @@ interface SupertestAuthenticationResponse {
   body: VerifiableAuthorization;
 }
 
-describe("/onboarding/v1 authentication e2e tests", () => {
+describe("/onboarding/v2 authentication e2e tests", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
   let configService: ConfigService<ApiConfig>;

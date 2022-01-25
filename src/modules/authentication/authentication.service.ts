@@ -2,15 +2,13 @@ import { randomUUID } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import { compactVerify, importJWK } from "jose";
 import type { JWK } from "jose";
-import { createJWT, decodeJWT, ES256KSigner, verifyJWT } from "did-jwt";
+import { decodeJWT, ES256KSigner, verifyJWT } from "did-jwt";
 import { Resolver } from "did-resolver";
 import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
 import { ConfigService } from "@nestjs/config";
 import {
-  createCredential,
-  createVerifiableCredential,
-  RequiredProof,
-  SignatureValue,
+  createVerifiableCredentialJwt,
+  EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
 import { JWTDecoded } from "did-jwt/lib/JWT";
 import {
@@ -50,6 +48,8 @@ export default class AuthenticationService {
 
   private applicationDid: string;
 
+  private applicationVerificationMethodKid: string;
+
   private authResponsesEndpoint: string;
 
   constructor(private configService: ConfigService<ApiConfig>) {
@@ -64,6 +64,9 @@ export default class AuthenticationService {
 
     const applicationId = this.configService.get<string>("applicationId");
     this.applicationDid = this.configService.get<string>("applicationDid");
+    this.applicationVerificationMethodKid = this.configService.get<string>(
+      "applicationVerificationMethodKid"
+    );
     this.kid = `${trustedAppRegistry}/${applicationId}`;
 
     this.authResponsesEndpoint = `${this.domain}${this.apiUrlPrefix}/authentication-responses`;
@@ -172,50 +175,38 @@ export default class AuthenticationService {
     const expirationDate = new Date(
       issuanceDate.getTime() + 1000 * 60 * 60 * 24 * 182 // 365/2 = 6 months
     );
-    const credential = createCredential({
-      "@context": [
-        "https://www.w3.org/2018/credentials/v1",
-        "https://www.w3.org/2018/credentials/examples/v1",
-        "https://w3c-ccg.github.io/lds-jws2020/contexts/lds-jws2020-v1.json",
-      ],
-      id: `vc:ebsi:authentication#${randomUUID()}`,
-      type: ["VerifiableCredential", "VerifiableAuthorisation"],
-      issuer: this.applicationDid,
-      issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-      validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-      expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
-      credentialSubject: { id: subjectDid },
-      credentialSchema: {
-        id: this.configService.get<string>("authorisationCredentialSchema"),
-        type: "OID",
-      },
-    });
-    const signer = ES256KSigner(this.privateKey);
-    const jwt = await createJWT(credential, {
+    const issuer: EbsiIssuer = {
+      did: this.applicationDid,
+      kid: this.applicationVerificationMethodKid,
+      signer: ES256KSigner(this.privateKey),
       alg: "ES256K",
-      issuer: this.applicationDid,
-      signer,
-      canonicalize: true,
-    });
-    const splitJwt = jwt.split(".");
-    const detachedJwt = `${splitJwt[0]}..${splitJwt[2]}`;
-    const requiredProof = {
-      type: "EcdsaSecp256k1Signature2019",
-      proofPurpose: "assertionMethod",
-      verificationMethod: `${this.applicationDid}#keys-1`,
-    } as RequiredProof;
-    const signatureValue = {
-      proofValue: detachedJwt,
-      proofValueName: "jws",
-      iat: decodeJWT(jwt).payload.iat,
-    } as SignatureValue;
-    const verifiableAuthorisation = createVerifiableCredential(
-      credential,
-      requiredProof,
-      signatureValue
+    };
+
+    const ebsiEnv = this.configService.get<
+      "test" | "conformance" | "pilot" | "prod"
+    >("ebsiEnv");
+
+    const jwt = await createVerifiableCredentialJwt(
+      {
+        "@context": ["https://www.w3.org/2018/credentials/v1"],
+        id: `vc:ebsi:authentication#${randomUUID()}`,
+        type: ["VerifiableCredential", "VerifiableAuthorisation"],
+        issuer: this.applicationDid,
+        issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+        validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+        expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+        credentialSubject: { id: subjectDid },
+        credentialSchema: {
+          id: this.configService.get<string>("authorisationCredentialSchema"),
+          type: "FullJsonSchemaValidator2021",
+        },
+      },
+      issuer,
+      { ebsiEnv, skipValidation: true }
     );
+
     return {
-      verifiableCredential: verifiableAuthorisation,
+      verifiableCredential: jwt,
     } as VerifiableAuthorization;
   }
 }

@@ -14,8 +14,8 @@ export const options = {
 };
 
 export default function loadTesting() {
-  group("/users-onboarding/v1/authentication-requests", () => {
-    const url = `${BASE_URL}/users-onboarding/v1/authentication-requests`;
+  group("/users-onboarding/v2/authentication-requests", () => {
+    const url = `${BASE_URL}/users-onboarding/v2/authentication-requests`;
     const request = http.post(
       url,
       JSON.stringify({

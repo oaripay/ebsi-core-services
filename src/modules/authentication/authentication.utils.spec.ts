@@ -67,7 +67,7 @@ describe("prepareDidAuthRequest", () => {
     const appId = configService.get<string>("applicationId");
     const appDid = EbsiWallet.createDid();
 
-    const domain = `https://api.test.intebsi.xyz/users-onboarding/v1/authentication-responses`;
+    const domain = `https://api.test.intebsi.xyz/users-onboarding/v2/authentication-responses`;
     const kid = `${"https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps"}/${appId}`;
 
     const ebsiMocked = jest.spyOn(

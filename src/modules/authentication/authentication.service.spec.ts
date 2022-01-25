@@ -7,8 +7,9 @@ import {
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import type { JWK } from "jose";
-import { createJWT, ES256KSigner } from "did-jwt";
+import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
+import type { EbsiCredentialPayload } from "@cef-ebsi/verifiable-credential";
 import type { FastifyInstance } from "fastify";
 import { Resolver } from "did-resolver";
 import * as authenticationModule from "./authentication.module";
@@ -19,6 +20,8 @@ import {
   AuthenticationRequest,
 } from "../../shared/interfaces";
 import * as utils from "./authentication.utils";
+
+// TODO: mock Axios requests
 
 describe("authentication service tests", () => {
   let app: INestApplication;
@@ -150,47 +153,33 @@ describe("authentication service tests", () => {
   });
 
   it("should createVerifiableAuthorisation", async () => {
-    expect.assertions(15);
+    expect.assertions(13);
     const authenticationService: AuthenticationService =
       new AuthenticationService(configService);
     const did = "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ";
     const response = await authenticationService.createVerifiableAuthorisation(
       did
     );
-    expect(response.verifiableCredential.issuanceDate).toBeDefined();
-    expect(response.verifiableCredential.proof).toBeDefined();
-    expect(response.verifiableCredential["@context"]).toStrictEqual([
+    const decodedJwt = decodeJWT(response.verifiableCredential);
+    const { vc } = decodedJwt.payload as { vc: EbsiCredentialPayload };
+
+    expect(vc["@context"]).toStrictEqual([
       "https://www.w3.org/2018/credentials/v1",
-      "https://www.w3.org/2018/credentials/examples/v1",
-      "https://w3c-ccg.github.io/lds-jws2020/contexts/lds-jws2020-v1.json",
     ]);
-    expect(response.verifiableCredential.id).toContain(
-      "vc:ebsi:authentication#"
-    );
-    expect(response.verifiableCredential.type).toStrictEqual([
+    expect(vc.id).toContain("vc:ebsi:authentication#");
+    expect(vc.type).toStrictEqual([
       "VerifiableCredential",
       "VerifiableAuthorisation",
     ]);
-    expect(response.verifiableCredential.issuer).toBe(
-      "did:ebsi:zwC56DZdiJh8kSxbgg4fMCu"
-    );
-    expect(response.verifiableCredential.issuanceDate).toBeDefined();
-    expect(response.verifiableCredential.validFrom).toBeDefined();
-    expect(response.verifiableCredential.validFrom).toBe(
-      response.verifiableCredential.issuanceDate
-    );
-    expect(response.verifiableCredential.validFrom).toBeDefined();
-    expect(
-      response.verifiableCredential.validFrom <
-        response.verifiableCredential.expirationDate
-    ).toBeTruthy();
-    expect(response.verifiableCredential.credentialSubject.id).toBe(
-      "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
-    );
-    expect(response.verifiableCredential.credentialSchema).toBeDefined();
-    expect(response.verifiableCredential.credentialSchema).toHaveProperty("id");
-    expect(response.verifiableCredential.credentialSchema).toHaveProperty(
-      "type"
-    );
+    expect(vc.issuer).toBe("did:ebsi:zwC56DZdiJh8kSxbgg4fMCu");
+    expect(vc.issuanceDate).toBeDefined();
+    expect(vc.validFrom).toBeDefined();
+    expect(vc.validFrom).toBe(vc.issuanceDate);
+    expect(vc.expirationDate).toBeDefined();
+    expect(vc.validFrom < vc.expirationDate).toBeTruthy();
+    expect(vc.credentialSubject.id).toBe("did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ");
+    expect(vc.credentialSchema).toBeDefined();
+    expect(vc.credentialSchema).toHaveProperty("id");
+    expect(vc.credentialSchema).toHaveProperty("type");
   });
 });

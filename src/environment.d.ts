@@ -21,6 +21,7 @@ declare global {
       TRUSTED_APPS_REGISTRY?: string;
       APPLICATION_ID?: string;
       APPLICATION_DID?: string;
+      APPLICATION_VERIFICATION_METHOD_KID?: string;
       TEST_USER_DID?: string;
       TEST_USER_PRIVATE_KEY?: string;
       TEST_EU_LOGIN_USERNAME?: string;

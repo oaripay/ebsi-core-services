@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Users Onboarding API
-  version: 1.0.0
+  version: 2.0.0
   description: |
     Users Onboarding API is an EBSI core service to enable users (Natural
     Persons and Legal Entities) to obtain long-term access to the EBSI
@@ -13,13 +13,13 @@ info:
     * [Code repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/browse?at=refs%2Fheads%2Fdevelop)
   termsOfService: /docs/terms
   contact:
-    name: EBSI Support – Service Desk
+    name: EBSI Support - Service Desk
     url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
 paths:
-  /users-onboarding/v1/sessions:
+  /users-onboarding/v2/sessions:
     post:
       tags:
         - Users Onboarding API
@@ -73,7 +73,7 @@ paths:
           $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
-  /users-onboarding/v1/authentication-requests:
+  /users-onboarding/v2/authentication-requests:
     post:
       tags:
         - Users Onboarding API
@@ -128,7 +128,7 @@ paths:
           $ref: "#/components/responses/404"
         500:
           $ref: "#/components/responses/500"
-  /users-onboarding/v1/authentication-responses:
+  /users-onboarding/v2/authentication-responses:
     post:
       tags:
         - Users Onboarding API

@@ -9,6 +9,7 @@ export interface ApiConfig {
   apiName: string;
   apiPrivateKey: string;
   apiUrlPrefix: string;
+  ebsiEnv: "local" | "test" | "conformance" | "pilot" | "prod";
   domain: string;
   localOrigin: string;
   logLevel: string;
@@ -17,6 +18,7 @@ export interface ApiConfig {
   didResolver: string;
   applicationId: string;
   applicationDid: string;
+  applicationVerificationMethodKid: string;
   authorisationCredentialSchema: string;
   euloginService: string;
   euloginServiceParam: string;
@@ -35,7 +37,7 @@ const defaultConfig = {
   local: {
     DOMAIN: "https://api.test.intebsi.xyz",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    AUTHORISATION: "https://api.test.intebsi.xyz/authorisation/v1",
+    AUTHORISATION: "https://api.test.intebsi.xyz/authorisation/v2",
     TRUSTED_APPS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
     DID_RESOLVER: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
@@ -49,7 +51,7 @@ const defaultConfig = {
   test: {
     DOMAIN: "https://api.test.intebsi.xyz",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    AUTHORISATION: "https://api.test.intebsi.xyz/authorisation/v1",
+    AUTHORISATION: "https://api.test.intebsi.xyz/authorisation/v2",
     TRUSTED_APPS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
     DID_RESOLVER: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
@@ -63,7 +65,7 @@ const defaultConfig = {
   conformance: {
     DOMAIN: "https://api.conformance.intebsi.xyz",
     HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
-    AUTHORISATION: "https://api.conformance.intebsi.xyz/authorisation/v1",
+    AUTHORISATION: "https://api.conformance.intebsi.xyz/authorisation/v2",
     TRUSTED_APPS_REGISTRY:
       "https://api.conformance.intebsi.xyz/trusted-apps-registry/v2/apps",
     DID_RESOLVER:
@@ -78,7 +80,7 @@ const defaultConfig = {
   pilot: {
     DOMAIN: "https://api.preprod.ebsi.eu",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
-    AUTHORISATION: "https://api.preprod.ebsi.eu/authorisation/v1",
+    AUTHORISATION: "https://api.preprod.ebsi.eu/authorisation/v2",
     TRUSTED_APPS_REGISTRY:
       "https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps",
     DID_RESOLVER: "https://api.preprod.ebsi.eu/did-registry/v2/identifiers",
@@ -92,7 +94,7 @@ const defaultConfig = {
   prod: {
     DOMAIN: "https://api.ebsi.eu",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
-    AUTHORISATION: "https://api.ebsi.eu/authorisation/v1",
+    AUTHORISATION: "https://api.ebsi.eu/authorisation/v2",
     TRUSTED_APPS_REGISTRY: "https://api.ebsi.eu/trusted-apps-registry/v2/apps",
     DID_RESOLVER: "https://api.ebsi.eu/did-registry/v2/identifiers",
     EU_LOGIN_VALIDATE_SERVICE_URL:
@@ -117,8 +119,9 @@ export const loadConfig = (): ApiConfig => {
     authorisationApiUrl:
       process.env.AUTHORISATION || defaultConfig[EBSI_ENV].AUTHORISATION,
     apiPrivateKey: process.env.API_PRIVATE_KEY,
-    apiUrlPrefix: process.env.API_URL_PREFIX || "/users-onboarding/v1",
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/users-onboarding/v2",
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    ebsiEnv: EBSI_ENV,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     externalEbsiApiHealthCheck:
@@ -130,6 +133,8 @@ export const loadConfig = (): ApiConfig => {
       defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY,
     applicationId: process.env.APPLICATION_ID,
     applicationDid: process.env.APPLICATION_DID,
+    applicationVerificationMethodKid:
+      process.env.APPLICATION_VERIFICATION_METHOD_KID,
     authorisationCredentialSchema: process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
     euloginService:
       process.env.EU_LOGIN_VALIDATE_SERVICE_URL ||
@@ -186,6 +191,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     API_PRIVATE_KEY: Joi.string().required(),
     APPLICATION_ID: Joi.string().required(),
     APPLICATION_DID: Joi.string().required(),
+    APPLICATION_VERIFICATION_METHOD_KID: Joi.string().required(),
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string().required(),
     TEST_USER_DID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),

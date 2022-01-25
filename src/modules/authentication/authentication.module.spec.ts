@@ -200,7 +200,7 @@ describe("Authentication Module", () => {
         },
         didDocumentMetadata: {},
         didDocument: {
-          "@context": "https://w3id.org/did/v1",
+          "@context": "https://www.w3.org/ns/did/v1",
           id: did,
           verificationMethod: [
             {
@@ -236,7 +236,7 @@ describe("Authentication Module", () => {
       expect.assertions(2);
 
       const idToken =
-        "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTpBYUVrbjczc2VjRk1VVFNnNHZUTGtoWDc5a0pFOG9hQUs3NDhUb1M4WXM5ZSNrZXktMSJ9.eyJpYXQiOjE2MTk1MTk4MzIsImV4cCI6MTYxOTUyMDEzMiwiaXNzIjoiaHR0cHM6Ly9zZWxmLWlzc3VlZC5tZSIsInN1YiI6IkFoQXBwbGx4UklSVGJQZFhJOUY4am9ka19vYWtQYnBfZVBlc094WjVTRFUiLCJhdWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3VzZXJzLW9uYm9hcmRpbmctYXBpL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsIm5vbmNlIjoiQmh5S2ZoNWJSQ1JsVjR4WDRxeG9zNm9MMzh5am5DZkxaZFVCRGFxbjRlayIsInN1Yl9qd2siOnsia2lkIjoiZGlkOmVic2k6QWFFa243M3NlY0ZNVVRTZzR2VExraFg3OWtKRThvYUFLNzQ4VG9TOFlzOWUja2V5LTEiLCJrdHkiOiJFQyIsImNydiI6InNlY3AyNTZrMSIsIngiOiJSSkFtTDBERTl1bmRGdlRUWmFSRElMU1BmRzlWN29lMG8waExJakhmT0I0IiwieSI6IjJONjVoWlZPTWpfUUlXWGx3cjR1RlpzcmxvMEZOQWJ1dWl6VTJzdjFURm8ifX0.B57fv76LGHvuRo62ArrJ1zQbTrHmVaqCa2aS86ER6FQc-HRCv6tlAdPstIFN2Gb_LjIOqy7YTz5qTCqs8fmYYQ";
+        "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3Aja2V5LTEifQ.eyJpYXQiOjE2NDMwMzg0NTYsImV4cCI6MTY0MzAzODc1NiwiaXNzIjoiaHR0cHM6Ly9zZWxmLWlzc3VlZC5tZSIsInN1YiI6IlI3cmlHcUkwN0pGV2Y3MnU0bE44RWt4RGJ1NEpTQXZ2WVFBdzNJX2NGUWsiLCJhdWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3VzZXJzLW9uYm9hcmRpbmcvdjEvYXV0aGVudGljYXRpb24tcmVzcG9uc2VzIiwibm9uY2UiOiI5NzgxMWQ4ZC1jYjg0LTQzNGUtODRkZC0xMTNjY2YzOWFiZWIiLCJzdWJfandrIjp7Imt0eSI6IkVDIiwiY3J2Ijoic2VjcDI1NmsxIiwieCI6IjN2RzQ5ODB3WGNiLW4yRHlSNEdMU290X1dNQ1d0bF9ibldVc0NreDRONVUiLCJ5IjoiVC1abE5feUFnOTRCZlZOOVUtRUNnaDlTblJ6T2Zjam41WlJWdWJ0MjVyayIsImtpZCI6ImRpZDplYnNpOnoyNTZhc0JXbUhCc2oyWk5WeEc1TWhrcCNrZXktMSJ9LCJkaWQiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3AifQ.nDssH_Rx4OJJH85YcUpZ_n4quQ9bxd3aPFzHpBaUjyoScZ9Ur_c9cwcvZ0gC-UfeDt10Wv3CCCmitUr9T0xJBA";
 
       // Mock access token verification
       jest
@@ -264,7 +264,7 @@ describe("Authentication Module", () => {
       expect(responseBody.verifiableCredential).toBeDefined();
     });
 
-    it("should return a verifiable authorisation (existing did)", async () => {
+    it("should return a verifiable authorisation (existing DID)", async () => {
       const did = EbsiWallet.createDid();
       const privateKey = crypto.randomBytes(32).toString("hex");
       const publicKey = new EbsiWallet(privateKey).getPublicKey({
@@ -292,7 +292,7 @@ describe("Authentication Module", () => {
         },
         didDocumentMetadata: {},
         didDocument: {
-          "@context": "https://w3id.org/did/v1",
+          "@context": "https://www.w3.org/ns/did/v1",
           id: did,
           verificationMethod: [
             {

@@ -10,10 +10,7 @@ import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { Logger } from "@nestjs/common/services/logger.service";
 import { Agent, DidAuthResponseCall } from "@cef-ebsi/siop-auth";
-import {
-  Options,
-  validateVerifiableCredential,
-} from "@cef-ebsi/verifiable-credential";
+import { verifyCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import isCI from "is-ci";
 import { UserAuthentication } from "../../src/shared/dto";
 import { AppModule } from "../../src/app.module";
@@ -42,7 +39,7 @@ const describeSkipCI = isCI ? describe.skip : describe;
  * In order to enable and run the test below successfully, you need to set a valid recaptcha token
  * 1 - Locally run users-onboarding-web-client
  * 2 - Inspect console and click on "Onboard with Captcha"
- * 3 - Copy the token sent as { info: { token: "03A..." } } to /users-onboarding/v1/sessions
+ * 3 - Copy the token sent as { info: { token: "03A..." } } to /users-onboarding/v2/sessions
  * 4 - Define TEST_RECAPTCHA_TOKEN with the copied token (in .env.test.local)
  */
 describeSkipCI("reCAPTCHA onboarding", () => {
@@ -106,7 +103,7 @@ describeSkipCI("reCAPTCHA onboarding", () => {
 
     expect(requestPayload.iss).toBe(appDid);
     expect(requestPayload.client_id).toBe(
-      "https://api.test.intebsi.xyz/users-onboarding/v1/authentication-responses"
+      "https://api.test.intebsi.xyz/users-onboarding/v2/authentication-responses"
     );
 
     // 3 - Create a DID-Auth response
@@ -155,15 +152,13 @@ describeSkipCI("reCAPTCHA onboarding", () => {
     );
 
     // 5 - Validate the Verifiable Auth
-    const options: Options = {
-      tirUrl:
-        "https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers",
-      resolver: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
-    };
-    const validation = await validateVerifiableCredential(
+    const ebsiEnv = configService.get<
+      "test" | "conformance" | "pilot" | "prod"
+    >("ebsiEnv");
+    const validation = await verifyCredentialJwt(
       authenticationServerResponse.body.verifiableCredential,
-      options
+      { ebsiEnv }
     );
-    expect(validation).toBe("OK");
+    expect(validation).toBeDefined();
   });
 });

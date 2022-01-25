@@ -10,10 +10,7 @@ import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { Logger } from "@nestjs/common/services/logger.service";
 import { DidAuthResponseCall, Agent } from "@cef-ebsi/siop-auth";
-import {
-  Options,
-  validateVerifiableCredential,
-} from "@cef-ebsi/verifiable-credential";
+import { verifyCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import "expect-puppeteer";
 import type { HTTPRequest } from "puppeteer";
 import { UserAuthentication } from "../../src/shared/dto";
@@ -164,7 +161,7 @@ describe("EU Login onboarding", () => {
     const appDid = configService.get<string>("applicationDid");
     expect(requestPayload.iss).toBe(appDid);
     expect(requestPayload.client_id).toBe(
-      "https://api.test.intebsi.xyz/users-onboarding/v1/authentication-responses"
+      "https://api.test.intebsi.xyz/users-onboarding/v2/authentication-responses"
     );
 
     // 3 - Create a DID-Auth response
@@ -211,16 +208,13 @@ describe("EU Login onboarding", () => {
     );
 
     // 5 - Validate the Verifiable Auth
-    const options: Options = {
-      tirUrl:
-        "https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers",
-      resolver: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
-    };
-
-    const validation = await validateVerifiableCredential(
+    const ebsiEnv = configService.get<
+      "test" | "conformance" | "pilot" | "prod"
+    >("ebsiEnv");
+    const validation = await verifyCredentialJwt(
       authenticationServerResponse.body.verifiableCredential,
-      options
+      { ebsiEnv }
     );
-    expect(validation).toBe("OK");
+    expect(validation).toBeDefined();
   });
 });
