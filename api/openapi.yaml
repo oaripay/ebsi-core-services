@@ -53,19 +53,19 @@ paths:
       requestBody:
         description: |
           [conformance description]
-          [EBSI conformance testing](https://ec.europa.eu/cefdigital/wiki/x/5YDwG)
+          [EBSI conformance testing](https://ec.europa.eu/cefdigital/wiki/display/EBSIEA/EBSI+Wallet+Conformance+Testing)
 
           The API supports the following EBSI conformance tests
-          - Request Access Token (CT V1 AUTHORISATION_01)
+          - Request Access Token (CT ONBOARD_051)
         content:
           application/json:
             schema:
               $ref: "#/components/schemas/AuthenticationRequest"
             examples:
-              "[conformance] ct_authorisation_01":
-                summary: Request Access Token (CT V1 AUTHORISATION_01)
+              "[conformance] CT ONBOARD_051":
+                summary: Request Access Token (CT ONBOARD_051)
                 description: |
-                  This is test data for [AUTHORISATION_01]().
+                  This is test data for [ONBOARD_051](https://ec.europa.eu/cefdigital/wiki/display/EBSIEA/EBSI+Wallet+Conformance+Testing).
                   The payload is a SIOP Authentication Request.
 
                   Successful response (HTTP 200) means that the service (wallet) can:
@@ -115,13 +115,13 @@ paths:
           - **sub_did_verification_method_uri** (optional): key reference to verify the signature. Only for onboarded users.
 
           [conformance description]
-          [EBSI conformance testing](https://ec.europa.eu/cefdigital/wiki/x/5YDwG)
+          [EBSI conformance testing](https://ec.europa.eu/cefdigital/wiki/display/EBSIEA/EBSI+Wallet+Conformance+Testing)
 
           The API supports the following EBSI conformance tests
 
-          - Request Access Token (CT V1 AUTHORISATION_02)
+          - Request Access Token (CT ONBOARD_052)
 
-          **Share Verifiable Authorisation** ([AUTHORISATION_02]())
+          **Share Verifiable Authorisation** ([ONBOARD_052](https://ec.europa.eu/cefdigital/wiki/display/EBSIEA/EBSI+Wallet+Conformance+Testing))
 
           The example below shows test data for the EBSI conformance test.
 
@@ -438,7 +438,7 @@ components:
         - Type: string
         - Format: UUID V4
 
-        The header is used to log the activities. See section\_Conformance testing header in the [documentation](https://ec.europa.eu/cefdigital/wiki/x/5YDwG).
+        The header is used to log the activities. See section\_Conformance testing header in the [documentation](https://ec.europa.eu/cefdigital/wiki/display/EBSIEA/EBSI+Wallet+Conformance+Testing).
       required: false
       schema:
         type: string
