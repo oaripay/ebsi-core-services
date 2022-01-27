@@ -49,11 +49,11 @@ paths:
           [conformance description]
           [EBSI conformance testing](https://ec.europa.eu/cefdigital/wiki/pages/viewpage.action?spaceKey=EBSIEA&title=EBSI+Wallet+Conformance+Testing) The API supports
           the following EBSI conformance tests:
-          * Call conformance /issuer-mock/authorize
-          * Call conformance /issuer-mock/token
-          * Call conformance /issuer-mock/credential
-          * Call conformance /verifier-mock/authentication-requests
-          * Call conformance /verifier-mock/authentication-responses
+          * Call conformance /issuer-mock/authorize (CT ISSUE_041)
+          * Call conformance /issuer-mock/token (CT ISSUE_052)
+          * Call conformance /issuer-mock/credential (CT ISSUE_062)
+          * Call conformance /verifier-mock/authentication-requests (CT VERIFY_041)
+          * Call conformance /verifier-mock/authentication-responses (CT VERIFY_061)
         content:
           application/json:
             schema:
@@ -81,9 +81,9 @@ paths:
                     verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
                     jws: eyJh..Iw
               "[conformance] issuer-mock-authorize":
-                summary: Call conformance /issuer-mock/authorize (async)
+                summary: Call conformance /issuer-mock/authorize (async) (CT ISSUE_041)
                 description: |
-                  Call conformance service in the endpoint /issuer-mock/authorize
+                  Call conformance service in the endpoint /issuer-mock/authorize (CT ISSUE_041)
                   through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
                   for the details of this endpoint
                 value:
@@ -119,9 +119,9 @@ paths:
                     verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#key-1
                     jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0..vSjVu9BUzKpZ9WHRrdERhlbnhVmFnLn9cf_WqgHB3Ebta92AOHmX3hbo0gNAPK_xLwV0UDF93gVQy2tL-XyOZw
               "[conformance] issuer-mock-token":
-                summary: Call conformance /issuer-mock/token (async)
+                summary: Call conformance /issuer-mock/token (async) (CT ISSUE_052)
                 description: |
-                  Call conformance service in the endpoint /issuer-mock/token
+                  Call conformance service in the endpoint /issuer-mock/token (CT ISSUE_052)
                   through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
                   for the details of this endpoint
                 value:
@@ -153,9 +153,9 @@ paths:
                     verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#key-1
                     jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0..yXleByER5d-BkFUu4Ih7VGezpZ4GPRgZyuyKPP19fKEFZ16pKdDI529rflKT0ExlS3hLrdspJyMreH2d9Qx-uw
               "[conformance] issuer-mock-credential":
-                summary: Call conformance /issuer-mock/credential (async)
+                summary: Call conformance /issuer-mock/credential (async) (CT ISSUE_062)
                 description: |
-                  Call conformance service in the endpoint /issuer-mock/credential
+                  Call conformance service in the endpoint /issuer-mock/credential (CT ISSUE_062)
                   through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
                   for the details of this endpoint
                 value:
@@ -194,9 +194,9 @@ paths:
                     verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#key-1
                     jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0..ZpnEmJgrbzyytg0JkmQU40-8jDxJiPw8700sZfG_jazlw0Tnhz_ogJFv_lTW8JBMRSEWD0KHK9inKgczRM2BEQ
               "[conformance] verifier-mock-authentication-requests":
-                summary: Call conformance /verifier-mock/authentication-requests (async)
+                summary: Call conformance /verifier-mock/authentication-requests (async) (CT VERIFY_041)
                 description: |
-                  Call conformance service in the endpoint /verifier-mock/authentication-requests
+                  Call conformance service in the endpoint /verifier-mock/authentication-requests (CT VERIFY_041)
                   through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
                   for the details of this endpoint
                 value:
@@ -225,9 +225,9 @@ paths:
                     verificationMethod: did:ebsi:zaHbvRybDEwsick4MEJcbP7#key-1
                     jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvZGlkOmVic2k6emFIYnZSeWJERXdzaWNrNE1FSmNiUDcja2V5cy0xIiwidHlwIjoiSldUIn0..EJzkXFofHn5l6aPhBlDc8AFqGdwM5gOwSxfODlIsdrisMbxM69FR17sY8GhnMXdyK8NT__dBa3L031M68fi3iQ
               "[conformance] verifier-mock-authentication-responses":
-                summary: Call conformance /verifier-mock/authentication-responses (async)
+                summary: Call conformance /verifier-mock/authentication-responses (async) (CT VERIFY_061)
                 description: |
-                  Call conformance service in the endpoint /verifier-mock/authentication-responses
+                  Call conformance service in the endpoint /verifier-mock/authentication-responses (CT VERIFY_061)
                   through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
                   for the details of this endpoint
                 value:
@@ -524,7 +524,7 @@ paths:
                       jws: eyJh..Iw
                 "[conformance] Notification response /issuer-mock/authorize":
                   description: |
-                    Notification response when calling /issuer-mock/authorize
+                    Notification response when calling /issuer-mock/authorize (CT ISSUE_051)
                     asynchronously (through notifications api). The response from the endpoint
                     is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
                     for the details of the response of this endpoint.
@@ -553,7 +553,7 @@ paths:
                       jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvaWRlbnRpZmllcnMvZGlkOmVic2k6ejIxU3FNSjUzZllTNjlWWlJZVFVFRGFnI2tleXMtMSIsInR5cCI6IkpXVCJ9..RAoCrm_zMW_iFXQzYW_gapqXqKyAtwlpt-k7qUUGvFjx1Euq7SQ9FKjjfUYvmy23uO0JAf5Y90i2H0xctc9OhQ
                 "[conformance] Notification response /issuer-mock/token":
                   description: |
-                    Notification response when calling /issuer-mock/token
+                    Notification response when calling /issuer-mock/token (CT ISSUE_061)
                     asynchronously (through notifications api). The response from the endpoint
                     is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
                     for the details of the response of this endpoint.
@@ -586,7 +586,7 @@ paths:
 
                 "[conformance] Notification response /issuer-mock/credential":
                   description: |
-                    Notification response when calling /issuer-mock/credential
+                    Notification response when calling /issuer-mock/credential (CT ISSUE_065)
                     asynchronously (through notifications api). The response from the endpoint
                     is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
                     for the details of the response of this endpoint.
@@ -617,7 +617,7 @@ paths:
                       jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvaWRlbnRpZmllcnMvZGlkOmVic2k6ejIxU3FNSjUzZllTNjlWWlJZVFVFRGFnI2tleXMtMSIsInR5cCI6IkpXVCJ9..tcp5qabH8RH0zFEXoYYmixkXfUn0uk7EixXV3AF8VoNr5j-Osj3KH86SGH0iBmZlqjiOs7g8vDmetZJd4FGwqw
                 "[conformance] Notification response /verifier-mock/authentication-requests":
                   description: |
-                    Notification response when calling /verifier-mock/authentication-requests
+                    Notification response when calling /verifier-mock/authentication-requests (CT VERIFY_051)
                     asynchronously (through notifications api). The response from the endpoint
                     is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
                     for the details of the response of this endpoint.
@@ -644,7 +644,7 @@ paths:
                       jws: eyJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5jb25mb3JtYW5jZS5pbnRlYnNpLnh5ei9kaWQtcmVnaXN0cnkvdjIvaWRlbnRpZmllcnMvZGlkOmVic2k6ejIxU3FNSjUzZllTNjlWWlJZVFVFRGFnI2tleXMtMSIsInR5cCI6IkpXVCJ9..TrO70eJDvHS47d-Pr37zn5rAJJJkUheCZpCBBKb-QNt3yV0Y13tju8rlvvufk5RQpE3kca0YY5PadC1yKdmrYQ
                 "[conformance] Notification response /verifier-mock/authentication-responses":
                   description: |
-                    Notification response when calling /verifier-mock/authentication-responses
+                    Notification response when calling /verifier-mock/authentication-responses (CT VERIFY_064)
                     asynchronously (through notifications api). The response from the endpoint
                     is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
                     for the details of the response of this endpoint.
@@ -662,7 +662,19 @@ paths:
                     payload:
                       id: 355
                       status: 200
-                      body: true
+                      body:
+                        result: true
+                        validations:
+                          vpFormat:
+                            status: true
+                          vpDidSignature:
+                            status: true
+                          vcDidSignature:
+                            status: true
+                          didOwnership:
+                            status: true
+                          trustedIssuer:
+                            status: true
                     proof:
                       type: EcdsaSecp256k1Signature2019
                       created: "2022-01-07T10:50:30.659Z"
