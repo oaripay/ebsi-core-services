@@ -1104,7 +1104,10 @@ paths:
       parameters:
         - in: path
           name: did
-          description: A DID to be resolved.
+          description: |
+            A DID to be resolved.
+            [conformance description] The API supports the following EBSI conformance tests:
+            - A user wallet checks if the DID is correctly included in the DID Registry (CT ONBOARD_063)
           required: true
           schema:
             type: string
@@ -1115,7 +1118,7 @@ paths:
               value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
       responses:
         200:
-          description: Success
+          description: Success. A user wallet gets DID resolution (CT ONBOARD_063)
           content:
             application/did+ld+json:
               schema:
@@ -2176,8 +2179,8 @@ paths:
           [EBSI conformance testing](https://ec.europa.eu/cefdigital/wiki/x/5YDwG)
 
           The API supports the following EBSI conformance tests
-            - Construct a blockchain transaction to register a DID (CT V1 DID_01)
-            - Broadcast a signed blockchain transaction to register a DID (CT V1 DID_02)
+            - Construct a blockchain transaction to register a DID (CT ONBOARD_061)
+            - Broadcast a signed blockchain transaction to register a DID (CT ONBOARD_062)
         content:
           application/json:
             schema:
@@ -2205,7 +2208,7 @@ paths:
                   example: 1
             examples:
               "[conformance] ct1_did_01":
-                summary: Build blockchain transaction to register a DID Document (CT V1 DID_01)
+                summary: Build blockchain transaction to register a DID Document (CT ONBOARD_061)
                 description: |
                   EBSI conformance test: Build blockchain transaction to register a DID Document (DID_01).
 
@@ -2227,7 +2230,7 @@ paths:
                       didVersionMetadata: "0x7b226d657461223a2238313239336463633863623537623930663835383662396237343139333530653636316166623530663563633461656666376632643532373863623530353562227d"
                   id: 1
               "[conformance] ct1_did_02":
-                summary: Send blockchain transaction to register a DID Document (CT V1 DID_02)
+                summary: Send blockchain transaction to register a DID Document (CT ONBOARD_062)
                 description: >
                   EBSI conformance test: Send blockchain transaction to register a DID Document (DID_02).
 
