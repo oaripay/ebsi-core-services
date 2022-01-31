@@ -3,7 +3,7 @@
   "version": "1.0.0-rc.6",
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --moderate --skip-dev",
+    "audit": "audit-ci --moderate --skip-dev -a 1006914",
     "build": "nest build -p tsconfig.production.json",
     "lint-staged": "lint-staged",
     "lint": "yarn lint:openapi && yarn lint:eslint && yarn lint:tsc && yarn lint:prettier",
