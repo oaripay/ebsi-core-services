@@ -24,6 +24,7 @@ import useDidLs from "./use-did-ls";
 export enum SourceType {
   MY_DID_RECORD = "MY_DID_RECORD",
   MY_CONTROLLER_DIDS = "MY_CONTROLLER_DIDS",
+  LOADED_DID = "LOADED_DID",
 }
 
 type TablePositionType = "boolean" | "left" | "right" | "undefined";
@@ -37,7 +38,11 @@ export default function useDidTable() {
     width: 700,
   });
   const [dataSource, setDataSource] = useState<DataType[]>([]);
+  const [loadedDidsDataSource, setLoadedDidsDataSource] = useState<DataType[]>(
+    []
+  );
   const [tableLoading, setTableLoading] = useState(false);
+  const [loadedDidsTableLoading, setLoadedDidsTableLoading] = useState(false);
   const [sourceType, setSourceType] = useState<string>(
     SourceType.MY_DID_RECORD
   );
@@ -57,27 +62,27 @@ export default function useDidTable() {
   const { identifier, hashAlgos } = useRegisterDidContext();
 
   const [didToBeLoaded, setDidToBeLoaded] = useState("");
-  const { updateDidsFromLs, getDidsFromLs, removeDidsFromLs } = useDidLs();
+  const { updateDidsFromLs, removeDidsFromLs } = useDidLs();
 
   const loadDid = useCallback(() => {
     if (didToBeLoaded) {
       const foundItem = dataSource.find((item) => item.did === didToBeLoaded);
       if (!foundItem) {
-        setTableLoading(true);
+        setLoadedDidsTableLoading(true);
         loadTableData(didToBeLoaded).then((data: DataType | undefined) => {
           if (!data?.exists) {
             notification.warn({
               message: "Cannot load DID",
               description: "DID does not exist!",
             });
-            setTableLoading(false);
+            setLoadedDidsTableLoading(false);
             return;
           }
           if (data) {
             updateDidsFromLs(didToBeLoaded);
-            setDataSource((current) => [data, ...current]);
+            setLoadedDidsDataSource((current) => [data, ...current]);
           }
-          setTableLoading(false);
+          setLoadedDidsTableLoading(false);
         });
         return;
       }
@@ -100,12 +105,9 @@ export default function useDidTable() {
       if (sourceType === SourceType.MY_CONTROLLER_DIDS) {
         getDidRecordIdentifiersByControllerId(walletAddress).then(
           (didResponse: PaginatedResponseType) => {
-            const allDids = [
-              ...getDidsFromLs(),
-              ...didResponse.items.map((item) =>
-                ethers.utils.toUtf8String(item)
-              ),
-            ].filter(onlyUnique);
+            const allDids = didResponse.items
+              .map((item) => ethers.utils.toUtf8String(item))
+              .filter(onlyUnique);
 
             Promise.all(allDids.map((didItem) => loadTableData(didItem))).then(
               (data: any) => {
@@ -121,7 +123,6 @@ export default function useDidTable() {
     }
   }, [
     getDidRecordIdentifiersByControllerId,
-    getDidsFromLs,
     identifier,
     loadTableData,
     sourceType,
@@ -130,8 +131,8 @@ export default function useDidTable() {
 
   const removeDidsFromStorage = useCallback(() => {
     removeDidsFromLs();
-    initTable();
-  }, [initTable, removeDidsFromLs]);
+    setLoadedDidsDataSource([]);
+  }, [removeDidsFromLs]);
 
   useEffect(() => {
     initTable();
@@ -345,7 +346,13 @@ export default function useDidTable() {
     {
       title: "Version hashes",
       key: "versionHashes",
-      render: ({ versionHashes, versionInfos }: any) => {
+      render: ({
+        versionHashes,
+        versionInfos,
+      }: {
+        versionHashes: string[];
+        versionInfos: string[];
+      }) => {
         return (
           <Space direction="vertical">
             {versionHashes ? (
@@ -659,5 +666,7 @@ export default function useDidTable() {
     loadDid,
     setDidToBeLoaded,
     removeDidsFromStorage,
+    loadedDidsDataSource,
+    loadedDidsTableLoading,
   };
 }

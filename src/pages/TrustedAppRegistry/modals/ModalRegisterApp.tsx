@@ -9,22 +9,27 @@ import {
   Row,
   Select,
   Space,
+  Tooltip,
 } from "antd";
 import { ethers } from "ethers";
 
-import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import { useAppContext } from "../AppContext";
-import { notAfterDate, notBeforeDate } from "../date-validator";
-import { useTableHook } from "../hooks/use-table-hook";
-import { useEthersHook } from "../hooks/use-ethers.hook";
+import { InfoCircleOutlined } from "@ant-design/icons";
+import { useTrustedAppHook } from "../use-trusted-app.hook";
+import { useAppContext } from "../../../AppContext";
+import { notAfterDate, notBeforeDate } from "../../../date-validator";
+import { useTableHook } from "../use-table-hook";
+import { useEthersHook } from "../../../hooks/use-ethers.hook";
+import { useNotificationContext } from "../../../components/Notification/Notification.context";
 
 export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
   const [form] = Form.useForm();
 
-  const { registerApp } = useRegistryContractHook();
+  const { registerApp } = useTrustedAppHook();
   const { didRegistryContract, registryContract } = useEthersHook();
   const appCtx = useAppContext();
   const { loadTableData } = useTableHook();
+  const { setShowPendingTxNotif, showPendingTxNotif } =
+    useNotificationContext();
 
   useEffect(() => {
     if (showAddModal) {
@@ -37,6 +42,10 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
       title="Add new application"
       visible={showAddModal}
       okText="Save"
+      okButtonProps={{
+        loading: showPendingTxNotif,
+        disabled: showPendingTxNotif,
+      }}
       onOk={() => {
         form
           .validateFields([
@@ -101,12 +110,14 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
                       registerAppFields.notAfter
                     )
                       .then((tx: any) => {
+                        setShowPendingTxNotif(true);
                         tx.wait(1).then(() => {
                           loadTableData();
                           notification.success({
                             message: "Transaction mined",
                             description: `A new application was created!`,
                           });
+                          setShowPendingTxNotif(false);
                         });
                         notification.info({
                           message: "Transaction",
@@ -124,6 +135,7 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
                           description:
                             "A problem appeared on trying to register app. Please make sure you're logged in wallet client. If that didn't fix please contact an admin for further instructions!",
                         });
+                        setShowPendingTxNotif(false);
                       });
                   })
                   .catch(() => {
@@ -162,7 +174,14 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
           <Row>
             <Col lg={20}>
               <Form.Item
-                label="Name (example: bus-country_code-entity_name-app_name)"
+                label={
+                  <Space>
+                    Name (example: bus-country_code-entity_name-app_name)
+                    <Tooltip title="Official application name">
+                      <InfoCircleOutlined />
+                    </Tooltip>
+                  </Space>
+                }
                 name="name"
                 rules={[{ required: true, message: "Please input name!" }]}
               >
@@ -172,10 +191,10 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
           </Row>
           <Row>
             <Col lg={20}>
-              <Form.Item label="Domain" name="domain">
+              <Form.Item name="domain" label="Domain">
                 <Select style={{ width: "100%" }} onChange={() => {}}>
                   <Select.Option value={1}>ebsi</Select.Option>
-                  <Select.Option value={2}>external_domain</Select.Option>
+                  {/* <Select.Option value={2}>external_domain</Select.Option> */}
                 </Select>
               </Form.Item>
             </Col>
@@ -199,13 +218,20 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
           <Row>
             <Col lg={24}>
               <Form.Item
-                label="Public key (pemBase64)"
+                label={
+                  <Space>
+                    Public key (pemBase64)
+                    <Tooltip title="ASN.1 encoded application public key">
+                      <InfoCircleOutlined />
+                    </Tooltip>
+                  </Space>
+                }
                 name="publicKey"
                 rules={[
                   { required: true, message: "Please input public key!" },
                 ]}
               >
-                <Input />
+                <Input placeholder="LS0tLS1CRUdJTiBFQyBQUklWQVRFIEtF..." />
               </Form.Item>
             </Col>
           </Row>
@@ -241,7 +267,14 @@ export function ModalRegisterApp({ setShowAddModal, showAddModal }: any) {
             <Col lg={20}>
               <Form.Item
                 dependencies={["notBefore"]}
-                label="Expire Date"
+                label={
+                  <Space>
+                    Expire Date
+                    <Tooltip title="If validity is indefinite, it should be set 0">
+                      <InfoCircleOutlined />
+                    </Tooltip>
+                  </Space>
+                }
                 name="notAfter"
                 rules={[
                   {

@@ -12,7 +12,7 @@ const defaultValues: MenuContextType = {
 export const MenuContext = createContext(defaultValues);
 
 export function MenuProvider({ children }: { children: ReactNode }) {
-  const [collapsed, setCollapsed] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <MenuContext.Provider

@@ -11,16 +11,16 @@ import {
   Space,
 } from "antd";
 
-import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import { useAppContext } from "../AppContext";
-import { notAfterDate, notBeforeDate } from "../date-validator";
-import { useTableHook } from "../hooks/use-table-hook";
-import { useEthersHook } from "../hooks/use-ethers.hook";
+import { useAppContext } from "../../../AppContext";
+import { notAfterDate, notBeforeDate } from "../../../date-validator";
+import { useTableHook } from "../use-table-hook";
+import { useEthersHook } from "../../../hooks/use-ethers.hook";
+import { useAuthorizedApps } from "../use-authorized-apps";
 
 export default function ModalInsertAuth(): ReactElement {
   const [form] = Form.useForm();
 
-  const { insertAuthorization } = useRegistryContractHook();
+  const { insertAuthorization } = useAuthorizedApps();
   const { didRegistryContract, registryContract } = useEthersHook();
   const { loadTableData } = useTableHook();
   const appCtx = useAppContext();

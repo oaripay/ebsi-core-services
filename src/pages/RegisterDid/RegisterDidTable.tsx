@@ -28,6 +28,8 @@ export default function RegisterDidTable() {
     loadDid,
     setDidToBeLoaded,
     removeDidsFromStorage,
+    loadedDidsDataSource,
+    loadedDidsTableLoading,
   } = useDidTable();
   const [actionLoading, setActionLoading] = useState(false);
   const { publicKey, didDefined } = useRegisterDidContext();
@@ -61,44 +63,7 @@ export default function RegisterDidTable() {
             }}
           >
             <TabPane tab="My DID record" key={SourceType.MY_DID_RECORD}>
-              <Table
-                rowKey="did"
-                columns={columns}
-                dataSource={dataSource}
-                loading={tableLoading}
-                scroll={{
-                  x: 1600,
-                }}
-              />
-            </TabPane>
-            <TabPane
-              tab="My controller DIDs"
-              key={SourceType.MY_CONTROLLER_DIDS}
-            >
               <Space direction="vertical">
-                <Row>
-                  <Col span="20">
-                    <Space>
-                      <Input
-                        name="did"
-                        id="did"
-                        placeholder="did:ebsi:....."
-                        onChange={(event) => {
-                          setDidToBeLoaded(event.currentTarget.value);
-                        }}
-                        style={{
-                          width: 440,
-                        }}
-                      />
-                      <Button type="primary" onClick={loadDid}>
-                        Load DID
-                      </Button>
-                      <Button onClick={removeDidsFromStorage}>
-                        Remove DIDs from Browser Data
-                      </Button>
-                    </Space>
-                  </Col>
-                </Row>
                 <Row>
                   <Table
                     rowKey="did"
@@ -110,6 +75,58 @@ export default function RegisterDidTable() {
                     }}
                   />
                 </Row>
+              </Space>
+            </TabPane>
+            <TabPane
+              tab="My controller DIDs"
+              key={SourceType.MY_CONTROLLER_DIDS}
+            >
+              <Space direction="vertical">
+                <Row>
+                  <Table
+                    rowKey="did"
+                    columns={columns}
+                    dataSource={dataSource}
+                    loading={tableLoading}
+                    scroll={{
+                      x: 1600,
+                    }}
+                  />
+                </Row>
+              </Space>
+            </TabPane>
+            <TabPane tab="Load DID" key={SourceType.LOADED_DID}>
+              <Space direction="vertical">
+                <Row>
+                  <Space direction="horizontal">
+                    <Input
+                      name="did"
+                      id="did"
+                      placeholder="did:ebsi:....."
+                      onChange={(event) => {
+                        setDidToBeLoaded(event.currentTarget.value);
+                      }}
+                      style={{
+                        width: 440,
+                      }}
+                    />
+                    <Button type="primary" onClick={loadDid}>
+                      Load DID
+                    </Button>
+                    <Button onClick={removeDidsFromStorage}>
+                      Remove DIDs from Browser Data
+                    </Button>
+                  </Space>
+                </Row>
+                <Table
+                  rowKey="did"
+                  columns={columns}
+                  dataSource={loadedDidsDataSource}
+                  loading={loadedDidsTableLoading}
+                  scroll={{
+                    x: 1600,
+                  }}
+                />
               </Space>
             </TabPane>
           </Tabs>

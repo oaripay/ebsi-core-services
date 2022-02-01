@@ -6,6 +6,7 @@ import { notification, Row, Spin } from "antd";
 import { useEthersHook } from "../../../hooks/use-ethers.hook";
 import { useNotificationContext } from "../../../components/Notification/Notification.context";
 import { useModalContext } from "../Modal.context";
+import { getReversedValue } from "../../../helpers/pagination";
 
 export default function useTrustedSchemasRegistry() {
   const { trustedSchemaRegistryContract } = useEthersHook();
@@ -121,6 +122,18 @@ export default function useTrustedSchemasRegistry() {
     [showModal, trustedSchemaRegistryContract]
   );
 
+  const getTotal = useCallback(async () => {
+    if (!trustedSchemaRegistryContract) {
+      return 0;
+    }
+    try {
+      const schemaIds = await trustedSchemaRegistryContract.getSchemaIds(1, 1);
+      return schemaIds.total.toNumber();
+    } catch (ex) {
+      return 0;
+    }
+  }, [trustedSchemaRegistryContract]);
+
   const loadData = useCallback(
     async (page: number, pageSize: number) => {
       if (!trustedSchemaRegistryContract) {
@@ -129,8 +142,9 @@ export default function useTrustedSchemasRegistry() {
           total: 0,
         };
       }
+      const total = await getTotal();
       const schemaIds = await trustedSchemaRegistryContract.getSchemaIds(
-        page,
+        getReversedValue(page, pageSize, total),
         pageSize
       );
       const lastRevisionsForSchemaPromises = schemaIds.items.map(
@@ -152,7 +166,7 @@ export default function useTrustedSchemasRegistry() {
         total: schemaIds.total,
       };
     },
-    [trustedSchemaRegistryContract]
+    [getTotal, trustedSchemaRegistryContract]
   );
 
   return {
@@ -161,5 +175,6 @@ export default function useTrustedSchemasRegistry() {
     updateSchema,
     updateSchemaMetadataByRevisionId,
     showLatestSchemaRevision,
+    getTotal,
   };
 }

@@ -1,6 +1,8 @@
 import React from "react";
+import { EyeOutlined } from "@ant-design/icons";
 
-import { Alert, Button, Col, Row, Space, Spin, Statistic } from "antd";
+import { Alert, Button, Card, Col, Row, Space, Spin, Statistic } from "antd";
+import Title from "antd/lib/typography/Title";
 import { config } from "../../config";
 import useDidRegister from "./hooks/use-did-register";
 import RegisterDidTable from "./RegisterDidTable";
@@ -27,6 +29,28 @@ export default function RegisterDid() {
 
   return (
     <Space direction="vertical" className="content-container" size="middle">
+      <Col lg={12}>
+        <Card title={<Title>DID Registry</Title>}>
+          <Row>
+            <p>
+              DID Registry is an EBSI core service consisting of DID Registry
+              Smart Contracts deployed on the EBSI ledger and REST APIs. DID
+              Registry stores the DIDs and DID Documents and manages the user
+              access and rights.
+            </p>
+            <Row align="middle">
+              <a
+                rel="noreferrer"
+                target="_blank"
+                href="https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/EBSI+DID+Registry"
+              >
+                <EyeOutlined /> See more
+              </a>
+            </Row>
+          </Row>
+        </Card>
+      </Col>
+
       <Spin spinning={loading}>
         <Row justify="space-between">
           <Col>

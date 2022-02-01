@@ -10,4 +10,5 @@ services:
         REACT_APP_DID_REGISTRY_ADDRESS: ${REACT_APP_DID_REGISTRY_ADDRESS}
         REACT_APP_TIR_REGISTRY_ADDRESS: ${REACT_APP_TIR_REGISTRY_ADDRESS}
         REACT_APP_TSR_ADDRESS: ${REACT_APP_TSR_ADDRESS}
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry-web-client:test-v0.0.31
+        REACT_APP_POLICY_REGISTRY_ADDRESS: ${REACT_APP_POLICY_REGISTRY_ADDRESS}
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry-web-client:test-v0.0.34

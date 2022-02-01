@@ -8,7 +8,7 @@ export default function Header() {
   const { Title } = Typography;
   const { collapsed, setCollapsed } = useMenuContext();
   return (
-    <HeaderAntd style={{ position: "fixed", zIndex: 1, width: "100%" }}>
+    <HeaderAntd style={{ position: "fixed", zIndex: 4, width: "100%" }}>
       <Row align="middle">
         <Button type="primary" onClick={() => setCollapsed(!collapsed)}>
           {React.createElement(
@@ -16,7 +16,7 @@ export default function Header() {
           )}
         </Button>
         <Title className="header-text m-b-0" level={2}>
-          EBSI App Manager
+          EBSI Registries Manager
         </Title>
       </Row>
     </HeaderAntd>

@@ -34,6 +34,10 @@ export default function useAddRevision() {
           setIsSubmitting(false);
           return true;
         } catch (ex) {
+          notification.error({
+            message: "Error",
+            description: "Revision already exists!",
+          });
           setShowPendingTxNotif(false);
           setIsSubmitting(false);
           return false;

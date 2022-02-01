@@ -11,15 +11,15 @@ import {
   Space,
 } from "antd";
 
-import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import { useAppContext } from "../AppContext";
-import { notAfterDate } from "../date-validator";
-import { useTableHook } from "../hooks/use-table-hook";
+import { useAppContext } from "../../../AppContext";
+import { notAfterDate } from "../../../date-validator";
+import { useTableHook } from "../use-table-hook";
+import { useTrustedAppPublicKeysHook } from "../use-trusted-app-public-keys.hook";
 
 export function ModalUpdateAppPublicKey() {
   const [form] = Form.useForm();
 
-  const { updateAppPublicKey } = useRegistryContractHook();
+  const { updateAppPublicKey } = useTrustedAppPublicKeysHook();
   const appCtx = useAppContext();
   const { loadTableData } = useTableHook();
 
@@ -113,7 +113,7 @@ export function ModalUpdateAppPublicKey() {
           </Row>
           <Row>
             <Col lg={24}>
-              <Form.Item label="Select Public key to update" name="publicKey">
+              <Form.Item label="Public key to update" name="publicKey">
                 <Input disabled />
               </Form.Item>
             </Col>

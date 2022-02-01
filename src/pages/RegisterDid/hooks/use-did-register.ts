@@ -13,6 +13,7 @@ import { useRegisterDidContext } from "../RegisterDid.context";
 import { DataType, DidRecordType } from "../DidTableTypes";
 import { useNotificationContext } from "../../../components/Notification/Notification.context";
 import { PaginatedResponseType } from "../../../shared/PaginatedResponseType";
+import { PAGE_SIZE } from "../contants";
 
 export const LS_DID = "EBSI_DID";
 
@@ -50,7 +51,7 @@ export default function useDidRegister() {
         .getDidDocumentVersionIds(
           `0x${Buffer.from(didId).toString("hex")}`,
           1,
-          50
+          PAGE_SIZE
         )
         .catch(() => ({
           items: [],
@@ -89,7 +90,7 @@ export default function useDidRegister() {
             `0x${Buffer.from(identifierForDoc).toString("hex")}`,
             versionHash,
             1,
-            50
+            PAGE_SIZE
           )
         )
       ).catch(() => {

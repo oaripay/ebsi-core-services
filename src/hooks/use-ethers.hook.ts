@@ -7,6 +7,7 @@ import TarRegistry from "../contracts/tar.json";
 import DidRegistry from "../contracts/DidRegistry.json";
 import TirRegistry from "../contracts/tir.json";
 import TsrRegistry from "../contracts/tsr.json";
+import PrRegistry from "../contracts/pr.json";
 
 import { useAppContext } from "../AppContext";
 
@@ -68,11 +69,24 @@ export function useEthersHook() {
     return contract.connect(provider.getSigner());
   }, [provider]);
 
+  const policyRegistryContract = useMemo(() => {
+    if (!provider) {
+      return undefined;
+    }
+    const contract = new ethers.Contract(
+      config.POLICY_REGISTRY_ADDRESS,
+      PrRegistry,
+      provider
+    );
+    return contract.connect(provider.getSigner());
+  }, [provider]);
+
   return {
     provider,
     registryContract,
     didRegistryContract,
     trustedIssuersContract,
     trustedSchemaRegistryContract,
+    policyRegistryContract,
   };
 }

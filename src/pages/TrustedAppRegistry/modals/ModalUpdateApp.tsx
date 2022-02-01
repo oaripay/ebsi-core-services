@@ -10,17 +10,20 @@ import {
   Space,
 } from "antd";
 
-import { useRegistryContractHook } from "../hooks/use-registry-contract.hook";
-import { useAppContext } from "../AppContext";
-import { domains } from "../constants";
-import { useTableHook } from "../hooks/use-table-hook";
+import { useTrustedAppHook } from "../use-trusted-app.hook";
+import { useAppContext } from "../../../AppContext";
+import { domains } from "../../../constants";
+import { useTableHook } from "../use-table-hook";
+import { useNotificationContext } from "../../../components/Notification/Notification.context";
 
 export function ModalUpdateApp() {
   const [form] = Form.useForm();
 
-  const { updateApp } = useRegistryContractHook();
+  const { updateApp } = useTrustedAppHook();
   const { loadTableData } = useTableHook();
   const appCtx = useAppContext();
+  const { setShowPendingTxNotif, showPendingTxNotif } =
+    useNotificationContext();
 
   useEffect(() => {
     if (appCtx.editModal.show) {
@@ -33,6 +36,10 @@ export function ModalUpdateApp() {
       title="Update application"
       visible={appCtx.editModal.show}
       okText="Save"
+      okButtonProps={{
+        loading: showPendingTxNotif,
+        disabled: showPendingTxNotif,
+      }}
       width={640}
       onOk={() => {
         form.validateFields(["applicationId", "name", "domain"]).then(() => {
@@ -58,18 +65,19 @@ export function ModalUpdateApp() {
             return;
           }
 
-          appCtx.setEditModal({
-            ...appCtx.editModal,
-            show: false,
-          });
-
           updateApp(fields.applicationId, fields.name, fields.domain)
             .then((tx: any) => {
+              setShowPendingTxNotif(true);
               tx.wait(1).then(() => {
                 loadTableData();
                 notification.success({
                   message: "Transaction mined",
                   description: `App ${fields.name} has been updated!`,
+                });
+                setShowPendingTxNotif(false);
+                appCtx.setEditModal({
+                  ...appCtx.editModal,
+                  show: false,
                 });
               });
               form.resetFields();
@@ -89,6 +97,11 @@ export function ModalUpdateApp() {
                 description:
                   "A problem appeared on trying to update app. Please make sure you're logged in wallet client. If that didn't fix please contact an admin for further instructions!",
               });
+              appCtx.setEditModal({
+                ...appCtx.editModal,
+                show: false,
+              });
+              setShowPendingTxNotif(false);
             });
         });
       }}
@@ -134,7 +147,6 @@ export function ModalUpdateApp() {
               <Form.Item label="Domain" name="domain">
                 <Select style={{ width: "100%" }} onChange={() => {}}>
                   <Select.Option value={1}>ebsi</Select.Option>
-                  <Select.Option value={2}>external_domain</Select.Option>
                 </Select>
               </Form.Item>
             </Col>

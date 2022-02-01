@@ -108,7 +108,8 @@ export default function useDidRegisterEffects({
             };
           })
         );
-      });
+      })
+      .catch(() => {});
   }, [didRegistryContract]);
 
   useEffect(() => {

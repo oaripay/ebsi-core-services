@@ -6,15 +6,17 @@ import {
   KeyOutlined,
   UserAddOutlined,
   DeploymentUnitOutlined,
+  CarryOutOutlined,
 } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import { useMenuContext } from "./Menu.context";
 import s from "./style.module.css";
 import { config } from "../../config";
 
+const { Sider } = Layout;
+
 export default function Menu() {
   const { collapsed } = useMenuContext();
-  const { Sider } = Layout;
   const location = useLocation();
   return (
     <Sider
@@ -38,7 +40,7 @@ export default function Menu() {
           key={config.routes.registerDid}
           icon={<UserAddOutlined />}
         >
-          <Link to={config.routes.registerDid}>Register DID</Link>
+          <Link to={config.routes.registerDid}>DID Registry</Link>
         </MenuAntd.Item>
         <MenuAntd.Item
           key={config.routes.trustedAppsRegistry}
@@ -62,6 +64,14 @@ export default function Menu() {
         >
           <Link to={config.routes.trustedSchemaRegistry}>
             Trusted Schema Registry
+          </Link>
+        </MenuAntd.Item>
+        <MenuAntd.Item
+          key={config.routes.trustedPoliciesRegistry}
+          icon={<CarryOutOutlined />}
+        >
+          <Link to={config.routes.trustedPoliciesRegistry}>
+            Trusted Policies Registry
           </Link>
         </MenuAntd.Item>
       </MenuAntd>

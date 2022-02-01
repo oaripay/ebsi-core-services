@@ -2,6 +2,7 @@ import React, { ReactElement } from "react";
 import { Button, FormInstance } from "antd";
 import { useModalContext } from "./Modal.context";
 import SchemaForm from "./forms/SchemaForm";
+import { useNotificationContext } from "../../components/Notification/Notification.context";
 
 export default function InsertSchema(props: {
   form: FormInstance;
@@ -10,10 +11,12 @@ export default function InsertSchema(props: {
   const { setModal, hideModal } = useModalContext();
 
   const { form, submit } = props;
+  const { showPendingTxNotif } = useNotificationContext();
 
   return (
     <Button
       type="primary"
+      loading={showPendingTxNotif}
       onClick={() => {
         setModal({
           show: true,
@@ -28,7 +31,12 @@ export default function InsertSchema(props: {
               >
                 Close
               </Button>,
-              <Button key="save" type="primary" onClick={submit}>
+              <Button
+                key="save"
+                type="primary"
+                onClick={submit}
+                loading={showPendingTxNotif}
+              >
                 Save
               </Button>,
             ],
