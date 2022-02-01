@@ -545,7 +545,7 @@ paths:
               value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
             "[pilot] recordId":
               description: valid preprod multibase base64url encoded recordId
-              value: u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ-KG5SAIiJIQ
+              value: u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
           required: true
       responses:
         200:
@@ -616,7 +616,7 @@ paths:
               value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
             "[pilot] recordId":
               description: valid preprod multibase base64url encoded recordId
-              value: u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ-KG5SAIiJIQ
+              value: u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
           description: Record ID (multibase base64url encoded)
           required: true
         - in: query
@@ -741,7 +741,7 @@ paths:
               value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
             "[pilot] recordId":
               description: valid preprod multibase base64url encoded recordId
-              value: u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ-KG5SAIiJIQ
+              value: u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
           description: Record ID (multibase base64url encoded)
           required: true
         - in: path
