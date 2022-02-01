@@ -54,7 +54,7 @@ export default function usePolicies() {
 
       const policiesResolved = await Promise.all(
         policiesResult.items.map((item) => {
-          return policyRegistryContract.getPolicy(item.toNumber());
+          return policyRegistryContract["getPolicy(uint256)"](item.toNumber());
         })
       );
 
@@ -63,7 +63,7 @@ export default function usePolicies() {
           id: item.toNumber(),
           policyName: policiesResolved[index].policyName,
           opType: policiesResolved[index].opType,
-          registry: policiesResolved[index].registry,
+          description: policiesResolved[index].description,
           parentId: policiesResolved[index].parentId,
           status: policiesResolved[index].status,
           policyConditions: policiesResolved[index].policyConditions.map(
@@ -140,7 +140,7 @@ export default function usePolicies() {
           values.id,
           values.opType,
           values.policyName,
-          values.registry
+          values.description
         );
         setShowPendingTxNotif(true);
         await tx.wait(1);
@@ -194,7 +194,7 @@ export default function usePolicies() {
           values.opType,
           policyConditions,
           values.policyName,
-          values.registry
+          values.description
         );
         setShowPendingTxNotif(true);
         await tx.wait(1);

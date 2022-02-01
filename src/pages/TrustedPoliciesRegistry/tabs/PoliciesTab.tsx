@@ -1,4 +1,4 @@
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement, useState, useEffect } from "react";
 import { Button, Col, Input, Row, Space } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 
@@ -24,7 +24,13 @@ export default function PoliciesTab(): ReactElement {
   const { policies, setPolicies } = useTrustedPoliciesContext();
   const { search } = useSearch();
 
-  const [initialPolicies] = useState(policies);
+  const [initialPolicies, setInitialPolicies] = useState(policies);
+
+  useEffect(() => {
+    if (policies.length && initialPolicies.length === 0) {
+      setInitialPolicies(policies);
+    }
+  }, [initialPolicies.length, policies]);
 
   return (
     <Space direction="vertical">
@@ -38,7 +44,7 @@ export default function PoliciesTab(): ReactElement {
       <Row justify="space-between" align="middle">
         <Col span="7">
           <Input
-            placeholder="Search policy by name or registry name"
+            placeholder="Search policy by name or description"
             name="search-policy"
             type="text"
             id="search-policy"

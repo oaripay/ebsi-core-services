@@ -34,13 +34,13 @@ export type InsertNewPolicyValueType = {
   id?: number;
   opType: number;
   policyName: string;
-  registry: string;
+  description: string;
   policyConditions?: PolicyCondition[];
 };
 
 export type PolicyTableItem = {
   id: number;
-  registry?: string;
+  description?: string;
   policyName?: string;
   opType?: string;
   policyConditions?: PolicyCondition[];

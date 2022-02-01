@@ -12,10 +12,10 @@ export default function useSearch() {
       }
       const results = await policyRegistryContract.searchPolicy(searchTerm);
       const findingsByPolicyName = results.byPolicyName;
-      const findingsByRegistryName = results.byRegistryName;
+      const findingsByDescriptionName = results.byDescription;
 
       return [
-        ...[...findingsByPolicyName, ...findingsByRegistryName].map(
+        ...[...findingsByPolicyName, ...findingsByDescriptionName].map(
           (item: BigNumber) => item.toNumber()
         ),
       ];

@@ -47,9 +47,9 @@ export default function TrustedPoliciesTable({
       index: "policyName",
     },
     {
-      title: "Registry name",
-      dataIndex: "registry",
-      index: "registry",
+      title: "Description",
+      dataIndex: "description",
+      index: "description",
     },
     {
       title: "Operation type",

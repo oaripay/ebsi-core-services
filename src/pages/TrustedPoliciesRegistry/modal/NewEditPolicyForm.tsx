@@ -32,7 +32,7 @@ export type InitialValuesNewEditPolicy = {
   value: string;
   attributeOperation: string;
   policyName: string;
-  registry: string;
+  description: string;
   status: boolean;
   policyConditions?: PolicyCondition[];
 };
@@ -54,7 +54,7 @@ const initialValues: InitialValuesNewEditPolicy = {
   value: "",
   attributeOperation: "",
   policyName: "",
-  registry: "",
+  description: "",
   policyConditions: [],
   status: false,
 };
@@ -272,8 +272,8 @@ export default function NewEditPolicyForm(prop: PropType): ReactElement {
           <Input />
         </Form.Item>
         <Form.Item
-          label="Registry"
-          name="registry"
+          label="Description"
+          name="description"
           rules={[{ required: true, message: "Field is required" }]}
         >
           <Input />
