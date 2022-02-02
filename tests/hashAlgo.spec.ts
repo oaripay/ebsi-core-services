@@ -1,28 +1,27 @@
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
+import { Contract } from "ethers";
 import { expect } from "chai";
 import { DidRegistry } from "../src/types";
+import { testTprAddress } from "./testAddress";
 
 describe("Hash Algorithm", () => {
   let ts: DidRegistry;
+  let policyContractMock: Contract;
+
+  before(async () => {
+    const policyRegistryFactory = await ethers.getContractFactory(
+      "PolicyRegistryMock"
+    );
+    const tempPolicyContract = await policyRegistryFactory.deploy();
+    await tempPolicyContract.deployed();
+    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
+    policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  });
 
   beforeEach(async () => {
     const paginationFactory = await ethers.getContractFactory("Pagination", {});
     const paginationLib = await paginationFactory.deploy();
-
-    const policyFactory = await ethers.getContractFactory("PolicyLib", {
-      libraries: {
-        Pagination: paginationLib.address,
-      },
-    });
-    const policyLib = await policyFactory.deploy();
-
-    const adminFactory = await ethers.getContractFactory("AdministratorLib", {
-      libraries: {
-        Pagination: paginationLib.address,
-      },
-    });
-    const adminLib = await adminFactory.deploy();
-
     const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});
     const hashAlgoLib = await hashAlgoFactory.deploy();
 
@@ -45,25 +44,48 @@ describe("Hash Algorithm", () => {
     });
     const didRecordLib = await didRecordFactory.deploy();
 
+    const policyFactory = await ethers.getContractFactory("DidPolicyLib", {
+      libraries: {
+        Pagination: paginationLib.address,
+      },
+    });
+    const policyLib = await policyFactory.deploy();
+
     const contractFactory = await ethers.getContractFactory("DidRegistry", {
       libraries: {
-        PolicyLib: policyLib.address,
-        AdministratorLib: adminLib.address,
         HashAlgoLib: hashAlgoLib.address,
         DidTimestampLib: didTimestampLib.address,
         DidMethodLib: didMethodLib.address,
         DidRecordLib: didRecordLib.address,
+        DidPolicyLib: policyLib.address,
       },
     });
     ts = (await contractFactory.deploy()) as DidRegistry;
     await ts.initialize(42);
+    await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(ts.address).to.properAddress;
   });
 
+  it("should reject no authenticated users", async () => {
+    await policyContractMock.setPolicyResult(false);
+    await expect(
+      ts.insertHashAlgorithm(256, "sha-256", "oid256", 1, "sha2-256")
+    ).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute DIDR:insertHashAlgorithm"
+    );
+
+    await expect(
+      ts.updateHashAlgorithm(0, 1, "sha-256", "oid", 1, "sha2-256")
+    ).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute DIDR:updateHashAlgorithm"
+    );
+  });
+
   it("getHashAlgorithmById should succeed", async () => {
+    await policyContractMock.setPolicyResult(true);
     await expect(
       ts.insertHashAlgorithm(256, "sha-256", "oid256", 1, "sha2-256")
     ).to.emit(ts, "AddNewHashAlgo");
@@ -92,12 +114,14 @@ describe("Hash Algorithm", () => {
   });
 
   it("getHashAlgorithmById should revert if hash is unknown", async () => {
+    await policyContractMock.setPolicyResult(true);
     await expect(ts.getHashAlgorithmById(0)).to.be.revertedWith(
       "hashAlgo unknown"
     );
   });
 
   it("insertHashAlgorithm should work", async () => {
+    await policyContractMock.setPolicyResult(true);
     await expect(ts.insertHashAlgorithm(256, "sha-256", "oid", 1, "sha2-256"))
       .to.emit(ts, "AddNewHashAlgo")
       .withArgs(0, "sha-256", "sha-256", 256, "oid", 1, "sha2-256");
@@ -113,6 +137,7 @@ describe("Hash Algorithm", () => {
   });
 
   it("updateHashAlgorithm should revert for incorrect parameters", async () => {
+    await policyContractMock.setPolicyResult(true);
     await expect(
       ts.updateHashAlgorithm(0, 0, "sha-256", "oid", 1, "sha2-256")
     ).to.be.revertedWith("outputLength==0");
@@ -125,6 +150,7 @@ describe("Hash Algorithm", () => {
   });
 
   it("updateHashAlgorithm should work", async () => {
+    await policyContractMock.setPolicyResult(true);
     await expect(
       ts.insertHashAlgorithm(256, "sha-256", "oid", 1, "sha2-256")
     ).to.emit(ts, "AddNewHashAlgo");

@@ -42,7 +42,7 @@ contract DidMethodDetailed is DidMethodStorage {
         uint256 notAfter,
         DidMethodStorage.MethodStatus status
     ) external {
-        DidMethodStorage.Methods storage ds = didDocumentStorage();
+        DidMethodStorage.Methods storage ds = didMethodStorage();
         ds.insertDidMethod(
             methodName,
             ledgerName,
@@ -66,7 +66,7 @@ contract DidMethodDetailed is DidMethodStorage {
         uint256 notAfter,
         DidMethodStorage.MethodStatus status
     ) external {
-        DidMethodStorage.Methods storage ds = didDocumentStorage();
+        DidMethodStorage.Methods storage ds = didMethodStorage();
         ds.updateDidMethod(
             methodName,
             ledgerName,
@@ -79,19 +79,22 @@ contract DidMethodDetailed is DidMethodStorage {
     }
 
     /**
-    Returns  returns DID Method details for a specific didMethodName. The Detail info of a DID Method is stored in didMethodInfoStore[didMethodName]
+     * Returns  returns DID Method details for a specific didMethodName. The Detail
+     * info of a DID Method is stored in didMethodInfoStore[didMethodName]
      */
     function getDidMethodByName(string memory didMethodName)
         public
         view
         returns (DidMethodStorage.DidMethodInfoDetails memory method)
     {
-        DidMethodStorage.Methods storage ds = didDocumentStorage();
+        DidMethodStorage.Methods storage ds = didMethodStorage();
         return ds.getDidMethodByName(didMethodName);
     }
 
     /**
-    Returns returns a paginated list of registered Did Methods ids(which are DID Method names).It returns the key of didMethodInfoStore.Key(string)
+     * Returns returns a paginated list of registered Did Methods ids
+     * (which are DID Method names).It returns the key of
+     * didMethodInfoStore.Key(string)
      */
     function getDidMethodIds(uint256 page, uint256 pageSize)
         public
@@ -104,12 +107,14 @@ contract DidMethodDetailed is DidMethodStorage {
             uint256 next
         )
     {
-        DidMethodStorage.Methods storage ds = didDocumentStorage();
+        DidMethodStorage.Methods storage ds = didMethodStorage();
         return ds.getDidMethodIds(page, pageSize);
     }
 
     /**
-    Returns returns a paginated list of registered Did Methods ids(which are DID Method names).It returns the key of didMethodInfoStore.Key(string)
+     * Returns returns a paginated list of registered Did Methods ids
+     * (which are DID Method names).It returns the key of
+     * didMethodInfoStore.Key(string)
      */
     function getDidMethods(uint256 page, uint256 pageSize)
         public
@@ -122,7 +127,7 @@ contract DidMethodDetailed is DidMethodStorage {
             uint256 next
         )
     {
-        DidMethodStorage.Methods storage ds = didDocumentStorage();
+        DidMethodStorage.Methods storage ds = didMethodStorage();
         return ds.getDidMethods(page, pageSize);
     }
 }

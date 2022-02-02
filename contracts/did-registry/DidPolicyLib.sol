@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
 
-import "./PolicyStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "./DidPolicyStorage.sol";
 
-library PolicyLib {
+library DidPolicyLib {
     using Pagination for bytes32[];
     using Pagination for string[];
 
@@ -23,13 +23,13 @@ library PolicyLib {
      * @dev insert an Policy
      */
     function insertPolicy(
-        PolicyStorage.Policies storage ds,
+        DidPolicyStorage.Policies storage ds,
         string calldata policyId,
         bytes calldata policyData
     ) external {
         bytes32 firstPolicyHash = sha256(policyData);
 
-        PolicyStorage.PolicyDetails storage p = ds.policyStore[policyId];
+        DidPolicyStorage.PolicyDetails storage p = ds.policyStore[policyId];
         require(p.revisionHashes.length == 0, "pol exist");
 
         assert(ds.revisions[firstPolicyHash].length == 0);
@@ -48,11 +48,11 @@ library PolicyLib {
      * @dev add a new policy's attribute
      */
     function updatePolicy(
-        PolicyStorage.Policies storage ds,
+        DidPolicyStorage.Policies storage ds,
         string calldata policyId,
         bytes calldata policyData
     ) external {
-        PolicyStorage.PolicyDetails storage p = ds.policyStore[policyId];
+        DidPolicyStorage.PolicyDetails storage p = ds.policyStore[policyId];
         require(p.revisionHashes.length > 0, "pol unknown");
         bytes32 newPolicyHash = sha256(policyData);
 
@@ -74,12 +74,12 @@ library PolicyLib {
     Returns the data of the last revision
      */
     function getPolicy(
-        PolicyStorage.Policies storage ds,
+        DidPolicyStorage.Policies storage ds,
         string memory policyId
     ) public view returns (bytes memory, bytes32) {
         bytes32[] memory policyRevisionHashes = ds
-        .policyStore[policyId]
-        .revisionHashes;
+            .policyStore[policyId]
+            .revisionHashes;
         require(policyRevisionHashes.length > 0, "pol unknown");
         bytes32 lastHash = policyRevisionHashes[
             policyRevisionHashes.length - 1
@@ -91,7 +91,7 @@ library PolicyLib {
     Returns the data of the provided revision
      */
     function getPolicyByHash(
-        PolicyStorage.Policies storage ds,
+        DidPolicyStorage.Policies storage ds,
         bytes32 revisionHash
     ) public view returns (bytes memory) {
         require(
@@ -107,7 +107,7 @@ library PolicyLib {
     Returns all the revision hashes
      */
     function getPolicyRevisions(
-        PolicyStorage.Policies storage ds,
+        DidPolicyStorage.Policies storage ds,
         string calldata policyId,
         uint256 page,
         uint256 pageSize
@@ -126,13 +126,13 @@ library PolicyLib {
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
 
-        PolicyStorage.PolicyDetails memory p = ds.policyStore[policyId];
+        DidPolicyStorage.PolicyDetails memory p = ds.policyStore[policyId];
         require(p.revisionHashes.length > 0, "pId unknown");
         return p.revisionHashes.paginate(page, pageSize);
     }
 
     function getPolicies(
-        PolicyStorage.Policies storage ds,
+        DidPolicyStorage.Policies storage ds,
         uint256 page,
         uint256 pageSize
     )

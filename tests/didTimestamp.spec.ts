@@ -1,32 +1,30 @@
-import { ethers } from "hardhat";
-import { expect } from "chai";
+import { ethers, network } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { expect } from "chai";
 import { DidRegistry } from "../src/types";
+import { testTprAddress } from "./testAddress";
 
 describe("Timestamp Hashes", () => {
   let ts: DidRegistry;
-  let signers: SignerWithAddress[];
+  let admin: SignerWithAddress;
+  let user: SignerWithAddress;
+
+  before(async () => {
+    [admin, user] = await ethers.getSigners();
+    const policyRegistryFactory = await ethers.getContractFactory(
+      "PolicyRegistryMock"
+    );
+    const tempPolicyContract = await policyRegistryFactory.deploy();
+    await tempPolicyContract.deployed();
+    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
+    const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+    await policyContractMock.setPolicyResult(true);
+  });
 
   beforeEach(async () => {
-    signers = await ethers.getSigners();
-
     const paginationFactory = await ethers.getContractFactory("Pagination", {});
     const paginationLib = await paginationFactory.deploy();
-
-    const policyFactory = await ethers.getContractFactory("PolicyLib", {
-      libraries: {
-        Pagination: paginationLib.address,
-      },
-    });
-    const policyLib = await policyFactory.deploy();
-
-    const adminFactory = await ethers.getContractFactory("AdministratorLib", {
-      libraries: {
-        Pagination: paginationLib.address,
-      },
-    });
-    const adminLib = await adminFactory.deploy();
-
     const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});
     const hashAlgoLib = await hashAlgoFactory.deploy();
 
@@ -49,25 +47,33 @@ describe("Timestamp Hashes", () => {
     });
     const didRecordLib = await didRecordFactory.deploy();
 
+    const policyFactory = await ethers.getContractFactory("DidPolicyLib", {
+      libraries: {
+        Pagination: paginationLib.address,
+      },
+    });
+    const policyLib = await policyFactory.deploy();
+
     const contractFactory = await ethers.getContractFactory("DidRegistry", {
       libraries: {
-        PolicyLib: policyLib.address,
-        AdministratorLib: adminLib.address,
         HashAlgoLib: hashAlgoLib.address,
         DidTimestampLib: didTimestampLib.address,
         DidMethodLib: didMethodLib.address,
         DidRecordLib: didRecordLib.address,
+        DidPolicyLib: policyLib.address,
       },
     });
 
     ts = (await contractFactory.deploy()) as DidRegistry;
 
     await ts.initialize(42);
+    await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();
-
+    // 3
     expect(initialVersion).to.equal(42);
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    expect(ts.address).to.properAddress;
+    expect(ts.address).to.be.properAddress;
+
     // add hashAlgo
     await ts.insertHashAlgorithm(256, "sha-256", "oid", 1, "sha2-256");
     await ts.insertHashAlgorithm(512, "sha-512", "oid2", 1, "sha2-512");
@@ -81,7 +87,7 @@ describe("Timestamp Hashes", () => {
     const r1 = await ts.getDidTimestamp(hash1);
     expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
     expect(r1.hash.algorithm).to.equal(0);
-    expect(r1.timestampedBy).to.equal(signers[0].address);
+    expect(r1.timestampedBy).to.equal(admin.address);
     expect(r1.data).to.equal(
       ethers.utils.hexlify(ethers.utils.toUtf8Bytes("btc"))
     );
@@ -95,7 +101,7 @@ describe("Timestamp Hashes", () => {
     const r1 = await ts.getDidTimestamp(hash1);
     expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
     expect(r1.hash.algorithm).to.equal(0);
-    expect(r1.timestampedBy).to.equal(signers[0].address);
+    expect(r1.timestampedBy).to.equal(admin.address);
     expect(ethers.utils.hexlify(r1.data)).to.equal(ethers.utils.hexlify([]));
     expect(r1.blockNumber).to.equal(blockNumber + 1);
   });
@@ -117,7 +123,7 @@ describe("Timestamp Hashes", () => {
     const r1 = await ts.getDidTimestampById(ethers.utils.sha256(hash1));
     expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
     expect(r1.hash.algorithm).to.equal(0);
-    expect(r1.timestampedBy).to.equal(signers[0].address);
+    expect(r1.timestampedBy).to.equal(admin.address);
     expect(ethers.utils.hexlify(r1.data)).to.equal(ethers.utils.hexlify([]));
     expect(r1.blockNumber).to.equal(blockNumber + 1);
   });
@@ -130,7 +136,7 @@ describe("Timestamp Hashes", () => {
     const r1 = await ts.getDidTimestampById(ethers.utils.sha256(hash1));
     expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
     expect(r1.hash.algorithm).to.equal(1);
-    expect(r1.timestampedBy).to.equal(signers[0].address);
+    expect(r1.timestampedBy).to.equal(admin.address);
     expect(r1.data).to.equal(
       ethers.utils.hexlify(ethers.utils.toUtf8Bytes("btc"))
     );

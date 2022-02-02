@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
 
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./DidTimestampStorage.sol";
 import "./HashAlgoStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 library DidTimestampLib {
     using Pagination for bytes32[];
@@ -41,12 +41,12 @@ library DidTimestampLib {
         // insert only if it doesn't exist
         if (ts.didTimestampsStore[timestampId].hash.value.length == 0) {
             ts.didTimestampsStore[timestampId] = DidTimestampStorage
-            .DidTimestamp(
-                DidTimestampStorage.Hash(hashAlgorithmId, hashValue),
-                msg.sender,
-                block.number,
-                timestampData.length > 0 ? timestampData : bytes("")
-            );
+                .DidTimestamp(
+                    DidTimestampStorage.Hash(hashAlgorithmId, hashValue),
+                    msg.sender,
+                    block.number,
+                    timestampData.length > 0 ? timestampData : bytes("")
+                );
             ts.didTimestampIdsList.push(timestampId);
 
             emit DidTimestampedHash(

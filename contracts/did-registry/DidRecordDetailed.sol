@@ -311,7 +311,8 @@ contract DidRecordDetailed is DidRecordStorage {
     }
 
     /**
-     * @dev getDidRecordIdentifiersByControllerId returns a paginated list of  didRecords identifiers owned by controllerId.
+     * @dev getDidRecordIdentifiersByControllerId returns a paginated list
+     * of  didRecords identifiers owned by controllerId.
      */
     function getDidRecordIdentifiersByControllerId(
         address controllerId,
@@ -360,7 +361,8 @@ contract DidRecordDetailed is DidRecordStorage {
     }
 
     /**
-     * @dev getLatestDidDocumentVersion returns for a specific identifier (did), the didVersionInfo for the latest version of the DID Document.
+     * @dev getLatestDidDocumentVersion returns for a specific identifier
+     * (did), the didVersionInfo for the latest version of the DID Document.
      */
     function getLatestDidDocumentVersion(bytes calldata identifier)
         public
@@ -464,7 +466,8 @@ contract DidRecordDetailed is DidRecordStorage {
     }
 
     /**
-     * @dev getDidDocumentVersionMetadata returns version metadata by didVersionMetadataId from the didVersionMetadataStore
+     * @dev getDidDocumentVersionMetadata returns version metadata by
+     * didVersionMetadataId from the didVersionMetadataStore
      */
     function getDidDocumentVersionMetadata(bytes32 didVersionMetadataId)
         public
@@ -487,5 +490,18 @@ contract DidRecordDetailed is DidRecordStorage {
             identifier,
             versionId
         );
+    }
+
+    /**
+     * @dev checkController returns true if the 'ctrl' is in the list
+     * of controllers of the 'identifier'
+     */
+    function checkController(bytes calldata identifier, address ctrl)
+        external
+        view
+        returns (bool)
+    {
+        DidRecords storage rs = recordStorage();
+        return rs.checkController(identifier, ctrl);
     }
 }

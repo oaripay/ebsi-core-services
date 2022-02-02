@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
 import "./DidRecordStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./DidTimestampLib.sol";
 import "./DidTimestampStorage.sol";
 
@@ -168,9 +167,9 @@ library DidRecordLib {
         }
         rs.didTimestampIdToDidRecordId[timestampId].push(recordId);
         rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)] = r
-        .totalDidVersions;
+            .totalDidVersions;
         rs.didVersionMetadataIdToVersionId[sha256(didVersionMetadata)] = r
-        .totalDidVersions;
+            .totalDidVersions;
         emit DidDocumentUpdated(
             recordId,
             timestampId,
@@ -449,15 +448,15 @@ library DidRecordLib {
 
         r
             .didVersionsStore[
-            rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
-        ]
+                rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
+            ]
             .didTimestampsId
             .push(timestampId);
 
         r
             .didVersionsStore[
-            rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
-        ]
+                rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
+            ]
             .didVersionInfoId
             .push(sha256(didVersionInfo));
         rs.didVersionInfoStore[sha256(didVersionInfo)] = didVersionInfo;
@@ -514,19 +513,19 @@ library DidRecordLib {
         );
         require(
             r
-            .didVersionsStore[
-                rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
-            ]
-            .didTimestampsId
-            .length > 1,
+                .didVersionsStore[
+                    rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
+                ]
+                .didTimestampsId
+                .length > 1,
             "last tsId"
         );
         require(
             removeFromArray(
                 r
                     .didVersionsStore[
-                    rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
-                ]
+                        rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
+                    ]
                     .didTimestampsId,
                 sha256(hashValue)
             ),
@@ -534,7 +533,8 @@ library DidRecordLib {
         );
         // Remove didTimestampId from didRecordsStore[sha2-256(identifier)].didTimestampIdToVersionId
         r.didTimestampIdToVersionId[sha256(hashValue)] = 0;
-        // Add the didVersionInfo in the didVersionInfoStore with key = sha2-256(didVersionInfo) and value = didVersionInfo
+        // Add the didVersionInfo in the didVersionInfoStore with
+        // key = sha2-256(didVersionInfo) and value = didVersionInfo
         rs.didVersionInfoStore[sha256(didVersionInfo)] = didVersionInfo;
 
         require(
@@ -581,8 +581,8 @@ library DidRecordLib {
 
         r
             .didVersionsStore[
-            rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
-        ]
+                rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
+            ]
             .didVersionMetadataId
             .push(sha256(didVersionMetadata));
         rs.didVersionMetadataStore[
@@ -594,7 +594,7 @@ library DidRecordLib {
             didVersionInfo
         );
         rs.didVersionMetadataIdToVersionId[sha256(didVersionMetadata)] = rs
-        .didVersionInfoIdToVersionId[sha256(didVersionInfo)];
+            .didVersionInfoIdToVersionId[sha256(didVersionInfo)];
     }
 
     /**
@@ -627,8 +627,8 @@ library DidRecordLib {
             removeFromArray(
                 r
                     .didVersionsStore[
-                    rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
-                ]
+                        rs.didVersionInfoIdToVersionId[sha256(didVersionInfo)]
+                    ]
                     .didVersionMetadataId,
                 sha256(didVersionMetadata)
             ),
@@ -669,7 +669,8 @@ library DidRecordLib {
     }
 
     /**
-     * @dev getDidRecordIdentifiersByControllerId returns a paginated list of  didRecords identifiers owned by controllerId.
+     * @dev getDidRecordIdentifiersByControllerId returns a paginated list of
+     * didRecords identifiers owned by controllerId.
      */
     function getDidRecordIdentifiersByControllerId(
         DidRecordStorage.DidRecords storage rs,
@@ -726,7 +727,8 @@ library DidRecordLib {
     }
 
     /**
-     * @dev getLatestDidDocumentVersion returns for a specific identifier (did), the didVersionInfo for the latest version of the DID Document.
+     * @dev getLatestDidDocumentVersion returns for a specific identifier
+     * (did), the didVersionInfo for the latest version of the DID Document.
      */
     function getLatestDidDocumentVersion(
         DidRecordStorage.DidRecords storage rs,
@@ -739,8 +741,8 @@ library DidRecordLib {
         DidRecordStorage.DidRecord storage r = rs.didRecordsStore[recordId];
         require(r.totalDidVersions != 0, "record unknown");
         bytes32[] storage didVersionInfoIds = r
-        .didVersionsStore[r.totalDidVersions]
-        .didVersionInfoId;
+            .didVersionsStore[r.totalDidVersions]
+            .didVersionInfoId;
         bytes32 latestDidVersionInfoId = didVersionInfoIds[
             didVersionInfoIds.length - 1
         ];
@@ -896,14 +898,15 @@ library DidRecordLib {
             rs
                 .didRecordsStore[sha256(identifier)]
                 .didVersionsStore[
-                rs.didVersionInfoIdToVersionId[didVersionInfoId]
-            ]
+                    rs.didVersionInfoIdToVersionId[didVersionInfoId]
+                ]
                 .didVersionMetadataId
                 .paginate(page, pageSize);
     }
 
     /**
-     * @dev getDidDocumentVersionMetadata returns version metadata by didVersionMetadataId from the didVersionMetadataStore
+     * @dev getDidDocumentVersionMetadata returns version metadata by
+     * didVersionMetadataId from the didVersionMetadataStore
      */
     function getDidDocumentVersionMetadata(
         DidRecordStorage.DidRecords storage rs,
@@ -933,5 +936,20 @@ library DidRecordLib {
                 .didRecordsStore[recordId]
                 .didVersionsStore[versionId]
                 .didTimestampsId;
+    }
+
+    /**
+     * @dev checkController returns true if the 'ctrl' is in the list
+     * of controllers of the 'identifier'
+     */
+    function checkController(
+        DidRecordStorage.DidRecords storage rs,
+        bytes calldata identifier,
+        address ctrl
+    ) external view returns (bool) {
+        bytes32 recordId = sha256(identifier);
+        DidRecordStorage.DidRecord storage r = rs.didRecordsStore[recordId];
+        require(r.totalDidVersions != 0, "record unknown");
+        return checkIfControllerExists(ctrl, r.controllerIds);
     }
 }

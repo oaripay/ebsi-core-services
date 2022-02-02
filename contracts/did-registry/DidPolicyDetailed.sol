@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
 
-import "./PolicyStorage.sol";
-import "./PolicyLib.sol";
+import "./DidPolicyStorage.sol";
+import "./DidPolicyLib.sol";
 
-contract PolicyDetailed is PolicyStorage {
-    using PolicyLib for PolicyStorage.Policies;
+contract DidPolicyDetailed is DidPolicyStorage {
+    using DidPolicyLib for DidPolicyStorage.Policies;
     event AddNewPolicy(
         string indexed policyId,
         bytes32 indexed policyHash,
@@ -23,7 +23,7 @@ contract PolicyDetailed is PolicyStorage {
     function insertPolicy(string calldata policyId, bytes calldata policyData)
         external
     {
-        PolicyStorage.Policies storage ds = policyStorage();
+        DidPolicyStorage.Policies storage ds = didPolicyStorage();
         ds.insertPolicy(policyId, policyData);
     }
 
@@ -33,7 +33,7 @@ contract PolicyDetailed is PolicyStorage {
     function updatePolicy(string calldata policyId, bytes calldata policyData)
         external
     {
-        PolicyStorage.Policies storage ds = policyStorage();
+        DidPolicyStorage.Policies storage ds = didPolicyStorage();
         ds.updatePolicy(policyId, policyData);
     }
 
@@ -45,7 +45,7 @@ contract PolicyDetailed is PolicyStorage {
         view
         returns (bytes memory, bytes32)
     {
-        PolicyStorage.Policies storage ds = policyStorage();
+        DidPolicyStorage.Policies storage ds = didPolicyStorage();
         return ds.getPolicy(policyId);
     }
 
@@ -57,7 +57,7 @@ contract PolicyDetailed is PolicyStorage {
         view
         returns (bytes memory)
     {
-        PolicyStorage.Policies storage ds = policyStorage();
+        DidPolicyStorage.Policies storage ds = didPolicyStorage();
         return ds.getPolicyByHash(revisionHash);
     }
 
@@ -79,7 +79,7 @@ contract PolicyDetailed is PolicyStorage {
             uint256 next
         )
     {
-        PolicyStorage.Policies storage ds = policyStorage();
+        DidPolicyStorage.Policies storage ds = didPolicyStorage();
         return ds.getPolicyRevisions(policyId, page, pageSize);
     }
 
@@ -94,7 +94,7 @@ contract PolicyDetailed is PolicyStorage {
             uint256 next
         )
     {
-        PolicyStorage.Policies storage ds = policyStorage();
+        DidPolicyStorage.Policies storage ds = didPolicyStorage();
         return ds.getPolicies(page, pageSize);
     }
 }

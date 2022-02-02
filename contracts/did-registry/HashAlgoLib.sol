@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
 
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./HashAlgoStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 library HashAlgoLib {
     using Pagination for uint256;
@@ -38,6 +38,14 @@ library HashAlgoLib {
         HashAlgoStorage.Status status,
         string memory multihash
     ) external {
+        require(
+            hs.trustedPolicyRegistry.checkPolicy(
+                "DIDR:insertHashAlgorithm",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute DIDR:insertHashAlgorithm"
+        );
+
         require(outputLength > 0, "outputLength==0");
         require(uint256(status) > 0, "status==0");
         uint256 hashId = hs.hashAlgorithms.numberOfAlgorithms;
@@ -79,6 +87,14 @@ library HashAlgoLib {
         HashAlgoStorage.Status status,
         string memory multihash
     ) external {
+        require(
+            hs.trustedPolicyRegistry.checkPolicy(
+                "DIDR:updateHashAlgorithm",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute DIDR:updateHashAlgorithm"
+        );
+
         require(outputLength > 0, "outputLength==0");
         require(uint256(status) > 0, "status==0");
         require(

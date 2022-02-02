@@ -24,7 +24,8 @@ contract DidRecordStorage is DidTimestampStorage {
         bytes didIdentifier;
         //  The DID controller, ethereum address.
         address[] controllerIds;
-        //  A list revoked controller ids.  map: controllerId(address) => blockNumber(uint) (from which the controler id is revoked)
+        //  A list revoked controller ids.  map: controllerId(address) => blockNumber(uint)
+        // (from which the controler id is revoked)
         mapping(address => uint256) revokedControllerIds;
         // Additional information about DID controller.
         mapping(address => ControllerInfo) controllersStore;

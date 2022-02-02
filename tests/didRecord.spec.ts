@@ -1,32 +1,31 @@
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { DidRegistry } from "../src/types";
+import { testTprAddress } from "./testAddress";
 
 describe("Record Hashes", () => {
   let ts: DidRegistry;
-  let signers: SignerWithAddress[];
+  let admin: SignerWithAddress;
+  let user: SignerWithAddress;
+  let user2: SignerWithAddress;
+
+  before(async () => {
+    [admin, user, user2] = await ethers.getSigners();
+    const policyRegistryFactory = await ethers.getContractFactory(
+      "PolicyRegistryMock"
+    );
+    const tempPolicyContract = await policyRegistryFactory.deploy();
+    await tempPolicyContract.deployed();
+    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
+    const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+    await policyContractMock.setPolicyResult(true);
+  });
 
   beforeEach(async () => {
-    // 1
-    signers = await ethers.getSigners();
     const paginationFactory = await ethers.getContractFactory("Pagination", {});
     const paginationLib = await paginationFactory.deploy();
-
-    const policyFactory = await ethers.getContractFactory("PolicyLib", {
-      libraries: {
-        Pagination: paginationLib.address,
-      },
-    });
-    const policyLib = await policyFactory.deploy();
-
-    const adminFactory = await ethers.getContractFactory("AdministratorLib", {
-      libraries: {
-        Pagination: paginationLib.address,
-      },
-    });
-    const adminLib = await adminFactory.deploy();
-
     const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});
     const hashAlgoLib = await hashAlgoFactory.deploy();
 
@@ -49,22 +48,28 @@ describe("Record Hashes", () => {
     });
     const didRecordLib = await didRecordFactory.deploy();
 
+    const policyFactory = await ethers.getContractFactory("DidPolicyLib", {
+      libraries: {
+        Pagination: paginationLib.address,
+      },
+    });
+    const policyLib = await policyFactory.deploy();
+
     const contractFactory = await ethers.getContractFactory("DidRegistry", {
       libraries: {
-        PolicyLib: policyLib.address,
-        AdministratorLib: adminLib.address,
         HashAlgoLib: hashAlgoLib.address,
         DidTimestampLib: didTimestampLib.address,
         DidMethodLib: didMethodLib.address,
         DidRecordLib: didRecordLib.address,
+        DidPolicyLib: policyLib.address,
       },
     });
 
     ts = (await contractFactory.deploy()) as DidRegistry;
 
     await ts.initialize(42);
+    await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();
-    // 3
     expect(initialVersion).to.equal(42);
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(ts.address).to.be.properAddress;
@@ -378,7 +383,7 @@ describe("Record Hashes", () => {
       )
     );
 
-    const newControllerId = signers[1].address;
+    const newControllerId = user.address;
 
     await expect(
       ts.insertDidController([], newControllerId, 1, 2)
@@ -393,12 +398,12 @@ describe("Record Hashes", () => {
       )
     ).to.be.revertedWith("record unknown");
     await expect(
-      ts.connect(signers[2]).insertDidController(did, newControllerId, 1, 2)
+      ts.connect(user2).insertDidController(did, newControllerId, 1, 2)
     ).to.be.revertedWith("ctrl unknown");
 
     await ts.insertDidController(did, newControllerId, 1, 2);
-    await ts.insertDidController(did, signers[2].address, 1, 2);
-    await ts.connect(signers[1]).revokeDidController(did, signers[0].address);
+    await ts.insertDidController(did, user2.address, 1, 2);
+    await ts.connect(user).revokeDidController(did, admin.address);
 
     await expect(
       ts.insertDidController(did, newControllerId, 1, 2)
@@ -431,11 +436,11 @@ describe("Record Hashes", () => {
         ethers.utils.sha256(didVersionMetadata)
       );
 
-    const newControllerId = signers[1].address;
+    const newControllerId = user.address;
 
     await expect(ts.insertDidController(did, newControllerId, 1, 2))
       .to.emit(ts, "DidControllerInserted")
-      .withArgs(recId, newControllerId, signers[0].address, 1, 2);
+      .withArgs(recId, newControllerId, admin.address, 1, 2);
   });
 
   it("updateDidController should fail for incorrect inputs", async () => {
@@ -456,7 +461,7 @@ describe("Record Hashes", () => {
       )
     );
 
-    const newControllerId = signers[1].address;
+    const newControllerId = user.address;
 
     await expect(
       ts.updateDidController([], newControllerId, 1, 2)
@@ -471,7 +476,7 @@ describe("Record Hashes", () => {
       )
     ).to.be.revertedWith("record unknown");
     await expect(
-      ts.connect(signers[2]).updateDidController(did, newControllerId, 1, 2)
+      ts.connect(user2).updateDidController(did, newControllerId, 1, 2)
     ).to.be.revertedWith("ctrl unknown");
   });
 
@@ -501,11 +506,11 @@ describe("Record Hashes", () => {
         ethers.utils.sha256(didVersionMetadata)
       );
 
-    const newControllerId = signers[1].address;
+    const newControllerId = user.address;
 
     await expect(ts.updateDidController(did, newControllerId, 1, 2))
       .to.emit(ts, "DidControllerUpdated")
-      .withArgs(recId, newControllerId, signers[0].address, 1, 2);
+      .withArgs(recId, newControllerId, admin.address, 1, 2);
   });
 
   it("revokeDidController should fail for incorrect inputs", async () => {
@@ -526,7 +531,7 @@ describe("Record Hashes", () => {
       )
     );
 
-    const newControllerId = signers[1].address;
+    const newControllerId = user.address;
 
     await expect(
       ts.revokeDidController(did, newControllerId)
@@ -540,7 +545,7 @@ describe("Record Hashes", () => {
       ts.revokeDidController(ethers.utils.toUtf8Bytes("nodid"), newControllerId)
     ).to.be.revertedWith("record unknown");
     await expect(
-      ts.connect(signers[2]).revokeDidController(did, newControllerId)
+      ts.connect(user2).revokeDidController(did, newControllerId)
     ).to.be.revertedWith("ctrl unknown");
   });
 
@@ -569,12 +574,12 @@ describe("Record Hashes", () => {
         ethers.utils.sha256(didVersionInfo),
         ethers.utils.sha256(didVersionMetadata)
       );
-    const newControllerId = signers[1].address;
+    const newControllerId = user.address;
     await ts.insertDidController(did, newControllerId, 1, 2);
 
     await expect(ts.revokeDidController(did, newControllerId))
       .to.emit(ts, "DidRecordOwnerRevoked")
-      .withArgs(recId, newControllerId, signers[0].address);
+      .withArgs(recId, newControllerId, admin.address);
   });
 
   it("revokeDidController should succeed after a controller update", async () => {
@@ -602,18 +607,18 @@ describe("Record Hashes", () => {
         ethers.utils.sha256(didVersionInfo),
         ethers.utils.sha256(didVersionMetadata)
       );
-    const newControllerId = signers[1].address;
+    const newControllerId = user.address;
     await ts.insertDidController(did, newControllerId, 1, 2);
     // update to the same should work
     await expect(
-      ts.connect(signers[1]).updateDidController(did, newControllerId, 1, 2)
+      ts.connect(user).updateDidController(did, newControllerId, 1, 2)
     )
       .to.emit(ts, "DidControllerUpdated")
-      .withArgs(recId, newControllerId, signers[1].address, 1, 2);
+      .withArgs(recId, newControllerId, user.address, 1, 2);
 
     await expect(ts.revokeDidController(did, newControllerId))
       .to.emit(ts, "DidRecordOwnerRevoked")
-      .withArgs(recId, newControllerId, signers[0].address);
+      .withArgs(recId, newControllerId, admin.address);
   });
 
   it("appendDidDocumentVersionHash should fail for incorrect inputs", async () => {
@@ -678,7 +683,7 @@ describe("Record Hashes", () => {
 
     await expect(
       ts
-        .connect(signers[2])
+        .connect(user2)
         .appendDidDocumentVersionHash(did, 0, hash1Prime, [], didVersionInfo)
     ).to.be.revertedWith("ctrl unknown");
   });
@@ -788,7 +793,7 @@ describe("Record Hashes", () => {
     ).to.be.revertedWith("hash unknown");
     await expect(
       ts
-        .connect(signers[2])
+        .connect(user2)
         .detachDidDocumentVersionHash(did, 0, hash1Prime, didVersionInfo)
     ).to.be.revertedWith("ctrl unknown");
 
@@ -906,7 +911,7 @@ describe("Record Hashes", () => {
 
     await expect(
       ts
-        .connect(signers[2])
+        .connect(user2)
         .appendDidDocumentVersionMetadata(
           did,
           didVersionInfo,
@@ -1016,7 +1021,7 @@ describe("Record Hashes", () => {
     ).to.be.revertedWith("versionInfo unknown");
     await expect(
       ts
-        .connect(signers[2])
+        .connect(user2)
         .detachDidDocumentVersionMetadata(
           did,
           didVersionInfo,
@@ -1157,7 +1162,7 @@ describe("Record Hashes", () => {
     const timestampData = ethers.utils.toUtf8Bytes("timestampData");
     const didVersionMetadata = ethers.utils.toUtf8Bytes("didVersionMetadata");
     const did = ethers.utils.toUtf8Bytes("did");
-    const ctrlId = signers[0].address;
+    const ctrlId = admin.address;
     await ts.insertDidDocument(
       did,
       0,
@@ -1186,7 +1191,7 @@ describe("Record Hashes", () => {
 
   it("getDidRecordIdentifiersByControllerId should succeed", async () => {
     const dids: string[] = [];
-    const ctrlId = signers[0].address;
+    const ctrlId = admin.address;
     for (let i = 1; i < 12; i += 1) {
       const hashValue = ethers.utils.sha256(
         ethers.utils.toUtf8Bytes(`hash-${i}`)
@@ -1238,7 +1243,7 @@ describe("Record Hashes", () => {
     const timestampData = ethers.utils.toUtf8Bytes("timestampData");
     const didVersionMetadata = ethers.utils.toUtf8Bytes("didVersionMetadata");
     const did = ethers.utils.toUtf8Bytes("did");
-    const ctrlId = signers[0].address;
+    const ctrlId = admin.address;
     await ts.insertDidDocument(
       did,
       0,
@@ -1267,7 +1272,7 @@ describe("Record Hashes", () => {
 
   it("getDidRecordIdsByControllerId should succeed", async () => {
     const dids: string[] = [];
-    const ctrlId = signers[0].address;
+    const ctrlId = admin.address;
     for (let i = 1; i < 12; i += 1) {
       const hashValue = ethers.utils.sha256(
         ethers.utils.toUtf8Bytes(`hash-${i}`)
@@ -1395,7 +1400,7 @@ describe("Record Hashes", () => {
     );
 
     const r0 = await ts.getDidRecord(did);
-    expect(r0.controllerIds).to.deep.equal([signers[0].address]);
+    expect(r0.controllerIds).to.deep.equal([admin.address]);
     expect(r0.totalDidVersions).to.equal(1);
 
     // add version
@@ -1404,17 +1409,14 @@ describe("Record Hashes", () => {
     );
     await ts.updateDidDocument(did, 0, hash1Prime, didVersionInfo, [], []);
     // add controller
-    const newControllerId = signers[1].address;
+    const newControllerId = user.address;
 
     await expect(ts.insertDidController(did, newControllerId, 1, 2))
       .to.emit(ts, "DidControllerInserted")
-      .withArgs(recordId, newControllerId, signers[0].address, 1, 2);
+      .withArgs(recordId, newControllerId, admin.address, 1, 2);
 
     const r1 = await ts.getDidRecord(did);
-    expect(r1.controllerIds).to.deep.equal([
-      signers[0].address,
-      newControllerId,
-    ]);
+    expect(r1.controllerIds).to.deep.equal([admin.address, newControllerId]);
     expect(r1.totalDidVersions).to.equal(2);
   });
 
@@ -1445,7 +1447,7 @@ describe("Record Hashes", () => {
     );
 
     const r0 = await ts.getDidRecordById(recordId);
-    expect(r0.controllerIds).to.deep.equal([signers[0].address]);
+    expect(r0.controllerIds).to.deep.equal([admin.address]);
     expect(r0.totalDidVersions).to.equal(1);
 
     // add version
@@ -1454,17 +1456,14 @@ describe("Record Hashes", () => {
     );
     await ts.updateDidDocument(did, 0, hash1Prime, didVersionInfo, [], []);
     // add controller
-    const newControllerId = signers[1].address;
+    const newControllerId = user.address;
 
     await expect(ts.insertDidController(did, newControllerId, 1, 2))
       .to.emit(ts, "DidControllerInserted")
-      .withArgs(recordId, newControllerId, signers[0].address, 1, 2);
+      .withArgs(recordId, newControllerId, admin.address, 1, 2);
 
     const r1 = await ts.getDidRecordById(recordId);
-    expect(r1.controllerIds).to.deep.equal([
-      signers[0].address,
-      newControllerId,
-    ]);
+    expect(r1.controllerIds).to.deep.equal([admin.address, newControllerId]);
     expect(r1.totalDidVersions).to.equal(2);
   });
 
@@ -1900,5 +1899,23 @@ describe("Record Hashes", () => {
     await expect(
       ts.getDidDocumentVersionDidTimestampIds(did, 2)
     ).to.be.revertedWith("unknown version");
+  });
+
+  it("should check if an address is a did controller", async () => {
+    const hashValue = ethers.utils.sha256(ethers.utils.toUtf8Bytes("e40605e6"));
+    const didVersionInfo = ethers.utils.toUtf8Bytes("didVersionInfo");
+    const timestampData = ethers.utils.toUtf8Bytes("timestampData");
+    const didVersionMetadata = ethers.utils.toUtf8Bytes("didVersionMetadata");
+    const did = ethers.utils.toUtf8Bytes("did:ebsi:abc");
+    await ts.insertDidDocument(
+      did,
+      0,
+      hashValue,
+      didVersionInfo,
+      timestampData,
+      didVersionMetadata
+    );
+    expect(await ts.checkController(did, admin.address)).to.equal(true);
+    expect(await ts.checkController(did, user.address)).to.equal(false);
   });
 });

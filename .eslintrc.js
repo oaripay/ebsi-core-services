@@ -4,6 +4,7 @@ module.exports = {
     "airbnb-typescript/base",
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended",
+    "plugin:import/recommended",
   ],
   globals: {
     // truffle globals
@@ -15,7 +16,6 @@ module.exports = {
   parserOptions: {
     project: "./tsconfig.eslint.json",
   },
-  ignorePatterns: ["**/contracts/bootstrap-ethereum-sc"],
   rules: {
     // we use it for scripts
     "no-console": "off",

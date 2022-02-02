@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
 
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./DidMethodStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 library DidMethodLib {
     using Pagination for bytes32[];
@@ -45,6 +45,14 @@ library DidMethodLib {
         DidMethodStorage.MethodStatus status
     ) external {
         require(
+            ds.trustedPolicyRegistry.checkPolicy(
+                "DIDR:insertDidMethod",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute DIDR:insertDidMethod"
+        );
+
+        require(
             keccak256(bytes(methodName)) != keccak256(bytes("")),
             "method empty"
         );
@@ -61,7 +69,7 @@ library DidMethodLib {
         bytes32 methodHash = sha256(bytes(methodName));
 
         DidMethodStorage.DidMethodInfoDetails storage method = ds
-        .didMethodInfoStore[methodHash];
+            .didMethodInfoStore[methodHash];
 
         require(
             method.status == DidMethodStorage.MethodStatus.undefined,
@@ -105,6 +113,14 @@ library DidMethodLib {
         DidMethodStorage.MethodStatus status
     ) external {
         require(
+            ds.trustedPolicyRegistry.checkPolicy(
+                "DIDR:updateDidMethod",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute DIDR:updateDidMethod"
+        );
+
+        require(
             keccak256(bytes(methodName)) != keccak256(bytes("")),
             "method empty"
         );
@@ -121,7 +137,7 @@ library DidMethodLib {
         bytes32 methodHash = sha256(bytes(methodName));
 
         DidMethodStorage.DidMethodInfoDetails storage method = ds
-        .didMethodInfoStore[methodHash];
+            .didMethodInfoStore[methodHash];
 
         require(
             method.status != DidMethodStorage.MethodStatus.undefined,
@@ -148,7 +164,9 @@ library DidMethodLib {
     }
 
     /**
-    Returns  returns DID Method details for a specific didMethodName. The Detail info of a DID Method is stored in didMethodInfoStore[didMethodName]
+     * Returns  returns DID Method details for a specific didMethodName.
+     * The Detail info of a DID Method is stored in
+     * didMethodInfoStore[didMethodName]
      */
     function getDidMethodByName(
         DidMethodStorage.Methods storage ds,
@@ -171,7 +189,9 @@ library DidMethodLib {
     }
 
     /**
-    Returns returns a paginated list of registered Did Methods ids(which are DID Method names).It returns the key of didMethodInfoStore.Key(string)
+     * Returns returns a paginated list of registered Did Methods ids
+     * (which are DID Method names).It returns the key of
+     * didMethodInfoStore.Key(string)
      */
     function getDidMethods(
         DidMethodStorage.Methods storage ds,
@@ -196,7 +216,9 @@ library DidMethodLib {
     }
 
     /**
-    Returns returns a paginated list of registered Did Methods ids(which are DID Method names).It returns the key of didMethodInfoStore.Key(string)
+     * Returns returns a paginated list of registered Did Methods ids
+     * (which are DID Method names).It returns the key of
+     * didMethodInfoStore.Key(string)
      */
     function getDidMethodIds(
         DidMethodStorage.Methods storage ds,
