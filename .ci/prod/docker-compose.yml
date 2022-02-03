@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   ledger-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/ledger-api:prod_ebsiint-3760-docker-deps-update_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/ledger-api:prod_ebsiint-3819-deps-update_v2.0.0
     build: ../..
