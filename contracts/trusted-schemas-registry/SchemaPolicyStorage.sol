@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: EUPL V1.2
+
+// solhint-disable max-line-length
+
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-contract PolicyStorage {
+contract SchemaPolicyStorage {
     // The state variables we care about.
     bytes32 public constant TSR_POLICY_DIAMOND_STORAGE_POSITION =
         keccak256("diamond.standard.tsr.policy.storage");
@@ -18,7 +21,7 @@ contract PolicyStorage {
     }
 
     // Creates and returns the storage pointer to the struct.
-    function policyStorage() internal pure returns (Policies storage ms) {
+    function schemaPolicyStorage() internal pure returns (Policies storage ms) {
         bytes32 position = TSR_POLICY_DIAMOND_STORAGE_POSITION;
         assembly {
             ms.slot := position

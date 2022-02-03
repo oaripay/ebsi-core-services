@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: EUPL V1.2
+
 pragma solidity ^0.8.0;
 
 import "./SchemaStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+// solhint-disable max-line-length
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 library SchemaLib {
     using Pagination for bytes32[];
@@ -23,6 +25,13 @@ library SchemaLib {
         bytes calldata schema,
         bytes calldata metadata
     ) external returns (bytes32 schemaRevisionId) {
+        require(
+            ss.trustedPolicyRegistry.checkPolicy(
+                "TSR:insertSchema",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TSR:insertSchema"
+        );
         require(schemaId.length > 0, "schema empty");
         require(schema.length > 0, "revision empty");
         require(metadata.length > 0, "metadata empty");
@@ -90,10 +99,9 @@ library SchemaLib {
     ) external view returns (bytes memory schemaRevision) {
         require(schemaId.length > 0, "schemaId empty");
         require(ss.schemaIdToRevisionIds[schemaId].length > 0, "No revision");
-        bytes32 latestSchemaRevisionId =
-            ss.schemaIdToRevisionIds[schemaId][
-                ss.schemaIdToRevisionIds[schemaId].length - 1
-            ];
+        bytes32 latestSchemaRevisionId = ss.schemaIdToRevisionIds[schemaId][
+            ss.schemaIdToRevisionIds[schemaId].length - 1
+        ];
         require(
             ss.schemaRevisionStore[latestSchemaRevisionId].length > 0,
             "No revision"
@@ -137,8 +145,9 @@ library SchemaLib {
         bytes32 schemaRevisionId
     ) external view returns (bytes memory metadata) {
         require(schemaRevisionId != bytes32(0), "SchemaRevisionId empty");
-        bytes32[] memory metadataIds =
-            ss.revisionIdToMetadataIds[schemaRevisionId];
+        bytes32[] memory metadataIds = ss.revisionIdToMetadataIds[
+            schemaRevisionId
+        ];
         require(metadataIds.length > 0, "No metadata");
 
         metadata = ss.revisionMetadataStore[
@@ -155,6 +164,13 @@ library SchemaLib {
         bytes calldata schema,
         bytes calldata metadata
     ) external returns (bytes32 schemaRevisionId) {
+        require(
+            ss.trustedPolicyRegistry.checkPolicy(
+                "TSR:updateSchema",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TSR:updateSchema"
+        );
         require(schemaId.length > 0, "schema empty");
         require(schema.length > 0, "revision empty");
         require(metadata.length > 0, "metadata empty");
@@ -194,6 +210,13 @@ library SchemaLib {
         bytes32 schemaRevisionId,
         bytes calldata metadata
     ) external returns (bytes32 metadataId) {
+        require(
+            ss.trustedPolicyRegistry.checkPolicy(
+                "TSR:updateMetadata",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TSR:updateMetadata"
+        );
         require(schemaRevisionId != bytes32(0), "schemaRevisionId empty");
         require(metadata.length > 0, "metadata empty");
         // Verify that the Schema Revision ID is already registered (in the Schema Revision ID To Metadata IDs map)

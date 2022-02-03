@@ -1,8 +1,7 @@
+
+artifacts
+cache
+contracts/trusted-policies-registry-ethereum-sc
 coverage
 node_modules
-build
-cache
-artifacts
-contracts/trusted-policies-registry-ethereum-sc
-README.md
-coverage.json
+src

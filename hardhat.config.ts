@@ -1,6 +1,6 @@
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-solhint";
-import "hardhat-typechain";
+import "@typechain/hardhat";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
 import { HardhatUserConfig, task } from "hardhat/config";
@@ -45,7 +45,7 @@ const config: HardhatUserConfig = {
     flat: true,
   },
   solidity: {
-    version: "0.8.0",
+    version: "0.8.9",
     settings: {
       optimizer: {
         enabled: true,

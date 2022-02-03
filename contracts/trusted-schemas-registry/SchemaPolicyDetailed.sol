@@ -1,12 +1,15 @@
 // SPDX-License-Identifier: EUPL V1.2
+// solhint-disable-next-line max-line-length
+
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
+// solhint-disable-next-line max-line-length
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+import "./SchemaPolicyStorage.sol";
+// solhint-disable-next-line max-line-length
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
-import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
-import "./PolicyStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
-
-abstract contract PolicyDetailed is PolicyStorage {
+abstract contract SchemaPolicyDetailed is SchemaPolicyStorage {
     using Pagination for bytes32[];
     using Pagination for string[];
 
@@ -29,7 +32,7 @@ abstract contract PolicyDetailed is PolicyStorage {
     {
         bytes32 firstPolicyHash = sha256(policyData);
 
-        Policies storage ds = policyStorage();
+        Policies storage ds = schemaPolicyStorage();
         PolicyDetails storage p = ds.policyStore[policyId];
         require(p.revisionHashes.length == 0, "policy already exist");
 
@@ -51,7 +54,7 @@ abstract contract PolicyDetailed is PolicyStorage {
     function updatePolicy(string calldata policyId, bytes calldata policyData)
         external
     {
-        Policies storage ds = policyStorage();
+        Policies storage ds = schemaPolicyStorage();
         PolicyDetails storage p = ds.policyStore[policyId];
         require(p.revisionHashes.length > 0, "policy does not exist");
         bytes32 newPolicyHash = sha256(policyData);
@@ -78,12 +81,14 @@ abstract contract PolicyDetailed is PolicyStorage {
         view
         returns (bytes memory, bytes32)
     {
-        Policies storage ds = policyStorage();
-        bytes32[] memory policyRevisionHashes =
-            ds.policyStore[policyId].revisionHashes;
+        Policies storage ds = schemaPolicyStorage();
+        bytes32[] memory policyRevisionHashes = ds
+            .policyStore[policyId]
+            .revisionHashes;
         require(policyRevisionHashes.length > 0, "policy does not exist");
-        bytes32 lastHash =
-            policyRevisionHashes[policyRevisionHashes.length - 1];
+        bytes32 lastHash = policyRevisionHashes[
+            policyRevisionHashes.length - 1
+        ];
         return (ds.revisions[lastHash], lastHash);
     }
 
@@ -95,7 +100,7 @@ abstract contract PolicyDetailed is PolicyStorage {
         view
         returns (bytes memory)
     {
-        Policies storage ds = policyStorage();
+        Policies storage ds = schemaPolicyStorage();
         require(
             keccak256(bytes(ds.revisions[revisionHash])) !=
                 keccak256(bytes("")),
@@ -126,7 +131,7 @@ abstract contract PolicyDetailed is PolicyStorage {
         require(pageSize <= 50, "PageSize must be <= 50");
         require(pageSize > 0, "PageSize must be > 0");
         require(page > 0, "Page must be > 0");
-        Policies storage ds = policyStorage();
+        Policies storage ds = schemaPolicyStorage();
         PolicyDetails memory p = ds.policyStore[policyId];
         require(p.revisionHashes.length > 0, "policyId does not exist");
         return p.revisionHashes.paginate(page, pageSize);
@@ -146,7 +151,7 @@ abstract contract PolicyDetailed is PolicyStorage {
         require(pageSize <= 50, "PageSize must be <= 50");
         require(pageSize > 0, "PageSize must be > 0");
         require(page > 0, "Page must be > 0");
-        Policies storage ds = policyStorage();
+        Policies storage ds = schemaPolicyStorage();
         return ds.policyIdStore.paginate(page, pageSize);
     }
 

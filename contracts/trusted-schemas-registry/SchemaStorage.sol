@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
+import "../trusted-policies-registry-ethereum-sc/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 
 contract SchemaStorage {
     // The state variables we care about.
@@ -22,6 +23,7 @@ contract SchemaStorage {
         // key is SHA2-256 hash of the given schema metadata
         // value is serialized and encoded
         mapping(bytes32 => bytes) revisionMetadataStore;
+        IPolicyRegistry trustedPolicyRegistry;
     }
 
     // Creates and returns the storage pointer to the struct.

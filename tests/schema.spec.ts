@@ -1,9 +1,22 @@
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 import { Contract } from "ethers";
 import { expect } from "chai";
+import { SchemaSCRegistry } from "../src/types";
+import { testTprAddress } from "./testAddress";
 
 describe("Schema", () => {
   let ts: Contract;
+  let policyContractMock: Contract;
+
+  before(async () => {
+    const policyRegistryFactory = await ethers.getContractFactory(
+      "PolicyRegistryMock"
+    );
+    const tempPolicyContract = await policyRegistryFactory.deploy();
+    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
+    policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  });
 
   beforeEach(async () => {
     const paginationFactory = await ethers.getContractFactory("Pagination", {});
@@ -25,11 +38,26 @@ describe("Schema", () => {
         },
       }
     );
-    ts = await contractFactory.deploy();
+    ts = (await contractFactory.deploy()) as SchemaSCRegistry;
     await ts.initialize(42);
+    await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(ts.address).to.properAddress;
+    await policyContractMock.setPolicyResult(true);
+  });
+
+  it("should fail when user does not have attribute insertSchema", async () => {
+    await policyContractMock.setPolicyResult(false);
+    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.utils.toUtf8Bytes("revision");
+    const metadata = ethers.utils.toUtf8Bytes("metadata");
+    await expect(
+      ts.insertSchema(schemaId, schemaRevision, metadata)
+    ).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TSR:insertSchema"
+    );
   });
 
   it("insertSchema fails for empty params", async () => {
@@ -77,6 +105,19 @@ describe("Schema", () => {
       ethers.utils.sha256(schemaRevision)
     );
     expect(insertedSchema).to.equal(ethers.utils.hexlify(schemaRevision));
+  });
+
+  it("should fail when user does not have attribute updateSchema", async () => {
+    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
+    const schemaRevision = ethers.utils.toUtf8Bytes("revision");
+    const metadata = ethers.utils.toUtf8Bytes("metadata");
+    await ts.insertSchema(schemaId, schemaRevision, metadata);
+    await policyContractMock.setPolicyResult(false);
+    await expect(
+      ts.updateSchema(schemaId, schemaRevision, metadata)
+    ).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TSR:updateSchema"
+    );
   });
 
   it("getSchemaIds should fail with wrong page and pageSize", async () => {
@@ -271,6 +312,20 @@ describe("Schema", () => {
         ethers.utils.sha256(schemaRevision2)
       )
     ).to.be.revertedWith("No metadata");
+  });
+
+  it("should fail when user does not have attribute updateMetadata", async () => {
+    const metadata = ethers.utils.toUtf8Bytes("metadata");
+    const schemaId = ethers.utils.toUtf8Bytes("schemaId");
+    const schemaRevision1 = ethers.utils.toUtf8Bytes("schema1");
+    const schemaRevision2 = ethers.utils.toUtf8Bytes("schema2");
+    await ts.insertSchema(schemaId, schemaRevision1, metadata);
+    await policyContractMock.setPolicyResult(false);
+    await expect(
+      ts.updateMetadata(ethers.utils.sha256(schemaRevision2), metadata)
+    ).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TSR:updateMetadata"
+    );
   });
 
   it("updateMetadata fails when register is not registered", async () => {
