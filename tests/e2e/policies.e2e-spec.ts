@@ -1319,8 +1319,12 @@ describe("Policies (e2e)", () => {
     it("should return a specific policy", async () => {
       expect.assertions(2);
 
-      // Get first policy
-      const policyId = 0;
+      // Get last policy
+      const getPoliciesResponse: SupertestPoliciesResponse = await request(
+        server
+      ).get("/policies");
+
+      const policyId = `${getPoliciesResponse.body.total - 1}`;
 
       const response = await request(server).get(`/policies/${policyId}`);
 
