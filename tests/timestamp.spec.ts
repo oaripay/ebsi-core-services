@@ -1,24 +1,32 @@
-import { ethers, waffle } from "hardhat";
-import { Contract, Signer } from "ethers";
+import { ethers, waffle, network } from "hardhat";
+import { Contract } from "ethers";
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import StringManipArtifact from "../artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol/StringManip.json";
+import StringManipArtifact from "../artifacts/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol/StringManip.json";
+import { testTprAddress } from "./testAddress";
 
 const { deployContract } = waffle;
 
 describe("Timestamp Hashes", () => {
   let ts: Contract;
-  let signers: SignerWithAddress[];
-  beforeEach(async () => {
-    // 1
-    signers = await ethers.getSigners();
+  let admin: SignerWithAddress;
+  let policyContractMock: Contract;
 
-    const stringManipLib = await deployContract(
-      <Signer>signers[0],
-      StringManipArtifact,
-      []
+  before(async () => {
+    const policyRegistryFactory = await ethers.getContractFactory(
+      "PolicyRegistryMock"
     );
-    // 2
+    const tempPolicyContract = await policyRegistryFactory.deploy();
+    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
+    policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  });
+
+  beforeEach(async () => {
+    [admin] = await ethers.getSigners();
+
+    const stringManipLib = await deployContract(admin, StringManipArtifact, []);
+
     const haFactory = await ethers.getContractFactory("HashAlgoLib", {});
     const haLib = await haFactory.deploy();
 
@@ -42,11 +50,11 @@ describe("Timestamp Hashes", () => {
     ts = await contractFactory.deploy();
 
     await ts.init(42);
+    await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();
-    // 3
     expect(initialVersion).to.equal(42);
     expect(ts.address).to.properAddress;
-    // add hashAlgo
+    await policyContractMock.setPolicyResult(true);
     await ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "");
     await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1, "");
     await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1, "");
@@ -68,7 +76,7 @@ describe("Timestamp Hashes", () => {
     const r1 = await ts.getTimestamp(hash1);
     expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
     expect(r1.hash.algorithm).to.equal(0);
-    expect(r1.timestampedBy).to.equal(signers[0].address);
+    expect(r1.timestampedBy).to.equal(admin.address);
     expect(r1.data).to.equal(
       ethers.utils.hexlify(ethers.utils.toUtf8Bytes("btc"))
     );
@@ -76,7 +84,7 @@ describe("Timestamp Hashes", () => {
     const r3 = await ts.getTimestamp(hash3);
     expect(r3.hash.value).to.equal(ethers.utils.hexlify(hash3));
     expect(r3.hash.algorithm).to.equal(2);
-    expect(r3.timestampedBy).to.equal(signers[0].address);
+    expect(r3.timestampedBy).to.equal(admin.address);
     expect(r3.data).to.equal(
       ethers.utils.hexlify(ethers.utils.toUtf8Bytes("ath"))
     );
@@ -95,7 +103,7 @@ describe("Timestamp Hashes", () => {
     const r1 = await ts.getTimestamp(hash1);
     expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
     expect(r1.hash.algorithm).to.equal(0);
-    expect(r1.timestampedBy).to.equal(signers[0].address);
+    expect(r1.timestampedBy).to.equal(admin.address);
     expect(ethers.utils.hexlify(r1.data)).to.equal(ethers.utils.hexlify([]));
     expect(r1.blockNumber).to.equal(blockNumber + 1);
     const r2 = await ts.getTimestamp(hash2);
@@ -105,7 +113,7 @@ describe("Timestamp Hashes", () => {
     const r3 = await ts.getTimestamp(hash3);
     expect(r3.hash.value).to.equal(ethers.utils.hexlify(hash3));
     expect(r3.hash.algorithm).to.equal(2);
-    expect(r3.timestampedBy).to.equal(signers[0].address);
+    expect(r3.timestampedBy).to.equal(admin.address);
     expect(ethers.utils.hexlify(r3.data)).to.equal(ethers.utils.hexlify([]));
     expect(r3.blockNumber).to.equal(blockNumber + 1);
   });
@@ -126,14 +134,14 @@ describe("Timestamp Hashes", () => {
     const r1 = await ts.getTimestampById(ethers.utils.sha256(hash1));
     expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
     expect(r1.hash.algorithm).to.equal(0);
-    expect(r1.timestampedBy).to.equal(signers[0].address);
+    expect(r1.timestampedBy).to.equal(admin.address);
     expect(ethers.utils.hexlify(r1.data)).to.equal(ethers.utils.hexlify([]));
     expect(r1.blockNumber).to.equal(blockNumber + 1);
 
     const r3 = await ts.getTimestampById(ethers.utils.sha256(hash3));
     expect(r3.hash.value).to.equal(ethers.utils.hexlify(hash3));
     expect(r3.hash.algorithm).to.equal(2);
-    expect(r3.timestampedBy).to.equal(signers[0].address);
+    expect(r3.timestampedBy).to.equal(admin.address);
     expect(ethers.utils.hexlify(r3.data)).to.equal(ethers.utils.hexlify([]));
     expect(r3.blockNumber).to.equal(blockNumber + 1);
   });
@@ -154,7 +162,7 @@ describe("Timestamp Hashes", () => {
     const r1 = await ts.getTimestampById(ethers.utils.sha256(hash1));
     expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
     expect(r1.hash.algorithm).to.equal(0);
-    expect(r1.timestampedBy).to.equal(signers[0].address);
+    expect(r1.timestampedBy).to.equal(admin.address);
     expect(r1.data).to.equal(
       ethers.utils.hexlify(ethers.utils.toUtf8Bytes("btc"))
     );
@@ -162,7 +170,7 @@ describe("Timestamp Hashes", () => {
     const r3 = await ts.getTimestampById(ethers.utils.sha256(hash3));
     expect(r3.hash.value).to.equal(ethers.utils.hexlify(hash3));
     expect(r3.hash.algorithm).to.equal(2);
-    expect(r3.timestampedBy).to.equal(signers[0].address);
+    expect(r3.timestampedBy).to.equal(admin.address);
     expect(r3.data).to.equal(
       ethers.utils.hexlify(ethers.utils.toUtf8Bytes("ath"))
     );

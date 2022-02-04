@@ -1,23 +1,32 @@
-import { ethers, waffle } from "hardhat";
-import { Contract, Signer } from "ethers";
+import { ethers, waffle, network } from "hardhat";
+import { Contract } from "ethers";
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import StringManipArtifact from "../artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol/StringManip.json";
+import StringManipArtifact from "../artifacts/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol/StringManip.json";
+import { testTprAddress } from "./testAddress";
 
 const { deployContract } = waffle;
 
 describe("Record Hashes", () => {
   let ts: Contract;
-  let signers: SignerWithAddress[];
-  beforeEach(async () => {
-    // 1
-    signers = await ethers.getSigners();
-    const stringManipLib = await deployContract(
-      <Signer>signers[0],
-      StringManipArtifact,
-      []
+  let admin: SignerWithAddress;
+  let user: SignerWithAddress;
+  let policyContractMock: Contract;
+
+  before(async () => {
+    const policyRegistryFactory = await ethers.getContractFactory(
+      "PolicyRegistryMock"
     );
-    // 2
+    const tempPolicyContract = await policyRegistryFactory.deploy();
+    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
+    policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  });
+
+  beforeEach(async () => {
+    [admin, user] = await ethers.getSigners();
+    const stringManipLib = await deployContract(admin, StringManipArtifact, []);
+
     const haFactory = await ethers.getContractFactory("HashAlgoLib", {});
     const haLib = await haFactory.deploy();
 
@@ -41,11 +50,11 @@ describe("Record Hashes", () => {
     ts = await contractFactory.deploy();
 
     await ts.init(42);
+    await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();
-    // 3
     expect(initialVersion).to.equal(42);
     expect(ts.address).to.be.properAddress;
-    // add hashAlgo
+    await policyContractMock.setPolicyResult(true);
     await ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "");
     await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1, "");
     await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1, "");
@@ -628,7 +637,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
     await expect(
@@ -675,7 +684,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
     await expect(
@@ -855,7 +864,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
     await ts.timestampRecordHashes(
@@ -901,7 +910,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
     await ts.timestampRecordHashes(
@@ -998,7 +1007,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
     await ts.timestampRecordHashes(
@@ -1099,7 +1108,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1Value]
+        [admin.address, blockNumber, hash1Value]
       )
     );
     // INSERT SHOULD BE DONE IN ORDER !!!
@@ -1146,7 +1155,7 @@ describe("Record Hashes", () => {
       .to.emit(ts, "RecordedHashes")
       .withArgs(recordId, tsids, ethers.utils.sha256(versionInfoprime));
     const r1 = await ts.getRecord(recordId);
-    expect(r1.ownerIds).to.deep.equal([signers[0].address.toLowerCase()]);
+    expect(r1.ownerIds).to.deep.equal([admin.address.toLowerCase()]);
     expect(r1.revokedOwnerIds).to.deep.equal([]);
     expect(r1.totalVersions).to.equal(2);
     /// add ownerdIds and revoke some
@@ -1155,14 +1164,14 @@ describe("Record Hashes", () => {
     await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
     const r2 = await ts.getRecord(recordId);
     expect(r2.ownerIds).to.deep.equal([
-      signers[0].address.toLowerCase(),
+      admin.address.toLowerCase(),
       "anotherownerId",
     ]);
     expect(r2.revokedOwnerIds).to.deep.equal([]);
     expect(r2.totalVersions).to.equal(2);
     await ts.revokeRecordOwner(recordId, "anotherownerId");
     const r3 = await ts.getRecord(recordId);
-    expect(r3.ownerIds).to.deep.equal([signers[0].address.toLowerCase()]);
+    expect(r3.ownerIds).to.deep.equal([admin.address.toLowerCase()]);
     expect(r3.revokedOwnerIds).to.deep.equal(["anotherownerId"]);
     expect(r2.totalVersions).to.equal(2);
   });
@@ -1202,7 +1211,7 @@ describe("Record Hashes", () => {
       const recordId = ethers.utils.sha256(
         ethers.utils.defaultAbiCoder.encode(
           ["address", "uint256", "bytes"],
-          [signers[0].address, blockNumber, hash1Value]
+          [admin.address, blockNumber, hash1Value]
         )
       );
       // INSERT SHOULD BE DONE IN ORDER !!!
@@ -1291,7 +1300,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
 
@@ -1318,7 +1327,7 @@ describe("Record Hashes", () => {
     const recordId2 = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash2]
+        [admin.address, blockNumber, hash2]
       )
     );
     ts.timestampRecordHashes(
@@ -1346,7 +1355,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
 
@@ -1444,7 +1453,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
     await ts.timestampRecordHashes(
@@ -1571,7 +1580,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
 
@@ -1604,7 +1613,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
 
@@ -1696,7 +1705,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
 
@@ -1796,7 +1805,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
 
@@ -1822,7 +1831,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
 
@@ -1888,7 +1897,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
     // will create a version 0 with one timestamp Id (sha256(hash1)) under recordId
@@ -1972,7 +1981,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1Value]
+        [admin.address, blockNumber, hash1Value]
       )
     );
     // INSERT SHOULD BE DONE IN ORDER !!!
@@ -2019,7 +2028,7 @@ describe("Record Hashes", () => {
       .to.emit(ts, "RecordedHashes")
       .withArgs(recordId, tsids, ethers.utils.sha256(versionInfoprime));
     const r1 = await ts.getRecord(recordId);
-    expect(r1.ownerIds).to.deep.equal([signers[0].address.toLowerCase()]);
+    expect(r1.ownerIds).to.deep.equal([admin.address.toLowerCase()]);
     expect(r1.revokedOwnerIds).to.deep.equal([]);
     expect(r1.totalVersions).to.equal(2);
     /// add ownerdIds and revoke some
@@ -2028,14 +2037,14 @@ describe("Record Hashes", () => {
     await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
     const r2 = await ts.getRecord(recordId);
     expect(r2.ownerIds).to.deep.equal([
-      signers[0].address.toLowerCase(),
+      admin.address.toLowerCase(),
       "anotherownerId",
     ]);
     expect(r2.revokedOwnerIds).to.deep.equal([]);
     expect(r2.totalVersions).to.equal(2);
     await ts.revokeRecordOwner(recordId, "anotherownerId");
     const r3 = await ts.getRecord(recordId);
-    expect(r3.ownerIds).to.deep.equal([signers[0].address.toLowerCase()]);
+    expect(r3.ownerIds).to.deep.equal([admin.address.toLowerCase()]);
     expect(r3.revokedOwnerIds).to.deep.equal(["anotherownerId"]);
     expect(r2.totalVersions).to.equal(2);
   });
@@ -2050,7 +2059,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
     await ts.timestampRecordHashes(
@@ -2073,11 +2082,11 @@ describe("Record Hashes", () => {
     ).to.be.revertedWith("recordId empty");
 
     await expect(
-      ts.revokeRecordOwner(ethers.utils.sha256(hash1), signers[0].address)
+      ts.revokeRecordOwner(ethers.utils.sha256(hash1), admin.address)
     ).to.be.revertedWith("record unknown");
 
     await expect(
-      ts.revokeRecordOwner(recordId, signers[1].address)
+      ts.revokeRecordOwner(recordId, user.address)
     ).to.be.revertedWith("ownerId unknown");
   });
 
@@ -2091,7 +2100,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
     await ts.timestampRecordHashes(
@@ -2111,7 +2120,7 @@ describe("Record Hashes", () => {
     await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
     const r0 = await ts.getRecord(recordId);
     expect(r0.ownerIds).to.deep.equal([
-      signers[0].address.toLowerCase(),
+      admin.address.toLowerCase(),
       "anotherownerId",
     ]);
     expect(r0.revokedOwnerIds).to.deep.equal([]);
@@ -2120,17 +2129,17 @@ describe("Record Hashes", () => {
     // revoke the second owner
     await ts.revokeRecordOwner(recordId, "anotherownerId");
     const r1 = await ts.getRecord(recordId);
-    expect(r1.ownerIds).to.deep.equal([signers[0].address.toLowerCase()]);
+    expect(r1.ownerIds).to.deep.equal([admin.address.toLowerCase()]);
     expect(r1.revokedOwnerIds).to.deep.equal(["anotherownerId"]);
     expect(r1.totalVersions).to.equal(1);
 
     // revoke the first owner warning ownerId is case sensitive
-    await ts.revokeRecordOwner(recordId, signers[0].address.toLowerCase());
+    await ts.revokeRecordOwner(recordId, admin.address.toLowerCase());
     const r2 = await ts.getRecord(recordId);
     expect(r2.ownerIds).to.deep.equal([]);
     expect(r2.revokedOwnerIds).to.deep.equal([
       "anotherownerId",
-      signers[0].address.toLowerCase(),
+      admin.address.toLowerCase(),
     ]);
     expect(r2.totalVersions).to.equal(1);
     // make sure we can add the one owner even if there is none and it was a previous owner
@@ -2145,7 +2154,7 @@ describe("Record Hashes", () => {
 
     const inf1 = await ts.getRecordOwnerInfo(
       recordId,
-      signers[0].address.toLowerCase()
+      admin.address.toLowerCase()
     );
     expect(inf1.notBefore).to.equal(blockTs.timestamp);
     expect(inf1.notAfter).to.equal(0);
@@ -2163,7 +2172,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
     await ts.timestampRecordHashes(
@@ -2187,7 +2196,7 @@ describe("Record Hashes", () => {
       ts.insertRecordOwner(ethers.utils.sha256(hash1), "ownerId", 1, 2)
     ).to.be.revertedWith("record unknown");
     await expect(
-      ts.insertRecordOwner(recordId, signers[0].address.toLowerCase(), 1, 2)
+      ts.insertRecordOwner(recordId, admin.address.toLowerCase(), 1, 2)
     ).to.be.revertedWith("ownerId exist");
     // notBefore== 0 &&  notAfter ==0
     await expect(
@@ -2214,7 +2223,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
     await ts.timestampRecordHashes(
@@ -2228,23 +2237,20 @@ describe("Record Hashes", () => {
       ethers.utils.toUtf8Bytes("info: btc to the moon")
     );
     const r0 = await ts.getRecord(recordId);
-    expect(r0.ownerIds).to.deep.equal([signers[0].address.toLowerCase()]);
+    expect(r0.ownerIds).to.deep.equal([admin.address.toLowerCase()]);
     expect(r0.revokedOwnerIds).to.deep.equal([]);
     expect(r0.totalVersions).to.equal(1);
 
     await ts.insertRecordOwner(recordId, "ownerId", 1, 2);
     const r1 = await ts.getRecord(recordId);
-    expect(r1.ownerIds).to.deep.equal([
-      signers[0].address.toLowerCase(),
-      "ownerId",
-    ]);
+    expect(r1.ownerIds).to.deep.equal([admin.address.toLowerCase(), "ownerId"]);
     expect(r1.revokedOwnerIds).to.deep.equal([]);
     expect(r1.totalVersions).to.equal(1);
 
     await ts.insertRecordOwner(recordId, "anotherOwnerId", 112345646787, 0);
     const r2 = await ts.getRecord(recordId);
     expect(r2.ownerIds).to.deep.equal([
-      signers[0].address.toLowerCase(),
+      admin.address.toLowerCase(),
       "ownerId",
       "anotherOwnerId",
     ]);
@@ -2262,7 +2268,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
     await ts.timestampRecordHashes(
@@ -2285,7 +2291,7 @@ describe("Record Hashes", () => {
     ).to.be.revertedWith("recordId empty");
 
     await expect(
-      ts.getRecordOwnerInfo(ethers.utils.sha256(hash1), signers[0].address)
+      ts.getRecordOwnerInfo(ethers.utils.sha256(hash1), admin.address)
     ).to.be.revertedWith("record unknown");
   });
 
@@ -2299,7 +2305,7 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [signers[0].address, blockNumber, hash1]
+        [admin.address, blockNumber, hash1]
       )
     );
     await ts.timestampRecordHashes(
@@ -2316,7 +2322,7 @@ describe("Record Hashes", () => {
 
     const inf1 = await ts.getRecordOwnerInfo(
       recordId,
-      signers[0].address.toLowerCase()
+      admin.address.toLowerCase()
     );
     expect(inf1.notBefore).to.equal(blockTs.timestamp);
     expect(inf1.notAfter).to.equal(0);
@@ -2339,10 +2345,10 @@ describe("Record Hashes", () => {
     expect(inf3.revoked).to.be.true;
 
     // revoke the first owner warning ownerId is case sensitive
-    await ts.revokeRecordOwner(recordId, signers[0].address.toLowerCase());
+    await ts.revokeRecordOwner(recordId, admin.address.toLowerCase());
     const inf4 = await ts.getRecordOwnerInfo(
       recordId,
-      signers[0].address.toLowerCase()
+      admin.address.toLowerCase()
     );
     expect(inf4.notBefore).to.equal(blockTs.timestamp);
     expect(inf4.notAfter).to.equal(0);

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./HashAlgoStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 library HashAlgoLib {
     using Pagination for uint256;
@@ -38,6 +38,13 @@ library HashAlgoLib {
         HashAlgoStorage.Status status,
         string memory multiHash
     ) external {
+        require(
+            hs.trustedPolicyRegistry.checkPolicy(
+                "TS:insertHashAlgorithm",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TS:insertHashAlgorithm"
+        );
         require(outputLength > 0, "outputLength==0");
         require(uint256(status) > 0, "status==0");
         uint256 hashId = hs.hashAlgorithms.numberOfAlgorithms;
@@ -79,6 +86,13 @@ library HashAlgoLib {
         HashAlgoStorage.Status status,
         string memory multiHash
     ) external {
+        require(
+            hs.trustedPolicyRegistry.checkPolicy(
+                "TS:updateHashAlgorithm",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TS:updateHashAlgorithm"
+        );
         require(outputLength > 0, "outputLength==0");
         require(uint256(status) > 0, "status==0");
         require(

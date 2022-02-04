@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
-
-import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+// solhint-disable-next-line max-line-length
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 import "./TimestampLib.sol";
 import "./HashAlgoLib.sol";
 
@@ -20,6 +20,26 @@ contract TimestampDetailed is Initializable, TimestampStorage {
 
     function init(uint256 version) public initializer {
         _onInitialize(version);
+    }
+
+    function setTrustedPoliciesRegistryAddress() public {
+        HashAlgos storage hs = hashAlgoStorage();
+        uint256 id;
+        assembly {
+            id := chainid()
+        }
+        address tprAddress;
+        if (id == 6175) {
+            // test environment
+            tprAddress = 0x17a340418937A38b3Cb62FdA42241eB0722868A6;
+        } else if (id == 6176) {
+            // preprod environment
+            tprAddress = 0xF56ad0cd0CE8D9d598E15b3B8b915cb6bA83d1Fa;
+        } else if (id == 31337) {
+            // unit tests. see tests/testAddress.ts
+            tprAddress = 0xb2a560271ce08135e245F490b8794794A13a1208;
+        }
+        hs.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
     }
 
     function _onInitialize(uint256 version) internal initializer {

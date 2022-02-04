@@ -1,11 +1,16 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
+import "../trusted-policies-registry-ethereum-sc/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 
 contract HashAlgoStorage {
     // The state variables we care about.
     bytes32 public constant TS_HASHALGO_DIAMOND_STORAGE_POSITION =
         keccak256("diamond.standard.timestamp.hashAlgo.storage");
-    enum Status {undefined, active, revoked}
+    enum Status {
+        undefined,
+        active,
+        revoked
+    }
     struct HashAlgoInfo {
         uint256 outputLength;
         string ianaName;
@@ -23,6 +28,7 @@ contract HashAlgoStorage {
         mapping(uint256 => HashAlgoInfo) infoStore;
         // list of revoked application id
         Algos hashAlgorithms;
+        IPolicyRegistry trustedPolicyRegistry;
     }
 
     // Creates and returns the storage pointer to the struct.

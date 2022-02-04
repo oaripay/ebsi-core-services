@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
 import "./RecordStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/StringManip.sol";
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol";
 import "./TimestampLib.sol";
 import "./TimestampStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/SafeAddArray.sol";
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/SafeAddArray.sol";
 
 library RecordLib {
     using Pagination for bytes32[];
@@ -41,8 +41,9 @@ library RecordLib {
         require(recordIds.length == 1, "wrong record count");
         RecordStorage.Record storage r = rs.recordsStore[recordIds[0]];
 
-        RecordStorage.VersionDetails storage vd =
-            r.versionsStore[r.totalVersions];
+        RecordStorage.VersionDetails storage vd = r.versionsStore[
+            r.totalVersions
+        ];
 
         for (uint256 i; i < timestampIds.length; i++) {
             vd.timestampsIds.push(timestampIds[i]);
@@ -130,8 +131,9 @@ library RecordLib {
 
         // create a new version detail
 
-        RecordStorage.VersionDetails storage vd =
-            r.versionsStore[r.totalVersions];
+        RecordStorage.VersionDetails storage vd = r.versionsStore[
+            r.totalVersions
+        ];
         for (uint256 i; i < timestampIds.length; i++) {
             vd.timestampsIds.push(timestampIds[i]);
             // add this new timestampId to the record list
@@ -162,8 +164,9 @@ library RecordLib {
         bytes calldata versionInfo
     ) external {
         require(recordId != bytes32(0), "recordId empty");
-        RecordStorage.VersionDetails storage vd =
-            rs.recordsStore[recordId].versionsStore[versionId];
+        RecordStorage.VersionDetails storage vd = rs
+            .recordsStore[recordId]
+            .versionsStore[versionId];
 
         require(vd.timestampsIds.length > 0, "record/version unknown");
         // TODO Verify that the transaction signer is one of the Record owners (record.ownerIds)
@@ -195,8 +198,9 @@ library RecordLib {
     ) external {
         require(recordId != bytes32(0), "recordId empty");
         require(versionInfo.length > 0, "versionInfo empty");
-        RecordStorage.VersionDetails storage vd =
-            rs.recordsStore[recordId].versionsStore[versionId];
+        RecordStorage.VersionDetails storage vd = rs
+            .recordsStore[recordId]
+            .versionsStore[versionId];
         require(vd.timestampsIds.length > 0, "record/version unknown");
         // TODO Verify that the transaction signer is one of the Record owners (record.ownerIds)
 
@@ -217,8 +221,9 @@ library RecordLib {
     ) external {
         require(recordId != bytes32(0), "recordId empty");
         require(hashValue.length > 0, "hashValue empty");
-        RecordStorage.VersionDetails storage vd =
-            rs.recordsStore[recordId].versionsStore[versionId];
+        RecordStorage.VersionDetails storage vd = rs
+            .recordsStore[recordId]
+            .versionsStore[versionId];
         require(vd.timestampsIds.length > 0, "record/version unknown");
         // TODO Verify that the transaction signer is one of the Record owners (record.ownerIds)
 
@@ -454,8 +459,9 @@ library RecordLib {
         require(pageSize <= 50, "PSize not <= 50");
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
-        RecordStorage.VersionDetails memory vd =
-            rs.recordsStore[recordId].versionsStore[versionId];
+        RecordStorage.VersionDetails memory vd = rs
+            .recordsStore[recordId]
+            .versionsStore[versionId];
         (timestampsIds, total, howMany, prev, next) = vd.timestampsIds.paginate(
             page,
             pageSize

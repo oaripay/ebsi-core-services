@@ -1,21 +1,30 @@
-import { ethers, waffle } from "hardhat";
-import { Contract, Signer } from "ethers";
+import { ethers, waffle, network } from "hardhat";
+import { Contract } from "ethers";
 import { expect } from "chai";
-
-import StringManipArtifact from "../artifacts/contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol/StringManip.json";
+import StringManipArtifact from "../artifacts/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol/StringManip.json";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { testTprAddress } from "./testAddress";
 
 const { deployContract } = waffle;
 
 describe("Hash Algorithm", () => {
   let ts: Contract;
+  let admin: SignerWithAddress;
+  let policyContractMock: Contract;
+
+  before(async () => {
+    const policyRegistryFactory = await ethers.getContractFactory(
+      "PolicyRegistryMock"
+    );
+    const tempPolicyContract = await policyRegistryFactory.deploy();
+    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
+    policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  });
 
   beforeEach(async () => {
-    const signers = await ethers.getSigners();
-    const stringManipLib = await deployContract(
-      <Signer>signers[0],
-      StringManipArtifact,
-      []
-    );
+    [admin] = await ethers.getSigners();
+    const stringManipLib = await deployContract(admin, StringManipArtifact, []);
 
     const haFactory = await ethers.getContractFactory("HashAlgoLib", {});
     const haLib = await haFactory.deploy();
@@ -39,9 +48,28 @@ describe("Hash Algorithm", () => {
     });
     ts = await contractFactory.deploy();
     await ts.init(42);
+    await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
     expect(ts.address).to.properAddress;
+    await policyContractMock.setPolicyResult(true);
+  });
+
+  it("should fail when user does not have attribute insertHashAlgorithm", async () => {
+    await policyContractMock.setPolicyResult(false);
+    await expect(
+      ts.insertHashAlgorithm(256, "SHA2-256", "oid2256", 1, "multi256")
+    ).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TS:insertHashAlgorithm"
+    );
+  });
+  it("should fail when user does not have attribute updateHashAlgorithm", async () => {
+    await policyContractMock.setPolicyResult(false);
+    await expect(
+      ts.updateHashAlgorithm(0, 1, "sha-256", "oid", 1, "sha2-256")
+    ).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TS:updateHashAlgorithm"
+    );
   });
   it("getHashAlgorithmById should succeed", async () => {
     await expect(
@@ -77,7 +105,7 @@ describe("Hash Algorithm", () => {
   });
   it("insertHashAlgorithm should revert for incorrect parameters", async () => {
     await expect(
-      ts.insertHashAlgorithm(0, "SHA256", "oid", 1, "")
+      ts.connect(admin).insertHashAlgorithm(0, "SHA256", "oid", 1, "")
     ).to.be.revertedWith("outputLength==0");
 
     await expect(
@@ -85,10 +113,14 @@ describe("Hash Algorithm", () => {
     ).to.be.revertedWith("status==0");
   });
   it("insertHashAlgorithm should work", async () => {
-    await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, ""))
+    await expect(
+      ts.connect(admin).insertHashAlgorithm(256, "SHA256", "oid", 1, "")
+    )
       .to.emit(ts, "AddNewHashAlgo")
       .withArgs(0, "SHA256", "SHA256", 256, "oid", 1, "");
-    await expect(ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "tt"))
+    await expect(
+      ts.connect(admin).insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "tt")
+    )
       .to.emit(ts, "AddNewHashAlgo")
       .withArgs(1, "SHA3-512", "SHA3-512", 512, "oid2", 1, "tt");
     const receipt = await ts.getHashAlgorithmById(1);
@@ -98,7 +130,6 @@ describe("Hash Algorithm", () => {
     expect(receipt.status).to.equal(1);
     expect(receipt.multiHash).to.equal("tt");
   });
-
   it("updateHashAlgorithm should revert for incorrect parameters", async () => {
     await expect(
       ts.updateHashAlgorithm(0, 0, "SHA256", "oid", 1, "")
@@ -135,7 +166,6 @@ describe("Hash Algorithm", () => {
     expect(updated.status).to.equal(2);
     expect(updated.multiHash).to.equal("");
   });
-
   it("getHashAlgorithms should failed with wrong page and pageSize", async () => {
     const resHashIds: number[] = [];
     for (let i = 1; i < 12; i += 1) {
@@ -145,10 +175,9 @@ describe("Hash Algorithm", () => {
       resHashIds.push(i - 1);
       // INSERT SHOULD BE DONE IN ORDER !!!
       // eslint-disable-next-line no-await-in-loop
-      await expect(ts.insertHashAlgorithm(i, name, oid, 1, "")).to.emit(
-        ts,
-        "AddNewHashAlgo"
-      );
+      await expect(
+        ts.connect(admin).insertHashAlgorithm(i, name, oid, 1, "")
+      ).to.emit(ts, "AddNewHashAlgo");
     }
     // pagesize = 0 should revert
     await expect(ts.getHashAlgorithms(1, 0)).to.be.revertedWith("PSize not >0");
@@ -160,7 +189,6 @@ describe("Hash Algorithm", () => {
       "PSize not <= 50"
     );
   });
-
   it("getHashAlgorithms should work with correct page and pageSize", async () => {
     const resHashIds: number[] = [];
     for (let i = 1; i < 12; i += 1) {

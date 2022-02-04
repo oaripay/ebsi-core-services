@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
-
-import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+// solhint-disable-next-line max-line-length
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 import "./TimestampDetailed.sol";
 import "./RecordDetailed.sol";
 import "./HashAlgoDetailed.sol";
