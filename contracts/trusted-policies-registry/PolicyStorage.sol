@@ -69,4 +69,24 @@ contract PolicyStorage {
             ps.slot := position
         }
     }
+
+    bytes32 public constant DIAMOND_STORAGE_POSITION =
+        keccak256("diamond.standard.diamond.storage.proxy");
+
+    struct DiamondStorage {
+        // owner of the contract
+        address proxyAdmin;
+        address implementation;
+    }
+
+    function diamondStorage()
+        internal
+        pure
+        returns (DiamondStorage storage ds)
+    {
+        bytes32 position = DIAMOND_STORAGE_POSITION;
+        assembly {
+            ds.slot := position
+        }
+    }
 }

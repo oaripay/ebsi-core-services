@@ -45,5 +45,15 @@ contract PolicyRegistry is
         ps.version = _version;
     }
 
+    function admin() external returns (address) {
+        DiamondStorage storage ms = diamondStorage();
+        return ms.proxyAdmin;
+    }
+
+    function implementation() external returns (address) {
+        DiamondStorage storage ms = diamondStorage();
+        return ms.implementation;
+    }
+
     uint256[50] private ______gap;
 }
