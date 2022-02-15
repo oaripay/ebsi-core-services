@@ -12,6 +12,7 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { ConfigService } from "@nestjs/config";
+import { ethers } from "ethers";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -155,6 +156,42 @@ describe("POST /ledger/v2/blockchains/besu", () => {
       id: "42",
     });
     expect(response.status).toBe(200);
+  });
+
+  it("should prevent deploying new smart contracts", async () => {
+    expect.assertions(2);
+
+    const wallet = ethers.Wallet.createRandom();
+
+    const transaction: ethers.providers.TransactionRequest = {
+      nonce: 0,
+      gasLimit: 221000,
+      gasPrice: 0,
+      from: wallet.address,
+      to: "0x0000000000000000000000000000000000000000",
+      value: 0,
+      data: "0x12345678901234567890",
+    };
+
+    const sgnTx = await wallet.signTransaction(transaction);
+
+    const response = await request(server)
+      .post("/blockchains/besu")
+      .auth(tokenOAuth2, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "eth_sendRawTransaction",
+        params: [sgnTx],
+        id: "42",
+      });
+
+    expect(response.body).toStrictEqual({
+      title: "Forbidden",
+      status: 403,
+      detail: "Deployment of new smart contracts is not allowed",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(403);
   });
 
   it("should return an error when eth_sendRawTransaction is called without a JWT", async () => {
