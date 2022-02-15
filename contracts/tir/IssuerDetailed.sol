@@ -2,10 +2,11 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+// solhint-disable-next-line max-line-length
+import "../did-registry-ethereum-sc/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./IssuerStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
+// solhint-disable-next-line indent
 abstract contract IssuerDetailed is IssuerStorage {
     using Pagination for bytes32[];
     using Pagination for string[];
@@ -35,6 +36,15 @@ abstract contract IssuerDetailed is IssuerStorage {
     {
         bytes32 firstAttrHash = sha256(attributeData);
         Issuers storage ds = issuerStorage();
+
+        require(
+            ds.trustedPolicyRegistry.checkPolicy(
+                "TIR:insertIssuer",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TIR:insertIssuer"
+        );
+
         Entity storage iss = ds.issuerStore[did];
         require(iss.attributes.length == 0, "issuer already exist");
         require(
@@ -82,6 +92,21 @@ abstract contract IssuerDetailed is IssuerStorage {
         external
     {
         Issuers storage ds = issuerStorage();
+
+        require(
+            ds.trustedPolicyRegistry.checkPolicy(
+                "TIR:updateIssuer",
+                msg.sender
+            ) || ds.didRegistry.checkController(bytes(did), msg.sender),
+            string(
+                abi.encodePacked(
+                    "Policy error: sender is not controller of the did ",
+                    did,
+                    " and it doesn't have the attribute TIR:updateIssuer"
+                )
+            )
+        );
+
         bytes32 newAttrHash = sha256(attributeData);
         require(
             keccak256(bytes(ds.attributeMetadataStore[newAttrHash].did)) ==
@@ -126,17 +151,34 @@ abstract contract IssuerDetailed is IssuerStorage {
         bytes32 lastVersHash
     ) external {
         Issuers storage ds = issuerStorage();
+
+        require(
+            ds.trustedPolicyRegistry.checkPolicy(
+                "TIR:updateIssuer",
+                msg.sender
+            ) || ds.didRegistry.checkController(bytes(did), msg.sender),
+            string(
+                abi.encodePacked(
+                    "Policy error: sender is not controller of the did ",
+                    did,
+                    " and it doesn't have the attribute TIR:updateIssuer"
+                )
+            )
+        );
+
+        Entity storage iss = ds.issuerStore[did];
+        require(iss.attributes.length > 0, "issuer does not exist");
+
         require(
             keccak256(bytes(ds.attributeMetadataStore[lastVersHash].did)) ==
                 keccak256(bytes(did)),
             "lastVersHash is not link to DID"
         );
 
-        Entity storage iss = ds.issuerStore[did];
-        require(iss.attributes.length > 0, "issuer does not exist");
         // based on the last version hash we can retrive the first version hash for this attribute along with the did
-        bytes32 firstAttrHash =
-            ds.attributeMetadataStore[lastVersHash].attributeId;
+        bytes32 firstAttrHash = ds
+            .attributeMetadataStore[lastVersHash]
+            .attributeId;
         assert(iss.attributesStore[firstAttrHash].revisionHashes.length > 0);
         bytes32 newAttrHash = sha256(attributeData);
         require(
@@ -188,14 +230,16 @@ abstract contract IssuerDetailed is IssuerStorage {
         Issuers storage ds = issuerStorage();
         bytes32[] memory attributesFirstHash = ds.issuerStore[did].attributes;
         require(attributesFirstHash.length > 0, "issuer does not exist");
-        bytes32[] memory attributesLastHash =
-            new bytes32[](attributesFirstHash.length);
+        bytes32[] memory attributesLastHash = new bytes32[](
+            attributesFirstHash.length
+        );
         //list all the attributes
         for (uint256 index = 0; index < attributesFirstHash.length; index++) {
             // get all the versions for the current attribute
-            bytes32[] memory versions =
-                ds.issuerStore[did].attributesStore[attributesFirstHash[index]]
-                    .revisionHashes;
+            bytes32[] memory versions = ds
+                .issuerStore[did]
+                .attributesStore[attributesFirstHash[index]]
+                .revisionHashes;
 
             //get the last version hash for this attribute
             attributesLastHash[index] = versions[versions.length - 1];
@@ -241,8 +285,9 @@ abstract contract IssuerDetailed is IssuerStorage {
         require(page > 0, "Page must be > 0");
         Issuers storage ds = issuerStorage();
         // retrieve first the did and attrId (firstHash of attribute)
-        AttributeMetadata memory am =
-            ds.attributeMetadataStore[anyAttrVersHash];
+        AttributeMetadata memory am = ds.attributeMetadataStore[
+            anyAttrVersHash
+        ];
         require(
             keccak256(bytes(am.did)) != keccak256(bytes("")),
             "attribute has not been found"
@@ -250,7 +295,9 @@ abstract contract IssuerDetailed is IssuerStorage {
 
         // retrieve the issuer and the attribute detail
         return
-            ds.issuerStore[am.did].attributesStore[am.attributeId]
+            ds
+                .issuerStore[am.did]
+                .attributesStore[am.attributeId]
                 .revisionHashes
                 .paginate(page, pageSize);
     }

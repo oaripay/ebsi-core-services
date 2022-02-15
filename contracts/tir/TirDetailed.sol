@@ -2,7 +2,8 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+// solhint-disable-next-line max-line-length
+import "../did-registry-ethereum-sc/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 import "./TirStorage.sol";
 
 contract TirDetailed is Initializable, TirStorage {
@@ -10,13 +11,13 @@ contract TirDetailed is Initializable, TirStorage {
      * @dev Sets the values for  `version`.
      */
 
-    function init(uint256 version) public initializer {
-        _onInitialize(version);
+    function init(uint256 v) public initializer {
+        _onInitialize(v);
     }
 
-    function _onInitialize(uint256 version) internal initializer {
+    function _onInitialize(uint256 _version) internal initializer {
         Tir storage ds = TirStorage.tirStorage();
-        ds._version = version;
+        ds._version = _version;
     }
 
     /**

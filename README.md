@@ -30,26 +30,33 @@ yarn install
 
 ## Building
 
-Build the smart contracts:
+Compile the smart contracts:
 
 ```sh
-yarn run build
+yarn run compile
 ```
 
-## Deploying
-
-Deploy the smart contracts on the ebsi network
-you have to specify in the .secret.privatekeys file an hex encoded private key to sign the besu transaction
+To verify the accounts that will be used by hardhat
 
 ```sh
-npx truffle migrate --network ebsi --reset
+npx hardhat accounts
 ```
+
+## Deployment
+
+To deploy the smart contracts on a network defined in the `hardhat.config.ts`
+
+```sh
+npx hardhat run --network <your-network> scripts/deployment.ts
+```
+
+Note that by default smart contracts will be deployed locally using hardhat development node.
 
 ## Testing
 
 ### Requirements:
 
-- node 12 (use nvm)
+- node 14.15 (use nvm)
 
 ### Launch all tests
 
@@ -58,20 +65,6 @@ yarn run test
 ```
 
 if you experience some timeout issues try running tests one by one
-
-### test change proxy ownership
-
-- launch ganache with the seed you have specified in the .secret.mnemonic file
-
-```sh
-npx ganache-cli -m "myth like bonus scare over problem client lizard pioneer submit female collect"
-```
-
-- deploy the smart contracts
-
-```sh
-npx truffle migrate  --compile-all  --reset
-```
 
 ## Design
 
