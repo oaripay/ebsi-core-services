@@ -10,8 +10,8 @@ contract RevocationStorage is AppStorage {
         pure
         returns (RevocationStoreLib.Revocations storage ms)
     {
-        bytes32 position =
-            RevocationStoreLib.REVOCATION_DIAMOND_STORAGE_POSITION;
+        bytes32 position = RevocationStoreLib
+            .REVOCATION_DIAMOND_STORAGE_POSITION;
         assembly {
             ms.slot := position
         }

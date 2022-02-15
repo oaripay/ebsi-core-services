@@ -1,8 +1,11 @@
 node_modules
 coverage
+coverage.json
+artifacts
+cache
+src
 build
 *.log
-.env
 *log
 all.sol
 .secret*

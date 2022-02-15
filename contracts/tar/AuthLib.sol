@@ -2,10 +2,13 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
+// solhint-disable-next-line max-line-length
+import "../did-registry-ethereum-sc/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/SafeAddArray.sol";
+// solhint-disable-next-line max-line-length
+import "../did-registry-ethereum-sc/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./AuthStoreLib.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/SafeAddArray.sol";
 import "./AppStoreLib.sol";
+import "./AdminAuthLib.sol";
 
 library AuthLib {
     using Pagination for bytes32[];
@@ -43,28 +46,34 @@ library AuthLib {
         uint256 notAfter
     ) external {
         // get applicationID and authorizedAppId
-
         bytes32 appId = apps.nameToId[name];
         require(appId != bytes32(0), "name unknown");
         bytes32 authorizedAppId = apps.nameToId[authorizedAppName];
         require(authorizedAppId != bytes32(0), "authapp unknown");
 
+        AdminAuthLib.requirePolicyOrAppAdmin(
+            apps,
+            "TAR:insertAuthorization",
+            appId
+        );
+        AdminAuthLib.requireDidController(apps, iss);
+
         // add an entry to the authorizedAppsStore if it doesn't exist
         auths.authorizedAppsStore[appId].authorizedAppIds.add(authorizedAppId);
 
-        // compute authorizationID. Note that arguments are tightly packed which means that the arguments are concatenated without padding
-        bytes32 newAuthorizationId =
-            sha256(
-                abi.encode(
-                    appId,
-                    authorizedAppId,
-                    iss,
-                    status,
-                    permissions,
-                    notBefore,
-                    notAfter
-                )
-            );
+        // compute authorizationID. Note that arguments are tightly packed which
+        // means that the arguments are concatenated without padding
+        bytes32 newAuthorizationId = sha256(
+            abi.encode(
+                appId,
+                authorizedAppId,
+                iss,
+                status,
+                permissions,
+                notBefore,
+                notAfter
+            )
+        );
 
         require(
             auths.authorizationStore[newAuthorizationId].applicationId ==
@@ -79,14 +88,14 @@ library AuthLib {
 
         auths.authorizationStore[newAuthorizationId] = AuthStoreLib
             .Authorization(
-            appId,
-            authorizedAppId,
-            iss,
-            status,
-            permissions,
-            notBefore,
-            notAfter
-        );
+                appId,
+                authorizedAppId,
+                iss,
+                status,
+                permissions,
+                notBefore,
+                notAfter
+            );
 
         // emit event
         emit AddNewAuthorization(
@@ -106,6 +115,7 @@ library AuthLib {
      */
     function updateAuthorization(
         AuthStoreLib.Authorizations storage auths,
+        AppStoreLib.Applications storage apps,
         bytes32 authorizationId,
         AppStoreLib.Status status,
         uint8 permissions,
@@ -113,12 +123,14 @@ library AuthLib {
     ) external {
         require(authorizationId != bytes32(0), "auth null");
         // retrieve the authorization from authorizationStore
-        require(
-            auths.authorizationStore[authorizationId].applicationId !=
-                bytes32(0),
-            "auth unknown"
+        bytes32 appId = auths.authorizationStore[authorizationId].applicationId;
+        require(appId != bytes32(0), "auth unknown");
+
+        AdminAuthLib.requirePolicyOrAppAdmin(
+            apps,
+            "TAR:updateAuthorization",
+            appId
         );
-        // application and authorized application should be the same as the one we retrieved
 
         auths.authorizationStore[authorizationId].status = status;
         auths.authorizationStore[authorizationId].permissions = permissions;
@@ -163,9 +175,9 @@ library AuthLib {
             "appId unknown"
         );
         return
-            auths.authorizedAppsStore[applicationId].authorizations[
-                authorizedAppId
-            ]
+            auths
+                .authorizedAppsStore[applicationId]
+                .authorizations[authorizedAppId]
                 .paginate(page, pageSize);
     }
 
@@ -234,7 +246,8 @@ library AuthLib {
         );
 
         // retrieve app and authorized app names
-        authorizedAppId = auths.authorizationStore[authorizationId]
+        authorizedAppId = auths
+            .authorizationStore[authorizationId]
             .authorizedApplicationId;
         authorizedAppName = apps.appStore[authorizedAppId].applicationName;
         // authorization must have been linked to an app and an authorizedApp

@@ -162,7 +162,9 @@ contract AppDetailed is AppStorage {
     }
 
     /**
-     * @dev Get an application by a public key id. The method is used whenever a consumer wants to learn if a public key belongs to an application, registered in TAR.
+     * @dev Get an application by a public key id. The method is used whenever
+     * a consumer wants to learn if a public key belongs to an application,
+     * registered in TAR.
      */
     function getAppByPublicKeyId(bytes32 publicKeyId)
         external

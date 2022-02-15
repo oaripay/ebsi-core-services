@@ -2,9 +2,11 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
+// solhint-disable-next-line max-line-length
+import "../did-registry-ethereum-sc/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./AppStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./AppStoreLib.sol";
+import "./AdminAuthLib.sol";
 
 library AppLib {
     using Pagination for string[];
@@ -217,7 +219,9 @@ library AppLib {
     }
 
     /**
-     * @dev Get an application by a public key id. The method is used whenever a consumer wants to learn if a public key belongs to an application, registered in TAR.
+     * @dev Get an application by a public key id. The method is used whenever
+     * a consumer wants to learn if a public key belongs to an application,
+     * registered in TAR.
      */
     function getAppByPublicKeyId(
         AppStoreLib.Applications storage apps,
@@ -350,6 +354,11 @@ library AppLib {
             apps.appStore[applicationId].applicationId == applicationId,
             "appId unknown"
         );
+        AdminAuthLib.requirePolicyOrAppAdmin(
+            apps,
+            "TAR:insertAppInfo",
+            applicationId
+        );
         bytes32 infoId = sha256(bytes(info));
         require(apps.infoStore[infoId].length == 0, "info exists");
         apps.appStore[applicationId].infoIds.push(infoId);
@@ -376,9 +385,16 @@ library AppLib {
             apps.appStore[applicationId].applicationId == applicationId,
             "app unknown"
         );
+        AdminAuthLib.requirePolicyOrAppAdmin(
+            apps,
+            "TAR:deleteAppAdministrator",
+            applicationId
+        );
         string[] storage admins = apps.appStore[applicationId].administrators;
-        uint256 adminLength =
-            apps.appStore[applicationId].administrators.length;
+        uint256 adminLength = apps
+            .appStore[applicationId]
+            .administrators
+            .length;
         uint256 indexToBeDeleted = adminLength;
         for (uint256 i = 0; i < adminLength; i++) {
             if (
@@ -420,6 +436,11 @@ library AppLib {
             apps.appStore[applicationId].applicationId == applicationId,
             "app unknown"
         );
+        AdminAuthLib.requirePolicyOrAppAdmin(
+            apps,
+            "TAR:insertAppAdministrator",
+            applicationId
+        );
         // can be too long to go through all the admins so trust the caller
         // not to insert twice the same. If it happens we can still delete it
         apps.appStore[applicationId].administrators.push(administratorId);
@@ -442,17 +463,23 @@ library AppLib {
     ) external {
         require(applicationId != bytes32(0), "appId empty");
         require(keccak256(bytes(name)) != keccak256(bytes("")), "name empty");
-
         // Check that app is registered
         require(
             apps.appStore[applicationId].applicationId == applicationId,
             "app unknown"
         );
+        AdminAuthLib.requirePolicyOrAppAdmin(
+            apps,
+            "TAR:updateApp",
+            applicationId
+        );
+
         AppStoreLib.Domains oldDomain = apps.appStore[applicationId].domain;
         apps.appStore[applicationId].domain = domain;
         string memory oldName = apps.appStore[applicationId].applicationName;
         apps.appStore[applicationId].applicationName = name;
         apps.nameToId[name] = apps.nameToId[oldName];
+        apps.nameToId[oldName] = "";
         emit ApplicationUpdated(
             applicationId,
             oldName,
@@ -474,9 +501,13 @@ library AppLib {
         require(publicKeyId != bytes32(0), "pubKeyId null");
 
         // Check that public key is registered
-        require(
-            apps.publicKeyStore[publicKeyId].applicationId != bytes32(0),
-            "pubKeyId unknown"
+        bytes32 appId = apps.publicKeyStore[publicKeyId].applicationId;
+        require(appId != bytes32(0), "pubKeyId unknown");
+
+        AdminAuthLib.requirePolicyOrAppAdmin(
+            apps,
+            "TAR:updateAppPublicKey",
+            appId
         );
 
         apps.publicKeyStore[publicKeyId].status = status;
@@ -496,6 +527,11 @@ library AppLib {
         uint256 notAfter
     ) external {
         require(publickey.length > 0, "pubkey null");
+        AdminAuthLib.requirePolicyOrAppAdmin(
+            apps,
+            "TAR:insertAppPublicKey",
+            appId
+        );
 
         addPublicKeyToStore(
             apps,
@@ -560,6 +596,8 @@ library AppLib {
             keccak256(bytes(appAdministrator)) != keccak256(bytes("")),
             "admin null"
         );
+
+        AdminAuthLib.requirePolicy(apps, "TAR:insertApp");
 
         // Store the publickey to public key store
         addPublicKeyToStore(

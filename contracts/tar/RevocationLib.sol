@@ -4,6 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "./RevocationStoreLib.sol";
 import "./AppStoreLib.sol";
+import "./AdminAuthLib.sol";
 
 library RevocationLib {
     event AddNewRevocation(
@@ -14,7 +15,8 @@ library RevocationLib {
     );
 
     /**
-     * @dev Revoke application. Put the application id to the revocation list and store revocation in the revocation store.
+     * @dev Revoke application. Put the application id to the revocation list
+     * and store revocation in the revocation store.
      */
     function insertRevocation(
         RevocationStoreLib.Revocations storage revocs,
@@ -40,6 +42,9 @@ library RevocationLib {
                 keccak256(bytes("")),
             "appId revoked"
         );
+
+        AdminAuthLib.requirePolicy(apps, "TAR:insertRevocation");
+        AdminAuthLib.requireDidController(apps, revokedBy);
 
         // push applicationId to revoked Applications List
         revocs.revokedApplicationsList.push(applicationId);

@@ -1,14 +1,27 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
 
+import "../did-registry-ethereum-sc/contracts/did-registry/interfaces/IDidRegistry.sol";
+// solhint-disable-next-line max-line-length
+import "../did-registry-ethereum-sc/contracts/trusted-policies-registry-ethereum-sc/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+
 library AppStoreLib {
     // The state variables we care about.
     bytes32 public constant APP_DIAMOND_STORAGE_POSITION =
         keccak256("diamond.standard.tar.app.storage");
     // enumeration of valid domains
-    enum Domains {undefined, ebsi, external_domain}
+    enum Domains {
+        undefined,
+        ebsi,
+        external_domain
+    }
     // enumeration of status
-    enum Status {undefined, active, revoked, suspended}
+    enum Status {
+        undefined,
+        active,
+        revoked,
+        suspended
+    }
 
     struct Application {
         // official application anme
@@ -51,5 +64,7 @@ library AppStoreLib {
         mapping(bytes32 => bytes) infoStore;
         // application id to application object mapping
         mapping(bytes32 => PublicKey) publicKeyStore;
+        IPolicyRegistry trustedPolicyRegistry;
+        IDidRegistry didRegistry;
     }
 }

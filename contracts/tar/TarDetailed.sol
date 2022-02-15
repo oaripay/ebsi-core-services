@@ -2,7 +2,8 @@
 pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
-import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+// solhint-disable-next-line max-line-length
+import "../did-registry-ethereum-sc/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 import "./TarStorage.sol";
 
 contract TarDetailed is Initializable, TarStorage {

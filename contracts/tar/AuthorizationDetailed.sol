@@ -62,7 +62,9 @@ contract AuthorizationDetailed is AuthorizationStorage {
         uint256 notAfter
     ) external {
         AuthStoreLib.Authorizations storage auths = authStorage();
+        AppStoreLib.Applications storage apps = appStorage();
         auths.updateAuthorization(
+            apps,
             authorizationId,
             status,
             permissions,
