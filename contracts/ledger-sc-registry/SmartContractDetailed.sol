@@ -27,7 +27,8 @@ contract SmartContractDetailed is SmartContractStorage {
     );
 
     /**
-     * @dev insertSmartContractInfo enables to register SmartContract information (see the data model above) as a signed and serialized JSON-LD document.
+     * @dev insertSmartContractInfo enables to register SmartContract information
+     * (see the data model above) as a signed and serialized JSON-LD document.
      */
     function insertSmartContractInfo(string memory name, bytes memory info)
         external
@@ -89,7 +90,8 @@ contract SmartContractDetailed is SmartContractStorage {
     }
 
     /**
-     * @dev getLatestSmartContractInfoById enables to retrieve the latest smartContract info revision by the smartContract id.
+     * @dev getLatestSmartContractInfoById enables to retrieve the latest smartContract
+     * info revision by the smartContract id.
      */
     function getLatestSmartContractInfoById(bytes32 smartContractInfoId)
         external
@@ -101,7 +103,8 @@ contract SmartContractDetailed is SmartContractStorage {
     }
 
     /**
-     * @dev getLatestSmartContractInfoByName enables to retrieve the latest smartContract info revision by the smartContract name.
+     * @dev getLatestSmartContractInfoByName enables to retrieve the latest smartContract
+     * info revision by the smartContract name.
      */
     function getLatestSmartContractInfoByName(string memory name)
         external
@@ -135,7 +138,8 @@ contract SmartContractDetailed is SmartContractStorage {
     }
 
     /**
-     * @dev getSmartContractInfoRevisionIds enables to retrieve a paginated list of smartContract info revision ids by any revision id.
+     * @dev getSmartContractInfoRevisionIds enables to retrieve a paginated list of
+     * smartContract info revision ids by any revision id.
      */
     function getSmartContractInfoRevisionIds(
         bytes32 smartContractInfoId,

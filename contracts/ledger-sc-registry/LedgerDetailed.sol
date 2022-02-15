@@ -27,7 +27,9 @@ contract LedgerDetailed is LedgerStorage {
     );
 
     /**
-     * @dev insertLedgerInfo enables to register Ledger information (see the data model above) as a signed and serialized JSON-LD document.
+     * @dev insertLedgerInfo enables to register Ledger information
+     * (see the data model above) as a signed and serialized JSON-LD
+     * document.
      */
     function insertLedgerInfo(string memory name, bytes memory info)
         external
@@ -100,7 +102,8 @@ contract LedgerDetailed is LedgerStorage {
     }
 
     /**
-     * @dev getLatestLedgerInfoByName enables to retrieve the latest ledger info revision by the ledger name.
+     * @dev getLatestLedgerInfoByName enables to retrieve the latest ledger info
+     * revision by the ledger name.
      */
     function getLatestLedgerInfoByName(string memory name)
         external
@@ -136,7 +139,8 @@ contract LedgerDetailed is LedgerStorage {
     }
 
     /**
-     * @dev getLedgerInfoRevisionIds enables to retrieve a paginated list of ledger info revision ids by any revision id.
+     * @dev getLedgerInfoRevisionIds enables to retrieve a paginated list of ledger
+     * info revision ids by any revision id.
      */
     function getLedgerInfoRevisionIds(
         bytes32 ledgerInfoId,

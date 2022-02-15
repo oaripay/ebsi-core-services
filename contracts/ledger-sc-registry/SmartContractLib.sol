@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
 
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./SmartContractStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 library SmartContractLib {
     using Pagination for bytes32[];
@@ -26,13 +26,21 @@ library SmartContractLib {
     );
 
     /**
-     * @dev insertSmartContractInfo enables to register SmartContract information (see the data model above) as a signed and serialized JSON-LD document.
+     * @dev insertSmartContractInfo enables to register SmartContract information
+     * (see the data model above) as a signed and serialized JSON-LD document.
      */
     function insertSmartContractInfo(
         SmartContractStorage.SmartContracts storage ts,
         string memory name,
         bytes memory info
     ) external returns (bytes32 smartContractInfoId) {
+        require(
+            ts.trustedPolicyRegistry.checkPolicy(
+                "TLSCR:insertSmartContractInfo",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TLSCR:insertSmartContractInfo"
+        );
         require(bytes(name).length > 0, "name empty");
         require(info.length > 0, "info empty");
 
@@ -49,7 +57,8 @@ library SmartContractLib {
         );
         ts.scInfoIdList.push(smartContractInfoId);
         ts.scNameToSCInfoId[name] = smartContractInfoId;
-        // SmartContract info revision id = SHA2-256 of the SmartContractInfo bytes so it is the same as SmartContract info Id
+        // SmartContract info revision id = SHA2-256 of the SmartContractInfo bytes
+        // so it is the same as SmartContract info Id
         ts.scInfoRevIdToSCInfoId[smartContractInfoId] = smartContractInfoId;
         ts.scStore[smartContractInfoId].push(smartContractInfoId);
         ts.scInfoStore[smartContractInfoId] = info;
@@ -65,6 +74,13 @@ library SmartContractLib {
         bytes32 smartContractInfoId,
         bytes memory info
     ) external returns (bytes32 smartContractInfoRevisionId) {
+        require(
+            ts.trustedPolicyRegistry.checkPolicy(
+                "TLSCR:updateSmartContractInfoById",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TLSCR:updateSmartContractInfoById"
+        );
         require(smartContractInfoId != bytes32(0), "smartContractInfoId empty");
         require(info.length > 0, "info empty");
 
@@ -95,6 +111,13 @@ library SmartContractLib {
         string memory name,
         bytes memory info
     ) external returns (bytes32 smartContractInfoRevisionId) {
+        require(
+            ts.trustedPolicyRegistry.checkPolicy(
+                "TLSCR:updateSmartContractInfoByName",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TLSCR:updateSmartContractInfoByName"
+        );
         require(bytes(name).length > 0, "name empty");
         require(info.length > 0, "info empty");
         bytes32 smartContractInfoId = ts.scNameToSCInfoId[name];
@@ -122,6 +145,13 @@ library SmartContractLib {
         string memory oldName,
         string memory newName
     ) external {
+        require(
+            ts.trustedPolicyRegistry.checkPolicy(
+                "TLSCR:updateSmartContractName",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TLSCR:updateSmartContractName"
+        );
         require(bytes(oldName).length > 0, "oldName empty");
         require(bytes(newName).length > 0, "newName empty");
 
@@ -159,7 +189,8 @@ library SmartContractLib {
     }
 
     /**
-     * @dev getLatestSmartContractInfoById enables to retrieve the latest smartContract info revision by the smartContract id.
+     * @dev getLatestSmartContractInfoById enables to retrieve the latest smartContract
+     * info revision by the smartContract id.
      */
     function getLatestSmartContractInfoById(
         SmartContractStorage.SmartContracts storage ts,
@@ -170,15 +201,15 @@ library SmartContractLib {
             ts.scStore[smartContractInfoId].length > 0,
             "smartContractInfoId unknown"
         );
-        bytes32 smartContractInfoLastRevisionId =
-            ts.scStore[smartContractInfoId][
-                ts.scStore[smartContractInfoId].length - 1
-            ];
+        bytes32 smartContractInfoLastRevisionId = ts.scStore[
+            smartContractInfoId
+        ][ts.scStore[smartContractInfoId].length - 1];
         info = ts.scInfoStore[smartContractInfoLastRevisionId];
     }
 
     /**
-     * @dev getLatestSmartContractInfoByName enables to retrieve the latest smartContract info revision by the smartContract name.
+     * @dev getLatestSmartContractInfoByName enables to retrieve the latest smartContract
+     * info revision by the smartContract name.
      */
     function getLatestSmartContractInfoByName(
         SmartContractStorage.SmartContracts storage ts,
@@ -188,10 +219,9 @@ library SmartContractLib {
         bytes32 smartContractInfoId = ts.scNameToSCInfoId[name];
         require(smartContractInfoId != bytes32(0), "smartContract unknown");
 
-        bytes32 smartContractInfoLastRevisionId =
-            ts.scStore[smartContractInfoId][
-                ts.scStore[smartContractInfoId].length - 1
-            ];
+        bytes32 smartContractInfoLastRevisionId = ts.scStore[
+            smartContractInfoId
+        ][ts.scStore[smartContractInfoId].length - 1];
         info = ts.scInfoStore[smartContractInfoLastRevisionId];
     }
 
@@ -222,7 +252,8 @@ library SmartContractLib {
     }
 
     /**
-     * @dev getSmartContractInfoRevisionIds enables to retrieve a paginated list of smartContract info revision ids by any revision id.
+     * @dev getSmartContractInfoRevisionIds enables to retrieve a paginated list of
+     * smartContract info revision ids by any revision id.
      */
     function getSmartContractInfoRevisionIds(
         SmartContractStorage.SmartContracts storage ts,

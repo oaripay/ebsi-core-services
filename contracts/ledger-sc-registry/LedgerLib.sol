@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
 
+import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./LedgerStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 library LedgerLib {
     using Pagination for bytes32[];
@@ -26,13 +26,22 @@ library LedgerLib {
     );
 
     /**
-     * @dev insertLedgerInfo enables to register Ledger information (see the data model above) as a signed and serialized JSON-LD document.
+     * @dev insertLedgerInfo enables to register Ledger information
+     * (see the data model above) as a signed and serialized JSON-LD
+     * document.
      */
     function insertLedgerInfo(
         LedgerStorage.Ledgers storage ts,
         string memory name,
         bytes memory info
     ) external returns (bytes32 ledgerInfoId) {
+        require(
+            ts.trustedPolicyRegistry.checkPolicy(
+                "TLSCR:insertLedgerInfo",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TLSCR:insertLedgerInfo"
+        );
         require(bytes(name).length > 0, "name empty");
         require(info.length > 0, "info empty");
 
@@ -65,6 +74,13 @@ library LedgerLib {
         bytes32 ledgerInfoId,
         bytes memory info
     ) external returns (bytes32 ledgerInfoRevisionId) {
+        require(
+            ts.trustedPolicyRegistry.checkPolicy(
+                "TLSCR:updateLedgerInfoById",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TLSCR:updateLedgerInfoById"
+        );
         require(ledgerInfoId != bytes32(0), "ledgerInfoId empty");
         require(info.length > 0, "info empty");
 
@@ -86,6 +102,13 @@ library LedgerLib {
         string memory name,
         bytes memory info
     ) external returns (bytes32 ledgerInfoRevisionId) {
+        require(
+            ts.trustedPolicyRegistry.checkPolicy(
+                "TLSCR:updateLedgerInfoByName",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TLSCR:updateLedgerInfoByName"
+        );
         require(bytes(name).length > 0, "name empty");
         require(info.length > 0, "info empty");
         bytes32 ledgerInfoId = ts.ledgerNameToLedgerInfoId[name];
@@ -107,6 +130,13 @@ library LedgerLib {
         string memory oldName,
         string memory newName
     ) external {
+        require(
+            ts.trustedPolicyRegistry.checkPolicy(
+                "TLSCR:updateLedgerName",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TLSCR:updateLedgerName"
+        );
         require(bytes(oldName).length > 0, "oldName empty");
         require(bytes(newName).length > 0, "newName empty");
 
@@ -159,10 +189,9 @@ library LedgerLib {
             "ledgerInfoId unknown"
         );
 
-        bytes32 ledgerInfoLastRevisionId =
-            ts.ledgerStore[ledgerInfoId][
-                ts.ledgerStore[ledgerInfoId].length - 1
-            ];
+        bytes32 ledgerInfoLastRevisionId = ts.ledgerStore[ledgerInfoId][
+            ts.ledgerStore[ledgerInfoId].length - 1
+        ];
         info = ts.ledgerInfoStore[ledgerInfoLastRevisionId];
     }
 
@@ -178,10 +207,9 @@ library LedgerLib {
         require(ledgerInfoId != bytes32(0), "ledger unknown");
         require(ts.ledgerStore[ledgerInfoId].length > 0, "ledger unknown");
 
-        bytes32 ledgerInfoLastRevisionId =
-            ts.ledgerStore[ledgerInfoId][
-                ts.ledgerStore[ledgerInfoId].length - 1
-            ];
+        bytes32 ledgerInfoLastRevisionId = ts.ledgerStore[ledgerInfoId][
+            ts.ledgerStore[ledgerInfoId].length - 1
+        ];
         info = ts.ledgerInfoStore[ledgerInfoLastRevisionId];
     }
 
@@ -213,7 +241,8 @@ library LedgerLib {
     }
 
     /**
-     * @dev getLedgerInfoRevisionIds enables to retrieve a paginated list of ledger info revision ids by any revision id.
+     * @dev getLedgerInfoRevisionIds enables to retrieve a paginated list of ledger info
+     * revision ids by any revision id.
      */
     function getLedgerInfoRevisionIds(
         LedgerStorage.Ledgers storage ts,

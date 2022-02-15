@@ -1,9 +1,23 @@
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 import { Contract } from "ethers";
 import { expect } from "chai";
+import { testTprAddress } from "./testAddress";
 
 describe("SmartContract", () => {
   let ts: Contract;
+  let policyContractMock: Contract;
+
+  before(async () => {
+    const policyRegistryFactory = await ethers.getContractFactory(
+      "PolicyRegistryMock"
+    );
+    const tempPolicyContract = await policyRegistryFactory.deploy();
+    await tempPolicyContract.deployed();
+    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
+    policyContractMock = policyRegistryFactory.attach(testTprAddress);
+    await policyContractMock.setPolicyResult(true);
+  });
 
   beforeEach(async () => {
     const ledgerFactory = await ethers.getContractFactory("LedgerLib", {});
@@ -23,10 +37,40 @@ describe("SmartContract", () => {
     );
     ts = await contractFactory.deploy();
     await ts.initialize(42);
+    await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(ts.address).to.properAddress;
   });
+
+  it("should reject no authenticated users", async () => {
+    const hash = ethers.utils.sha256("0x0000");
+    await policyContractMock.setPolicyResult(false);
+    await expect(ts.insertSmartContractInfo("name", "0x00")).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TLSCR:insertSmartContractInfo"
+    );
+
+    await expect(
+      ts.updateSmartContractInfoById(hash, "0x00")
+    ).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TLSCR:updateSmartContractInfoById"
+    );
+
+    await expect(
+      ts.updateSmartContractInfoByName("name", "0x00")
+    ).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TLSCR:updateSmartContractInfoByName"
+    );
+
+    await expect(
+      ts.updateSmartContractName("oldName", "newName")
+    ).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TLSCR:updateSmartContractName"
+    );
+    await policyContractMock.setPolicyResult(true);
+  });
+
   it("insertSmartContractInfo should failed for empty params", async () => {
     const info = ethers.utils.toUtf8Bytes("smartContract info");
     await expect(ts.insertSmartContractInfo("", info)).to.be.revertedWith(
@@ -336,27 +380,27 @@ describe("SmartContract", () => {
   });
   it("getSmartContractInfoIdByName should succeed", async () => {
     const info = ethers.utils.toUtf8Bytes(`info`);
-    const ledgerName = `ledger name`;
-    const ledgerInfoId = ethers.utils.sha256(info);
+    const scName = `ledger name`;
+    const scInfoId = ethers.utils.sha256(info);
 
-    await ts.insertSmartContractInfo(ledgerName, info);
-    const curRes = await ts.getSmartContractInfoIdByName(ledgerName);
+    await ts.insertSmartContractInfo(scName, info);
+    const curRes = await ts.getSmartContractInfoIdByName(scName);
 
-    expect(curRes).to.equal(ledgerInfoId);
+    expect(curRes).to.equal(scInfoId);
     for (let i = 1; i < 12; i += 1) {
       const updatedInfo = ethers.utils.toUtf8Bytes(`updated-info-${i}`);
       const newInfo = ethers.utils.toUtf8Bytes(`info-${i}`);
-      const newledgerName = `ledger name-${i}`;
+      const newScName = `ledger name-${i}`;
       // INSERT SHOULD BE DONE IN ORDER !!!
       // eslint-disable-next-line no-await-in-loop
-      await ts.updateSmartContractInfoById(ledgerInfoId, updatedInfo);
+      await ts.updateSmartContractInfoById(scInfoId, updatedInfo);
       // eslint-disable-next-line no-await-in-loop
-      const res = await ts.getSmartContractInfoIdByName(ledgerName);
-      expect(res).to.equal(ledgerInfoId);
+      const res = await ts.getSmartContractInfoIdByName(scName);
+      expect(res).to.equal(scInfoId);
       // eslint-disable-next-line no-await-in-loop
-      await ts.insertSmartContractInfo(newledgerName, newInfo);
+      await ts.insertSmartContractInfo(newScName, newInfo);
       // eslint-disable-next-line no-await-in-loop
-      const res2 = await ts.getSmartContractInfoIdByName(newledgerName);
+      const res2 = await ts.getSmartContractInfoIdByName(newScName);
       expect(res2).to.equal(ethers.utils.sha256(newInfo));
     }
   });

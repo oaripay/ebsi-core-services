@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.0;
 
+import "../trusted-policies-registry-ethereum-sc/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+
 contract SmartContractStorage {
     // The state variables we care about.
     bytes32 public constant SC_DIAMOND_STORAGE_POSITION =
@@ -19,6 +21,7 @@ contract SmartContractStorage {
         mapping(bytes32 => bytes32[]) scStore;
         // A smart contract info revision id to smart contract info map
         mapping(bytes32 => bytes) scInfoStore;
+        IPolicyRegistry trustedPolicyRegistry;
     }
 
     // Creates and returns the storage pointer to the struct.

@@ -1,9 +1,23 @@
-import { ethers } from "hardhat";
+import { ethers, network } from "hardhat";
 import { Contract } from "ethers";
 import { expect } from "chai";
+import { testTprAddress } from "./testAddress";
 
 describe("Ledger", () => {
   let ts: Contract;
+  let policyContractMock: Contract;
+
+  before(async () => {
+    const policyRegistryFactory = await ethers.getContractFactory(
+      "PolicyRegistryMock"
+    );
+    const tempPolicyContract = await policyRegistryFactory.deploy();
+    await tempPolicyContract.deployed();
+    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
+    await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
+    policyContractMock = policyRegistryFactory.attach(testTprAddress);
+    await policyContractMock.setPolicyResult(true);
+  });
 
   beforeEach(async () => {
     const ledgerFactory = await ethers.getContractFactory("LedgerLib", {});
@@ -23,10 +37,34 @@ describe("Ledger", () => {
     );
     ts = await contractFactory.deploy();
     await ts.initialize(42);
+    await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(ts.address).to.properAddress;
   });
+
+  it("should reject no authenticated users", async () => {
+    const hash = ethers.utils.sha256("0x0000");
+    await policyContractMock.setPolicyResult(false);
+    await expect(ts.insertLedgerInfo("name", "0x00")).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TLSCR:insertLedgerInfo"
+    );
+
+    await expect(ts.updateLedgerInfoById(hash, "0x00")).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TLSCR:updateLedgerInfoById"
+    );
+
+    await expect(ts.updateLedgerInfoByName("name", "0x00")).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TLSCR:updateLedgerInfoByName"
+    );
+
+    await expect(ts.updateLedgerName("oldName", "newName")).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TLSCR:updateLedgerName"
+    );
+    await policyContractMock.setPolicyResult(true);
+  });
+
   it("insertLedgerInfo should failed for empty params", async () => {
     const info = ethers.utils.toUtf8Bytes("ledger info");
     await expect(ts.insertLedgerInfo("", info)).to.be.revertedWith(
