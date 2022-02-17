@@ -17,6 +17,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const ts = await deployments.deploy("PolicyRegistry", {
     ...opts,
+    contract:
+      "contracts/trusted-policies-registry-etehereum-sc/contracts/trusted-policies-registry/PolicyRegistry.sol:PolicyRegistry",
     libraries: {
       Pagination: pagination.address,
     },

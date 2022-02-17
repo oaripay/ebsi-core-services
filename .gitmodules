@@ -41,4 +41,4 @@
 [submodule "contracts/trusted-policies-registry-etehereum-sc"]
 	path = contracts/trusted-policies-registry-etehereum-sc
 	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-policies-registry-ethereum-sc.git
-	branch = EBSIINT-3481
+	branch = develop

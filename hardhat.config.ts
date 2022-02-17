@@ -9,6 +9,7 @@ import "@tenderly/hardhat-tenderly";
 import "./tasks/index";
 import { HardhatUserConfig } from "hardhat/config";
 import * as fs from "fs";
+import "@nomiclabs/hardhat-etherscan";
 
 // The solhint plugin overrides the check task, runs solhint
 // on the project's sources and prints the report to the console
@@ -34,7 +35,15 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {},
     local: {
-      url: `https://www.test.intebsi.xyz/jsonrpc`,
+      url: `https://ebsi:TTvD76znMvypBcNQ@www.test.intebsi.xyz/besu`,
+      accounts: [privKey],
+      gas: 20000000,
+      gasPrice: 0,
+      loggingEnabled: true,
+      saveDeployments: true,
+    },
+    sokol: {
+      url: `https://ebsi:TTvD76znMvypBcNQ@www.test.intebsi.xyz/besu`,
       accounts: [privKey],
       gas: 20000000,
       gasPrice: 0,
@@ -42,9 +51,9 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
     },
     localWithData: {
-      url: `http://localhost:8545`,
+      url: `https://ebsi:TTvD76znMvypBcNQ@www.test.intebsi.xyz/besu`,
       accounts,
-      gas: 20000000,
+      gas: 60000000,
       gasPrice: 0,
       loggingEnabled: true,
       saveDeployments: true,
@@ -53,6 +62,11 @@ const config: HardhatUserConfig = {
       url: `https://api.prod.ebsi.xyz/ledger/v2/blockchains/besu`,
       accounts,
     },
+  },
+  etherscan: {
+    // Your API key for Etherscan
+    // Obtain one at https://etherscan.io/
+    apiKey: "abc",
   },
   typechain: {
     outDir: "src/types",
