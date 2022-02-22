@@ -807,7 +807,7 @@ paths:
             examples:
               Build tx to insertLedgerInfo:
                 description: |
-                  Call to build an unsigned transaction to insert ledger info in the registry. This method requires admin rights in the Trusted Apps Registry.
+                  Call to build an unsigned transaction to insert ledger info in the registry. This method requires admin rights in the Trusted Policies Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -823,7 +823,7 @@ paths:
                       info: "0x7b226e616d65223a224542534920657468657265756d227d"
               Build tx to updateLedgerInfoById:
                 description: |
-                  Call to build an unsigned transaction to update a ledger info in the registry given its ID. This method requires admin rights in the Trusted Apps Registry.
+                  Call to build an unsigned transaction to update a ledger info in the registry given its ID. This method requires admin rights in the Trusted Policies Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -839,7 +839,7 @@ paths:
                       info: "0x7b226e616d65223a224542534920657468657265756d227d"
               Build tx to updateLedgerInfoByName:
                 description: |
-                  Call to build an unsigned transaction to update a ledger info in the registry given its name. This method requires admin rights in the Trusted Apps Registry.
+                  Call to build an unsigned transaction to update a ledger info in the registry given its name. This method requires admin rights in the Trusted Policies Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -855,7 +855,7 @@ paths:
                       info: "0x7b226e616d65223a224542534920657468657265756d227d"
               Build tx to updateLedgerName:
                 description: |
-                  Call to build an unsigned transaction to update the name of a ledger. This method requires admin rights in the Trusted Apps Registry.
+                  Call to build an unsigned transaction to update the name of a ledger. This method requires admin rights in the Trusted Policies Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -871,7 +871,7 @@ paths:
                       newName: EBSI Ethereum 2
               Build tx to insertSmartContractInfo:
                 description: |
-                  Call to build an unsigned transaction to insert smart contract info in the registry. This method requires admin rights in the Trusted Apps Registry.
+                  Call to build an unsigned transaction to insert smart contract info in the registry. This method requires admin rights in the Trusted Policies Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -887,7 +887,7 @@ paths:
                       info: "0x7b226e616d65223a226d7920636f6e7472616374227d"
               Build tx to updateSmartContractInfoById:
                 description: |
-                  Call to build an unsigned transaction to update a smart contract info in the registry given its ID. This method requires admin rights in the Trusted Apps Registry.
+                  Call to build an unsigned transaction to update a smart contract info in the registry given its ID. This method requires admin rights in the Trusted Policies Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -903,7 +903,7 @@ paths:
                       info: "0x7b226e616d65223a226d7920636f6e7472616374227d"
               Build tx to updateSmartContractInfoByName:
                 description: |
-                  Call to build an unsigned transaction to update a smart contract info in the registry given its name. This method requires admin rights in the Trusted Apps Registry.
+                  Call to build an unsigned transaction to update a smart contract info in the registry given its name. This method requires admin rights in the Trusted Policies Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator
@@ -919,7 +919,7 @@ paths:
                       info: "0x7b226e616d65223a226d7920636f6e7472616374227d"
               Build tx to updateSmartContractName:
                 description: |
-                  Call to build an unsigned transaction to update the name of a smart contract. This method requires admin rights in the Trusted Apps Registry.
+                  Call to build an unsigned transaction to update the name of a smart contract. This method requires admin rights in the Trusted Policies Registry.
 
                   Parameters:
                   - **from**: Ethereum address of the administrator

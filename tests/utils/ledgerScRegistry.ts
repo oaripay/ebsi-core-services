@@ -1,6 +1,7 @@
 import hre from "hardhat";
+import { FactoryOptions } from "hardhat/types";
 import "@nomiclabs/hardhat-ethers";
-import { ethers } from "ethers";
+import { Contract, ethers } from "ethers";
 import crypto from "crypto";
 import { LedgerSCRegistry } from "../../src/contracts";
 
@@ -32,30 +33,49 @@ interface SmartContractInfoRevisionObject {
   revisionHash: string;
 }
 
-export async function deployLedgerScRegistryContract(): Promise<LedgerSCRegistry> {
-  // Deploy libs
-  const ledgerLibFactory = await hre.ethers.getContractFactory("LedgerLib");
-  const ledgerLib = await ledgerLibFactory.deploy();
+const deployContract = async (
+  name: string,
+  opts: FactoryOptions = {}
+): Promise<string> => {
+  const factory = await hre.ethers.getContractFactory(name, opts);
+  const contract = await factory.deploy();
+  return contract.address;
+};
 
-  const smartContractLibFactory = await hre.ethers.getContractFactory(
-    "SmartContractLib"
+export async function deployLedgerScRegistryContract(): Promise<{
+  ledgerScRegistryContract: LedgerSCRegistry;
+  policyContractMock: Contract;
+}> {
+  // mock trusted policies registry
+  const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
+  const policyRegistryFactory = await hre.ethers.getContractFactory(
+    "PolicyRegistryMock"
   );
-  const smartContractLib = await smartContractLibFactory.deploy();
-
+  const tempPolicyContract = await policyRegistryFactory.deploy();
+  await tempPolicyContract.deployed();
+  const bytecode = await hre.ethers.provider.getCode(
+    tempPolicyContract.address
+  );
+  await hre.network.provider.send("hardhat_setCode", [
+    testTprAddress,
+    bytecode,
+  ]);
+  const policyContractMock = policyRegistryFactory.attach(testTprAddress);
   const ledgersScFactory = await hre.ethers.getContractFactory(
     "LedgerSCRegistry",
     {
       libraries: {
-        LedgerLib: ledgerLib.address,
-        SmartContractLib: smartContractLib.address,
+        LedgerLib: await deployContract("LedgerLib"),
+        SmartContractLib: await deployContract("SmartContractLib"),
       },
     }
   );
-  const ledgersScRegistry = await ledgersScFactory.deploy();
+  const ledgerScRegistryContract = await ledgersScFactory.deploy();
+  await ledgerScRegistryContract.initialize(1);
+  await ledgerScRegistryContract.setTrustedPoliciesRegistryAddress();
+  await policyContractMock.setPolicyResult(true);
 
-  await ledgersScRegistry.initialize(1);
-
-  return ledgersScRegistry;
+  return { ledgerScRegistryContract, policyContractMock };
 }
 
 export async function insertLedgerInfo(
@@ -185,6 +205,7 @@ export async function setupTestEnv(
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   ledgerScRegistryContract: LedgerSCRegistry;
+  policyContractMock: Contract;
   ledgers: LedgerInfoObject[];
   ledgersRevisions: LedgerInfoRevisionObject[];
   smartContracts: SmartContractInfoObject[];
@@ -193,7 +214,8 @@ export async function setupTestEnv(
   const ethersProvider = hre.ethers.provider;
 
   // Deploy contract
-  const ledgerScRegistryContract = await deployLedgerScRegistryContract();
+  const { ledgerScRegistryContract, policyContractMock } =
+    await deployLedgerScRegistryContract();
 
   // Insert fake data
   const ledgers = await Promise.all(
@@ -241,6 +263,7 @@ export async function setupTestEnv(
   return {
     provider: ethersProvider,
     ledgerScRegistryContract,
+    policyContractMock,
     ledgers,
     ledgersRevisions,
     smartContracts,

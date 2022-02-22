@@ -27,9 +27,8 @@ import {
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
+import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
-import { ContractService } from "../../src/shared/services/contract.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -46,17 +45,22 @@ describe("Ledgers (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
+  let userTestWallet: ethers.Wallet;
   let ledgerName: string;
   let ledgerName2: string;
+  let ledgerName3: string;
   let rawLedgerInfo: Record<string, unknown>;
   let ledgerInfo: Buffer;
+  let ledgerInfo2: Buffer;
   let ledgerInfoId: string;
   const revisions: {
     ledgerInfo: { [x: string]: unknown };
     revisionHash: string;
   }[] = [];
+  let testAdminAccessToken: string;
   let testUserAccessToken: string;
-  let contractService: ContractService;
+  let apiAccessToken: string;
+  let ledgerApi: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -79,14 +83,16 @@ describe("Ledgers (e2e)", () => {
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
-    contractService = moduleFixture.get<ContractService>(ContractService);
-
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testAdminPrivateKey"))
+    );
+    userTestWallet = new ethers.Wallet(
+      prefixWith0x(configService.get("testUserPrivateKey"))
     );
 
     ledgerName = `ledger-name-${crypto.randomBytes(8).toString("hex")}`;
     ledgerName2 = `ledger-name-${crypto.randomBytes(8).toString("hex")}`;
+    ledgerName3 = `ledger-name-${crypto.randomBytes(8).toString("hex")}`;
     rawLedgerInfo = {
       "@context": "https://ebsi.com",
       type: "Ledger",
@@ -95,17 +101,30 @@ describe("Ledgers (e2e)", () => {
     ledgerInfo = Buffer.from(JSON.stringify(rawLedgerInfo));
     ledgerInfoId = ethers.utils.sha256(ledgerInfo);
 
+    ledgerInfo2 = Buffer.from(
+      JSON.stringify({ data: crypto.randomBytes(10).toString("hex") })
+    );
+
     // Generate a valid Client JWT (SIOP) for the tests
     const didRegistry = `${configService.get<string>(
       "didRegistryApiUrl"
     )}/identifiers`;
 
-    testUserAccessToken = await requestSiopJwt({
+    testAdminAccessToken = await requestSiopJwt({
       didRegistry,
       clientDid: configService.get<string>("testAdminDid"),
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
+    testUserAccessToken = await requestSiopJwt({
+      didRegistry,
+      clientDid: configService.get<string>("testUserDid"),
+      clientPrivateKey: configService.get<string>("testUserPrivateKey"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+    });
+
+    apiAccessToken = await getAccessToken(configService);
+    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
   describe.each([
@@ -182,7 +201,7 @@ describe("Ledgers (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(testUserAccessToken, { type: "bearer" })
+        .auth(testAdminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -218,7 +237,7 @@ describe("Ledgers (e2e)", () => {
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(testUserAccessToken, { type: "bearer" })
+        .auth(testAdminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
@@ -244,12 +263,128 @@ describe("Ledgers (e2e)", () => {
 
       // wait to be mined
       const receipt = await waitToBeMined(
-        contractService,
+        ledgerApi,
+        apiAccessToken,
         responseSend.body.result as string
       );
       expect(receipt.status).toBe(1);
     });
   });
+
+  describe.each(["insertLedgerInfo", "updateLedgerName"])(
+    "/jsonrpc - special authorization for %s",
+    (method: string) => {
+      it("should send the transaction but the SC should reject no authorized users", async () => {
+        expect.assertions(5);
+
+        let params: JsonRpcParams = null;
+
+        switch (method) {
+          case "insertLedgerInfo": {
+            params = {
+              from: userTestWallet.address,
+              name: ledgerName3,
+              info: `0x${ledgerInfo2.toString("hex")}`,
+            } as InsertLedgerInfoParam;
+            break;
+          }
+          case "updateLedgerName": {
+            params = {
+              from: userTestWallet.address,
+              oldName: ledgerName2,
+              newName: ledgerName3,
+            } as UpdateLedgerNameParam;
+            break;
+          }
+          default:
+            throw new Error(`Test Error: Invalid method ${method}`);
+        }
+
+        const responseBuild: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testUserAccessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method,
+            params: [params],
+            id: 231,
+          });
+
+        expect(responseBuild.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: 231,
+          result: {
+            chainId: expect.any(String) as string,
+            data: expect.any(String) as string,
+            from: userTestWallet.address,
+            gasLimit: expect.any(String) as string,
+            gasPrice: expect.any(String) as string,
+            nonce: expect.any(String) as string,
+            to: expect.any(String) as string,
+            value: expect.any(String) as string,
+          },
+        });
+        expect(responseBuild.status).toBe(200);
+
+        const unsignedTransaction = responseBuild.body.result;
+        const uTx = formatEthersUnsignedTransaction(
+          JSON.parse(
+            JSON.stringify(unsignedTransaction)
+          ) as unknown as UnsignedTransaction
+        );
+        uTx.chainId = Number(uTx.chainId);
+        const sgnTx = await userTestWallet.signTransaction(uTx);
+        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+        const responseSend: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testUserAccessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "sendSignedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r,
+                s,
+                v: `0x${Number(v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
+            id: "45",
+          });
+
+        expect(responseSend.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: "45",
+          result: expect.any(String) as string,
+        });
+        expect(responseSend.status).toBe(200);
+
+        // wait to be mined
+        const receipt = await waitToBeMined(
+          ledgerApi,
+          apiAccessToken,
+          responseSend.body.result as string
+        );
+        receipt.revertReason = Buffer.from(
+          (receipt.revertReason ?? "").slice(2),
+          "hex"
+        )
+          .toString()
+          .replace(/[^a-zA-Z:' ]/g, "");
+        expect(receipt).toStrictEqual(
+          expect.objectContaining({
+            status: 0,
+            revertReason: expect.stringContaining(
+              `Policy error: sender doesn't have the attribute TLSCR:${method}`
+            ) as string,
+          })
+        );
+      });
+    }
+  );
 
   describe("GET /ledgers", () => {
     it("should return a paginated collection of ledgers", async () => {

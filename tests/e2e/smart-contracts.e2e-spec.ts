@@ -27,9 +27,8 @@ import {
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
+import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
-import { ContractService } from "../../src/shared/services/contract.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -56,7 +55,8 @@ describe("Smart contracts (e2e)", () => {
     revisionHash: string;
   }[] = [];
   let testUserAccessToken: string;
-  let contractService: ContractService;
+  let apiAccessToken: string;
+  let ledgerApi: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -78,8 +78,6 @@ describe("Smart contracts (e2e)", () => {
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-
-    contractService = moduleFixture.get<ContractService>(ContractService);
 
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testAdminPrivateKey"))
@@ -107,6 +105,9 @@ describe("Smart contracts (e2e)", () => {
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
+
+    apiAccessToken = await getAccessToken(configService);
+    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
   describe.each([
@@ -243,7 +244,8 @@ describe("Smart contracts (e2e)", () => {
 
       // wait to be mined
       const receipt = await waitToBeMined(
-        contractService,
+        ledgerApi,
+        apiAccessToken,
         responseSend.body.result as string
       );
       expect(receipt.status).toBe(1);

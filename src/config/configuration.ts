@@ -27,6 +27,8 @@ export interface ApiConfig {
   // Test variables
   testAdminDid: string;
   testAdminPrivateKey: string;
+  testUserDid: string;
+  testUserPrivateKey: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -126,6 +128,8 @@ export const loadConfig = (): ApiConfig => {
     // Test vars
     testAdminDid: process.env.TEST_ADMIN_DID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
+    testUserDid: process.env.TEST_USER_DID,
+    testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
   };
 };
 

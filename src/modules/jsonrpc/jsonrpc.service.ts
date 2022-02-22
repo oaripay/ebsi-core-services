@@ -1,8 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
-import { isISO8601 } from "class-validator";
 import {
   RequestSendSignedTransactionDto,
   SignedTransactionParam,
@@ -32,7 +31,6 @@ import {
 } from "./jsonrpc.utils";
 import { ContractService } from "../../shared/services/contract.service";
 import { ApiConfig } from "../../config/configuration";
-import { AdministratorResponseObject } from "./jsonrpc.interface";
 
 @Injectable()
 export class JsonRpcService {
@@ -110,68 +108,6 @@ export class JsonRpcService {
     }
 
     return false;
-  }
-
-  async allowAdministratorsOnly(did: string): Promise<void> {
-    let admin: AdministratorResponseObject;
-    try {
-      const response = await axios.get<AdministratorResponseObject>(
-        `${this.trustedAppsRegistry}/administrators/${did}`
-      );
-      admin = response.data;
-    } catch (error) {
-      if ((error as AxiosError).response?.status === 404)
-        throw new Error(
-          `${did} not found as administrator in the Trusted Apps Registry`
-        );
-      throw error;
-    }
-
-    const firstAttributeString = Buffer.from(
-      admin.attributes[0].body,
-      "base64"
-    ).toString();
-    let attribute: {
-      validFrom: string;
-      validTo: string;
-    };
-
-    try {
-      attribute = JSON.parse(firstAttributeString) as {
-        validFrom: string;
-        validTo: string;
-      };
-    } catch (error) {
-      throw new Error(
-        `Administrator ${did} does not contain a valid JSON in the first attribute`
-      );
-    }
-
-    const { validFrom, validTo } = attribute;
-    const now = new Date();
-    if (
-      !isISO8601(validFrom) ||
-      new Date(validFrom) > now ||
-      (validTo && (!isISO8601(validTo) || new Date(validTo) < now))
-    )
-      throw new Error(`Administrator ${did} is disabled`);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async checkWritePermission(
-    func: string,
-    address: string,
-    clientId: string
-  ): Promise<void> {
-    // Verify if user is registered as an administrator in the TAR
-    await this.allowAdministratorsOnly(clientId);
-
-    // Check DID Registry
-    if (!(await this.isDidControlledByAddress(clientId, address))) {
-      throw new Error(
-        `The DID ${clientId} is not controlled by the address ${address}`
-      );
-    }
   }
 
   async verifyTransaction(
@@ -524,9 +460,12 @@ export class JsonRpcService {
       await validateClass(RequestSendSignedTransactionDto, body);
 
       const request = body.params[0];
-      const { signer, functionName } = await this.verifyTransaction(request);
-
-      await this.checkWritePermission(functionName, signer, clientId);
+      const { signer } = await this.verifyTransaction(request);
+      if (!(await this.isDidControlledByAddress(clientId, signer))) {
+        throw new Error(
+          `The DID ${clientId} is not controlled by the address ${signer}`
+        );
+      }
 
       const tx = await (
         await this.contractService.getContract()
