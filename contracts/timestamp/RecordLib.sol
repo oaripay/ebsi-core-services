@@ -21,6 +21,26 @@ library RecordLib {
     );
 
     /**
+     * @dev  checkIfOwnerExist checks if the sender is the owner of the record
+     */
+    function checkIfOwnerExist(address ownerId, string[] memory ownerIds)
+        internal
+        pure
+        returns (bool)
+    {
+        string memory ownerIdStr = ownerId.convertToString();
+        for (uint256 i; i < ownerIds.length; i++) {
+            if (
+                keccak256(abi.encodePacked(ownerIds[i])) ==
+                keccak256(abi.encodePacked(ownerIdStr))
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * @dev  timestampVersionHashes enables subjects to timestamp up to three (version) hashes
      *                              of different types at a time and store the timestamps under
      *                              the given record. It creates a new version inside the record to store
@@ -39,7 +59,13 @@ library RecordLib {
         // if you have more than one you should call timestampRecordVersionHashes
         // and if you have zero you should call timestampRecordHashes
         require(recordIds.length == 1, "wrong record count");
+
         RecordStorage.Record storage r = rs.recordsStore[recordIds[0]];
+
+        require(
+            checkIfOwnerExist(msg.sender, r.ownerIds),
+            "sender is not listed as owner"
+        );
 
         RecordStorage.VersionDetails storage vd = r.versionsStore[
             r.totalVersions
@@ -57,10 +83,6 @@ library RecordLib {
         }
         // increment version numbers
         r.totalVersions++;
-
-        // TODO Verify that the transaction signer is one of the Record owners (record.ownerIds)
-        // We would have to communicate to other sc (E.g. did registry) where they can learn about address from the did
-        // timestampHashes
     }
 
     /**
@@ -127,7 +149,10 @@ library RecordLib {
         RecordStorage.Record storage r = rs.recordsStore[recordId];
 
         require(r.totalVersions > 0, "record unknown");
-        // TODO Verify that the transaction signer is one of the Record owners (record.ownerIds)
+        require(
+            checkIfOwnerExist(msg.sender, r.ownerIds),
+            "sender is not listed as owner"
+        );
 
         // create a new version detail
 
@@ -169,7 +194,10 @@ library RecordLib {
             .versionsStore[versionId];
 
         require(vd.timestampsIds.length > 0, "record/version unknown");
-        // TODO Verify that the transaction signer is one of the Record owners (record.ownerIds)
+        require(
+            checkIfOwnerExist(msg.sender, rs.recordsStore[recordId].ownerIds),
+            "sender is not listed as owner"
+        );
 
         for (uint256 i; i < timestampIds.length; i++) {
             // add this new timestampId to the record list
@@ -202,7 +230,10 @@ library RecordLib {
             .recordsStore[recordId]
             .versionsStore[versionId];
         require(vd.timestampsIds.length > 0, "record/version unknown");
-        // TODO Verify that the transaction signer is one of the Record owners (record.ownerIds)
+        require(
+            checkIfOwnerExist(msg.sender, rs.recordsStore[recordId].ownerIds),
+            "sender is not listed as owner"
+        );
 
         bytes32 versionInfoHash = sha256(versionInfo);
         rs.versionInfoStore[versionInfoHash] = versionInfo;
@@ -225,7 +256,10 @@ library RecordLib {
             .recordsStore[recordId]
             .versionsStore[versionId];
         require(vd.timestampsIds.length > 0, "record/version unknown");
-        // TODO Verify that the transaction signer is one of the Record owners (record.ownerIds)
+        require(
+            checkIfOwnerExist(msg.sender, rs.recordsStore[recordId].ownerIds),
+            "sender is not listed as owner"
+        );
 
         bytes32 timestampId = sha256(hashValue);
         // check that the timestampId exists in the timestampsStore
@@ -271,7 +305,11 @@ library RecordLib {
                 r.owners[ownerId].revoked == true,
             "ownerId exist"
         );
-        // TODO Verify that the transaction signer is one of the Record owners (record.ownerIds)
+        require(
+            checkIfOwnerExist(msg.sender, r.ownerIds),
+            "sender is not listed as owner"
+        );
+
         r.ownerIds.add(ownerId);
         rs.ownerIdToRecordId[ownerId].push(recordId);
         // increment owners
@@ -292,7 +330,10 @@ library RecordLib {
         require(bytes(ownerId).length > 0, "ownerId empty");
         RecordStorage.Record storage r = rs.recordsStore[recordId];
         require(r.totalVersions > 0, "record unknown");
-        // TODO Verify that the transaction signer is one of the Record owners (record.ownerIds)
+        require(
+            checkIfOwnerExist(msg.sender, r.ownerIds),
+            "sender is not listed as owner"
+        );
 
         // remove ownerId from ownerIds
         bool ownerIdFound = false;

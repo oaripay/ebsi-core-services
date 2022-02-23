@@ -99,7 +99,6 @@ library HashAlgoLib {
             bytes(hs.hashAlgorithms.id[hashAlgorithmId]).length > 0,
             "hashAlgorithmId unknown"
         );
-        // TODO Only EBSI Admins can register new algorithms.
 
         // Add an entry to the hashAlgorithms.id enum. Value is the ianaName
         hs.hashAlgorithms.id[hashAlgorithmId] = ianaName;

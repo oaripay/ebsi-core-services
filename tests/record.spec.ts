@@ -328,6 +328,35 @@ describe("Record Hashes", () => {
       )
     ).to.be.revertedWith("wrong record count");
   });
+  it("timestampVersionHashes should fail for sender not owner", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
+    await ts.timestampRecordHashes(
+      [0, 1, 2],
+      [hash1, hash2, hash3],
+      [
+        ethers.utils.toUtf8Bytes("btc"),
+        ethers.utils.toUtf8Bytes("new"),
+        ethers.utils.toUtf8Bytes("ath"),
+      ],
+      ethers.utils.toUtf8Bytes("info: btc to the moon")
+    );
+    const tsUser = ts.connect(user);
+    await expect(
+      tsUser.timestampVersionHashes(
+        hash1,
+        [0, 1, 2],
+        [hash1, hash2, hash3],
+        [
+          ethers.utils.toUtf8Bytes("btc"),
+          ethers.utils.toUtf8Bytes("new"),
+          ethers.utils.toUtf8Bytes("ath"),
+        ],
+        ethers.utils.toUtf8Bytes("info: btc to the moon")
+      )
+    ).to.be.revertedWith("sender is not listed as owner");
+  });
   it("timestampVersionHashes should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -459,7 +488,6 @@ describe("Record Hashes", () => {
       []
     );
   });
-
   it("timestampRecordHashes should failed if hash algo and values length are different", async () => {
     await expect(
       ts.timestampRecordHashes(
@@ -898,6 +926,48 @@ describe("Record Hashes", () => {
     )
       .to.emit(ts, "RecordedHashes")
       .withArgs(recordId, tsids, ethers.constants.HashZero);
+  });
+  it("timestampRecordVersionHashes should fail for sender not owner", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
+    let blockNumber = await ethers.provider.getBlockNumber();
+    blockNumber += 1;
+    //  recordId = sha256(abi.encode(msg.sender, block.number, hashValue));
+    const recordId = ethers.utils.sha256(
+      ethers.utils.defaultAbiCoder.encode(
+        ["address", "uint256", "bytes"],
+        [admin.address, blockNumber, hash1]
+      )
+    );
+    await ts.timestampRecordHashes(
+      [0, 1, 2],
+      [hash1, hash2, hash3],
+      [
+        ethers.utils.toUtf8Bytes("btc"),
+        ethers.utils.toUtf8Bytes("new"),
+        ethers.utils.toUtf8Bytes("ath"),
+      ],
+      ethers.utils.toUtf8Bytes("info: btc to the moon")
+    );
+    const hash1prime = ethers.utils.toUtf8Bytes("othere40605e6");
+    const hash2prime = ethers.utils.toUtf8Bytes("again40605e6");
+    const hash3prime = ethers.utils.toUtf8Bytes("new40605e6");
+    const tsUser = ts.connect(user);
+    const versionInfoprime = ethers.utils.toUtf8Bytes("new infon");
+    await expect(
+      tsUser.timestampRecordVersionHashes(
+        recordId,
+        [2, 0, 1],
+        [hash1prime, hash2prime, hash3prime],
+        [
+          ethers.utils.toUtf8Bytes("oneprime"),
+          ethers.utils.toUtf8Bytes("twoprime"),
+          ethers.utils.toUtf8Bytes("threeprime"),
+        ],
+        versionInfoprime
+      )
+    ).to.be.revertedWith("sender is not listed as owner");
   });
   it("timestampRecordVersionHashes should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
@@ -1602,6 +1672,51 @@ describe("Record Hashes", () => {
       )
     ).to.be.revertedWith("record/version unknown");
   });
+  it("appendRecordVersionHashes should fail for sender not owner", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
+    const hashvalues = [hash1, hash2, hash3];
+    let blockNumber = await ethers.provider.getBlockNumber();
+    blockNumber += 1;
+    //  recordId = sha256(abi.encode(msg.sender, block.number, hashValue));
+    const recordId = ethers.utils.sha256(
+      ethers.utils.defaultAbiCoder.encode(
+        ["address", "uint256", "bytes"],
+        [admin.address, blockNumber, hash1]
+      )
+    );
+
+    await ts.timestampRecordHashes(
+      [0, 1, 2],
+      hashvalues,
+      [
+        ethers.utils.toUtf8Bytes("btc"),
+        ethers.utils.toUtf8Bytes("new"),
+        ethers.utils.toUtf8Bytes("ath"),
+      ],
+      ethers.utils.toUtf8Bytes("info: btc to the moon")
+    );
+
+    const hash1prime = ethers.utils.toUtf8Bytes("e40605e6prime");
+    const hash2prime = ethers.utils.toUtf8Bytes("aa54def9prime");
+    const hashvaluesprime = [hash1prime, hash2prime];
+    const versionInfoprime = ethers.utils.toUtf8Bytes("new info");
+    const tsUser = ts.connect(user);
+    await expect(
+      tsUser.appendRecordVersionHashes(
+        recordId,
+        0,
+        [2, 0],
+        hashvaluesprime,
+        [
+          ethers.utils.toUtf8Bytes("btcprime"),
+          ethers.utils.toUtf8Bytes("new prime"),
+        ],
+        versionInfoprime
+      )
+    ).to.be.revertedWith("sender is not listed as owner");
+  });
   it("appendRecordVersionHashes should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -1820,6 +1935,38 @@ describe("Record Hashes", () => {
       ts.insertRecordVersionInfo(recordId, 1, versionInfo)
     ).to.be.revertedWith("record/version unknown");
   });
+  it("insertRecordVersionInfo should fail for sender not owner", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
+    const hashvalues = [hash1, hash2, hash3];
+    let blockNumber = await ethers.provider.getBlockNumber();
+    blockNumber += 1;
+    //  recordId = sha256(abi.encode(msg.sender, block.number, hashValue));
+    const recordId = ethers.utils.sha256(
+      ethers.utils.defaultAbiCoder.encode(
+        ["address", "uint256", "bytes"],
+        [admin.address, blockNumber, hash1]
+      )
+    );
+
+    await ts.timestampRecordHashes(
+      [0, 1, 2],
+      hashvalues,
+      [
+        ethers.utils.toUtf8Bytes("btc"),
+        ethers.utils.toUtf8Bytes("new"),
+        ethers.utils.toUtf8Bytes("ath"),
+      ],
+      ethers.utils.toUtf8Bytes("info: btc to the moon")
+    );
+
+    const versionInfoprime = ethers.utils.toUtf8Bytes("new info");
+    const tsUser = ts.connect(user);
+    await expect(
+      tsUser.insertRecordVersionInfo(recordId, 0, versionInfoprime)
+    ).to.be.revertedWith("sender is not listed as owner");
+  });
   it("insertRecordVersionInfo should succeed", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -1889,6 +2036,42 @@ describe("Record Hashes", () => {
     expect(vd1.howMany).to.equal(0);
   });
 
+  it("detachRecordVersionHash should fail for sender not owner", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    let blockNumber = await ethers.provider.getBlockNumber();
+    blockNumber += 1;
+    //  recordId = sha256(abi.encode(msg.sender, block.number, hashValue));
+    const recordId = ethers.utils.sha256(
+      ethers.utils.defaultAbiCoder.encode(
+        ["address", "uint256", "bytes"],
+        [admin.address, blockNumber, hash1]
+      )
+    );
+    // will create a version 0 with one timestamp Id (sha256(hash1)) under recordId
+    await ts.timestampRecordHashes(
+      [1],
+      [hash1],
+      [ethers.utils.toUtf8Bytes("btc")],
+      []
+    );
+    const receiptBefore = await ts.getTimestamps(1, 10);
+
+    expect(receiptBefore.items).to.deep.equal([ethers.utils.sha256(hash1)]);
+    const vd0 = await ts.getRecordVersion(recordId, 0, 1, 10);
+
+    expect(vd0.hashAlgorithmIds).to.have.length(1);
+    expect(vd0.hashAlgorithmIds[0]).to.equal(1);
+    expect(vd0.hashValues).to.have.length(1);
+    expect(vd0.hashValues).to.deep.equal([ethers.utils.hexlify(hash1)]);
+    expect(vd0.total).to.equal(1);
+    expect(vd0.howMany).to.equal(1);
+    expect(vd0.prev).to.equal(1);
+    expect(vd0.next).to.equal(1);
+    const tsUser = ts.connect(user);
+    await expect(
+      tsUser.detachRecordVersionHash(recordId, 0, hash1)
+    ).to.be.revertedWith("sender is not listed as owner");
+  });
   it("detachRecordVersionHash should succeed with only one tsId in the version", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     let blockNumber = await ethers.provider.getBlockNumber();
@@ -2089,7 +2272,47 @@ describe("Record Hashes", () => {
       ts.revokeRecordOwner(recordId, user.address)
     ).to.be.revertedWith("ownerId unknown");
   });
+  it("revokeRecordOwner should fail for sender not owner", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
+    let blockNumber = await ethers.provider.getBlockNumber();
+    blockNumber += 1;
+    //  recordId = sha256(abi.encode(msg.sender, block.number, hashValue));
+    const recordId = ethers.utils.sha256(
+      ethers.utils.defaultAbiCoder.encode(
+        ["address", "uint256", "bytes"],
+        [admin.address, blockNumber, hash1]
+      )
+    );
+    await ts.timestampRecordHashes(
+      [0, 1, 2],
+      [hash1, hash2, hash3],
+      [
+        ethers.utils.toUtf8Bytes("btc"),
+        ethers.utils.toUtf8Bytes("new"),
+        ethers.utils.toUtf8Bytes("ath"),
+      ],
+      ethers.utils.toUtf8Bytes("info: btc to the moon")
+    );
+    // add ownerdIds and revoke some
+    const notBefore = new Date().getTime();
+    const notAfter = notBefore + 1000000;
+    await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
+    const r0 = await ts.getRecord(recordId);
+    expect(r0.ownerIds).to.deep.equal([
+      admin.address.toLowerCase(),
+      "anotherownerId",
+    ]);
+    expect(r0.revokedOwnerIds).to.deep.equal([]);
+    expect(r0.totalVersions).to.equal(1);
 
+    // revoke the second owner
+    const tsUser = ts.connect(user);
+    await expect(
+      tsUser.revokeRecordOwner(recordId, "anotherownerId")
+    ).to.be.revertedWith("sender is not listed as owner");
+  });
   it("revokeRecordOwner should work", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -2113,7 +2336,6 @@ describe("Record Hashes", () => {
       ],
       ethers.utils.toUtf8Bytes("info: btc to the moon")
     );
-    const blockTs = await ethers.provider.getBlock(blockNumber);
     // add ownerdIds and revoke some
     const notBefore = new Date().getTime();
     const notAfter = notBefore + 1000000;
@@ -2142,23 +2364,6 @@ describe("Record Hashes", () => {
       admin.address.toLowerCase(),
     ]);
     expect(r2.totalVersions).to.equal(1);
-    // make sure we can add the one owner even if there is none and it was a previous owner
-    await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
-    const r4 = await ts.getRecord(recordId);
-    expect(r4.ownerIds).to.deep.equal(["anotherownerId"]);
-
-    const inf = await ts.getRecordOwnerInfo(recordId, "anotherownerId");
-    expect(inf.notBefore).to.equal(notBefore);
-    expect(inf.notAfter).to.equal(notAfter);
-    expect(inf.revoked).to.be.false;
-
-    const inf1 = await ts.getRecordOwnerInfo(
-      recordId,
-      admin.address.toLowerCase()
-    );
-    expect(inf1.notBefore).to.equal(blockTs.timestamp);
-    expect(inf1.notAfter).to.equal(0);
-    expect(inf1.revoked).to.be.true;
   });
 
   it("insertRecordOwner should failed with wrong date, recordId, OwnerId ", async () => {
@@ -2211,7 +2416,39 @@ describe("Record Hashes", () => {
       ts.insertRecordOwner(recordId, "ownerId", 2, 1)
     ).to.be.revertedWith("date incorrect");
   });
+  it("insertRecordOwner should fail for sender not owner ", async () => {
+    const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
+    const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
+    const hash3 = ethers.utils.toUtf8Bytes("38862f7");
 
+    let blockNumber = await ethers.provider.getBlockNumber();
+    blockNumber += 1;
+    //  recordId = sha256(abi.encode(msg.sender, block.number, hashValue));
+    const recordId = ethers.utils.sha256(
+      ethers.utils.defaultAbiCoder.encode(
+        ["address", "uint256", "bytes"],
+        [admin.address, blockNumber, hash1]
+      )
+    );
+    await ts.timestampRecordHashes(
+      [0, 1, 2],
+      [hash1, hash2, hash3],
+      [
+        ethers.utils.toUtf8Bytes("btc"),
+        ethers.utils.toUtf8Bytes("new"),
+        ethers.utils.toUtf8Bytes("ath"),
+      ],
+      ethers.utils.toUtf8Bytes("info: btc to the moon")
+    );
+    const r0 = await ts.getRecord(recordId);
+    expect(r0.ownerIds).to.deep.equal([admin.address.toLowerCase()]);
+    expect(r0.revokedOwnerIds).to.deep.equal([]);
+    expect(r0.totalVersions).to.equal(1);
+    const tsUser = ts.connect(user);
+    await expect(
+      tsUser.insertRecordOwner(recordId, "ownerId", 1, 2)
+    ).to.be.revertedWith("sender is not listed as owner");
+  });
   it("insertRecordOwner should work ", async () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const hash2 = ethers.utils.toUtf8Bytes("aa54def9");
@@ -2353,12 +2590,5 @@ describe("Record Hashes", () => {
     expect(inf4.notBefore).to.equal(blockTs.timestamp);
     expect(inf4.notAfter).to.equal(0);
     expect(inf4.revoked).to.be.true;
-
-    // make sure we can add the one owner even if there is none and it was a previous owner
-    await ts.insertRecordOwner(recordId, "anotherownerId", notBefore, notAfter);
-    const inf5 = await ts.getRecordOwnerInfo(recordId, "anotherownerId");
-    expect(inf5.notBefore).to.equal(notBefore);
-    expect(inf5.notAfter).to.equal(notAfter);
-    expect(inf5.revoked).to.be.false;
   });
 });
