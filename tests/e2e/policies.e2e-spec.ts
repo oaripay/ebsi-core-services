@@ -19,7 +19,7 @@ import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
+import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { prefixWith0x } from "../../src/shared/utils";
 import {
   PolicyResponseObject,
@@ -28,7 +28,6 @@ import {
 import { PaginatedList } from "../../src/shared/interfaces";
 import { generateMultihash } from "../../src/shared/utils/multihash.utils";
 import { requestSiopJwt } from "../utils/siopJwt";
-import { LedgerService } from "../../src/shared/services/ledger.service";
 import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
 
 interface SupertestJsonRpcResponse {
@@ -59,7 +58,8 @@ describe("Policies (e2e)", () => {
   let configService: ConfigService<ApiConfig>;
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
-  let ledgerService: LedgerService;
+  let apiAccessToken: string;
+  let ledgerApi: string;
 
   const createPolicy = (
     n: string | number
@@ -99,7 +99,6 @@ describe("Policies (e2e)", () => {
     server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testAdminPrivateKey"))
@@ -116,6 +115,9 @@ describe("Policies (e2e)", () => {
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
+
+    apiAccessToken = await getAccessToken(configService);
+    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
   describe("/policies", () => {
@@ -416,7 +418,8 @@ describe("Policies (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(
-          ledgerService,
+          ledgerApi,
+          apiAccessToken,
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);

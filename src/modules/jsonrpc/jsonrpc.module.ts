@@ -4,12 +4,11 @@ import { JsonRpcController } from "./jsonrpc.controller";
 import { JsonRpcService } from "./jsonrpc.service";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { AuthModule } from "../auth/auth.module";
-import { AdministratorsService } from "../administrators/administrators.service";
 
 @Module({
   imports: [ApiConfigModule, AuthModule],
   controllers: [JsonRpcController],
-  providers: [Logger, JsonRpcService, LedgerService, AdministratorsService],
+  providers: [Logger, JsonRpcService, LedgerService],
 })
 export class JsonRpcModule {}
 

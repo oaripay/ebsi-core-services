@@ -23,15 +23,11 @@ import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import { JsonRpcService } from "./jsonrpc.service";
 import {
   UnsignedTransaction,
-  InsertAdministratorParam,
-  UpdateAdministratorParam,
   InsertIssuerParam,
   UpdateIssuerParam,
   InsertPolicyParam,
   UpdatePolicyParam,
-  ArgsInsertAdministrator,
 } from "./dto";
-import { AttributeObject } from "../administrators/administrators.interface";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
@@ -39,6 +35,7 @@ import { Tir } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tir";
 import { ApiConfig } from "../../config/configuration";
 import { LedgerService } from "../../shared/services/ledger.service";
+import { AttributeObject } from "../issuers/issuers.interface";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -46,8 +43,6 @@ interface SupertestJsonRpcResponse {
 }
 
 type JsonRpcParams =
-  | InsertAdministratorParam
-  | UpdateAdministratorParam
   | InsertIssuerParam
   | UpdateIssuerParam
   | InsertPolicyParam
@@ -69,7 +64,8 @@ describe("JsonRpc Module", () => {
   let defaultSignerSiopAccessTokenPayload: { [x: string]: unknown };
   let issuerV1SiopAccessTokenPayload: { [x: string]: unknown };
 
-  const createAdministrator = (did: string) => {
+  const createIssuer = () => {
+    const did = EbsiWallet.createDid();
     const json = {
       any: "Any attribute here",
       type: "credential",
@@ -89,11 +85,6 @@ describe("JsonRpc Module", () => {
     return { did, attribute, attributeData };
   };
 
-  const createIssuer = () => {
-    const issuerDid = EbsiWallet.createDid();
-    return createAdministrator(issuerDid);
-  };
-
   function createPolicy() {
     const policyId = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
     const json = {
@@ -110,10 +101,6 @@ describe("JsonRpc Module", () => {
     };
   }
 
-  const adminDid = EbsiWallet.createDid();
-  const adminV1 = createAdministrator(adminDid);
-  const adminV2 = createAdministrator(adminDid);
-  const adminV3 = createAdministrator(adminDid);
   const issuerV1 = createIssuer();
   const issuerV2 = createIssuer();
   const issuerV3 = createIssuer();
@@ -129,40 +116,7 @@ describe("JsonRpc Module", () => {
     let param: JsonRpcParams;
 
     switch (method) {
-      case "insertAdministrator": {
-        // create a new administrator and add attribute1
-        param = {
-          attributeData: tamper ? adminV2.attributeData : adminV1.attributeData,
-          did: adminV1.did,
-          from: signer.address,
-        } as InsertAdministratorParam;
-        break;
-      }
-      case "updateAdministrator": {
-        if (updateAttribute) {
-          // update attribute1: change it to attribute3
-          param = {
-            attributeData: tamper
-              ? adminV2.attributeData
-              : adminV3.attributeData,
-            did: adminV1.did,
-            from: signer.address,
-            prevAttributeHash: adminV1.attribute.hash,
-          } as UpdateAdministratorParam;
-        } else {
-          // updateAdministrator: add attribute2
-          param = {
-            attributeData: tamper
-              ? adminV3.attributeData
-              : adminV2.attributeData,
-            did: adminV1.did,
-            from: signer.address,
-          } as UpdateAdministratorParam;
-        }
-        break;
-      }
       case "insertIssuer": {
-        // create a new administrator and add attribute1
         param = {
           attributeData: issuerV1.attributeData,
           did: tamper ? issuerV2.did : issuerV1.did,
@@ -215,7 +169,6 @@ describe("JsonRpc Module", () => {
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv({
-      administratorsTotal: 1,
       policiesTotal: 0,
       policiesRevisionsTotal: 0,
       issuersTotal: 2, // create 2 random issuers
@@ -246,14 +199,14 @@ describe("JsonRpc Module", () => {
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     // Generate JWTs
-    userAccessTokenPayload = { sub: adminDid };
+    userAccessTokenPayload = { sub: "did:ebsi:user" };
     userAccessToken = await createJWT(userAccessTokenPayload, {
       issuer: "any",
       signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
     });
 
     defaultSignerSiopAccessTokenPayload = {
-      sub: testEnv.administrators[0].did,
+      sub: "did:ebsi:user",
     };
     defaultSignerSiopAccessToken = await createJWT(
       defaultSignerSiopAccessTokenPayload,
@@ -382,9 +335,7 @@ describe("JsonRpc Module", () => {
     const transaction = {
       from: wallet.address,
       to: tirContract.address,
-      data: tirContract.interface.encodeFunctionData("getAdministrator", [
-        "did",
-      ]),
+      data: tirContract.interface.encodeFunctionData("getPolicy", ["policy1"]),
       value: "0x00",
       nonce: "0x00",
       chainId: "0x1b3b",
@@ -432,88 +383,6 @@ describe("JsonRpc Module", () => {
     expect(responseSend.status).toBe(400);
   });
 
-  it("should throw an error when the sender of a transaction is not in the TIR", async () => {
-    expect.assertions(3);
-
-    // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve(userAccessTokenPayload));
-
-    const wallet = ethers.Wallet.createRandom();
-
-    const data = Buffer.from(
-      JSON.stringify({
-        "@context": {
-          name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
-          description: "http://tir-api-test.org/description",
-        },
-        name: "alice",
-        validFrom: new Date().toISOString(),
-      })
-    );
-
-    const responseBuild: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "insertAdministrator",
-        params: [
-          {
-            from: wallet.address, // this address is not in the TIR
-            did: EbsiWallet.createDid(),
-            attributeData: `0x${data.toString("hex")}`,
-          } as ArgsInsertAdministrator,
-        ],
-        id: 231,
-      });
-
-    expect(responseBuild.status).toBe(200);
-
-    const transaction = responseBuild.body.result as UnsignedTransaction;
-
-    const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
-    );
-
-    uTx.chainId = Number(uTx.chainId);
-
-    const sgnTx = await wallet.signTransaction(uTx);
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-    const responseSend = await request(server)
-      .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "sendSignedTransaction",
-        params: [
-          {
-            protocol: "eth",
-            unsignedTransaction: transaction,
-            r,
-            s,
-            v: `0x${Number(v).toString(16)}`,
-            signedRawTransaction: sgnTx,
-          },
-        ],
-        id: "45",
-      });
-
-    expect(responseSend.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: "45",
-      error: {
-        code: -32600,
-        message: expect.stringContaining(
-          `${adminDid} is not an administrator`
-        ) as string,
-      },
-    });
-    expect(responseSend.status).toBe(400);
-  });
-
   it("should throw an Invalid Request error for bad method", async () => {
     expect.assertions(2);
 
@@ -548,15 +417,13 @@ describe("JsonRpc Module", () => {
   it("should throw an error if the signer doesn't control the DID", async () => {
     expect.assertions(4);
 
-    const { did } = adminV1;
-
     const signer = ethers.Wallet.createRandom();
 
     const param: JsonRpcParams = {
-      attributeData: adminV1.attributeData,
-      did,
       from: signer.address,
-    } as InsertAdministratorParam;
+      policyId: crypto.randomBytes(10).toString("hex"),
+      policyData: `0x${crypto.randomBytes(10).toString("hex")}`,
+    } as InsertPolicyParam;
 
     // Mock access token verification
     jest
@@ -575,7 +442,7 @@ describe("JsonRpc Module", () => {
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "insertAdministrator",
+        method: "insertPolicy",
         params: [param],
         id: 231,
       });
@@ -628,7 +495,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.body).toStrictEqual({
       error: {
         code: -32600,
-        message: `The DID ${testEnv.administrators[0].did} is not controlled by the address ${signer.address}`,
+        message: `The DID did:ebsi:user is not controlled by the address ${signer.address}`,
       },
       id: "45",
       jsonrpc: "2.0",
@@ -639,12 +506,9 @@ describe("JsonRpc Module", () => {
   // Tests to be repeated for every method
   describe.each([
     "insertIssuer",
-    "insertAdministrator",
     "insertPolicy",
     "updateIssuer",
     "updateIssuer(test update attribute)",
-    "updateAdministrator",
-    "updateAdministrator(test update attribute)",
     "updatePolicy",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
@@ -670,7 +534,7 @@ describe("JsonRpc Module", () => {
           );
       }
 
-      const signer = testEnv.administrators[0].wallet;
+      const signer = ethers.Wallet.createRandom();
       const param: JsonRpcParams = createParam(method, signer, updateAttribute);
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
@@ -745,7 +609,7 @@ describe("JsonRpc Module", () => {
           Promise.resolve(defaultSignerSiopAccessTokenPayload)
         );
 
-      const signer = testEnv.administrators[0].wallet;
+      const signer = ethers.Wallet.createRandom();
 
       const param = createParam(method, signer, updateAttribute);
 
@@ -777,7 +641,7 @@ describe("JsonRpc Module", () => {
           Promise.resolve(defaultSignerSiopAccessTokenPayload)
         );
 
-      const signer = testEnv.administrators[0].wallet;
+      const signer = ethers.Wallet.createRandom();
 
       const param1 = createParam(method, signer, updateAttribute);
       const param2 = createParam(method, signer, updateAttribute);
@@ -789,9 +653,7 @@ describe("JsonRpc Module", () => {
 
       switch (method) {
         case "insertIssuer":
-        case "insertAdministrator":
         case "updateIssuer":
-        case "updateAdministrator":
           delete (param1 as InsertIssuerParam).attributeData;
           expectedErrorMessage1 =
             "property params[0].attributeData has failed the following constraints: isHexadecimal";
@@ -893,7 +755,7 @@ describe("JsonRpc Module", () => {
           Promise.resolve(defaultSignerSiopAccessTokenPayload)
         );
 
-      const wallet1 = testEnv.administrators[0].wallet;
+      const wallet1 = ethers.Wallet.createRandom();
       const wallet2 = ethers.Wallet.createRandom();
 
       const param1 = createParam(method, wallet1, updateAttribute);

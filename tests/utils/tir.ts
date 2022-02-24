@@ -1,17 +1,11 @@
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import crypto from "crypto";
-import { ethers } from "ethers";
+import { Contract, ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { Tir } from "../../src/contracts";
-
-interface Administrator {
-  wallet: ethers.Wallet;
-  attribute: { [x: string]: unknown };
-  did: string;
-}
 
 interface PolicyObject {
   policyId: string;
@@ -24,7 +18,44 @@ interface IssuerObject {
   attributeData: Buffer;
 }
 
-export async function deployTirContract(): Promise<Tir> {
+export async function deployTirContract(): Promise<{
+  tirContract: Tir;
+  policyContractMock: Contract;
+  didContractMock: Contract;
+}> {
+  // mock trusted policies registry
+  const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
+  const testDidrAddress = "0xf6080028519B49D94C846bd34e30f72586E3F5d5";
+  const policyRegistryFactory = await hre.ethers.getContractFactory(
+    "PolicyRegistryMock"
+  );
+  const tempPolicyContract = await policyRegistryFactory.deploy();
+  await tempPolicyContract.deployed();
+  const bytecode = await hre.ethers.provider.getCode(
+    tempPolicyContract.address
+  );
+  await hre.network.provider.send("hardhat_setCode", [
+    testTprAddress,
+    bytecode,
+  ]);
+  const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  await policyContractMock.setPolicyResult(true);
+
+  const didRegistryFactory = await hre.ethers.getContractFactory(
+    "DidRegistryMock"
+  );
+  const tempDidContract = await didRegistryFactory.deploy();
+  await tempDidContract.deployed();
+  const bytecodeDid = await hre.ethers.provider.getCode(
+    tempDidContract.address
+  );
+  await hre.network.provider.send("hardhat_setCode", [
+    testDidrAddress,
+    bytecodeDid,
+  ]);
+  const didContractMock = didRegistryFactory.attach(testDidrAddress);
+  await didContractMock.setDidResult(true);
+
   // Deploy libs
   const paginationFactory = await hre.ethers.getContractFactory("Pagination");
   const pagination = await paginationFactory.deploy();
@@ -36,29 +67,9 @@ export async function deployTirContract(): Promise<Tir> {
   });
   const tirContract = await tirFactory.deploy();
   await tirContract.initialize(1);
+  await tirContract.setRegistryAddresses();
 
-  return tirContract;
-}
-
-export async function insertAdmin(
-  contract: Tir,
-  adminDid: string
-): Promise<{ [x: string]: unknown }> {
-  const attribute = {
-    "@context": {
-      name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
-      description: "http://tir-api-test.org/description",
-    },
-    name: `test-${adminDid}`,
-    validFrom: new Date().toISOString(),
-    validTo: new Date(Date.now() + 4e8).toISOString(),
-  };
-
-  const bufferAttribute = Buffer.from(JSON.stringify(attribute));
-
-  await contract.insertAdministrator(adminDid, bufferAttribute);
-
-  return attribute;
+  return { tirContract, didContractMock, policyContractMock };
 }
 
 export async function insertIssuer(contract: Tir): Promise<IssuerObject> {
@@ -119,7 +130,6 @@ export async function updatePolicy(
 }
 
 export interface SetupOptions {
-  administratorsTotal?: number;
   policiesTotal?: number;
   policiesRevisionsTotal?: number;
   issuersTotal?: number;
@@ -127,15 +137,14 @@ export interface SetupOptions {
 
 export async function setupTestEnv(
   opts: SetupOptions = {
-    administratorsTotal: 1,
     policiesTotal: 0,
-    policiesRevisionsTotal: 1,
     issuersTotal: 0,
   }
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   tirContract: Tir;
-  administrators: Administrator[];
+  policyContractMock: Contract;
+  didContractMock: Contract;
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
   issuers: IssuerObject[];
@@ -143,22 +152,10 @@ export async function setupTestEnv(
   const ethersProvider = hre.ethers.provider;
 
   // Deploy contract
-  const tirContract = await deployTirContract();
+  const { tirContract, policyContractMock, didContractMock } =
+    await deployTirContract();
 
   // Insert fake data
-
-  // Create as many admins as requested
-  const createAdminWallet = async () => {
-    // Create random wallet and connect it so we can use it later to send transactions
-    const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
-    const did = EbsiWallet.createDid();
-    const attribute = await insertAdmin(tirContract, did);
-    return { wallet, attribute, did };
-  };
-
-  const administrators = await range(0, opts.administratorsTotal)
-    .pipe(mergeMap(createAdminWallet), toArray())
-    .toPromise();
 
   const policyRevisions = {};
 
@@ -200,7 +197,8 @@ export async function setupTestEnv(
   return {
     provider: ethersProvider,
     tirContract,
-    administrators,
+    policyContractMock,
+    didContractMock,
     policies,
     policyRevisions,
     issuers,

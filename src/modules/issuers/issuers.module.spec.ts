@@ -22,7 +22,6 @@ import { LedgerService } from "../../shared/services/ledger.service";
 
 jest.setTimeout(90000);
 
-const ADMINISTRATORS_TOTAL = 1;
 const ISSUERS_TOTAL = 12;
 
 describe("Issuers Module", () => {
@@ -34,7 +33,6 @@ describe("Issuers Module", () => {
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv({
-      administratorsTotal: ADMINISTRATORS_TOTAL,
       issuersTotal: ISSUERS_TOTAL,
     });
     const { tirContract } = testEnv;

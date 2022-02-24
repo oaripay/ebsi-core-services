@@ -4,8 +4,6 @@ import { InvalidRequestJsonRpcError } from "./errors";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   JsonRpcDto,
-  RequestInsertAdministratorDto,
-  RequestUpdateAdministratorDto,
   RequestInsertIssuerDto,
   RequestUpdateIssuerDto,
   RequestInsertPolicyDto,
@@ -35,22 +33,6 @@ export class JsonRpcController {
   ): Promise<JsonRpcResponseObject> {
     const { method, id } = body;
     switch (method) {
-      case "insertAdministrator": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionInsertAdministrator(
-            body as RequestInsertAdministratorDto,
-            id
-          );
-        return jsonRpcResponse(transaction, id);
-      }
-      case "updateAdministrator": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionUpdateAdministrator(
-            body as RequestUpdateAdministratorDto,
-            id
-          );
-        return jsonRpcResponse(transaction, id);
-      }
       case "insertIssuer": {
         const transaction =
           await this.jsonRpcService.buildTransactionInsertIssuer(

@@ -26,11 +26,10 @@ import {
 } from "../../src/modules/issuers/issuers.interface";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
+import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { prefixWith0x } from "../../src/shared/utils";
 import { PaginatedList } from "../../src/shared/interfaces";
 import { requestSiopJwt } from "../utils/siopJwt";
-import { LedgerService } from "../../src/shared/services/ledger.service";
 import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
 
 interface SupertestJsonRpcResponse {
@@ -68,9 +67,12 @@ describe("Issuers (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let configService: ConfigService<ApiConfig>;
+  let userTestWallet: ethers.Wallet;
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
-  let ledgerService: LedgerService;
+  let testAdminAccessToken: string;
+  let apiAccessToken: string;
+  let ledgerApi: string;
   const randomDid = EbsiWallet.createDid();
 
   const createIssuer = () => {
@@ -97,6 +99,7 @@ describe("Issuers (e2e)", () => {
   const { attribute: attribute1 } = createIssuer();
   const { attribute: attribute2 } = createIssuer();
   const { attribute: attribute3 } = createIssuer();
+  const { attribute: attribute4 } = createIssuer();
 
   let lastExistingIssuerDid: string;
   let beforeLastExistingIssuerDid: string;
@@ -120,8 +123,10 @@ describe("Issuers (e2e)", () => {
     server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
+    userTestWallet = new ethers.Wallet(
+      prefixWith0x(configService.get("testUserPrivateKey"))
+    );
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testAdminPrivateKey"))
     );
@@ -132,6 +137,12 @@ describe("Issuers (e2e)", () => {
     )}/identifiers`;
 
     testUserAccessToken = await requestSiopJwt({
+      didRegistry,
+      clientDid: configService.get<string>("testUserDid"),
+      clientPrivateKey: configService.get<string>("testUserPrivateKey"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+    });
+    testAdminAccessToken = await requestSiopJwt({
       didRegistry,
       clientDid: configService.get<string>("testAdminDid"),
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
@@ -151,6 +162,9 @@ describe("Issuers (e2e)", () => {
 
     beforeLastExistingIssuerDid = issuersResponse.body.items[0].did;
     lastExistingIssuerDid = issuersResponse.body.items[1].did;
+
+    apiAccessToken = await getAccessToken(configService);
+    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
   describe("/issuers", () => {
@@ -589,7 +603,7 @@ describe("Issuers (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(testUserAccessToken, { type: "bearer" })
+        .auth(testAdminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -685,7 +699,7 @@ describe("Issuers (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(testUserAccessToken, { type: "bearer" })
+        .auth(testAdminAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -708,6 +722,106 @@ describe("Issuers (e2e)", () => {
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await adminTestWallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(testAdminAccessToken, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "sendSignedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        result: expect.any(String) as string,
+      });
+      expect(responseSend.status).toBe(200);
+
+      // wait to be mined
+      const receipt = await waitToBeMined(
+        ledgerApi,
+        apiAccessToken,
+        responseSend.body.result as string
+      );
+      expect(receipt.status).toBe(1);
+
+      // get issuer
+      const issuerResponse = await request(server).get(`/issuers/${did}`);
+
+      expect(issuerResponse.body).toStrictEqual({
+        did,
+        attributes: expectedAttributes,
+      });
+      expect(issuerResponse.status).toBe(200);
+    });
+
+    it("should send the transaction but the SC should reject no authorized users", async () => {
+      expect.assertions(3);
+
+      let attribute: AttributeObjectWithData;
+      let prevAttributeHash: string = null;
+      let did: string;
+
+      switch (method) {
+        case "insertIssuer":
+          // create a new issuer and add attribute1
+          attribute = attribute4;
+          did = EbsiWallet.createDid();
+          break;
+        case "updateIssuer":
+          if (updateAttribute) {
+            // update attribute1: change it to attribute3
+            attribute = attribute4;
+            prevAttributeHash = attribute2.hash;
+            did = configService.get<string>("testAdminDid");
+          } else {
+            // updateIssuer: add attribute2
+            attribute = attribute4;
+            did = configService.get<string>("testAdminDid");
+          }
+          break;
+        default:
+          break;
+      }
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(testUserAccessToken, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [
+            {
+              from: userTestWallet.address,
+              did,
+              attributeData: attribute.data,
+              ...(prevAttributeHash && { prevAttributeHash }),
+            },
+          ],
+          id: 231,
+        });
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await userTestWallet.signTransaction(uTx);
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
@@ -738,19 +852,24 @@ describe("Issuers (e2e)", () => {
 
       // wait to be mined
       const receipt = await waitToBeMined(
-        ledgerService,
+        ledgerApi,
+        apiAccessToken,
         responseSend.body.result as string
       );
-      expect(receipt.status).toBe(1);
-
-      // get issuer
-      const issuerResponse = await request(server).get(`/issuers/${did}`);
-
-      expect(issuerResponse.body).toStrictEqual({
-        did,
-        attributes: expectedAttributes,
-      });
-      expect(issuerResponse.status).toBe(200);
+      receipt.revertReason = Buffer.from(
+        (receipt.revertReason ?? "").slice(2),
+        "hex"
+      )
+        .toString()
+        .replace(/[^a-zA-Z:' ]/g, "");
+      expect(receipt).toStrictEqual(
+        expect.objectContaining({
+          status: 0,
+          revertReason: expect.stringContaining(
+            `doesn't have the attribute TIR:${method}`
+          ) as string,
+        })
+      );
     });
   });
 });

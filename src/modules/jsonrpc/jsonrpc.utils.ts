@@ -3,15 +3,11 @@ import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
 import {
   UnsignedTransaction,
-  RequestInsertAdministratorDto,
-  RequestUpdateAdministratorDto,
   RequestInsertIssuerDto,
   RequestUpdateIssuerDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
   RequestSendSignedTransactionDto,
-  ArgsInsertAdministrator,
-  ArgsUpdateAdministrator,
   ArgsInsertIssuer,
   ArgsUpdateIssuer,
   ArgsInsertPolicy,
@@ -21,15 +17,11 @@ import {
 type JsonRpcDtos =
   | RequestInsertIssuerDto
   | RequestUpdateIssuerDto
-  | RequestInsertAdministratorDto
-  | RequestUpdateAdministratorDto
   | RequestInsertPolicyDto
   | RequestUpdatePolicyDto
   | RequestSendSignedTransactionDto
   | ArgsInsertIssuer
   | ArgsUpdateIssuer
-  | ArgsInsertAdministrator
-  | ArgsUpdateAdministrator
   | ArgsInsertPolicy
   | ArgsUpdatePolicy;
 
