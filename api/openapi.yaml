@@ -11,12 +11,12 @@ info:
     * Entity or application is notified via its DID registered in the DID registry or TAR.
 
     For more information see:
-    * [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/Notifications+API)
-    * [Code repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/notifications-api/)
+    * [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Notifications+API)
+    * [Code repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/)
   termsOfService: /docs/terms
   contact:
-    name: EBSI Support – Service Desk
-    url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
+    name: EBSI Support - Service Desk
+    url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
@@ -27,18 +27,195 @@ servers:
     description: EBSI Pre-production Environment
   - url: https://api.ebsi.eu
     description: EBSI Production Environment
-tags:
-  - name: Notifications
-    description: Store and retrieve notifications
 paths:
   /notifications/v1/notifications:
+    get:
+      summary: List notifications
+      description: Lists all the notifications corresponding to the Bearer Token's DID.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: "#/components/schemas/Notification"
+                        - properties:
+                            _links:
+                              type: object
+                              properties:
+                                self:
+                                  type: object
+                                  properties:
+                                    href:
+                                      type: string
+                                      description: URI to the specific notification with its id
+                                      example: https://api.ebsi.xyz/notifications/v1/notifications/123
+                                  required:
+                                    - href
+                              required:
+                                - self
+                          required:
+                            - _links
+                          example:
+                            _links:
+                              self:
+                                href: https://api.ebsi.xyz/notifications/v1/notifications/123
+                  self:
+                    type: string
+                    description: |
+                      Absolute URI (http or https) to the the resource's own location.
+                  links:
+                    description: Pagination links
+                    type: object
+                    properties:
+                      last:
+                        type: string
+                        description: URI of the last page
+                      prev:
+                        type: string
+                        description: URI of the previous page
+                      next:
+                        type: string
+                        description: URI of the next page
+                      first:
+                        type: string
+                        description: URI of the first page
+                    example:
+                      first: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=7&page[size]=2
+                  pageSize:
+                    type: integer
+                    description: Maximum number of items per page.
+                  total:
+                    type: integer
+                    description: Total number of items across all pages.
+              examples:
+                Get notifications:
+                  value:
+                    items:
+                      - schemaId: notification-001
+                        type:
+                          - Notification
+                          - StoreVerifiableCredential
+                        "@context":
+                          - https://www.w3.org/2018/credentials/v1
+                          - https://essif.europa.eu/schemas/vc/2020/v1
+                          - https://essif.europa.eu/schemas/notifications/2020/v1
+                        from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+                        to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
+                        issuanceDate: "2019-06-22T14:11:44Z"
+                        expirationDate: "2019-06-27T14:11:44Z"
+                        payload: {}
+                        proof:
+                          type: EcdsaSecp256k1Signature2019
+                          created: "2019-11-17T14:00:00Z"
+                          proofPurpose: assertionMethod
+                          verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
+                          jws: eyJh..Iw
+                        _links:
+                          self:
+                            href: /notifications/v1/notifications/123
+                      - schemaId: notification-001
+                        type:
+                          - Notification
+                          - RequestVerifiablePresentation
+                        "@context":
+                          - https://www.w3.org/2018/credentials/v1
+                          - https://essif.europa.eu/schemas/vc/2020/v1
+                          - https://essif.europa.eu/schemas/notifications/2020/v1
+                        from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+                        to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
+                        issuanceDate: "2019-06-22T14:11:44Z"
+                        expirationDate: "2019-06-27T14:11:44Z"
+                        payload: {}
+                        proof:
+                          type: EcdsaSecp256k1Signature2019
+                          created: "2019-11-17T14:00:00Z"
+                          proofPurpose: assertionMethod
+                          verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
+                          jws: eyJh..Iw
+                        _links:
+                          self:
+                            href: https://api.ebsi.xyz/notifications/v1/notifications/124
+                    total: 13
+                    pageSize: 2
+                    self: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=3&page[size]=2
+                    links:
+                      first: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=7&page[size]=2
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                BadRequest:
+                  $ref: "#/components/examples/BadRequest"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Unauthorized:
+                  $ref: "#/components/examples/Unauthorized"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Forbidden:
+                  $ref: "#/components/examples/Forbidden"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+      security:
+        - bearerAuth: []
+      operationId: get-notifications-v1-notifications
+      parameters:
+        - $ref: "#/components/parameters/conformanceHeader"
+        - in: query
+          name: page[before]
+          schema:
+            type: string
+          description: |
+            Cursor that points to the start of the page of data that has been returned.
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: |
+            Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
     post:
-      tags:
-        - Notifications
-      summary: Create a new notification
+      summary: Create a notification
       description: Creates a new notification and stores it to the Decentralized Storage.
       parameters:
-        - $ref: "#/components/parameters/headerConformance"
+        - $ref: "#/components/parameters/conformanceHeader"
       operationId: post-notifications-v1-notifications
       security:
         - bearerAuth: []
@@ -47,7 +224,7 @@ paths:
           Notification Request Input
 
           [conformance description]
-          [EBSI conformance testing](https://ec.europa.eu/cefdigital/wiki/pages/viewpage.action?spaceKey=EBSIEA&title=EBSI+Wallet+Conformance+Testing) The API supports
+          [EBSI conformance testing](https://ec.europa.eu/digital-building-blocks/wikis/pages/viewpage.action?spaceKey=EBSIEA&title=EBSI+Wallet+Conformance+Testing) The API supports
           the following EBSI conformance tests:
           * Call conformance /issuer-mock/authorize (CT ISSUE_041)
           * Call conformance /issuer-mock/token (CT ISSUE_052)
@@ -84,7 +261,7 @@ paths:
                 summary: Call conformance /issuer-mock/authorize (async) (CT ISSUE_041)
                 description: |
                   Call conformance service in the endpoint /issuer-mock/authorize (CT ISSUE_041)
-                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
+                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Credential+Issuance+guidelines)
                   for the details of this endpoint
                 value:
                   schemaId: notifications-001
@@ -122,7 +299,7 @@ paths:
                 summary: Call conformance /issuer-mock/token (async) (CT ISSUE_052)
                 description: |
                   Call conformance service in the endpoint /issuer-mock/token (CT ISSUE_052)
-                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
+                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Credential+Issuance+guidelines)
                   for the details of this endpoint
                 value:
                   schemaId: notifications-001
@@ -156,7 +333,7 @@ paths:
                 summary: Call conformance /issuer-mock/credential (async) (CT ISSUE_062)
                 description: |
                   Call conformance service in the endpoint /issuer-mock/credential (CT ISSUE_062)
-                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
+                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Credential+Issuance+guidelines)
                   for the details of this endpoint
                 value:
                   schemaId: notifications-001
@@ -197,7 +374,7 @@ paths:
                 summary: Call conformance /verifier-mock/authentication-requests (async) (CT VERIFY_041)
                 description: |
                   Call conformance service in the endpoint /verifier-mock/authentication-requests (CT VERIFY_041)
-                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
+                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
                   for the details of this endpoint
                 value:
                   schemaId: notifications-001
@@ -228,7 +405,7 @@ paths:
                 summary: Call conformance /verifier-mock/authentication-responses (async) (CT VERIFY_061)
                 description: |
                   Call conformance service in the endpoint /verifier-mock/authentication-responses (CT VERIFY_061)
-                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
+                  through notifications api in an asynchronous way. Follow [this link](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
                   for the details of this endpoint
                 value:
                   schemaId: notifications-001
@@ -300,7 +477,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 BadRequest:
                   $ref: "#/components/examples/BadRequest"
@@ -309,7 +486,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Unauthorized:
                   $ref: "#/components/examples/Unauthorized"
@@ -318,7 +495,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Forbidden:
                   $ref: "#/components/examples/Forbidden"
@@ -327,164 +504,19 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-    get:
-      tags:
-        - Notifications
-      summary: Get all notifications
-      description: Retrieves all the notifications corresponding to the Bearer Token's DID.
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  items:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/NotificationLinks"
-                  self:
-                    type: string
-                    description: |
-                      Absolute URI (http or https) to the the resource's own location.
-                  links:
-                    $ref: "#/components/schemas/Links"
-                  pageSize:
-                    type: integer
-                    description: Maximum number of items per page.
-                  total:
-                    type: integer
-                    description: Total number of items across all pages.
-              examples:
-                Get notifications:
-                  value:
-                    items:
-                      - schemaId: notification-001
-                        type:
-                          - Notification
-                          - StoreVerifiableCredential
-                        "@context":
-                          - https://www.w3.org/2018/credentials/v1
-                          - https://essif.europa.eu/schemas/vc/2020/v1
-                          - https://essif.europa.eu/schemas/notifications/2020/v1
-                        from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-                        to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                        issuanceDate: "2019-06-22T14:11:44Z"
-                        expirationDate: "2019-06-27T14:11:44Z"
-                        payload: {}
-                        proof:
-                          type: EcdsaSecp256k1Signature2019
-                          created: "2019-11-17T14:00:00Z"
-                          proofPurpose: assertionMethod
-                          verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
-                          jws: eyJh..Iw
-                        _links:
-                          self:
-                            href: /notifications/v1/notifications/123
-                      - schemaId: notification-001
-                        type:
-                          - Notification
-                          - RequestVerifiablePresentation
-                        "@context":
-                          - https://www.w3.org/2018/credentials/v1
-                          - https://essif.europa.eu/schemas/vc/2020/v1
-                          - https://essif.europa.eu/schemas/notifications/2020/v1
-                        from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-                        to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                        issuanceDate: "2019-06-22T14:11:44Z"
-                        expirationDate: "2019-06-27T14:11:44Z"
-                        payload: {}
-                        proof:
-                          type: EcdsaSecp256k1Signature2019
-                          created: "2019-11-17T14:00:00Z"
-                          proofPurpose: assertionMethod
-                          verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
-                          jws: eyJh..Iw
-                        _links:
-                          self:
-                            href: https://api.ebsi.xyz/notifications/v1/notifications/124
-                    total: 13
-                    pageSize: 2
-                    self: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=3&page[size]=2
-                    links:
-                      first: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=1&page[size]=2
-                      prev: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=2&page[size]=2
-                      next: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=4&page[size]=2
-                      last: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=7&page[size]=2
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                BadRequest:
-                  $ref: "#/components/examples/BadRequest"
-        "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Unauthorized:
-                  $ref: "#/components/examples/Unauthorized"
-        "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Forbidden:
-                  $ref: "#/components/examples/Forbidden"
-        "500":
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      security:
-        - bearerAuth: []
-      operationId: get-notifications-v1-notifications
-      parameters:
-        - $ref: "#/components/parameters/headerConformance"
-        - in: query
-          name: page[before]
-          schema:
-            type: string
-          description: |
-            Cursor that points to the start of the page of data that has been returned.
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: |
-            Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
   /notifications/v1/notifications/{id}:
     get:
-      tags:
-        - Notifications
-      summary: Get notification by ID
-      description: Gets a specific notification by its ID.
+      summary: Get a notification
+      description: Gets a specific notification identified by its ID.
       operationId: get-notifications-v1-notifications-id
       security:
         - bearerAuth: []
       parameters:
-        - $ref: "#/components/parameters/headerConformance"
+        - $ref: "#/components/parameters/conformanceHeader"
         - name: id
           in: path
           schema:
@@ -526,7 +558,7 @@ paths:
                   description: |
                     Notification response when calling /issuer-mock/authorize (CT ISSUE_051)
                     asynchronously (through notifications api). The response from the endpoint
-                    is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
+                    is located in the field "payload". Follow [this link](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Credential+Issuance+guidelines)
                     for the details of the response of this endpoint.
                   value:
                     schemaId: notifications-001
@@ -555,7 +587,7 @@ paths:
                   description: |
                     Notification response when calling /issuer-mock/token (CT ISSUE_061)
                     asynchronously (through notifications api). The response from the endpoint
-                    is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
+                    is located in the field "payload". Follow [this link](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Credential+Issuance+guidelines)
                     for the details of the response of this endpoint.
                   value:
                     schemaId: notifications-001
@@ -588,7 +620,7 @@ paths:
                   description: |
                     Notification response when calling /issuer-mock/credential (CT ISSUE_065)
                     asynchronously (through notifications api). The response from the endpoint
-                    is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Credential+Issuance+guidelines)
+                    is located in the field "payload". Follow [this link](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Credential+Issuance+guidelines)
                     for the details of the response of this endpoint.
                   value:
                     schemaId: notifications-001
@@ -619,7 +651,7 @@ paths:
                   description: |
                     Notification response when calling /verifier-mock/authentication-requests (CT VERIFY_051)
                     asynchronously (through notifications api). The response from the endpoint
-                    is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
+                    is located in the field "payload". Follow [this link](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
                     for the details of the response of this endpoint.
                   value:
                     schemaId: notifications-001
@@ -646,7 +678,7 @@ paths:
                   description: |
                     Notification response when calling /verifier-mock/authentication-responses (CT VERIFY_064)
                     asynchronously (through notifications api). The response from the endpoint
-                    is located in the field "payload". Follow [this link](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
+                    is located in the field "payload". Follow [this link](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Verifiable+Presentation+exchange+guidelines)
                     for the details of the response of this endpoint.
                   value:
                     schemaId: notifications-001
@@ -686,7 +718,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {id} Parameter:
                   value:
@@ -698,7 +730,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Unauthorized:
                   $ref: "#/components/examples/Unauthorized"
@@ -707,7 +739,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Forbidden:
                   $ref: "#/components/examples/Forbidden"
@@ -716,7 +748,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Not found:
                   value:
@@ -728,17 +760,15 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
     delete:
-      tags:
-        - Notifications
-      summary: Delete notification by ID
-      description: Deletes a notification by its ID.
+      summary: Delete a notification
+      description: Deletes a notification identified by its ID.
       parameters:
-        - $ref: "#/components/parameters/headerConformance"
+        - $ref: "#/components/parameters/conformanceHeader"
         - name: id
           in: path
           schema:
@@ -758,7 +788,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {id} parameter:
                   value:
@@ -770,7 +800,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Unauthorized:
                   $ref: "#/components/examples/Unauthorized"
@@ -779,7 +809,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Forbidden:
                   $ref: "#/components/examples/Forbidden"
@@ -788,7 +818,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Not found:
                   value:
@@ -800,384 +830,16 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
 components:
   schemas:
-    verifiableAttestation:
-      title: EBSI Verifiable Attestation
-      required:
-        - "@context"
-        - credentialSchema
-        - credentialSubject
-        - id
-        - issuanceDate
-        - issuer
-        - proof
-        - type
-        - validFrom
-      type: object
-      properties:
-        "@context":
-          type: array
-          description: Defines semantic context of the Verifiable Attestation.
-          items:
-            type: string
-            format: uri
-        id:
-          type: string
-          description: Defines unique identifier of the Verifiable Attestation.
-        type:
-          type: array
-          description: Defines the Verifiable Credential type.
-          items:
-            type: string
-        issuer:
-          type: string
-          description: Defines the issuer of the Verifiable Attestation.
-        issuanceDate:
-          type: string
-          description: Defines when the Verifiable Attestation was issued.
-          format: date-time
-        validFrom:
-          type: string
-          description: |
-            Defines the date and time, when the Verifiable Attestation becomes valid.
-          format: date-time
-        expirationDate:
-          type: string
-          description: Defines the date and time, when the Verifiable Attestation expires
-          format: date-time
-        credentialSubject:
-          type: object
-          properties: {}
-          description: |
-            Defines information about the subject that is described by the Verifiable Attestation.
-        credentialStatus:
-          required:
-            - id
-            - type
-          type: object
-          properties:
-            id:
-              type: string
-              description: |
-                References record in the Revocation and Endorsement Registry (RER) to enable
-                verification of a Verifiable Attestation's validity.
-            type:
-              type: string
-              description: Defines the Verifiable Credential status type.
-          description: |
-            Contains information about how to verify the status of the Verifiable Attestation (via
-            the Revocation and Endorsement Registry, RER).
-        credentialSchema:
-          required:
-            - id
-            - type
-          type: object
-          properties:
-            id:
-              type: string
-              description: |
-                References the credential schema (template) stored on the (relevant) Trusted
-                Schemas Registry (TSR) on which the Verifiable Attestation is based.
-            type:
-              type: string
-              description: Defines credential schema type.
-          description: |
-            Contains information about the credential schema (template) on which the Verifiable
-            Attestation is based.
-        evidence:
-          type: object
-          properties:
-            id:
-              type: string
-              description: |
-                References the issuance policy stored on the (relevant) Trusted Schemas Registry
-                (TSR) that has been followed for issuing the Verifiable Attestation.
-            type:
-              type: array
-              description: Defines the evidence type
-              items:
-                type: string
-            verifier:
-              type: string
-              description: |
-                Defines entity which has verified documents before Verifiable Attestation issuance.
-            evidenceDocument:
-              type: array
-              description: |
-                Defines document(s) which have been verified before Verifiable Attestation
-                issuance.
-              items:
-                type: string
-            subjectPresence:
-              type: string
-              description: |
-                Defines if the Verifiable Attestation subject was physically present in the course
-                of the verification.
-            documentPresence:
-              type: array
-              description: |
-                Defines how the document(s) which have been verified before Verifiable Attestation
-                issuance have been provided (e.g. physically, digitally).
-              items:
-                type: string
-          description: |
-            Contains information about the process which resulted in the issuance of the Verifiable
-            Attestation.
-        proof:
-          required:
-            - created
-            - jws
-            - proofPurpose
-            - type
-            - verificationMethod
-          type: object
-          properties:
-            type:
-              type: string
-              description: Defines the proof type.
-            proofPurpose:
-              type: string
-              description: Defines the purpose of the proof.
-            created:
-              type: string
-              description: Defines the date and time, when the proof has been created.
-              format: date-time
-            verificationMethod:
-              type: string
-              description: |
-                Contains information about the verification method / proof mechanisms.
-            jws:
-              type: string
-              description: Defines the proof value in JWS format.
-          description: Contains information about the proof.
-      description: Schema of an EBSI Verifiable Attestation.
-    verifiablePresentation:
-      title: EBSI Verifiable Presentation
-      description: Schema of an EBSI Verifiable Presentation
-      type: object
-      properties:
-        "@context":
-          description: Defines semantic context of the Verifiable Presentation.
-          type: array
-          items:
-            type: string
-            format: uri
-        type:
-          description: Defines the Verifiable Presentation type..
-          type: array
-          items:
-            type: string
-        holder:
-          description: |
-            Defines unique identifier of the party who shares the Verifiable Presentation.
-          type: string
-        verifiableCredential:
-          description: Contains the personal information intended to be shared.
-          type: object
-        proof:
-          description: Contains information about the proof.
-          type: object
-          properties:
-            type:
-              description: Defines the proof type.
-              type: string
-            proofPurpose:
-              description: Defines the purpose of the proof.
-              type: string
-            created:
-              description: Defines the date and time, when the proof has been created
-              type: string
-              format: date-time
-            verificationMethod:
-              description: |
-                Contains information about the verification method / proof mechanisms.
-              type: string
-            challenge:
-              description: |
-                Defines a random or pseudo-random value used by some authentication protocols to
-                mitigate replay attacks.
-              type: string
-            domain:
-              description: |
-                Defines a string value that specifies the operational domain of a digital proof.
-              type: string
-              format: hostname
-            jws:
-              description: Defines the proof value in JWS format.
-              type: string
-          required:
-            - type
-            - proofPurpose
-            - created
-            - verificationMethod
-            - jws
-      required:
-        - "@context"
-        - type
-        - holder
-        - verifiableCredential
-        - proof
-    verifiableAuthorisation:
-      title: EBSI Verifiable Authorisation
-      description: Schema of an EBSI Verifiable Authorisation
-      type: object
-      properties:
-        "@context":
-          description: Defines semantic context of the Verifiable Authorisation.
-          type: array
-          items:
-            type: string
-            format: uri
-        id:
-          description: Defines unique identifier of the Verifiable Authorisation.
-          type: string
-        type:
-          description: Defines the Verifiable Credential type.
-          type: array
-          items:
-            type: string
-        issuer:
-          description: Defines the issuer of the Verifiable Authorisation.
-          type: string
-        issuanceDate:
-          description: Defines when the Verifiable Authorisation was issued.
-          type: string
-          format: date-time
-        validFrom:
-          description: |
-            Defines the date and time, when the Verifiable Authorisation becomes valid.
-          type: string
-          format: date-time
-        expirationDate:
-          description: Defines the date and time, when the Verifiable Authorisation expires.
-          type: string
-          format: date-time
-        credentialSubject:
-          description: |
-            Defines information about the subject that is described by the Verifiable Authorisation.
-          type: object
-          properties:
-            id:
-              description: DID of the subject
-              type: string
-          required:
-            - id
-        credentialStatus:
-          description: |
-            Contains information about how to verify the status of the Verifiable Authorisation
-            (via the Revocation and Endorsement Registry, RER).
-          type: object
-          properties:
-            id:
-              description: |
-                References record in the Revocation and Endorsement Registry (RER) to enable
-                verification of a Verifiable Authorisation’s validity.
-              type: string
-            type:
-              description: Defines the Verifiable Credential status type.
-              type: string
-          required:
-            - id
-            - type
-        credentialSchema:
-          description: |
-            Contains information about the credential schema (template) on which the Verifiable
-            Authorisation is based.
-          type: object
-          properties:
-            id:
-              description: |
-                References the credential schema (template) stored on the (relevant) Trusted
-                Schemas Registry (TSR) on which the Verifiable Authorisation is based.
-              type: string
-            type:
-              description: Defines credential schema type.
-              type: string
-          required:
-            - id
-            - type
-        evidence:
-          description: |
-            Contains information about the process which resulted in the issuance of the Verifiable
-            Authorisation.
-          type: object
-          properties:
-            id:
-              description: |
-                References the issuance policy stored on the (relevant) Trusted Schemas Registry
-                (TSR) that has been followed for issuing the Verifiable Authorisation.
-              type: string
-            type:
-              description: Defines the evidence type.
-              type: array
-              items:
-                type: string
-        proof:
-          description: Contains information about the proof.
-          type: object
-          properties:
-            type:
-              description: Defines the proof type.
-              type: string
-            proofPurpose:
-              description: Defines the purpose of the proof.
-              type: string
-            created:
-              description: Defines the date and time, when the proof has been created.
-              type: string
-              format: date-time
-            verificationMethod:
-              description: |
-                Contains information about the verification method / proof mechanisms.
-              type: string
-            jws:
-              description: Defines the proof value in JWS format.
-              type: string
-          required:
-            - type
-            - proofPurpose
-            - created
-            - verificationMethod
-            - jws
-      required:
-        - "@context"
-        - id
-        - type
-        - issuer
-        - issuanceDate
-        - validFrom
-        - credentialSubject
-        - credentialSchema
-        - proof
     Notification:
-      type: object
-      description: Notification
-      example:
-        schemaId: notification-001
-        type:
-          - Notification
-          - StoreVerifiableCredential
-        "@context":
-          - https://www.w3.org/2018/credentials/v1
-          - https://essif.europa.eu/schemas/vc/2020/v1
-          - https://essif.europa.eu/schemas/notifications/2020/v1
-        from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-        to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-        issuanceDate: "2019-06-22T14:11:44Z"
-        expirationDate: "2019-06-27T14:11:44Z"
-        payload: {}
-        proof:
-          type: EcdsaSecp256k1Signature2019
-          created: "2019-11-17T14:00:00Z"
-          proofPurpose: assertionMethod
-          verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
-          jws: eyJh..Iw
       title: Notification
+      description: Notification
+      type: object
       properties:
         schemaId:
           type: string
@@ -1214,23 +876,68 @@ components:
           description: Recipient's Decentralized Identifier
           example: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
         issuanceDate:
-          type: string
           description: |
             Date and time at which the information associated with the notification becomes valid.
+          type: string
           format: date-time
           example: "2010-01-01T19:23:24Z"
         expirationDate:
+          description: Date and time at which a notification ceases to be valid.
           type: string
           format: date-time
           example: "2020-01-01T19:23:24Z"
-          description: Date and time at which a notification ceases to be valid.
         payload:
+          description: "Any valid JSON. Size limit: 1MB"
           type: object
           format: application/json
-          description: "Any valid JSON. Size limit: 1MB"
-          example: "{}"
+          example:
+            any: value
         proof:
-          $ref: "#/components/schemas/embeddedProof"
+          type: object
+          description: |
+            Cryptographic proofs that can be used to detect tampering and verify the authorship of a
+            notification. An embedded proof is a mechanism where the proof is included in the data,
+            such as a Linked Data Signature.
+          properties:
+            type:
+              description: Type of the object or the datatype of the typed value.
+              type: string
+              example: EcdsaSecp256k1Signature2019
+            created:
+              description: Date and time at which proof has been created.
+              type: string
+              format: date-time
+              example: "2019-11-17T09:00:00Z"
+            proofPurpose:
+              description: |
+                It expresses the purpose of the proof and ensures the information is protected by the
+                signature.
+              type: string
+              example: assertionMethod
+            verificationMethod:
+              description: |
+                Specifies the public key that can be used to verify the digital signature.
+
+                Dereferencing a public key URL reveals information about the controller of the key,
+                which can be checked against the issuer of the credential.
+              type: string
+              example: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ#key-1
+            jws:
+              description: JSON Web Signature
+              type: string
+              example: eyJhbGciOiJFUzI1NksifQ.eyJzdWIiOiJFQlNJIDIwMTkifQ.oggE3ft3kJYPGGa9eBibpbjgeJXw4fLbVMouVoM2NfcDxsl_UUUIarsS1VpBoYEs7s9cBlc4uC0EbnJCHfVJIw
+          required:
+            - type
+            - created
+            - proofPurpose
+            - verificationMethod
+            - jws
+          example:
+            type: RsaSignature2018
+            created: "2018-06-18T21:19:10Z"
+            proofPurpose: assertionMethod
+            verificationMethod: https://example.com/jdoe/keys/1
+            jws: eyJhbGciOiJQUzI1NiIsImI2NCI..
       required:
         - schemaId
         - type
@@ -1240,55 +947,29 @@ components:
         - issuanceDate
         - payload
         - proof
-    embeddedProof:
-      title: Embedded Proof
-      type: object
-      description: |
-        Cryptographic proofs that can be used to detect tampering and verify the authorship of a
-        notification. An embedded proof is a mechanism where the proof is included in the data,
-        such as a Linked Data Signature.
-      properties:
-        type:
-          type: string
-          description: Type of the object or the datatype of the typed value.
-          example: EcdsaSecp256k1Signature2019
-        created:
-          type: string
-          description: Date and time at which proof has been created.
-          format: date-time
-          example: "2019-11-17T09:00:00Z"
-        proofPurpose:
-          type: string
-          description: |
-            It expresses the purpose of the proof and ensures the information is protected by the
-            signature.
-          example: assertionMethod
-        verificationMethod:
-          type: string
-          description: |
-            Specifies the public key that can be used to verify the digital signature.
-
-            Dereferencing a public key URL reveals information about the controller of the key,
-            which can be checked against the issuer of the credential.
-          example: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ#key-1
-        jws:
-          type: string
-          description: JSON Web Signature
-          example: eyJhbGciOiJFUzI1NksifQ.eyJzdWIiOiJFQlNJIDIwMTkifQ.oggE3ft3kJYPGGa9eBibpbjgeJXw4fLbVMouVoM2NfcDxsl_UUUIarsS1VpBoYEs7s9cBlc4uC0EbnJCHfVJIw
-      required:
-        - type
-        - created
-        - proofPurpose
-        - verificationMethod
-        - jws
       example:
-        type: RsaSignature2018
-        created: "2018-06-18T21:19:10Z"
-        proofPurpose: assertionMethod
-        verificationMethod: https://example.com/jdoe/keys/1
-        jws: eyJhbGciOiJQUzI1NiIsImI2NCI..
-    Problem:
-      description: A Problem Details object (RFC 7807)
+        schemaId: notification-001
+        type:
+          - Notification
+          - StoreVerifiableCredential
+        "@context":
+          - https://www.w3.org/2018/credentials/v1
+          - https://essif.europa.eu/schemas/vc/2020/v1
+          - https://essif.europa.eu/schemas/notifications/2020/v1
+        from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+        to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
+        issuanceDate: "2019-06-22T14:11:44Z"
+        expirationDate: "2019-06-27T14:11:44Z"
+        payload: {}
+        proof:
+          type: EcdsaSecp256k1Signature2019
+          created: "2019-11-17T14:00:00Z"
+          proofPurpose: assertionMethod
+          verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
+          jws: eyJh..Iw
+    ProblemDetails:
+      title: Problem Details
+      description: A [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) object.
       type: object
       properties:
         type:
@@ -1322,134 +1003,6 @@ components:
           description: |
             An absolute URI that identifies the specific occurrence of the problem. It may or may
             not yield further information if dereferenced.
-    Links:
-      title: Links
-      type: object
-      properties:
-        last:
-          type: string
-          description: URI of the last page
-        prev:
-          type: string
-          description: URI of the previous page
-        next:
-          type: string
-          description: URI of the next page
-        first:
-          type: string
-          description: URI of the first page
-      description: links model used for pagination
-      example:
-        first: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=1&page[size]=2
-        prev: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=2&page[size]=2
-        next: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=4&page[size]=2
-        last: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=7&page[size]=2
-    NotificationLinks:
-      type: object
-      description: Notification Object with a link to retrieve the specific notification.
-      example:
-        schemaId: notification-001
-        type:
-          - Notification
-          - StoreVerifiableCredential
-        "@context":
-          - https://www.w3.org/2018/credentials/v1
-          - https://essif.europa.eu/schemas/vc/2020/v1
-          - https://essif.europa.eu/schemas/notifications/2020/v1
-        from: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-        to: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-        issuanceDate: "2019-06-22T14:11:44Z"
-        expirationDate: "2019-06-27T14:11:44Z"
-        payload: {}
-        proof:
-          type: EcdsaSecp256k1Signature2019
-          created: "2019-11-17T14:00:00Z"
-          proofPurpose: assertionMethod
-          verificationMethod: did:ebsi:zub5ZZUfHLLptCduwEy8xRj#key-1
-          jws: eyJh..Iw
-        _links:
-          self:
-            href: https://api.ebsi.xyz/notifications/v1/notifications/123
-      title: NotificationLinks
-      properties:
-        schemaId:
-          type: string
-          description: |
-            Notification Schema identifier generated after registering it to the Trusted Schemas
-            Registry.
-          example: notification-001
-        type:
-          type: array
-          description: |
-            Notification type that corresponds to the Notifications type that is included as data.
-          example:
-            - Notification
-            - StoreVerifiableCredential
-          uniqueItems: true
-          items:
-            type: string
-        "@context":
-          description: |
-            An ordered set where the first item is a URI https://www.w3.org/2018/credentials/v1. It
-            is used to define terms and help to express specific identifiers in a compact manner.
-          items:
-            type: string
-          uniqueItems: true
-          example:
-            - https://www.w3.org/2018/credentials/v1
-          type: array
-        from:
-          type: string
-          description: Sender's Decentralized Identifier
-          example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-        to:
-          type: string
-          description: Recipient's Decentralized Identifier
-          example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-        issuanceDate:
-          type: string
-          description: |
-            Date and time at which the information associated with the notification becomes valid.
-          format: date-time
-          example: "2010-01-01T19:23:24Z"
-        expirationDate:
-          type: string
-          format: date-time
-          example: "2020-01-01T19:23:24Z"
-          description: Date and time at which a notification ceases to be valid.
-        payload:
-          type: object
-          format: application/json
-          description: "Any valid JSON. Size limit: 1MB"
-        proof:
-          $ref: "#/components/schemas/embeddedProof"
-        _links:
-          $ref: "#/components/schemas/_links"
-      required:
-        - schemaId
-        - type
-        - "@context"
-        - from
-        - to
-        - issuanceDate
-        - payload
-        - proof
-        - _links
-    _links:
-      title: _links
-      type: object
-      properties:
-        self:
-          type: object
-          properties:
-            href:
-              type: string
-              description: URI to the specific notification with its id
-              example: https://api.ebsi.xyz/notifications/v1/notifications/123
-          required:
-            - href
-      required:
-        - self
   examples:
     BadRequest:
       value:
@@ -1473,7 +1026,7 @@ components:
         detail: |
           The server encountered an internal error and was unable to complete your request.
   parameters:
-    headerConformance:
+    conformanceHeader:
       in: header
       name: Conformance
       description: |

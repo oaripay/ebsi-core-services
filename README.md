@@ -1,4 +1,4 @@
-![EBSI Logo](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
+![EBSI Logo](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
 
 # Notifications API
 
@@ -9,7 +9,7 @@ Notifications API is an EBSI core service that helps to send async or delayed no
 
 For more information see:
 
-- [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/WIiWFQ)
+- [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/WIiWFQ)
 - API catalogs:
   - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
   - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
