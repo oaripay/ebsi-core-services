@@ -1,4 +1,4 @@
-![EBSI Logo](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
+![EBSI Logo](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
 
 # DID Registry API
 
@@ -14,9 +14,9 @@ It enables consumers to interact with the DID Registry SC to:
 
 For more information see:
 
-- [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/MYiWFQ)
-- [DID Registry Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/AofkFQ)
-- [DID Registry Smart Contract Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/did-registry-ethereum-sc/browse)
+- [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/MYiWFQ)
+- [DID Registry Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/AofkFQ)
+- [DID Registry Smart Contract Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-ethereum-sc/browse)
 - API catalogs:
   - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
   - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)

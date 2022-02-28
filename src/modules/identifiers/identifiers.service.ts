@@ -73,7 +73,7 @@ export default class IdentifiersService {
   ): ReturnType<DidRegistry["getDidDocumentVersionIds"]> {
     if (validAt) {
       // TODO: filter for a specific date-time and find the did document version ID valide at that time.
-      // https://ec.europa.eu/cefdigital/tracker/browse/EBSIINT-2932
+      // https://ec.europa.eu/digital-building-blocks/tracker/browse/EBSIINT-2932
     }
 
     try {
