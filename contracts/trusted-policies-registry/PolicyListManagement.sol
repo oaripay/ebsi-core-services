@@ -29,13 +29,13 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
     );
     event PolicyUpdated(
         uint256 indexed policyId,
-        string oldName,
-        string newName,
         string oldDescription,
         string newDescription
     );
     event PolicyDeactivated(uint256 indexed policyId);
     event PolicyActivated(uint256 indexed policyId);
+
+    // SETTERS
 
     /**
      * @dev insert an Policy
@@ -93,17 +93,115 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
     }
 
     /**
-     * @dev add a new policy's attribute
+     * @dev add a new policy's condition (by policy name)
+     */
+    function addPolicyConditions(
+        string calldata policyName,
+        PolicyCondition[] calldata policyConditions
+    ) external onlyRole(OPERATOR_ROLE) {
+        _addPolicyConditions(_getPolicyId(policyName), policyConditions);
+    }
+
+    /**
+     * @dev add a new policy's condition (by policy id)
      */
     function addPolicyConditions(
         uint256 policyId,
         PolicyCondition[] calldata policyConditions
     ) external onlyRole(OPERATOR_ROLE) {
+        _addPolicyConditions(policyId, policyConditions);
+    }
+
+    /**
+     * @dev delete a policy condition (by policy name)
+     */
+    function deletePolicyCondition(
+        string calldata policyName,
+        uint256 policyConditionId
+    ) external onlyRole(OPERATOR_ROLE) {
+        _deletePolicyCondition(_getPolicyId(policyName), policyConditionId);
+    }
+
+    /**
+     * @dev delete a policy condition (by policy id)
+     */
+    function deletePolicyCondition(uint256 policyId, uint256 policyConditionId)
+        external
+        onlyRole(OPERATOR_ROLE)
+    {
+        _deletePolicyCondition(policyId, policyConditionId);
+    }
+
+    /**
+     * @dev update a policy (by policy name)
+     */
+    function updatePolicy(
+        string calldata policyName,
+        OPERATION_TYPE opType,
+        string calldata description
+    ) external onlyRole(OPERATOR_ROLE) {
+        _updatePolicy(_getPolicyId(policyName), opType, description);
+    }
+
+    /**
+     * @dev update a policy (by policy id)
+     */
+    function updatePolicy(
+        uint256 policyId,
+        OPERATION_TYPE opType,
+        string calldata description
+    ) external onlyRole(OPERATOR_ROLE) {
+        _updatePolicy(policyId, opType, description);
+    }
+
+    /**
+     * @dev deactivate a policy (by policy name)
+     */
+    function deactivatePolicy(string calldata policyName)
+        external
+        onlyRole(OPERATOR_ROLE)
+    {
+        _deactivatePolicy(_getPolicyId(policyName));
+    }
+
+    /**
+     * @dev deactivate a policy (by policy id)
+     */
+    function deactivatePolicy(uint256 policyId)
+        external
+        onlyRole(OPERATOR_ROLE)
+    {
+        _deactivatePolicy(policyId);
+    }
+
+    /**
+     * @dev activate a policy (by policy name)
+     */
+    function activatePolicy(string calldata policyName)
+        external
+        onlyRole(OPERATOR_ROLE)
+    {
+        _activatePolicy(_getPolicyId(policyName));
+    }
+
+    /**
+     * @dev activate a policy (by policy id)
+     */
+    function activatePolicy(uint256 policyId) external onlyRole(OPERATOR_ROLE) {
+        _activatePolicy(policyId);
+    }
+
+    // INTERNAL SETTERS
+
+    function _addPolicyConditions(
+        uint256 policyId,
+        PolicyCondition[] calldata policyConditions
+    ) internal {
         PolicyContractStorage storage ps = policyStorage();
 
-        require(ps.policyCount > policyId, "Policy: invalid policy Id");
+        require(ps.policyCount > policyId, "Policy: invalid policy");
         Policy storage policy = ps.policies[policyId];
-        require(policy.status, "Policy: policy does not exist or inactive");
+        require(policy.status, "Policy: policy inactive");
         for (uint256 i; i < policyConditions.length; i++) {
             require(
                 bytes(policyConditions[i].attributeName).length > 0,
@@ -126,14 +224,13 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         }
     }
 
-    function deletePolicyCondition(uint256 policyId, uint256 policyConditionId)
-        external
-        onlyRole(OPERATOR_ROLE)
+    function _deletePolicyCondition(uint256 policyId, uint256 policyConditionId)
+        internal
     {
         PolicyContractStorage storage ps = policyStorage();
-        require(ps.policyCount > policyId, "Policy: invalid policy Id");
+        require(ps.policyCount > policyId, "Policy: invalid policy");
         Policy storage policy = ps.policies[policyId];
-        require(policy.status, "Policy: policy does not exist or inactive");
+        require(policy.status, "Policy: policy inactive");
         require(
             policy.policyConditionsCount > policyConditionId,
             "Policy: invalid condition"
@@ -163,36 +260,19 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         );
     }
 
-    function updatePolicy(
+    function _updatePolicy(
         uint256 policyId,
         OPERATION_TYPE opType,
-        string calldata policyName,
         string calldata description
-    ) external onlyRole(OPERATOR_ROLE) {
+    ) internal {
         PolicyContractStorage storage ps = policyStorage();
-        require(policyId < ps.policyCount, "Policy: invalid policy Id");
+        require(policyId < ps.policyCount, "Policy: invalid policy");
         Policy storage policy = ps.policies[policyId];
-        require(policy.status, "Policy: policy does not exist or inactive");
-        string memory oldPolicyName = policy.policyName;
+        require(policy.status, "Policy: policy inactive");
         string memory oldDescription = policy.description;
         policy.opType = opType;
-        policy.policyName = policyName;
         policy.description = description;
         // update search index
-        if (
-            keccak256(abi.encodePacked(policyName)) !=
-            keccak256(abi.encodePacked(oldPolicyName))
-        ) {
-            // update index for policyName
-            require(
-                ps.policyNameDefined[policyName] == false,
-                "Policy Name already exists"
-            );
-            ps.policyNameDefined[oldPolicyName] = false;
-            ps.policyNameToPolicyId[oldPolicyName] = 0;
-            ps.policyNameToPolicyId[policyName] = policyId;
-            ps.policyNameDefined[policyName] = true;
-        }
         if (
             keccak256(abi.encodePacked(description)) !=
             keccak256(abi.encodePacked(oldDescription))
@@ -215,38 +295,28 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
                 }
             }
         }
-        emit PolicyUpdated(
-            policyId,
-            oldPolicyName,
-            policyName,
-            oldDescription,
-            description
-        );
+        emit PolicyUpdated(policyId, oldDescription, description);
     }
 
-    function deactivatePolicy(uint256 policyId)
-        external
-        onlyRole(OPERATOR_ROLE)
-    {
+    function _deactivatePolicy(uint256 policyId) internal {
         PolicyContractStorage storage ps = policyStorage();
-        require(policyId < ps.policyCount, "Policy: invalid policy Id");
+        require(policyId < ps.policyCount, "Policy: invalid policy");
         Policy storage policy = ps.policies[policyId];
-        require(policy.status, "Policy: invalid policy");
+        require(policy.status, "Policy: policy already inactive");
         policy.status = false;
         emit PolicyDeactivated(policyId);
     }
 
-    function activatePolicy(uint256 policyId) external onlyRole(OPERATOR_ROLE) {
+    function _activatePolicy(uint256 policyId) internal {
         PolicyContractStorage storage ps = policyStorage();
-        require(policyId < ps.policyCount, "Policy: invalid policy Id");
+        require(policyId < ps.policyCount, "Policy: invalid policy");
         Policy storage policy = ps.policies[policyId];
-        require(
-            policy.status == false && ps.policyCount > policyId,
-            "Policy: invalid policy"
-        );
+        require(policy.status == false, "Policy: policy already active");
         policy.status = true;
         emit PolicyActivated(policyId);
     }
+
+    // GETTERS
 
     function getPolicies(uint256 page, uint256 pageSize)
         external
@@ -321,9 +391,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
             PolicyCondition[] memory policyConditions
         )
     {
-        PolicyContractStorage storage ps = policyStorage();
-        require(ps.policyNameDefined[_policyName], "policy does not exists");
-        return _getPolicy(ps.policyNameToPolicyId[_policyName]);
+        return _getPolicy(_getPolicyId(_policyName));
     }
 
     function _getPolicy(uint256 _policyId)
@@ -361,6 +429,16 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
             status,
             policyConditions
         );
+    }
+
+    function _getPolicyId(string calldata policyName)
+        internal
+        view
+        returns (uint256)
+    {
+        PolicyContractStorage storage ps = policyStorage();
+        require(ps.policyNameDefined[policyName], "Policy: invalid policy");
+        return ps.policyNameToPolicyId[policyName];
     }
 
     function searchPolicy(string calldata searchString)

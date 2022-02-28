@@ -4,7 +4,7 @@ import { ethers } from "hardhat";
 
 export default async function deployContract(
   name: string,
-  args?: Array<any>
+  args?: Array<unknown>
 ): Promise<Contract> {
   const factory: ContractFactory = await ethers.getContractFactory(name);
   const ctr = await factory.deploy(...(args || []));

@@ -1,0 +1,8 @@
+{
+  "extends": "solhint:recommended",
+  "excludedFiles": ["**/contracts/bootstrap-ethereum-sc"],
+  "rules": {
+    "compiler-version": ["error", "^0.8.9"],
+    "no-inline-assembly": "off"
+  }
+}

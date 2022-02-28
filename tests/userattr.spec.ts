@@ -66,6 +66,7 @@ describe("UserAttributesManagement", () => {
 
     await policyContract.initialize(10);
     expect(await policyContract.version()).to.equal(10);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(policyContract.address).to.properAddress;
 
     await policyContract.insertPolicy(0, pcs, "test policy 2", "registry 2");

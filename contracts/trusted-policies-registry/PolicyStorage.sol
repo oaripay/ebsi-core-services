@@ -19,11 +19,13 @@ contract PolicyStorage {
         EQUAL /* @TODO: to be implemented: , GREATER_THAN, SMALLER_THAN */
     }
 
+    // solhint-disable-next-line contract-name-camelcase
     enum OPERATION_TYPE {
         AND,
         OR /* @TODO: to be implemented: XOR, NOR **/
     }
 
+    // solhint-disable-next-line contract-name-camelcase
     enum ASSERT_TYPE {
         DID
     }
