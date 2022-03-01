@@ -5,10 +5,6 @@ import {
   RequestSendSignedTransactionDto,
   SignedTransactionParam,
   UnsignedTransaction,
-  ArgsInsertAdministrator,
-  RequestInsertAdministratorDto,
-  ArgsUpdateAdministrator,
-  RequestUpdateAdministratorDto,
   ArgsInsertHashAlgorithm,
   RequestInsertHashAlgorithmDto,
   RequestUpdateHashAlgorithmDto,
@@ -47,8 +43,7 @@ import {
   validateClass,
 } from "./jsonrpc.utils";
 import { LedgerService } from "../ledger/ledger.service";
-import { AdministratorsService } from "../administrators/administrators.service";
-import { prefixWith0x, remove0xPrefix } from "../../shared/utils";
+import { remove0xPrefix } from "../../shared/utils";
 
 // Cache algorightms' output lengths for 30 minutes
 const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
@@ -71,10 +66,7 @@ export class JsonRpcService {
     { outputLength: number; exp: number }
   > = {};
 
-  constructor(
-    private ledgerService: LedgerService,
-    private administratorService: AdministratorsService
-  ) {}
+  constructor(private ledgerService: LedgerService) {}
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
@@ -131,37 +123,6 @@ export class JsonRpcService {
     }
 
     return false;
-  }
-
-  async checkWritePermission(
-    func: string,
-    controllerAddress: string,
-    clientId: string
-  ): Promise<void> {
-    // If the function is not in the list, then any user/app can access it
-    if (
-      ![
-        "insertAdministrator",
-        "updateAdministrator",
-        "insertHashAlgorithm",
-        "updateHashAlgorithm",
-        "insertDidMethod",
-        "updateDidMethod",
-        "insertPolicy",
-        "updatePolicy",
-      ].includes(func)
-    ) {
-      return;
-    }
-
-    await this.administratorService.allowAdministratorsOnly(clientId);
-
-    // Check DID Registry
-    if (!(await this.verifyDidRegistry(controllerAddress, clientId))) {
-      throw new Error(
-        `The DID ${clientId} is not controlled by the address ${controllerAddress}`
-      );
-    }
   }
 
   async checkHash(hashAlgorithmId: number, hashValue: string): Promise<void> {
@@ -284,20 +245,6 @@ export class JsonRpcService {
     ).interface.parseTransaction(unsignedTransaction);
 
     switch (functionFragment.name) {
-      case "insertAdministrator": {
-        await validateClass(
-          ArgsInsertAdministrator,
-          args as unknown as ArgsInsertAdministrator
-        );
-        break;
-      }
-      case "updateAdministrator": {
-        await validateClass(
-          ArgsUpdateAdministrator,
-          args as unknown as ArgsUpdateAdministrator
-        );
-        break;
-      }
       case "insertPolicy": {
         await validateClass(
           ArgsInsertPolicy,
@@ -479,74 +426,6 @@ export class JsonRpcService {
     }
 
     return unsignedTransaction;
-  }
-
-  async buildTransactionInsertAdministrator(
-    body: RequestInsertAdministratorDto,
-    id?: number | string
-  ): Promise<UnsignedTransaction> {
-    try {
-      await validateClass(RequestInsertAdministratorDto, body);
-
-      const { from, did, attributeData } = body.params[0];
-
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("insertAdministrator", [
-        did,
-        attributeData,
-      ]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
-    }
-  }
-
-  async buildTransactionUpdateAdministrator(
-    body: RequestUpdateAdministratorDto,
-    id?: number | string
-  ): Promise<UnsignedTransaction> {
-    try {
-      await validateClass(RequestUpdateAdministratorDto, body);
-
-      const { from, did, attributeData, prevAttributeHash } = body.params[0];
-
-      const data = [did, attributeData];
-
-      if (prevAttributeHash) {
-        data.push(prefixWith0x(prevAttributeHash));
-      }
-
-      let functionSig: string;
-
-      if (prevAttributeHash) {
-        // using updateAdministrator function (did, attributeData, lastVersHash)
-        functionSig = "updateAdministrator(string,bytes,bytes32)";
-      } else {
-        // using updateAdministrator function (did, attributeData)
-        functionSig = "updateAdministrator(string,bytes)";
-      }
-
-      const encodedData = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        functionSig,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        data
-      );
-
-      return await this.buildTransaction(from, encodedData);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
-    }
   }
 
   async buildTransactionInsertPolicy(
@@ -1015,8 +894,14 @@ export class JsonRpcService {
         clientId,
         request
       );
-
-      await this.checkWritePermission(functionName, signer, clientId);
+      if (
+        functionName !== "insertDidDocument" &&
+        !(await this.verifyDidRegistry(signer, clientId))
+      ) {
+        throw new Error(
+          `The DID ${clientId} is not controlled by the address ${signer}`
+        );
+      }
 
       const tx = await (
         await this.ledgerService.getContract()

@@ -24,8 +24,6 @@ import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   UnsignedTransaction,
-  InsertAdministratorParam,
-  UpdateAdministratorParam,
   InsertHashAlgorithmParam,
   UpdateHashAlgorithmParam,
   InsertPolicyParam,
@@ -66,8 +64,6 @@ interface SupertestJsonRpcResponse {
 }
 
 type JsonRpcParams =
-  | InsertAdministratorParam
-  | UpdateAdministratorParam
   | InsertHashAlgorithmParam
   | UpdateHashAlgorithmParam
   | InsertPolicyParam
@@ -103,8 +99,6 @@ interface DidMethodDataset {
 
 jest.setTimeout(300000);
 
-const ADMINS_TOTAL = 2;
-
 describe("JsonRpc Module", () => {
   let app: INestApplication;
   let server: HttpServer;
@@ -115,26 +109,7 @@ describe("JsonRpc Module", () => {
   let jsonRpcService: JsonRpcService;
   let appAccessToken: string;
   let adminAccessToken: string;
-  let userAccessToken: string;
-  let defaultSignerSiopAccessToken: string;
-
-  const createAdministrator = (did: string, usingValidTo = true) => {
-    const json = {
-      // any object here
-      any: "Any attribute here",
-      type: "credential",
-      data: crypto.randomBytes(16).toString("hex"),
-      validFrom: new Date().toISOString(),
-      ...(usingValidTo && {
-        validTo: new Date(Date.now() + 4e8).toISOString(),
-      }),
-    };
-    const attributeData = `0x${Buffer.from(JSON.stringify(json)).toString(
-      "hex"
-    )}`;
-
-    return { did, attributeData };
-  };
+  let newUserAccessToken: string;
 
   function createPolicy() {
     const policyId = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
@@ -152,16 +127,13 @@ describe("JsonRpc Module", () => {
     };
   }
 
-  const adminDid = createDid();
-  const adminV1 = createAdministrator(adminDid);
-  const adminV2 = createAdministrator(adminDid);
-  const adminV3 = createAdministrator(adminDid);
-
   const policy1 = createPolicy();
   const policy2 = createPolicy();
   const policy3 = createPolicy();
 
-  const controllerDid = createDid();
+  let adminSigner: ethers.Wallet;
+  let adminDid: string;
+  let newUserDid: string;
   const badControllerDid =
     "did:unregistered-method:0xb9c5714089478a327f09197987f16f9e5d936e8a";
 
@@ -246,7 +218,7 @@ describe("JsonRpc Module", () => {
   beforeAll(async () => {
     // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv({
-      administratorsTotal: ADMINS_TOTAL,
+      didDocuments: 2,
     });
     didRegistryContract = testEnv.didRegistryContract;
 
@@ -280,8 +252,12 @@ describe("JsonRpc Module", () => {
 
     const firstAlgMultihash = testEnv.hashAlgorithms[0].multihash;
 
-    didDocument = prepareDidDocument(controllerDid, firstAlgMultihash);
-    updatedDidDocument = prepareDidDocument(controllerDid, firstAlgMultihash);
+    adminSigner = testEnv.defaultController;
+    adminDid = testEnv.didDocuments[0].did;
+    newUserDid = createDid();
+
+    didDocument = prepareDidDocument(newUserDid, firstAlgMultihash);
+    updatedDidDocument = prepareDidDocument(newUserDid, firstAlgMultihash);
     didDocumentInvalidMethod = prepareDidDocument(
       badControllerDid,
       firstAlgMultihash
@@ -311,16 +287,8 @@ describe("JsonRpc Module", () => {
       }
     );
 
-    defaultSignerSiopAccessToken = await createJWT(
-      { sub: testEnv.administrators[0].did, login_hint: "did_siop" },
-      {
-        issuer: "any",
-        signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
-      }
-    );
-
-    userAccessToken = await createJWT(
-      { sub: controllerDid, login_hint: "did_siop" },
+    newUserAccessToken = await createJWT(
+      { sub: newUserDid, login_hint: "did_siop" },
       {
         issuer: "any",
         signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
@@ -422,7 +390,7 @@ describe("JsonRpc Module", () => {
 
     const response = await request(server)
       .post("/jsonrpc")
-      .auth(adminAccessToken, { type: "bearer" })
+      .auth(newUserAccessToken, { type: "bearer" })
       .send();
 
     expect(response.body).toStrictEqual({
@@ -436,7 +404,7 @@ describe("JsonRpc Module", () => {
       (response.headers as { "content-type": string })["content-type"]
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
     expect(verifyAccessTokenSpy).toHaveBeenCalledWith(
-      adminAccessToken,
+      newUserAccessToken,
       configService.get("authorisationApiDid")
     );
   });
@@ -467,15 +435,14 @@ describe("JsonRpc Module", () => {
   it("should throw an error when sendSignedTransaction is used with a wrong chainId", async () => {
     expect.assertions(2);
     const wallet = ethers.Wallet.createRandom();
-    const { did } = adminV1;
 
     const transaction = {
       from: wallet.address,
       to: didRegistryContract.address,
-      data: didRegistryContract.interface.encodeFunctionData(
-        "insertAdministrator",
-        [did, adminV1.attributeData]
-      ),
+      data: didRegistryContract.interface.encodeFunctionData("insertPolicy", [
+        "policy abc",
+        "0x000000",
+      ]),
       value: "0x00",
       nonce: "0x00",
       chainId: "0x1b3b",
@@ -559,259 +526,6 @@ describe("JsonRpc Module", () => {
     expect(response.status).toBe(400);
   });
 
-  // Only SIOP JWT are allowed to call insertAdministrator
-  it("should throw an error if an app tries to call insertAdministrator", async () => {
-    expect.assertions(4);
-
-    const { did } = adminV1;
-
-    const signer = ethers.Wallet.createRandom();
-
-    const param: JsonRpcParams = {
-      attributeData: adminV1.attributeData,
-      did,
-      from: signer.address,
-    } as InsertAdministratorParam;
-
-    // Mock access token verification
-    jest
-      .spyOn(OAuth2Session.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve({}));
-
-    const responseBuild: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .auth(appAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "insertAdministrator",
-        params: [param],
-        id: 231,
-      });
-
-    expect(responseBuild.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: 231,
-      result: {
-        chainId: expect.any(String) as string,
-        data: expect.any(String) as string,
-        from: param.from,
-        gasLimit: expect.any(String) as string,
-        gasPrice: expect.any(String) as string,
-        nonce: expect.any(String) as string,
-        to: expect.any(String) as string,
-        value: "0x0",
-      },
-    });
-    expect(responseBuild.status).toBe(200);
-
-    const unsignedTransaction = responseBuild.body.result;
-    const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(
-        JSON.stringify(unsignedTransaction)
-      ) as unknown as UnsignedTransaction
-    );
-    uTx.chainId = Number(uTx.chainId);
-    const sgnTx = await signer.signTransaction(uTx);
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-    const responseSend = await request(server)
-      .post("/jsonrpc")
-      .auth(appAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "sendSignedTransaction",
-        params: [
-          {
-            protocol: "eth",
-            unsignedTransaction,
-            r,
-            s,
-            v: `0x${Number(v).toString(16)}`,
-            signedRawTransaction: sgnTx,
-          },
-        ],
-        id: "45",
-      });
-
-    expect(responseSend.body).toStrictEqual({
-      error: {
-        code: -32600,
-        message: `random-app is not an administrator`,
-      },
-      id: "45",
-      jsonrpc: "2.0",
-    });
-    expect(responseSend.status).toBe(400);
-  });
-
-  it("should throw an error if the signer is not a registered admin", async () => {
-    expect.assertions(4);
-
-    const { did } = adminV1;
-
-    const signer = ethers.Wallet.createRandom();
-
-    const param: JsonRpcParams = {
-      attributeData: adminV1.attributeData,
-      did,
-      from: signer.address,
-    } as InsertAdministratorParam;
-
-    // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve({}));
-
-    const responseBuild: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .auth(adminAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "insertAdministrator",
-        params: [param],
-        id: 231,
-      });
-
-    expect(responseBuild.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: 231,
-      result: {
-        chainId: expect.any(String) as string,
-        data: expect.any(String) as string,
-        from: param.from,
-        gasLimit: expect.any(String) as string,
-        gasPrice: expect.any(String) as string,
-        nonce: expect.any(String) as string,
-        to: expect.any(String) as string,
-        value: "0x0",
-      },
-    });
-    expect(responseBuild.status).toBe(200);
-
-    const unsignedTransaction = responseBuild.body.result;
-    const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(
-        JSON.stringify(unsignedTransaction)
-      ) as unknown as UnsignedTransaction
-    );
-    uTx.chainId = Number(uTx.chainId);
-    const sgnTx = await signer.signTransaction(uTx);
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-    const responseSend = await request(server)
-      .post("/jsonrpc")
-      .auth(adminAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "sendSignedTransaction",
-        params: [
-          {
-            protocol: "eth",
-            unsignedTransaction,
-            r,
-            s,
-            v: `0x${Number(v).toString(16)}`,
-            signedRawTransaction: sgnTx,
-          },
-        ],
-        id: "45",
-      });
-
-    expect(responseSend.body).toStrictEqual({
-      error: {
-        code: -32600,
-        message: `${adminDid} is not an administrator`,
-      },
-      id: "45",
-      jsonrpc: "2.0",
-    });
-    expect(responseSend.status).toBe(400);
-  });
-
-  it("should throw an error if the signer doesn't control the DID", async () => {
-    expect.assertions(4);
-
-    const { did } = adminV1;
-
-    const signer = testEnv.administrators[1].wallet;
-
-    const param: JsonRpcParams = {
-      attributeData: adminV1.attributeData,
-      did,
-      from: signer.address,
-    } as InsertAdministratorParam;
-
-    // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve({}));
-
-    const responseBuild: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .auth(defaultSignerSiopAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "insertAdministrator",
-        params: [param],
-        id: 231,
-      });
-
-    expect(responseBuild.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: 231,
-      result: {
-        chainId: expect.any(String) as string,
-        data: expect.any(String) as string,
-        from: param.from,
-        gasLimit: expect.any(String) as string,
-        gasPrice: expect.any(String) as string,
-        nonce: expect.any(String) as string,
-        to: expect.any(String) as string,
-        value: "0x0",
-      },
-    });
-    expect(responseBuild.status).toBe(200);
-
-    const unsignedTransaction = responseBuild.body.result;
-    const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(
-        JSON.stringify(unsignedTransaction)
-      ) as unknown as UnsignedTransaction
-    );
-    uTx.chainId = Number(uTx.chainId);
-    const sgnTx = await signer.signTransaction(uTx);
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-    const responseSend = await request(server)
-      .post("/jsonrpc")
-      .auth(defaultSignerSiopAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "sendSignedTransaction",
-        params: [
-          {
-            protocol: "eth",
-            unsignedTransaction,
-            r,
-            s,
-            v: `0x${Number(v).toString(16)}`,
-            signedRawTransaction: sgnTx,
-          },
-        ],
-        id: "45",
-      });
-
-    expect(responseSend.body).toStrictEqual({
-      error: {
-        code: -32600,
-        message: `The DID ${testEnv.administrators[0].did} is not controlled by the address ${signer.address}`,
-      },
-      id: "45",
-      jsonrpc: "2.0",
-    });
-    expect(responseSend.status).toBe(400);
-  });
-
   // EBSIINT-3464: sendSignedTransaction should throw an error if the DID document is not valid
   describe.each([
     "insertDidDocument",
@@ -827,7 +541,7 @@ describe("JsonRpc Module", () => {
       const from = wallet.address;
       const did = createDid();
 
-      // The DID document is incorrect because its "id" property is different from the DID of the JWT (controllerDid)
+      // The DID document is incorrect because its "id" property is different from the DID of the JWT (newUserDid)
       const incorrectDidDocument = prepareDidDocument(did, "sha2-256");
       const {
         didDocumentBuffer,
@@ -835,7 +549,7 @@ describe("JsonRpc Module", () => {
         timestampDataBuffer,
         didVersionMetadataBuffer,
       } = incorrectDidDocument;
-      const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+      const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
       const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
       const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
       const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
@@ -954,10 +668,9 @@ describe("JsonRpc Module", () => {
         "checkDidDocument"
       );
 
-      // Send transaction with userAccessToken (DID: controllerDid)
       const responseSend = await request(server)
         .post("/jsonrpc")
-        .auth(userAccessToken, { type: "bearer" })
+        .auth(newUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
@@ -976,7 +689,7 @@ describe("JsonRpc Module", () => {
 
       expect(checkDidDocumentSpy).toHaveBeenCalledTimes(1);
       expect(checkDidDocumentSpy).toHaveBeenCalledWith(
-        controllerDid,
+        newUserDid,
         identifier,
         didVersionInfo
       );
@@ -985,7 +698,7 @@ describe("JsonRpc Module", () => {
         id: "45",
         error: {
           code: -32600,
-          message: `DID Document's "id" ${did} doesn't match JWT's DID ${controllerDid}`,
+          message: `DID Document's "id" ${did} doesn't match JWT's DID ${newUserDid}`,
         },
       });
       expect(responseSend.status).toBe(400);
@@ -995,10 +708,6 @@ describe("JsonRpc Module", () => {
   // Tests to be repeated for every method
   describe.each([
     "insertDidMethod",
-    "insertAdministrator",
-    "updateAdministrator",
-    "updateAdministrator(test update attribute)",
-    "updateAdministrator(without validTo)",
     "insertHashAlgorithm",
     "updateHashAlgorithm",
     "insertPolicy",
@@ -1015,9 +724,7 @@ describe("JsonRpc Module", () => {
     "appendDidDocumentVersionMetadata",
     "detachDidDocumentVersionMetadata",
   ])("/jsonrpc with method %s", (testMethod: string) => {
-    const updateAttribute = testMethod.includes("(test update attribute)");
     const withOptionalParams = testMethod.includes("(with optional params)");
-    const usingValidTo = !testMethod.includes("(without validTo)");
     const method = testMethod
       .replace("(test update attribute)", "")
       .replace("(with optional params)", "")
@@ -1031,44 +738,11 @@ describe("JsonRpc Module", () => {
         .spyOn(SiopSession.prototype, "verifyAccessToken")
         .mockImplementation(async () => Promise.resolve({}));
 
-      const { did } = adminV1;
       let param: JsonRpcParams = null;
-      const defaultSigner = testEnv.administrators[0].wallet;
-      let signer = defaultSigner;
-      let accessToken: string;
+      let accessToken = adminAccessToken;
+      let signer = adminSigner;
 
       switch (method) {
-        case "insertAdministrator": {
-          // create a new administrator and add attribute1
-          param = {
-            attributeData: adminV1.attributeData,
-            did,
-            from: signer.address,
-          } as InsertAdministratorParam;
-          break;
-        }
-        case "updateAdministrator": {
-          if (updateAttribute) {
-            // update attribute1: change it to attribute3
-            param = {
-              attributeData: adminV3.attributeData,
-              did,
-              from: signer.address,
-              prevAttributeHash: ethers.utils.sha256(
-                Buffer.from(adminV1.attributeData.slice(2), "hex")
-              ),
-            } as UpdateAdministratorParam;
-          } else {
-            // updateIssuer: add attribute2
-            param = {
-              attributeData: createAdministrator(did, usingValidTo)
-                .attributeData,
-              did,
-              from: signer.address,
-            } as UpdateAdministratorParam;
-          }
-          break;
-        }
         case "insertHashAlgorithm": {
           param = {
             from: signer.address,
@@ -1117,7 +791,7 @@ describe("JsonRpc Module", () => {
             didVersionMetadataBuffer,
           } = didDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
@@ -1135,7 +809,7 @@ describe("JsonRpc Module", () => {
             didVersionMetadata,
           } as InsertDidDocumentParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -1147,7 +821,7 @@ describe("JsonRpc Module", () => {
             didVersionMetadataBuffer,
           } = updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
@@ -1164,12 +838,12 @@ describe("JsonRpc Module", () => {
             didVersionMetadata,
           } as UpdateDidDocumentParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
         case "insertDidController": {
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const controller = ethers.Wallet.createRandom();
           controllers.push(controller);
 
@@ -1181,10 +855,12 @@ describe("JsonRpc Module", () => {
             notAfter: 3232818053700,
           } as InsertDidControllerParam;
 
+          accessToken = newUserAccessToken;
+
           break;
         }
         case "updateDidController": {
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const controller = controllers[controllers.length - 1];
           // Sign with the new controller
           signer = controller;
@@ -1197,16 +873,20 @@ describe("JsonRpc Module", () => {
             notAfter: 3232818053700,
           } as UpdateDidControllerParam;
 
+          accessToken = newUserAccessToken;
+
           break;
         }
         case "revokeDidController": {
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
 
           param = {
             from: signer.address,
             identifier,
             oldControllerId: controllers[controllers.length - 1].address,
           } as RevokeDidControllerParam;
+
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -1249,7 +929,7 @@ describe("JsonRpc Module", () => {
             canonicalizedDidDocumentHash,
           } = updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
 
@@ -1264,7 +944,7 @@ describe("JsonRpc Module", () => {
             }),
           } as AppendDidDocumentVersionHashParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -1272,7 +952,7 @@ describe("JsonRpc Module", () => {
           const { didDocumentBuffer, canonicalizedDidDocumentHash } =
             updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
 
           param = {
@@ -1283,7 +963,7 @@ describe("JsonRpc Module", () => {
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -1291,7 +971,7 @@ describe("JsonRpc Module", () => {
           const { didDocumentBuffer, didVersionMetadataBuffer } =
             updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
             "hex"
@@ -1304,7 +984,7 @@ describe("JsonRpc Module", () => {
             didVersionMetadata,
           } as AppendDidDocumentVersionMetadataParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -1312,7 +992,7 @@ describe("JsonRpc Module", () => {
           const { didDocumentBuffer, didVersionMetadataBuffer } =
             updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
             "hex"
@@ -1325,7 +1005,7 @@ describe("JsonRpc Module", () => {
             didVersionMetadata,
           } as DetachDidDocumentVersionMetadataParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -1336,7 +1016,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1372,7 +1052,7 @@ describe("JsonRpc Module", () => {
 
       const responseSend = await request(server)
         .post("/jsonrpc")
-        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
@@ -1405,27 +1085,11 @@ describe("JsonRpc Module", () => {
         .spyOn(SiopSession.prototype, "verifyAccessToken")
         .mockImplementation(async () => Promise.resolve({}));
 
-      const signer = testEnv.administrators[0].wallet;
+      const signer = adminSigner;
       let param: JsonRpcParams = null;
-      let accessToken: string;
+      let accessToken = adminAccessToken;
 
       switch (method) {
-        case "insertAdministrator": {
-          param = {
-            attributeData: adminV1.attributeData,
-            did: adminV1.did,
-            from: signer.address,
-          } as InsertAdministratorParam;
-          break;
-        }
-        case "updateAdministrator": {
-          param = {
-            attributeData: adminV1.attributeData,
-            did: adminV1.did,
-            from: signer.address,
-          } as UpdateAdministratorParam;
-          break;
-        }
         case "insertHashAlgorithm": {
           param = {
             from: signer.address,
@@ -1466,7 +1130,7 @@ describe("JsonRpc Module", () => {
             didVersionMetadataBuffer,
           } = didDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
@@ -1483,7 +1147,7 @@ describe("JsonRpc Module", () => {
             didVersionMetadata,
           } as InsertDidDocumentParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -1495,7 +1159,7 @@ describe("JsonRpc Module", () => {
             didVersionMetadataBuffer,
           } = updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
@@ -1512,13 +1176,13 @@ describe("JsonRpc Module", () => {
             didVersionMetadata,
           } as UpdateDidDocumentParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
         case "insertDidController":
         case "updateDidController": {
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const controllerId = ethers.Wallet.createRandom().address;
 
           param = {
@@ -1528,10 +1192,13 @@ describe("JsonRpc Module", () => {
             notBefore: 1616408985883,
             notAfter: 3232818053700,
           } as InsertDidControllerParam;
+
+          accessToken = newUserAccessToken;
+
           break;
         }
         case "revokeDidController": {
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const controllerId = ethers.Wallet.createRandom().address;
 
           param = {
@@ -1539,6 +1206,8 @@ describe("JsonRpc Module", () => {
             identifier,
             oldControllerId: controllerId,
           } as RevokeDidControllerParam;
+
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -1581,7 +1250,7 @@ describe("JsonRpc Module", () => {
             timestampDataBuffer,
           } = updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
 
@@ -1596,7 +1265,7 @@ describe("JsonRpc Module", () => {
             }),
           } as AppendDidDocumentVersionHashParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -1604,7 +1273,7 @@ describe("JsonRpc Module", () => {
           const { didDocumentBuffer, canonicalizedDidDocumentHash } =
             updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
 
           param = {
@@ -1615,7 +1284,7 @@ describe("JsonRpc Module", () => {
             didVersionInfo,
           } as DetachDidDocumentVersionParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -1624,7 +1293,7 @@ describe("JsonRpc Module", () => {
           const { didDocumentBuffer, didVersionMetadataBuffer } =
             updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
             "hex"
@@ -1637,7 +1306,7 @@ describe("JsonRpc Module", () => {
             didVersionMetadata,
           } as AppendDidDocumentVersionMetadataParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -1648,7 +1317,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild = await request(server)
         .post("/jsonrpc")
-        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -1670,7 +1339,7 @@ describe("JsonRpc Module", () => {
         .spyOn(SiopSession.prototype, "verifyAccessToken")
         .mockImplementation(async () => Promise.resolve({}));
 
-      const signer = testEnv.administrators[0].wallet;
+      const signer = adminSigner;
 
       const testSetup: {
         params: JsonRpcParams;
@@ -1679,64 +1348,6 @@ describe("JsonRpc Module", () => {
       }[] = [];
 
       switch (method) {
-        case "insertAdministrator": {
-          testSetup.push({
-            params: {
-              did: adminV1.did,
-              from: signer.address,
-            } as InsertAdministratorParam,
-            expectedErrorMessage:
-              "Validation error: attributeData must be a hexadecimal JSON with a correct admin attribute format",
-          });
-
-          testSetup.push({
-            params: {
-              from: signer.address,
-              attributeData: adminV1.attributeData,
-            } as InsertAdministratorParam,
-            expectedErrorMessage: "did must contain a valid DID method",
-          });
-
-          testSetup.push({
-            params: {
-              did: adminV1.did,
-              attributeData: adminV1.attributeData,
-              from: "bad address",
-            } as InsertAdministratorParam,
-            expectedErrorMessage: "from must be an Ethereum address",
-          });
-
-          break;
-        }
-        case "updateAdministrator": {
-          testSetup.push({
-            params: {
-              did: adminV1.did,
-              from: signer.address,
-            } as UpdateAdministratorParam,
-            expectedErrorMessage:
-              "Validation error: attributeData must be a hexadecimal JSON with a correct admin attribute format",
-          });
-
-          testSetup.push({
-            params: {
-              from: signer.address,
-              attributeData: adminV1.attributeData,
-            } as UpdateAdministratorParam,
-            expectedErrorMessage: "did must contain a valid DID method",
-          });
-
-          testSetup.push({
-            params: {
-              did: adminV1.did,
-              attributeData: adminV1.attributeData,
-              from: "bad address",
-            } as UpdateAdministratorParam,
-            expectedErrorMessage: "from must be an Ethereum address",
-          });
-
-          break;
-        }
         case "insertHashAlgorithm": {
           testSetup.push({
             params: {
@@ -1857,13 +1468,16 @@ describe("JsonRpc Module", () => {
             didVersionMetadataBuffer,
           } = didDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
             "hex"
           )}`;
           const randomHash = `0x${crypto.randomBytes(37).toString("hex")}`;
+          const badDidVersionInfo = `0x${didDocumentInvalidMethod.didDocumentBuffer.toString(
+            "hex"
+          )}`;
 
           testSetup.push({
             params: {
@@ -1876,7 +1490,7 @@ describe("JsonRpc Module", () => {
               didVersionMetadata,
             } as InsertDidDocumentParam,
             expectedErrorMessage: `Hash ${randomHash}'s length (296 bits) is different from the expected length (${testEnv.hashAlgorithms[0].outputLength} bits)`,
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           testSetup.push({
@@ -1891,7 +1505,7 @@ describe("JsonRpc Module", () => {
             } as InsertDidDocumentParam,
             expectedErrorMessage:
               "didVersionInfo must be a DID document encoded in hexadecimal",
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           // Test case: DID document has an invalid `@context`
@@ -1913,7 +1527,7 @@ describe("JsonRpc Module", () => {
             } as InsertDidDocumentParam,
             expectedErrorMessage:
               "didVersionInfo must be a DID document encoded in hexadecimal",
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           // Test case: DID document is missing an `id`
@@ -1933,7 +1547,7 @@ describe("JsonRpc Module", () => {
             } as InsertDidDocumentParam,
             expectedErrorMessage:
               "didVersionInfo must be a DID document encoded in hexadecimal",
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           testSetup.push({
@@ -1947,7 +1561,7 @@ describe("JsonRpc Module", () => {
               didVersionMetadata,
             } as InsertDidDocumentParam,
             expectedErrorMessage: "Can't find hash algorithm with ID: 193",
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           const randomDid = createDid();
@@ -1961,8 +1575,8 @@ describe("JsonRpc Module", () => {
               timestampData,
               didVersionMetadata,
             } as InsertDidDocumentParam,
-            expectedErrorMessage: `Identifier ${randomDid} doesn't match JWT's DID ${controllerDid}`,
-            accessToken: userAccessToken,
+            expectedErrorMessage: `Identifier ${randomDid} doesn't match JWT's DID ${newUserDid}`,
+            accessToken: newUserAccessToken,
           });
 
           testSetup.push({
@@ -1975,22 +1589,22 @@ describe("JsonRpc Module", () => {
               timestampData,
               didVersionMetadata,
             } as InsertDidDocumentParam,
-            expectedErrorMessage: `Identifier ${controllerDid} doesn't match JWT's DID ${adminDid}`,
+            expectedErrorMessage: `Identifier ${newUserDid} doesn't match JWT's DID ${adminDid}`,
             accessToken: adminAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              identifier: `0x${Buffer.from(adminDid).toString("hex")}`,
+              identifier: `0x${Buffer.from(newUserDid).toString("hex")}`,
               hashAlgorithmId: 0,
               hashValue: canonicalizedDidDocumentHash,
-              didVersionInfo,
+              didVersionInfo: badDidVersionInfo,
               timestampData,
               didVersionMetadata,
             } as InsertDidDocumentParam,
-            expectedErrorMessage: `DID Document's "id" ${controllerDid} doesn't match JWT's DID ${adminDid}`,
-            accessToken: adminAccessToken,
+            expectedErrorMessage: `DID Document's "id" ${badControllerDid} doesn't match JWT's DID ${newUserDid}`,
+            accessToken: newUserAccessToken,
           });
 
           break;
@@ -2012,7 +1626,7 @@ describe("JsonRpc Module", () => {
           testSetup.push({
             params: {
               from: signer.address,
-              identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+              identifier: `0x${Buffer.from(newUserDid).toString("hex")}`,
               newControllerId: "0x1234",
               notBefore: 1616408985883,
               notAfter: 3232818053700,
@@ -2023,7 +1637,7 @@ describe("JsonRpc Module", () => {
           testSetup.push({
             params: {
               from: signer.address,
-              identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+              identifier: `0x${Buffer.from(newUserDid).toString("hex")}`,
               newControllerId: ethers.Wallet.createRandom().address,
               notBefore: -123,
               notAfter: 3232818053700,
@@ -2047,7 +1661,7 @@ describe("JsonRpc Module", () => {
           testSetup.push({
             params: {
               from: signer.address,
-              identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+              identifier: `0x${Buffer.from(newUserDid).toString("hex")}`,
               oldControllerId: "0x1234",
             } as RevokeDidControllerParam,
             expectedErrorMessage: "oldControllerId must be an Ethereum address",
@@ -2056,7 +1670,7 @@ describe("JsonRpc Module", () => {
           testSetup.push({
             params: {
               from: signer.address,
-              identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+              identifier: `0x${Buffer.from(newUserDid).toString("hex")}`,
             } as RevokeDidControllerParam,
             expectedErrorMessage: "oldControllerId must be an Ethereum address",
           });
@@ -2257,7 +1871,7 @@ describe("JsonRpc Module", () => {
             timestampDataBuffer,
           } = updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
 
@@ -2271,7 +1885,7 @@ describe("JsonRpc Module", () => {
               timestampData,
             } as AppendDidDocumentVersionHashParam,
             expectedErrorMessage: "hashValue must be a hexadecimal number",
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           testSetup.push({
@@ -2286,7 +1900,7 @@ describe("JsonRpc Module", () => {
             } as AppendDidDocumentVersionHashParam,
             expectedErrorMessage:
               "didVersionInfo must be a DID document encoded in hexadecimal",
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           testSetup.push({
@@ -2299,7 +1913,7 @@ describe("JsonRpc Module", () => {
               timestampData: "0x1234ab",
             } as AppendDidDocumentVersionHashParam,
             expectedErrorMessage: "timestampData must be a hexadecimal JSON",
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           break;
@@ -2308,7 +1922,7 @@ describe("JsonRpc Module", () => {
           const { didDocumentBuffer, canonicalizedDidDocumentHash } =
             updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
 
           testSetup.push({
@@ -2320,7 +1934,7 @@ describe("JsonRpc Module", () => {
               didVersionInfo,
             } as DetachDidDocumentVersionParam,
             expectedErrorMessage: "hashValue must be a hexadecimal number",
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           testSetup.push({
@@ -2333,7 +1947,7 @@ describe("JsonRpc Module", () => {
             } as DetachDidDocumentVersionParam,
             expectedErrorMessage:
               "didVersionInfo must be a DID document encoded in hexadecimal",
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           testSetup.push({
@@ -2345,7 +1959,7 @@ describe("JsonRpc Module", () => {
               didVersionInfo,
             } as DetachDidDocumentVersionParam,
             expectedErrorMessage: "hashAlgorithmId must not be less than 0",
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           break;
@@ -2355,7 +1969,7 @@ describe("JsonRpc Module", () => {
           const { didDocumentBuffer, didVersionMetadataBuffer } =
             updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
             "hex"
@@ -2370,7 +1984,7 @@ describe("JsonRpc Module", () => {
             } as AppendDidDocumentVersionMetadataParam,
             expectedErrorMessage:
               "identifier must be a valid DID encoded in hexadecimal",
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           testSetup.push({
@@ -2382,7 +1996,7 @@ describe("JsonRpc Module", () => {
             } as AppendDidDocumentVersionMetadataParam,
             expectedErrorMessage:
               "didVersionInfo must be a DID document encoded in hexadecimal",
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           testSetup.push({
@@ -2394,7 +2008,7 @@ describe("JsonRpc Module", () => {
             } as AppendDidDocumentVersionMetadataParam,
             expectedErrorMessage:
               "didVersionMetadata must be a hexadecimal JSON",
-            accessToken: userAccessToken,
+            accessToken: newUserAccessToken,
           });
 
           break;
@@ -2410,7 +2024,7 @@ describe("JsonRpc Module", () => {
         testSetup.map(async (setup) => {
           const response = await request(server)
             .post("/jsonrpc")
-            .auth(setup.accessToken ?? defaultSignerSiopAccessToken, {
+            .auth(setup.accessToken ?? adminAccessToken, {
               type: "bearer",
             })
             .send({
@@ -2443,35 +2057,13 @@ describe("JsonRpc Module", () => {
         .spyOn(SiopSession.prototype, "verifyAccessToken")
         .mockImplementation(async () => Promise.resolve({}));
 
-      const signer = testEnv.administrators[0].wallet;
+      const signer = adminSigner;
 
       let param1: JsonRpcParams;
       let param2: JsonRpcParams;
-      let accessToken: string;
+      let accessToken = adminAccessToken;
 
       switch (method) {
-        case "insertAdministrator": {
-          param1 = {
-            ...adminV1,
-            from: signer.address,
-          } as InsertAdministratorParam;
-          param2 = {
-            ...adminV2,
-            from: signer.address,
-          } as InsertAdministratorParam;
-          break;
-        }
-        case "updateAdministrator": {
-          param1 = {
-            ...adminV1,
-            from: signer.address,
-          } as UpdateAdministratorParam;
-          param2 = {
-            ...adminV2,
-            from: signer.address,
-          } as UpdateAdministratorParam;
-          break;
-        }
         case "insertHashAlgorithm": {
           param1 = {
             from: signer.address,
@@ -2538,7 +2130,7 @@ describe("JsonRpc Module", () => {
           } = didDocument;
           const { didDocumentBuffer: didDocumentBuffer2 } = updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo1 = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionInfo2 = `0x${didDocumentBuffer2.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
@@ -2566,7 +2158,7 @@ describe("JsonRpc Module", () => {
             didVersionMetadata,
           } as InsertDidDocumentParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -2574,7 +2166,7 @@ describe("JsonRpc Module", () => {
         case "updateDidController": {
           param1 = {
             from: signer.address,
-            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+            identifier: `0x${Buffer.from(newUserDid).toString("hex")}`,
             newControllerId: ethers.Wallet.createRandom().address,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
@@ -2582,26 +2174,30 @@ describe("JsonRpc Module", () => {
 
           param2 = {
             from: signer.address,
-            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+            identifier: `0x${Buffer.from(newUserDid).toString("hex")}`,
             newControllerId: ethers.Wallet.createRandom().address,
             notBefore: 1616408985883,
             notAfter: 3232818053700,
           } as InsertDidControllerParam;
+
+          accessToken = newUserAccessToken;
 
           break;
         }
         case "revokeDidController": {
           param1 = {
             from: signer.address,
-            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+            identifier: `0x${Buffer.from(newUserDid).toString("hex")}`,
             oldControllerId: ethers.Wallet.createRandom().address,
           } as RevokeDidControllerParam;
 
           param2 = {
             from: signer.address,
-            identifier: `0x${Buffer.from(controllerDid).toString("hex")}`,
+            identifier: `0x${Buffer.from(newUserDid).toString("hex")}`,
             oldControllerId: ethers.Wallet.createRandom().address,
           } as RevokeDidControllerParam;
+
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -2671,7 +2267,7 @@ describe("JsonRpc Module", () => {
           } = updatedDidDocument;
           const { didDocumentBuffer: didDocumentBuffer2 } = didDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo1 = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionInfo2 = `0x${didDocumentBuffer2.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
@@ -2698,7 +2294,7 @@ describe("JsonRpc Module", () => {
             }),
           } as AppendDidDocumentVersionHashParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -2707,7 +2303,7 @@ describe("JsonRpc Module", () => {
             updatedDidDocument;
           const { didDocumentBuffer: didDocumentBuffer2 } = didDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo1 = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionInfo2 = `0x${didDocumentBuffer2.toString("hex")}`;
 
@@ -2727,7 +2323,7 @@ describe("JsonRpc Module", () => {
             didVersionInfo: didVersionInfo2,
           } as DetachDidDocumentVersionParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -2736,7 +2332,7 @@ describe("JsonRpc Module", () => {
           const { didDocumentBuffer, didVersionMetadataBuffer } =
             updatedDidDocument;
 
-          const identifier = `0x${Buffer.from(controllerDid).toString("hex")}`;
+          const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
             "hex"
@@ -2759,7 +2355,7 @@ describe("JsonRpc Module", () => {
             didVersionMetadata: tamperedDidVersionMetadata,
           } as AppendDidDocumentVersionMetadataParam;
 
-          accessToken = userAccessToken;
+          accessToken = newUserAccessToken;
 
           break;
         }
@@ -2770,7 +2366,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild1: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -2783,7 +2379,7 @@ describe("JsonRpc Module", () => {
 
       const responseBuild2: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -2808,7 +2404,7 @@ describe("JsonRpc Module", () => {
       // Tampering signatures
       const responseSend1 = await request(server)
         .post("/jsonrpc")
-        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
@@ -2841,7 +2437,7 @@ describe("JsonRpc Module", () => {
       transaction1.from = transaction2.from;
       const responseSend2 = await request(server)
         .post("/jsonrpc")
-        .auth(accessToken ?? defaultSignerSiopAccessToken, { type: "bearer" })
+        .auth(accessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
@@ -2880,8 +2476,7 @@ describe("JsonRpc Module", () => {
       .spyOn(SiopSession.prototype, "verifyAccessToken")
       .mockImplementation(async () => Promise.resolve({}));
 
-    const defaultSigner = testEnv.administrators[0].wallet;
-    const signer = defaultSigner;
+    const signer = adminSigner;
     const {
       didDocumentBuffer,
       canonicalizedDidDocumentHash,
@@ -2908,7 +2503,7 @@ describe("JsonRpc Module", () => {
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
-      .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+      .auth(adminAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
         method: testMethod,

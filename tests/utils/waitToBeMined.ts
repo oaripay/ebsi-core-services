@@ -1,22 +1,76 @@
-import type { TransactionReceipt } from "@ethersproject/abstract-provider";
-import type { LedgerService } from "../../src/modules/ledger/ledger.service";
+import axios, { AxiosResponse } from "axios";
+import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
+import { randomUUID } from "crypto";
+import { ConfigService } from "@nestjs/config";
+import { TransactionReceipt } from "@ethersproject/abstract-provider";
+import { ApiConfig } from "../../src/config/configuration";
+
+export interface TransactionReceiptBesu extends TransactionReceipt {
+  revertReason: string;
+}
+
+export async function getAccessToken(configService: ConfigService<ApiConfig>) {
+  const authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+  const privKey = configService.get<string>("apiPrivateKey");
+
+  const nonce = randomUUID();
+  const agent = new Agent(privKey, {
+    issuer: configService.get<string>("apiName"),
+    kid: configService.get<string>("apiKid"),
+  });
+
+  const requestComponent = await agent.createRequestPayload(
+    configService.get<string>("ledgerApiName"),
+    { nonce }
+  );
+
+  const res = await axios.post<
+    typeof requestComponent,
+    AxiosResponse<AkeResponse>
+  >(`${authorisationApiUrl}/oauth2-sessions`, requestComponent);
+
+  const accessToken = await agent.verifyAuthenticationResponse(res.data, nonce);
+
+  return accessToken;
+}
+
+export async function getTransactionReceipt(
+  url: string,
+  accessToken: string,
+  txId: string
+): Promise<TransactionReceiptBesu> {
+  const { data } = await axios.post<{
+    result: TransactionReceiptBesu;
+  }>(
+    url,
+    {
+      jsonrpc: "2.0",
+      method: "eth_getTransactionReceipt",
+      params: [txId],
+    },
+    {
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+  if (data.result) data.result.status = Number(data.result.status);
+  return data.result;
+}
 
 export const waitToBeMined = async (
-  ledgerService: LedgerService,
+  url: string,
+  accessToken: string,
   txId: string
-): Promise<TransactionReceipt> => {
+): Promise<TransactionReceiptBesu> => {
   let mined = false;
-  let receipt: TransactionReceipt;
+  let receipt: TransactionReceiptBesu;
   /* eslint-disable no-await-in-loop */
   while (!mined) {
     await new Promise((resolve) => {
       setTimeout(resolve, 500);
     });
-
-    receipt = await (
-      await ledgerService.getContract()
-    ).provider.getTransactionReceipt(txId);
-
+    receipt = await getTransactionReceipt(url, accessToken, txId);
     mined = !!receipt;
   }
 

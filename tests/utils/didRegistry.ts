@@ -1,7 +1,8 @@
 import hre from "hardhat";
+import { FactoryOptions } from "hardhat/types";
 import "@nomiclabs/hardhat-ethers";
 import crypto from "crypto";
-import { ethers } from "ethers";
+import { Contract, ethers } from "ethers";
 import { range } from "rxjs";
 import canonicalize from "canonicalize";
 import { HashName } from "multihashes";
@@ -13,12 +14,6 @@ import {
   createDidMethod,
   createMetadata,
 } from "./data";
-
-interface Administrator {
-  wallet: ethers.Wallet;
-  attribute: { [x: string]: unknown };
-  did: string;
-}
 
 interface DidDocument {
   did: string;
@@ -99,92 +94,65 @@ const ianaToNodeHashAlg: Record<string, string> = {
   "sha3-512": "sha3-512",
 };
 
-export async function deployDidRegistryContract(): Promise<DidRegistry> {
-  // Deploy libs
-  const paginationFactory = await hre.ethers.getContractFactory("Pagination");
-  const paginationLib = await paginationFactory.deploy();
+const deployContract = async (
+  name: string,
+  opts: FactoryOptions = {}
+): Promise<string> => {
+  const factory = await hre.ethers.getContractFactory(name, opts);
+  const contract = await factory.deploy();
+  return contract.address;
+};
 
-  const policyFactory = await hre.ethers.getContractFactory("PolicyLib", {
-    libraries: {
-      Pagination: paginationLib.address,
-    },
-  });
-  const policyLib = await policyFactory.deploy();
-
-  const adminFactory = await hre.ethers.getContractFactory("AdministratorLib", {
-    libraries: {
-      Pagination: paginationLib.address,
-    },
-  });
-  const adminLib = await adminFactory.deploy();
-
-  const hashAlgoFactory = await hre.ethers.getContractFactory(
-    "HashAlgoLib",
-    {}
+export async function deployDidRegistryContract(): Promise<{
+  didRegistryContract: DidRegistry;
+  policyContractMock: Contract;
+}> {
+  // mock trusted policies registry
+  const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
+  const policyRegistryFactory = await hre.ethers.getContractFactory(
+    "PolicyRegistryMock"
   );
-  const hashAlgoLib = await hashAlgoFactory.deploy();
-
-  const didTimestampFactory = await hre.ethers.getContractFactory(
-    "DidTimestampLib"
+  const tempPolicyContract = await policyRegistryFactory.deploy();
+  await tempPolicyContract.deployed();
+  const bytecode = await hre.ethers.provider.getCode(
+    tempPolicyContract.address
   );
-  const didTimestampLib = await didTimestampFactory.deploy();
+  await hre.network.provider.send("hardhat_setCode", [
+    testTprAddress,
+    bytecode,
+  ]);
+  const policyContractMock = policyRegistryFactory.attach(testTprAddress);
 
-  const didMethodFactory = await hre.ethers.getContractFactory("DidMethodLib", {
+  const paginationAddress = await deployContract("Pagination");
+  const linkLibPagination = {
     libraries: {
-      Pagination: paginationLib.address,
+      Pagination: paginationAddress,
     },
-  });
-  const didMethodLib = await didMethodFactory.deploy();
-
-  const didRecordFactory = await hre.ethers.getContractFactory("DidRecordLib", {
-    libraries: {
-      Pagination: paginationLib.address,
-    },
-  });
-  const didRecordLib = await didRecordFactory.deploy();
+  };
 
   const didRegistryContractFactory = await hre.ethers.getContractFactory(
     "DidRegistry",
     {
       libraries: {
-        PolicyLib: policyLib.address,
-        AdministratorLib: adminLib.address,
-        HashAlgoLib: hashAlgoLib.address,
-        DidTimestampLib: didTimestampLib.address,
-        DidMethodLib: didMethodLib.address,
-        DidRecordLib: didRecordLib.address,
+        DidPolicyLib: await deployContract("DidPolicyLib", linkLibPagination),
+        HashAlgoLib: await deployContract("HashAlgoLib"),
+        DidTimestampLib: await deployContract("DidTimestampLib"),
+        DidMethodLib: await deployContract("DidMethodLib", linkLibPagination),
+        DidRecordLib: await deployContract("DidRecordLib", linkLibPagination),
       },
     }
   );
 
   const didRegistryContract = await didRegistryContractFactory.deploy();
   await didRegistryContract.initialize(1);
+  await didRegistryContract.setTrustedPoliciesRegistryAddress();
 
-  return didRegistryContract;
-}
+  await policyContractMock.setPolicyResult(true);
 
-export async function insertAdmin(
-  contract: DidRegistry,
-  adminDid: string
-): Promise<{ [x: string]: unknown }> {
-  const attribute = {
-    "@context": {
-      name: {
-        "@id": "http://did-registry-api-test.org/name",
-        "@type": "@id",
-      },
-      description: "http://did-registry-api-test.org/description",
-    },
-    name: `test-${adminDid}`,
-    validFrom: new Date().toISOString(),
-    validTo: new Date(Date.now() + 4e8).toISOString(),
+  return {
+    didRegistryContract,
+    policyContractMock,
   };
-
-  const bufferAttribute = Buffer.from(JSON.stringify(attribute));
-
-  await contract.insertAdministrator(adminDid, bufferAttribute);
-
-  return attribute;
 }
 
 export async function insertDidDocument(
@@ -368,7 +336,6 @@ export async function insertHashAlgorithm(
 }
 
 export interface SetupOptions {
-  administratorsTotal?: number;
   didMethodsTotal?: number;
   didDocuments?: number;
   hashAlgorithmsTotal?: number;
@@ -378,7 +345,6 @@ export interface SetupOptions {
 
 export async function setupTestEnv(
   opts: SetupOptions = {
-    administratorsTotal: 1,
     didMethodsTotal: 1,
     didDocuments: 1,
     hashAlgorithmsTotal: 1,
@@ -388,9 +354,10 @@ export async function setupTestEnv(
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   didRegistryContract: DidRegistry;
-  administrators: Administrator[];
+  policyContractMock: Contract;
   didMethods: DidMethod[];
   didDocuments: DidDocument[];
+  defaultController: ethers.Wallet;
   hashAlgorithms: HashAlgorithmObject[];
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
@@ -399,7 +366,8 @@ export async function setupTestEnv(
   const didDocuments: DidDocument[] = [];
 
   // Deploy contract
-  const didRegistryContract = await deployDidRegistryContract();
+  const { didRegistryContract, policyContractMock } =
+    await deployDidRegistryContract();
 
   // Insert fake data
   const hashAlgorithms = await Promise.all(
@@ -408,31 +376,6 @@ export async function setupTestEnv(
       .map((i: number) => insertHashAlgorithm(didRegistryContract, i))
   );
 
-  const createAdminWallet = async () => {
-    // Create random wallet and connect it so we can use it later to send transactions
-    const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
-
-    const did = createDid();
-
-    // Insert a DID document controlled by the random wallet
-    const adminDidDocument = await insertDidDocument(
-      didRegistryContract,
-      ethersProvider,
-      did,
-      hashAlgorithms[0].ianaName,
-      wallet
-    );
-
-    didDocuments.push(adminDidDocument);
-
-    const attribute = await insertAdmin(didRegistryContract, did);
-    return { wallet, attribute, did };
-  };
-
-  const administrators = await range(0, opts.administratorsTotal ?? 1)
-    .pipe(mergeMap(createAdminWallet), toArray())
-    .toPromise();
-
   const didMethods = await Promise.all([
     insertDidMethod(didRegistryContract, "did:ebsi"),
     ...Array(Math.max(0, (opts.didMethodsTotal ?? 0) - 1))
@@ -440,18 +383,19 @@ export async function setupTestEnv(
       .map(() => insertDidMethod(didRegistryContract)),
   ]);
 
+  const defaultController = ethers.Wallet.createRandom();
+
   didDocuments.push(
     ...(await Promise.all(
-      Array(
-        Math.max((opts.didDocuments ?? 1) - (opts.administratorsTotal ?? 1), 0)
-      )
+      Array(opts.didDocuments ?? 1)
         .fill(0)
         .map(() =>
           insertDidDocument(
             didRegistryContract,
             ethersProvider,
             createDid(),
-            hashAlgorithms[0].ianaName
+            hashAlgorithms[0].ianaName,
+            defaultController
           )
         )
     ))
@@ -490,9 +434,10 @@ export async function setupTestEnv(
   return {
     provider: ethersProvider,
     didRegistryContract,
-    administrators,
+    policyContractMock,
     didMethods,
     didDocuments,
+    defaultController,
     hashAlgorithms,
     policies,
     policyRevisions,

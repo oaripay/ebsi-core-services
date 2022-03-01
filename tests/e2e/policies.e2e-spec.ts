@@ -24,14 +24,13 @@ import {
   PolicyLink,
 } from "../../src/modules/policies/policies.interface";
 import { PaginatedList } from "../../src/shared/interfaces";
-import { waitToBeMined } from "../utils/waitToBeMined";
+import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import {
   prefixWith0x,
   multihashEncode,
   multibase,
 } from "../../src/shared/utils";
 import { requestSiopJwt } from "../utils/siopJwt";
-import { LedgerService } from "../../src/modules/ledger/ledger.service";
 import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
 
 interface SupertestJsonRpcResponse {
@@ -60,7 +59,8 @@ describe("Policies (e2e)", () => {
   let testClientWallet: ethers.Wallet;
   let configService: ConfigService<ApiConfig>;
   let testUserAccessToken: string;
-  let ledgerService: LedgerService;
+  let apiAccessToken: string;
+  let ledgerApi: string;
 
   const createPolicy = (
     n: string | number
@@ -100,7 +100,6 @@ describe("Policies (e2e)", () => {
     server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     testClientWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testClientPrivateKey"))
@@ -117,6 +116,8 @@ describe("Policies (e2e)", () => {
       clientPrivateKey: configService.get<string>("testClientPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
+    apiAccessToken = await getAccessToken(configService);
+    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
   describe.each(["insertPolicy", "updatePolicy"])(
@@ -233,7 +234,8 @@ describe("Policies (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(
-          ledgerService,
+          ledgerApi,
+          apiAccessToken,
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);

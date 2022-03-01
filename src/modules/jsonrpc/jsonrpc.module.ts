@@ -5,7 +5,6 @@ import { JsonRpcService } from "./jsonrpc.service";
 import { AuthModule } from "../auth/auth.module";
 import DidMethodsService from "../did-methods/did-methods.service";
 import { IsDidRule, IsHexadecimalDidRule } from "./validators";
-import { AdministratorsService } from "../administrators/administrators.service";
 import { LedgerModule } from "../ledger/ledger.module";
 
 @Module({
@@ -14,7 +13,6 @@ import { LedgerModule } from "../ledger/ledger.module";
   providers: [
     Logger,
     JsonRpcService,
-    AdministratorsService,
     DidMethodsService,
     IsHexadecimalDidRule,
     IsDidRule,

@@ -6,8 +6,6 @@ import { OAuth2OrSiopJwtAuthGuard } from "../auth/guards";
 import {
   JsonRpcDto,
   RequestSendSignedTransactionDto,
-  RequestInsertAdministratorDto,
-  RequestUpdateAdministratorDto,
   RequestInsertHashAlgorithmDto,
   RequestUpdateHashAlgorithmDto,
   RequestInsertPolicyDto,
@@ -46,22 +44,6 @@ export default class AppController {
   ): Promise<JsonRpcResponseObject> {
     const { method, id } = body;
     switch (method) {
-      case "insertAdministrator": {
-        const result =
-          await this.jsonRpcService.buildTransactionInsertAdministrator(
-            body as RequestInsertAdministratorDto,
-            id
-          );
-        return formatJsonRpcResponse(result, id);
-      }
-      case "updateAdministrator": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionUpdateAdministrator(
-            body as RequestUpdateAdministratorDto,
-            id
-          );
-        return formatJsonRpcResponse(transaction, id);
-      }
       case "insertPolicy": {
         const transaction =
           await this.jsonRpcService.buildTransactionInsertPolicy(

@@ -143,7 +143,7 @@ describe("Identifiers Module", () => {
                 ) as string,
               },
             ]) as Array<unknown>,
-            total: 1,
+            total: DID_DOCUMENTS,
             pageSize: 10,
             links: {
               first: expect.stringContaining(

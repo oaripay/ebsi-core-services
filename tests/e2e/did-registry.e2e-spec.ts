@@ -27,7 +27,7 @@ import {
   prefixWith0x,
   multibase,
 } from "../../src/shared/utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
+import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import {
   InsertDidControllerParam,
   InsertDidDocumentParam,
@@ -54,7 +54,6 @@ import {
   createDidMethod,
 } from "../utils/data";
 import { requestNewUserSiopJwt, requestSiopJwt } from "../utils/siopJwt";
-import { LedgerService } from "../../src/modules/ledger/ledger.service";
 
 type JsonRpcParams =
   | InsertDidDocumentParam
@@ -112,13 +111,14 @@ describe("DID Registry (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let configService: ConfigService<ApiConfig>;
-  let ledgerService: LedgerService;
   let hashAlgorithMultihash: HashName;
   let hashAlgorithOutputLength: number;
   let existingUserWallet: ethers.Wallet;
   let existingUserAccessToken: string;
   let newUserWallet: ethers.Wallet;
   let newUserAccessToken: string;
+  let apiAccessToken: string;
+  let ledgerApi: string;
 
   const prepareDidDocument = (
     did: string,
@@ -220,7 +220,6 @@ describe("DID Registry (e2e)", () => {
     server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     existingUserWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testClientPrivateKey"))
@@ -290,6 +289,9 @@ describe("DID Registry (e2e)", () => {
       ),
       usersOnboardingApiDid: configService.get<string>("usersOnboardingApiDid"),
     });
+
+    apiAccessToken = await getAccessToken(configService);
+    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
   describe.each([
@@ -567,12 +569,143 @@ describe("DID Registry (e2e)", () => {
 
       // wait to be mined
       const receipt = await waitToBeMined(
-        ledgerService,
+        ledgerApi,
+        apiAccessToken,
         responseSend.body.result as string
       );
       expect(receipt.status).toBe(1);
     });
   });
+
+  describe.each(["insertDidMethod", "updateDidMethod"])(
+    "/jsonrpc - special authorization for %s",
+    (method: string) => {
+      it("should send the transaction but the SC should reject no authorized users", async () => {
+        expect.assertions(5);
+
+        const signer = newUserWallet;
+        const accessToken = newUserAccessToken;
+        let params: JsonRpcParams = null;
+
+        switch (method) {
+          case "insertDidMethod": {
+            params = {
+              from: signer.address,
+              methodName: didMethod.methodName,
+              ledgerName: didMethod.ledgerName,
+              methodSpec: didMethod.didMethodsBuffer.map(
+                (b) => `0x${b.toString("hex")}`
+              ),
+              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
+              notBefore: didMethod.notBefore,
+              notAfter: didMethod.notAfter,
+              status: didMethod.status,
+            } as InsertDidMethodParam;
+
+            break;
+          }
+          case "updateDidMethod": {
+            params = {
+              from: signer.address,
+              methodName: didMethod.methodName,
+              ledgerName: "ebsi-besu-2",
+              methodSpec: didMethod.didMethodsBuffer.map(
+                (b) => `0x${b.toString("hex")}`
+              ),
+              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
+              notBefore: didMethod.notBefore,
+              notAfter: didMethod.notAfter,
+              status: didMethod.status,
+            } as UpdateDidMethodParam;
+
+            break;
+          }
+          default:
+            throw new Error(`Test Error: Invalid method ${method}`);
+        }
+
+        const responseBuild: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(accessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method,
+            params: [params],
+            id: 231,
+          });
+
+        expect(responseBuild.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: 231,
+          result: {
+            chainId: expect.any(String) as string,
+            data: expect.any(String) as string,
+            from: signer.address,
+            gasLimit: expect.any(String) as string,
+            gasPrice: expect.any(String) as string,
+            nonce: expect.any(String) as string,
+            to: expect.any(String) as string,
+            value: expect.any(String) as string,
+          },
+        });
+        expect(responseBuild.status).toBe(200);
+
+        const unsignedTransaction = responseBuild.body.result;
+        const uTx = formatEthersUnsignedTransaction(
+          JSON.parse(
+            JSON.stringify(unsignedTransaction)
+          ) as unknown as UnsignedTransaction
+        );
+        uTx.chainId = Number(uTx.chainId);
+        const sgnTx = await signer.signTransaction(uTx);
+        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+        const responseSend: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(accessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "sendSignedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r,
+                s,
+                v: `0x${Number(v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
+            id: "45",
+          });
+
+        expect(responseSend.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: "45",
+          result: expect.any(String) as string,
+        });
+        expect(responseSend.status).toBe(200);
+
+        // wait to be mined
+        const receipt = await waitToBeMined(
+          ledgerApi,
+          apiAccessToken,
+          responseSend.body.result as string
+        );
+        receipt.revertReason = Buffer.from(receipt.revertReason.slice(2), "hex")
+          .toString()
+          .replace(/[^a-zA-Z:' ]/g, "");
+        expect(receipt).toStrictEqual(
+          expect.objectContaining({
+            status: 0,
+            revertReason: expect.stringContaining(
+              `Policy error: sender doesn't have the attribute DIDR:${method}`
+            ) as string,
+          })
+        );
+      });
+    }
+  );
 
   describe("GET /did-methods", () => {
     it("should return a paginated collection of DID methods", async () => {

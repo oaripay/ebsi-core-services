@@ -25,10 +25,9 @@ import {
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
+import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface";
 import { requestSiopJwt } from "../utils/siopJwt";
-import { LedgerService } from "../../src/modules/ledger/ledger.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -79,7 +78,8 @@ describe("HashAlgorithms (e2e)", () => {
   let testClientWallet: ethers.Wallet;
   let configService: ConfigService<ApiConfig>;
   let testUserAccessToken: string;
-  let ledgerService: LedgerService;
+  let apiAccessToken: string;
+  let ledgerApi: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -100,7 +100,6 @@ describe("HashAlgorithms (e2e)", () => {
     server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     testClientWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testClientPrivateKey"))
@@ -117,6 +116,9 @@ describe("HashAlgorithms (e2e)", () => {
       clientPrivateKey: configService.get<string>("testClientPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
+
+    apiAccessToken = await getAccessToken(configService);
+    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
   describe.each(["insertHashAlgorithm", "updateHashAlgorithm"])(
@@ -231,7 +233,8 @@ describe("HashAlgorithms (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(
-          ledgerService,
+          ledgerApi,
+          apiAccessToken,
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);
