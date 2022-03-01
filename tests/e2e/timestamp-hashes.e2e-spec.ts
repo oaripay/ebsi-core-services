@@ -31,9 +31,8 @@ import {
   multibase,
   multihashEncode,
 } from "../../src/shared/utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
+import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { oauth2Authentication, siopAuthentication } from "../utils/auth";
-import { LedgerService } from "../../src/shared/services/ledger.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -48,11 +47,12 @@ type JsonRpcParams =
 describe("Timestamp (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let ledgerService: LedgerService;
   let hashAlgorithmId: number;
   let hashAlgorithMultihash: HashName;
   let hashValue1: string;
   let hashValue2: string;
+  let apiAccessToken: string;
+  let ledgerApi: string;
 
   let testAdmin: {
     did: string;
@@ -95,7 +95,6 @@ describe("Timestamp (e2e)", () => {
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     const configAdmin = configService.get<{
       did: string;
@@ -162,6 +161,8 @@ describe("Timestamp (e2e)", () => {
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`;
+    apiAccessToken = await getAccessToken(configService);
+    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
   describe.each(["timestampHashes"])(
@@ -259,7 +260,8 @@ describe("Timestamp (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(
-          ledgerService,
+          ledgerApi,
+          apiAccessToken,
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);
@@ -347,7 +349,8 @@ describe("Timestamp (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(
-          ledgerService,
+          ledgerApi,
+          apiAccessToken,
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);
@@ -525,7 +528,8 @@ describe("Timestamp (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(
-          ledgerService,
+          ledgerApi,
+          apiAccessToken,
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);

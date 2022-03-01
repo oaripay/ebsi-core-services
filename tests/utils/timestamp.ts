@@ -1,6 +1,6 @@
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
-import { ContractTransaction, ethers } from "ethers";
+import { ContractTransaction, Contract, ethers } from "ethers";
 import crypto from "crypto";
 import { HashName } from "multihashes";
 import { Timestamp } from "../../src/contracts/timestamp";
@@ -28,7 +28,25 @@ interface HashObect {
   tx: ContractTransaction;
 }
 
-export async function deployTimestampContract(): Promise<Timestamp> {
+export async function deployTimestampContract(): Promise<{
+  timestampContract: Timestamp;
+  policyContractMock: Contract;
+}> {
+  const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
+  const policyRegistryFactory = await hre.ethers.getContractFactory(
+    "PolicyRegistryMock"
+  );
+  const tempPolicyContract = await policyRegistryFactory.deploy();
+  await tempPolicyContract.deployed();
+  const bytecode = await hre.ethers.provider.getCode(
+    tempPolicyContract.address
+  );
+  await hre.network.provider.send("hardhat_setCode", [
+    testTprAddress,
+    bytecode,
+  ]);
+  const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+
   // Deploy libs
   const stringManipFactory = await hre.ethers.getContractFactory("StringManip");
   const stringManipLib = await stringManipFactory.deploy();
@@ -58,9 +76,12 @@ export async function deployTimestampContract(): Promise<Timestamp> {
   );
 
   const timestampContract = await timestampContractFactory.deploy();
-  await timestampContract.init(42);
 
-  return timestampContract;
+  await timestampContract.initialize(1);
+  await timestampContract.setTrustedPoliciesRegistryAddress();
+  await policyContractMock.setPolicyResult(true);
+
+  return { timestampContract, policyContractMock };
 }
 
 const validHashAlgorithms = [
@@ -214,6 +235,7 @@ export async function setupTestEnv(
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   timestampContract: Timestamp;
+  policyContractMock: Contract;
   hashAlgorithms: HashAlgorithmObject[];
   records: RecordObject[];
   hashes: HashObect[];
@@ -223,7 +245,8 @@ export async function setupTestEnv(
   const sender = await ethersProvider.getSigner().getAddress();
 
   // Deploy contract
-  const timestampContract = await deployTimestampContract();
+  const { timestampContract, policyContractMock } =
+    await deployTimestampContract();
 
   // Insert fake data
 
@@ -249,6 +272,7 @@ export async function setupTestEnv(
   return {
     provider: ethersProvider,
     timestampContract,
+    policyContractMock,
     hashAlgorithms,
     records,
     hashes,

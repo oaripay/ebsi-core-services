@@ -27,11 +27,3 @@ export interface AxiosErrorResponse {
     data: unknown;
   };
 }
-
-export interface AdministratorResponseObject {
-  did: string;
-  attributes: {
-    hash: string;
-    body: string;
-  }[];
-}

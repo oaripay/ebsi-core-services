@@ -1,9 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
 import KeyEncoder from "key-encoder";
-import { isISO8601 } from "class-validator";
 import {
   ArgsInsertHashAlgorithm,
   ArgsUpdateHashAlgorithm,
@@ -41,7 +40,6 @@ import { LedgerService } from "../../shared/services/ledger.service";
 import RecordsService from "../records/records.service";
 import { ApiConfig } from "../../config/configuration";
 import { UserInfo } from "../auth/auth.interface";
-import { AdministratorResponseObject } from "./jsonrpc.interface";
 
 const keyEncoder = new KeyEncoder("secp256k1");
 // Cache algorightms' output lengths for 30 minutes
@@ -94,51 +92,6 @@ export class JsonRpcService {
       data,
       value,
     });
-  }
-
-  async allowAdministratorsOnly(did: string): Promise<void> {
-    let admin: AdministratorResponseObject;
-    try {
-      const response = await axios.get<AdministratorResponseObject>(
-        `${this.trustedAppsRegistry}/administrators/${did}`
-      );
-      admin = response.data;
-    } catch (error) {
-      if ((error as AxiosError).response?.status === 404)
-        throw new Error(
-          `${did} not found as administrator in the Trusted Apps Registry`
-        );
-      throw error;
-    }
-
-    const firstAttributeString = Buffer.from(
-      admin.attributes[0].body,
-      "base64"
-    ).toString();
-    let attribute: {
-      validFrom: string;
-      validTo: string;
-    };
-
-    try {
-      attribute = JSON.parse(firstAttributeString) as {
-        validFrom: string;
-        validTo: string;
-      };
-    } catch (error) {
-      throw new Error(
-        `Administrator ${did} does not contain a valid JSON in the first attribute`
-      );
-    }
-
-    const { validFrom, validTo } = attribute;
-    const now = new Date();
-    if (
-      !isISO8601(validFrom) ||
-      new Date(validFrom) > now ||
-      (validTo && (!isISO8601(validTo) || new Date(validTo) < now))
-    )
-      throw new Error(`Administrator ${did} is disabled`);
   }
 
   async isDidControlledByAddress(
@@ -218,70 +171,6 @@ export class JsonRpcService {
       throw new Error(
         `Address ${address} can not be derived from public keys of ${user.sub}`
       );
-    }
-  }
-
-  async verifyRecordOwner(address: string, recordId: string): Promise<void> {
-    let ownerIds = [];
-    try {
-      const record = await (
-        await this.ledgerService.getContract()
-      ).getRecord(recordId);
-      ownerIds = record.ownerIds.map((r) => r.toLowerCase());
-    } catch (e) {
-      throw new Error(
-        `recordId ${recordId} could not be retrieved: ${(e as Error).message}`
-      );
-    }
-
-    if (!ownerIds.includes(address.toLowerCase()))
-      throw new Error(`Only record owners can update records`);
-  }
-
-  async checkWritePermission(
-    functionName: string,
-    address: string,
-    user: UserInfo,
-    args: ethers.utils.Result
-  ): Promise<void> {
-    switch (functionName) {
-      case "insertHashAlgorithm":
-      case "updateHashAlgorithm": {
-        await this.verifyEthereumAddress(address, user);
-        await this.allowAdministratorsOnly(user.sub);
-        break;
-      }
-      /* For the following functions only subjects with access to
-       *  EBSI Timestamp API and SC can write
-       */
-      case "timestampHashes":
-      case "timestampVersionHashes":
-      case "timestampRecordHashes":
-        await this.verifyEthereumAddress(address, user);
-        break;
-      case "timestampRecordVersionHashes":
-      case "appendRecordVersionHashes":
-      case "detachRecordVersionHash":
-      case "insertRecordVersionInfo":
-      case "insertRecordOwner":
-      case "revokeRecordOwner":
-        await this.verifyEthereumAddress(address, user);
-        await this.verifyRecordOwner(
-          address,
-          (
-            args as unknown as
-              | ArgsTimestampRecordVersionHashes
-              | ArgsAppendRecordVersionHashes
-              | ArgsDetachRecordVersionHash
-              | ArgsInsertRecordVersionInfo
-              | ArgsInsertRecordOwner
-              | ArgsRevokeRecordOwner
-          ).recordId
-        );
-        break;
-      default:
-        // The rest of the functions are open to the public
-        break;
     }
   }
 
@@ -855,11 +744,9 @@ export class JsonRpcService {
       await validateClass(RequestSendSignedTransactionDto, body);
 
       const request = body.params[0];
-      const { signer, functionName, args } = await this.verifyTransaction(
-        request
-      );
+      const { signer } = await this.verifyTransaction(request);
 
-      await this.checkWritePermission(functionName, signer, user, args);
+      await this.verifyEthereumAddress(signer, user);
 
       const tx = await (
         await this.ledgerService.getContract()

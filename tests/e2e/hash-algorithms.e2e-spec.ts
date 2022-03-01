@@ -26,9 +26,8 @@ import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonr
 import { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
+import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { siopAuthentication } from "../utils/auth";
-import { LedgerService } from "../../src/shared/services/ledger.service";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -76,7 +75,6 @@ const validHashAlgorithms: Record<
 describe("HashAlgorithms (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let ledgerService: LedgerService;
 
   let testAdmin: {
     did: string;
@@ -91,6 +89,8 @@ describe("HashAlgorithms (e2e)", () => {
     wallet: ethers.Wallet;
     token?: string;
   };
+  let apiAccessToken: string;
+  let ledgerApi: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -112,7 +112,6 @@ describe("HashAlgorithms (e2e)", () => {
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     const configAdmin = configService.get<{
       did: string;
@@ -133,6 +132,9 @@ describe("HashAlgorithms (e2e)", () => {
 
     testUser.token = await siopAuthentication(testUser);
     testAdmin.token = await siopAuthentication(testAdmin);
+
+    apiAccessToken = await getAccessToken(configService);
+    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
   describe("GET /hash-algorithms", () => {
@@ -322,7 +324,8 @@ describe("HashAlgorithms (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(
-          ledgerService,
+          ledgerApi,
+          apiAccessToken,
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);

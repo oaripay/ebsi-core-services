@@ -7,6 +7,7 @@ import {
   ValidationPipe,
   HttpServer,
   Logger,
+  HttpStatus,
 } from "@nestjs/common";
 import {
   FastifyAdapter,
@@ -37,9 +38,9 @@ import {
 } from "../../src/modules/records/records.interface";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x, multibase } from "../../src/shared/utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
+import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { siopAuthentication } from "../utils/auth";
-import { LedgerService } from "../../src/shared/services/ledger.service";
+import { PaginatedList } from "../../src/shared/interfaces";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -58,7 +59,6 @@ type JsonRpcParams =
 describe("Records (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let ledgerService: LedgerService;
   let hashAlgorithmId: number;
   let hashAlgorithMultihash: HashName;
   let hashValue1: string;
@@ -80,6 +80,8 @@ describe("Records (e2e)", () => {
     wallet: ethers.Wallet;
     token?: string;
   };
+  let apiAccessToken: string;
+  let ledgerApi: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -101,7 +103,6 @@ describe("Records (e2e)", () => {
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     const configAdmin = configService.get<{
       did: string;
@@ -165,6 +166,8 @@ describe("Records (e2e)", () => {
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`;
+    apiAccessToken = await getAccessToken(configService);
+    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
   describe("GET /records", () => {
@@ -602,7 +605,8 @@ describe("Records (e2e)", () => {
 
       // wait to be mined
       const receipt = await waitToBeMined(
-        ledgerService,
+        ledgerApi,
+        apiAccessToken,
         responseSend.body.result as string
       );
 
@@ -768,7 +772,8 @@ describe("Records (e2e)", () => {
 
       // wait to be mined
       const receipt = await waitToBeMined(
-        ledgerService,
+        ledgerApi,
+        apiAccessToken,
         responseSend.body.result as string
       );
       if (method === "timestampRecordHashes") {
@@ -864,14 +869,85 @@ describe("Records (e2e)", () => {
   ])("record owners test suite for method %s", (method: string) => {
     it("should fail when trying to perform a signedTransaction", async () => {
       expect.assertions(6);
+      const insertParam: JsonRpcParams = {
+        from: testAdmin.wallet.address,
+        hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
+        hashValues: [hashValue1, hashValue2],
+        timestampData: [
+          `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
+            "hex"
+          )}`,
+          `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
+            "hex"
+          )}`,
+        ],
+        versionInfo: `0x${Buffer.from(
+          JSON.stringify({ info: 42 }),
+          "utf8"
+        ).toString("hex")}`,
+      } as TimestampRecordHashesParam;
 
+      const insertResponseBuild: SupertestJsonRpcResponse = await request(
+        server
+      )
+        .post("/jsonrpc")
+        .auth(testAdmin.token, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "timestampRecordHashes",
+          params: [insertParam],
+          id: 231,
+        });
+
+      const insertUnsignedTransaction = insertResponseBuild.body.result;
+      const insertUTx = formatEthersUnsignedTransaction(
+        JSON.parse(
+          JSON.stringify(insertUnsignedTransaction)
+        ) as unknown as UnsignedTransaction
+      );
+      insertUTx.chainId = Number(insertUTx.chainId);
+      const insertSgnTx = await testAdmin.wallet.signTransaction(insertUTx);
+      const parseTransactionResponse =
+        ethers.utils.parseTransaction(insertSgnTx);
+
+      const insertResponseSend: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(testAdmin.token, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "sendSignedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction: insertUnsignedTransaction,
+              r: parseTransactionResponse.r,
+              s: parseTransactionResponse.s,
+              v: `0x${Number(parseTransactionResponse.v).toString(16)}`,
+              signedRawTransaction: insertSgnTx,
+            },
+          ],
+          id: "45",
+        });
+      expect(insertResponseSend.status).toBe(HttpStatus.OK);
       let param: JsonRpcParams = null;
+
+      // wait to be mined
+      await waitToBeMined(
+        ledgerApi,
+        apiAccessToken,
+        insertResponseSend.body.result as string
+      );
 
       const response = await request(server).get("/records");
       expect((response.body as { items: string }).items).not.toHaveLength(0);
       expect(response.status).toBe(200);
-      const { recordId } = (response.body as { items: string })
-        .items[0] as unknown as RecordLink;
+      const responseLast = await request(server).get(
+        (response.body as PaginatedList<unknown>).links.last.split("v2")[1]
+      );
+
+      const { recordId } = (responseLast.body as { items: string }).items[
+        (responseLast.body as { items: string }).items.length - 1
+      ] as unknown as RecordLink;
 
       const decodedRecordId = `0x${Buffer.from(
         multibase.base64url.decode(recordId)
@@ -1022,15 +1098,26 @@ describe("Records (e2e)", () => {
           id: "45",
         });
 
-      expect(responseSend.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: "45",
-        error: {
-          code: -32600,
-          message: `Only record owners can update records`,
-        },
-      });
-      expect(responseSend.status).toBe(400);
+      // wait to be mined
+      const receipt = await waitToBeMined(
+        ledgerApi,
+        apiAccessToken,
+        responseSend.body.result as string
+      );
+      receipt.revertReason = Buffer.from(
+        (receipt.revertReason ?? "").slice(2),
+        "hex"
+      )
+        .toString()
+        .replace(/[^a-zA-Z:' ]/g, "");
+      expect(receipt).toStrictEqual(
+        expect.objectContaining({
+          status: 0,
+          revertReason: expect.stringContaining(
+            `sender is not listed as owner`
+          ) as string,
+        })
+      );
     });
   });
 });
