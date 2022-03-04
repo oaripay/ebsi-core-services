@@ -3,32 +3,27 @@ info:
   title: Proxy Data Hub API
   version: 2.0.0
   description: |
-    Proxy Data API is a Core Service of the EBSI platform providing the capability of
-    securely storing data controlled by the owner.
+    Proxy Data API is a Core Service of the EBSI platform providing the
+    capability of securely storing data controlled by the owner.
 
     For more information see:
-    * [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/Proxy+Data+Hub+API)
-    * [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/proxy-data-hub-api/browse)
+    * [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Proxy+Data+Hub+API)
+    * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/browse)
   termsOfService: "/docs/terms"
   contact:
-    name: EBSI Support – Service Desk
-    url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
+    name: EBSI Support - Service Desk
+    url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
   license:
     name: "EUPL-1.2"
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
 servers:
   - url: "https://api.ebsi.xyz"
     description: EBSI Testing Environment
-tags:
-  - name: Proxy Data Hub
-    description: Store and retrieve personal credentials
 paths:
   "/proxy-data-hub/v2/attributes":
     get:
-      tags:
-        - Proxy Data Hub
-      summary: Get attributes.
-      description: "Retrieves attributes from the Proxy Data Hub."
+      summary: List attributes
+      description: Retrieves attributes from the Proxy Data Hub.
       responses:
         "200":
           description: Success
@@ -45,10 +40,10 @@ paths:
                     $ref: "#/components/schemas/Links"
                   pageSize:
                     type: integer
-                    description: number of items to be return per page
+                    description: Number of items to be returned per page.
                   total:
                     type: integer
-                    description: " total number of pages in a collection"
+                    description: Total number of pages in a collection.
               examples:
                 Get Attributes:
                   value:
@@ -81,7 +76,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid Parameter:
                   value:
@@ -93,7 +88,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Unauthorized:
                   $ref: "#/components/examples/Unauthorized"
@@ -102,7 +97,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Forbidden:
                   $ref: "#/components/examples/Forbidden"
@@ -111,7 +106,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
@@ -132,10 +127,8 @@ paths:
           name: "page[size]"
           description: Defines the maximum number of objects that may be returned.
     post:
-      tags:
-        - Proxy Data Hub
-      summary: Store attributes.
-      description: "Stores an attribute to the Proxy Data Hub."
+      summary: Create an attribute
+      description: Stores an attribute to the Proxy Data Hub.
       requestBody:
         description: Attribute with its metadata to be stored with a given visibility (shared or private).
         content:
@@ -177,7 +170,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {hash} Parameter:
                   value:
@@ -189,7 +182,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Unauthorized:
                   $ref: "#/components/examples/Unauthorized"
@@ -198,7 +191,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Forbidden:
                   $ref: "#/components/examples/Forbidden"
@@ -207,7 +200,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
@@ -224,9 +217,8 @@ paths:
         required: true
         description: Hash of the attribute.
     get:
-      tags:
-        - Proxy Data Hub
-      summary: Get an attribute by its hash
+      summary: Get an attribute
+      description: Gets an attribute identified by its hash.
       operationId: get-proxy-data-hub-v2-private-attributes-hash
       responses:
         "200":
@@ -251,7 +243,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {hash} parameter:
                   value:
@@ -263,7 +255,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Unauthorized:
                   $ref: "#/components/examples/Unauthorized"
@@ -272,7 +264,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Forbidden:
                   $ref: "#/components/examples/Forbidden"
@@ -281,7 +273,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Not found:
                   value:
@@ -293,17 +285,15 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      description: Get a shared or private attribute by its hash.
       security:
         - bearerAuth: []
     patch:
-      tags:
-        - Proxy Data Hub
-      summary: Patch an ttribute by its hash
+      summary: Patch an attribute
+      description: Patches an attribute identified by its hash.
       operationId: patch-proxy-data-hub-v2-private-attributes-hash
       requestBody:
         required: true
@@ -341,7 +331,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {hash} parameter:
                   value:
@@ -353,7 +343,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Unauthorized:
                   $ref: "#/components/examples/Unauthorized"
@@ -362,7 +352,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Forbidden:
                   $ref: "#/components/examples/Forbidden"
@@ -371,7 +361,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Not found:
                   value:
@@ -383,17 +373,15 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      description: Patch an attribute by hash.
       security:
         - bearerAuth: []
     delete:
-      tags:
-        - Proxy Data Hub
-      summary: Delete an Attribute by its hash
+      summary: Delete an attribute
+      description: Deletes an attribute identified by its hash.
       operationId: delete-proxy-data-hub-v2-attributes-hash
       responses:
         "204":
@@ -403,7 +391,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {hash} parameter:
                   value:
@@ -415,7 +403,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Unauthorized:
                   $ref: "#/components/examples/Unauthorized"
@@ -424,7 +412,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Forbidden:
                   $ref: "#/components/examples/Forbidden"
@@ -433,7 +421,7 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Not found:
                   value:
@@ -445,11 +433,10 @@ paths:
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-      description: Deletes an attribute by hash.
       security:
         - bearerAuth: []
 components:
@@ -499,18 +486,17 @@ components:
           description: base64url encoding of the data to be stored
     AttributeRequest:
       type: object
+      title: Attribute Request
       description: Identity Attribute request for creation
       example:
-        Attribute request example:
-          storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
-          did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-          visibility: private
-          sharedWith: ""
-          contentType: application/ld+json
-          dataLabel: document
-          data: "<bytes for base64url>"
-          proof: {}
-      title: Attribute Request
+        storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+        did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+        visibility: private
+        sharedWith: ""
+        contentType: application/ld+json
+        dataLabel: document
+        data: "<bytes for base64url>"
+        proof: {}
       properties:
         storageUri:
           type: string
@@ -603,8 +589,9 @@ components:
           op: test
           path: /a/b/c
           value: foo
-    Problem:
-      description: A Problem Details object (RFC 7807)
+    ProblemDetails:
+      title: Problem Details
+      description: A [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) object.
       type: object
       properties:
         type:
@@ -640,21 +627,21 @@ components:
             It may or may not yield further information if dereferenced.
     Links:
       title: Links
+      description: Pagination links.
       type: object
       properties:
         last:
           type: string
-          description: " URI of the last page"
+          description: URI of the last page
         prev:
           type: string
-          description: " URI of the previous page"
+          description: URI of the previous page
         next:
           type: string
-          description: " URI of the next page"
+          description: URI of the next page
         first:
           type: string
-          description: " URI of the first page"
-      description: links model used for pagination
+          description: URI of the first page
       x-examples:
         links example:
           first: "/proxy-data-hub/v2/attributes?page[after]=0&page[size]=2"
