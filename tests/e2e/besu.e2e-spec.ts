@@ -151,7 +151,7 @@ describe("POST /ledger/v2/blockchains/besu", () => {
 
     expect(response.body).toStrictEqual({
       jsonrpc: "2.0",
-      // https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Ethereum+Genesis+File+for+the+new+Main-NET+and+Pilot-Net
+      // https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/RFC+-+Ethereum+Genesis+File+for+the+new+Main-NET+and+Pilot-Net
       result: "0x181f", // 6175
       id: "42",
     });

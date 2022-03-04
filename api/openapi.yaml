@@ -11,48 +11,37 @@ info:
     the EBSI Ledger Protocol(s) and Smart Contracts services running at the
     lower layer Chain & Storage.
 
-    EBSI V2 Ledger API provides capabilities to interact (Read and Write)
-    with Hyperledger Besu and (Read-Only) for Fabric ledgers. As a remark,
-    for EBSI v2.0, in order to interact with the Fabric node clients,
-    consumers must install the Fabric SDK kit because Fabric ledgers has not
-    a full feature set natively exposed by a REST API. Only a limited set of
-    features are exposed.
-
-    As a general principle, only EBSI Core Service API, acting as JSON-RPC
-    proxy for the end-users can have access to the Ledger API JSON RPC Proxy,
-    meaning end-users have no direct access to the EBSI Ledgers clients
-    software running on MS nodes.
+    EBSI Ledger API provides capabilities to interact with Hyperledger Besu and
+    Fabric ledgers. As a remark, for EBSI v2, in order to interact with the
+    Fabric node clients, consumers must install the Fabric SDK kit because
+    Fabric ledgers has not a full feature set natively exposed by a REST API.
+    Only a limited set of features are exposed.
 
     For more information see:
 
-    - [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/Ledger+API)
-    - [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/browse)
+    - [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Ledger+API)
+    - [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/browse)
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
   contact:
-    name: EBSI Support – Service Desk
-    url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
+    name: EBSI Support - Service Desk
+    url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
   termsOfService: /docs/terms
-tags:
-  - name: Hyperledger Besu Ethereum Enterprise Client
-    description: Interact with the Ethereum Enterprise Client RPC APIs
-  - name: Hyperledger Fabric
-    description: Interact with the Hyperledger Fabric REST API
 paths:
   /ledger/v2/blockchains/besu:
     post:
       operationId: post-ledger-v2-blockchains-besu
       tags:
-        - Hyperledger Besu Ethereum Enterprise Client
-      summary: Hyperledger Besu RPC API
+        - Hyperledger Besu
+      summary: Besu JSON-RPC API
       description: |
-        Hyperledger Besu Ethereum Enterprise Client JSON-RPC APIs.
+        Hyperledger Besu Ethereum Enterprise Client JSON-RPC API.
         For some protected methods, the endpoint requires authentication via the Authorisation API.
         It accepts OAuth2 tokens (for Trusted Apps) or SIOP tokens (for DIDs).
         The protected methods are:
           - eth_sendRawTransaction
-          - eth_call
+          - eth_estimateGas
       security:
         - bearerAuth: []
       requestBody:
@@ -62,10 +51,10 @@ paths:
           [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
           It requires the following fields:
 
-          - **jsonrpc**: Must be exactly '2.0'
-          - **method**: Hyperledger Besu RPC native method that is invoked. The
+          - **jsonrpc**: Must be exactly "2.0"
+          - **method**: Hyperledger Besu JSON-RPC native method that is invoked. The
           list of available methods can be found in the Ledger API technical specifications
-          [List of JSON RPC methods](https://ec.europa.eu/cefdigital/wiki/x/V4iWFQ).
+          [List of JSON-RPC methods](https://ec.europa.eu/digital-building-blocks/wikis/x/V4iWFQ).
           - **params**: Array of parameters.
           - **id**: Identifier established by the client.
         content:
@@ -79,10 +68,10 @@ paths:
               type: object
               properties:
                 jsonrpc:
-                  description: Must be exactly '2.0'
+                  description: Must be exactly "2.0"
                   type: string
                 method:
-                  description: Besu RPC native method to be invoked
+                  description: Besu JSON-RPC native method to be invoked
                   type: string
                 params:
                   description: Array of parameters
@@ -120,7 +109,7 @@ paths:
                     - "---signed raw transation---"
                   id: 1
       responses:
-        200:
+        "200":
           description: Response
           content:
             application/json:
@@ -175,12 +164,12 @@ paths:
                     jsonrpc: "2.0"
                     id: 1
                     result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
-        400:
+        "400":
           description: Bad request
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Bad Request:
                   $ref: "#/components/examples/BadRequest"
@@ -190,21 +179,21 @@ paths:
                   $ref: "#/components/examples/MethodDisabled"
                 Invalid Method:
                   $ref: "#/components/examples/MethodNoExists"
-        401:
+        "401":
           description: Unauthorized
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Unauthorized:
                   $ref: "#/components/examples/NoAnonymous"
-        403:
+        "403":
           description: Forbidden
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Forbidden:
                   $ref: "#/components/examples/BesuPermissions"
@@ -215,8 +204,8 @@ paths:
       operationId: post-ledger-v2-blockchains-fabric-jsonrpc
       tags:
         - Hyperledger Fabric
-      summary: Hyperledger Fabric JSON-RPC
-      description: Hyperledger Fabric JSON-RPC APIs.
+      summary: Fabric JSON-RPC API
+      description: Hyperledger Fabric JSON-RPC API
       security:
         - bearerAuth: []
       requestBody:
@@ -226,7 +215,7 @@ paths:
           [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
           It requires the following fields:
 
-          - **jsonrpc**: Must be exactly '2.0'
+          - **jsonrpc**: Must be exactly "2.0"
           - **method**: Method invoked. It must be "readContract"
           - **params**: Array of parameters.
           - **id**: Identifier established by the client.
@@ -241,10 +230,10 @@ paths:
               type: object
               properties:
                 jsonrpc:
-                  description: Must be exactly '2.0'
+                  description: Must be exactly "2.0"
                   type: string
                 method:
-                  description: JSON RPC method to be invoked
+                  description: JSON-RPC method to be invoked
                   type: string
                 params:
                   description: Array of parameters
@@ -317,7 +306,7 @@ paths:
                       signature: MEUCIQC/rRRItmu3HcgS+...
                       transactionId: fed4...
       responses:
-        200:
+        "200":
           description: Response
           content:
             application/json:
@@ -356,7 +345,7 @@ paths:
     get:
       tags:
         - Hyperledger Fabric
-      summary: Get a list of all the available channels
+      summary: List channels
       description: Returns a list of all the available EBSI Fabric channels.
       operationId: get-ledger-v2-blockchains-fabric-channels
       parameters:
@@ -371,7 +360,7 @@ paths:
           schema:
             type: integer
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -419,12 +408,12 @@ paths:
                       prev: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
                       next: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
                       last: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
-        500:
+        "500":
           description: Internal Server Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
@@ -432,8 +421,8 @@ paths:
     get:
       tags:
         - Hyperledger Fabric
-      description: Check if channel exists
-      summary: Check if channel exists
+      summary: Check if a channel exists
+      description: Check if a channel exists.
       operationId: get-ledger-v2-blockchains-fabric-channel
       parameters:
         - in: path
@@ -444,26 +433,26 @@ paths:
             type: string
           example: iossdrpocchannel
       responses:
-        204:
+        "204":
           description: Success. Channel exists.
-        400:
+        "400":
           description: Bad request. The format of the {channel} parameter is not valid.
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {channel} Parameter:
                   value:
                     title: Bad request
                     status: 400
                     detail: '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]'
-        404:
+        "404":
           description: Channel {channel} not found
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Channel Not Found:
                   value:
@@ -471,12 +460,12 @@ paths:
                     status: 404
                     title: Not Found
                     type: about:blank
-        500:
+        "500":
           description: Internal Server Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
@@ -487,7 +476,7 @@ paths:
       description:
         Returns a list of blocks of the channel {channel}. By default API
         returns the last 10 (or less) blocks.
-      summary: Get blocks
+      summary: List blocks
       operationId: get-ledger-v2-blockchains-fabric-channel-blocks
       parameters:
         - in: path
@@ -508,7 +497,7 @@ paths:
           schema:
             type: integer
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -600,24 +589,24 @@ paths:
                       prev: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channel/iossdrpocchannel/blocks?page[after]=1&page[size]=10
                       next: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
                       last: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
-        400:
+        "400":
           description: Bad request. The format of the {channel} parameter is not valid.
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {channel} Parameter:
                   value:
                     title: Bad request
                     status: 400
                     detail: '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]'
-        404:
+        "404":
           description: Channel {channel} not found
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Channel Not Found:
                   value:
@@ -625,12 +614,12 @@ paths:
                     status: 404
                     title: Not Found
                     type: about:blank
-        500:
+        "500":
           description: Internal Server Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
@@ -638,8 +627,8 @@ paths:
     get:
       tags:
         - Hyperledger Fabric
-      description: Returns block for the specified channel and block number
-      summary: Get block by number
+      summary: Get a block
+      description: Returns the block for the specified channel and block number.
       operationId: get-ledger-v2-blockchains-fabric-channel-block
       parameters:
         - in: path
@@ -657,7 +646,7 @@ paths:
             type: string
           example: "0"
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -673,12 +662,12 @@ paths:
                     prevHash: u
                     txCount: 0
                     txIds: []
-        400:
+        "400":
           description: Bad request. The format of the {channel} or {blockNumber} parameter is not valid.
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {channel} Parameter:
                   value:
@@ -690,12 +679,12 @@ paths:
                     title: Bad request
                     status: 400
                     detail: '["blockNumber must be a number string"]'
-        404:
+        "404":
           description: Channel or block not found
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Channel Not Found:
                   value:
@@ -709,12 +698,12 @@ paths:
                     status: 404
                     title: Not Found
                     type: about:blank
-        500:
+        "500":
           description: Internal Server Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
@@ -722,10 +711,10 @@ paths:
     get:
       tags:
         - Hyperledger Fabric
+      summary: List transactions
       description:
-        Returns a list of transactions of the channel {channel}. By default API
-        returns the last 10 (or less) transactions.
-      summary: Get transactions
+        Returns a list of transactions of the channel {channel}. By default,
+        the API returns the last 10 (or less) transactions.
       operationId: get-ledger-v2-blockchains-fabric-channel-transactions
       parameters:
         - in: path
@@ -746,7 +735,7 @@ paths:
           schema:
             type: integer
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -854,24 +843,24 @@ paths:
                     links:
                       first: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=2
                       next: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=566a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1&page[size]=2
-        400:
+        "400":
           description: Bad request. The format of the {channel} parameter is not valid.
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {channel} Parameter:
                   value:
                     title: Bad request
                     status: 400
                     detail: '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]'
-        404:
+        "404":
           description: Channel {channel} not found
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Channel Not Found:
                   value:
@@ -879,12 +868,12 @@ paths:
                     status: 404
                     title: Not Found
                     type: about:blank
-        500:
+        "500":
           description: Internal Server Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
@@ -892,8 +881,8 @@ paths:
     get:
       tags:
         - Hyperledger Fabric
+      summary: Get a transaction
       description: Returns the transaction of the channel {channel} specified by its transaction ID.
-      summary: Get transactions
       operationId: get-ledger-v2-blockchains-fabric-channel-transaction
       parameters:
         - in: path
@@ -921,7 +910,7 @@ paths:
           schema:
             type: integer
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -946,12 +935,12 @@ paths:
                             type: "Buffer"
                             data: []
                         endorsersMspId: [null]
-        400:
+        "400":
           description: Bad request. The format of the {channel} parameter is not valid.
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {channel} Parameter:
                   value:
@@ -963,12 +952,12 @@ paths:
                     title: Bad request
                     status: 400
                     detail: '["transactionId must be a hexadecimal number"]'
-        404:
+        "404":
           description: Channel {channel} or transaction {transactionId} not found
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Channel Not Found:
                   value:
@@ -982,23 +971,23 @@ paths:
                     status: 404
                     title: Not Found
                     type: about:blank
-        500:
+        "500":
           description: Internal Server Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
 components:
   schemas:
     JsonRpcResponse:
-      title: JSON RPC Response
+      title: JSON-RPC Response
       type: object
       properties:
         jsonrpc:
-          description: Must be exactly '2.0'
+          description: Must be exactly "2.0"
           type: string
         id:
           description: Same identifier established by the client in the call
@@ -1020,8 +1009,9 @@ components:
             message:
               description: Error message
               type: string
-    Problem:
-      description: A Problem Details object (RFC 7807)
+    ProblemDetails:
+      title: Problem Details
+      description: A [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) object.
       type: object
       properties:
         type:
@@ -1203,7 +1193,7 @@ components:
         id: 1
         error:
           code: -32600
-          message: Validations Errors ...
+          message: Validations Errors
     MethodNotFoundJsonRpcError:
       value:
         jsonrpc: "2.0"

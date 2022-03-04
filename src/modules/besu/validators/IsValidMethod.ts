@@ -1,7 +1,7 @@
 import { registerDecorator, buildMessage } from "class-validator";
 
 // Allowed methods are defined in the specs
-// https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/Ledger+API
+// https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Ledger+API
 const allowedMethods = [
   "net_version",
   "eth_chainId",

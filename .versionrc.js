@@ -16,9 +16,9 @@ module.exports = {
     { type: "test", hidden: true },
   ],
   commitUrlFormat:
-    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/commits/{{hash}}",
+    "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/{{hash}}",
   issueUrlFormat:
-    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/pull-requests/{{id}}/overview",
+    "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/{{id}}/overview",
   compareUrlFormat:
-    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2F{{previousTag}}&sourceBranch=refs%2Ftags%2F{{currentTag}}&targetRepoId=244",
+    "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2F{{previousTag}}&sourceBranch=refs%2Ftags%2F{{currentTag}}&targetRepoId=244",
 };
