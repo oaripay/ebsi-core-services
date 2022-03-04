@@ -11,6 +11,9 @@ import {
   RequestDeletePolicyConditionDto,
   RequestActivatePolicyDto,
   RequestDeactivatePolicyDto,
+  RequestInsertUserAttributesDto,
+  RequestUpdateUserAttributeDto,
+  RequestDeleteUserAttributeDto,
 } from "./dto";
 import { SiopJwtAuthGuard } from "../auth/guards";
 import { Client, ClientInfo } from "../auth/decorators";
@@ -76,6 +79,30 @@ export default class AppController {
         const result =
           await this.jsonRpcService.buildTransactionDeactivatePolicy(
             body as RequestDeactivatePolicyDto,
+            id
+          );
+        return jsonRpcResponse(result, id);
+      }
+      case "insertUserAttributes": {
+        const result =
+          await this.jsonRpcService.buildTransactionInsertUserAttributes(
+            body as RequestInsertUserAttributesDto,
+            id
+          );
+        return jsonRpcResponse(result, id);
+      }
+      case "updateUserAttribute": {
+        const result =
+          await this.jsonRpcService.buildTransactionUpdateUserAttribute(
+            body as RequestUpdateUserAttributeDto,
+            id
+          );
+        return jsonRpcResponse(result, id);
+      }
+      case "deleteUserAttribute": {
+        const result =
+          await this.jsonRpcService.buildTransactionDeleteUserAttribute(
+            body as RequestDeleteUserAttributeDto,
             id
           );
         return jsonRpcResponse(result, id);

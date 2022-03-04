@@ -1,14 +1,18 @@
-import { Type } from "class-transformer";
-import { IsArray, ValidateNested, IsNumberString } from "class-validator";
+import { IsString, IsArray, IsNumberString, IsOptional } from "class-validator";
+import { IsPolicyConditions } from "../../validators";
 import { PolicyConditionDto } from "../shared/policy-condition.dto";
 
 export class ArgsAddPolicyConditions {
+  @IsOptional()
   @IsNumberString()
-  policyId: string;
+  policyId?: string;
+
+  @IsOptional()
+  @IsString()
+  policyName?: string;
 
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => PolicyConditionDto)
+  @IsPolicyConditions({ each: true })
   policyConditions: PolicyConditionDto[];
 }
 

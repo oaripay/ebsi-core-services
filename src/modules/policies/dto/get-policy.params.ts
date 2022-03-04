@@ -1,8 +1,8 @@
-import { IsNumberString } from "class-validator";
+import { IsString } from "class-validator";
 
 export class GetPolicyParams {
-  @IsNumberString()
-  policyId: string;
+  @IsString()
+  policyName: string;
 }
 
 export default GetPolicyParams;

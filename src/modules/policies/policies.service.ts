@@ -38,9 +38,8 @@ export class PoliciesService {
         return ethers.BigNumber.from(value).toString();
       }
       case "BOOLEAN": {
-        // 0x00 = false, 0x01 = true
-        if (value === "0x00") return false;
-        if (value === "0x01") return true;
+        if (value === `0x${"00".repeat(32)}`) return false;
+        if (value === `0x${"00".repeat(31)}01`) return true;
 
         this.logger.error(`Unrecognized BOOLEAN with value: ${value}`);
         throw new InternalServerError();
@@ -58,29 +57,32 @@ export class PoliciesService {
     }
   }
 
-  async getPolicies(
+  async getPolicyNames(
     page: number,
     pageSize: number
-  ): ReturnType<PolicyRegistry["getPolicies"]> {
-    return (await this.ledgerService.getContract()).getPolicies(page, pageSize);
+  ): ReturnType<PolicyRegistry["getPolicyNames"]> {
+    return (await this.ledgerService.getContract()).getPolicyNames(
+      page,
+      pageSize
+    );
   }
 
-  async getPolicy(policyId: string): Promise<PolicyResponseObject> {
-    let policy: AsyncReturnType<PolicyRegistry["getPolicy"]>;
+  async getPolicy(policyName: string): Promise<PolicyResponseObject> {
+    let policy: AsyncReturnType<PolicyRegistry["getPolicy(string)"]>;
 
     try {
       policy = await (
         await this.ledgerService.getContract()
-      ).getPolicy(policyId);
+      )["getPolicy(string)"](policyName);
     } catch (e) {
       throw new NotFoundError("Policy Not Found", {
-        detail: `Policy ${policyId} not found`,
+        detail: `Policy ${policyName} not found`,
       });
     }
 
     return {
-      policyId,
-      registry: policy.registry,
+      policyId: ethers.BigNumber.from(policy.policyId).toString(),
+      description: policy.description,
       policyName: policy.policyName,
       operationType: OPERATION_TYPES[policy.opType],
       status: policy.status,

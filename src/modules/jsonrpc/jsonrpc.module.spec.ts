@@ -28,6 +28,9 @@ import {
   DeletePolicyConditionParam,
   ActivatePolicyParam,
   DeactivatePolicyParam,
+  InsertUserAttributesParam,
+  UpdateUserAttributeParam,
+  DeleteUserAttributeParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -67,9 +70,10 @@ describe("JsonRpc Module", () => {
   let defaultSignerSiopAccessToken: string;
   let defaultSignerSiopAccessTokenPayload: { [x: string]: unknown };
 
-  const policy1 = createPolicy();
-  const policy2 = createPolicy();
-  const policy3 = createPolicy();
+  const policy1 = createPolicy(1, "my-policy1");
+  const policy2 = createPolicy(1, "my-policy1");
+  const policy3 = createPolicy(1, "my-policy1");
+  const userAddress = ethers.Wallet.createRandom().address;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -224,7 +228,7 @@ describe("JsonRpc Module", () => {
     expect.assertions(2);
     const wallet = ethers.Wallet.createRandom();
 
-    const { opType, policyConditions, policyName, registry } = policy1;
+    const { opType, policyConditions, policyName, description } = policy1;
 
     // Mock access token verification
     jest
@@ -236,7 +240,7 @@ describe("JsonRpc Module", () => {
       to: policiesRegistryContract.address,
       data: policiesRegistryContract.interface.encodeFunctionData(
         "insertPolicy",
-        [opType, policyConditions, policyName, registry]
+        [opType, policyConditions, policyName, description]
       ),
       value: "0x00",
       nonce: "0x00",
@@ -333,13 +337,13 @@ describe("JsonRpc Module", () => {
       .spyOn(jsonRpcService, "isDidControlledByAddress")
       .mockImplementation(async () => Promise.resolve(false));
 
-    const { opType, policyConditions, policyName, registry } = policy1;
+    const { opType, policyConditions, policyName, description } = policy1;
     const param = {
       from: signer.address,
       opType,
       policyConditions,
       policyName,
-      registry,
+      description,
     } as InsertPolicyParam;
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
@@ -422,13 +426,13 @@ describe("JsonRpc Module", () => {
 
     const signer = ethers.Wallet.createRandom();
 
-    const { opType, policyConditions, policyName, registry } = policy1;
+    const { opType, policyConditions, policyName, description } = policy1;
     param = {
       from: signer.address,
       opType,
       policyConditions,
       policyName,
-      registry,
+      description,
     } as InsertPolicyParam;
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
@@ -502,12 +506,24 @@ describe("JsonRpc Module", () => {
   // Tests to be repeated for every method
   describe.each([
     "insertPolicy",
-    "updatePolicy",
-    "addPolicyConditions",
-    "deletePolicyCondition",
-    "deactivatePolicy",
-    "activatePolicy",
-  ])("/jsonrpc with method %s", (method: string) => {
+    "updatePolicy-byPolicyId",
+    "addPolicyConditions-byPolicyId",
+    "deletePolicyCondition-byPolicyId",
+    "deactivatePolicy-byPolicyId",
+    "activatePolicy-byPolicyId",
+    "updatePolicy-byPolicyName",
+    "addPolicyConditions-byPolicyName",
+    "deletePolicyCondition-byPolicyName",
+    "deactivatePolicy-byPolicyName",
+    "activatePolicy-byPolicyName",
+    "insertUserAttributes",
+    "updateUserAttribute",
+    "deleteUserAttribute",
+  ])("/jsonrpc with method %s", (testMethod: string) => {
+    const [method, typeTest] = testMethod.split("-");
+    const byPolicyId = typeTest === "byPolicyId";
+    const byPolicyName = typeTest === "byPolicyName";
+
     it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(4);
 
@@ -524,56 +540,89 @@ describe("JsonRpc Module", () => {
 
       switch (method) {
         case "insertPolicy": {
-          const { opType, policyConditions, policyName, registry } = policy1;
+          const { opType, policyConditions, policyName, description } = policy1;
           param = {
             from: signer.address,
             opType,
             policyConditions,
             policyName,
-            registry,
+            description,
           } as InsertPolicyParam;
           break;
         }
         case "updatePolicy": {
-          const { opType, policyName, registry } = policy2;
+          const { opType, policyName, description } = policy2;
           param = {
             from: signer.address,
-            policyId: "1",
+            ...(byPolicyId && { policyId: "1" }),
+            ...(byPolicyName && { policyName }),
             opType,
-            policyName,
-            registry,
+            description,
           } as UpdatePolicyParam;
           break;
         }
         case "addPolicyConditions": {
-          const { policyConditions } = policy3;
+          const { policyConditions, policyName } = policy3;
           param = {
             from: signer.address,
-            policyId: "1",
+            ...(byPolicyId && { policyId: "1" }),
+            ...(byPolicyName && { policyName }),
             policyConditions,
           } as AddPolicyConditionsParam;
           break;
         }
         case "deletePolicyCondition": {
+          const { policyName } = policy1;
           param = {
             from: signer.address,
-            policyId: "1",
+            ...(byPolicyId && { policyId: "1" }),
+            ...(byPolicyName && { policyName }),
             policyConditionId: "2",
           } as DeletePolicyConditionParam;
           break;
         }
         case "deactivatePolicy": {
+          const { policyName } = policy1;
           param = {
             from: signer.address,
-            policyId: "1",
+            ...(byPolicyId && { policyId: "1" }),
+            ...(byPolicyName && { policyName }),
           } as DeactivatePolicyParam;
           break;
         }
         case "activatePolicy": {
+          const { policyName } = policy1;
           param = {
             from: signer.address,
-            policyId: "1",
+            ...(byPolicyId && { policyId: "1" }),
+            ...(byPolicyName && { policyName }),
           } as ActivatePolicyParam;
+          break;
+        }
+        case "insertUserAttributes": {
+          param = {
+            from: signer.address,
+            address: userAddress,
+            attributeNames: ["attr1", "attr2"],
+            attributeValues: ["0x00", "0x01"],
+          } as InsertUserAttributesParam;
+          break;
+        }
+        case "updateUserAttribute": {
+          param = {
+            from: signer.address,
+            address: userAddress,
+            attributeName: "attr1",
+            attributeValue: "0x01",
+          } as UpdateUserAttributeParam;
+          break;
+        }
+        case "deleteUserAttribute": {
+          param = {
+            from: signer.address,
+            address: userAddress,
+            attributeName: "attr1",
+          } as DeleteUserAttributeParam;
           break;
         }
         default: {
@@ -660,56 +709,89 @@ describe("JsonRpc Module", () => {
 
       switch (method) {
         case "insertPolicy": {
-          const { opType, policyConditions, policyName, registry } = policy1;
+          const { opType, policyConditions, policyName, description } = policy1;
           param = {
             from: signer.address,
             opType,
             policyConditions,
             policyName,
-            registry,
+            description,
           } as InsertPolicyParam;
           break;
         }
         case "updatePolicy": {
-          const { opType, policyName, registry } = policy2;
+          const { opType, policyName, description } = policy2;
           param = {
             from: signer.address,
+            ...(byPolicyId && { policyId: "1" }),
+            ...(byPolicyName && { policyName }),
             opType,
-            policyId: "1",
-            policyName,
-            registry,
+            description,
           } as UpdatePolicyParam;
           break;
         }
         case "addPolicyConditions": {
-          const { policyConditions } = policy3;
+          const { policyConditions, policyName } = policy3;
           param = {
             from: signer.address,
-            policyId: "1",
+            ...(byPolicyId && { policyId: "1" }),
+            ...(byPolicyName && { policyName }),
             policyConditions,
           } as AddPolicyConditionsParam;
           break;
         }
         case "deletePolicyCondition": {
+          const { policyName } = policy1;
           param = {
             from: signer.address,
-            policyId: "1",
+            ...(byPolicyId && { policyId: "1" }),
+            ...(byPolicyName && { policyName }),
             policyConditionId: "2",
           } as DeletePolicyConditionParam;
           break;
         }
         case "deactivatePolicy": {
+          const { policyName } = policy1;
           param = {
             from: signer.address,
-            policyId: "1",
+            ...(byPolicyId && { policyId: "1" }),
+            ...(byPolicyName && { policyName }),
           } as DeactivatePolicyParam;
           break;
         }
         case "activatePolicy": {
+          const { policyName } = policy1;
           param = {
             from: signer.address,
-            policyId: "1",
+            ...(byPolicyId && { policyId: "1" }),
+            ...(byPolicyName && { policyName }),
           } as ActivatePolicyParam;
+          break;
+        }
+        case "insertUserAttributes": {
+          param = {
+            from: signer.address,
+            address: userAddress,
+            attributeNames: ["attr1", "attr2"],
+            attributeValues: ["0x00", "0x01"],
+          } as InsertUserAttributesParam;
+          break;
+        }
+        case "updateUserAttribute": {
+          param = {
+            from: signer.address,
+            address: userAddress,
+            attributeName: "attr1",
+            attributeValue: "0x01",
+          } as UpdateUserAttributeParam;
+          break;
+        }
+        case "deleteUserAttribute": {
+          param = {
+            from: signer.address,
+            address: userAddress,
+            attributeName: "attr1",
+          } as DeleteUserAttributeParam;
           break;
         }
         default: {
@@ -756,12 +838,12 @@ describe("JsonRpc Module", () => {
             policyConditions: policy1.policyConditions.map(
               ({ expectedValue, ...condition }) => condition
             ),
-            // policyName: policy1.policyName, <- missing policyName
-            registry: policy1.registry,
+            policyName: policy1.policyName,
+            // description: policy1.description, <- missing description
           } as InsertPolicyParam);
 
           expectedErrorMessages.push(
-            "- Invalid params.0.policyName provided: policyName must be a string"
+            "- Invalid params.0.description provided: description must be a string"
           );
 
           params.push({
@@ -769,7 +851,7 @@ describe("JsonRpc Module", () => {
             opType: policy2.opType,
             // policyConditions: policy2.policyConditions, <- missing policyConditions
             policyName: policy2.policyName,
-            registry: policy2.registry,
+            description: policy2.description,
           } as InsertPolicyParam);
 
           expectedErrorMessages.push(
@@ -793,11 +875,11 @@ describe("JsonRpc Module", () => {
               },
             ].map(({ expectedValue, ...condition }) => condition),
             policyName: policy2.policyName,
-            registry: policy2.registry,
+            description: policy2.description,
           } as InsertPolicyParam);
 
           expectedErrorMessages.push(
-            "Invalid params.0.policyConditions.5.typeOfValue provided: typeOfValue must be less or equal to 5"
+            "Invalid params.0.policyConditions provided: each value in policyConditions. condition 5: typeOfValue must be 0 (UINT256), 1 (BYTES), 2 (ADDRESS), 3 (BYTES32), 4 (STRING), or 5 (BOOLEAN)"
           );
 
           params.push({
@@ -805,7 +887,7 @@ describe("JsonRpc Module", () => {
             opType: policy2.opType,
             policyConditions: policy2.policyConditions,
             policyName: policy2.policyName,
-            registry: policy2.registry,
+            description: policy2.description,
           } as InsertPolicyParam);
 
           expectedErrorMessages.push(
@@ -819,12 +901,12 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             opType: policy1.opType,
             policyId: "1",
-            // policyName: policy1.policyName, <- missing policyName
-            registry: policy1.registry,
+            policyName: policy1.policyName,
+            // description: policy1.description, <- missing description
           } as UpdatePolicyParam);
 
           expectedErrorMessages.push(
-            "- Invalid params.0.policyName provided: policyName must be a string"
+            "- Invalid params.0.description provided: description must be a string"
           );
 
           params.push({
@@ -832,11 +914,11 @@ describe("JsonRpc Module", () => {
             opType: policy2.opType,
             policyId: "1",
             policyName: policy2.policyName,
-            registry: 15, // Invalid registry
+            description: 15, // Invalid description
           } as unknown as UpdatePolicyParam);
 
           expectedErrorMessages.push(
-            "Invalid params.0.registry provided: registry must be a string"
+            "Invalid params.0.description provided: description must be a string"
           );
 
           params.push({
@@ -844,7 +926,7 @@ describe("JsonRpc Module", () => {
             opType: policy2.opType,
             policyId: "0x69042",
             policyName: policy2.policyName,
-            registry: policy2.registry,
+            description: policy2.description,
           } as UpdatePolicyParam);
 
           expectedErrorMessages.push(
@@ -856,7 +938,7 @@ describe("JsonRpc Module", () => {
             opType: policy2.opType,
             policyId: "1",
             policyName: policy2.policyName,
-            registry: policy2.registry,
+            description: policy2.description,
           } as UpdatePolicyParam);
 
           expectedErrorMessages.push(
@@ -907,7 +989,7 @@ describe("JsonRpc Module", () => {
           } as AddPolicyConditionsParam);
 
           expectedErrorMessages.push(
-            "Invalid params.0.policyConditions.5.typeOfValue provided: typeOfValue must be less or equal to 5"
+            "Invalid params.0.policyConditions provided: each value in policyConditions. condition 5: typeOfValue must be 0 (UINT256), 1 (BYTES), 2 (ADDRESS), 3 (BYTES32), 4 (STRING), or 5 (BOOLEAN)"
           );
           break;
         }
@@ -956,6 +1038,44 @@ describe("JsonRpc Module", () => {
             "- Invalid params.0.policyId provided: policyId must be a number string"
           );
 
+          break;
+        }
+        case "insertUserAttributes": {
+          params.push({
+            from: signer.address,
+            address: userAddress,
+            attributeNames: "attr1",
+            attributeValues: ["0x00", "0x01"],
+          } as unknown as InsertUserAttributesParam);
+
+          expectedErrorMessages.push(
+            "- Invalid params.0.attributeNames provided: attributeNames must be an array"
+          );
+          break;
+        }
+        case "updateUserAttribute": {
+          params.push({
+            from: signer.address,
+            address: userAddress,
+            attributeName: 12,
+            attributeValue: "0x01",
+          } as unknown as UpdateUserAttributeParam);
+
+          expectedErrorMessages.push(
+            "- Invalid params.0.attributeName provided: attributeName must be a string"
+          );
+          break;
+        }
+        case "deleteUserAttribute": {
+          params.push({
+            from: signer.address,
+            address: userAddress,
+            attributeName: 12,
+          } as unknown as DeleteUserAttributeParam);
+
+          expectedErrorMessages.push(
+            "- Invalid params.0.attributeName provided: attributeName must be a string"
+          );
           break;
         }
         default: {
@@ -1009,40 +1129,40 @@ describe("JsonRpc Module", () => {
 
       switch (method) {
         case "insertPolicy": {
-          const { opType, policyConditions, policyName, registry } = policy1;
+          const { opType, policyConditions, policyName, description } = policy1;
 
           param1 = {
             from: signer.address,
             opType,
             policyConditions,
             policyName,
-            registry,
+            description,
           } as InsertPolicyParam;
           param2 = {
             from: signer.address,
             opType,
             policyConditions,
             policyName: "another name",
-            registry,
+            description,
           } as InsertPolicyParam;
           break;
         }
         case "updatePolicy": {
-          const { opType, policyName, registry } = policy1;
+          const { opType, policyName, description } = policy1;
 
           param1 = {
             from: signer.address,
             policyId: "1",
             opType,
             policyName,
-            registry,
+            description,
           } as UpdatePolicyParam;
           param2 = {
             from: signer.address,
             policyId: "1",
             opType,
             policyName: "another name",
-            registry,
+            description,
           } as UpdatePolicyParam;
           break;
         }
@@ -1100,6 +1220,52 @@ describe("JsonRpc Module", () => {
             policyId: "2",
           } as ActivatePolicyParam;
 
+          break;
+        }
+        case "insertUserAttributes": {
+          param1 = {
+            from: signer.address,
+            address: userAddress,
+            attributeNames: ["attr1", "attr2"],
+            attributeValues: ["0x00", "0x01"],
+          } as InsertUserAttributesParam;
+
+          param2 = {
+            from: signer.address,
+            address: userAddress,
+            attributeNames: ["attr1", "attr3"],
+            attributeValues: ["0x00", "0x01"],
+          } as InsertUserAttributesParam;
+          break;
+        }
+        case "updateUserAttribute": {
+          param1 = {
+            from: signer.address,
+            address: userAddress,
+            attributeName: "attr1",
+            attributeValue: "0x01",
+          } as UpdateUserAttributeParam;
+
+          param2 = {
+            from: signer.address,
+            address: userAddress,
+            attributeName: "attr2",
+            attributeValue: "0x01",
+          } as UpdateUserAttributeParam;
+          break;
+        }
+        case "deleteUserAttribute": {
+          param1 = {
+            from: signer.address,
+            address: userAddress,
+            attributeName: "attr1",
+          } as DeleteUserAttributeParam;
+
+          param2 = {
+            from: signer.address,
+            address: userAddress,
+            attributeName: "attr2",
+          } as DeleteUserAttributeParam;
           break;
         }
         default: {

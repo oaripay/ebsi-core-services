@@ -19,7 +19,7 @@ export class PoliciesController {
   async getPolicies(
     @Query() query: PaginationQuery
   ): Promise<PaginatedList<PolicyLink>> {
-    const policies = await this.policiesService.getPolicies(
+    const policies = await this.policiesService.getPolicyNames(
       query["page[after]"],
       query["page[size]"]
     );
@@ -36,13 +36,13 @@ export class PoliciesController {
     );
   }
 
-  @Get("/:policyId")
+  @Get("/:policyName")
   async getPolicy(
     @Param() params: GetPolicyParams
   ): Promise<PolicyResponseObject> {
-    const { policyId } = params;
+    const { policyName } = params;
 
-    return this.policiesService.getPolicy(policyId);
+    return this.policiesService.getPolicy(policyName);
   }
 }
 

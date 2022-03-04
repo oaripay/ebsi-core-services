@@ -30,7 +30,7 @@ export interface PolicyConditionStructOutput {
 
 export interface PolicyResponseObject {
   policyId: string;
-  registry: string;
+  description: string;
   policyName: string;
   operationType: typeof OPERATION_TYPES[number];
   status: boolean;
@@ -38,15 +38,6 @@ export interface PolicyResponseObject {
 }
 
 export interface PolicyLink {
-  policyId: string;
+  policyName: string;
   href: string;
 }
-
-export type PolicyRevisions = {
-  items: {
-    policyId: string;
-    policy: string;
-    hash: string;
-  }[];
-  total: number;
-};

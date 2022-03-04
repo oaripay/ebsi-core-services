@@ -16,6 +16,12 @@ import {
   RequestActivatePolicyDto,
   ArgsDeactivatePolicy,
   RequestDeactivatePolicyDto,
+  ArgsInsertUserAttributes,
+  RequestInsertUserAttributesDto,
+  ArgsUpdateUserAttribute,
+  RequestUpdateUserAttributeDto,
+  ArgsDeleteUserAttribute,
+  RequestDeleteUserAttributeDto,
 } from "./dto";
 
 export function formatEthersUnsignedTransaction(
@@ -59,7 +65,13 @@ type JsonRpcDtos =
   | ArgsActivatePolicy
   | RequestActivatePolicyDto
   | ArgsDeactivatePolicy
-  | RequestDeactivatePolicyDto;
+  | RequestDeactivatePolicyDto
+  | ArgsInsertUserAttributes
+  | RequestInsertUserAttributesDto
+  | ArgsUpdateUserAttribute
+  | RequestUpdateUserAttributeDto
+  | ArgsDeleteUserAttribute
+  | RequestDeleteUserAttributeDto;
 
 const flattenValidationErrors = (
   errors: ClassValidator.ValidationError[],

@@ -12,6 +12,7 @@ import {
 } from "../../src/modules/policies/policies.interface";
 
 export interface PolicyObject {
+  policyId: number;
   opType: number;
   policyConditions: {
     name: string;
@@ -22,12 +23,20 @@ export interface PolicyObject {
     attributeOperation: number;
   }[];
   policyName: string;
-  registry: string;
+  description: string;
   status: true;
 }
 
+export interface UserObject {
+  address: string;
+  attributes: {
+    [x: string]: string;
+  };
+}
+
 export async function insertPolicy(
-  contract: PolicyRegistry
+  contract: PolicyRegistry,
+  policyId: number
 ): Promise<PolicyObject> {
   const opType = OPERATION_TYPES.indexOf("AND");
   const policyConditions = [
@@ -50,7 +59,7 @@ export async function insertPolicy(
     {
       name: "condition-boolean-uint8array",
       attributeName: "any",
-      value: new Uint8Array([0]), // Uint8Array([0]) => false
+      value: new Uint8Array(32),
       expectedValue: false,
       attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
       typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
@@ -58,7 +67,7 @@ export async function insertPolicy(
     {
       name: "condition-boolean-array",
       attributeName: "any",
-      value: [1], // [1] => true
+      value: [...(Array(31).fill(0) as number[]), 1],
       expectedValue: true,
       attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
       typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
@@ -66,7 +75,7 @@ export async function insertPolicy(
     {
       name: "condition-boolean-string",
       attributeName: "any",
-      value: "0x01", // "0x01" => true
+      value: `0x${"00".repeat(31)}01`,
       expectedValue: true,
       attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
       typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
@@ -89,23 +98,50 @@ export async function insertPolicy(
     },
   ];
   const policyName = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
-  const registry = `registry-test-${crypto.randomBytes(16).toString("hex")}`;
+  const description = crypto.randomBytes(16).toString("hex");
 
   await contract.insertPolicy(
     opType,
     // Remove "expectedValue" from properties
     policyConditions.map(({ expectedValue, ...otherProps }) => otherProps),
     policyName,
-    registry
+    description
   );
 
   return {
+    policyId,
     opType,
     policyConditions,
     policyName,
-    registry,
+    description,
     status: true,
   };
+}
+
+export async function insertUser(
+  contract: PolicyRegistry
+): Promise<UserObject> {
+  const attributeNames = ["test-attr1", "test-attr2", "test-attr3"];
+  const attributeValues = [
+    `0x${crypto.randomBytes(12).toString("hex")}`,
+    `0x${crypto.randomBytes(20).toString("hex")}`,
+    `0x${crypto.randomBytes(32).toString("hex")}`,
+  ];
+  const user: UserObject = {
+    address: ethers.Wallet.createRandom().address,
+    attributes: {},
+  };
+  attributeNames.forEach((name, i) => {
+    user.attributes[name] = attributeValues[i];
+  });
+
+  await contract.insertUserAttributes(
+    user.address,
+    attributeNames,
+    attributeValues
+  );
+
+  return user;
 }
 
 export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> {
@@ -128,18 +164,18 @@ export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> 
 
 export interface SetupOptions {
   policiesTotal?: number;
-  policiesRevisionsTotal?: number;
+  usersTotal?: number;
 }
 
 export async function setupTestEnv(
   opts: SetupOptions = {
     policiesTotal: 1,
-    policiesRevisionsTotal: 1,
   }
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   policiesRegistryContract: PolicyRegistry;
   policies: PolicyObject[];
+  users: UserObject[];
   adminWallet: ethers.Wallet;
 }> {
   const ethersProvider = hre.ethers.provider;
@@ -154,16 +190,25 @@ export async function setupTestEnv(
   await policiesRegistryContract.grantRole(OPERATOR_ROLE, adminWallet.address);
 
   // Create as many policies as requested
-  const createPolicy = async () => {
-    const policy = await insertPolicy(policiesRegistryContract);
+  const createPolicy = async (id: number) => {
+    return insertPolicy(policiesRegistryContract, id);
+  };
 
-    return policy;
+  const createUser = async () => {
+    return insertUser(policiesRegistryContract);
   };
 
   const policies =
-    opts.policiesRevisionsTotal >= 1
-      ? await range(0, opts.policiesTotal ?? 1)
+    opts.policiesTotal >= 1
+      ? await range(0, opts.policiesTotal)
           .pipe(mergeMap(createPolicy), toArray())
+          .toPromise()
+      : [];
+
+  const users =
+    opts.usersTotal >= 1
+      ? await range(0, opts.usersTotal)
+          .pipe(mergeMap(createUser), toArray())
           .toPromise()
       : [];
 
@@ -172,6 +217,7 @@ export async function setupTestEnv(
     provider: ethersProvider,
     policiesRegistryContract,
     policies,
+    users,
     adminWallet,
   };
 }

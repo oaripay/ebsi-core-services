@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -71,9 +72,10 @@ describe("Policies (e2e)", () => {
   let testAdminAccessToken: string;
   let testUserAccessToken: string;
 
-  const policy1 = createPolicy();
-  const policy2 = createPolicy();
-  const policy3 = createPolicy();
+  const pName = `test-${crypto.randomBytes(5).toString("hex")}`;
+  const policy1 = createPolicy(1, pName);
+  const policy2 = createPolicy(1, pName);
+  const policy3 = createPolicy(1, pName);
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -210,13 +212,13 @@ describe("Policies (e2e)", () => {
 
       const signer = ethers.Wallet.createRandom();
 
-      const { opType, policyConditions, policyName, registry } = policy1;
+      const { opType, policyConditions, policyName, description } = policy1;
       const param = {
         from: signer.address,
         opType,
         policyConditions,
         policyName,
-        registry,
+        description,
       } as InsertPolicyParam;
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
@@ -294,13 +296,13 @@ describe("Policies (e2e)", () => {
 
       const signer = new ethers.Wallet(configService.get("testUserPrivateKey"));
 
-      const { opType, policyConditions, policyName, registry } = policy1;
+      const { opType, policyConditions, policyName, description } = policy1;
       param = {
         from: signer.address,
         opType,
         policyConditions,
         policyName,
-        registry,
+        description,
       } as InsertPolicyParam;
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
@@ -394,55 +396,58 @@ describe("Policies (e2e)", () => {
 
         switch (method) {
           case "insertPolicy": {
-            const { opType, policyConditions, policyName, registry } = policy1;
+            const { opType, policyConditions, policyName, description } =
+              policy1;
             param = {
               from: signer.address,
               opType,
               policyConditions,
               policyName,
-              registry,
+              description,
             } as InsertPolicyParam;
             break;
           }
           case "updatePolicy": {
-            const { opType, policyName, registry } = policy2;
+            const { opType, policyName, description } = policy2;
             param = {
               from: signer.address,
-              policyId: lastPolicyId,
-              opType,
               policyName,
-              registry,
+              opType,
+              description,
             } as UpdatePolicyParam;
             break;
           }
           case "addPolicyConditions": {
-            const { policyConditions } = policy3;
+            const { policyConditions, policyName } = policy3;
             param = {
               from: signer.address,
-              policyId: lastPolicyId,
+              policyName,
               policyConditions,
             } as AddPolicyConditionsParam;
             break;
           }
           case "deletePolicyCondition": {
+            const { policyName } = policy1;
             param = {
               from: signer.address,
-              policyId: lastPolicyId,
+              policyName,
               policyConditionId: "2",
             } as DeletePolicyConditionParam;
             break;
           }
           case "deactivatePolicy": {
+            const { policyName } = policy1;
             param = {
               from: signer.address,
-              policyId: lastPolicyId,
+              policyName,
             } as DeactivatePolicyParam;
             break;
           }
           case "activatePolicy": {
+            const { policyName } = policy1;
             param = {
               from: signer.address,
-              policyId: lastPolicyId,
+              policyName,
             } as ActivatePolicyParam;
             break;
           }
@@ -526,7 +531,8 @@ describe("Policies (e2e)", () => {
 
         switch (method) {
           case "insertPolicy": {
-            const { opType, policyConditions, policyName, registry } = policy1;
+            const { opType, policyConditions, policyName, description } =
+              policy1;
 
             // Get number of existing policies
             const getPoliciesResponse: SupertestPoliciesResponse =
@@ -547,18 +553,20 @@ describe("Policies (e2e)", () => {
                 value: condition.expectedValue,
               })),
               policyName,
-              registry,
+              description,
               status: true,
             } as PolicyResponseObject;
 
             // Actual response
-            actualResponse = await request(server).get(`/policies/${policyId}`);
+            actualResponse = await request(server).get(
+              `/policies/${policyName}`
+            );
 
             break;
           }
           case "updatePolicy": {
             const { policyConditions } = policy1;
-            const { opType, policyName, registry } = policy2;
+            const { opType, policyName, description } = policy2;
 
             // Expected response
             expectedResponseBody = {
@@ -573,20 +581,20 @@ describe("Policies (e2e)", () => {
                 value: condition.expectedValue,
               })),
               policyName,
-              registry,
+              description,
               status: true,
             } as PolicyResponseObject;
 
             // Actual response
             actualResponse = await request(server).get(
-              `/policies/${lastPolicyId}`
+              `/policies/${policyName}`
             );
 
             break;
           }
           case "addPolicyConditions": {
             const { policyConditions } = policy1;
-            const { opType, policyName, registry } = policy2;
+            const { opType, policyName, description } = policy2;
             const { policyConditions: newPolicyConditions } = policy3;
 
             // Expected response
@@ -605,20 +613,20 @@ describe("Policies (e2e)", () => {
                 value: condition.expectedValue,
               })),
               policyName,
-              registry,
+              description,
               status: true,
             } as PolicyResponseObject;
 
             // Actual response
             actualResponse = await request(server).get(
-              `/policies/${lastPolicyId}`
+              `/policies/${policyName}`
             );
 
             break;
           }
           case "deletePolicyCondition": {
             const { policyConditions } = policy1;
-            const { opType, policyName, registry } = policy2;
+            const { opType, policyName, description } = policy2;
             const { policyConditions: newPolicyConditions } = policy3;
 
             // Remove condition with conditionId = "2"
@@ -640,20 +648,20 @@ describe("Policies (e2e)", () => {
                 value: condition.expectedValue,
               })),
               policyName,
-              registry,
+              description,
               status: true,
             } as PolicyResponseObject;
 
             // Actual response
             actualResponse = await request(server).get(
-              `/policies/${lastPolicyId}`
+              `/policies/${policyName}`
             );
 
             break;
           }
           case "deactivatePolicy": {
             const { policyConditions } = policy1;
-            const { opType, policyName, registry } = policy2;
+            const { opType, policyName, description } = policy2;
             const { policyConditions: newPolicyConditions } = policy3;
 
             // Remove condition with conditionId = "2"
@@ -675,20 +683,20 @@ describe("Policies (e2e)", () => {
                 value: condition.expectedValue,
               })),
               policyName,
-              registry,
+              description,
               status: false,
             } as PolicyResponseObject;
 
             // Actual response
             actualResponse = await request(server).get(
-              `/policies/${lastPolicyId}`
+              `/policies/${policyName}`
             );
 
             break;
           }
           case "activatePolicy": {
             const { policyConditions } = policy1;
-            const { opType, policyName, registry } = policy2;
+            const { opType, policyName, description } = policy2;
             const { policyConditions: newPolicyConditions } = policy3;
 
             // Remove condition with conditionId = "2"
@@ -710,13 +718,13 @@ describe("Policies (e2e)", () => {
                 value: condition.expectedValue,
               })),
               policyName,
-              registry,
+              description,
               status: true,
             } as PolicyResponseObject;
 
             // Actual response
             actualResponse = await request(server).get(
-              `/policies/${lastPolicyId}`
+              `/policies/${policyName}`
             );
 
             break;
@@ -739,55 +747,58 @@ describe("Policies (e2e)", () => {
 
         switch (method) {
           case "insertPolicy": {
-            const { opType, policyConditions, policyName, registry } = policy1;
+            const { opType, policyConditions, policyName, description } =
+              policy1;
             param = {
               from: signer.address,
               opType,
               policyConditions,
               policyName,
-              registry,
+              description,
             } as InsertPolicyParam;
             break;
           }
           case "updatePolicy": {
-            const { opType, policyName, registry } = policy2;
+            const { opType, policyName, description } = policy2;
             param = {
               from: signer.address,
               opType,
-              policyId: "1",
               policyName,
-              registry,
+              description,
             } as UpdatePolicyParam;
             break;
           }
           case "addPolicyConditions": {
-            const { policyConditions } = policy2;
+            const { policyConditions, policyName } = policy2;
             param = {
               from: signer.address,
-              policyId: "1",
+              policyName,
               policyConditions,
             } as AddPolicyConditionsParam;
             break;
           }
           case "deletePolicyCondition": {
+            const { policyName } = policy1;
             param = {
               from: signer.address,
-              policyId: "1",
+              policyName,
               policyConditionId: "2",
             } as DeletePolicyConditionParam;
             break;
           }
           case "deactivatePolicy": {
+            const { policyName } = policy1;
             param = {
               from: signer.address,
-              policyId: "1",
+              policyName,
             } as DeactivatePolicyParam;
             break;
           }
           case "activatePolicy": {
+            const { policyName } = policy1;
             param = {
               from: signer.address,
-              policyId: "1",
+              policyName,
             } as ActivatePolicyParam;
             break;
           }
@@ -829,7 +840,7 @@ describe("Policies (e2e)", () => {
                 ({ expectedValue, ...condition }) => condition
               ),
               // policyName: policy1.policyName, <- missing policyName
-              registry: policy1.registry,
+              description: policy1.description,
             } as InsertPolicyParam);
 
             expectedErrorMessages.push(
@@ -841,7 +852,7 @@ describe("Policies (e2e)", () => {
               opType: policy2.opType,
               // policyConditions: policy2.policyConditions, <- missing policyConditions
               policyName: policy2.policyName,
-              registry: policy2.registry,
+              description: policy2.description,
             } as InsertPolicyParam);
 
             expectedErrorMessages.push(
@@ -865,11 +876,11 @@ describe("Policies (e2e)", () => {
                 },
               ].map(({ expectedValue, ...condition }) => condition),
               policyName: policy2.policyName,
-              registry: policy2.registry,
+              description: policy2.description,
             } as InsertPolicyParam);
 
             expectedErrorMessages.push(
-              "Invalid params.0.policyConditions.5.typeOfValue provided: typeOfValue must be less or equal to 5"
+              "Invalid params.0.policyConditions provided: each value in policyConditions. condition 5: typeOfValue must be 0 (UINT256), 1 (BYTES), 2 (ADDRESS), 3 (BYTES32), 4 (STRING), or 5 (BOOLEAN)"
             );
 
             params.push({
@@ -877,7 +888,7 @@ describe("Policies (e2e)", () => {
               opType: policy2.opType,
               policyConditions: policy2.policyConditions,
               policyName: policy2.policyName,
-              registry: policy2.registry,
+              description: policy2.description,
             } as InsertPolicyParam);
 
             expectedErrorMessages.push(
@@ -890,10 +901,9 @@ describe("Policies (e2e)", () => {
             params.push({
               from: signer.address,
               opType: policy1.opType,
-              policyId: "1",
-              // policyName: policy1.policyName, <- missing policyName
-              registry: policy1.registry,
-            } as UpdatePolicyParam);
+              policyName: 40,
+              description: policy1.description, // <- missing description
+            } as unknown as UpdatePolicyParam);
 
             expectedErrorMessages.push(
               "- Invalid params.0.policyName provided: policyName must be a string"
@@ -902,21 +912,19 @@ describe("Policies (e2e)", () => {
             params.push({
               from: signer.address,
               opType: policy2.opType,
-              policyId: "1",
               policyName: policy2.policyName,
-              registry: 15, // Invalid registry
+              description: 15, // Invalid description
             } as unknown as UpdatePolicyParam);
 
             expectedErrorMessages.push(
-              "Invalid params.0.registry provided: registry must be a string"
+              "Invalid params.0.description provided: description must be a string"
             );
 
             params.push({
               from: signer.address,
               opType: policy2.opType,
-              policyId: "0x69042",
-              policyName: policy2.policyName,
-              registry: policy2.registry,
+              policyId: "test",
+              description: policy2.description,
             } as UpdatePolicyParam);
 
             expectedErrorMessages.push(
@@ -926,9 +934,8 @@ describe("Policies (e2e)", () => {
             params.push({
               from: "bad address",
               opType: policy2.opType,
-              policyId: "1",
               policyName: policy2.policyName,
-              registry: policy2.registry,
+              description: policy2.description,
             } as UpdatePolicyParam);
 
             expectedErrorMessages.push(
@@ -962,7 +969,7 @@ describe("Policies (e2e)", () => {
 
             params.push({
               from: signer.address,
-              policyId: "1",
+              policyName: policy2.policyName,
               policyConditions: [
                 ...policy2.policyConditions,
                 {
@@ -979,7 +986,7 @@ describe("Policies (e2e)", () => {
             } as AddPolicyConditionsParam);
 
             expectedErrorMessages.push(
-              "Invalid params.0.policyConditions.5.typeOfValue provided: typeOfValue must be less or equal to 5"
+              "Invalid params.0.policyConditions provided: each value in policyConditions. condition 5: typeOfValue must be 0 (UINT256), 1 (BYTES), 2 (ADDRESS), 3 (BYTES32), 4 (STRING), or 5 (BOOLEAN)"
             );
             break;
           }
@@ -1076,40 +1083,40 @@ describe("Policies (e2e)", () => {
 
         switch (method) {
           case "insertPolicy": {
-            const { opType, policyConditions, policyName, registry } = policy1;
+            const { opType, policyConditions, policyName, description } =
+              policy1;
 
             param1 = {
               from: signer.address,
               opType,
               policyConditions,
               policyName,
-              registry,
+              description,
             } as InsertPolicyParam;
             param2 = {
               from: signer.address,
               opType,
               policyConditions,
               policyName: "another name",
-              registry,
+              description,
             } as InsertPolicyParam;
             break;
           }
           case "updatePolicy": {
-            const { opType, policyName, registry } = policy1;
+            const { opType, description } = policy1;
 
             param1 = {
               from: signer.address,
               policyId: "1",
               opType,
-              policyName,
-              registry,
+              description,
             } as UpdatePolicyParam;
             param2 = {
               from: signer.address,
               policyId: "1",
               opType,
               policyName: "another name",
-              registry,
+              description,
             } as UpdatePolicyParam;
             break;
           }
@@ -1325,13 +1332,21 @@ describe("Policies (e2e)", () => {
       ).get("/policies");
 
       const policyId = `${getPoliciesResponse.body.total - 1}`;
+      const lastPageUrl = getPoliciesResponse.body.links.last;
+      const lastPage: SupertestPoliciesResponse = await request(server).get(
+        lastPageUrl.slice(lastPageUrl.lastIndexOf("/policies"))
+      );
 
-      const response = await request(server).get(`/policies/${policyId}`);
+      const response = await request(server).get(
+        `/policies/${
+          lastPage.body.items[lastPage.body.items.length - 1].policyName
+        }`
+      );
 
       expect(response.body).toStrictEqual<PolicyResponseObject>({
         policyId: `${policyId}`,
         policyName: expect.any(String) as string,
-        registry: expect.any(String) as string,
+        description: expect.any(String) as string,
         status: expect.any(Boolean) as boolean,
         operationType: expect.any(String) as typeof OPERATION_TYPES[number],
         policyConditions: expect.arrayContaining<PolicyConditionStructOutput>([
@@ -1340,27 +1355,13 @@ describe("Policies (e2e)", () => {
             attributeOperation: expect.any(
               String
             ) as typeof ATTRIBUTE_OPERATIONS[number],
-            value: expect.any(String) as string,
+            value: expect.anything() as string | boolean,
             name: expect.any(String) as string,
             typeOfValue: expect.any(String) as typeof ATTRIBUTE_TYPES[number],
           }) as PolicyConditionStructOutput,
         ]) as PolicyConditionStructOutput[],
       });
       expect(response.status).toBe(200);
-    });
-
-    it("should throw an error if the policy ID is not valid", async () => {
-      expect.assertions(2);
-
-      const response = await request(server).get("/policies/invalid-policy-id");
-
-      expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
-        detail: '["policyId must be a number string"]',
-        type: "about:blank",
-      });
-      expect(response.status).toBe(400);
     });
 
     it("should throw an error if the policy is not found", async () => {

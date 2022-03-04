@@ -5,9 +5,16 @@ import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 import { HealthModule } from "./modules/health/health.module";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { PoliciesModule } from "./modules/policies/policies.module";
+import { UsersModule } from "./modules/users/users.module";
 
 @Module({
-  imports: [ApiConfigModule, HealthModule, JsonRpcModule, PoliciesModule],
+  imports: [
+    ApiConfigModule,
+    HealthModule,
+    JsonRpcModule,
+    PoliciesModule,
+    UsersModule,
+  ],
   providers: [
     {
       provide: APP_INTERCEPTOR,

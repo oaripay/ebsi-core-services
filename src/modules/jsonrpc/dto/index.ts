@@ -6,3 +6,6 @@ export * from "./addPolicyConditions";
 export * from "./deletePolicyCondition";
 export * from "./activatePolicy";
 export * from "./deactivatePolicy";
+export * from "./insertUserAttributes";
+export * from "./updateUserAttribute";
+export * from "./deleteUserAttribute";

@@ -1,9 +1,21 @@
-import { IsString, IsNumber, Min, Max, IsNumberString } from "class-validator";
+import {
+  IsString,
+  IsNumber,
+  Min,
+  Max,
+  IsNumberString,
+  IsOptional,
+} from "class-validator";
 import { OPERATION_TYPES } from "../../../policies/policies.interface";
 
 export class ArgsUpdatePolicy {
+  @IsOptional()
   @IsNumberString()
-  policyId: string;
+  policyId?: string;
+
+  @IsOptional()
+  @IsString()
+  policyName?: string;
 
   @IsNumber()
   @Min(0)
@@ -11,10 +23,7 @@ export class ArgsUpdatePolicy {
   opType: number;
 
   @IsString()
-  policyName: string;
-
-  @IsString()
-  registry: string;
+  description: string;
 }
 
 export default { ArgsUpdatePolicy };

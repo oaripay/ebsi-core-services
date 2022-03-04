@@ -1,14 +1,14 @@
 import { ethers } from "ethers";
-import { formatPolicies } from "./policies.formatter";
+import { formatUsers } from "./users.formatter";
 import { PolicyRegistry } from "../../contracts";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
-describe("formatPolicies", () => {
+describe("formatUsers", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const policies = {
+  const users = {
     prev: ethers.BigNumber.from("1"),
     next: ethers.BigNumber.from("3"),
-    items: ["my-policy-1", "my-policy-2", "my-policy-3"],
+    items: ["0x123456", "0xab1234", "0xcd1234"],
     total: ethers.BigNumber.from("42"),
     howMany: ethers.BigNumber.from("3"),
   } as AsyncReturnType<PolicyRegistry["getPolicyNames"]>;
@@ -19,19 +19,19 @@ describe("formatPolicies", () => {
     const page = 3;
     const pageSize = 2;
 
-    expect(formatPolicies(policies, page, pageSize, "")).toStrictEqual({
+    expect(formatUsers(users, page, pageSize, "")).toStrictEqual({
       items: [
         {
-          policyName: "my-policy-1",
-          href: `/my-policy-1`,
+          address: "0x123456",
+          href: `/0x123456`,
         },
         {
-          policyName: "my-policy-2",
-          href: "/my-policy-2",
+          address: "0xab1234",
+          href: "/0xab1234",
         },
         {
-          policyName: "my-policy-3",
-          href: "/my-policy-3",
+          address: "0xcd1234",
+          href: "/0xcd1234",
         },
       ],
       links: {

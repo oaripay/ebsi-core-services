@@ -5,7 +5,7 @@ import {
   OPERATION_TYPES,
 } from "../../src/modules/policies/policies.interface";
 
-export function createPolicy() {
+export function createPolicy(policyId: number, policyName: string) {
   const opType = OPERATION_TYPES.indexOf("AND");
   const policyConditions = [
     {
@@ -29,7 +29,7 @@ export function createPolicy() {
         .randomBytes(16)
         .toString("hex")}`,
       attributeName: "any",
-      value: "0x00",
+      value: `0x${"00".repeat(32)}`,
       expectedValue: false,
       attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
       typeOfValue: ATTRIBUTE_TYPES.indexOf("BOOLEAN"),
@@ -51,14 +51,14 @@ export function createPolicy() {
       typeOfValue: ATTRIBUTE_TYPES.indexOf("UINT256"),
     },
   ];
-  const policyName = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
-  const registry = `registry-test-${crypto.randomBytes(16).toString("hex")}`;
+  const description = crypto.randomBytes(16).toString("hex");
 
   return {
+    policyId,
     opType,
     policyConditions,
     policyName,
-    registry,
+    description,
     status: true,
   };
 }

@@ -1,8 +1,13 @@
-import { IsNumberString } from "class-validator";
+import { IsString, IsNumberString, IsOptional } from "class-validator";
 
 export class ArgsDeletePolicyCondition {
+  @IsOptional()
   @IsNumberString()
-  policyId: string;
+  policyId?: string;
+
+  @IsOptional()
+  @IsString()
+  policyName?: string;
 
   @IsNumberString()
   policyConditionId: string;

@@ -1,24 +1,32 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
 import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
 import {
-  RequestSendSignedTransactionDto,
-  SignedTransactionParam,
-  UnsignedTransaction,
-  ArgsInsertPolicy,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
-  ArgsUpdatePolicy,
   RequestAddPolicyConditionsDto,
-  ArgsAddPolicyConditions,
-  ArgsDeletePolicyCondition,
   RequestDeletePolicyConditionDto,
   RequestActivatePolicyDto,
   RequestDeactivatePolicyDto,
+  RequestInsertUserAttributesDto,
+  RequestUpdateUserAttributeDto,
+  RequestDeleteUserAttributeDto,
+  ArgsInsertPolicy,
+  ArgsUpdatePolicy,
+  ArgsAddPolicyConditions,
+  ArgsDeletePolicyCondition,
   ArgsActivatePolicy,
   ArgsDeactivatePolicy,
+  ArgsInsertUserAttributes,
+  ArgsUpdateUserAttribute,
+  ArgsDeleteUserAttribute,
+  UnsignedTransaction,
+  SignedTransactionParam,
+  RequestSendSignedTransactionDto,
 } from "./dto";
 import { InvalidRequestJsonRpcError } from "./errors";
 import {
@@ -212,6 +220,27 @@ export class JsonRpcService {
         );
         break;
       }
+      case "insertUserAttributes": {
+        await validateClass(
+          ArgsInsertUserAttributes,
+          args as unknown as ArgsInsertUserAttributes
+        );
+        break;
+      }
+      case "updateUserAttribute": {
+        await validateClass(
+          ArgsUpdateUserAttribute,
+          args as unknown as ArgsUpdateUserAttribute
+        );
+        break;
+      }
+      case "deleteUserAttribute": {
+        await validateClass(
+          ArgsDeleteUserAttribute,
+          args as unknown as ArgsDeleteUserAttribute
+        );
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -272,7 +301,7 @@ export class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertPolicyDto, body);
-      const { from, opType, policyConditions, policyName, registry } =
+      const { from, opType, policyConditions, policyName, description } =
         body.params[0];
 
       const data = (
@@ -281,7 +310,7 @@ export class JsonRpcService {
         opType,
         policyConditions,
         policyName,
-        registry,
+        description,
       ]);
 
       return await this.buildTransaction(from, data);
@@ -298,16 +327,19 @@ export class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdatePolicyDto, body);
-      const { from, policyId, opType, policyName, registry } = body.params[0];
+      const { from, policyId, opType, policyName, description } =
+        body.params[0];
+      const functionSig = policyName
+        ? "updatePolicy(string,uint8,string)"
+        : "updatePolicy(uint256,uint8,string)";
 
       const data = (
         await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("updatePolicy", [
-        policyId,
-        opType,
-        policyName,
-        registry,
-      ]);
+      ).interface.encodeFunctionData(
+        // @ts-ignore
+        functionSig,
+        [policyName ?? policyId, opType, description]
+      );
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -323,14 +355,18 @@ export class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestAddPolicyConditionsDto, body);
-      const { from, policyId, policyConditions } = body.params[0];
+      const { from, policyId, policyName, policyConditions } = body.params[0];
+      const functionSig = policyName
+        ? "addPolicyConditions(string,(string,string,uint8,bytes,uint8)[])"
+        : "addPolicyConditions(uint256,(string,string,uint8,bytes,uint8)[])";
 
       const data = (
         await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("addPolicyConditions", [
-        policyId,
-        policyConditions,
-      ]);
+      ).interface.encodeFunctionData(
+        // @ts-ignore
+        functionSig,
+        [policyName ?? policyId, policyConditions]
+      );
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -346,14 +382,18 @@ export class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestDeletePolicyConditionDto, body);
-      const { from, policyId, policyConditionId } = body.params[0];
+      const { from, policyId, policyName, policyConditionId } = body.params[0];
+      const functionSig = policyName
+        ? "deletePolicyCondition(string,uint256)"
+        : "deletePolicyCondition(uint256,uint256)";
 
       const data = (
         await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("deletePolicyCondition", [
-        policyId,
-        policyConditionId,
-      ]);
+      ).interface.encodeFunctionData(
+        // @ts-ignore
+        functionSig,
+        [policyName ?? policyId, policyConditionId]
+      );
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -369,11 +409,18 @@ export class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestActivatePolicyDto, body);
-      const { from, policyId } = body.params[0];
+      const { from, policyId, policyName } = body.params[0];
+      const functionSig = policyName
+        ? "activatePolicy(string)"
+        : "activatePolicy(uint256)";
 
       const data = (
         await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("activatePolicy", [policyId]);
+      ).interface.encodeFunctionData(
+        // @ts-ignore
+        functionSig,
+        [policyName ?? policyId]
+      );
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -389,11 +436,89 @@ export class JsonRpcService {
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestDeactivatePolicyDto, body);
-      const { from, policyId } = body.params[0];
+      const { from, policyId, policyName } = body.params[0];
+      const functionSig = policyName
+        ? "deactivatePolicy(string)"
+        : "deactivatePolicy(uint256)";
 
       const data = (
         await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("deactivatePolicy", [policyId]);
+      ).interface.encodeFunctionData(
+        // @ts-ignore
+        functionSig,
+        [policyName ?? policyId]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertUserAttributes(
+    body: RequestInsertUserAttributesDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertUserAttributesDto, body);
+      const { from, address, attributeNames, attributeValues } = body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("insertUserAttributes", [
+        address,
+        attributeNames,
+        attributeValues,
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateUserAttribute(
+    body: RequestUpdateUserAttributeDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateUserAttributeDto, body);
+      const { from, address, attributeName, attributeValue } = body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("updateUserAttribute", [
+        address,
+        attributeName,
+        attributeValue,
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionDeleteUserAttribute(
+    body: RequestDeleteUserAttributeDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestDeleteUserAttributeDto, body);
+      const { from, address, attributeName } = body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("deleteUserAttribute", [
+        address,
+        attributeName,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {

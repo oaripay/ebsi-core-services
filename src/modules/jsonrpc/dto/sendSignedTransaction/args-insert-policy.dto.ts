@@ -1,14 +1,7 @@
-import { Type } from "class-transformer";
-import {
-  IsString,
-  IsNumber,
-  IsArray,
-  ValidateNested,
-  Min,
-  Max,
-} from "class-validator";
+import { IsString, IsNumber, IsArray, Min, Max } from "class-validator";
 import { PolicyConditionDto } from "../shared/policy-condition.dto";
 import { OPERATION_TYPES } from "../../../policies/policies.interface";
+import { IsPolicyConditions } from "../../validators";
 
 export class ArgsInsertPolicy {
   @IsNumber()
@@ -17,15 +10,14 @@ export class ArgsInsertPolicy {
   opType: number;
 
   @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => PolicyConditionDto)
+  @IsPolicyConditions({ each: true })
   policyConditions: PolicyConditionDto[];
 
   @IsString()
   policyName: string;
 
   @IsString()
-  registry: string;
+  description: string;
 }
 
 export default { ArgsInsertPolicy };
