@@ -605,460 +605,6 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-schemas-registry/v1/administrators:
-    get:
-      tags:
-        - Trusted Schemas Registry
-      summary: List of trusted administrators
-      description: Returns a list of trusted administrators
-      security:
-        - bearerAuth: []
-      operationId: get-trusted-schemas-registry-v1-administrators
-      parameters:
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    description: URI to administrators
-                  items:
-                    type: array
-                    description: List of administrators
-                    items:
-                      type: object
-                      properties:
-                        did:
-                          type: string
-                          description: DID of the administrator
-                        href:
-                          type: string
-                          description: Link to the resource
-                  total:
-                    type: integer
-                    description: Total number of items in a collection
-                  pageSize:
-                    type: integer
-                    description: Number of items to be returned per page
-                  links:
-                    $ref: "#/components/schemas/Links"
-              examples:
-                "[test] Success":
-                  value:
-                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
-                    items:
-                      - did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-                      - did: did:ebsi:zYmdrcZmDbkt5nCAdNERysn
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zYmdrcZmDbkt5nCAdNERysn
-                    total: 2
-                    pageSize: 10
-                    links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
-                "[pilot] Success":
-                  value:
-                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
-                    items:
-                      - did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-                      - did: did:ebsi:zYmdrcZmDbkt5nCAdNERysn
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zYmdrcZmDbkt5nCAdNERysn
-                    total: 2
-                    pageSize: 10
-                    links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators?page[after]=1&page[size]=10
-        400:
-          description: Bad Request Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Bad Paging Request:
-                  value:
-                    title: Bad Paging Request
-                    status: 400
-                    detail: PageSize should not be greater than 50
-        500:
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-  /trusted-schemas-registry/v2/administrators/{did}:
-    get:
-      tags:
-        - Trusted Schemas Registry
-      operationId: get-trusted-schemas-registry-v2-administrators-did
-      summary: Get administrator by its Decentralized Identifier
-      description: Returns a trusted administrator by its decentralized identifier
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-          required: true
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Administrator"
-              example:
-                did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-                attributes:
-                  - hash: 6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
-                    body: eyJhZG1pbiI6ImRjY2Y3YzkxMzFmMWZlYmI4OWE5MTYyYSJ9
-        400:
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Invalid {did} Parameter:
-                  value:
-                    title: Bad Request
-                    status: 400
-                    detail: The format of {did} parameter is not valid
-        404:
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                DID Not Found:
-                  $ref: "#/components/examples/NotFound"
-        500:
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-  /trusted-schemas-registry/v1/administrators/{did}/attributes:
-    get:
-      tags:
-        - Trusted Schemas Registry
-      summary: List the attributes of an administrator
-      description: Returns a list of attributes for a given administrator
-      security:
-        - bearerAuth: []
-      operationId: get-trusted-schemas-registry-v1-administrators-did-attributes
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-          required: true
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    description: URI to attributes
-                  items:
-                    type: array
-                    description: List of attributes
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          description: Attribute ID. (hash, sha256)
-                        href:
-                          type: string
-                          description: Link to the resource
-                  total:
-                    type: integer
-                    description: Total number of items in a collection
-                  pageSize:
-                    type: integer
-                    description: Number of items to be returned per page
-                  links:
-                    $ref: "#/components/schemas/Links"
-              examples:
-                "[test] Success":
-                  value:
-                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
-                    items:
-                      - id: 0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
-                    total: 1
-                    pageSize: 10
-                    links:
-                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
-                "[pilot] Success":
-                  value:
-                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
-                    items:
-                      - id: 6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
-                    total: 1
-                    pageSize: 10
-                    links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes?page[after]=1&page[size]=10
-        400:
-          description: Bad Request Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Bad Paging Request:
-                  value:
-                    title: Bad Paging Request
-                    status: 400
-                    detail: PageSize should not be greater than 50
-        404:
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                DID Not Found:
-                  $ref: "#/components/examples/NotFound"
-        500:
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v2/administrators/{did}/attributes/{attributeId}:
-    get:
-      tags:
-        - Trusted Schemas Registry
-      operationId: get-trusted-issuers-registry-v2-administrators-did-attributes-attributeid
-      summary: Get a specific attribute
-      description: Returns the corresponding attribute of a given administrator
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-          required: true
-        - name: attributeId
-          in: path
-          schema:
-            type: string
-          example: 0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
-          required: true
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AttributeDetails"
-              example:
-                did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-                attribute:
-                  hash: 6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
-                  body: eyJhZG1pbiI6ImRjY2Y3YzkxMzFmMWZlYmI4OWE5MTYyYSJ9
-        400:
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Invalid {did} Parameter:
-                  value:
-                    title: Bad Request
-                    status: 400
-                    detail: "The format of {did} parameter is not valid"
-        404:
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                DID Not Found:
-                  $ref: "#/components/examples/NotFound"
-        500:
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-  /trusted-schemas-registry/v1/administrators/{did}/attributes/{attributeId}/revisions:
-    get:
-      tags:
-        - Trusted Schemas Registry
-      summary: List the revisions of an attribute
-      description: |
-        Returns a list of revisions for a given attribute attached to a given administrator.
-      security:
-        - bearerAuth: []
-      operationId: get-trusted-schemas-registry-v1-administrators-did-attributes-attributeid-revisions
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-          required: true
-        - name: attributeId
-          in: path
-          schema:
-            type: string
-          example: 0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
-          required: true
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
-      responses:
-        200:
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    description: URI of the current page
-                  items:
-                    type: array
-                    description: Array of attribute objects sorted chronologically
-                    items:
-                      $ref: "#/components/schemas/Attribute"
-                  total:
-                    type: integer
-                    description: Total number of results
-                  pageSize:
-                    type: integer
-                    description: Number of items to be returned per page
-                  links:
-                    $ref: "#/components/schemas/Links"
-              examples:
-                "[test] Success":
-                  value:
-                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                    items:
-                      - hash: 0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da
-                        body: eyJhZG1pbiI6ImRjY2Y3YzkxMzFmMWZlYmI4OWE5MTYyYSJ9
-                    total: 1
-                    pageSize: 10
-                    links:
-                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                "[pilot] Success":
-                  value:
-                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                    items:
-                      - hash: 6ab4856ca088c1304bd28fd8b2ae9e52269d2f30a57d0dccc59f97e7a6f5a21d
-                        body: eyJhZG1pbiI6ImRjY2Y3YzkxMzFmMWZlYmI4OWE5MTYyYSJ9
-                    total: 1
-                    pageSize: 10
-                    links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/administrators/did:ebsi:zub5ZZUfHLLptCduwEy8xRj/attributes/0da5eabf7244a84f4e7f38f348376a4fdf37c044c53abf7a0aca61bb971383da/revisions?page[after]=1&page[size]=10
-        400:
-          description: Bad Request Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Bad Paging Request:
-                  value:
-                    title: Bad Paging Request
-                    status: 400
-                    detail: PageSize should not be greater than 50
-
-        404:
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                DID Not Found:
-                  $ref: "#/components/examples/NotFound"
-        500:
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v1/policies:
     get:
       tags:
@@ -1350,8 +896,8 @@ paths:
           It requires the following fields:
 
           - **jsonrpc**: Must be exactly '2.0'
-          - **method**: Method to be invoked. Possible values: 'insertAdministrator', 'insertPolicy',
-            'insertSchema', 'updateSchema', 'updateAdministrator', 'updatePolicy', 'updateMetadata',
+          - **method**: Method to be invoked. Possible values: 'insertPolicy',
+            'insertSchema', 'updateSchema', 'updatePolicy', 'updateMetadata',
             'sendSignedTransaction'
           - **params**: Array of parameters
           - **id**: Identifier stablished by the client
@@ -1381,28 +927,12 @@ paths:
                   type: integer
                   example: 1
             examples:
-              Build tx to insertAdministrator:
-                description: |
-                  Call to build an unsigned transaction to insert a new administrator in the registry. This method requires admin rights in the Trusted Schemas Registry.
-
-                  Parameters:
-                  - **from**: Ethereum address of the administrator
-                  - **did**: DID of new administrator
-                  - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
-                value:
-                  jsonrpc: "2.0"
-                  method: insertAdministrator
-                  id: 1
-                  params:
-                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      did: did:ebsi:ztY82rTMVTTQ4QEkNmkbDuv
-                      attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
               Build tx to insertPolicy:
                 description: |
-                  Call to build an unsigned transaction to insert a policy in the registry. This method requires admin rights in the Trusted Schemas Registry.
+                  Call to build an unsigned transaction to insert a policy in the registry. 
 
                    Parameters:
-                   - **from**: Ethereum address of the administrator
+                   - **from**: Ethereum address of the sender
                    - **policyId**: Policy Id
                    - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
                 value:
@@ -1415,10 +945,10 @@ paths:
                       policyData: "0x7b22706f6c696379223a22396361663735323733373936353135656465613631323165227d"
               Build tx to insertSchema:
                 description: |
-                  Call to build an unsigned transaction to insert a new schema. This method requires admin rights in the Trusted Schemas Registry.
+                  Call to build an unsigned transaction to insert a new schema. This method requires having right attributes assigned in Trusted Policies Registry.
 
                   Parameters:
-                  - **from**: Ethereum address of the administrator
+                  - **from**: Ethereum address of the sender
                   - **schemaId**: DOI/OID converted into hex string
                   - **schema**: Content. This field must be a JSON stringified and converted into hex string
                   - **metadata**: Metadata of the first version. This field must be a JSON stringified and converted into hex string
@@ -1433,10 +963,10 @@ paths:
                       metadata: "0x7b226d657461223a2276616c7565222c2264617461223a223536323930303863363738383536346164653165353266383635623864366535222c2276616c696446726f6d223a22323032312d30382d30325430393a31323a30342e3230365a222c2276616c6964546f223a22323032312d30382d30325430393a31383a30342e3230365a227d"
               Build tx to updatePolicy:
                 description: |
-                  Call to build an unsigned transaction to update a policy. This method requires admin rights in the Trusted Schemas Registry.
+                  Call to build an unsigned transaction to update a policy.
 
                   Parameters:
-                  - **from**: Ethereum address of the administrator
+                  - **from**: Ethereum address of the sender
                    - **policyId**: Policy Id
                    - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
                 value:
@@ -1449,10 +979,10 @@ paths:
                       policyData: "0x1234567890..."
               Build tx to updateSchema:
                 description: |
-                  Call to build an unsigned transaction to update an schema. This method requires admin rights in the Trusted Schemas Registry.
+                  Call to build an unsigned transaction to update an schema. This method requires having right attributes assigned in Trusted Policies Registry.
 
                   Parameters:
-                  - **from**: Ethereum address of the administrator
+                  - **from**: Ethereum address of the sender
                   - **schemaId**: Schema ID
                   - **schema**: Content. This field must be a JSON stringified and converted into hex string
                   - **metadata**: Metadata. This field must be a JSON stringified and converted into hex string
@@ -1465,46 +995,12 @@ paths:
                       schemaId: "{ hex-encoded oid or doi }"
                       schema: "0x227b2240636f6e74657874223a2268747470733a2f2f656273692e6575222c2274797065223a22536368656d61222c226e616d65223a226578616d706c65227d22"
                       metadata: "0x227b226d657461223a2276616c7565227d22"
-              Build tx to updateAdministrator (new attribute):
-                description: |
-                  Call to build an unsigned transaction to insert new attribute data to an administrator in the registry. This method requires admin rights in the Trusted Schemas Registry.
-
-                  Parameters:
-                  - **from**: Ethereum address of the administrator
-                  - **did**: DID of the administrator to update
-                  - **attributeData**: Attribute data to add. This field must be a JSON stringified and converted into hex string
-                value:
-                  jsonrpc: "2.0"
-                  method: updateAdministrator
-                  params:
-                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      did: did:ebsi:ztY82rTMVTTQ4QEkNmkbDuv
-                      attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
-                  id: 1
-              Build tx to updateAdministrator (update attribute):
-                description: |
-                  Call to build an unsigned transaction to update an attribute of an administrator in the registry. This method requires admin rights in the Trusted Schemas Registry.
-
-                  Parameters:
-                  - **from**: Ethereum address of the administrator
-                  - **did**: DID of the administrator to update
-                  - **prevAttributeHash**: Attribute ID to update
-                  - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
-                value:
-                  jsonrpc: "2.0"
-                  method: updateAdministrator
-                  params:
-                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      did: did:ebsi:ztY82rTMVTTQ4QEkNmkbDuv
-                      attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
-                      prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
-                  id: 1
               Build tx to updateMetadata:
                 description: |
-                  Call to build an unsigned transaction to update the metadata of a schema revision. This method requires admin rights in the Trusted Schemas Registry.
+                  Call to build an unsigned transaction to update the metadata of a schema revision. This method requires having right attributes assigned in Trusted Policies Registry.
 
                   Parameters:
-                  - **from**: Ethereum address of the administrator
+                  - **from**: Ethereum address of the sender
                   - **schemaRevisionId**: Schema revision ID
                   - **metadata**: Metadata. This field must be a JSON stringified and converted into hex string
                 value:
@@ -1674,39 +1170,6 @@ components:
         href:
           type: string
           description: Link to the resource.
-    Administrator:
-      title: Administrator
-      type: object
-      description: Name of the administrator
-      properties:
-        did:
-          type: string
-          description: DID of the administrator
-        attributes:
-          type: array
-          description: Array of attributes
-          items:
-            $ref: "#/components/schemas/Attribute"
-    Attribute:
-      title: Attribute
-      type: object
-      description: Attribute
-      properties:
-        hash:
-          type: string
-          description: sha256 hash of the payload
-        body:
-          description: Base64 encoded content
-    AttributeDetails:
-      title: AttributeDetails
-      type: object
-      description: Attribute Details
-      properties:
-        did:
-          type: string
-          description: DID of the attribute owner
-        attribute:
-          $ref: "#/components/schemas/Attribute"
     SchemaRevisionsLinks:
       title: Schema revisions links
       description: Links to schema revisions as returned by the REST APIs.

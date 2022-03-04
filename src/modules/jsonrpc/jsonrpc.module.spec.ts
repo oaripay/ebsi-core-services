@@ -17,7 +17,6 @@ import {
 } from "@nestjs/platform-fastify";
 import { createJWT, ES256KSigner } from "did-jwt";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -26,8 +25,6 @@ import {
   InsertPolicyParam,
   InsertSchemaParam,
   UpdatePolicyParam,
-  InsertAdministratorParam,
-  UpdateAdministratorParam,
   UpdateMetadataParam,
   UpdateSchemaParam,
 } from "./dto";
@@ -50,9 +47,7 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams =
   | InsertPolicyParam
-  | InsertAdministratorParam
   | InsertSchemaParam
-  | UpdateAdministratorParam
   | UpdateSchemaParam
   | UpdateMetadataParam;
 
@@ -72,26 +67,7 @@ describe("JsonRpc Module", () => {
   let defaultSignerSiopAccessToken: string;
   let defaultSignerSiopAccessTokenPayload: { [x: string]: unknown };
 
-  const createAdministrator = (did: string) => {
-    const json = {
-      // any object here
-      any: "Any attribute here",
-      type: "credential",
-      data: crypto.randomBytes(16).toString("hex"),
-      validFrom: new Date().toISOString(),
-      validTo: new Date(Date.now() + 4e8).toISOString(),
-    };
-    const attributeData = `0x${Buffer.from(JSON.stringify(json)).toString(
-      "hex"
-    )}`;
-
-    return { did, attributeData };
-  };
-
   const adminDid = createDid();
-  const adminV1 = createAdministrator(adminDid);
-  const adminV2 = createAdministrator(adminDid);
-  const adminV3 = createAdministrator(adminDid);
 
   const schemaId = `0x${Buffer.from("11.11.2011").toString("hex")}`;
   const rawSchema = {
@@ -186,7 +162,7 @@ describe("JsonRpc Module", () => {
     });
 
     defaultSignerSiopAccessTokenPayload = {
-      sub: testEnv.administrators[0].did,
+      sub: testEnv.user.did,
     };
     defaultSignerSiopAccessToken = await createJWT(
       defaultSignerSiopAccessTokenPayload,
@@ -394,100 +370,17 @@ describe("JsonRpc Module", () => {
     expect(response.status).toBe(400);
   });
 
-  it("should throw an error when the sender of a transaction is not in the TSR administrators", async () => {
-    expect.assertions(3);
-
-    // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve(userAccessTokenPayload));
-
-    const wallet = ethers.Wallet.createRandom();
-
-    const attributeData = `0x${Buffer.from(
-      JSON.stringify({
-        "@context": {
-          name: { "@id": "http://tsr-api-test.org/name", "@type": "@id" },
-          description: "http://tsr-api-test.org/description",
-        },
-        name: "alice",
-        validFrom: new Date().toISOString(),
-      })
-    ).toString("hex")}`;
-
-    const responseBuild: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "insertAdministrator",
-        params: [
-          {
-            from: wallet.address, // this address is not in the TSR
-            did: EbsiWallet.createDid(),
-            attributeData,
-          },
-        ],
-        id: 231,
-      });
-
-    expect(responseBuild.status).toBe(200);
-
-    const transaction = responseBuild.body.result as UnsignedTransaction;
-
-    const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
-    );
-
-    uTx.chainId = Number(uTx.chainId);
-
-    const sgnTx = await wallet.signTransaction(uTx);
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-    const responseSend = await request(server)
-      .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "sendSignedTransaction",
-        params: [
-          {
-            protocol: "eth",
-            unsignedTransaction: transaction,
-            r,
-            s,
-            v: `0x${Number(v).toString(16)}`,
-            signedRawTransaction: sgnTx,
-          },
-        ],
-        id: "45",
-      });
-
-    expect(responseSend.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: "45",
-      error: {
-        code: -32600,
-        message: expect.stringContaining(
-          `${adminDid} is not an administrator`
-        ) as string,
-      },
-    });
-    expect(responseSend.status).toBe(400);
-  });
-
   it("should throw an error if the signer doesn't control the DID", async () => {
     expect.assertions(4);
-
-    const { did } = adminV1;
 
     const signer = ethers.Wallet.createRandom();
 
     const param: JsonRpcParams = {
-      attributeData: adminV1.attributeData,
-      did,
       from: signer.address,
-    } as InsertAdministratorParam;
+      schemaId,
+      schema: `0x${serializedSchemaBuffer.toString("hex")}`,
+      metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+    } as InsertSchemaParam;
 
     // Mock access token verification
     jest
@@ -506,7 +399,7 @@ describe("JsonRpc Module", () => {
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "insertAdministrator",
+        method: "insertSchema",
         params: [param],
         id: 231,
       });
@@ -559,7 +452,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.body).toStrictEqual({
       error: {
         code: -32600,
-        message: `The DID ${testEnv.administrators[0].did} is not controlled by the address ${signer.address}`,
+        message: `The DID ${testEnv.user.did} is not controlled by the address ${signer.address}`,
       },
       id: "45",
       jsonrpc: "2.0",
@@ -569,16 +462,12 @@ describe("JsonRpc Module", () => {
 
   // Tests to be repeated for every method
   describe.each([
-    "insertAdministrator",
     "insertPolicy",
     "updatePolicy",
     "insertSchema",
-    "updateAdministrator",
-    "updateAdministrator(test update attribute)",
     "updateSchema",
     "updateMetadata",
   ])("/jsonrpc with method %s", (testMethod: string) => {
-    const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
 
     it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
@@ -591,21 +480,11 @@ describe("JsonRpc Module", () => {
           Promise.resolve(defaultSignerSiopAccessTokenPayload)
         );
 
-      const { did } = adminV1;
       let param: JsonRpcParams = null;
 
       const signer = ethers.Wallet.createRandom();
 
       switch (method) {
-        case "insertAdministrator": {
-          // create a new administrator and add attribute1
-          param = {
-            attributeData: adminV1.attributeData,
-            did,
-            from: signer.address,
-          } as InsertAdministratorParam;
-          break;
-        }
         case "insertPolicy": {
           param = {
             from: signer.address,
@@ -621,27 +500,6 @@ describe("JsonRpc Module", () => {
             schema: `0x${serializedSchemaBuffer.toString("hex")}`,
             metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
           } as InsertSchemaParam;
-          break;
-        }
-        case "updateAdministrator": {
-          if (updateAttribute) {
-            // update attribute1: change it to attribute3
-            param = {
-              attributeData: adminV3.attributeData,
-              did,
-              from: signer.address,
-              prevAttributeHash: ethers.utils.sha256(
-                Buffer.from(adminV1.attributeData.slice(2), "hex")
-              ),
-            } as UpdateAdministratorParam;
-          } else {
-            // updateIssuer: add attribute2
-            param = {
-              attributeData: adminV2.attributeData,
-              did,
-              from: signer.address,
-            } as UpdateAdministratorParam;
-          }
           break;
         }
         case "updatePolicy": {
@@ -752,14 +610,6 @@ describe("JsonRpc Module", () => {
       let param: JsonRpcParams = null;
 
       switch (method) {
-        case "insertAdministrator": {
-          param = {
-            attributeData: adminV1.attributeData,
-            did: adminV1.did,
-            from: signer.address,
-          } as InsertAdministratorParam;
-          break;
-        }
         case "insertPolicy": {
           param = {
             from: signer.address,
@@ -775,14 +625,6 @@ describe("JsonRpc Module", () => {
             schema: `0x${serializedSchemaBuffer.toString("hex")}`,
             metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
           } as InsertSchemaParam;
-          break;
-        }
-        case "updateAdministrator": {
-          param = {
-            attributeData: adminV1.attributeData,
-            did: adminV1.did,
-            from: signer.address,
-          } as UpdateAdministratorParam;
           break;
         }
         case "updatePolicy": {
@@ -854,33 +696,6 @@ describe("JsonRpc Module", () => {
       let expectedErrorMessage3: string;
 
       switch (method) {
-        case "insertAdministrator": {
-          param1 = {
-            did: adminV1.did,
-            from: signer.address,
-          } as InsertAdministratorParam;
-
-          expectedErrorMessage1 =
-            "property params[0].attributeData has failed the following constraints: isHexadecimal";
-
-          param2 = {
-            from: signer.address,
-            attributeData: adminV1.attributeData,
-          } as InsertAdministratorParam;
-
-          expectedErrorMessage2 =
-            "property params[0].did has failed the following constraints: isDid";
-
-          param3 = {
-            did: adminV1.did,
-            attributeData: adminV1.attributeData,
-            from: "bad address",
-          } as InsertAdministratorParam;
-
-          expectedErrorMessage3 =
-            "property params[0].from has failed the following constraints: isEthereumAddress";
-          break;
-        }
         case "insertPolicy": {
           param1 = {
             ...policy1,
@@ -1000,33 +815,6 @@ describe("JsonRpc Module", () => {
             "property params[0].metadata has failed the following constraints: matches";
           break;
         }
-        case "updateAdministrator": {
-          param1 = {
-            did: adminV1.did,
-            from: signer.address,
-          } as UpdateAdministratorParam;
-
-          expectedErrorMessage1 =
-            "property params[0].attributeData has failed the following constraints: isHexadecimal";
-
-          param2 = {
-            from: signer.address,
-            attributeData: adminV1.attributeData,
-          } as UpdateAdministratorParam;
-
-          expectedErrorMessage2 =
-            "property params[0].did has failed the following constraints: isDid";
-
-          param3 = {
-            did: adminV1.did,
-            attributeData: adminV1.attributeData,
-            from: "bad address",
-          } as UpdateAdministratorParam;
-
-          expectedErrorMessage3 =
-            "property params[0].from has failed the following constraints: isEthereumAddress";
-          break;
-        }
         case "updatePolicy": {
           param1 = {
             ...policy1,
@@ -1140,17 +928,6 @@ describe("JsonRpc Module", () => {
       };
 
       switch (method) {
-        case "insertAdministrator": {
-          param1 = {
-            ...adminV1,
-            from: signer.address,
-          } as InsertAdministratorParam;
-          param2 = {
-            ...adminV2,
-            from: signer.address,
-          } as InsertAdministratorParam;
-          break;
-        }
         case "insertPolicy": {
           param1 = {
             ...policy1,
@@ -1179,17 +956,6 @@ describe("JsonRpc Module", () => {
             )}`,
           } as InsertSchemaParam;
 
-          break;
-        }
-        case "updateAdministrator": {
-          param1 = {
-            ...adminV1,
-            from: signer.address,
-          } as UpdateAdministratorParam;
-          param2 = {
-            ...adminV2,
-            from: signer.address,
-          } as UpdateAdministratorParam;
           break;
         }
         case "updatePolicy": {

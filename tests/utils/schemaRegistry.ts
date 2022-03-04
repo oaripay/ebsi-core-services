@@ -1,15 +1,14 @@
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import crypto from "crypto";
-import { ethers } from "ethers";
+import { Contract, ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
 import { SchemaSCRegistry } from "../../src/contracts";
 import { createDid } from "./data";
 
-interface Administrator {
+interface User {
   wallet: ethers.Wallet;
-  attribute: { [x: string]: unknown };
   did: string;
 }
 
@@ -161,7 +160,25 @@ export async function updatePolicy(
   return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
 }
 
-export async function deploySchemasRegistryContract(): Promise<SchemaSCRegistry> {
+export async function deploySchemasRegistryContract(): Promise<{
+  schemasRegistryContract: SchemaSCRegistry;
+  policyContractMock: Contract;
+}> {
+  const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
+  const policyRegistryFactory = await hre.ethers.getContractFactory(
+    "PolicyRegistryMock"
+  );
+  const tempPolicyContract = await policyRegistryFactory.deploy();
+  await tempPolicyContract.deployed();
+  const bytecode = await hre.ethers.provider.getCode(
+    tempPolicyContract.address
+  );
+  await hre.network.provider.send("hardhat_setCode", [
+    testTprAddress,
+    bytecode,
+  ]);
+  const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+
   const paginationFactory = await hre.ethers.getContractFactory("Pagination");
   const pagination = await paginationFactory.deploy();
 
@@ -183,33 +200,13 @@ export async function deploySchemasRegistryContract(): Promise<SchemaSCRegistry>
   );
   const schemasRegistry = await schemasRegistryFactory.deploy();
   await schemasRegistry.initialize(1);
+  await schemasRegistry.setTrustedPoliciesRegistryAddress();
+  await policyContractMock.setPolicyResult(true);
 
-  return schemasRegistry;
-}
-
-export async function insertAdmin(
-  contract: SchemaSCRegistry,
-  adminDid: string
-): Promise<{ [x: string]: unknown }> {
-  const attribute = {
-    "@context": {
-      name: { "@id": "http://tsr-api-test.org/name", "@type": "@id" },
-      description: "http://tsr-api-test.org/description",
-    },
-    name: `test-${adminDid}`,
-    validFrom: new Date().toISOString(),
-    validTo: new Date(Date.now() + 4e8).toISOString(),
-  };
-
-  const bufferAttribute = Buffer.from(JSON.stringify(attribute));
-
-  await contract.insertAdministrator(adminDid, bufferAttribute);
-
-  return attribute;
+  return { schemasRegistryContract: schemasRegistry, policyContractMock };
 }
 
 export interface SetupOptions {
-  administratorsTotal?: number;
   schemasTotal?: number;
   schemaRevisionsTotal?: number;
   schemaMetadataTotal?: number;
@@ -219,7 +216,6 @@ export interface SetupOptions {
 
 export async function setupTestEnv(
   opts: SetupOptions = {
-    administratorsTotal: 1,
     schemasTotal: 1,
     schemaRevisionsTotal: 1,
     schemaMetadataTotal: 1,
@@ -229,7 +225,8 @@ export async function setupTestEnv(
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   schemasRegistryContract: SchemaSCRegistry;
-  administrators: Administrator[];
+  policyContractMock: Contract;
+  user: User;
   schemas: SchemaObject[];
   schemaRevisions: SchemaObject[];
   schemaMetadata: SchemaMetadataObject[];
@@ -239,20 +236,18 @@ export async function setupTestEnv(
   const ethersProvider = hre.ethers.provider;
 
   // Deploy contract
-  const schemasRegistryContract = await deploySchemasRegistryContract();
+  const { schemasRegistryContract, policyContractMock } =
+    await deploySchemasRegistryContract();
 
   // Insert fake data
-  const createAdminWallet = async () => {
+  const createWallet = () => {
     // Create random wallet and connect it so we can use it later to send transactions
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
     const did = createDid();
-    const attribute = await insertAdmin(schemasRegistryContract, did);
-    return { wallet, attribute, did };
+    return { wallet, did };
   };
 
-  const administrators = await range(0, opts.administratorsTotal ?? 1)
-    .pipe(mergeMap(createAdminWallet), toArray())
-    .toPromise();
+  const user = createWallet();
 
   const schemas = await Promise.all(
     Array(opts.schemasTotal ?? 1)
@@ -305,7 +300,8 @@ export async function setupTestEnv(
   return {
     provider: ethersProvider,
     schemasRegistryContract,
-    administrators,
+    policyContractMock,
+    user,
     schemas,
     schemaRevisions,
     schemaMetadata,

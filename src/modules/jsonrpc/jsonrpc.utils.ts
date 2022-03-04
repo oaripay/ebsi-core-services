@@ -6,14 +6,10 @@ import {
   UnsignedTransaction,
   ArgsInsertPolicy,
   RequestInsertPolicyDto,
-  ArgsInsertAdministrator,
   ArgsInsertSchema,
-  ArgsUpdateAdministrator,
   RequestInsertSchemaDto,
   ArgsUpdatePolicy,
   RequestUpdatePolicyDto,
-  RequestInsertAdministratorDto,
-  RequestUpdateAdministratorDto,
   ArgsUpdateMetadata,
   RequestUpdateMetadataDto,
   ArgsUpdateSchema,
@@ -52,14 +48,10 @@ type JsonRpcDtos =
   | RequestSendSignedTransactionDto
   | ArgsInsertPolicy
   | RequestInsertPolicyDto
-  | ArgsInsertAdministrator
   | ArgsInsertSchema
-  | ArgsUpdateAdministrator
-  | RequestInsertAdministratorDto
   | RequestInsertSchemaDto
   | ArgsUpdatePolicy
   | RequestUpdatePolicyDto
-  | RequestUpdateAdministratorDto
   | ArgsUpdateMetadata
   | RequestUpdateMetadataDto
   | ArgsUpdateSchema

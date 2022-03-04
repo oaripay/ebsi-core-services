@@ -25,9 +25,8 @@ import {
 } from "../../src/modules/policies/policies.interface";
 import { PaginatedList } from "../../src/shared/interfaces";
 import { generateMultihash, prefixWith0x } from "../../src/shared/utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
+import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
-import { ContractService } from "../../src/shared/services/contract.service";
 import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
 
 interface SupertestJsonRpcResponse {
@@ -55,7 +54,6 @@ describe("Policies (e2e)", () => {
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
-  let contractService: ContractService;
 
   const createPolicy = (
     n: string | number
@@ -75,6 +73,9 @@ describe("Policies (e2e)", () => {
 
   const newPolicy = createPolicy(new Date().toISOString());
   const { policyData: policy2 } = createPolicy(new Date().toISOString());
+
+  let ledgerApi: string;
+  let apiAccessToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -97,8 +98,6 @@ describe("Policies (e2e)", () => {
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
-    contractService = moduleFixture.get<ContractService>(ContractService);
-
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testAdminPrivateKey"))
     );
@@ -114,6 +113,9 @@ describe("Policies (e2e)", () => {
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
+
+    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+    apiAccessToken = await getAccessToken(configService);
   });
 
   describe("/policies", () => {
@@ -382,7 +384,8 @@ describe("Policies (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(
-          contractService,
+          ledgerApi,
+          apiAccessToken,
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);
