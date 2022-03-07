@@ -3,29 +3,26 @@ info:
   title: Users Onboarding API
   version: 2.0.0
   description: |
-    Users Onboarding API is an EBSI core service to enable users (Natural
-    Persons and Legal Entities) to obtain long-term access to the EBSI
-    pre-production network.
+    Users Onboarding API is an EBSI core service to enable users (Natural Persons and Legal
+    Entities) to obtain long-term access to the EBSI pre-production network.
 
     For more information see:
 
-    * [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/Users+Onboarding+API)
-    * [Code repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/browse?at=refs%2Fheads%2Fdevelop)
+    * [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Users+Onboarding+API)
+    * [Code repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/browse?at=refs%2Fheads%2Fdevelop)
   termsOfService: /docs/terms
   contact:
     name: EBSI Support - Service Desk
-    url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
+    url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
 paths:
   /users-onboarding/v2/sessions:
     post:
-      tags:
-        - Users Onboarding API
+      operationId: post-users-onboarding-api-sessions
       summary: Sessions
       description: The endpoint validates the EU Login/reCAPTCHA response and returns a session token.
-      operationId: post-users-onboarding-api-sessions
       requestBody:
         required: true
         description: |
@@ -53,7 +50,7 @@ paths:
                   info:
                     token: 03AGdBq24EL3Pvtf6wNbAoBHFbrgYCbFQrAtOUTN80C_OTgo5UmdYXXbQwEBzWXpZdHvV18kqy2X3ZO5MjYI7-48aEuzaUSi0d4cyssNOrEDhnQ6Fwkw_nPCsOvqn66_8KSjWAFJWcVSDZYiEa3N8cAuPtisha65ypOSQZGTQO8OtvmX3ots3_3Lg0RYE0FR8nmSHvprBzepB_bNRgIkzFyMQLrWCwT1DIxNlG26fbsYqgHTlqc5_XmLovWoUldx_gptqfsqVw5OhCsf4T_sMSESS6FmNYf_5wW_LLdvtTNcTuENfKFzpJWgTNCrUo7jyBKLJQiuo6d6D0mwO3oWx9JJ2h6cGSRqtMukW5kdO_0kuZ2O7mFKkMo_Godnhf3iHTcNqfIHKvd7hoUbb21SOiLNv4gdQ2v0WyhnZGbPPgGaltpTV5UgboUrCAxhwCsQecjKhW10WAzBaw
       responses:
-        201:
+        "201":
           description: Success
           content:
             application/json:
@@ -67,16 +64,14 @@ paths:
                 Success:
                   value:
                     Bearer: eyJhbGciOiJFUzI1NiIsImN0eSI6IkpXVCIsImtpZCI6IiIsInR5cCI6IkpXVCJ9.eyJhdEhhc2giOiI4Rlo1YzdROTlWaldETU14Nis4WUt2dTVVTVNuQWpwdWFzSDg1L1JUb3M0PSIsImV4cCI6MTYxNjU3NjEyMCwiaWF0IjoxNjE2NTc2MDAwLCJpc3MiOiJVc2VycyBPbmJvYXJkaW5nIEFQSSIsIm5vbmNlIjoiMDRhYjEzNzUtMGU1MS00YjUyLWE4NTUtM2UxYmY3NWJkOTViIiwic3ViIjoiVXNlcnMgT25ib2FyZGluZyBBUEkifQ.BWfmeyyyN-4CruvkBYOQahsWH5TZEpFn8FU1BY6iazVuxpz2QccN6KEOhIzTDV_cy-lKb64vDO2YjAzcMfJfaw
-        400:
+        "400":
           $ref: "#/components/responses/400"
-        404:
+        "404":
           $ref: "#/components/responses/404"
-        500:
+        "500":
           $ref: "#/components/responses/500"
   /users-onboarding/v2/authentication-requests:
     post:
-      tags:
-        - Users Onboarding API
       summary: Authentication requests
       description: The user performs a request to this endpoint to start did siop by requesting the creation of the request. The endpoint returns a SIOP DID authentication request.
       operationId: post-users-onboarding-api-authentication-requests
@@ -99,7 +94,7 @@ paths:
               "[conformance] ct_v1_onboard_01a":
                 summary: Request Verifiable Authorisation (CT v1 - ONBOARD_01a)
                 description: |
-                  This is test data for the [EBSI Conformance Test V1](https://ec.europa.eu/cefdigital/wiki/x/5YDwG) [ONBOARD_01a](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ONBOARD).
+                  This is test data for the [EBSI Conformance Test V1](https://ec.europa.eu/digital-building-blocks/wikis/x/5YDwG) [ONBOARD_01a](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ONBOARD).
                   Successful response (HTTP 201) means that the service (wallet) can request a Verifiable Authorisation according to the [specifications]().
                 value:
                   scope: ebsi users onboarding
@@ -108,7 +103,7 @@ paths:
                 value:
                   scope: ebsi users onboarding
       responses:
-        201:
+        "201":
           description: Success - The service (wallet) can request a Verifiable Authorisation
           content:
             application/json:
@@ -122,16 +117,14 @@ paths:
                 Success:
                   value:
                     session_token: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.ebsi.zyz%2Faccess-tokens&scope=openid%20did_authn&request=eyJhbGciOiJIUzI1Ni..."
-        400:
+        "400":
           $ref: "#/components/responses/400"
-        404:
+        "404":
           $ref: "#/components/responses/404"
-        500:
+        "500":
           $ref: "#/components/responses/500"
   /users-onboarding/v2/authentication-responses:
     post:
-      tags:
-        - Users Onboarding API
       summary: Authentication responses
       description: The user performs a request to this endpoint so as the user onboarding api accept his/her authentication response, validates it and returns a Verifiable Authorisation.
       operationId: post-users-onboarding-api-authentication-responses
@@ -157,8 +150,8 @@ paths:
                 summary: Request Verifiable Authorisation (CT v1 - ONBOARD_02)
                 description: |
                   This is test data for the [EBSI Conformance Test
-                  V1](https://ec.europa.eu/cefdigital/wiki/x/5YDwG)
-                  [ONBOARD_02](https://ec.europa.eu/cefdigital/wiki/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ONBOARD).
+                  V1](https://ec.europa.eu/digital-building-blocks/wikis/x/5YDwG)
+                  [ONBOARD_02](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ONBOARD).
                   Successful response (HTTP 201) means that the service (wallet)
                   can:
                   - Create an [EBSI-compliant DID]()
@@ -183,7 +176,7 @@ paths:
             example:
               id_token: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj
       responses:
-        201:
+        "201":
           description: Success - The service (wallet) can prove DID key possession.
           content:
             application/json:
@@ -211,16 +204,17 @@ paths:
                           proofPurpose: assertionMethod
                           verificationMethod: "did:ebsi:zwC56DZdiJh8kSxbgg4fMCu#keys-1"
                           jws: 351Oed421iLbLLJjINWF_EAXN6EaBk1AJUqbpHqpv7TZOA7PnCmgyurvPVvjjmw
-        400:
+        "400":
           $ref: "#/components/responses/400"
-        404:
+        "404":
           $ref: "#/components/responses/404"
-        500:
+        "500":
           $ref: "#/components/responses/500"
 components:
   schemas:
-    problem:
-      description: A Problem Details object (RFC 7807)
+    ProblemDetails:
+      title: Problem Details
+      description: A [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) object.
       type: object
       properties:
         type:
@@ -253,30 +247,30 @@ components:
             An absolute URI that identifies the specific occurrence of the problem. It may or may
             not yield further information if dereferenced.
   responses:
-    400:
+    "400":
       description: Bad Request
       content:
         application/problem+json:
           schema:
-            $ref: "#/components/schemas/problem"
+            $ref: "#/components/schemas/ProblemDetails"
           examples:
             Bad Request:
               $ref: "#/components/examples/BadRequest"
-    404:
+    "404":
       description: Not Found
       content:
         application/problem+json:
           schema:
-            $ref: "#/components/schemas/problem"
+            $ref: "#/components/schemas/ProblemDetails"
           examples:
             Not Found:
               $ref: "#/components/examples/NotFound"
-    500:
+    "500":
       description: Internal Error
       content:
         application/problem+json:
           schema:
-            $ref: "#/components/schemas/problem"
+            $ref: "#/components/schemas/ProblemDetails"
           examples:
             Internal Server Error:
               $ref: "#/components/examples/InternalError"

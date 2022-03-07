@@ -16,9 +16,9 @@ module.exports = {
     { type: "test", hidden: true },
   ],
   commitUrlFormat:
-    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/commits/{{hash}}",
+    "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/commits/{{hash}}",
   issueUrlFormat:
-    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/pull-requests/{{id}}/overview",
+    "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/pull-requests/{{id}}/overview",
   compareUrlFormat:
-    "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2F{{previousTag}}&sourceBranch=refs%2Ftags%2F{{currentTag}}&targetRepoId=234",
+    "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2F{{previousTag}}&sourceBranch=refs%2Ftags%2F{{currentTag}}&targetRepoId=234",
 };
