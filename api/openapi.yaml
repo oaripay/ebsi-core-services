@@ -3,29 +3,27 @@ info:
   title: Trusted Policies Registry API
   version: 1.0.0
   description: |
-    Trusted Policies Registry API provides an interface to interact with policies stored at the ledger administrated by Policies Registry Smart Contract.
+    Trusted Policies Registry API provides an interface to interact with policies stored at the
+    ledger administrated by Policies Registry Smart Contract.
   termsOfService: /docs/terms
   contact:
-    name: EBSI Support – Service Desk
-    url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
+    name: EBSI Support - Service Desk
+    url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
-tags:
-  - name: Trusted Policies Registry API
-    description: List trusted policies
 paths:
   /trusted-policies-registry/v1/policies:
     get:
-      tags:
-        - Trusted Policies Registry API
-      summary: Get list of policies
-      description: Returns list of policies registered in the blockchain.
       operationId: get-policies
+      summary: List policies
+      description: Returns a list of policies registered in the blockchain.
+      tags:
+        - Policies
       security:
         - bearerAuth: []
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -86,17 +84,17 @@ paths:
                       prev: https://api.preprod.ebsi.eu/trusted-policies-registry/v1/policies?page[after]=2&page[size]=2
                       next: https://api.preprod.ebsi.eu/trusted-policies-registry/v1/policies?page[after]=4&page[size]=2
                       last: https://api.preprod.ebsi.eu/trusted-policies-registry/v1/policies?page[after]=62&page[size]=2
-        400:
+        "400":
           $ref: "#/components/responses/400"
-        500:
+        "500":
           $ref: "#/components/responses/500"
   /trusted-policies-registry/v1/policies/{policyName}:
     get:
-      tags:
-        - Trusted Policies Registry API
-      summary: Get policy by its name
-      description: Returns a trusted policy by its name
       operationId: get-policy
+      summary: Get a policy
+      description: Returns a trusted policy identified by its name.
+      tags:
+        - Policies
       parameters:
         - name: policyName
           in: path
@@ -105,7 +103,7 @@ paths:
           example: "TIR:insertIssuer"
           required: true
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -145,40 +143,40 @@ paths:
                         typeOfValue: UINT256
                         value: "42"
                         attributeOperation: EQUAL
-        400:
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {policyId} Parameter:
                   value:
                     title: Bad Request
                     status: 400
                     detail: The format of {policyId} parameter is not valid
-        404:
+        "404":
           description: Not found
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Policy Not Found:
                   $ref: "#/components/examples/NotFound"
-        500:
+        "500":
           $ref: "#/components/responses/500"
   /trusted-policies-registry/v1/users:
     get:
-      tags:
-        - Trusted Policies Registry API
-      summary: Get list of users
-      description: Returns list of users registered in the registry.
       operationId: get-users
+      summary: List users
+      description: Returns a list of users registered in the registry.
+      tags:
+        - Users
       security:
         - bearerAuth: []
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -239,17 +237,17 @@ paths:
                       prev: https://api.preprod.ebsi.eu/trusted-policies-registry/v1/users?page[after]=2&page[size]=2
                       next: https://api.preprod.ebsi.eu/trusted-policies-registry/v1/users?page[after]=4&page[size]=2
                       last: https://api.preprod.ebsi.eu/trusted-policies-registry/v1/users?page[after]=62&page[size]=2
-        400:
+        "400":
           $ref: "#/components/responses/400"
-        500:
+        "500":
           $ref: "#/components/responses/500"
   /trusted-policies-registry/v1/users/{address}:
     get:
-      tags:
-        - Trusted Policies Registry API
-      summary: Get policy by its name
-      description: Returns a user by its address
       operationId: get-user
+      summary: Get a user
+      description: Returns a user identified by its address.
+      tags:
+        - Users
       parameters:
         - name: address
           in: path
@@ -258,7 +256,7 @@ paths:
           example: "0xe83C2eF9F05A47C14141F5ec3438beD89799eD92"
           required: true
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -271,38 +269,38 @@ paths:
                     attributes:
                       "TIR:insertIssuer": "0x0000000000000000000000000000000000000000000000000000000000000001"
                       "TIR:updateIssuer": "0x0000000000000000000000000000000000000000000000000000000000000001"
-        400:
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {policyId} Parameter:
                   value:
                     title: Bad Request
                     status: 400
                     detail: The format of {policyId} parameter is not valid
-        404:
+        "404":
           description: Not found
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Policy Not Found:
                   $ref: "#/components/examples/NotFound"
-        500:
+        "500":
           $ref: "#/components/responses/500"
   /trusted-policies-registry/v1/jsonrpc:
     post:
       operationId: post-jsonrpc
-      tags:
-        - Trusted Policies Registry API
-      summary: Helper APIs
+      summary: JSON-RPC API
       description: |
-        Helper APIs that assist the construction of blockchain transactions and interaction with
-        the ledger (Write operation on ledger).
+        The JSON-RPC API provides methods assisting the construction of blockchain transactions and
+        interaction with the ledger.
+      tags:
+        - JSON-RPC
       security:
         - bearerAuth: []
       requestBody:
@@ -313,13 +311,136 @@ paths:
 
           It requires the following fields:
 
-          - **jsonrpc**: Must be exactly '2.0'
-          - **method**: Method to be invoked. Possible values: 'insertPolicy', 'updatePolicy',
-          'addPolicyConditions', 'deletePolicyCondition', 'deactivatePolicy', 'activatePolicy',
-          'insertUserAttributes', 'updateUserAttribute', 'deleteUserAttribute' and
-          'sendSignedTransaction'
-          - **params**: Array of parameters
-          - **id**: Identifier stablished by the client
+          - **jsonrpc**: must be exactly "2.0"
+          - **method**: method to be invoked
+          - **params**: method parameters
+          - **id**: identifier established by the client
+
+          ### API Methods
+
+          #### insertPolicy
+
+          Call to build an unsigned transaction to insert a policy in the registry.
+          This method requires OPERATOR ROLE in the Trusted Policies Registry.
+
+          Parameters:
+          - **from**: Ethereum address of the administrator
+          - **opType**: operation type. 0 = "AND", 1 = "OR"
+          - **policyName**: name of the policy.
+          - **description**: description.
+          - **policyConditions**: array of condition objects:
+            - **name**: name of the condition
+            - **attributeName**: name of the attribute on which it applies
+            - **value**: value to compare to
+            - **typeOfValue**: value type. 0 = "UINT256", 1 = "BYTES", 2 = "ADDRESS",
+              3= "BYTES32", 4 = "STRING", 5 = "BOOLEAN"
+            - **attributeOperation**: operation to apply. 0 = "EQUAL"
+
+          #### updatePolicy
+
+          Call to build an unsigned transaction to update a policy.
+          This method requires OPERATOR ROLE in the Trusted Policies Registry.
+
+          Parameters:
+          - **from**: Ethereum address of the administrator
+          - **policyId**: Policy ID
+          - **policyName**: Policy Name
+          - **opType**: operation type. 0 = "AND", 1 = "OR"
+          - **description**: description.
+
+          Use either `policyId` OR `policyName` to identify the policy, but not both.
+
+          #### addPolicyConditions
+
+          Call to build an unsigned transaction to add conditions to an existing policy in the
+          registry. This method requires OPERATOR ROLE in the Trusted Policies Registry.
+
+          Parameters:
+          - **from**: Ethereum address of the administrator
+          - **policyId**: Policy ID
+          - **policyName**: Policy Name
+          - **policyConditions**: array of condition objects:
+            - **name**: name of the condition
+            - **attributeName**: name of the attribute on which it applies
+            - **value**: value to compare to
+            - **typeOfValue**: value type. 0 = "UINT256", 1 = "BYTES", 2 = "ADDRESS",
+              3= "BYTES32", 4 = "STRING", 5 = "BOOLEAN"
+            - **attributeOperation**: operation to apply. 0 = "EQUAL"
+
+          Use either `policyId` OR `policyName` to identify the policy, but not both.
+
+          #### deletePolicyCondition
+
+          Call to build an unsigned transaction to delete a condition from an existing policy in
+          the registry. This method requires OPERATOR ROLE in the Trusted Policies Registry.
+
+          Parameters:
+          - **from**: Ethereum address of the administrator
+          - **policyId**: Policy ID
+          - **policyName**: Policy Name
+          - **policyConditionId:**: ID of the policiy condition to remove
+
+          Use either `policyId` OR `policyName` to identify the policy, but not both.
+
+          #### deactivatePolicy
+
+          Call to build an unsigned transaction to deactivate a policy in the registry. This method
+          requires OPERATOR ROLE in the Trusted Policies Registry.
+
+          Parameters:
+          - **from**: Ethereum address of the administrator
+          - **policyId**: ID of the policy to deactivate
+          - **policyName**: Policy Name
+
+          Use either `policyId` OR `policyName` to identify the policy, but not both.
+
+          #### activatePolicy
+
+          Call to build an unsigned transaction to activate a policy in the registry. This method
+          requires OPERATOR ROLE in the Trusted Policies Registry.
+
+          Parameters:
+          - **from**: Ethereum address of the administrator
+          - **policyId**: ID of the policy to activate
+          - **policyName**: Policy Name
+
+          Use either `policyId` OR `policyName` to identify the policy, but not both.
+
+          #### insertUserAttributes
+
+          Call to build an unsigned transaction to insert user attributes in the registry. This
+          method requires OPERATOR ROLE in the Trusted Policies Registry.
+
+          Parameters:
+          - **from**: Ethereum address of the administrator
+          - **address**: user address
+          - **attributeNames**: attribute names
+          - **attributeValues**: attribute values
+
+          #### updateUserAttribute
+
+          Call to build an unsigned transaction to update an user attribute in the registry. This
+          method requires OPERATOR ROLE in the Trusted Policies Registry.
+
+          Parameters:
+          - **from**: Ethereum address of the administrator
+          - **address**: user address
+          - **attributeName**: attribute name
+          - **attributeValue**: attribute value
+
+          #### deleteUserAttribute
+
+          Call to build an unsigned transaction to delete an user attribute in the registry. This
+          method requires OPERATOR ROLE in the Trusted Policies Registry.
+
+          Parameters:
+          - **from**: Ethereum address of the administrator
+          - **address**: user address
+          - **attributeName**: attribute name
+
+          #### sendSignedTransaction
+
+          Call to send a signed transaction to the blockchain.
         content:
           application/json:
             schema:
@@ -331,7 +452,7 @@ paths:
               type: object
               properties:
                 jsonrpc:
-                  description: Must be exactly '2.0'
+                  description: Must be exactly "2.0"
                   type: string
                 method:
                   description: Method that needs to be invoked
@@ -347,22 +468,6 @@ paths:
                   example: 1
             examples:
               Build tx to insertPolicy:
-                description: |
-                  Call to build an unsigned transaction to insert a policy in the registry.
-                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                   Parameters:
-                   - **from**: Ethereum address of the administrator
-                   - **opType**: operation type. 0 = "AND", 1 = "OR"
-                   - **policyName**: name of the policy.
-                   - **description**: description.
-                   - **policyConditions**: array of condition objects:
-                     - **name**: name of the condition
-                     - **attributeName**: name of the attribute on which it applies
-                     - **value**: value to compare to
-                     - **typeOfValue**: value type. 0 = "UINT256", 1 = "BYTES", 2 = "ADDRESS",
-                       3= "BYTES32", 4 = "STRING", 5 = "BOOLEAN"
-                     - **attributeOperation**: operation to apply. 0 = "EQUAL"
                 value:
                   jsonrpc: "2.0"
                   method: insertPolicy
@@ -399,15 +504,6 @@ paths:
                           attributeOperation: 0
                           typeOfValue: 0
               Build tx to updatePolicy (by policyId):
-                description: |
-                  Call to build an unsigned transaction to update a policy.
-                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                   Parameters:
-                   - **from**: Ethereum address of the administrator
-                   - **policyId**: Policy ID
-                   - **opType**: operation type. 0 = "AND", 1 = "OR"
-                   - **description**: description.
                 value:
                   jsonrpc: "2.0"
                   method: updatePolicy
@@ -419,21 +515,6 @@ paths:
                       policyName: policy-test-0245fd52e9606e375ffe7d46718d60c8
                       description: description-test-867fc5181e2a0df61094cb565cf18d96
               Build tx to addPolicyConditions (by policyId):
-                description: |
-                  Call to build an unsigned transaction to add conditions to an existing policy in
-                  the registry.
-                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                   Parameters:
-                   - **from**: Ethereum address of the administrator
-                   - **policyId**: Policy ID
-                   - **policyConditions**: array of condition objects:
-                     - **name**: name of the condition
-                     - **attributeName**: name of the attribute on which it applies
-                     - **value**: value to compare to
-                     - **typeOfValue**: value type. 0 = "UINT256", 1 = "BYTES", 2 = "ADDRESS",
-                       3= "BYTES32", 4 = "STRING", 5 = "BOOLEAN"
-                     - **attributeOperation**: operation to apply. 0 = "EQUAL"
                 value:
                   jsonrpc: "2.0"
                   method: addPolicyConditions
@@ -468,15 +549,6 @@ paths:
                           attributeOperation: 0
                           typeOfValue: 0
               Build tx to deletePolicyCondition (by policyId):
-                description: |
-                  Call to build an unsigned transaction to delete a condition from an existing
-                  policy in the registry.
-                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                   Parameters:
-                   - **from**: Ethereum address of the administrator
-                   - **policyId**: Policy ID
-                   - **policyConditionId:**: ID of the policiy condition to remove
                 value:
                   jsonrpc: "2.0"
                   method: deletePolicyCondition
@@ -486,13 +558,6 @@ paths:
                       policyId: "1"
                       policyConditionId: "2"
               Build tx to deactivatePolicy (by policyId):
-                description: |
-                  Call to build an unsigned transaction to deactivate a policy in the registry.
-                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                   Parameters:
-                   - **from**: Ethereum address of the administrator
-                   - **policyId**: ID of the policy to deactivate
                 value:
                   jsonrpc: "2.0"
                   method: deactivatePolicy
@@ -501,13 +566,6 @@ paths:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
                       policyId: "1"
               Build tx to activatePolicy (by policyId):
-                description: |
-                  Call to build an unsigned transaction to activate a policy in the registry.
-                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                   Parameters:
-                   - **from**: Ethereum address of the administrator
-                   - **policyId**: ID of the policy to activate
                 value:
                   jsonrpc: "2.0"
                   method: activatePolicy
@@ -516,15 +574,6 @@ paths:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
                       policyId: "1"
               Build tx to updatePolicy (by policyName):
-                description: |
-                  Call to build an unsigned transaction to update a policy.
-                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                   Parameters:
-                   - **from**: Ethereum address of the administrator
-                   - **policyName**: Policy Name
-                   - **opType**: operation type. 0 = "AND", 1 = "OR"
-                   - **description**: description.
                 value:
                   jsonrpc: "2.0"
                   method: updatePolicy
@@ -535,21 +584,6 @@ paths:
                       opType: 0
                       description: description-test-867fc5181e2a0df61094cb565cf18d96
               Build tx to addPolicyConditions (by policyName):
-                description: |
-                  Call to build an unsigned transaction to add conditions to an existing policy in
-                  the registry.
-                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                   Parameters:
-                   - **from**: Ethereum address of the administrator
-                   - **policyName**: Policy Name
-                   - **policyConditions**: array of condition objects:
-                     - **name**: name of the condition
-                     - **attributeName**: name of the attribute on which it applies
-                     - **value**: value to compare to
-                     - **typeOfValue**: value type. 0 = "UINT256", 1 = "BYTES", 2 = "ADDRESS",
-                       3= "BYTES32", 4 = "STRING", 5 = "BOOLEAN"
-                     - **attributeOperation**: operation to apply. 0 = "EQUAL"
                 value:
                   jsonrpc: "2.0"
                   method: addPolicyConditions
@@ -584,15 +618,6 @@ paths:
                           attributeOperation: 0
                           typeOfValue: 0
               Build tx to deletePolicyCondition (by policyName):
-                description: |
-                  Call to build an unsigned transaction to delete a condition from an existing
-                  policy in the registry.
-                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                   Parameters:
-                   - **from**: Ethereum address of the administrator
-                   - **policyName**: Policy Name
-                   - **policyConditionId:**: ID of the policiy condition to remove
                 value:
                   jsonrpc: "2.0"
                   method: deletePolicyCondition
@@ -602,13 +627,6 @@ paths:
                       policyName: "TIR:insertIssuer"
                       policyConditionId: "2"
               Build tx to deactivatePolicy (by policyName):
-                description: |
-                  Call to build an unsigned transaction to deactivate a policy in the registry.
-                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                   Parameters:
-                   - **from**: Ethereum address of the administrator
-                   - **policyName**: Policy Name
                 value:
                   jsonrpc: "2.0"
                   method: deactivatePolicy
@@ -617,13 +635,6 @@ paths:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
                       policyName: "TIR:insertIssuer"
               Build tx to activatePolicy (by policyName):
-                description: |
-                  Call to build an unsigned transaction to activate a policy in the registry.
-                  This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                   Parameters:
-                   - **from**: Ethereum address of the administrator
-                   - **policyName**: Policy Name
                 value:
                   jsonrpc: "2.0"
                   method: activatePolicy
@@ -632,15 +643,6 @@ paths:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
                       policyName: "TIR:insertIssuer"
               Build tx to insertUserAttributes:
-                description: |
-                  Call to build an unsigned transaction to insert user attributes in the
-                  registry. This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                  Parameters:
-                  - **from**: Ethereum address of the administrator
-                  - **address**: user address
-                  - **attributeNames**: attribute names
-                  - **attributeValues**: attribute values
                 value:
                   jsonrpc: "2.0"
                   method: insertUserAttributes
@@ -655,15 +657,6 @@ paths:
                         - "0x0000000000000000000000000000000000000000000000000000000000000001"
                         - "0x0000000000000000000000000000000000000000000000000000000000000001"
               Build tx to updateUserAttribute:
-                description: |
-                  Call to build an unsigned transaction to update an user attribute in the
-                  registry. This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                  Parameters:
-                  - **from**: Ethereum address of the administrator
-                  - **address**: user address
-                  - **attributeName**: attribute name
-                  - **attributeValue**: attribute value
                 value:
                   jsonrpc: "2.0"
                   method: updateUserAttribute
@@ -674,14 +667,6 @@ paths:
                       attributeName: TIR:insertIssuer
                       attributeValue: "0x0000000000000000000000000000000000000000000000000000000000000001"
               Build tx to deleteUserAttribute:
-                description: |
-                  Call to build an unsigned transaction to delete an user attribute in the
-                  registry. This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-                  Parameters:
-                  - **from**: Ethereum address of the administrator
-                  - **address**: user address
-                  - **attributeName**: attribute name
                 value:
                   jsonrpc: "2.0"
                   method: deleteUserAttribute
@@ -712,7 +697,7 @@ paths:
                       v: "0x..."
                       signedRawTransaction: "--- signed raw transaction ---"
       responses:
-        200:
+        "200":
           description: Response
           content:
             application/json:
@@ -737,12 +722,12 @@ paths:
                     jsonrpc: "2.0"
                     id: 1
                     result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
-        400:
+        "400":
           description: Bad request
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Bad Request:
                   $ref: "#/components/examples/BadRequest"
@@ -826,11 +811,11 @@ components:
                   - type: string
                   - type: boolean
     JsonRpcResponse:
-      title: Json Rpc Response
+      title: JSON-RPC Response
       type: object
       properties:
         jsonrpc:
-          description: Must be exactly '2.0'
+          description: Must be exactly "2.0"
           type: string
         id:
           description: Same identifier established by the client in the call
@@ -840,8 +825,9 @@ components:
           oneOf:
             - type: object
             - type: string
-    Problem:
-      description: A Problem Details object (RFC 7807)
+    ProblemDetails:
+      title: Problem Details
+      description: A [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) object.
       type: object
       properties:
         type:
@@ -874,21 +860,21 @@ components:
             An absolute URI that identifies the specific occurrence of the problem. It may or may
             not yield further information if dereferenced.
   responses:
-    400:
+    "400":
       description: Bad Request
       content:
         application/problem+json:
           schema:
-            $ref: "#/components/schemas/Problem"
+            $ref: "#/components/schemas/ProblemDetails"
           examples:
             Bad Request:
               $ref: "#/components/examples/BadRequest"
-    500:
+    "500":
       description: Internal Error
       content:
         application/problem+json:
           schema:
-            $ref: "#/components/schemas/Problem"
+            $ref: "#/components/schemas/ProblemDetails"
           examples:
             Internal Server Error:
               $ref: "#/components/examples/InternalError"
