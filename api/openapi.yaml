@@ -1312,7 +1312,7 @@ paths:
         - Hash Algorithms
       operationId: get-did-registry-v2-hash-algorithms-hash-algorithm-id
       summary: Get a hash algorithm
-      description: Returns a hash algorithm basded on its ID.
+      description: Returns a hash algorithm based on its ID.
       parameters:
         - in: path
           name: hashAlgorithmId
@@ -1701,7 +1701,7 @@ paths:
 
           It requires the following fields:
 
-          - **jsonrpc**: must be exactly '2.0'
+          - **jsonrpc**: must be exactly "2.0"
           - **method**: method to be invoked
           - **params**: method parameters
           - **id**: identifier established by the client
@@ -1902,7 +1902,7 @@ paths:
               type: object
               properties:
                 jsonrpc:
-                  description: Must be exactly '2.0'
+                  description: Must be exactly "2.0"
                   type: string
                 method:
                   description: Method that needs to be invoked
@@ -2413,7 +2413,7 @@ components:
       type: object
       properties:
         jsonrpc:
-          description: Must be exactly '2.0'
+          description: Must be exactly "2.0"
           type: string
         id:
           description: Same identifier established by the client in the call
