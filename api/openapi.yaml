@@ -16,28 +16,25 @@ info:
     TSR API is a microservice, hosted on the EBSI infrastructure.
 
     For more information see:
-    * [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBP/Trusted+Schemas+Registry+API)
-    * [Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBP/Trusted+Schemas+Registry+Smart+Contract)
-    * [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-schemas-registry-api/browse)
-    * [Smart Contract Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/trusted-schemas-registry-ethereum-sc/browse)
+    * [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBP/Trusted+Schemas+Registry+API)
+    * [Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBP/Trusted+Schemas+Registry+Smart+Contract)
+    * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/browse)
+    * [Smart Contract Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-ethereum-sc/browse)
   termsOfService: /docs/terms
   contact:
-    name: EBSI Support – Service Desk
-    url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
+    name: EBSI Support - Service Desk
+    url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
-tags:
-  - name: Trusted Schemas Registry
-    description: List trusted schemas
 paths:
   /trusted-schemas-registry/v1/schemas:
     get:
-      tags:
-        - Trusted Schemas Registry
-      summary: Get all schemas
-      description: Get all schemas. Endpoint returns a paginated list of items.
       operationId: get-trusted-schemas-registry-v1-schemas
+      summary: List schemas
+      description: Returns a list of schemas.
+      tags:
+        - Schemas
       parameters:
         - in: query
           name: page[after]
@@ -50,7 +47,7 @@ paths:
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -64,7 +61,16 @@ paths:
                     type: array
                     description: List of schemas
                     items:
-                      $ref: "#/components/schemas/SchemaLinks"
+                      title: Schema links
+                      description: Links to schemas as returned by the REST APIs.
+                      type: object
+                      properties:
+                        schemaId:
+                          type: string
+                          description: Unique schema id (OID or DOI)
+                        href:
+                          type: string
+                          description: Link to the resource.
                   total:
                     type: integer
                     description: Total number of items accross all pages.
@@ -112,34 +118,34 @@ paths:
                       prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
                       next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
                       last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
-        400:
+        "400":
           description: Bad Request Error
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Bad Paging Request:
                   value:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        500:
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v1/schemas/{schemaId}:
     get:
-      tags:
-        - Trusted Schemas Registry
-      summary: Get schema by its ID
-      description: Returns a trusted schema by its ID
       operationId: get-trusted-schemas-registry-v1-schema
+      summary: Get a schema
+      description: Returns a trusted schema identified by its ID.
+      tags:
+        - Schemas
       parameters:
         - name: schemaId
           in: path
@@ -154,7 +160,7 @@ paths:
               value: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
           required: true
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -167,45 +173,45 @@ paths:
                     type: Schema
                     name: example
                     data: 53a8da4c21d411b462bcfd9498cdc842
-        400:
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {schemaId} Parameter:
                   value:
                     title: Bad Request
                     status: 400
                     detail: The format of {schemaId} parameter is not valid
-        404:
+        "404":
           description: Not found
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Schema Not Found:
                   $ref: "#/components/examples/NotFound"
                 Revision Not Found:
                   $ref: "#/components/examples/NotFound"
-        500:
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v1/schemas/{schemaId}/revisions:
     get:
-      tags:
-        - Trusted Schemas Registry
-      summary: Get schema's revisions
-      description: Get schemas's revisions. Endpoint returns a paginated list of items.
       operationId: get-trusted-schemas-registry-v1-schemas-revisions
+      summary: List a schema's revisions
+      description: Returns a list of revisions of a specific schema.
+      tags:
+        - Schemas
       parameters:
         - in: path
           name: schemaId
@@ -235,7 +241,7 @@ paths:
             type: string
           description: ISO-8601 date. Only revisions valid at this date will be returned.
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -249,7 +255,16 @@ paths:
                     type: array
                     description: List of schemas
                     items:
-                      $ref: "#/components/schemas/SchemaRevisionsLinks"
+                      title: Schema revisions links
+                      description: Links to schema revisions as returned by the REST APIs.
+                      type: object
+                      properties:
+                        schemaRevisionId:
+                          type: string
+                          description: Schema revision id - SHA2-256 hash of the schema revision (hexadecimal)
+                        href:
+                          type: string
+                          description: Link to the resource.
                   total:
                     type: integer
                     description: Total number of items accross all pages.
@@ -285,34 +300,34 @@ paths:
                       prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions?page[after]=1&page[size]=10
                       next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions?page[after]=1&page[size]=10
                       last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions?page[after]=1&page[size]=10
-        400:
+        "400":
           description: Bad Request Error
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Bad Paging Request:
                   value:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        500:
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v1/schemas/{schemaId}/revisions/{schemaRevisionId}:
     get:
-      tags:
-        - Trusted Schemas Registry
-      summary: Get schema reviision by its ID
-      description: Returns a trusted schema revision by its ID
       operationId: get-trusted-schemas-registry-v1-schema-revision
+      summary: Get a schema revision
+      description: Returns a trusted schema revision identified by its ID.
+      tags:
+        - Schemas
       parameters:
         - name: schemaId
           in: path
@@ -339,7 +354,7 @@ paths:
               value: "0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd"
           required: true
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -352,45 +367,45 @@ paths:
                     type: Schema
                     name: example
                     data: 53a8da4c21d411b462bcfd9498cdc842
-        400:
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {schemaId} Parameter:
                   value:
                     title: Bad Request
                     status: 400
                     detail: The format of {schemaId} parameter is not valid
-        404:
+        "404":
           description: Not found
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Schema Not Found:
                   $ref: "#/components/examples/NotFound"
                 Revision Not Found:
                   $ref: "#/components/examples/NotFound"
-        500:
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v1/schemas/{schemaId}/revisions/{schemaRevisionId}/metadata:
     get:
-      tags:
-        - Trusted Schemas Registry
-      summary: Get schema revision's metadata
-      description: Get schemas revision's metadata. Endpoint returns a paginated list of items.
       operationId: get-trusted-schemas-registry-v1-schemas-revision-metadata-list
+      summary: List revision's metadata
+      description: Returns a list of schemas revision's metadata.
+      tags:
+        - Schemas
       parameters:
         - in: path
           name: schemaId
@@ -427,7 +442,7 @@ paths:
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -441,7 +456,16 @@ paths:
                     type: array
                     description: List of schemas
                     items:
-                      $ref: "#/components/schemas/SchemaRevisionsMetadataLinks"
+                      title: Schema revisions metadata links
+                      description: Links to schema revisions metadata as returned by the REST APIs.
+                      type: object
+                      properties:
+                        metadataId:
+                          type: string
+                          description: Schema revision metadata id - SHA2-256 hash of the schema revision metadata (hexadecimal)
+                        href:
+                          type: string
+                          description: Link to the resource.
                   total:
                     type: integer
                     description: Total number of items accross all pages.
@@ -477,45 +501,45 @@ paths:
                       prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
                       next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
                       last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
-        400:
+        "400":
           description: Bad Request Error
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Bad Paging Request:
                   value:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        404:
+        "404":
           description: Not found
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Schema Not Found:
                   $ref: "#/components/examples/NotFound"
                 Revision Not Found:
                   $ref: "#/components/examples/NotFound"
-        500:
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v1/schemas/{schemaId}/revisions/{schemaRevisionId}/metadata/{metadataId}:
     get:
-      tags:
-        - Trusted Schemas Registry
-      summary: Get schema revision metadata by its ID
-      description: Returns a trusted schema revision metadata by its ID
       operationId: get-trusted-schemas-registry-v1-schema-revision-metadata
+      summary: Get metadata
+      description: Returns a trusted schema revision metadata identified by its ID.
+      tags:
+        - Schemas
       parameters:
         - name: schemaId
           in: path
@@ -554,7 +578,7 @@ paths:
               value: "0xb9085bf38ccf24a264f73f6ba42204fda51185d89afc8104ab9155c4b002e1eb"
           required: true
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/ld+json:
@@ -573,45 +597,45 @@ paths:
                     data: 2d0859c9d9c2cc06987333c9fe238abe
                     validFrom: "2021-06-10T07:51:36.334Z"
                     validTo: "2021-06-10T07:57:36.334Z"
-        400:
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {schemaId} Parameter:
                   value:
                     title: Bad Request
                     status: 400
                     detail: The format of {schemaId} parameter is not valid
-        404:
+        "404":
           description: Not found
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Schema Not Found:
                   $ref: "#/components/examples/NotFound"
                 Revision Not Found:
                   $ref: "#/components/examples/NotFound"
-        500:
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v1/policies:
     get:
-      tags:
-        - Trusted Schemas Registry
-      summary: Get all policies
-      description: Get all policies. Endpoint returns a paginated list of items.
       operationId: get-trusted-schemas-registry-v1-policies
+      summary: List policies
+      description: Returns a list of policies.
+      tags:
+        - Policies
       parameters:
         - in: query
           name: page[after]
@@ -624,7 +648,7 @@ paths:
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -685,34 +709,34 @@ paths:
                       prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies?page[after]=2&page[size]=2
                       next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies?page[after]=4&page[size]=2
                       last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies?page[after]=62&page[size]=2
-        400:
+        "400":
           description: Bad Request Error
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Bad Paging Request:
                   value:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        500:
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v1/policies/{policyId}:
     get:
-      tags:
-        - Trusted Schemas Registry
-      summary: Get policy by its ID
-      description: Returns a trusted policy by its ID
       operationId: get-trusted-schemas-registry-v1-policy
+      summary: Get a policy
+      description: Returns a trusted policy identified by its ID.
+      tags:
+        - Policies
       parameters:
         - name: policyId
           in: path
@@ -721,7 +745,7 @@ paths:
           example: test-policy-1
           required: true
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -733,43 +757,43 @@ paths:
                     policyId: test-policy-1
                     policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
                     hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
-        400:
+        "400":
           description: Bad Request
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {policyId} Parameter:
                   value:
                     title: Bad Request
                     status: 400
                     detail: The format of {policyId} parameter is not valid
-        404:
+        "404":
           description: Not found
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 DID Not Found:
                   $ref: "#/components/examples/NotFound"
-        500:
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v1/policies/{policyId}/revisions:
     get:
-      tags:
-        - Trusted Schemas Registry
-      summary: Get policy revisions
-      description: Paginated list of policy revisions.
       operationId: get-trusted-schemas-registry-v1-policy-revisions
+      summary: List policy revisions
+      description: Returns a list of policy revisions.
+      tags:
+        - Policies
       parameters:
         - name: policyId
           in: path
@@ -788,7 +812,7 @@ paths:
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -846,45 +870,45 @@ paths:
                       prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=2&page[size]=2
                       next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=4&page[size]=2
                       last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/policies/test-policy-1/revisions?page[after]=31&page[size]=2
-        400:
+        "400":
           description: Bad Request Error
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Bad Paging Request:
                   value:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        404:
+        "404":
           description: Not found
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 DID Not Found:
                   $ref: "#/components/examples/NotFound"
-        500:
+        "500":
           description: Internal Server Error
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v1/jsonrpc:
     post:
       operationId: post-trusted-schemas-registry-v1-jsonrpc
-      tags:
-        - Trusted Schemas Registry
-      summary: Helper APIs
+      summary: JSON-RPC API
       description: |
-        Helper APIs that assist the construction of blockchain transactions and interaction with
-        the ledger (Write operation on ledger).
+        The JSON-RPC API provides methods assisting the construction of blockchain transactions and
+        interaction with the ledger.
+      tags:
+        - JSON-RPC
       security:
         - bearerAuth: []
       requestBody:
@@ -895,12 +919,63 @@ paths:
 
           It requires the following fields:
 
-          - **jsonrpc**: Must be exactly '2.0'
-          - **method**: Method to be invoked. Possible values: 'insertPolicy',
-            'insertSchema', 'updateSchema', 'updatePolicy', 'updateMetadata',
-            'sendSignedTransaction'
-          - **params**: Array of parameters
-          - **id**: Identifier stablished by the client
+          - **jsonrpc**: must be exactly "2.0"
+          - **method**: method to be invoked
+          - **params**: method parameters
+          - **id**: identifier established by the client
+
+          ### API Methods
+
+          #### insertSchema
+
+          Call to build an unsigned transaction to insert a new schema. This method requires having right attributes assigned in Trusted Policies Registry.
+
+          Parameters:
+          - **from**: Ethereum address of the sender
+          - **schemaId**: DOI/OID converted into hex string
+          - **schema**: Content. This field must be a JSON stringified and converted into hex string
+          - **metadata**: Metadata of the first version. This field must be a JSON stringified and converted into hex string
+
+          #### updateSchema
+
+          Call to build an unsigned transaction to update an schema. This method requires having right attributes assigned in Trusted Policies Registry.
+
+          Parameters:
+          - **from**: Ethereum address of the sender
+          - **schemaId**: Schema ID
+          - **schema**: Content. This field must be a JSON stringified and converted into hex string
+          - **metadata**: Metadata. This field must be a JSON stringified and converted into hex string
+
+          #### updateMetadata
+
+          Call to build an unsigned transaction to update the metadata of a schema revision. This method requires having right attributes assigned in Trusted Policies Registry.
+
+          Parameters:
+          - **from**: Ethereum address of the sender
+          - **schemaRevisionId**: Schema revision ID
+          - **metadata**: Metadata. This field must be a JSON stringified and converted into hex string
+
+          #### insertPolicy
+
+          Call to build an unsigned transaction to insert a policy in the registry. 
+
+          Parameters:
+          - **from**: Ethereum address of the sender
+          - **policyId**: Policy Id
+          - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
+
+          #### updatePolicy
+
+          Call to build an unsigned transaction to update a policy.
+
+          Parameters:
+          - **from**: Ethereum address of the sender
+            - **policyId**: Policy Id
+            - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
+
+          #### sendSignedTransaction
+
+          Call to send a signed transaction to the blockchain.
         content:
           application/json:
             schema:
@@ -912,7 +987,7 @@ paths:
               type: object
               properties:
                 jsonrpc:
-                  description: Must be exactly '2.0'
+                  description: Must be exactly "2.0"
                   type: string
                 method:
                   description: Method that needs to be invoked
@@ -927,31 +1002,7 @@ paths:
                   type: integer
                   example: 1
             examples:
-              Build tx to insertPolicy:
-                description: |
-                  Call to build an unsigned transaction to insert a policy in the registry. 
-
-                   Parameters:
-                   - **from**: Ethereum address of the sender
-                   - **policyId**: Policy Id
-                   - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
-                value:
-                  jsonrpc: "2.0"
-                  method: insertPolicy
-                  id: 1
-                  params:
-                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      policyId: my-policy
-                      policyData: "0x7b22706f6c696379223a22396361663735323733373936353135656465613631323165227d"
               Build tx to insertSchema:
-                description: |
-                  Call to build an unsigned transaction to insert a new schema. This method requires having right attributes assigned in Trusted Policies Registry.
-
-                  Parameters:
-                  - **from**: Ethereum address of the sender
-                  - **schemaId**: DOI/OID converted into hex string
-                  - **schema**: Content. This field must be a JSON stringified and converted into hex string
-                  - **metadata**: Metadata of the first version. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: insertSchema
@@ -961,31 +1012,7 @@ paths:
                       schemaId: "0x312e332e362e312e342e312e3339312e31302e3132302e322e332e312e3734"
                       schema: "0x7b2240636f6e74657874223a2268747470733a2f2f656273692e6575222c2274797065223a22536368656d61222c226e616d65223a226578616d706c65222c2264617461223a223065346637383664343036613330643339343438633563613232343562316130227d"
                       metadata: "0x7b226d657461223a2276616c7565222c2264617461223a223536323930303863363738383536346164653165353266383635623864366535222c2276616c696446726f6d223a22323032312d30382d30325430393a31323a30342e3230365a222c2276616c6964546f223a22323032312d30382d30325430393a31383a30342e3230365a227d"
-              Build tx to updatePolicy:
-                description: |
-                  Call to build an unsigned transaction to update a policy.
-
-                  Parameters:
-                  - **from**: Ethereum address of the sender
-                   - **policyId**: Policy Id
-                   - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
-                value:
-                  jsonrpc: "2.0"
-                  method: updatePolicy
-                  id: 1
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyId: test-policy-1
-                      policyData: "0x1234567890..."
               Build tx to updateSchema:
-                description: |
-                  Call to build an unsigned transaction to update an schema. This method requires having right attributes assigned in Trusted Policies Registry.
-
-                  Parameters:
-                  - **from**: Ethereum address of the sender
-                  - **schemaId**: Schema ID
-                  - **schema**: Content. This field must be a JSON stringified and converted into hex string
-                  - **metadata**: Metadata. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: updateSchema
@@ -996,13 +1023,6 @@ paths:
                       schema: "0x227b2240636f6e74657874223a2268747470733a2f2f656273692e6575222c2274797065223a22536368656d61222c226e616d65223a226578616d706c65227d22"
                       metadata: "0x227b226d657461223a2276616c7565227d22"
               Build tx to updateMetadata:
-                description: |
-                  Call to build an unsigned transaction to update the metadata of a schema revision. This method requires having right attributes assigned in Trusted Policies Registry.
-
-                  Parameters:
-                  - **from**: Ethereum address of the sender
-                  - **schemaRevisionId**: Schema revision ID
-                  - **metadata**: Metadata. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: updateMetadata
@@ -1011,6 +1031,24 @@ paths:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       schemaRevisionId: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
                       metadata: "0x227b226d657461223a2276616c7565227d22"
+              Build tx to insertPolicy:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertPolicy
+                  id: 1
+                  params:
+                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
+                      policyId: my-policy
+                      policyData: "0x7b22706f6c696379223a22396361663735323733373936353135656465613631323165227d"
+              Build tx to updatePolicy:
+                value:
+                  jsonrpc: "2.0"
+                  method: updatePolicy
+                  id: 1
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      policyId: test-policy-1
+                      policyData: "0x1234567890..."
               Send Transaction:
                 description: Call to send a signed transaction to the blockchain.
                 value:
@@ -1056,7 +1094,7 @@ paths:
                       v: "0x..."
                       signedRawTransaction: "--- signed raw transaction ---"
       responses:
-        200:
+        "200":
           description: Response
           content:
             application/json:
@@ -1081,19 +1119,20 @@ paths:
                     jsonrpc: "2.0"
                     id: 1
                     result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
-        400:
+        "400":
           description: Bad request
           content:
             application/problem+json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Bad Request:
                   $ref: "#/components/examples/BadRequest"
 components:
   schemas:
-    Problem:
-      description: A Problem Details object (RFC 7807)
+    ProblemDetails:
+      title: Problem Details
+      description: A [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) object.
       type: object
       properties:
         type:
@@ -1128,11 +1167,11 @@ components:
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
     JsonRpcResponse:
-      title: Json Rpc Response
+      title: JSON-RPC Response
       type: object
       properties:
         jsonrpc:
-          description: Must be exactly '2.0'
+          description: Must be exactly "2.0"
           type: string
         id:
           description: Same identifier established by the client in the call
@@ -1159,39 +1198,6 @@ components:
         last:
           type: string
           description: Hyperlink to the last page.
-    SchemaLinks:
-      title: Schema links
-      description: Links to schemas as returned by the REST APIs.
-      type: object
-      properties:
-        schemaId:
-          type: string
-          description: Unique schema id (OID or DOI)
-        href:
-          type: string
-          description: Link to the resource.
-    SchemaRevisionsLinks:
-      title: Schema revisions links
-      description: Links to schema revisions as returned by the REST APIs.
-      type: object
-      properties:
-        schemaRevisionId:
-          type: string
-          description: Schema revision id - SHA2-256 hash of the schema revision (hexadecimal)
-        href:
-          type: string
-          description: Link to the resource.
-    SchemaRevisionsMetadataLinks:
-      title: Schema revisions metadata links
-      description: Links to schema revisions metadata as returned by the REST APIs.
-      type: object
-      properties:
-        metadataId:
-          type: string
-          description: Schema revision metadata id - SHA2-256 hash of the schema revision metadata (hexadecimal)
-        href:
-          type: string
-          description: Link to the resource.
     Policy:
       title: Policy
       type: object
